@@ -1,0 +1,512 @@
+"use client";
+
+import "@/lib/fonts/THSarabunNew-normal";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+
+type Props = {
+  material: any;
+  rows: any[];
+};
+
+
+
+const categoryName: Record<string, string> = {
+
+  OFFICE: "วัสดุสำนักงาน",
+
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+
+  VEHICLE: "วัสดุยานพาหนะ",
+
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+
+};
+
+
+
+// แสดงวันที่แบบ ค.ศ.
+function formatDate(date:any){
+
+  if(!date) return "";
+
+  const d = new Date(date);
+
+  return `${d.getDate()
+    .toString()
+    .padStart(2,"0")}/${
+      (d.getMonth()+1)
+      .toString()
+      .padStart(2,"0")
+    }/${d.getFullYear()}`;
+
+}
+
+
+
+// แสดงราคา 2 ตำแหน่ง
+
+function formatMoney(value:number){
+
+  return Number(value ?? 0)
+    .toLocaleString("en-US",{
+
+      minimumFractionDigits:2,
+
+      maximumFractionDigits:2,
+
+    });
+
+}
+
+
+
+export default function ExportPdf({
+
+  material,
+
+  rows,
+
+}:Props){
+
+
+  async function exportPdf(){
+
+
+    const doc = new jsPDF({
+
+      orientation:"landscape",
+
+      unit:"mm",
+
+      format:"a4",
+
+    });
+
+
+
+    doc.setFont(
+      "2.3.2 THSarabunNew",
+      "normal"
+    );
+
+
+
+    const pageWidth =
+      doc.internal.pageSize.getWidth();
+
+
+
+    const center =
+      pageWidth / 2;
+
+
+
+    doc.setFontSize(26);
+
+
+
+    doc.text(
+
+      "บัญชีพัสดุ",
+
+      center,
+
+      16,
+
+      {
+        align:"center",
+      }
+
+    );
+
+
+
+    doc.setFontSize(16);
+
+
+
+    doc.text(
+
+      "ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย",
+
+      232,
+
+      18,
+
+      {
+        align:"center",
+      }
+
+    );
+
+
+    doc.text(
+
+      "หน่วยงาน  สำนักอนามัยการเจริญพันธุ์",
+
+      232,
+
+      24,
+
+      {
+        align:"center",
+      }
+
+    );
+
+
+
+    const leftX = 14;
+
+    const rightX = 150;
+
+
+
+    doc.text(
+
+      `รหัสพัสดุ : ${material.code}`,
+
+      leftX,
+
+      38
+
+    );
+
+
+    doc.text(
+
+      `รายการพัสดุ : ${material.name}`,
+
+      rightX,
+
+      38
+
+    );
+
+
+    doc.text(
+
+      `หมวดหมู่ : ${
+        categoryName[material.category]
+        ?? material.category
+      }`,
+
+      leftX,
+
+      46
+
+    );
+
+
+    doc.text(
+
+      `หน่วย : ${material.unit}`,
+
+      rightX,
+
+      46
+
+    );
+
+
+
+    doc.text(
+
+      `ผู้จำหน่าย : ${
+        material.vendor?.name ?? "-"
+      }`,
+
+      leftX,
+
+      54
+
+    );
+
+
+    doc.text(
+
+      `ราคาล่าสุด : ${
+        formatMoney(material.latestPrice)
+      } บาท`,
+
+      rightX,
+
+      54
+
+    );
+        // ===============================
+    // เตรียมข้อมูลตาราง
+    // ===============================
+
+    const body = rows.map((r) => [
+
+      formatDate(r.date),
+
+      r.documentNo ?? "",
+
+      r.owner ?? "",
+
+      formatMoney(r.unitPrice),
+
+      r.receiveQty || "",
+
+      r.issueQty || "",
+
+      r.balance ?? "",
+
+      formatDate(r.manufacture),
+
+      formatDate(r.expiry),
+
+    ]);
+
+
+
+    // เติมแถวว่างให้ครบ 10 แถว
+
+    while (body.length < 10) {
+
+      body.push([
+
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+
+      ]);
+
+    }
+
+
+
+    // ===============================
+    // สร้างตาราง PDF
+    // ===============================
+
+
+    autoTable(doc, {
+
+      startY: 60,
+
+
+      head: [[
+
+        "วันที่",
+
+        "เลขที่เอกสาร",
+
+        "ผู้จำหน่าย / หน่วยงาน",
+
+        "ราคาล่าสุด",
+
+        "รับเข้า",
+
+        "เบิกจ่าย",
+
+        "คงเหลือ",
+
+        "วันผลิต",
+
+        "วันหมดอายุ",
+
+      ]],
+
+
+
+      body,
+
+
+
+      theme:"grid",
+
+
+
+      margin:{
+
+        left:10,
+
+        right:10,
+
+      },
+
+
+
+      styles:{
+
+        font:"2.3.2 THSarabunNew",
+
+        fontStyle:"normal",
+
+        fontSize:14,
+
+        cellPadding:3,
+
+        halign:"center",
+
+        valign:"middle",
+
+        lineColor:[0,0,0],
+
+        lineWidth:0.25,
+
+      },
+
+
+
+      headStyles:{
+
+        font:"2.3.2 THSarabunNew",
+
+        fontStyle:"normal",
+
+        fontSize:14,
+
+        fillColor:[255,255,255],
+
+        textColor:0,
+
+        halign:"center",
+
+        valign:"middle",
+
+        lineColor:[0,0,0],
+
+        lineWidth:0.25,
+
+      },
+
+
+
+      bodyStyles:{
+
+        font:"2.3.2 THSarabunNew",
+
+        fontStyle:"normal",
+
+        fontSize:16,
+
+      },
+
+
+
+      columnStyles:{
+
+
+        0:{
+
+          cellWidth:28,
+
+        },
+
+
+        1:{
+
+          cellWidth:38,
+
+        },
+
+
+        2:{
+
+          cellWidth:72,
+
+          halign:"left",
+
+        },
+
+
+        3:{
+
+          cellWidth:28,
+
+          halign:"right",
+
+        },
+
+
+        4:{
+
+          cellWidth:18,
+
+        },
+
+
+        5:{
+
+          cellWidth:18,
+
+        },
+
+
+        6:{
+
+          cellWidth:18,
+
+        },
+
+
+        7:{
+
+          cellWidth:28,
+
+        },
+
+
+        8:{
+
+          cellWidth:28,
+
+        },
+
+
+      },
+
+
+    });
+        // ===============================
+    // บันทึกไฟล์
+    // ===============================
+
+    doc.save(
+      `${material.code}-stock-card.pdf`
+    );
+
+  }
+
+
+
+  return (
+
+    <button
+
+      onClick={exportPdf}
+
+      className="
+        rounded-lg
+        bg-red-600
+        px-4
+        py-2
+        text-white
+        hover:bg-red-700
+      "
+
+    >
+
+      Export PDF
+
+    </button>
+
+  );
+
+}

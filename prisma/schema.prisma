@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Category {
+  OFFICE
+  COMPUTER
+  ELECTRIC
+  HOUSEHOLD
+  VEHICLE
+  PRINTING
+}
+
+enum OfficerType {
+  CIVIL_SERVANT
+  GOVERNMENT_EMPLOYEE
+  PERMANENT_EMPLOYEE
+  OUTSOURCE
+}
+
+// ======================
+// สิทธิ์ผู้ใช้งาน
+// ======================
+
+enum Role {
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  fullname  String
+  role      Role     @default(STAFF)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Material {
+  id           Int      @id @default(autoincrement())
+  code         String   @unique
+  name         String
+  category     Category
+  unit         String
+  latestPrice  Float    @default(0)
+  balance      Int      @default(0)
+  minimumStock Int      @default(0)
+  remark       String?
+
+  vendorId Int?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
+  receiveItems ReceiveItem[]
+  issueItems   IssueItem[]
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vendor {
+  id      Int    @id @default(autoincrement())
+  name    String
+  address String?
+  phone   String?
+  taxId   String?
+
+  materials Material[]
+  receives  Receive[]
+}
+
+model Department {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  issues   Issue[]
+  sections Section[]
+  officers Officer[]
+}
+
+model Section {
+  id           Int    @id @default(autoincrement())
+  name         String
+
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  officers Officer[]
+}
+
+model Officer {
+  id         Int    @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  position   String
+  type       OfficerType
+
+  sectionId Int?
+  section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  issues Issue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================
+// รับพัสดุ
+// ======================
+
+model Receive {
+  id          Int      @id @default(autoincrement())
+  documentNo  String
+  receiveDate DateTime
+  pdf         String?
+  remark      String?
+
+  vendorId Int
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+
+  items ReceiveItem[]
+
+  createdAt DateTime @default(now())
+}
+
+model ReceiveItem {
+  id Int @id @default(autoincrement())
+
+  receiveId Int
+  receive   Receive @relation(fields: [receiveId], references: [id])
+
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id])
+
+  qty Int
+
+  unitPrice Float
+
+  manufacture DateTime?
+  expiry      DateTime?
+}
+
+// ======================
+// เบิกพัสดุ
+// ======================
+
+model Issue {
+  id         Int      @id @default(autoincrement())
+  documentNo String
+  issueDate  DateTime
+  pdf        String?
+  remark     String?
+
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  officerId Int?
+  officer   Officer? @relation(fields: [officerId], references: [id])
+
+  items IssueItem[]
+
+  createdAt DateTime @default(now())
+}
+
+model IssueItem {
+  id Int @id @default(autoincrement())
+
+  issueId Int
+  issue   Issue @relation(fields: [issueId], references: [id])
+
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id])
+
+  qty Int
+}
+
+// ======================
+// ประวัติการเคลื่อนไหว
+// ======================
+
+model Transaction {
+  id Int @id @default(autoincrement())
+
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id])
+
+  date DateTime @default(now())
+
+  type String
+
+  documentNo String
+
+  receiveQty Int @default(0)
+  issueQty   Int @default(0)
+
+  balance Int
+
+  unitPrice Float?
+
+  vendor     String?
+  department String?
+  remark     String?
+}
+
+// ======================
+// ทะเบียนรายการพัสดุ (Master)
+// ======================
+
+model MaterialMaster {
+  id        Int      @id @default(autoincrement())
+  category  Category
+  name      String
+  unit      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, name])
+}
