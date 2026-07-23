@@ -1,11 +1,17 @@
 import "dotenv/config";
 
-import { PrismaClient, OfficerType } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import {
+  PrismaClient,
+  OfficerType,
+  Role,
+} from "@prisma/client";
+
+import { PrismaPg } from "@prisma/adapter-pg";
+import bcrypt from "bcryptjs";
 
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL!,
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
 });
 
 
@@ -14,55 +20,45 @@ const prisma = new PrismaClient({
 });
 
 
-
 async function main() {
-
 
 
   // =========================
   // สร้างกลุ่มงาน
   // =========================
 
-
   const departments = [
 
     "กลุ่มอำนวยการ",
-
     "กลุ่มบริหารยุทธศาสตร์",
-
     "กลุ่มพัฒนาเทคโนโลยีอนามัยการเจริญพันธุ์",
-
     "กลุ่มพัฒนาประชากร",
-
     "กลุ่มพัฒนาเครือข่ายอนามัยการเจริญพันธุ์",
-
     "ผู้บริหารสำนักอนามัยการเจริญพันธุ์",
 
   ];
 
 
-
-  const departmentMap:any = {};
-
+  const departmentMap: any = {};
 
 
-  for(const name of departments){
+  for (const name of departments) {
 
 
-    const department = await prisma.department.upsert({
+    const department =
+      await prisma.department.upsert({
 
-      where:{
-        name,
-      },
+        where: {
+          name,
+        },
 
-      update:{},
+        update: {},
 
-      create:{
-        name,
-      },
+        create: {
+          name,
+        },
 
-    });
-
+      });
 
 
     departmentMap[name] = department.id;
@@ -78,7 +74,6 @@ async function main() {
   // งานภายในกลุ่มอำนวยการ
   // =========================
 
-
   const adminDepartmentId =
     departmentMap["กลุ่มอำนวยการ"];
 
@@ -87,30 +82,28 @@ async function main() {
   const sections = [
 
     "งานการเงิน",
-
     "งานสารบรรณ",
-
     "งานพัสดุ",
 
   ];
 
 
 
-  const sectionMap:any = {};
+  const sectionMap: any = {};
 
 
 
-  for(const name of sections){
+  for (const name of sections) {
 
 
     let section =
       await prisma.section.findFirst({
 
-        where:{
+        where: {
 
           name,
 
-          departmentId:adminDepartmentId,
+          departmentId: adminDepartmentId,
 
         },
 
@@ -118,17 +111,17 @@ async function main() {
 
 
 
-    if(!section){
+    if (!section) {
 
 
       section =
         await prisma.section.create({
 
-          data:{
+          data: {
 
             name,
 
-            departmentId:adminDepartmentId,
+            departmentId: adminDepartmentId,
 
           },
 
@@ -149,7 +142,6 @@ async function main() {
 
 
 
-
   // =========================
   // เจ้าหน้าที่
   // =========================
@@ -160,60 +152,60 @@ async function main() {
 
     {
 
-      firstName:"สมชาย",
+      firstName: "สมชาย",
 
-      lastName:"ใจดี",
+      lastName: "ใจดี",
 
-      position:"เจ้าหน้าที่การเงิน",
+      position: "เจ้าหน้าที่การเงิน",
 
-      type:OfficerType.CIVIL_SERVANT,
+      type: OfficerType.CIVIL_SERVANT,
 
-      sectionId:sectionMap["งานการเงิน"],
-
-    },
-
-
-    {
-
-      firstName:"สายใจ",
-
-      lastName:"ดีมาก",
-
-      position:"นักวิชาการเงินและบัญชี",
-
-      type:OfficerType.CIVIL_SERVANT,
-
-      sectionId:sectionMap["งานการเงิน"],
+      sectionId: sectionMap["งานการเงิน"],
 
     },
 
 
     {
 
-      firstName:"เอกสาร",
+      firstName: "สายใจ",
 
-      lastName:"รักงาน",
+      lastName: "ดีมาก",
 
-      position:"เจ้าหน้าที่สารบรรณ",
+      position: "นักวิชาการเงินและบัญชี",
 
-      type:OfficerType.GOVERNMENT_EMPLOYEE,
+      type: OfficerType.CIVIL_SERVANT,
 
-      sectionId:sectionMap["งานสารบรรณ"],
+      sectionId: sectionMap["งานการเงิน"],
 
     },
 
 
     {
 
-      firstName:"พัสดุ",
+      firstName: "เอกสาร",
 
-      lastName:"ดูแล",
+      lastName: "รักงาน",
 
-      position:"เจ้าหน้าที่พัสดุ",
+      position: "เจ้าหน้าที่สารบรรณ",
 
-      type:OfficerType.PERMANENT_EMPLOYEE,
+      type: OfficerType.GOVERNMENT_EMPLOYEE,
 
-      sectionId:sectionMap["งานพัสดุ"],
+      sectionId: sectionMap["งานสารบรรณ"],
+
+    },
+
+
+    {
+
+      firstName: "พัสดุ",
+
+      lastName: "ดูแล",
+
+      position: "เจ้าหน้าที่พัสดุ",
+
+      type: OfficerType.PERMANENT_EMPLOYEE,
+
+      sectionId: sectionMap["งานพัสดุ"],
 
     },
 
@@ -223,26 +215,19 @@ async function main() {
 
 
 
-
-
-  for(const officer of officers){
-
+  for (const officer of officers) {
 
 
     const exists =
       await prisma.officer.findFirst({
 
-        where:{
+        where: {
 
+          firstName: officer.firstName,
 
-          firstName:officer.firstName,
+          lastName: officer.lastName,
 
-
-          lastName:officer.lastName,
-
-
-          sectionId:officer.sectionId,
-
+          sectionId: officer.sectionId,
 
         },
 
@@ -250,20 +235,17 @@ async function main() {
 
 
 
-
-
-    if(!exists){
+    if (!exists) {
 
 
       await prisma.officer.create({
 
-        data:officer,
+        data: officer,
 
       });
 
 
     }
-
 
 
   }
@@ -272,10 +254,86 @@ async function main() {
 
 
 
-  console.log(
-    "สร้างข้อมูลหน่วยงาน งานภายในกลุ่ม และเจ้าหน้าที่เรียบร้อย"
-  );
 
+  // =========================
+  // สร้างผู้ใช้งานระบบ
+  // =========================
+
+
+  const passwordHash =
+    await bcrypt.hash(
+      "admin123",
+      10
+    );
+
+
+
+  await prisma.user.upsert({
+
+    where: {
+
+      username: "admin",
+
+    },
+
+
+    update: {},
+
+
+    create: {
+
+      username: "admin",
+
+      password: passwordHash,
+
+      fullname: "ผู้ดูแลระบบ",
+
+      role: Role.ADMIN,
+
+      active: true,
+
+    },
+
+
+  });
+
+
+
+
+
+
+  // =========================
+  // สร้างผู้ขายเริ่มต้น
+  // =========================
+
+
+  await prisma.vendor.createMany({
+
+    data: [
+
+      {
+
+        name: "บริษัทตัวอย่าง",
+
+        address: "กรุงเทพมหานคร",
+
+        phone: "-",
+
+      },
+
+    ],
+
+    skipDuplicates: true,
+
+  });
+
+
+
+
+
+  console.log(
+    "สร้างข้อมูลหน่วยงาน เจ้าหน้าที่ ผู้ใช้งาน และผู้ขายเรียบร้อย"
+  );
 
 
 }
@@ -286,19 +344,19 @@ async function main() {
 
 main()
 
-.then(async()=>{
+  .then(async () => {
 
-  await prisma.$disconnect();
+    await prisma.$disconnect();
 
-})
+  })
 
 
-.catch(async(e)=>{
+  .catch(async (e) => {
 
-  console.error(e);
+    console.error(e);
 
-  await prisma.$disconnect();
+    await prisma.$disconnect();
 
-  process.exit(1);
+    process.exit(1);
 
-});
+  });

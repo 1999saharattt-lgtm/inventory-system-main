@@ -70,7 +70,6 @@ export default function ReceiveForm({
     expiry: "",
   });
 
-  const [rows, setRows] = useState<ReceiveRow>([]);
   const [items, setItems] = useState<ReceiveRow[]>(
     Array.from({ length: 15 }, emptyRow)
   );

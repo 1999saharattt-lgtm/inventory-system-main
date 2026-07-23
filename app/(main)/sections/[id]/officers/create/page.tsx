@@ -10,14 +10,12 @@ type Props = {
 };
 
 
-
 export default async function CreateOfficerPage({
   params,
 }: Props) {
 
 
   const { id } = await params;
-
 
 
   const section = await prisma.section.findUnique({
@@ -34,7 +32,6 @@ export default async function CreateOfficerPage({
 
 
 
-
   if (!section) {
 
     redirect("/departments");
@@ -43,11 +40,13 @@ export default async function CreateOfficerPage({
 
 
 
+  const departmentId = section.departmentId;
+
+
 
   async function createOfficer(formData: FormData) {
 
     "use server";
-
 
 
     const firstName =
@@ -87,11 +86,9 @@ export default async function CreateOfficerPage({
 
 
 
-    redirect(`/departments/${section.departmentId}`);
+    redirect(`/departments/${departmentId}`);
 
   }
-
-
 
 
 
@@ -99,8 +96,6 @@ export default async function CreateOfficerPage({
 
     <div className="space-y-6">
 
-
-      {/* Header */}
 
       <div
         className="
@@ -113,12 +108,10 @@ export default async function CreateOfficerPage({
         "
       >
 
-
         <div className="flex items-center justify-between">
 
 
           <div>
-
 
             <h1
               className="
@@ -146,7 +139,7 @@ export default async function CreateOfficerPage({
 
           <Link
 
-            href={`/departments/${section.departmentId}`}
+            href={`/departments/${departmentId}`}
 
             className="
               rounded-lg
@@ -167,17 +160,12 @@ export default async function CreateOfficerPage({
           </Link>
 
 
-
         </div>
-
 
       </div>
 
 
 
-
-
-      {/* Form */}
 
       <div
         className="
@@ -192,30 +180,22 @@ export default async function CreateOfficerPage({
       >
 
 
-
         <form
           action={createOfficer}
           className="space-y-5"
         >
 
 
-
           <div>
 
-
             <label className="mb-1 block font-medium text-slate-700">
-
               ชื่อ
-
             </label>
 
 
             <input
-
               name="firstName"
-
               required
-
               className="
                 w-full
                 rounded-lg
@@ -225,36 +205,23 @@ export default async function CreateOfficerPage({
                 px-4
                 py-2
                 text-slate-900
-                outline-none
-                focus:border-blue-500
               "
-
             />
-
 
           </div>
 
 
 
-
-
-
           <div>
 
-
             <label className="mb-1 block font-medium text-slate-700">
-
               นามสกุล
-
             </label>
 
 
             <input
-
               name="lastName"
-
               required
-
               className="
                 w-full
                 rounded-lg
@@ -264,39 +231,23 @@ export default async function CreateOfficerPage({
                 px-4
                 py-2
                 text-slate-900
-                outline-none
-                focus:border-blue-500
               "
-
             />
-
 
           </div>
 
 
 
-
-
-
-
           <div>
 
-
             <label className="mb-1 block font-medium text-slate-700">
-
               ตำแหน่ง
-
             </label>
 
 
             <input
-
               name="position"
-
               required
-
-              placeholder=""
-
               className="
                 w-full
                 rounded-lg
@@ -306,36 +257,23 @@ export default async function CreateOfficerPage({
                 px-4
                 py-2
                 text-slate-900
-                outline-none
-                focus:border-blue-500
               "
-
             />
-
 
           </div>
 
 
 
 
-
-
-
           <div>
 
-
             <label className="mb-1 block font-medium text-slate-700">
-
               ประเภทบุคลากร
-
             </label>
-
 
 
             <select
-
               name="type"
-
               className="
                 w-full
                 rounded-lg
@@ -346,50 +284,37 @@ export default async function CreateOfficerPage({
                 py-2
                 text-slate-900
               "
-
             >
 
-
               <option value="CIVIL_SERVANT">
-
                 ข้าราชการ
-
               </option>
 
 
               <option value="GOVERNMENT_EMPLOYEE">
-
                 พนักงานราชการ
-
               </option>
 
 
               <option value="PERMANENT_EMPLOYEE">
-
                 ลูกจ้างประจำ
-
               </option>
 
 
               <option value="OUTSOURCE">
-
                 จ้างเหมาบริการ
-
               </option>
 
 
             </select>
 
-
           </div>
 
 
 
 
-
-
           <button
-
+            type="submit"
             className="
               rounded-lg
               bg-green-700
@@ -398,17 +323,13 @@ export default async function CreateOfficerPage({
               font-semibold
               text-white
               shadow-sm
-              transition
               hover:bg-green-800
             "
-
           >
 
             บันทึกข้อมูล
 
           </button>
-
-
 
 
 

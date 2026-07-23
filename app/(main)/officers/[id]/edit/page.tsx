@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 
 type Props = {
   params: Promise<{
-    id:string;
+    id: string;
   }>;
 };
 
@@ -12,25 +12,24 @@ type Props = {
 
 export default async function EditOfficerPage({
   params,
-}:Props){
+}: Props) {
 
 
-  const {id} = await params;
+  const { id } = await params;
 
 
 
   const officer = await prisma.officer.findUnique({
 
-    where:{
-      id:Number(id)
-    }
+    where: {
+      id: Number(id),
+    },
 
   });
 
 
 
-
-  if(!officer){
+  if (!officer) {
 
     notFound();
 
@@ -38,11 +37,7 @@ export default async function EditOfficerPage({
 
 
 
-
-
-
-  async function updateOfficer(formData:FormData){
-
+  async function updateOfficer(formData: FormData) {
 
     "use server";
 
@@ -50,6 +45,7 @@ export default async function EditOfficerPage({
 
     const firstName =
       formData.get("firstName") as string;
+
 
 
     const lastName =
@@ -67,18 +63,18 @@ export default async function EditOfficerPage({
 
 
 
+    const sectionId =
+      formData.get("sectionId") as string;
+
 
 
     await prisma.officer.update({
 
-
-      where:{
-        id:Number(id)
+      where: {
+        id: Number(id),
       },
 
-
-      data:{
-
+      data: {
 
         firstName,
 
@@ -88,20 +84,15 @@ export default async function EditOfficerPage({
 
         type,
 
-
-      }
-
+      },
 
     });
 
 
 
-
-
     redirect(
-      `/departments/${officer.sectionId}`
+      `/departments/${sectionId}`
     );
-
 
   }
 
@@ -111,10 +102,10 @@ export default async function EditOfficerPage({
 
   return (
 
-    <div className="p-6 max-w-xl">
+    <div className="max-w-xl p-6">
 
 
-      <h1 className="text-2xl font-bold mb-5">
+      <h1 className="mb-5 text-2xl font-bold">
 
         แก้ไขข้อมูลเจ้าหน้าที่
 
@@ -124,10 +115,23 @@ export default async function EditOfficerPage({
 
 
       <form
-      action={updateOfficer}
-      className="space-y-4"
+
+        action={updateOfficer}
+
+        className="space-y-4"
+
       >
 
+
+        <input
+
+          type="hidden"
+
+          name="sectionId"
+
+          value={officer.sectionId ?? 0}
+
+        />
 
 
 
@@ -137,14 +141,13 @@ export default async function EditOfficerPage({
             ชื่อ
           </label>
 
-
           <input
 
-          name="firstName"
+            name="firstName"
 
-          defaultValue={officer.firstName}
+            defaultValue={officer.firstName}
 
-          className="border p-2 w-full rounded"
+            className="w-full rounded border p-2"
 
           />
 
@@ -160,14 +163,13 @@ export default async function EditOfficerPage({
             นามสกุล
           </label>
 
-
           <input
 
-          name="lastName"
+            name="lastName"
 
-          defaultValue={officer.lastName}
+            defaultValue={officer.lastName}
 
-          className="border p-2 w-full rounded"
+            className="w-full rounded border p-2"
 
           />
 
@@ -183,19 +185,17 @@ export default async function EditOfficerPage({
             ตำแหน่ง
           </label>
 
-
           <input
 
-          name="position"
+            name="position"
 
-          defaultValue={officer.position}
+            defaultValue={officer.position}
 
-          className="border p-2 w-full rounded"
+            className="w-full rounded border p-2"
 
           />
 
         </div>
-
 
 
 
@@ -210,37 +210,31 @@ export default async function EditOfficerPage({
 
           <select
 
-          name="type"
+            name="type"
 
-          defaultValue={officer.type}
+            defaultValue={officer.type}
 
-          className="border p-2 w-full rounded"
+            className="w-full rounded border p-2"
 
           >
-
 
             <option value="CIVIL_SERVANT">
               ข้าราชการ
             </option>
 
-
             <option value="GOVERNMENT_EMPLOYEE">
               พนักงานราชการ
             </option>
-
 
             <option value="PERMANENT_EMPLOYEE">
               ลูกจ้างประจำ
             </option>
 
-
             <option value="OUTSOURCE">
               จ้างเหมาบริการ
             </option>
 
-
           </select>
-
 
         </div>
 
@@ -250,7 +244,9 @@ export default async function EditOfficerPage({
 
         <button
 
-        className="bg-green-600 text-white px-4 py-2 rounded"
+          type="submit"
+
+          className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
 
         >
 
@@ -267,6 +263,5 @@ export default async function EditOfficerPage({
     </div>
 
   );
-
 
 }

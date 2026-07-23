@@ -14,7 +14,7 @@ type Officer = {
   lastName: string;
   section: {
     departmentId: number;
-  };
+  } | null;
 };
 
 type Material = {
@@ -103,9 +103,9 @@ export default function IssueForm({
   }
 
   const filteredOfficers = officers.filter(
-    (officer) =>
-      officer.section.departmentId === Number(departmentId)
-  );
+  (officer) =>
+    officer.section?.departmentId === Number(departmentId)
+);
 
   return (
     <div className="rounded-xl bg-white p-6 shadow">

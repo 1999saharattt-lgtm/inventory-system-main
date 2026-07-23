@@ -3,68 +3,48 @@ import Link from "next/link";
 
 
 type Props = {
-
   params: Promise<{
-
-    id:string;
-
+    id: string;
   }>;
-
 };
 
 
-
 export default async function SectionDetailPage({
-
   params,
+}: Props) {
 
-}:Props){
-
-
-  const {id}=await params;
-
+  const { id } = await params;
 
 
   const section = await prisma.section.findUnique({
 
-    where:{
-
-      id:Number(id),
-
+    where: {
+      id: Number(id),
     },
 
+    include: {
 
-    include:{
+      officers: true,
 
-
-      officers:true,
-
-
-      department:true,
-
+      department: true,
 
     },
-
 
   });
 
 
 
-
-  if(!section){
+  if (!section) {
 
     return (
 
       <div>
-
         ไม่พบข้อมูล
-
       </div>
 
     );
 
   }
-
 
 
 
@@ -81,24 +61,21 @@ export default async function SectionDetailPage({
 
 
 
-      <p className="text-gray-600 mt-2">
+      <p className="mt-2 text-gray-600">
 
         กลุ่ม:
         {" "}
-        {section.department.name}
+        {section.department?.name ?? "-"}
 
       </p>
 
 
 
-
-      <hr className="my-5"/>
-
+      <hr className="my-5" />
 
 
 
-
-      <h2 className="text-xl font-semibold mb-3">
+      <h2 className="mb-3 text-xl font-semibold">
 
         เจ้าหน้าที่
 
@@ -110,33 +87,31 @@ export default async function SectionDetailPage({
       {section.officers.length === 0 ? (
 
         <p>
-
           ยังไม่มีเจ้าหน้าที่
-
         </p>
 
 
-      ):(
+      ) : (
 
 
         <div className="space-y-3">
 
 
-          {section.officers.map((officer)=>(
+          {section.officers.map((officer) => (
 
 
             <div
 
               key={officer.id}
 
-              className="border rounded p-4"
+              className="rounded border p-4"
 
             >
 
 
               <div className="font-bold">
 
-                {officer.name}
+                {officer.firstName} {officer.lastName}
 
               </div>
 
@@ -167,7 +142,6 @@ export default async function SectionDetailPage({
 
 
 
-
       <div className="mt-5">
 
 
@@ -192,6 +166,5 @@ export default async function SectionDetailPage({
 
 
   );
-
 
 }

@@ -1,19 +1,20 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+type Props = {
+  category: string;
+  defaultSearch?: string;
+};
 
 export default function SearchStockCard({
   category,
-}: {
-  category: string;
-}) {
+  defaultSearch = "",
+}: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState(
-    searchParams.get("search") ?? ""
-  );
+  const [search, setSearch] = useState(defaultSearch);
 
   function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
