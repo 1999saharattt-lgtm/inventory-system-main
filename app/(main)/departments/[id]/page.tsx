@@ -346,7 +346,7 @@ export default async function DepartmentDetailPage({
         </div>
 
             ) : (
-        department.sections.map((section) => (
+        department.sections.map((section: any) => (
             <div
               key={section.id}
               className="
