@@ -345,7 +345,7 @@ export default async function IssueDetailPage({
 
 
             {
-              issue.items.map((item,index)=>(
+              issue.items.map((item: any, index: number) => (
 
 
                 <tr key={item.id}>
