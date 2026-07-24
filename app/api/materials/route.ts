@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateMaterialCode } from "@/lib/materialCode";
-import { Category } from "@prisma/client";
+
+const categoryList = [
+  "OFFICE",
+  "COMPUTER",
+  "ELECTRIC",
+  "HOUSEHOLD",
+  "VEHICLE",
+  "PRINTING",
+];
 
 // ======================
 // ดึงรายการพัสดุทั้งหมด
@@ -40,7 +48,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!Object.values(Category).includes(body.category)) {
+    if (!categoryList.includes(body.category)) {
       return NextResponse.json(
         {
           success: false,
