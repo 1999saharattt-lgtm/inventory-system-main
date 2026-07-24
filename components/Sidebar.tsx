@@ -127,6 +127,7 @@ export default function Sidebar() {
               justify-center
               shadow-lg
               overflow-hidden
+              shrink-0
             "
           >
 
@@ -143,38 +144,53 @@ export default function Sidebar() {
           </div>
 
 
-          <div className="flex-1 flex flex-col justify-center items-center text-center">
 
-  <h1
-    className="
-      text-xl
-      font-bold
-      text-slate-800
-      leading-tight
-    "
-  >
-    ระบบบริหารคลังพัสดุ
-  </h1>
+          <div
+            className="
+              flex-1
+              flex
+              flex-col
+              justify-center
+              items-center
+              text-center
+              min-w-0
+            "
+          >
+
+            <h1
+              className="
+                whitespace-nowrap
+                text-xl
+                font-extrabold
+                text-slate-800
+                leading-tight
+              "
+            >
+              ระบบบริหารคลังพัสดุ
+            </h1>
 
 
-  <p
-    className="
-      text-base
-      text-blue-600
-      mt-1
-      font-medium
-    "
-  >
-    สำนักอนามัยการเจริญพันธุ์
-  </p>
+            <p
+              className="
+                whitespace-nowrap
+                text-base
+                text-blue-600
+                mt-1
+                font-bold
+              "
+            >
+              สำนักอนามัยการเจริญพันธุ์
+            </p>
 
-</div>
+
+          </div>
 
 
         </div>
 
 
       </div>
+
 
 
 
@@ -205,8 +221,8 @@ export default function Sidebar() {
 
                 <p
                   className="
-                    text-sm
-                    font-semibold
+                    text-base
+                    font-bold
                     !text-white
                     tracking-wide
                   "
@@ -283,9 +299,9 @@ export default function Sidebar() {
 
                             `
                               text-slate-300
-hover:bg-slate-700/70
-hover:text-white
-hover:shadow-lg
+                              hover:bg-slate-700/70
+                              hover:text-white
+                              hover:shadow-lg
                             `
                           }
 
@@ -300,20 +316,23 @@ hover:shadow-lg
                             text-xl
                             transition
                             group-hover:scale-110
+                            shrink-0
                           "
                         >
                           {item.icon}
                         </span>
 
 
+
                         <span
-  className="
-    text-xl
-    font-medium
-  "
->
-  {item.name}
-</span>
+                          className="
+                            whitespace-nowrap
+                            text-xl
+                            font-bold
+                          "
+                        >
+                          {item.name}
+                        </span>
 
 
                       </Link>
