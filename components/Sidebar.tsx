@@ -82,12 +82,13 @@ export default function Sidebar() {
 
     <aside
       className="
-        w-72
+        w-64
         min-h-screen
         bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950
         shadow-2xl
         border-r
         border-slate-800
+        shrink-0
       "
     >
 
@@ -96,7 +97,7 @@ export default function Sidebar() {
 
       <div
         className="
-          p-5
+          p-4
           border-b
           border-slate-800
         "
@@ -108,8 +109,8 @@ export default function Sidebar() {
             items-center
             gap-3
             bg-white/95
-            rounded-2xl
-            p-5
+            rounded-xl
+            p-4
             shadow-xl
             border
             border-slate-200
@@ -118,8 +119,8 @@ export default function Sidebar() {
 
           <div
             className="
-              w-12
-              h-12
+              w-10
+              h-10
               rounded-full
               bg-white
               flex
@@ -135,8 +136,8 @@ export default function Sidebar() {
               src="/images/dohl-logo.png"
               alt="กรมอนามัย"
               className="
-                w-10
-                h-10
+                w-8
+                h-8
                 object-contain
               "
             />
@@ -160,7 +161,7 @@ export default function Sidebar() {
             <h1
               className="
                 whitespace-nowrap
-                text-xl
+                text-base
                 font-extrabold
                 text-slate-800
                 leading-tight
@@ -173,7 +174,7 @@ export default function Sidebar() {
             <p
               className="
                 whitespace-nowrap
-                text-base
+                text-sm
                 text-blue-600
                 mt-1
                 font-bold
@@ -199,9 +200,9 @@ export default function Sidebar() {
 
       <nav
         className="
-          px-4
-          py-5
-          space-y-7
+          px-3
+          py-4
+          space-y-5
         "
       >
 
@@ -215,13 +216,13 @@ export default function Sidebar() {
               <div
                 className="
                   px-3
-                  mb-3
+                  mb-2
                 "
               >
 
                 <p
                   className="
-                    text-base
+                    text-sm
                     font-bold
                     !text-white
                     tracking-wide
@@ -266,8 +267,8 @@ export default function Sidebar() {
                           flex
                           items-center
                           gap-3
-                          px-4
-                          py-3
+                          px-3
+                          py-2.5
                           rounded-xl
                           transition-all
                           duration-300
@@ -288,7 +289,7 @@ export default function Sidebar() {
                               before:absolute
                               before:left-0
                               before:top-2
-                              before:h-8
+                              before:h-6
                               before:w-1
                               before:bg-blue-300
                               before:rounded-r-full
@@ -311,9 +312,9 @@ export default function Sidebar() {
 
                         <span
                           className="
-                            w-7
+                            w-6
                             text-center
-                            text-xl
+                            text-lg
                             transition
                             group-hover:scale-110
                             shrink-0
@@ -327,7 +328,7 @@ export default function Sidebar() {
                         <span
                           className="
                             whitespace-nowrap
-                            text-xl
+                            text-lg
                             font-bold
                           "
                         >

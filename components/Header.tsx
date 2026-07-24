@@ -38,7 +38,7 @@ export default async function Header() {
         <h1
           className="
             whitespace-nowrap
-            text-3xl
+            text-2xl
             font-extrabold
             leading-none
             text-slate-800
@@ -52,7 +52,7 @@ export default async function Header() {
           className="
             mt-1
             whitespace-nowrap
-            text-xl
+            text-lg
             font-bold
             text-slate-500
           "
@@ -95,7 +95,7 @@ export default async function Header() {
           <div
             className="
               whitespace-nowrap
-              text-xl
+              text-lg
               font-extrabold
               text-slate-800
             "
@@ -107,7 +107,7 @@ export default async function Header() {
           <div
             className="
               whitespace-nowrap
-              text-lg
+              text-base
               font-bold
               text-blue-600
             "
@@ -130,8 +130,8 @@ export default async function Header() {
               whitespace-nowrap
               rounded-xl
               bg-red-600
-              px-6
-              py-3
+              px-5
+              py-2
               text-xl
               font-extrabold
               text-white
