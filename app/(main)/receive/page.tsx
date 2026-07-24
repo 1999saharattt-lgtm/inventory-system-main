@@ -3,6 +3,17 @@ import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
 
+type Receive = {
+  id: number;
+  receiveDate: Date;
+  documentNo: string;
+  remark: string | null;
+  vendor: {
+    name: string;
+  };
+};
+
+
 export default async function ReceivePage() {
 
   const receives = await prisma.receive.findMany({
@@ -20,7 +31,6 @@ export default async function ReceivePage() {
     <div className="space-y-8">
 
 
-      {/* Header */}
       <div className="flex items-center justify-between rounded-xl border border-slate-300 bg-slate-100 p-6 shadow-sm">
 
         <div>
@@ -59,8 +69,6 @@ export default async function ReceivePage() {
 
 
 
-
-      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
 
 
@@ -123,7 +131,7 @@ export default async function ReceivePage() {
 
               {receives.length > 0 ? (
 
-                receives.map((receive, index) => (
+                receives.map((receive: Receive, index: number) => (
 
 
                   <tr
@@ -244,9 +252,7 @@ export default async function ReceivePage() {
 
 
 
-                        <DeleteButton
-                          id={receive.id}
-                        />
+                        <DeleteButton id={receive.id}/>
 
 
 
