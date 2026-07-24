@@ -14,23 +14,22 @@ export default async function Header() {
         w-full
         items-center
         justify-between
-        gap-8
+        gap-6
         border-b
         border-slate-200
         bg-white/95
         backdrop-blur
-        px-8
-        py-4
+        px-6
+        py-2
         shadow-sm
       "
     >
-
 
       {/* Title */}
 
       <div
         className="
-          w-[430px]
+          w-[360px]
           shrink-0
         "
       >
@@ -38,7 +37,7 @@ export default async function Header() {
         <h1
           className="
             whitespace-nowrap
-            text-2xl
+            text-xl
             font-extrabold
             leading-none
             text-slate-800
@@ -52,7 +51,7 @@ export default async function Header() {
           className="
             mt-1
             whitespace-nowrap
-            text-lg
+            text-base
             font-bold
             text-slate-500
           "
@@ -60,10 +59,7 @@ export default async function Header() {
           สำนักอนามัยการเจริญพันธุ์
         </p>
 
-
       </div>
-
-
 
 
 
@@ -73,20 +69,19 @@ export default async function Header() {
         className="
           flex
           items-center
-          gap-4
+          gap-3
           shrink-0
         "
       >
 
-
         <div
           className="
-            rounded-xl
+            rounded-lg
             border
             border-slate-200
             bg-slate-50
-            px-5
-            py-2
+            px-4
+            py-1.5
             text-right
             shadow-sm
           "
@@ -95,8 +90,8 @@ export default async function Header() {
           <div
             className="
               whitespace-nowrap
-              text-lg
-              font-extrabold
+              text-base
+              font-extrabอด
               text-slate-800
             "
           >
@@ -107,7 +102,7 @@ export default async function Header() {
           <div
             className="
               whitespace-nowrap
-              text-base
+              text-sm
               font-bold
               text-blue-600
             "
@@ -115,10 +110,7 @@ export default async function Header() {
             {user.role}
           </div>
 
-
         </div>
-
-
 
 
 
@@ -128,11 +120,11 @@ export default async function Header() {
             type="submit"
             className="
               whitespace-nowrap
-              rounded-xl
+              rounded-lg
               bg-red-600
-              px-5
-              py-2
-              text-xl
+              px-4
+              py-1.5
+              text-base
               font-extrabold
               text-white
               shadow-md
@@ -143,12 +135,9 @@ export default async function Header() {
             ออกจากระบบ
           </button>
 
-
         </form>
 
-
       </div>
-
 
     </header>
   );

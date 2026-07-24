@@ -82,7 +82,7 @@ export default function Sidebar() {
 
     <aside
       className="
-        w-64
+        w-60
         min-h-screen
         bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950
         shadow-2xl
@@ -97,7 +97,7 @@ export default function Sidebar() {
 
       <div
         className="
-          p-4
+          p-3
           border-b
           border-slate-800
         "
@@ -110,7 +110,7 @@ export default function Sidebar() {
             gap-3
             bg-white/95
             rounded-xl
-            p-4
+            p-3
             shadow-xl
             border
             border-slate-200
@@ -201,8 +201,8 @@ export default function Sidebar() {
       <nav
         className="
           px-3
-          py-4
-          space-y-5
+          py-3
+          space-y-4
         "
       >
 
@@ -268,7 +268,7 @@ export default function Sidebar() {
                           items-center
                           gap-3
                           px-3
-                          py-2.5
+                          py-2
                           rounded-xl
                           transition-all
                           duration-300
@@ -314,7 +314,7 @@ export default function Sidebar() {
                           className="
                             w-6
                             text-center
-                            text-lg
+                            text-base
                             transition
                             group-hover:scale-110
                             shrink-0
@@ -328,7 +328,7 @@ export default function Sidebar() {
                         <span
                           className="
                             whitespace-nowrap
-                            text-lg
+                            text-base
                             font-bold
                           "
                         >
