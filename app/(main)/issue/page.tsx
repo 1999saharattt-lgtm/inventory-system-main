@@ -2,6 +2,32 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import DeleteButton from "./DeleteButton";
 
+type Issue = {
+  id: number;
+  issueDate: Date;
+  documentNo: string;
+  remark: string | null;
+
+  department: {
+    name: string;
+  };
+
+  officer: {
+    firstName: string;
+    lastName: string;
+  } | null;
+
+  items: {
+    id: number;
+    qty: number;
+    material: {
+      id: number;
+      name: string;
+      unit: string;
+    };
+  }[];
+};
+
 export default async function IssuePage() {
   const issues = await prisma.issue.findMany({
     orderBy: {
@@ -106,7 +132,7 @@ export default async function IssuePage() {
 
               {issues.length > 0 ? (
 
-                issues.map((issue, index) => (
+                issues.map((issue: Issue, index: number) => (
 
                   <tr
                     key={issue.id}
