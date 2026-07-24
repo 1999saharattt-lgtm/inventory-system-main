@@ -96,7 +96,7 @@ export async function createIssue(formData: FormData) {
   // บันทึกข้อมูล
   // =====================
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     await tx.issue.create({
       data: {
         issueDate,
