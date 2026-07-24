@@ -118,7 +118,7 @@ export default async function DepartmentDetailPage({
             </thead>
 
             <tbody>
-              {sortOfficers(officers).map((officer) => (
+              {sortOfficers(officers).map((officer: any) => (
                 <tr
                   key={officer.id}
                   className="

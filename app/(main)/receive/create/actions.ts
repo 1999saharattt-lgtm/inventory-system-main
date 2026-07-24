@@ -14,7 +14,7 @@ export async function createReceive(formData: FormData) {
   const vendorId = Number(formData.get("vendorId"));
   const remark = (formData.get("remark") as string) ?? "";
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     const receive = await tx.receive.create({
       data: {
         receiveDate,

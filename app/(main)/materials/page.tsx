@@ -1,6 +1,13 @@
 import Link from "next/link";
 
-const categories = [
+type Category = {
+  code: string;
+  name: string;
+  icon: string;
+  color: string;
+};
+
+const categories: Category[] = [
   {
     code: "OFFICE",
     name: "วัสดุสำนักงาน",

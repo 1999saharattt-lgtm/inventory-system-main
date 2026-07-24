@@ -106,7 +106,7 @@ export default async function IssuePage() {
 
               {issues.length > 0 ? (
 
-                issues.map((issue: any, index: number) => (
+                issues.map((issue, index) => (
 
                   <tr
                     key={issue.id}

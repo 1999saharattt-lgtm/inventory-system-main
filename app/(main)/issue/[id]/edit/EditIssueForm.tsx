@@ -271,7 +271,7 @@ export default function EditIssueForm({
 
 
             {
-              departments.map((department)=>(
+              departments.map((department: any)=>(
 
                 <option
 
@@ -370,7 +370,7 @@ export default function EditIssueForm({
 
 
               {
-                items.map((row,index)=>{
+                items.map((row: any, index: number)=>{
 
 
                   const filteredMaterials =
@@ -434,7 +434,7 @@ export default function EditIssueForm({
 
 
                           {
-                            categories.map((c)=>(
+                            categories.map((c: any)=>(
 
                               <option
 
@@ -487,7 +487,7 @@ export default function EditIssueForm({
 
 
                           {
-                            filteredMaterials.map((material)=>(
+                            filteredMaterials.map((material: any)=>(
 
                               <option
 

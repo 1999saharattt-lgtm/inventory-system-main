@@ -88,7 +88,7 @@ export default async function MaterialMasterPage() {
                   </td>
                 </tr>
               ) : (
-                materials.map((item: any, index: number) => (
+                materials.map((item, index) => (
                   <tr
                     key={item.id}
                     className="odd:bg-white even:bg-slate-50 hover:bg-blue-50"

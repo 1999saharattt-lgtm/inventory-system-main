@@ -252,7 +252,7 @@ className="w-full rounded-lg border p-3"
 
 
 {
-vendors.map((vendor)=>(
+vendors.map((vendor: Vendor) => (
 
 <option
 key={vendor.id}
@@ -306,7 +306,7 @@ className="w-full rounded-lg border p-3"
 
 
 {
-categories.map((c)=>(
+categories.map((c: string) => (
 
 <option
 key={c}
@@ -357,7 +357,7 @@ className="w-full rounded-lg border p-3"
 
 
 {
-names.map((item)=>(
+names.map((item: string) => (
 
 <option
 

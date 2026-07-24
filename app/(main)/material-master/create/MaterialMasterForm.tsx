@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const categories = [
+const categories: {
+  value: string;
+  label: string;
+}[] = [
   { value: "OFFICE", label: "วัสดุสำนักงาน" },
   { value: "COMPUTER", label: "วัสดุคอมพิวเตอร์" },
   { value: "ELECTRIC", label: "วัสดุไฟฟ้าและวิทยุ" },
