@@ -69,7 +69,7 @@ export default async function DepartmentsPage() {
 
 
         {
-          departments.map((department)=>(
+          departments.map((department: any)=>(
 
 
             <Link
