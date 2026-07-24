@@ -13,7 +13,7 @@ export async function deleteIssue(
 
 
   await prisma.$transaction(
-    async(tx)=>{
+  async (tx: any) => {
 
 
       const issue =
