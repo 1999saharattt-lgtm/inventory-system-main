@@ -40,6 +40,7 @@ export default async function UsersPage() {
 
 
       {/* Header */}
+
       <div
         className="
           flex
@@ -48,20 +49,33 @@ export default async function UsersPage() {
           rounded-xl
           border
           border-slate-300
-          bg-slate-100
+          bg-white
           p-6
-          shadow-sm
+          shadow-md
         "
       >
 
         <div>
 
-          <h1 className="text-4xl font-extrabold text-slate-800">
+          <h1
+            className="
+              text-4xl
+              font-extrabold
+              text-slate-800
+            "
+          >
             ผู้ใช้งานระบบ
           </h1>
 
 
-          <p className="mt-2 text-xl font-bold text-slate-600">
+          <p
+            className="
+              mt-2
+              text-xl
+              font-bold
+              text-slate-600
+            "
+          >
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
           </p>
 
@@ -73,15 +87,15 @@ export default async function UsersPage() {
           href="/users/create"
           className="
             rounded-lg
-            bg-blue-700
+            bg-blue-600
             px-5
             py-3
             text-xl
-            font-bold
+            font-extrabold
             text-white
-            shadow-sm
+            shadow
             transition
-            hover:bg-blue-800
+            hover:bg-blue-700
           "
         >
           + เพิ่มผู้ใช้งาน
@@ -95,6 +109,7 @@ export default async function UsersPage() {
 
 
       {/* Table */}
+
       <div
         className="
           overflow-hidden
@@ -102,17 +117,31 @@ export default async function UsersPage() {
           border
           border-slate-300
           bg-white
-          shadow-sm
+          shadow-md
         "
       >
 
         <div className="overflow-x-auto">
 
 
-          <table className="min-w-full border-collapse text-xl font-bold">
+          <table
+            className="
+              min-w-full
+              border-collapse
+              text-xl
+              font-bold
+            "
+          >
 
 
-            <thead className="bg-slate-200">
+            <thead
+              className="
+                bg-gradient-to-r
+                from-blue-600
+                to-blue-500
+                text-white
+              "
+            >
 
               <tr>
 
@@ -120,25 +149,31 @@ export default async function UsersPage() {
                   ลำดับ
                 </th>
 
+
                 <th className="border px-4 py-3 text-center text-2xl font-extrabold">
                   Username
                 </th>
+
 
                 <th className="border px-4 py-3 text-center text-2xl font-extrabold">
                   ชื่อ-นามสกุล
                 </th>
 
+
                 <th className="border px-4 py-3 text-center text-2xl font-extrabold">
                   สิทธิ์
                 </th>
+
 
                 <th className="border px-4 py-3 text-center text-2xl font-extrabold">
                   สถานะ
                 </th>
 
+
                 <th className="border px-4 py-3 text-center text-2xl font-extrabold">
                   จัดการ
                 </th>
+
 
               </tr>
 
@@ -147,7 +182,9 @@ export default async function UsersPage() {
 
 
 
+
             <tbody>
+
 
               {
                 users.length > 0 ? (
@@ -157,9 +194,11 @@ export default async function UsersPage() {
                     <tr
                       key={user.id}
                       className="
+                        border-b
                         odd:bg-white
                         even:bg-slate-50
                         hover:bg-blue-50
+                        transition
                       "
                     >
 
@@ -197,9 +236,9 @@ export default async function UsersPage() {
 
                             <span
                               className="
-                                rounded
+                                rounded-full
                                 bg-green-100
-                                px-3
+                                px-4
                                 py-1
                                 text-xl
                                 font-bold
@@ -213,9 +252,9 @@ export default async function UsersPage() {
 
                             <span
                               className="
-                                rounded
+                                rounded-full
                                 bg-red-100
-                                px-3
+                                px-4
                                 py-1
                                 text-xl
                                 font-bold
@@ -227,6 +266,7 @@ export default async function UsersPage() {
 
                           )
                         }
+
 
                       </td>
 
@@ -248,8 +288,10 @@ export default async function UsersPage() {
                               px-4
                               py-2
                               text-xl
-                              font-bold
+                              font-extrabold
                               text-white
+                              shadow-sm
+                              transition
                               hover:bg-amber-600
                             "
                           >
@@ -278,8 +320,10 @@ export default async function UsersPage() {
                                 px-4
                                 py-2
                                 text-xl
-                                font-bold
+                                font-extrabold
                                 text-white
+                                shadow-sm
+                                transition
                                 hover:bg-red-700
                               "
                             >
@@ -303,6 +347,7 @@ export default async function UsersPage() {
 
                 ) : (
 
+
                   <tr>
 
                     <td
@@ -319,6 +364,7 @@ export default async function UsersPage() {
                     </td>
 
                   </tr>
+
 
                 )
               }

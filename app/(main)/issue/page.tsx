@@ -48,30 +48,47 @@ export default async function IssuePage() {
     <div className="space-y-8">
 
       {/* Header */}
-      <div className="flex items-center justify-between rounded-xl border border-slate-300 bg-slate-100 p-6 shadow-sm">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-6
+          shadow-md
+        "
+      >
 
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">
+
+          <h1 className="text-3xl font-extrabold text-slate-800">
             รายการเบิกจ่ายพัสดุ
           </h1>
 
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-lg text-slate-500">
             แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
           </p>
+
         </div>
 
         <Link
           href="/issue/create"
           className="
-            rounded-lg
-            bg-blue-700
-            px-5
+            rounded-xl
+            bg-gradient-to-r
+            from-blue-600
+            to-blue-700
+            px-6
             py-3
-            font-semibold
+            font-bold
             text-white
-            shadow-sm
+            shadow-md
             transition
-            hover:bg-blue-800
+            hover:scale-105
+            hover:shadow-xl
           "
         >
           + เพิ่มรายการเบิก
@@ -79,128 +96,106 @@ export default async function IssuePage() {
 
       </div>
 
-
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-md
+        "
+      >
 
         <div className="overflow-x-auto">
 
-          <table className="min-w-full border-collapse">
+          <table className="min-w-full">
 
-            <thead className="bg-slate-200 text-center">
+            <thead>
 
-              <tr className="text-sm font-semibold text-slate-800">
+              <tr>
 
-                <th className="w-16 border border-slate-300 px-4 py-3">
-                  ลำดับ
-                </th>
+                <th>ลำดับ</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  วันที่เบิกจ่าย
-                </th>
+                <th>วันที่เบิกจ่าย</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  เลขที่เอกสาร
-                </th>
+                <th>เลขที่เอกสาร</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  หน่วยงาน / กลุ่มงาน
-                </th>
+                <th>หน่วยงาน / กลุ่มงาน</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  ผู้ขอเบิก
-                </th>
+                <th>ผู้ขอเบิก</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  รายละเอียด
-                </th>
+                <th>รายละเอียด</th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  หมายเหตุ
-                </th>
+                <th>หมายเหตุ</th>
 
-                <th className="w-56 border border-slate-300 px-4 py-3">
-                  จัดการ
-                </th>
+                <th>จัดการ</th>
 
               </tr>
 
             </thead>
 
-
             <tbody>
-
-              {issues.length > 0 ? (
+                          {issues.length > 0 ? (
 
                 issues.map((issue: Issue, index: number) => (
 
                   <tr
                     key={issue.id}
-                    className="
-                      odd:bg-white
-                      even:bg-slate-50
-                      hover:bg-blue-50
-                      transition-colors
-                    "
+                    className="transition"
                   >
 
-                    <td className="border border-slate-300 px-4 py-3 text-center font-medium text-slate-700">
+                    <td className="text-center">
                       {index + 1}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-center text-slate-700">
+                    <td className="text-center">
                       {new Date(issue.issueDate).toLocaleDateString("th-TH")}
                     </td>
 
+                    <td className="text-center">
 
-                    <td className="border border-slate-300 px-4 py-3 text-center">
-
-                      <span className="
-                        inline-block
-                        rounded-md
-                        bg-slate-200
-                        px-3
-                        py-1
-                        text-sm
-                        font-semibold
-                        text-slate-800
-                      ">
+                      <span
+                        className="
+                          inline-flex
+                          items-center
+                          rounded-full
+                          bg-slate-100
+                          px-3
+                          py-1
+                          font-bold
+                          text-slate-700
+                        "
+                      >
                         {issue.documentNo}
                       </span>
 
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td>
                       {issue.department.name}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td>
                       {issue.officer
                         ? `${issue.officer.firstName} ${issue.officer.lastName}`
-                        : "-"
-                      }
+                        : "-"}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-center">
+                    <td className="text-center">
 
                       <Link
                         href={`/issue/${issue.id}`}
                         className="
                           inline-flex
                           items-center
-                          justify-center
-                          rounded-lg
+                          rounded-xl
                           bg-sky-600
                           px-4
                           py-2
-                          text-sm
-                          font-medium
+                          font-bold
                           text-white
-                          shadow-sm
                           transition
                           hover:bg-sky-700
                         "
@@ -210,42 +205,33 @@ export default async function IssuePage() {
 
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
-
-                      {issue.remark ? (
-                        issue.remark
-                      ) : (
+                    <td>
+                      {issue.remark || (
                         <span className="italic text-slate-400">
                           -
                         </span>
                       )}
-
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3">
+                    <td>
 
                       <div className="flex justify-center gap-2">
 
                         <Link
                           href={`/issue/${issue.id}/edit`}
                           className="
-                            rounded-lg
+                            rounded-xl
                             bg-amber-500
                             px-4
                             py-2
-                            text-sm
-                            font-medium
+                            font-bold
                             text-white
-                            shadow-sm
                             transition
                             hover:bg-amber-600
                           "
                         >
                           แก้ไข
                         </Link>
-
 
                         <DeleteButton id={issue.id} />
 
@@ -263,7 +249,7 @@ export default async function IssuePage() {
 
                   <td
                     colSpan={8}
-                    className="bg-white py-12 text-center text-slate-500"
+                    className="py-12 text-center text-slate-500"
                   >
                     ยังไม่มีรายการเบิกจ่ายพัสดุ
                   </td>

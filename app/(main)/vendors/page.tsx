@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-
 type Vendor = {
   id: number;
   name: string;
@@ -12,114 +11,61 @@ type Vendor = {
   taxId: string | null;
 };
 
-
-
 export default function VendorsPage() {
-
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
-
-
 
   useEffect(() => {
     loadVendors();
   }, []);
 
-
-
   async function loadVendors() {
-
     try {
-
       setLoading(true);
-
 
       const res = await fetch("/api/vendors", {
         cache: "no-store",
       });
 
-
       if (!res.ok) {
         throw new Error("โหลดข้อมูลไม่สำเร็จ");
       }
 
-
       const data = await res.json();
-
       setVendors(data);
-
-
     } catch (err) {
-
       console.error(err);
-
       alert("ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้");
-
-
     } finally {
-
       setLoading(false);
-
     }
-
   }
 
-
-
-
   async function handleDelete(id: number) {
-
-    const ok = confirm(
-      "ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
-    );
-
+    const ok = confirm("ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?");
 
     if (!ok) return;
 
-
-
     try {
-
-
       const res = await fetch(`/api/vendors/${id}`, {
         method: "DELETE",
       });
 
-
-
       if (res.ok) {
-
         alert("ลบสำเร็จ");
-
         loadVendors();
-
-
       } else {
-
         const data = await res.json();
-
         alert(data.message ?? "ลบไม่สำเร็จ");
-
       }
-
-
     } catch (err) {
-
       console.error(err);
-
       alert("เกิดข้อผิดพลาด");
-
     }
-
   }
 
-
-
-
   return (
-
     <div className="space-y-8">
-
 
       {/* Header */}
 
@@ -128,232 +74,149 @@ export default function VendorsPage() {
           flex
           items-center
           justify-between
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
-          bg-slate-100
+          border-slate-200
+          bg-white
           p-6
-          shadow-sm
+          shadow-md
         "
       >
-
-
         <div>
 
-          <h1
-            className="
-              text-3xl
-              font-bold
-              tracking-tight
-              text-slate-800
-            "
-          >
+          <h1 className="text-3xl font-extrabold text-slate-800">
             ผู้จำหน่าย
           </h1>
 
-
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-lg text-slate-500">
             ทั้งหมด {vendors.length} รายการ
           </p>
 
-
         </div>
-
-
 
         <Link
           href="/vendors/new"
           className="
-            rounded-lg
-            bg-blue-700
-            px-5
+            rounded-xl
+            bg-gradient-to-r
+            from-blue-600
+            to-blue-700
+            px-6
             py-3
-            font-semibold
+            font-bold
             text-white
-            shadow-sm
+            shadow-md
             transition
-            hover:bg-blue-800
+            hover:scale-105
+            hover:shadow-xl
           "
         >
           + เพิ่มผู้จำหน่าย
         </Link>
 
-
       </div>
-
-
-
-
 
       {/* Table */}
 
       <div
         className="
           overflow-hidden
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
-          shadow-sm
+          shadow-md
         "
       >
 
-
         <div className="overflow-x-auto">
 
+          <table className="min-w-full">
 
-          <table className="min-w-full border-collapse">
+            <thead>
 
+              <tr>
 
-            <thead className="bg-slate-200">
+                <th>ชื่อผู้จำหน่าย</th>
 
+                <th>ที่อยู่</th>
 
-              <tr
-                className="
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
+                <th>เบอร์ติดต่อ</th>
 
-                <th className="border border-slate-300 px-4 py-3 text-center">
-                  ชื่อผู้จำหน่าย
-                </th>
+                <th>เลขประจำตัวผู้เสียภาษี</th>
 
-
-                <th className="border border-slate-300 px-4 py-3">
-                  ที่อยู่
-                </th>
-
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
-                  เบอร์ติดต่อ
-                </th>
-
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
-                  เลขประจำตัวผู้เสียภาษี
-                </th>
-
-
-                <th className="w-48 border border-slate-300 px-4 py-3 text-center">
-                  จัดการ
-                </th>
-
+                <th>จัดการ</th>
 
               </tr>
 
-
             </thead>
-
-
-
 
             <tbody>
 
-
               {loading ? (
-
 
                 <tr>
 
                   <td
                     colSpan={5}
-                    className="
-                      border
-                      border-slate-300
-                      py-12
-                      text-center
-                      text-slate-500
-                    "
+                    className="py-12 text-center text-slate-500"
                   >
                     กำลังโหลด...
                   </td>
 
-
                 </tr>
 
-
-
               ) : vendors.length === 0 ? (
-
 
                 <tr>
 
                   <td
                     colSpan={5}
-                    className="
-                      border
-                      border-slate-300
-                      py-12
-                      text-center
-                      text-slate-500
-                    "
+                    className="py-12 text-center text-slate-500"
                   >
                     ยังไม่มีข้อมูลผู้จำหน่าย
                   </td>
 
-
                 </tr>
-
-
 
               ) : (
 
-
                 vendors.map((vendor) => (
-
 
                   <tr
                     key={vendor.id}
-                    className="
-                      odd:bg-white
-                      even:bg-slate-50
-                      hover:bg-blue-50
-                      transition-colors
-                    "
+                    className="transition"
                   >
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td className="font-semibold">
                       {vendor.name}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td>
                       {vendor.address || "-"}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-center text-slate-700">
+                    <td className="text-center">
                       {vendor.phone || "-"}
                     </td>
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-center text-slate-700">
+                    <td className="text-center">
                       {vendor.taxId || "-"}
                     </td>
 
-
-
-
-                    <td className="border border-slate-300 px-4 py-3">
-
+                    <td>
 
                       <div className="flex justify-center gap-2">
-
 
                         <Link
                           href={`/vendors/${vendor.id}/edit`}
                           className="
-                            rounded-lg
+                            rounded-xl
                             bg-amber-500
                             px-4
                             py-2
-                            text-sm
-                            font-medium
+                            font-bold
                             text-white
-                            shadow-sm
                             transition
                             hover:bg-amber-600
                           "
@@ -361,19 +224,15 @@ export default function VendorsPage() {
                           แก้ไข
                         </Link>
 
-
-
                         <button
                           onClick={() => handleDelete(vendor.id)}
                           className="
-                            rounded-lg
+                            rounded-xl
                             bg-red-600
                             px-4
                             py-2
-                            text-sm
-                            font-medium
+                            font-bold
                             text-white
-                            shadow-sm
                             transition
                             hover:bg-red-700
                           "
@@ -381,38 +240,24 @@ export default function VendorsPage() {
                           ลบ
                         </button>
 
-
                       </div>
-
 
                     </td>
 
-
-
                   </tr>
-
 
                 ))
 
-
               )}
-
-
 
             </tbody>
 
-
           </table>
-
 
         </div>
 
-
       </div>
 
-
     </div>
-
   );
-
 }

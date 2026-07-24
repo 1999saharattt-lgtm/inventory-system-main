@@ -1,235 +1,126 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-
 export default async function DepartmentsPage() {
-
-
-  const departments =
-    await prisma.department.findMany({
-
-      orderBy: {
-        id: "asc",
-      },
-
-    });
-
-
+  const departments = await prisma.department.findMany({
+    orderBy: {
+      id: "asc",
+    },
+  });
 
   return (
-
     <div className="space-y-8">
-
-
       {/* Header */}
+      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">
+            หน่วยงาน
+          </h1>
 
-      <div
-        className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
-          p-6
-          shadow-sm
-        "
-      >
+          <p className="mt-2 text-lg text-slate-600">
+            เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
+          </p>
+        </div>
 
-        <h1
-          className="
-            text-3xl
-            font-bold
-            tracking-tight
-            text-slate-800
-          "
-        >
-          หน่วยงาน
-        </h1>
-
-
-        <p className="mt-2 text-slate-600">
-          เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
-        </p>
-
-
+        <div className="rounded-xl bg-blue-100 px-5 py-4 text-4xl">
+          🏢
+        </div>
       </div>
 
+      {/* Cards */}
+      <div className="grid gap-8 md:grid-cols-3">
+        {departments.map((department: any) => (
+          <Link
+            key={department.id}
+            href={`/departments/${department.id}`}
+            className="
+              group
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              shadow-sm
+              transition-all
+              duration-300
+              hover:-translate-y-2
+              hover:border-blue-300
+              hover:shadow-xl
+            "
+          >
+            {/* Top Color */}
+            <div className="h-2 bg-blue-600" />
 
-
-
-
-      {/* Department Cards */}
-
-      <div
-        className="
-          grid
-          gap-8
-          md:grid-cols-3
-        "
-      >
-
-
-        {
-          departments.map((department: any)=>(
-
-
-            <Link
-
-              key={department.id}
-
-              href={`/departments/${department.id}`}
-
-              className="
-                overflow-hidden
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-100
-                shadow-sm
-                transition-all
-                duration-200
-                hover:-translate-y-1
-                hover:shadow-lg
-                hover:border-blue-300
-              "
-
-            >
-
-
-              {/* Top Color */}
-
-              <div className="h-2 bg-emerald-500" />
-
-
-
-
-              <div
-                className="
-                  flex
-                  h-56
-                  flex-col
-                  justify-between
-                  p-8
-                "
-              >
-
-
-
-                {/* Icon */}
-
-                <div className="flex justify-center">
-
-                  <div
-                    className="
-                      flex
-                      h-20
-                      w-20
-                      items-center
-                      justify-center
-                      rounded-2xl
-                      bg-white
-                      shadow-sm
-                      border
-                      border-slate-200
-                      text-5xl
-                    "
-                  >
-                    🏢
-                  </div>
-
+            <div className="flex h-64 flex-col justify-between p-8">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div
+                  className="
+                    flex
+                    h-24
+                    w-24
+                    items-center
+                    justify-center
+                    rounded-3xl
+                    bg-blue-100
+                    text-6xl
+                    transition
+                    duration-300
+                    group-hover:scale-110
+                  "
+                >
+                  🏢
                 </div>
-
-
-
-
-
-                {/* Title */}
-
-                <div className="text-center">
-
-
-                  <h2
-                    className="
-                      text-xl
-                      font-bold
-                      text-slate-800
-                    "
-                  >
-                    {department.name}
-                  </h2>
-
-
-                </div>
-
-
-
-
-
-                {/* Button */}
-
-                <div className="flex justify-center">
-
-
-                  <span
-  className="
-    rounded-lg
-    bg-emerald-500
-    px-4
-    py-2
-    text-sm
-    font-medium
-    text-white
-    shadow-sm
-    transition
-    hover:bg-emerald-600
-  "
->
-                    คลิกเพื่อดูรายชื่อ
-                  </span>
-
-
-                </div>
-
-
               </div>
 
+              {/* Name */}
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-slate-800">
+                  {department.name}
+                </h2>
+              </div>
 
-            </Link>
-
-
-          ))
-        }
-
-
-
-
-
-        {
-          departments.length === 0 && (
-
-            <div
-              className="
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-100
-                p-6
-                text-center
-                text-slate-500
-              "
-            >
-              ยังไม่มีข้อมูลหน่วยงาน
+              {/* Button */}
+              <div className="flex justify-center">
+                <span
+                  className="
+                    rounded-xl
+                    bg-blue-600
+                    px-6
+                    py-3
+                    text-lg
+                    font-bold
+                    text-white
+                    transition
+                    group-hover:bg-blue-700
+                  "
+                >
+                  ดูรายชื่อเจ้าหน้าที่
+                </span>
+              </div>
             </div>
+          </Link>
+        ))}
 
-          )
-        }
-
-
-
+        {departments.length === 0 && (
+          <div
+            className="
+              col-span-full
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              p-12
+              text-center
+              text-xl
+              text-slate-500
+              shadow-sm
+            "
+          >
+            ยังไม่มีข้อมูลหน่วยงาน
+          </div>
+        )}
       </div>
-
-
     </div>
-
   );
-
 }

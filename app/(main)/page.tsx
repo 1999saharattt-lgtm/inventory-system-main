@@ -32,201 +32,137 @@ export default async function Home() {
     },
   });
 
+  const cards = [
+    {
+      title: "จำนวนพัสดุทั้งหมด",
+      value: totalMaterials,
+      unit: "รายการ",
+      icon: "📦",
+      color: "bg-blue-600",
+      bg: "bg-blue-100",
+      border: "border-blue-200",
+      hover: "hover:border-blue-300",
+    },
+    {
+      title: "รับเข้าวันนี้",
+      value: receiveToday,
+      unit: "ใบรับพัสดุ",
+      icon: "📥",
+      color: "bg-emerald-600",
+      bg: "bg-emerald-100",
+      border: "border-emerald-200",
+      hover: "hover:border-emerald-300",
+    },
+    {
+      title: "เบิกจ่ายวันนี้",
+      value: issueToday,
+      unit: "ใบเบิก",
+      icon: "📤",
+      color: "bg-amber-600",
+      bg: "bg-amber-100",
+      border: "border-amber-200",
+      hover: "hover:border-amber-300",
+    },
+    {
+      title: "พัสดุใกล้หมด",
+      value: lowStock,
+      unit: "รายการ",
+      icon: "⚠️",
+      color: "bg-red-600",
+      bg: "bg-red-100",
+      border: "border-red-200",
+      hover: "hover:border-red-300",
+    },
+  ];
+
   return (
     <div className="space-y-8">
-
-      {/* Header */}
-      <div className="rounded-xl border border-slate-300 bg-slate-100 p-6 shadow-sm">
-
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
-          Dashboard
+      {/* Hero */}
+      <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-8 text-white shadow-xl">
+        <h1 className="text-4xl font-extrabold">
+          👋 ยินดีต้อนรับ
         </h1>
 
-        <p className="mt-2 text-base font-semibold text-slate-600">
-          ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
+        <p className="mt-4 text-2xl font-bold">
+          ระบบบริหารคลังพัสดุ
         </p>
 
+        <p className="text-lg text-blue-100">
+          สำนักอนามัยการเจริญพันธุ์
+        </p>
       </div>
-
 
       {/* Summary */}
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <div
+            key={card.title}
+            className={`
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              shadow-lg
+              transition-all
+              duration-300
+              hover:-translate-y-2
+              hover:shadow-2xl
+              ${card.hover}
+            `}
+          >
+            <div className={`h-2 ${card.color}`} />
 
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg font-bold text-slate-600">
+                    {card.title}
+                  </p>
 
-        {/* Material */}
-        <div className="overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-md">
+                  <p className="mt-4 text-6xl font-extrabold text-slate-900">
+                    {card.value}
+                  </p>
 
-          <div className="h-2 bg-blue-700" />
+                  <p className="mt-2 text-base font-semibold text-slate-500">
+                    {card.unit}
+                  </p>
+                </div>
 
-          <div className="p-6">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-
-                <p className="text-xl font-extrabold tracking-wide text-slate-800">
-                  จำนวนพัสดุทั้งหมด
-                </p>
-
-                <p className="mt-4 text-5xl font-extrabold text-slate-900">
-                  {totalMaterials}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-slate-500">
-                  รายการ
-                </p>
-
+                <div
+                  className={`
+                    rounded-2xl
+                    border
+                    p-5
+                    text-5xl
+                    ${card.bg}
+                    ${card.border}
+                  `}
+                >
+                  {card.icon}
+                </div>
               </div>
-
-              <div className="rounded-xl border border-blue-200 bg-blue-100 p-4 text-4xl">
-                📦
-              </div>
-
             </div>
-
           </div>
-
-        </div>
-
-
-
-        {/* Receive */}
-        <div className="overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-md">
-
-          <div className="h-2 bg-emerald-600" />
-
-          <div className="p-6">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-
-                <p className="text-xl font-extrabold tracking-wide text-slate-800">
-                  รับเข้าวันนี้
-                </p>
-
-                <p className="mt-4 text-5xl font-extrabold text-slate-900">
-                  {receiveToday}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-slate-500">
-                  ใบรับพัสดุ
-                </p>
-
-              </div>
-
-              <div className="rounded-xl border border-emerald-200 bg-emerald-100 p-4 text-4xl">
-                📥
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        {/* Issue */}
-        <div className="overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md">
-
-          <div className="h-2 bg-amber-600" />
-
-          <div className="p-6">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-
-                <p className="text-xl font-extrabold tracking-wide text-slate-800">
-                  เบิกจ่ายวันนี้
-                </p>
-
-                <p className="mt-4 text-5xl font-extrabold text-slate-900">
-                  {issueToday}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-slate-500">
-                  ใบเบิก
-                </p>
-
-              </div>
-
-              <div className="rounded-xl border border-amber-200 bg-amber-100 p-4 text-4xl">
-                📤
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        {/* Low Stock */}
-        <div className="overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-red-300 hover:shadow-md">
-
-          <div className="h-2 bg-red-600" />
-
-          <div className="p-6">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-
-                <p className="text-xl font-extrabold tracking-wide text-slate-800">
-                  พัสดุใกล้หมด
-                </p>
-
-                <p className="mt-4 text-5xl font-extrabold text-slate-900">
-                  {lowStock}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-slate-500">
-                  รายการ
-                </p>
-
-              </div>
-
-              <div className="rounded-xl border border-red-200 bg-red-100 p-4 text-4xl">
-                ⚠️
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
+        ))}
       </div>
-
-
 
       {/* Information */}
-      <div className="overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-sm">
-
-        <div className="border-b border-slate-300 bg-slate-200 px-6 py-4">
-
-          <h2 className="text-xl font-extrabold text-slate-800">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+        <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
+          <h2 className="text-2xl font-extrabold text-slate-800">
             ข้อมูลระบบ
           </h2>
-
         </div>
 
-        <div className="p-6 text-lg font-semibold leading-9 text-slate-700">
-
-          ระบบบริหารคลังพัสดุ ใช้สำหรับบริหารจัดการข้อมูลวัสดุคงคลังของหน่วยงาน
-          รองรับการบันทึกรับเข้า การเบิกจ่าย การควบคุมจำนวนคงเหลือ
-          และการติดตามข้อมูลผ่าน Stock Card เพื่อให้การบริหารพัสดุเป็นไปอย่างถูกต้อง
-          โปร่งใส และสามารถตรวจสอบย้อนหลังได้
-
+        <div className="space-y-4 p-6 text-lg font-semibold text-slate-700">
+          <div>✅ รองรับการรับเข้าพัสดุ</div>
+          <div>✅ รองรับการเบิกจ่ายพัสดุ</div>
+          <div>✅ ตรวจสอบจำนวนคงเหลืออัตโนมัติ</div>
+          <div>✅ รองรับบัญชีพัสดุ (Stock Card)</div>
+          <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
         </div>
-
       </div>
-
-
     </div>
   );
 }

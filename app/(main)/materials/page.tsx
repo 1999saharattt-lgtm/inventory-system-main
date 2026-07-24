@@ -12,37 +12,37 @@ const categories: Category[] = [
     code: "OFFICE",
     name: "วัสดุสำนักงาน",
     icon: "📄",
-    color: "bg-blue-700",
+    color: "from-blue-500 to-blue-700",
   },
   {
     code: "COMPUTER",
     name: "วัสดุคอมพิวเตอร์",
     icon: "💻",
-    color: "bg-violet-700",
+    color: "from-violet-500 to-violet-700",
   },
   {
     code: "ELECTRIC",
     name: "วัสดุไฟฟ้าและวิทยุ",
     icon: "⚡",
-    color: "bg-amber-600",
+    color: "from-amber-400 to-amber-600",
   },
   {
     code: "HOUSEHOLD",
     name: "วัสดุงานบ้านและงานครัว",
     icon: "🏠",
-    color: "bg-emerald-700",
+    color: "from-emerald-500 to-emerald-700",
   },
   {
     code: "VEHICLE",
     name: "วัสดุยานพาหนะ",
     icon: "🚗",
-    color: "bg-red-700",
+    color: "from-red-500 to-red-700",
   },
   {
     code: "PRINTING",
     name: "วัสดุสื่อสิ่งพิมพ์",
     icon: "📰",
-    color: "bg-emerald-700",
+    color: "from-cyan-500 to-cyan-700",
   },
 ];
 
@@ -54,129 +54,119 @@ export default function MaterialsPage() {
 
       <div
         className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
-          p-6
-          shadow-sm
+          rounded-3xl
+          bg-gradient-to-r
+          from-blue-700
+          via-blue-600
+          to-cyan-500
+          p-8
+          text-white
+          shadow-xl
         "
       >
-        <h1
-          className="
-            text-3xl
-            font-bold
-            tracking-tight
-            text-slate-800
-          "
-        >
-          รายการพัสดุทั้งหมด
+
+        <h1 className="text-4xl font-extrabold">
+          📦 รายการพัสดุทั้งหมด
         </h1>
 
-        <p className="mt-2 text-slate-600">
+        <p className="mt-3 text-xl text-blue-100">
           เลือกหมวดหมู่เพื่อดูรายการพัสดุในระบบ
         </p>
+
       </div>
 
-      {/* Category Cards */}
+      {/* Category */}
 
-      <div
-        className="
-          grid
-          gap-8
-          md:grid-cols-3
-        "
-      >
+      <div className="grid gap-8 md:grid-cols-3">
+
         {categories.map((cat) => (
+
           <Link
             key={cat.code}
             href={`/materials/category/${cat.code}`}
             className="
+              group
               overflow-hidden
-              rounded-xl
+              rounded-3xl
               border
-              border-slate-300
-              bg-slate-100
-              shadow-sm
+              border-slate-200
+              bg-white
+              shadow-md
               transition-all
-              duration-200
-              hover:-translate-y-1
-              hover:shadow-lg
-              hover:border-blue-300
+              duration-300
+              hover:-translate-y-2
+              hover:shadow-2xl
             "
           >
-            {/* Top Color */}
-
-            <div className="h-2 bg-emerald-500" />
 
             <div
-              className="
-                flex
-                h-56
-                flex-col
-                justify-between
-                p-8
-              "
-            >
-              {/* Icon */}
+              className={`h-3 bg-gradient-to-r ${cat.color}`}
+            />
+
+            <div className="flex h-72 flex-col justify-between p-8">
 
               <div className="flex justify-center">
+
                 <div
                   className="
                     flex
-                    h-20
-                    w-20
+                    h-24
+                    w-24
                     items-center
                     justify-center
-                    rounded-2xl
-                    bg-white
-                    shadow-sm
-                    border
-                    border-slate-200
-                    text-5xl
+                    rounded-3xl
+                    bg-slate-50
+                    text-6xl
+                    shadow-md
+                    transition
+                    duration-300
+                    group-hover:scale-110
                   "
                 >
                   {cat.icon}
                 </div>
+
               </div>
 
-              {/* Title */}
+              <div className="space-y-3 text-center">
 
-              <div className="text-center">
-                <h2
-                  className="
-                    text-xl
-                    font-bold
-                    text-slate-800
-                  "
-                >
+                <h2 className="text-2xl font-extrabold text-slate-800">
                   {cat.name}
                 </h2>
-              </div>
 
-              {/* Button */}
+                <p className="text-slate-500">
+                  คลิกเพื่อจัดการข้อมูลพัสดุ
+                </p>
+
+              </div>
 
               <div className="flex justify-center">
+
                 <span
-                  className="
-                    rounded-lg
-                    bg-emerald-500
-                    px-4
-                    py-2
-                    text-sm
-                    font-medium
+                  className={`
+                    rounded-xl
+                    bg-gradient-to-r
+                    ${cat.color}
+                    px-6
+                    py-3
+                    font-bold
                     text-white
-                    shadow-sm
+                    shadow-md
                     transition
-                    hover:bg-emerald-600
-                  "
+                    group-hover:scale-105
+                  `}
                 >
-                  คลิกเพื่อดูรายการ
+                  เปิดหมวดหมู่ →
                 </span>
+
               </div>
+
             </div>
+
           </Link>
+
         ))}
+
       </div>
 
     </div>

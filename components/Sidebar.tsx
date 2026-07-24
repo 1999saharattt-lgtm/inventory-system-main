@@ -84,7 +84,7 @@ export default function Sidebar() {
       className="
         w-72
         min-h-screen
-        bg-slate-900
+        bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950
         shadow-2xl
         border-r
         border-slate-800
@@ -107,10 +107,12 @@ export default function Sidebar() {
             flex
             items-center
             gap-3
-            bg-white
-            rounded-xl
-            p-4
-            shadow-md
+            bg-white/95
+            rounded-2xl
+            p-5
+            shadow-xl
+            border
+            border-slate-200
           "
         >
 
@@ -252,7 +254,8 @@ export default function Sidebar() {
                           py-3
                           rounded-xl
                           transition-all
-                          duration-200
+                          duration-300
+                          hover:translate-x-1
 
 
                           ${
@@ -280,8 +283,9 @@ export default function Sidebar() {
 
                             `
                               text-slate-300
-                              hover:bg-slate-800
-                              hover:text-white
+hover:bg-slate-700/70
+hover:text-white
+hover:shadow-lg
                             `
                           }
 

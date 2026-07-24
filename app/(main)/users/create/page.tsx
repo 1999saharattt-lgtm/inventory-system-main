@@ -43,25 +43,26 @@ export default async function CreateUserPage() {
 
 
   return (
-    <div className="max-w-xl">
+    <div className="space-y-8">
 
+
+      {/* Header */}
 
       <div
         className="
           rounded-xl
           border
+          border-slate-300
           bg-white
           p-6
-          shadow
+          shadow-md
         "
       >
 
-
         <h1
           className="
-            mb-6
-            text-2xl
-            font-bold
+            text-4xl
+            font-extrabold
             text-slate-800
           "
         >
@@ -69,20 +70,61 @@ export default async function CreateUserPage() {
         </h1>
 
 
+        <p
+          className="
+            mt-2
+            text-xl
+            font-bold
+            text-slate-600
+          "
+        >
+          สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
+        </p>
+
+
+      </div>
+
+
+
+
+
+      {/* Form */}
+
+      <div
+        className="
+          max-w-2xl
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-6
+          shadow-md
+        "
+      >
 
 
         <form
           action={createUser}
-          className="space-y-4"
+          className="space-y-5"
         >
+
 
 
 
           <div>
 
-            <label className="block mb-1">
+            <label
+              className="
+                mb-2
+                block
+                text-xl
+                font-extrabold
+                text-slate-700
+              "
+            >
               Username
             </label>
+
 
             <input
               name="username"
@@ -91,8 +133,13 @@ export default async function CreateUserPage() {
                 w-full
                 rounded-lg
                 border
-                px-3
-                py-2
+                border-slate-300
+                px-4
+                py-3
+                text-xl
+                font-bold
+                outline-none
+                focus:border-blue-500
               "
             />
 
@@ -102,11 +149,21 @@ export default async function CreateUserPage() {
 
 
 
+
           <div>
 
-            <label className="block mb-1">
+            <label
+              className="
+                mb-2
+                block
+                text-xl
+                font-extrabold
+                text-slate-700
+              "
+            >
               ชื่อ-นามสกุล
             </label>
+
 
             <input
               name="fullname"
@@ -115,8 +172,13 @@ export default async function CreateUserPage() {
                 w-full
                 rounded-lg
                 border
-                px-3
-                py-2
+                border-slate-300
+                px-4
+                py-3
+                text-xl
+                font-bold
+                outline-none
+                focus:border-blue-500
               "
             />
 
@@ -126,11 +188,21 @@ export default async function CreateUserPage() {
 
 
 
+
           <div>
 
-            <label className="block mb-1">
+            <label
+              className="
+                mb-2
+                block
+                text-xl
+                font-extrabold
+                text-slate-700
+              "
+            >
               Password
             </label>
+
 
             <input
               type="password"
@@ -140,8 +212,13 @@ export default async function CreateUserPage() {
                 w-full
                 rounded-lg
                 border
-                px-3
-                py-2
+                border-slate-300
+                px-4
+                py-3
+                text-xl
+                font-bold
+                outline-none
+                focus:border-blue-500
               "
             />
 
@@ -151,11 +228,23 @@ export default async function CreateUserPage() {
 
 
 
+
+
           <div>
 
-            <label className="block mb-1">
-              สิทธิ์
+            <label
+              className="
+                mb-2
+                block
+                text-xl
+                font-extrabold
+                text-slate-700
+              "
+            >
+              สิทธิ์การใช้งาน
             </label>
+
+
 
             <select
               name="role"
@@ -163,8 +252,13 @@ export default async function CreateUserPage() {
                 w-full
                 rounded-lg
                 border
-                px-3
-                py-2
+                border-slate-300
+                px-4
+                py-3
+                text-xl
+                font-bold
+                outline-none
+                focus:border-blue-500
               "
             >
 
@@ -172,13 +266,16 @@ export default async function CreateUserPage() {
                 STAFF
               </option>
 
+
               <option value="ADMIN">
                 ADMIN
               </option>
 
+
               <option value="VIEWER">
                 VIEWER
               </option>
+
 
             </select>
 
@@ -189,7 +286,14 @@ export default async function CreateUserPage() {
 
 
 
-          <div className="flex gap-3 pt-4">
+
+          <div
+            className="
+              flex
+              gap-3
+              pt-4
+            "
+          >
 
 
             <Link
@@ -197,10 +301,13 @@ export default async function CreateUserPage() {
               className="
                 rounded-lg
                 bg-slate-600
-                px-5
+                px-6
                 py-3
-                font-semibold
+                text-xl
+                font-extrabold
                 text-white
+                shadow-sm
+                transition
                 hover:bg-slate-700
               "
             >
@@ -210,15 +317,19 @@ export default async function CreateUserPage() {
 
 
 
+
             <button
               className="
                 rounded-lg
-                bg-blue-700
-                px-5
+                bg-blue-600
+                px-6
                 py-3
-                font-semibold
+                text-xl
+                font-extrabold
                 text-white
-                hover:bg-blue-800
+                shadow-sm
+                transition
+                hover:bg-blue-700
               "
             >
               บันทึก
@@ -226,6 +337,7 @@ export default async function CreateUserPage() {
 
 
           </div>
+
 
 
 

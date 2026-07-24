@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
-
 type Receive = {
   id: number;
   receiveDate: Date;
@@ -13,9 +12,7 @@ type Receive = {
   };
 };
 
-
 export default async function ReceivePage() {
-
   const receives = await prisma.receive.findMany({
     include: {
       vendor: true,
@@ -26,163 +23,144 @@ export default async function ReceivePage() {
     },
   });
 
-
   return (
     <div className="space-y-8">
 
-
-      <div className="flex items-center justify-between rounded-xl border border-slate-300 bg-slate-100 p-6 shadow-sm">
-
+      {/* Header */}
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-3xl
+          bg-gradient-to-r
+          from-blue-700
+          via-blue-600
+          to-cyan-500
+          p-8
+          shadow-xl
+          text-white
+        "
+      >
         <div>
-
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">
-            รายการรับเข้าพัสดุ
+          <h1 className="text-4xl font-extrabold">
+            📥 รายการรับเข้าพัสดุ
           </h1>
 
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-lg text-blue-100">
             แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
           </p>
-
         </div>
-
 
         <Link
           href="/receive/create"
           className="
-            rounded-lg
-            bg-blue-700
-            px-5
+            rounded-2xl
+            bg-white
+            px-6
             py-3
-            font-semibold
-            text-white
-            shadow-sm
-            transition
-            hover:bg-blue-800
+            text-xl
+            font-bold
+            text-blue-700
+            shadow-lg
+            transition-all
+            duration-200
+            hover:-translate-y-1
+            hover:bg-blue-50
           "
         >
           + เพิ่มรายการรับ
         </Link>
-
-
       </div>
 
-
-
-
-      <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
-
-
+      {/* Table */}
+      <div
+        className="
+          overflow-hidden
+          rounded-3xl
+          border
+          border-slate-200
+          bg-white
+          shadow-xl
+        "
+      >
         <div className="overflow-x-auto">
 
+          <table className="min-w-full">
 
-          <table className="min-w-full border-collapse">
+            <thead>
+              <tr>
 
-
-            <thead className="bg-slate-200">
-
-              <tr className="text-sm text-slate-800">
-
-
-                <th className="w-16 border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th className="w-20">
                   ลำดับ
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th>
                   วันที่รับเข้า
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th>
                   เลขที่เอกสาร
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th>
                   ผู้จำหน่าย
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th>
                   รายละเอียด
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th>
                   หมายเหตุ
                 </th>
 
-
-                <th className="w-56 border border-slate-300 px-4 py-3 text-center font-semibold">
+                <th className="w-60">
                   จัดการ
                 </th>
 
-
               </tr>
-
             </thead>
 
-
-
-
-
             <tbody>
-
 
               {receives.length > 0 ? (
 
                 receives.map((receive: Receive, index: number) => (
 
+                  <tr key={receive.id}>
 
-                  <tr
-                    key={receive.id}
-                    className="
-                      odd:bg-white
-                      even:bg-slate-50
-                      hover:bg-blue-50
-                      transition-colors
-                    "
-                  >
-
-
-                    <td className="border border-slate-300 px-4 py-3 text-center font-medium text-slate-700">
+                    <td className="text-center">
                       {index + 1}
                     </td>
 
-
-
-                    <td className="border border-slate-300 px-4 py-3 text-center text-slate-700">
+                    <td className="text-center">
                       {new Date(receive.receiveDate).toLocaleDateString("th-TH")}
                     </td>
 
+                    <td className="text-center">
 
-
-                    <td className="border border-slate-300 px-4 py-3 text-center">
-
-                      <span className="
-                        inline-block
-                        rounded-md
-                        bg-slate-200
-                        px-3
-                        py-1
-                        text-sm
-                        font-semibold
-                        text-slate-800
-                      ">
+                      <span
+                        className="
+                          inline-block
+                          rounded-xl
+                          bg-slate-100
+                          px-3
+                          py-1
+                          font-bold
+                          text-slate-700
+                        "
+                      >
                         {receive.documentNo}
                       </span>
 
                     </td>
 
-
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td>
                       {receive.vendor.name}
                     </td>
 
-
-
-                    <td className="border border-slate-300 px-4 py-3 text-center">
+                    <td className="text-center">
 
                       <Link
                         href={`/receive/${receive.id}`}
@@ -190,16 +168,16 @@ export default async function ReceivePage() {
                           inline-flex
                           items-center
                           justify-center
-                          rounded-lg
+                          rounded-xl
                           bg-sky-600
                           px-4
                           py-2
-                          text-sm
-                          font-medium
+                          font-bold
                           text-white
-                          shadow-sm
-                          transition
+                          transition-all
+                          duration-200
                           hover:bg-sky-700
+                          hover:-translate-y-0.5
                         "
                       >
                         แสดงรายการพัสดุ
@@ -207,10 +185,7 @@ export default async function ReceivePage() {
 
                     </td>
 
-
-
-
-                    <td className="border border-slate-300 px-4 py-3 text-slate-700">
+                    <td>
 
                       {receive.remark ? (
                         receive.remark
@@ -222,83 +197,60 @@ export default async function ReceivePage() {
 
                     </td>
 
-
-
-
-
-                    <td className="border border-slate-300 px-4 py-3">
-
+                    <td>
 
                       <div className="flex justify-center gap-2">
-
 
                         <Link
                           href={`/receive/${receive.id}/edit`}
                           className="
-                            rounded-lg
+                            rounded-xl
                             bg-amber-500
                             px-4
                             py-2
-                            text-sm
-                            font-medium
+                            font-bold
                             text-white
-                            shadow-sm
-                            transition
+                            transition-all
+                            duration-200
+                            hover:-translate-y-0.5
                             hover:bg-amber-600
                           "
                         >
                           แก้ไข
                         </Link>
 
-
-
-                        <DeleteButton id={receive.id}/>
-
-
+                        <DeleteButton id={receive.id} />
 
                       </div>
 
-
                     </td>
-
-
 
                   </tr>
 
-
                 ))
 
-
               ) : (
-
 
                 <tr>
 
                   <td
                     colSpan={7}
-                    className="bg-white py-12 text-center text-slate-500"
+                    className="py-16 text-center text-slate-500"
                   >
                     ยังไม่มีข้อมูลการรับเข้าพัสดุ
                   </td>
 
                 </tr>
 
-
               )}
-
-
 
             </tbody>
 
-
           </table>
-
 
         </div>
 
-
       </div>
-
 
     </div>
   );
