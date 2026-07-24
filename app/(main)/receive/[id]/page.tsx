@@ -9,6 +9,19 @@ type Props = {
   }>;
 };
 
+type ReceiveItem = {
+  id: number;
+  qty: number;
+  unitPrice: number | string;
+  manufacture: Date | null;
+  expiry: Date | null;
+  material: {
+    category: string;
+    code: string;
+    name: string;
+    unit: string;
+  };
+};
 
 const categoryLabel:any = {
 
@@ -238,7 +251,7 @@ export default async function ReceiveDetailPage({
 
             <tbody className="text-gray-900">
                             {
-                receive.items.map((item,index)=>(
+                receive.items.map((item: ReceiveItem, index: number)=>(
 
 
                   <tr key={item.id}>
