@@ -6,8 +6,22 @@ import DeletePdfButton from "./DeletePdfButton";
 
 type Props = {
   params: Promise<{
-    id:string;
+    id: string;
   }>;
+};
+
+type IssueItem = {
+  id: number;
+  qty: number;
+  material: {
+    code: string;
+    name: string;
+    unit: string;
+    category: string;
+    latestPrice: {
+      toString(): string;
+    };
+  };
 };
 
 
@@ -345,7 +359,7 @@ export default async function IssueDetailPage({
 
 
             {
-              issue.items.map((item, index) => (
+              issue.items.map((item: IssueItem, index: number) => (
 
 
                 <tr key={item.id}>
