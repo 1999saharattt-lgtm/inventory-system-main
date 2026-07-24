@@ -21,7 +21,13 @@ export async function updateReceive(formData: FormData) {
     formData.get("remark") as string;
 
 
-  const items = [];
+  const items: {
+  materialId: number;
+  qty: number;
+  unitPrice: number;
+  manufacture: Date | null;
+  expiry: Date | null;
+}[] = [];
 
   for (let i = 0; i < 15; i++) {
 

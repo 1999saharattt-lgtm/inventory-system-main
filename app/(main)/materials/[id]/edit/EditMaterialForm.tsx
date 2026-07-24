@@ -117,7 +117,9 @@ export default function EditMaterialForm({
 
       const text = await res.text();
 
-      let data = null;
+      let data: {
+  message: string;
+} | null = null;
 
       try {
         data = text
