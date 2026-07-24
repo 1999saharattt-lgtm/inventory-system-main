@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { Category } from "@prisma/client";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
@@ -11,6 +10,15 @@ const categoryName: Record<string, string> = {
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "สื่อสิ่งพิมพ์",
 };
+
+
+type Category =
+  | "OFFICE"
+  | "COMPUTER"
+  | "ELECTRIC"
+  | "HOUSEHOLD"
+  | "VEHICLE"
+  | "PRINTING";
 
 type Material = {
   id: number;
