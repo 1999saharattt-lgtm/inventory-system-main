@@ -8,18 +8,11 @@
 @font-face {
   font-family: "TH Sarabun New";
   src: url("/fonts/2.3.2%20THSarabunNew.ttf") format("truetype");
-  font-weight: 400;
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
-@font-face {
-  font-family: "TH Sarabun New";
-  src: url("/fonts/2.3.2%20THSarabunNew.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* =====================================
    Theme
@@ -77,8 +70,21 @@
 html,
 body {
 
-  margin: 0;
-  padding: 0;
+  min-height: 100vh;
+
+  background: var(--background);
+
+  color: var(--foreground);
+
+  font-family: "TH Sarabun New", sans-serif;
+
+  font-size: 20px;
+
+  font-weight: 600;
+
+  line-height: 1.5;
+
+  text-rendering: optimizeLegibility;
 
 }
 
@@ -119,7 +125,7 @@ h6 {
 
   color: #111827;
 
-  font-weight: 800;
+  font-weight: 700;
 
 }
 
@@ -293,27 +299,17 @@ thead {
 
 th {
   padding: 14px;
-
   text-align: center;
-
   color: white;
-
   font-size: 21px;
-
-  font-weight: 800;
-
-  border: none;
+  font-weight: 700;
 }
-
 
 td {
   padding: 14px;
-
   border-bottom: 1px solid #e5e7eb;
-
   color: #334155;
-
-  font-weight: 700;
+  font-weight: 600;
 }
 
 
