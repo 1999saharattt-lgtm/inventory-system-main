@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { Category } from "@prisma/client";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
-
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -12,7 +12,23 @@ const categoryName: Record<string, string> = {
   PRINTING: "สื่อสิ่งพิมพ์",
 };
 
-
+type Material = {
+  id: number;
+  code: string;
+  name: string;
+  balance: number;
+  unit: string;
+  latestPrice: {
+    toLocaleString: (
+      locale?: string,
+      options?: Intl.NumberFormatOptions
+    ) => string;
+  };
+  receiveItems: {
+    manufacture: Date | null;
+    expiry: Date | null;
+  }[];
+};
 
 type Props = {
   params: Promise<{
@@ -24,25 +40,19 @@ type Props = {
   }>;
 };
 
-
-
 export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
 
-
   const { category } = await params;
-
   const { search } = await searchParams;
-
-
 
   const materials = await prisma.material.findMany({
 
     where: {
 
-      category: category as any,
+      category: category as Category,
 
       ...(search
         ? {
@@ -63,7 +73,6 @@ export default async function CategoryPage({
 
     },
 
-
     include: {
 
       receiveItems: {
@@ -78,22 +87,16 @@ export default async function CategoryPage({
 
     },
 
-
     orderBy: {
       code: "asc",
     },
 
-
   });
-
 
 
   return (
 
     <div className="space-y-8">
-
-
-      {/* Header */}
 
       <div
         className="
@@ -109,9 +112,7 @@ export default async function CategoryPage({
         "
       >
 
-
         <div>
-
 
           <h1
             className="
@@ -129,14 +130,10 @@ export default async function CategoryPage({
             รายการพัสดุในหมวดนี้
           </p>
 
-
         </div>
 
 
-
-
         <div className="flex gap-3">
-
 
           <Link
             href="/materials/new"
@@ -147,14 +144,10 @@ export default async function CategoryPage({
               py-3
               font-semibold
               text-white
-              shadow-sm
-              transition
-              hover:bg-blue-800
             "
           >
             + เพิ่มรายการ
           </Link>
-
 
 
           <Link
@@ -166,23 +159,15 @@ export default async function CategoryPage({
               py-3
               font-semibold
               text-slate-700
-              shadow-sm
-              transition
-              hover:bg-slate-300
             "
           >
             ← กลับ
           </Link>
 
-
-
         </div>
-
 
       </div>
 
-
-      {/* Search */}
 
       <div
         className="
@@ -220,20 +205,15 @@ export default async function CategoryPage({
               px-5
               py-3
               text-white
-              hover:bg-blue-800
             "
           >
             ค้นหา
           </button>
 
-
         </form>
-
 
       </div>
 
-
-      {/* Table */}
 
       <div
         className="
@@ -246,295 +226,170 @@ export default async function CategoryPage({
         "
       >
 
-
         <div className="overflow-x-auto">
-
 
           <table className="min-w-full border-collapse">
 
-
             <thead className="bg-slate-200">
-
 
               <tr className="text-sm font-semibold text-slate-800">
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
+                <th className="border px-4 py-3">
                   รหัสพัสดุ
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3">
+                <th className="border px-4 py-3">
                   รายการพัสดุ
                 </th>
-                                <th className="border border-slate-300 px-4 py-3 text-center">
+
+                <th className="border px-4 py-3 text-center">
                   จำนวน
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
+                <th className="border px-4 py-3 text-center">
                   หน่วย
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-right">
+                <th className="border px-4 py-3 text-right">
                   ราคาล่าสุด
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
+                <th className="border px-4 py-3 text-center">
                   วันผลิต
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
+                <th className="border px-4 py-3 text-center">
                   วันหมดอายุ
                 </th>
 
-
-                <th className="border border-slate-300 px-4 py-3 text-center">
+                <th className="border px-4 py-3 text-center">
                   จัดการ
                 </th>
 
-
               </tr>
-
 
             </thead>
 
 
-
             <tbody>
-
 
               {materials.length > 0 ? (
 
-                materials.map((material, index) => (
+                materials.map((material: Material, index: number) => (
 
                   <tr
-
                     key={material.id}
-
-                    className="
-                      odd:bg-white
-                      even:bg-slate-50
-                      hover:bg-blue-50
-                      transition-colors
-                    "
-
+                    className="odd:bg-white even:bg-slate-50 hover:bg-blue-50"
                   >
 
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-center
-                      font-medium
-                      text-slate-700
-                    ">
+                    <td className="border px-4 py-3">
                       {material.code}
                     </td>
 
 
-
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-slate-700
-                    ">
+                    <td className="border px-4 py-3">
                       {material.name}
                     </td>
 
 
-
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-center
-                    ">
+                    <td className="border px-4 py-3 text-center">
                       {material.balance}
                     </td>
 
 
-
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-center
-                    ">
+                    <td className="border px-4 py-3 text-center">
                       {material.unit}
                     </td>
 
 
-
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-right
-                    ">
+                    <td className="border px-4 py-3 text-right">
                       {material.latestPrice.toLocaleString(
                         "th-TH",
                         {
-                          minimumFractionDigits:2,
-                          maximumFractionDigits:2,
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
                         }
                       )}
                     </td>
 
 
+                    <td className="border px-4 py-3 text-center">
 
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-center
-                    ">
-
-                      {
-                        material.receiveItems[0]?.manufacture
-                        ?
-                        new Date(
-                          material.receiveItems[0].manufacture
-                        ).toLocaleDateString("th-TH")
-                        :
-                        "-"
+                      {material.receiveItems[0]?.manufacture
+                        ? new Date(
+                            material.receiveItems[0].manufacture
+                          ).toLocaleDateString("th-TH")
+                        : "-"
                       }
 
                     </td>
 
 
+                    <td className="border px-4 py-3 text-center">
 
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                      text-center
-                    ">
-
-                      {
-                        material.receiveItems[0]?.expiry
-                        ?
-                        new Date(
-                          material.receiveItems[0].expiry
-                        ).toLocaleDateString("th-TH")
-                        :
-                        "-"
+                      {material.receiveItems[0]?.expiry
+                        ? new Date(
+                            material.receiveItems[0].expiry
+                          ).toLocaleDateString("th-TH")
+                        : "-"
                       }
 
                     </td>
 
 
+                    <td className="border px-4 py-3">
 
-
-                    <td className="
-                      border
-                      border-slate-300
-                      px-4
-                      py-3
-                    ">
-
-
-                      <div className="
-                        flex
-                        justify-center
-                        gap-2
-                      ">
-
+                      <div className="flex justify-center gap-2">
 
                         <Link
-  href={`/materials/${material.id}/edit`}
-  className="
-    inline-flex
-    items-center
-    justify-center
-    rounded-lg
-    bg-amber-500
-    px-4
-    py-2
-    text-base
-    font-bold
-    text-white
-    shadow-sm
-    transition
-    hover:bg-amber-600
-  "
->
-  แก้ไข
-</Link>
-
+                          href={`/materials/${material.id}/edit`}
+                          className="
+                            rounded-lg
+                            bg-amber-500
+                            px-4
+                            py-2
+                            font-bold
+                            text-white
+                          "
+                        >
+                          แก้ไข
+                        </Link>
 
 
                         <DeleteButton id={material.id}/>
 
-
-
                       </div>
-
 
                     </td>
 
-
                   </tr>
-
 
                 ))
 
-
               ) : (
-
 
                 <tr>
 
                   <td
                     colSpan={8}
-                    className="
-                      py-12
-                      text-center
-                      text-slate-500
-                    "
+                    className="py-12 text-center text-slate-500"
                   >
                     ยังไม่มีพัสดุในหมวดนี้
                   </td>
 
                 </tr>
 
-
               )}
-
-
 
             </tbody>
 
-
           </table>
-
 
         </div>
 
-
       </div>
-
 
     </div>
 
   );
-
 }
