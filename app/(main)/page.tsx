@@ -32,6 +32,7 @@ export default async function Home() {
     },
   });
 
+
   const cards = [
     {
       title: "จำนวนพัสดุทั้งหมด",
@@ -75,94 +76,174 @@ export default async function Home() {
     },
   ];
 
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
+
       {/* Hero */}
-      <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-8 text-white shadow-xl">
-        <h1 className="text-4xl font-extrabold">
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          bg-gradient-to-r
+          from-blue-700
+          via-blue-600
+          to-cyan-500
+          p-6
+          text-white
+          shadow-lg
+        "
+      >
+
+        <h1 className="text-2xl font-bold">
           👋 ยินดีต้อนรับ
         </h1>
 
-        <p className="mt-4 text-2xl font-bold">
+        <p className="mt-2 text-xl font-bold">
           ระบบบริหารคลังพัสดุ
         </p>
 
-        <p className="text-lg text-blue-100">
+        <p className="text-base text-blue-100">
           สำนักอนามัยการเจริญพันธุ์
         </p>
+
       </div>
 
+
+
       {/* Summary */}
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+
         {cards.map((card) => (
+
           <div
             key={card.title}
             className={`
               overflow-hidden
-              rounded-2xl
+              rounded-xl
               border
               border-slate-200
               bg-white
-              shadow-lg
-              transition-all
+              shadow-md
+              transition
               duration-300
-              hover:-translate-y-2
-              hover:shadow-2xl
+              hover:-translate-y-1
+              hover:shadow-lg
               ${card.hover}
             `}
           >
-            <div className={`h-2 ${card.color}`} />
 
-            <div className="p-6">
+            <div className={`h-1.5 ${card.color}`} />
+
+
+            <div className="p-5">
+
               <div className="flex items-center justify-between">
+
+
                 <div>
-                  <p className="text-lg font-bold text-slate-600">
+
+                  <p className="text-base font-bold text-slate-600">
                     {card.title}
                   </p>
 
-                  <p className="mt-4 text-6xl font-extrabold text-slate-900">
+
+                  <p className="mt-2 text-4xl font-extrabold text-slate-900">
                     {card.value}
                   </p>
 
-                  <p className="mt-2 text-base font-semibold text-slate-500">
+
+                  <p className="mt-1 text-sm font-semibold text-slate-500">
                     {card.unit}
                   </p>
+
+
                 </div>
+
+
 
                 <div
                   className={`
-                    rounded-2xl
+                    flex
+                    h-20
+                    w-20
+                    items-center
+                    justify-center
+                    rounded-xl
                     border
-                    p-5
-                    text-5xl
+                    text-4xl
                     ${card.bg}
                     ${card.border}
                   `}
                 >
                   {card.icon}
                 </div>
+
+
               </div>
+
             </div>
+
+
           </div>
+
         ))}
+
+
       </div>
 
+
+
       {/* Information */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-        <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-          <h2 className="text-2xl font-extrabold text-slate-800">
+      <div
+        className="
+          overflow-hidden
+          rounded-xl
+          border
+          border-slate-200
+          bg-white
+          shadow-md
+        "
+      >
+
+        <div
+          className="
+            border-b
+            border-slate-200
+            bg-slate-50
+            px-5
+            py-3
+          "
+        >
+
+          <h2 className="text-xl font-bold text-slate-800">
             ข้อมูลระบบ
           </h2>
+
         </div>
 
-        <div className="space-y-4 p-6 text-lg font-semibold text-slate-700">
+
+        <div
+          className="
+            space-y-2
+            p-5
+            text-base
+            font-semibold
+            text-slate-700
+          "
+        >
+
           <div>✅ รองรับการรับเข้าพัสดุ</div>
           <div>✅ รองรับการเบิกจ่ายพัสดุ</div>
           <div>✅ ตรวจสอบจำนวนคงเหลืออัตโนมัติ</div>
           <div>✅ รองรับบัญชีพัสดุ (Stock Card)</div>
           <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
+
         </div>
+
       </div>
+
+
     </div>
   );
 }
