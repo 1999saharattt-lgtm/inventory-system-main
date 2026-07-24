@@ -1,9 +1,13 @@
-import { OfficerType } from "@prisma/client";
+type OfficerType =
+  | "CIVIL_SERVANT"
+  | "GOVERNMENT_EMPLOYEE"
+  | "PERMANENT_EMPLOYEE"
+  | "OUTSOURCE";
 
 
 export function officerTypeText(
   type: OfficerType
-){
+) {
 
   switch(type){
 
