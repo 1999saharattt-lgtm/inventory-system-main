@@ -91,8 +91,7 @@ export async function updateIssue(
 
 
   await prisma.$transaction(
-
-    async(tx)=>{
+  async (tx: any) => {
 
 
 
