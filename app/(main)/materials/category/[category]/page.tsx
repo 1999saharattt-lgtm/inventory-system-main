@@ -309,7 +309,7 @@ export default async function CategoryPage({
 
               {materials.length > 0 ? (
 
-                materials.map((material)=>(
+                materials.map((material: any, index: number) => (
 
                   <tr
 
