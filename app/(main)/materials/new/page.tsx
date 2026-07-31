@@ -3,6 +3,7 @@ import MaterialForm from "./MaterialForm";
 import { prisma } from "@/lib/prisma";
 
 export default async function NewMaterialPage() {
+
   const vendors = await prisma.vendor.findMany({
     orderBy: {
       name: "asc",
@@ -12,6 +13,7 @@ export default async function NewMaterialPage() {
       name: true,
     },
   });
+
 
   const materialMasters = await prisma.materialMaster.findMany({
     orderBy: [
@@ -30,80 +32,110 @@ export default async function NewMaterialPage() {
     },
   });
 
+
+
   return (
+
     <div className="space-y-6">
+
+
       {/* Header */}
 
       <div
         className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          text-white
+          shadow-xl
         "
       >
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-          "
-        >
-          <div>
-            <h1
-              className="
-                text-3xl
-                font-bold
-                tracking-tight
-                text-slate-800
-              "
-            >
-              เพิ่มรายการพัสดุ
-            </h1>
 
-            <p className="mt-2 text-slate-600">
-              เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ
-            </p>
-          </div>
+        <div>
 
-          <Link
-            href="/materials"
+          <h1
             className="
-              rounded-lg
-              bg-slate-200
-              px-5
-              py-3
-              font-semibold
-              text-slate-700
-              shadow-sm
-              transition
-              hover:bg-slate-300
+              text-3xl
+              font-extrabold
             "
           >
-            ← กลับ
-          </Link>
+            ➕ เพิ่มรายการพัสดุ
+          </h1>
+
+
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              text-slate-300
+            "
+          >
+            เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ
+          </p>
+
+
         </div>
+
+
+
+        <Link
+          href="/materials"
+          className="
+            rounded-xl
+            bg-white/10
+            px-5
+            py-3
+            font-extrabold
+            text-white
+            backdrop-blur
+            shadow-lg
+            transition
+            hover:bg-white/20
+          "
+        >
+          ← กลับ
+        </Link>
+
+
       </div>
 
-      {/* Form Card */}
+
+
+
+      {/* Form */}
 
       <div
         className="
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
-          bg-slate-100
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-900
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          shadow-xl
         "
       >
+
         <MaterialForm
           vendors={vendors}
           materialMasters={materialMasters}
         />
+
+
       </div>
+
+
+
     </div>
+
   );
 }
