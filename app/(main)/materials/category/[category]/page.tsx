@@ -8,7 +8,7 @@ const categoryName: Record<string, string> = {
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "สื่อสิ่งพิมพ์",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 
@@ -20,6 +20,7 @@ type Category =
   | "VEHICLE"
   | "PRINTING";
 
+
 type Material = {
   id: number;
   code: string;
@@ -27,10 +28,10 @@ type Material = {
   balance: number;
   unit: string;
   latestPrice: {
-    toLocaleString: (
+    toLocaleString(
       locale?: string,
       options?: Intl.NumberFormatOptions
-    ) => string;
+    ): string;
   };
   receiveItems: {
     manufacture: Date | null;
@@ -38,15 +39,16 @@ type Material = {
   }[];
 };
 
+
 type Props = {
   params: Promise<{
     category: string;
   }>;
-
   searchParams: Promise<{
     search?: string;
   }>;
 };
+
 
 export default async function CategoryPage({
   params,
@@ -55,6 +57,7 @@ export default async function CategoryPage({
 
   const { category } = await params;
   const { search } = await searchParams;
+
 
   const materials = await prisma.material.findMany({
 
@@ -84,13 +87,10 @@ export default async function CategoryPage({
     include: {
 
       receiveItems: {
-
         orderBy: {
           id: "desc",
         },
-
         take: 1,
-
       },
 
     },
@@ -102,21 +102,27 @@ export default async function CategoryPage({
   });
 
 
+
   return (
 
-    <div className="space-y-8">
+    <div className="space-y-6">
+
+
+      {/* Header */}
 
       <div
         className="
           flex
           items-center
           justify-between
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          text-white
+          shadow-xl
         "
       >
 
@@ -125,70 +131,92 @@ export default async function CategoryPage({
           <h1
             className="
               text-3xl
-              font-bold
-              tracking-tight
-              text-slate-800
+              font-extrabold
             "
           >
             {categoryName[category]}
           </h1>
 
 
-          <p className="mt-2 text-slate-600">
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              text-slate-300
+            "
+          >
             รายการพัสดุในหมวดนี้
           </p>
 
         </div>
 
 
+
         <div className="flex gap-3">
+
 
           <Link
             href="/materials/new"
             className="
-              rounded-lg
-              bg-blue-700
+              rounded-xl
+              bg-blue-600
               px-5
               py-3
-              font-semibold
+              font-extrabold
               text-white
+              shadow-lg
+              hover:bg-blue-700
             "
           >
             + เพิ่มรายการ
           </Link>
 
 
+
           <Link
             href="/materials"
             className="
-              rounded-lg
-              bg-slate-200
+              rounded-xl
+              bg-white/10
               px-5
               py-3
-              font-semibold
-              text-slate-700
+              font-extrabold
+              text-white
+              backdrop-blur
+              hover:bg-white/20
             "
           >
             ← กลับ
           </Link>
 
+
         </div>
+
 
       </div>
 
 
+
+
+      {/* Search */}
+
       <div
         className="
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           p-5
-          shadow-sm
+          shadow-xl
         "
       >
 
+
         <form className="flex gap-3">
+
 
           <input
             name="search"
@@ -196,8 +224,9 @@ export default async function CategoryPage({
             placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
             className="
               flex-1
-              rounded-lg
+              rounded-xl
               border
+              border-slate-300
               px-4
               py-3
               text-black
@@ -205,149 +234,163 @@ export default async function CategoryPage({
           />
 
 
+
           <button
             type="submit"
             className="
-              rounded-lg
-              bg-blue-700
-              px-5
+              rounded-xl
+              bg-blue-600
+              px-6
               py-3
+              font-extrabold
               text-white
+              shadow-lg
+              hover:bg-blue-700
             "
           >
             ค้นหา
           </button>
 
+
         </form>
+
 
       </div>
 
 
+
+
+      {/* Table */}
+
       <div
         className="
           overflow-hidden
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
-          shadow-sm
+          shadow-xl
         "
       >
 
         <div className="overflow-x-auto">
 
-          <table className="min-w-full border-collapse">
 
-            <thead className="bg-slate-200">
+          <table className="min-w-full">
 
-              <tr className="text-sm font-semibold text-slate-800">
 
-                <th className="border px-4 py-3">
-                  รหัสพัสดุ
-                </th>
+            <thead>
 
-                <th className="border px-4 py-3">
-                  รายการพัสดุ
-                </th>
+              <tr>
 
-                <th className="border px-4 py-3 text-center">
-                  จำนวน
-                </th>
+                {[
+                  "รหัสพัสดุ",
+                  "รายการพัสดุ",
+                  "จำนวน",
+                  "หน่วย",
+                  "ราคาล่าสุด",
+                  "วันผลิต",
+                  "วันหมดอายุ",
+                  "จัดการ",
+                ].map((title) => (
 
-                <th className="border px-4 py-3 text-center">
-                  หน่วย
-                </th>
+                  <th
+                    key={title}
+                    className="
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-4
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    {title}
+                  </th>
 
-                <th className="border px-4 py-3 text-right">
-                  ราคาล่าสุด
-                </th>
-
-                <th className="border px-4 py-3 text-center">
-                  วันผลิต
-                </th>
-
-                <th className="border px-4 py-3 text-center">
-                  วันหมดอายุ
-                </th>
-
-                <th className="border px-4 py-3 text-center">
-                  จัดการ
-                </th>
+                ))}
 
               </tr>
+
 
             </thead>
 
 
+
             <tbody>
+
 
               {materials.length > 0 ? (
 
-                materials.map((material: Material, index: number) => (
+                materials.map((material: Material) => (
 
                   <tr
                     key={material.id}
-                    className="odd:bg-white even:bg-slate-50 hover:bg-blue-50"
+                    className="
+                      border-b
+                      hover:bg-blue-50
+                    "
                   >
 
-                    <td className="border px-4 py-3">
+
+                    <td className="px-4 py-3 font-bold text-slate-700">
                       {material.code}
                     </td>
 
 
-                    <td className="border px-4 py-3">
+                    <td className="px-4 py-3 font-bold text-slate-800">
                       {material.name}
                     </td>
 
 
-                    <td className="border px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center font-bold text-slate-700">
                       {material.balance}
                     </td>
 
 
-                    <td className="border px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center text-slate-700">
                       {material.unit}
                     </td>
 
 
-                    <td className="border px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right text-slate-700">
                       {material.latestPrice.toLocaleString(
                         "th-TH",
                         {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
+                          minimumFractionDigits:2,
+                          maximumFractionDigits:2,
                         }
                       )}
                     </td>
 
 
-                    <td className="border px-4 py-3 text-center">
-
+                    <td className="px-4 py-3 text-center text-slate-700">
                       {material.receiveItems[0]?.manufacture
                         ? new Date(
                             material.receiveItems[0].manufacture
                           ).toLocaleDateString("th-TH")
                         : "-"
                       }
-
                     </td>
 
 
-                    <td className="border px-4 py-3 text-center">
-
+                    <td className="px-4 py-3 text-center text-slate-700">
                       {material.receiveItems[0]?.expiry
                         ? new Date(
                             material.receiveItems[0].expiry
                           ).toLocaleDateString("th-TH")
                         : "-"
                       }
-
                     </td>
 
 
-                    <td className="border px-4 py-3">
+                    <td className="px-4 py-3">
 
                       <div className="flex justify-center gap-2">
+
 
                         <Link
                           href={`/materials/${material.id}/edit`}
@@ -356,8 +399,10 @@ export default async function CategoryPage({
                             bg-amber-500
                             px-4
                             py-2
-                            font-bold
+                            font-extrabold
                             text-white
+                            shadow
+                            hover:bg-amber-600
                           "
                         >
                           แก้ไข
@@ -366,9 +411,11 @@ export default async function CategoryPage({
 
                         <DeleteButton id={material.id}/>
 
+
                       </div>
 
                     </td>
+
 
                   </tr>
 
@@ -380,7 +427,13 @@ export default async function CategoryPage({
 
                   <td
                     colSpan={8}
-                    className="py-12 text-center text-slate-500"
+                    className="
+                      py-12
+                      text-center
+                      text-lg
+                      font-bold
+                      text-slate-500
+                    "
                   >
                     ยังไม่มีพัสดุในหมวดนี้
                   </td>
@@ -389,13 +442,18 @@ export default async function CategoryPage({
 
               )}
 
+
             </tbody>
+
 
           </table>
 
+
         </div>
 
+
       </div>
+
 
     </div>
 
