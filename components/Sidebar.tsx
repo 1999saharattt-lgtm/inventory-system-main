@@ -194,14 +194,15 @@ export default function Sidebar() {
 
               <p
   className="
-    text-sm
-    font-bold
-    tracking-[0.2em]
-    text-slate-300
+    text-base
+    font-extrabold
+    tracking-[0.15em]
+    text-white
+    mb-3
   "
 >
-                {group.title}
-              </p>
+  {group.title}
+</p>
 
             </div>
 
