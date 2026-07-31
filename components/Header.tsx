@@ -37,27 +37,28 @@ export default async function Header() {
       >
 
         <h1
-          className="
-            truncate
-            text-xl
-            font-extrabold
-            leading-none
-            text-slate-800
-          "
-        >
+  className="
+    truncate
+    text-lg
+    font-extrabold
+    leading-tight
+    text-slate-800
+  "
+>
           ระบบบริหารคลังพัสดุ
         </h1>
 
 
         <p
-          className="
-            mt-1
-            truncate
-            text-base
-            font-bold
-            text-slate-500
-          "
-        >
+  className="
+    mt-0.5
+    truncate
+    text-sm
+    font-bold
+    leading-tight
+    text-slate-500
+  "
+>
           สำนักอนามัยการเจริญพันธุ์
         </p>
 
