@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
+
   const totalMaterials = await prisma.material.count();
+
 
   const lowStock = await prisma.material
     .count({
@@ -13,8 +15,13 @@ export default async function Home() {
     })
     .catch(() => 0);
 
+
+
   const today = new Date();
+
   today.setHours(0, 0, 0, 0);
+
+
 
   const receiveToday = await prisma.receive.count({
     where: {
@@ -24,6 +31,8 @@ export default async function Home() {
     },
   });
 
+
+
   const issueToday = await prisma.issue.count({
     where: {
       issueDate: {
@@ -31,6 +40,7 @@ export default async function Home() {
       },
     },
   });
+
 
 
   const cards = [
@@ -44,6 +54,7 @@ export default async function Home() {
       border: "border-blue-200",
       hover: "hover:border-blue-300",
     },
+
     {
       title: "รับเข้าวันนี้",
       value: receiveToday,
@@ -54,6 +65,7 @@ export default async function Home() {
       border: "border-emerald-200",
       hover: "hover:border-emerald-300",
     },
+
     {
       title: "เบิกจ่ายวันนี้",
       value: issueToday,
@@ -64,6 +76,7 @@ export default async function Home() {
       border: "border-amber-200",
       hover: "hover:border-amber-300",
     },
+
     {
       title: "พัสดุใกล้หมด",
       value: lowStock,
@@ -75,44 +88,59 @@ export default async function Home() {
       hover: "hover:border-red-300",
     },
   ];
+    return (
+    <div className="space-y-5">
 
-
-  return (
-    <div className="space-y-4">
 
       {/* Hero */}
+
       <div
         className="
-          overflow-hidden
-          rounded-xl
-          bg-gradient-to-r
-          from-blue-700
-          via-blue-600
-          to-cyan-500
-          p-4
-          text-white
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          px-6
+          py-6
+          text-center
           shadow-md
         "
       >
 
-        <h1 className="text-xl font-bold">
+        <h1
+          className="
+            text-4xl
+            font-extrabold
+            text-slate-800
+          "
+        >
           👋 ยินดีต้อนรับ
         </h1>
 
-        <p className="mt-1 text-lg font-bold">
-          ระบบบริหารคลังพัสดุ
+
+        <p
+          className="
+            mt-2
+            text-2xl
+            font-extrabold
+            text-blue-700
+          "
+        >
+          สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
         </p>
 
-        <p className="text-sm text-blue-100">
-          สำนักอนามัยการเจริญพันธุ์
-        </p>
 
       </div>
+            {/* Summary */}
 
-
-
-      {/* Summary */}
-      <div className="grid gap-4 md:grid-cols-2 xl-grid-cols-4">
+      <div
+        className="
+          grid
+          gap-4
+          md:grid-cols-2
+          xl:grid-cols-4
+        "
+      >
 
         {cards.map((card) => (
 
@@ -126,7 +154,6 @@ export default async function Home() {
               bg-white
               shadow-sm
               transition
-              duration-300
               hover:-translate-y-1
               hover:shadow-md
               ${card.hover}
@@ -143,20 +170,19 @@ export default async function Home() {
 
                 <div>
 
-                  <p className="text-sm font-bold text-slate-600">
+                  <p className="text-base font-bold text-slate-600">
                     {card.title}
                   </p>
 
 
-                  <p className="mt-1 text-3xl font-extrabold text-slate-900">
+                  <p className="mt-1 text-2xl font-extrabold text-slate-900">
                     {card.value}
                   </p>
 
 
-                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                  <p className="text-sm font-semibold text-slate-500">
                     {card.unit}
                   </p>
-
 
                 </div>
 
@@ -165,13 +191,13 @@ export default async function Home() {
                 <div
                   className={`
                     flex
-                    h-14
-                    w-14
+                    h-12
+                    w-12
                     items-center
                     justify-center
                     rounded-xl
                     border
-                    text-2xl
+                    text-xl
                     ${card.bg}
                     ${card.border}
                   `}
@@ -189,12 +215,9 @@ export default async function Home() {
 
         ))}
 
-
       </div>
+            {/* Information */}
 
-
-
-      {/* Information */}
       <div
         className="
           overflow-hidden
@@ -211,23 +234,30 @@ export default async function Home() {
             border-b
             border-slate-200
             bg-slate-50
-            px-4
-            py-2
+            px-5
+            py-3
           "
         >
 
-          <h2 className="text-lg font-bold text-slate-800">
+          <h2
+            className="
+              text-xl
+              font-extrabold
+              text-slate-800
+            "
+          >
             ข้อมูลระบบ
           </h2>
 
         </div>
 
 
+
         <div
           className="
             space-y-1
-            p-4
-            text-sm
+            p-5
+            text-base
             font-semibold
             text-slate-700
           "
@@ -240,6 +270,7 @@ export default async function Home() {
           <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
 
         </div>
+
 
       </div>
 
