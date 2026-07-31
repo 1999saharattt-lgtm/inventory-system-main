@@ -71,15 +71,15 @@ export default function MaterialsPage() {
       >
 
         <h1
-          className="
-            text-5xl
-            font-black
-            text-white
-            leading-tight
-          "
-        >
-          📦 รายการพัสดุทั้งหมด
-        </h1>
+  className="
+    text-6xl
+    font-extrabold
+    !text-white
+    leading-tight
+  "
+>
+  📦 รายการพัสดุทั้งหมด
+</h1>
 
 
         <p
@@ -144,9 +144,10 @@ export default function MaterialsPage() {
             <div
   className="
     flex
-    min-h-[210px]
+    min-h-[230px]
     flex-col
     items-center
+    gap-5
     p-6
     text-center
   "
@@ -154,8 +155,9 @@ export default function MaterialsPage() {
                           <div
   className="
     flex
-    h-14
-    w-14
+    h-16
+    w-16
+    shrink-0
     items-center
     justify-center
     rounded-xl
@@ -183,7 +185,7 @@ export default function MaterialsPage() {
                 <h2
                   className="
                     mt-5
-                    text-2xl
+                    text-xl
                     font-extrabold
                     text-slate-900
                   "
