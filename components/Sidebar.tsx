@@ -2,365 +2,376 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ElementType } from "react";
 
+import {
+  LayoutDashboard,
+  Boxes,
+  PackagePlus,
+  PackageMinus,
+  ClipboardList,
+  MonitorCog,
+  Truck,
+  Building2,
+  Users,
+} from "lucide-react";
+
+type MenuItem = {
+  name: string;
+  href: string;
+  icon: ElementType;
+};
+
+type MenuGroup = {
+  title: string;
+  items: MenuItem[];
+};
 
 export default function Sidebar() {
-
   const pathname = usePathname();
 
-
-  const menus = [
+  const menus: MenuGroup[] = [
     {
-      title: "หน้าหลัก",
+      title: "OVERVIEW",
       items: [
         {
           name: "Dashboard",
           href: "/",
-          icon: "🏠"
-        }
-      ]
+          icon: LayoutDashboard,
+        },
+      ],
     },
 
-
     {
-      title: "จัดการพัสดุ",
+      title: "INVENTORY",
       items: [
         {
           name: "รายการพัสดุทั้งหมด",
           href: "/materials",
-          icon: "📦"
+          icon: Boxes,
         },
         {
           name: "รับเข้า",
           href: "/receive",
-          icon: "📥"
+          icon: PackagePlus,
         },
         {
           name: "เบิกจ่าย",
           href: "/issue",
-          icon: "📤"
+          icon: PackageMinus,
         },
         {
           name: "บัญชีพัสดุ",
           href: "/stock-card",
-          icon: "📋"
+          icon: ClipboardList,
         },
         {
           name: "ทะเบียนครุภัณฑ์",
           href: "/assets",
-          icon: "🖥️"
+          icon: MonitorCog,
         },
-      ]
+      ],
     },
 
-
     {
-      title: "ข้อมูลพื้นฐาน",
+      title: "MASTER DATA",
       items: [
         {
           name: "ผู้จำหน่าย",
           href: "/vendors",
-          icon: "🚚"
+          icon: Truck,
         },
         {
           name: "กลุ่มงาน",
           href: "/departments",
-          icon: "🏢"
+          icon: Building2,
         },
         {
           name: "ผู้ใช้งานระบบ",
           href: "/users",
-          icon: "👤"
+          icon: Users,
         },
-      ]
-    }
+      ],
+    },
   ];
 
-
-
   return (
-
     <aside
       className="
-        w-60
+        w-72
+        shrink-0
         min-h-screen
-        bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950
-        shadow-2xl
         border-r
         border-slate-800
-        shrink-0
+        bg-gradient-to-b
+        from-slate-950
+        via-slate-900
+        to-slate-900
+        shadow-2xl
       "
     >
+      {/* Logo */}
 
-
-      {/* Header */}
-
-      <div
-        className="
-          p-3
-          border-b
-          border-slate-800
-        "
-      >
+      <div className="border-b border-slate-800 p-5">
 
         <div
           className="
-            flex
-            items-center
-            gap-3
-            bg-white/95
-            rounded-xl
-            p-3
-            shadow-xl
+            rounded-2xl
             border
             border-slate-200
+            bg-white
+            p-4
+            shadow-xl
           "
         >
 
-          <div
-            className="
-              w-10
-              h-10
-              rounded-full
-              bg-white
-              flex
-              items-center
-              justify-center
-              shadow-lg
-              overflow-hidden
-              shrink-0
-            "
-          >
-
-            <img
-              src="/images/dohl-logo.png"
-              alt="กรมอนามัย"
-              className="
-                w-8
-                h-8
-                object-contain
-              "
-            />
-
-          </div>
-
-
-
-          <div
-            className="
-              flex-1
-              flex
-              flex-col
-              justify-center
-              items-center
-              text-center
-              min-w-0
-            "
-          >
-
-            <h1
-              className="
-                whitespace-nowrap
-                text-base
-                font-extrabold
-                text-slate-800
-                leading-tight
-              "
-            >
-              ระบบบริหารคลังพัสดุ
-            </h1>
-
-
-            <p
-              className="
-                whitespace-nowrap
-                text-sm
-                text-blue-600
-                mt-1
-                font-bold
-              "
-            >
-              สำนักอนามัยการเจริญพันธุ์
-            </p>
-
-
-          </div>
-
-
-        </div>
-
-
-      </div>
-
-
-
-
-
-      {/* Menu */}
-
-      <nav
-        className="
-          px-3
-          py-3
-          space-y-4
-        "
-      >
-
-        {
-          menus.map((group) => (
+          <div className="flex items-center gap-4">
 
             <div
-              key={group.title}
+              className="
+                flex
+                h-14
+                w-14
+                items-center
+                justify-center
+                rounded-2xl
+                bg-slate-100
+                shadow-inner
+              "
             >
 
-              <div
-                className="
-                  px-3
-                  mb-2
-                "
-              >
-
-                <p
-                  className="
-                    text-sm
-                    font-bold
-                    !text-white
-                    tracking-wide
-                  "
-                >
-                  {group.title}
-                </p>
-
-              </div>
-
-
-              <div
-                className="
-                  space-y-1
-                "
-              >
-
-                {
-                  group.items.map((item) => {
-
-                    const active =
-                      pathname === item.href ||
-                      (
-                        item.href !== "/" &&
-                        pathname.startsWith(item.href)
-                      );
-
-
-                    return (
-
-                      <Link
-
-                        key={item.href}
-
-                        href={item.href}
-
-
-                        className={`
-
-                          group
-                          relative
-                          flex
-                          items-center
-                          gap-3
-                          px-3
-                          py-2
-                          rounded-xl
-                          transition-all
-                          duration-300
-                          hover:translate-x-1
-
-
-                          ${
-                            active
-
-                            ?
-
-                            `
-                              bg-blue-600
-                              text-white
-                              shadow-lg
-                              shadow-blue-900/30
-
-                              before:absolute
-                              before:left-0
-                              before:top-2
-                              before:h-6
-                              before:w-1
-                              before:bg-blue-300
-                              before:rounded-r-full
-                            `
-
-
-                            :
-
-                            `
-                              text-slate-300
-                              hover:bg-slate-700/70
-                              hover:text-white
-                              hover:shadow-lg
-                            `
-                          }
-
-                        `}
-
-                      >
-
-                        <span
-                          className="
-                            w-6
-                            text-center
-                            text-base
-                            transition
-                            group-hover:scale-110
-                            shrink-0
-                          "
-                        >
-                          {item.icon}
-                        </span>
-
-
-
-                        <span
-                          className="
-                            whitespace-nowrap
-                            text-base
-                            font-bold
-                          "
-                        >
-                          {item.name}
-                        </span>
-
-
-                      </Link>
-
-
-                    );
-
-
-                  })
-                }
-
-
-              </div>
-
+              <img
+                src="/images/dohl-logo.png"
+                alt="กรมอนามัย"
+                className="h-10 w-10 object-contain"
+              />
 
             </div>
 
+            <div className="min-w-0 flex-1">
 
-          ))
-        }
+              <h1
+                className="
+                  truncate
+                  text-lg
+                  font-extrabold
+                  text-slate-800
+                "
+              >
+                ระบบบริหารคลังพัสดุ
+              </h1>
 
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-semibold
+                  text-blue-600
+                "
+              >
+                สำนักอนามัยการเจริญพันธุ์
+              </p>
 
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <nav
+        className="
+          space-y-8
+          px-4
+          py-6
+        "
+      >
+              {menus.map((group) => (
+          <div key={group.title}>
+
+            <div className="mb-3 px-3">
+
+              <p
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-[0.25em]
+                  text-slate-500
+                "
+              >
+                {group.title}
+              </p>
+
+            </div>
+
+            <div className="space-y-2">
+
+              {group.items.map((item) => {
+
+                const active =
+                  pathname === item.href ||
+                  (
+                    item.href !== "/" &&
+                    pathname.startsWith(item.href)
+                  );
+
+                const Icon = item.icon;
+
+                return (
+
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`
+                      group
+                      relative
+                      flex
+                      items-center
+                      gap-3
+                      overflow-hidden
+                      rounded-2xl
+                      px-4
+                      py-3
+                      transition-all
+                      duration-300
+
+                      ${
+                        active
+                          ? `
+                            bg-gradient-to-r
+                            from-blue-600
+                            to-cyan-500
+                            text-white
+                            shadow-xl
+                            shadow-blue-900/40
+                          `
+                          : `
+                            text-slate-300
+                            hover:bg-slate-800
+                            hover:text-white
+                            hover:translate-x-1
+                          `
+                      }
+                    `}
+                  >
+
+                    {active && (
+                      <div
+                        className="
+                          absolute
+                          left-0
+                          top-3
+                          h-8
+                          w-1
+                          rounded-r-full
+                          bg-white
+                        "
+                      />
+                    )}
+
+                    <div
+                      className={`
+                        flex
+                        h-10
+                        w-10
+                        items-center
+                        justify-center
+                        rounded-xl
+                        transition-all
+
+                        ${
+                          active
+                            ? "bg-white/20"
+                            : "bg-slate-800 group-hover:bg-slate-700"
+                        }
+                      `}
+                    >
+
+                      <Icon
+                        size={20}
+                        strokeWidth={2.2}
+                      />
+
+                    </div>
+
+                    <div className="flex flex-1 flex-col">
+                                          <span
+                        className={`
+                          whitespace-nowrap
+                          text-[15px]
+                          font-bold
+                          leading-none
+
+                          ${
+                            active
+                              ? "text-white"
+                              : "text-slate-100"
+                          }
+                        `}
+                      >
+                        {item.name}
+                      </span>
+
+                      <span
+                        className={`
+                          mt-1
+                          text-xs
+
+                          ${
+                            active
+                              ? "text-blue-100"
+                              : "text-slate-500"
+                          }
+                        `}
+                      >
+                        {group.title}
+                      </span>
+
+                    </div>
+
+                    <div
+                      className={`
+                        transition-all
+                        duration-300
+
+                        ${
+                          active
+                            ? "translate-x-0 opacity-100"
+                            : "translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                        }
+                      `}
+                    >
+
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+
+                    </div>
+
+                  </Link>
+
+                );
+
+              })}
+
+            </div>
+
+          </div>
+
+        ))}
       </nav>
-
-
-    </aside>
-
+          </aside>
   );
-
 }
