@@ -193,14 +193,13 @@ export default function Sidebar() {
             <div className="mb-3 px-3">
 
               <p
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-[0.25em]
-                  text-slate-500
-                "
-              >
+  className="
+    text-sm
+    font-bold
+    tracking-[0.2em]
+    text-slate-300
+  "
+>
                 {group.title}
               </p>
 
@@ -297,39 +296,23 @@ export default function Sidebar() {
                     </div>
 
                     <div className="flex flex-1 flex-col">
-                                          <span
-                        className={`
-                          whitespace-nowrap
-                          text-[15px]
-                          font-bold
-                          leading-none
+  <span
+    className={`
+      whitespace-nowrap
+      text-[17px]
+      font-extrabold
+      leading-tight
 
-                          ${
-                            active
-                              ? "text-white"
-                              : "text-slate-100"
-                          }
-                        `}
-                      >
-                        {item.name}
-                      </span>
-
-                      <span
-                        className={`
-                          mt-1
-                          text-xs
-
-                          ${
-                            active
-                              ? "text-blue-100"
-                              : "text-slate-500"
-                          }
-                        `}
-                      >
-                        {group.title}
-                      </span>
-
-                    </div>
+      ${
+        active
+          ? "text-white"
+          : "text-white"
+      }
+    `}
+  >
+    {item.name}
+  </span>
+</div>
 
                     <div
                       className={`
