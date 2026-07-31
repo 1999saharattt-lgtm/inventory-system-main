@@ -32,9 +32,11 @@ export default async function CreateReceivePage() {
 
 
 
+
   return (
 
-    <div className="space-y-8">
+    <div className="space-y-6">
+
 
 
       {/* Header */}
@@ -44,12 +46,14 @@ export default async function CreateReceivePage() {
           flex
           items-center
           justify-between
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          rounded-3xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-cyan-700
           p-6
-          shadow-sm
+          text-white
+          shadow-xl
         "
       >
 
@@ -60,16 +64,22 @@ export default async function CreateReceivePage() {
           <h1
             className="
               text-3xl
-              font-bold
-              tracking-tight
-              text-slate-800
+              font-extrabold
             "
           >
-            บันทึกการรับเข้าพัสดุ
+            📥 บันทึกการรับเข้าพัสดุ
           </h1>
 
 
-          <p className="mt-2 text-slate-600">
+
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              text-slate-200
+            "
+          >
             เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
           </p>
 
@@ -79,18 +89,21 @@ export default async function CreateReceivePage() {
 
 
 
+
         <Link
           href="/receive"
           className="
-            rounded-lg
-            bg-slate-200
-            px-5
+            rounded-xl
+            bg-white/10
+            px-6
             py-3
-            font-semibold
-            text-slate-700
-            shadow-sm
+            font-extrabold
+            text-white
+            backdrop-blur
+            shadow-lg
             transition
-            hover:bg-slate-300
+            hover:bg-white/20
+            hover:-translate-y-1
           "
         >
           ← กลับ
@@ -104,12 +117,31 @@ export default async function CreateReceivePage() {
 
 
 
+
       {/* Form */}
 
-      <ReceiveForm
-        vendors={vendors}
-        materials={materials}
-      />
+      <div
+        className="
+          rounded-3xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-6
+          shadow-xl
+        "
+      >
+
+
+        <ReceiveForm
+          vendors={vendors}
+          materials={materials}
+        />
+
+
+      </div>
 
 
 
