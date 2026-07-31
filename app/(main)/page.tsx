@@ -145,42 +145,47 @@ export default async function Home() {
         {cards.map((card) => (
 
           <div
-            key={card.title}
-            className={`
-              overflow-hidden
-              rounded-xl
-              border
-              border-slate-200
-              bg-white
-              shadow-sm
-              transition
-              hover:-translate-y-1
-              hover:shadow-md
-              ${card.hover}
-            `}
-          >
+  key={card.title}
+  className={`
+    group
+    overflow-hidden
+    rounded-2xl
+    border
+    border-slate-700
+    bg-gradient-to-br
+    from-slate-900
+    via-slate-800
+    to-slate-700
+    shadow-xl
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:shadow-2xl
+    ${card.hover}
+  `}
+>
 
             <div className={`h-1 ${card.color}`} />
 
 
-            <div className="p-4">
+            <div className="p-5">
 
               <div className="flex items-center justify-between">
 
 
                 <div>
 
-                  <p className="text-base font-bold text-slate-600">
+                  <p className="text-base font-bold text-slate-300">
                     {card.title}
                   </p>
 
 
-                  <p className="mt-1 text-2xl font-extrabold text-slate-900">
+                  <p className="mt-1 text-3xl font-extrabold text-white">
                     {card.value}
                   </p>
 
 
-                  <p className="text-sm font-semibold text-slate-500">
+                  <p className="text-sm font-semibold text-slate-300">
                     {card.unit}
                   </p>
 
@@ -189,21 +194,22 @@ export default async function Home() {
 
 
                 <div
-                  className={`
-                    flex
-                    h-12
-                    w-12
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    text-xl
-                    ${card.bg}
-                    ${card.border}
-                  `}
-                >
-                  {card.icon}
-                </div>
+  className="
+    flex
+    h-12
+    w-12
+    items-center
+    justify-center
+    rounded-xl
+    border
+    border-white/20
+    bg-white/10
+    text-xl
+    backdrop-blur
+  "
+>
+  {card.icon}
+</div>
 
 
               </div>
