@@ -212,21 +212,44 @@ if (!categoryMap[category]) {
   return (
 
 <form
-onSubmit={handleSubmit}
-className="max-w-3xl space-y-5 rounded-xl bg-white p-6 shadow text-black"
+  onSubmit={handleSubmit}
+  className="
+    max-w-3xl
+    space-y-5
+    rounded-2xl
+    border
+    border-slate-700
+    bg-slate-900/40
+    p-6
+    text-white
+    shadow-xl
+    backdrop-blur
+  "
 >
 
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 รหัสพัสดุ
 </label>
 
 <input
 name="code"
 required
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 />
 
 </div>
@@ -235,7 +258,13 @@ className="w-full rounded-lg border p-3"
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 ผู้จำหน่าย
 </label>
 
@@ -243,7 +272,13 @@ className="w-full rounded-lg border p-3"
 <select
 name="vendorId"
 defaultValue=""
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 >
 
 <option value="">
@@ -275,7 +310,13 @@ value={vendor.id}
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 หมวดหมู่
 </label>
 
@@ -295,7 +336,13 @@ setNewUnit("");
 
 required
 
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 
 >
 
@@ -331,7 +378,13 @@ value={c}
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 รายการพัสดุ
 </label>
 
@@ -346,7 +399,13 @@ setName(e.target.value)
 
 required
 
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 
 >
 
@@ -404,7 +463,13 @@ placeholder="ชื่อรายการใหม่"
 
 required
 
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 
 />
 
@@ -422,7 +487,13 @@ placeholder="หน่วย เช่น ชิ้น, กล่อง, อั�
 
 required
 
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 
 />
 
@@ -446,7 +517,13 @@ className="w-full rounded-lg border p-3"
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 จำนวน
 </label>
 
@@ -459,7 +536,13 @@ name="balance"
 
 defaultValue={0}
 
-className="w-full rounded-lg border p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  p-3
+  text-black
+"
 
 />
 
@@ -469,7 +552,13 @@ className="w-full rounded-lg border p-3"
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 หน่วย
 </label>
 
@@ -480,7 +569,14 @@ value={unit}
 
 readOnly
 
-className="w-full rounded-lg border bg-gray-100 p-3"
+className="
+  w-full
+  rounded-xl
+  border
+  bg-slate-200
+  p-3
+  text-black
+"
 
 />
 
@@ -496,7 +592,13 @@ className="w-full rounded-lg border bg-gray-100 p-3"
 
 <div>
 
-<label className="mb-2 block font-medium">
+<label className="
+  mb-2
+  block
+  text-lg
+  font-extrabold
+  text-white
+">
 ราคาล่าสุด
 </label>
 
@@ -530,7 +632,19 @@ className="w-full rounded-lg border p-3 text-right"
 
 type="submit"
 
-className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+className="
+  rounded-xl
+  bg-gradient-to-r
+  from-blue-600
+  to-cyan-500
+  px-8
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
 
 >
 
@@ -544,7 +658,16 @@ className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
 
 href="/materials"
 
-className="rounded-lg bg-gray-300 px-6 py-3 hover:bg-gray-400"
+className="
+  rounded-xl
+  bg-white/10
+  px-8
+  py-3
+  font-extrabold
+  text-white
+  backdrop-blur
+  hover:bg-white/20
+"
 
 >
 
