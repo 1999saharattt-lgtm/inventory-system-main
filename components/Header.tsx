@@ -19,8 +19,8 @@ export default async function Header() {
         border-slate-200
         bg-white/95
         backdrop-blur
-        px-6
-        py-2
+        px-8
+        py-3
         shadow-sm
       "
     >
@@ -43,38 +43,38 @@ export default async function Header() {
       >
 
         <div
-          className="
-            rounded-lg
-            border
-            border-slate-200
-            bg-slate-50
-            px-4
-            py-1.5
-            text-right
-            shadow-sm
-          "
-        >
+  className="
+    rounded-xl
+    border
+    border-slate-200
+    bg-white
+    px-5
+    py-2
+    text-right
+    shadow-sm
+  "
+>
 
           <div
-            className="
-              whitespace-nowrap
-              text-base
-              font-extrabold
-              text-slate-800
-            "
-          >
+  className="
+    whitespace-nowrap
+    text-lg
+    font-extrabold
+    text-slate-800
+  "
+>
             {user.fullname}
           </div>
 
 
           <div
-            className="
-              whitespace-nowrap
-              text-sm
-              font-bold
-              text-blue-600
-            "
-          >
+  className="
+    whitespace-nowrap
+    text-base
+    font-bold
+    text-blue-600
+  "
+>
             {user.role}
           </div>
 
@@ -87,18 +87,18 @@ export default async function Header() {
           <button
             type="submit"
             className="
-              whitespace-nowrap
-              rounded-lg
-              bg-red-600
-              px-4
-              py-1.5
-              text-base
-              font-extrabold
-              text-white
-              shadow-md
-              transition
-              hover:bg-red-700
-            "
+  whitespace-nowrap
+  rounded-xl
+  bg-red-600
+  px-5
+  py-2
+  text-base
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:bg-red-700
+"
           >
             ออกจากระบบ
           </button>
