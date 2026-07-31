@@ -194,10 +194,10 @@ export default function Sidebar() {
 
               <p
   className="
-    text-base
-    font-extrabold
+    sidebar-title
+    text-lg
+    font-black
     tracking-[0.15em]
-    text-white
     mb-3
   "
 >
