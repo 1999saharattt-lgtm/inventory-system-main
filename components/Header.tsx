@@ -28,41 +28,41 @@ export default async function Header() {
       {/* Title */}
 
       <div
-        className="
-          w-[360px]
-          shrink-0
-          overflow-hidden
-          text-center
-        "
-      >
-
-        <h1
   className="
-    truncate
-    text-lg
-    font-extrabold
-    leading-tight
-    text-slate-800
+    w-[360px]
+    shrink-0
+    overflow-hidden
+    text-center
   "
 >
-          ระบบบริหารคลังพัสดุ
-        </h1>
+
+  <h1
+    className="
+      truncate
+      text-lg
+      font-extrabold
+      leading-tight
+      text-slate-800
+    "
+  >
+    ระบบบริหารคลังพัสดุ
+  </h1>
 
 
-        <p
-  className="
-    mt-0.5
-    truncate
-    text-sm
-    font-bold
-    leading-tight
-    text-slate-500
-  "
->
-          สำนักอนามัยการเจริญพันธุ์
-        </p>
+  <p
+    className="
+      mt-0.5
+      truncate
+      text-sm
+      font-bold
+      leading-tight
+      text-slate-500
+    "
+  >
+    สำนักอนามัยการเจริญพันธุ์
+  </p>
 
-      </div>
+</div>
 
 
 
