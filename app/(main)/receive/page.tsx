@@ -437,7 +437,6 @@ export default async function ReceivePage() {
 
 
               ) : (
-                              ) : (
 
                 <tr>
 
