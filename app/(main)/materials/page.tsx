@@ -142,28 +142,27 @@ export default function MaterialsPage() {
 
 
             <div
-              className="
-                flex
-                min-h-[210px]
-                flex-col
-                items-center
-                justify-between
-                p-6
-                text-center
-              "
-            >
+  className="
+    flex
+    min-h-[210px]
+    flex-col
+    items-center
+    p-6
+    text-center
+  "
+>
                           <div
   className="
     flex
-    h-16
-    w-16
+    h-14
+    w-14
     items-center
     justify-center
     rounded-xl
     border
     border-slate-200
     bg-slate-100
-    text-4xl
+    text-3xl
     shadow-md
     transition
     duration-300
@@ -183,7 +182,7 @@ export default function MaterialsPage() {
 
                 <h2
                   className="
-                    mt-3
+                    mt-5
                     text-2xl
                     font-extrabold
                     text-slate-900
