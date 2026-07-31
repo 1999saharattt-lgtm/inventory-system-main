@@ -62,7 +62,6 @@
 
 }
 
-
 /* =====================================
    Global
 ===================================== */
@@ -119,28 +118,8 @@ h6 {
 
   font-weight: 700;
 
-}
-
-
-h1 {
   font-size: inherit;
-}
 
-
-h2 {
-  font-size: 24px;
-}
-
-
-h3 {
-  font-size: 21px;
-}
-
-
-h4,
-h5,
-h6 {
-  font-size: 19px;
 }
 
 
@@ -169,7 +148,6 @@ a.text-white {
   color: white;
 
 }
-
 
 /* =====================================
    Forms
@@ -305,7 +283,6 @@ td {
 
 }
 
-
 /* =====================================
    Sidebar Menu
 ===================================== */
@@ -316,6 +293,15 @@ nav a {
   font-size: 17px;
 
   font-weight: 700;
+
+}
+
+
+/* Sidebar Group Title */
+
+.sidebar-title {
+
+  color: white !important;
 
 }
 
@@ -369,10 +355,4 @@ nav a {
 
   background: #94a3b8;
 
-}
-
-/* Sidebar Group Title */
-
-.sidebar-title {
-  color: white !important;
 }
