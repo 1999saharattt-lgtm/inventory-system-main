@@ -58,7 +58,7 @@ export default async function Home() {
     {
       title: "รับเข้าวันนี้",
       value: receiveToday,
-      unit: "ใบรับพัสดุ",
+      unit: "ใบรับเข้า",
       icon: "📥",
       color: "bg-emerald-600",
       bg: "bg-emerald-100",
@@ -69,7 +69,7 @@ export default async function Home() {
     {
       title: "เบิกจ่ายวันนี้",
       value: issueToday,
-      unit: "ใบเบิก",
+      unit: "ใบเบิกเบิกจ่าย",
       icon: "📤",
       color: "bg-amber-600",
       bg: "bg-amber-100",
