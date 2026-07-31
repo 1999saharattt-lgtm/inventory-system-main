@@ -129,21 +129,23 @@ export default async function CategoryPage({
         <div>
 
           <h1
-            className="
-              text-3xl
-              font-extrabold
-            "
-          >
+  className="
+    text-5xl
+    font-extrabold
+    text-white
+    leading-tight
+  "
+>
             {categoryName[category]}
           </h1>
 
 
           <p
             className="
-              mt-2
-              text-lg
+              mt-3
+              text-xl
               font-semibold
-              text-slate-300
+              text-slate-200
             "
           >
             รายการพัสดุในหมวดนี้
@@ -159,15 +161,18 @@ export default async function CategoryPage({
           <Link
             href="/materials/new"
             className="
-              rounded-xl
-              bg-blue-600
-              px-5
-              py-3
-              font-extrabold
-              text-white
-              shadow-lg
-              hover:bg-blue-700
-            "
+  rounded-xl
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
+  px-5
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
           >
             + เพิ่มรายการ
           </Link>
@@ -177,15 +182,16 @@ export default async function CategoryPage({
           <Link
             href="/materials"
             className="
-              rounded-xl
-              bg-white/10
-              px-5
-              py-3
-              font-extrabold
-              text-white
-              backdrop-blur
-              hover:bg-white/20
-            "
+  rounded-xl
+  bg-slate-700
+  px-5
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:bg-slate-600
+"
           >
             ← กลับ
           </Link>
@@ -238,15 +244,18 @@ export default async function CategoryPage({
           <button
             type="submit"
             className="
-              rounded-xl
-              bg-blue-600
-              px-6
-              py-3
-              font-extrabold
-              text-white
-              shadow-lg
-              hover:bg-blue-700
-            "
+  rounded-xl
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
+  px-5
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
           >
             ค้นหา
           </button>
@@ -396,13 +405,15 @@ export default async function CategoryPage({
                           href={`/materials/${material.id}/edit`}
                           className="
                             rounded-lg
-                            bg-amber-500
+                            bg-slate-800
                             px-4
                             py-2
                             font-extrabold
                             text-white
                             shadow
                             hover:bg-amber-600
+                            transition
+hover:bg-slate-700
                           "
                         >
                           แก้ไข
