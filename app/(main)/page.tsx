@@ -156,6 +156,7 @@ export default async function Home() {
     from-slate-900
     via-slate-800
     to-slate-700
+    text-white
     shadow-xl
     transition-all
     duration-300
@@ -175,7 +176,7 @@ export default async function Home() {
 
                 <div>
 
-                  <p className="text-base font-bold text-slate-300">
+                  <p className="text-base font-bold text-white">
                     {card.title}
                   </p>
 
@@ -185,7 +186,7 @@ export default async function Home() {
                   </p>
 
 
-                  <p className="text-sm font-semibold text-slate-300">
+                  <p className="text-sm font-semibold text-slate-200">
                     {card.unit}
                   </p>
 
