@@ -72,7 +72,7 @@ export default function MaterialsPage() {
 
         <h1
   className="
-    text-6xl
+    text-lg
     font-extrabold
     !text-white
     leading-tight
