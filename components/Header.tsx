@@ -31,12 +31,14 @@ export default async function Header() {
         className="
           w-[360px]
           shrink-0
+          overflow-hidden
+          text-center
         "
       >
 
         <h1
           className="
-            whitespace-nowrap
+            truncate
             text-xl
             font-extrabold
             leading-none
@@ -50,7 +52,7 @@ export default async function Header() {
         <p
           className="
             mt-1
-            whitespace-nowrap
+            truncate
             text-base
             font-bold
             text-slate-500
@@ -68,9 +70,9 @@ export default async function Header() {
       <div
         className="
           flex
+          shrink-0
           items-center
           gap-3
-          shrink-0
         "
       >
 
@@ -91,7 +93,7 @@ export default async function Header() {
             className="
               whitespace-nowrap
               text-base
-              font-extrabอด
+              font-extrabold
               text-slate-800
             "
           >
