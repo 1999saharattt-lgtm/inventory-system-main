@@ -46,12 +46,12 @@ export default async function NewMaterialPage() {
           flex
           items-center
           justify-between
-          rounded-2xl
+          rounded-3xl
           bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-6
+          from-blue-700
+          via-blue-600
+          to-cyan-500
+          p-7
           text-white
           shadow-xl
         "
@@ -61,8 +61,9 @@ export default async function NewMaterialPage() {
 
           <h1
             className="
-              text-3xl
+              text-4xl
               font-extrabold
+              tracking-tight
             "
           >
             ➕ เพิ่มรายการพัสดุ
@@ -72,9 +73,9 @@ export default async function NewMaterialPage() {
           <p
             className="
               mt-2
-              text-lg
-              font-semibold
-              text-slate-300
+              text-xl
+              font-bold
+              text-blue-100
             "
           >
             เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ
@@ -89,15 +90,14 @@ export default async function NewMaterialPage() {
           href="/materials"
           className="
             rounded-xl
-            bg-white/10
-            px-5
+            bg-white
+            px-6
             py-3
             font-extrabold
-            text-white
-            backdrop-blur
+            text-blue-700
             shadow-lg
             transition
-            hover:bg-white/20
+            hover:scale-105
           "
         >
           ← กลับ
@@ -113,14 +113,11 @@ export default async function NewMaterialPage() {
 
       <div
         className="
-          rounded-2xl
+          rounded-3xl
           border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-900
-          via-slate-800
-          to-slate-700
-          p-6
+          border-slate-200
+          bg-white
+          p-8
           shadow-xl
         "
       >
