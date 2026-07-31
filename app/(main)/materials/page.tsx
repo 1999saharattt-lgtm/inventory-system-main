@@ -72,9 +72,10 @@ export default function MaterialsPage() {
 
         <h1
           className="
-            text-4xl
-            font-extrabold
+            text-5xl
+            font-black
             text-white
+            leading-tight
           "
         >
           📦 รายการพัสดุทั้งหมด
@@ -84,12 +85,12 @@ export default function MaterialsPage() {
         <p
           className="
             mt-3
-            text-xl
+            text-lg
             font-semibold
             text-slate-200
           "
         >
-          เลือกหมวดหมู่เพื่อดูรายการพัสดุในระบบ
+          เลือกหมวดหมู่เพื่อดูรายการพัสดุ
         </p>
 
 
@@ -143,7 +144,7 @@ export default function MaterialsPage() {
             <div
               className="
                 flex
-                min-h-[230px]
+                min-h-[210px]
                 flex-col
                 items-center
                 justify-between
@@ -152,23 +153,23 @@ export default function MaterialsPage() {
               "
             >
                           <div
-                className="
-                  flex
-                  h-20
-                  w-20
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  border
-                  border-slate-200
-                  bg-slate-100
-                  text-5xl
-                  shadow-md
-                  transition
-                  duration-300
-                  group-hover:scale-110
-                "
-              >
+  className="
+    flex
+    h-16
+    w-16
+    items-center
+    justify-center
+    rounded-xl
+    border
+    border-slate-200
+    bg-slate-100
+    text-4xl
+    shadow-md
+    transition
+    duration-300
+    group-hover:scale-110
+  "
+>
 
                 {cat.icon}
 
@@ -182,8 +183,8 @@ export default function MaterialsPage() {
 
                 <h2
                   className="
-                    mt-5
-                    text-3xl
+                    mt-3
+                    text-2xl
                     font-extrabold
                     text-slate-900
                   "
