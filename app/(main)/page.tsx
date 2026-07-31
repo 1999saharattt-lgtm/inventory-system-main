@@ -69,7 +69,7 @@ export default async function Home() {
     {
       title: "เบิกจ่ายวันนี้",
       value: issueToday,
-      unit: "ใบเบิกเบิกจ่าย",
+      unit: "ใบเบิกจ่าย",
       icon: "📤",
       color: "bg-amber-600",
       bg: "bg-amber-100",
