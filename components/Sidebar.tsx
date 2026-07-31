@@ -32,10 +32,10 @@ export default function Sidebar() {
 
   const menus: MenuGroup[] = [
     {
-      title: "OVERVIEW",
+      title: "หน้าแรก",
       items: [
         {
-          name: "Dashboard",
+          name: "ภาพรวมระบบ",
           href: "/",
           icon: LayoutDashboard,
         },
@@ -43,7 +43,7 @@ export default function Sidebar() {
     },
 
     {
-      title: "INVENTORY",
+      title: "รายงานพัสดุ",
       items: [
         {
           name: "รายการพัสดุทั้งหมด",
@@ -51,22 +51,22 @@ export default function Sidebar() {
           icon: Boxes,
         },
         {
-          name: "รับเข้า",
+          name: "รายการรับเข้า",
           href: "/receive",
           icon: PackagePlus,
         },
         {
-          name: "เบิกจ่าย",
+          name: "รายการเบิกจ่าย",
           href: "/issue",
           icon: PackageMinus,
         },
         {
-          name: "บัญชีพัสดุ",
+          name: "บัญชีคุมพัสดุ",
           href: "/stock-card",
           icon: ClipboardList,
         },
         {
-          name: "ทะเบียนครุภัณฑ์",
+          name: "ทะเบียนคุมครุภัณฑ์",
           href: "/assets",
           icon: MonitorCog,
         },
@@ -74,7 +74,7 @@ export default function Sidebar() {
     },
 
     {
-      title: "MASTER DATA",
+      title: "ผู้ดูแลระบบ",
       items: [
         {
           name: "ผู้จำหน่าย",
