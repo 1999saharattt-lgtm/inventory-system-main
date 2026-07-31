@@ -48,7 +48,9 @@ const categories: Category[] = [
 
 
 export default function MaterialsPage() {
+
   return (
+
     <div className="space-y-6">
 
 
@@ -62,7 +64,7 @@ export default function MaterialsPage() {
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          p-8
           text-white
           shadow-xl
         "
@@ -70,8 +72,9 @@ export default function MaterialsPage() {
 
         <h1
           className="
-            text-3xl
+            text-4xl
             font-extrabold
+            text-white
           "
         >
           📦 รายการพัสดุทั้งหมด
@@ -80,20 +83,21 @@ export default function MaterialsPage() {
 
         <p
           className="
-            mt-2
-            text-lg
+            mt-3
+            text-xl
             font-semibold
-            text-slate-300
+            text-slate-200
           "
         >
           เลือกหมวดหมู่เพื่อดูรายการพัสดุในระบบ
         </p>
 
+
       </div>
 
 
 
-      {/* Category */}
+      {/* Category Cards */}
 
       <div
         className="
@@ -104,7 +108,8 @@ export default function MaterialsPage() {
         "
       >
 
-        {categories.map((cat) => (
+        {categories.map((cat)=>(
+
 
           <Link
             key={cat.code}
@@ -114,12 +119,9 @@ export default function MaterialsPage() {
               overflow-hidden
               rounded-2xl
               border
-              border-slate-700
-              bg-gradient-to-br
-              from-slate-900
-              via-slate-800
-              to-slate-700
-              shadow-xl
+              border-slate-300
+              bg-white
+              shadow-lg
               transition-all
               duration-300
               hover:-translate-y-1
@@ -129,13 +131,13 @@ export default function MaterialsPage() {
 
 
             <div
-              className={`
+              className="
                 h-2
                 bg-gradient-to-r
-                ${cat.color}
-              `}
+                from-slate-700
+                to-slate-900
+              "
             />
-
 
 
             <div
@@ -149,9 +151,7 @@ export default function MaterialsPage() {
                 text-center
               "
             >
-
-
-              <div
+                          <div
                 className="
                   flex
                   h-20
@@ -160,74 +160,90 @@ export default function MaterialsPage() {
                   justify-center
                   rounded-2xl
                   border
-                  border-white/20
-                  bg-white/10
+                  border-slate-200
+                  bg-slate-100
                   text-5xl
-                  shadow-lg
-                  backdrop-blur
+                  shadow-md
                   transition
                   duration-300
                   group-hover:scale-110
                 "
               >
+
                 {cat.icon}
+
               </div>
+
 
 
 
               <div>
 
+
                 <h2
                   className="
-                    mt-4
-                    text-2xl
+                    mt-5
+                    text-3xl
                     font-extrabold
-                    text-white
+                    text-slate-900
                   "
                 >
+
                   {cat.name}
+
                 </h2>
+
 
 
                 <p
                   className="
                     mt-2
-                    text-base
+                    text-lg
                     font-semibold
-                    text-slate-300
+                    text-slate-600
                   "
                 >
+
                   คลิกเพื่อจัดการข้อมูลพัสดุ
+
                 </p>
+
 
               </div>
 
 
 
+
+
               <span
-                className={`
+                className="
                   mt-5
                   rounded-xl
                   bg-gradient-to-r
-                  ${cat.color}
-                  px-6
-                  py-2
-                  text-base
+                  from-slate-800
+                  to-slate-950
+                  px-8
+                  py-3
+                  text-lg
                   font-extrabold
                   text-white
                   shadow-lg
                   transition
                   group-hover:scale-105
-                `}
+                "
               >
-                เปิดหมวดหมู่ →
+
+                เปิด
+
               </span>
+
 
 
             </div>
 
 
           </Link>
+
 
         ))}
 
@@ -236,5 +252,7 @@ export default function MaterialsPage() {
 
 
     </div>
+
   );
+
 }
