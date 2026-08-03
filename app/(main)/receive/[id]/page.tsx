@@ -5,9 +5,10 @@ import { notFound } from "next/navigation";
 
 type Props = {
   params: Promise<{
-    id:string;
+    id: string;
   }>;
 };
+
 
 type ReceiveItem = {
   id: number;
@@ -15,6 +16,7 @@ type ReceiveItem = {
   unitPrice: number | string;
   manufacture: Date | null;
   expiry: Date | null;
+
   material: {
     category: string;
     code: string;
@@ -23,7 +25,9 @@ type ReceiveItem = {
   };
 };
 
-const categoryLabel:any = {
+
+
+const categoryLabel: Record<string,string> = {
 
   OFFICE:"วัสดุสำนักงาน",
 
@@ -35,43 +39,41 @@ const categoryLabel:any = {
 
   VEHICLE:"วัสดุยานพาหนะ",
 
+  PRINTING:"วัสดุสื่อสิ่งพิมพ์",
+
 };
 
 
 
 export default async function ReceiveDetailPage({
   params,
-}:Props){
+}: Props) {
 
 
-  const {id}=await params;
+  const { id } = await params;
 
 
 
   const receive =
-  await prisma.receive.findUnique({
+    await prisma.receive.findUnique({
 
-    where:{
-      id:Number(id),
-    },
+      where:{
+        id:Number(id),
+      },
 
-    include:{
+      include:{
 
-      vendor:true,
+        vendor:true,
 
-      items:{
-
-        include:{
-
-          material:true,
-
+        items:{
+          include:{
+            material:true,
+          },
         },
 
       },
 
-    },
-
-  });
+    });
 
 
 
@@ -83,19 +85,57 @@ export default async function ReceiveDetailPage({
 
 
 
+
   return (
 
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
 
 
-      <div className="flex items-center justify-between">
+
+      {/* Header */}
+
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          p-6
+          shadow-xl
+        "
+      >
 
 
-        <h1 className="text-3xl font-bold text-white">
+        <div>
 
-          รายละเอียดเอกสารรับเข้า
+          <h1
+            className="
+              text-4xl
+              font-extrabold
+              text-white
+            "
+          >
+            📄 รายละเอียดเอกสารรับเข้า
+          </h1>
 
-        </h1>
+
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              text-slate-200
+            "
+          >
+            รายละเอียดรายการรับเข้าพัสดุ
+          </p>
+
+
+        </div>
 
 
 
@@ -103,7 +143,19 @@ export default async function ReceiveDetailPage({
 
           href="/receive"
 
-          className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
 
         >
 
@@ -112,15 +164,37 @@ export default async function ReceiveDetailPage({
         </Link>
 
 
+
       </div>
-            <div className="rounded-xl bg-white p-6 shadow text-gray-900 space-y-3">
+
+
+
+
+
+
+      {/* ข้อมูลเอกสาร */}
+
+
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
+          p-6
+          shadow-xl
+          text-white
+          space-y-4
+        "
+      >
 
 
         <p>
-
-          <strong>
+          <span className="font-extrabold">
             วันที่รับเข้า :
-          </strong>{" "}
+          </span>{" "}
 
           {
             new Date(receive.receiveDate)
@@ -133,9 +207,9 @@ export default async function ReceiveDetailPage({
 
         <p>
 
-          <strong>
+          <span className="font-extrabold">
             เลขที่เอกสาร :
-          </strong>{" "}
+          </span>{" "}
 
           {receive.documentNo}
 
@@ -145,9 +219,9 @@ export default async function ReceiveDetailPage({
 
         <p>
 
-          <strong>
+          <span className="font-extrabold">
             ผู้จำหน่าย :
-          </strong>{" "}
+          </span>{" "}
 
           {receive.vendor.name}
 
@@ -157,9 +231,9 @@ export default async function ReceiveDetailPage({
 
         <p>
 
-          <strong>
+          <span className="font-extrabold">
             หมายเหตุ :
-          </strong>{" "}
+          </span>{" "}
 
           {receive.remark || "-"}
 
@@ -173,72 +247,91 @@ export default async function ReceiveDetailPage({
 
 
 
-      <div className="rounded-xl bg-white p-6 shadow">
+      {/* ตารางรายการ */}
 
 
-        <h2 className="mb-4 text-xl font-bold text-gray-900">
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-xl
+        "
+      >
 
-          รายการพัสดุ
 
-        </h2>
+        <div
+          className="
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-6
+            py-4
+          "
+        >
+
+          <h2
+            className="
+              text-2xl
+              font-extrabold
+              text-white
+            "
+          >
+
+            รายการพัสดุ
+
+          </h2>
+
+
+        </div>
 
 
 
         <div className="overflow-x-auto">
 
 
-          <table className="w-full border border-gray-300 text-sm">
+          <table className="w-full">
 
 
-            <thead className="bg-gray-100 text-gray-900">
+            <thead>
 
 
-              <tr>
+              <tr
+                className="
+                  bg-slate-100
+                  text-slate-900
+                  font-extrabold
+                "
+              >
 
 
-                <th className="border p-2 text-center">
-                  ลำดับ
-                </th>
+                {[
+                  "ลำดับ",
+                  "หมวด",
+                  "รหัสพัสดุ",
+                  "ชื่อพัสดุ",
+                  "หน่วย",
+                  "จำนวน",
+                  "ราคาต่อหน่วย",
+                  "วันผลิต",
+                  "วันหมดอายุ",
+                ].map((title)=>(
 
+                  <th
+                    key={title}
+                    className="
+                      border
+                      px-3
+                      py-3
+                      text-center
+                    "
+                  >
+                    {title}
+                  </th>
 
-                <th className="border p-2">
-                  หมวด
-                </th>
-
-
-                <th className="border p-2">
-                  รหัสพัสดุ
-                </th>
-
-
-                <th className="border p-2">
-                  ชื่อพัสดุ
-                </th>
-
-
-                <th className="border p-2 text-center">
-                  หน่วย
-                </th>
-
-
-                <th className="border p-2 text-center">
-                  จำนวน
-                </th>
-
-
-                <th className="border p-2 text-right">
-                  ราคาต่อหน่วย
-                </th>
-
-
-                <th className="border p-2 text-center">
-                  วันผลิต
-                </th>
-
-
-                <th className="border p-2 text-center">
-                  วันหมดอายุ
-                </th>
+                ))}
 
 
               </tr>
@@ -249,118 +342,121 @@ export default async function ReceiveDetailPage({
 
 
 
-            <tbody className="text-gray-900">
-                            {
-                receive.items.map((item: ReceiveItem, index: number)=>(
+            <tbody>
 
 
-                  <tr key={item.id}>
+              {
+                receive.items.map(
+                  (item:ReceiveItem,index:number)=>(
 
 
-                    <td className="border p-2 text-center">
+                    <tr
+                      key={item.id}
+                      className="
+                        text-slate-900
+                        hover:bg-emerald-50
+                      "
+                    >
 
-                      {index+1}
 
-                    </td>
+                      <td className="border px-3 py-3 text-center font-bold">
 
+                        {index+1}
 
-
-                    <td className="border p-2">
-
-                      {
-                        categoryLabel[
-                          item.material.category
-                        ]
-                      }
-
-                    </td>
+                      </td>
 
 
 
+                      <td className="border px-3 py-3">
 
-                    <td className="border p-2">
+                        {
+                          categoryLabel[
+                            item.material.category
+                          ]
+                        }
 
-                      {item.material.code}
-
-                    </td>
-
-
-
-
-                    <td className="border p-2">
-
-                      {item.material.name}
-
-                    </td>
+                      </td>
 
 
 
+                      <td className="border px-3 py-3">
 
-                    <td className="border p-2 text-center">
+                        {item.material.code}
 
-                      {item.material.unit}
-
-                    </td>
-
+                      </td>
 
 
 
-                    <td className="border p-2 text-center">
+                      <td className="border px-3 py-3 font-semibold">
 
-                      {item.qty}
+                        {item.material.name}
 
-                    </td>
-
-
-
-
-                    <td className="border p-2 text-right">
-
-                      {
-                        Number(item.unitPrice)
-                        .toFixed(2)
-                      }
-
-                    </td>
+                      </td>
 
 
 
+                      <td className="border px-3 py-3 text-center">
 
-                    <td className="border p-2 text-center">
+                        {item.material.unit}
 
-                      {
-                        item.manufacture
-                        ?
-                        new Date(item.manufacture)
-                        .toLocaleDateString("th-TH")
-                        :
-                        "-"
-                      }
-
-                    </td>
+                      </td>
 
 
 
+                      <td className="border px-3 py-3 text-center">
 
-                    <td className="border p-2 text-center">
+                        {item.qty}
 
-                      {
-                        item.expiry
-                        ?
-                        new Date(item.expiry)
-                        .toLocaleDateString("th-TH")
-                        :
-                        "-"
-                      }
-
-                    </td>
+                      </td>
 
 
 
-                  </tr>
+                      <td className="border px-3 py-3 text-right">
+
+                        {
+                          Number(item.unitPrice)
+                          .toFixed(2)
+                        }
+
+                      </td>
 
 
-                ))
+
+                      <td className="border px-3 py-3 text-center">
+
+                        {
+                          item.manufacture
+                          ?
+                          new Date(item.manufacture)
+                          .toLocaleDateString("th-TH")
+                          :
+                          "-"
+                        }
+
+                      </td>
+
+
+
+                      <td className="border px-3 py-3 text-center">
+
+                        {
+                          item.expiry
+                          ?
+                          new Date(item.expiry)
+                          .toLocaleDateString("th-TH")
+                          :
+                          "-"
+                        }
+
+                      </td>
+
+
+
+                    </tr>
+
+
+                  )
+                )
               }
 
 
@@ -374,6 +470,7 @@ export default async function ReceiveDetailPage({
 
 
       </div>
+
 
 
 
