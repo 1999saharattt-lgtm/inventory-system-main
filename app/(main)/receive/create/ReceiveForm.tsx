@@ -83,13 +83,13 @@ export default function ReceiveForm({
 
 
   const [items, setItems] = useState<ReceiveRow[]>(
-    Array.from(
-      {
-        length: 5,
-      },
-      emptyRow
-    )
-  );
+  Array.from(
+    {
+      length: 15,
+    },
+    emptyRow
+  )
+);
 
 
 
@@ -273,15 +273,15 @@ export default function ReceiveForm({
                 {/* ตารางรายการพัสดุ */}
 
         <div
-          className="
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-200
-            bg-white
-            shadow-xl
-          "
-        >
+  className="
+    overflow-hidden
+    rounded-2xl
+    border
+    border-slate-700
+    bg-slate-900
+    shadow-xl
+  "
+>
 
           <div className="overflow-x-auto">
 
@@ -357,13 +357,14 @@ export default function ReceiveForm({
 
 
                     <tr
-                      key={index}
-                      className="
-                        border-b
-                        border-slate-200
-                        hover:bg-blue-50
-                      "
-                    >
+  key={index}
+  className="
+    border-b
+    border-slate-700
+    transition
+    hover:bg-slate-800
+  "
+>
 
 
 
@@ -375,7 +376,7 @@ export default function ReceiveForm({
                           py-3
                           text-center
                           font-bold
-                          text-slate-700
+                          text-white
                         "
                       >
 
@@ -413,10 +414,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         >
@@ -485,10 +486,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         >
@@ -559,7 +560,7 @@ export default function ReceiveForm({
                             rounded-xl
                             border
                             border-slate-300
-                            bg-slate-100
+                            bg-slate-700
                             p-2
                             text-black
                           "
@@ -599,10 +600,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         />
@@ -644,10 +645,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         />
@@ -687,10 +688,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         />
@@ -730,10 +731,10 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
+border-slate-600
+bg-slate-800
+p-2
+text-white
                           "
 
                         />
