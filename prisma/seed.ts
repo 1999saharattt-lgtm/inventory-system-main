@@ -4,6 +4,7 @@ import {
   PrismaClient,
   OfficerType,
   Role,
+  Category,
 } from "@prisma/client";
 
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -20,11 +21,12 @@ const prisma = new PrismaClient({
 });
 
 
+
 async function main() {
 
 
   // =========================
-  // สร้างกลุ่มงาน
+  // สร้างหน่วยงาน
   // =========================
 
   const departments = [
@@ -33,13 +35,13 @@ async function main() {
     "กลุ่มบริหารยุทธศาสตร์",
     "กลุ่มพัฒนาเทคโนโลยีอนามัยการเจริญพันธุ์",
     "กลุ่มพัฒนาประชากร",
-    "กลุ่มพัฒนาเครือข่ายอนามัยการเจริญพันธุ์",
+    "กลุ่มพัฒนาเครือข่ายอนามัยการเจริพันธุ์",
     "ผู้บริหารสำนักอนามัยการเจริญพันธุ์",
 
   ];
 
 
-  const departmentMap: any = {};
+  const departmentMap:any = {};
 
 
   for (const name of departments) {
@@ -48,13 +50,13 @@ async function main() {
     const department =
       await prisma.department.upsert({
 
-        where: {
+        where:{
           name,
         },
 
-        update: {},
+        update:{},
 
-        create: {
+        create:{
           name,
         },
 
@@ -71,8 +73,9 @@ async function main() {
 
 
   // =========================
-  // งานภายในกลุ่มอำนวยการ
+  // สร้างกลุ่มงาน
   // =========================
+
 
   const adminDepartmentId =
     departmentMap["กลุ่มอำนวยการ"];
@@ -88,8 +91,7 @@ async function main() {
   ];
 
 
-
-  const sectionMap: any = {};
+  const sectionMap:any = {};
 
 
 
@@ -99,30 +101,24 @@ async function main() {
     let section =
       await prisma.section.findFirst({
 
-        where: {
-
+        where:{
           name,
-
-          departmentId: adminDepartmentId,
-
+          departmentId:adminDepartmentId,
         },
 
       });
 
 
 
-    if (!section) {
+    if(!section){
 
 
       section =
         await prisma.section.create({
 
-          data: {
-
+          data:{
             name,
-
-            departmentId: adminDepartmentId,
-
+            departmentId:adminDepartmentId,
           },
 
         });
@@ -131,12 +127,10 @@ async function main() {
     }
 
 
-
     sectionMap[name] = section.id;
 
 
   }
-
 
 
 
@@ -151,62 +145,38 @@ async function main() {
 
 
     {
-
-      firstName: "สมชาย",
-
-      lastName: "ใจดี",
-
-      position: "เจ้าหน้าที่การเงิน",
-
-      type: OfficerType.CIVIL_SERVANT,
-
-      sectionId: sectionMap["งานการเงิน"],
-
+      firstName:"สมชาย",
+      lastName:"ใจดี",
+      position:"เจ้าหน้าที่การเงิน",
+      type:OfficerType.CIVIL_SERVANT,
+      sectionId:sectionMap["งานการเงิน"],
     },
 
 
     {
-
-      firstName: "สายใจ",
-
-      lastName: "ดีมาก",
-
-      position: "นักวิชาการเงินและบัญชี",
-
-      type: OfficerType.CIVIL_SERVANT,
-
-      sectionId: sectionMap["งานการเงิน"],
-
+      firstName:"สายใจ",
+      lastName:"ดีมาก",
+      position:"นักวิชาการเงินและบัญชี",
+      type:OfficerType.CIVIL_SERVANT,
+      sectionId:sectionMap["งานการเงิน"],
     },
 
 
     {
-
-      firstName: "เอกสาร",
-
-      lastName: "รักงาน",
-
-      position: "เจ้าหน้าที่สารบรรณ",
-
-      type: OfficerType.GOVERNMENT_EMPLOYEE,
-
-      sectionId: sectionMap["งานสารบรรณ"],
-
+      firstName:"เอกสาร",
+      lastName:"รักงาน",
+      position:"เจ้าหน้าที่สารบรรณ",
+      type:OfficerType.GOVERNMENT_EMPLOYEE,
+      sectionId:sectionMap["งานสารบรรณ"],
     },
 
 
     {
-
-      firstName: "พัสดุ",
-
-      lastName: "ดูแล",
-
-      position: "เจ้าหน้าที่พัสดุ",
-
-      type: OfficerType.PERMANENT_EMPLOYEE,
-
-      sectionId: sectionMap["งานพัสดุ"],
-
+      firstName:"พัสดุ",
+      lastName:"ดูแล",
+      position:"เจ้าหน้าที่พัสดุ",
+      type:OfficerType.PERMANENT_EMPLOYEE,
+      sectionId:sectionMap["งานพัสดุ"],
     },
 
 
@@ -214,36 +184,29 @@ async function main() {
 
 
 
-
-  for (const officer of officers) {
+  for(const officer of officers){
 
 
     const exists =
       await prisma.officer.findFirst({
 
-        where: {
-
-          firstName: officer.firstName,
-
-          lastName: officer.lastName,
-
-          sectionId: officer.sectionId,
-
+        where:{
+          firstName:officer.firstName,
+          lastName:officer.lastName,
+          sectionId:officer.sectionId,
         },
 
       });
 
 
 
-    if (!exists) {
-
+    if(!exists){
 
       await prisma.officer.create({
 
-        data: officer,
+        data:officer,
 
       });
-
 
     }
 
@@ -254,9 +217,8 @@ async function main() {
 
 
 
-
   // =========================
-  // สร้างผู้ใช้งานระบบ
+  // ผู้ใช้งาน
   // =========================
 
 
@@ -270,30 +232,23 @@ async function main() {
 
   await prisma.user.upsert({
 
-    where: {
-
-      username: "admin",
-
+    where:{
+      username:"admin",
     },
 
 
-    update: {},
+    update:{},
 
 
-    create: {
+    create:{
 
-      username: "admin",
-
-      password: passwordHash,
-
-      fullname: "ผู้ดูแลระบบ",
-
-      role: Role.ADMIN,
-
-      active: true,
+      username:"admin",
+      password:passwordHash,
+      fullname:"ผู้ดูแลระบบ",
+      role:Role.ADMIN,
+      active:true,
 
     },
-
 
   });
 
@@ -302,37 +257,134 @@ async function main() {
 
 
 
+
   // =========================
-  // สร้างผู้ขายเริ่มต้น
+  // ผู้ขาย
   // =========================
 
 
-  await prisma.vendor.createMany({
+  const vendor =
+    await prisma.vendor.upsert({
 
-    data: [
+      where:{
+        id:1,
+      },
 
-      {
+      update:{},
 
-        name: "บริษัทตัวอย่าง",
+      create:{
 
-        address: "กรุงเทพมหานคร",
+        name:"บริษัทตัวอย่าง",
 
-        phone: "-",
+        address:"กรุงเทพมหานคร",
+
+        phone:"-",
 
       },
 
+    });
+
+
+
+
+
+
+  // =========================
+  // วัสดุเริ่มต้น
+  // =========================
+
+
+  await prisma.material.createMany({
+
+    data:[
+
+
+      {
+        code:"OFF-001",
+        name:"กระดาษ A4",
+        category:Category.OFFICE,
+        unit:"รีม",
+        balance:100,
+        minimumStock:10,
+        latestPrice:120,
+        vendorId:vendor.id,
+      },
+
+
+      {
+        code:"COM-001",
+        name:"เมาส์ USB",
+        category:Category.COMPUTER,
+        unit:"ชิ้น",
+        balance:50,
+        minimumStock:5,
+        latestPrice:250,
+        vendorId:vendor.id,
+      },
+
+
+      {
+        code:"ELE-001",
+        name:"ปลั๊กไฟ",
+        category:Category.ELECTRIC,
+        unit:"อัน",
+        balance:30,
+        minimumStock:5,
+        latestPrice:180,
+        vendorId:vendor.id,
+      },
+
+
+      {
+        code:"HOU-001",
+        name:"น้ำยาทำความสะอาด",
+        category:Category.HOUSEHOLD,
+        unit:"ขวด",
+        balance:40,
+        minimumStock:5,
+        latestPrice:90,
+        vendorId:vendor.id,
+      },
+
+
+      {
+        code:"VEH-001",
+        name:"น้ำมันเครื่อง",
+        category:Category.VEHICLE,
+        unit:"ขวด",
+        balance:20,
+        minimumStock:5,
+        latestPrice:350,
+        vendorId:vendor.id,
+      },
+
+
+      {
+        code:"PRI-001",
+        name:"หมึกพิมพ์",
+        category:Category.PRINTING,
+        unit:"กล่อง",
+        balance:25,
+        minimumStock:5,
+        latestPrice:1500,
+        vendorId:vendor.id,
+      },
+
+
     ],
 
-    skipDuplicates: true,
+    skipDuplicates:true,
 
   });
+
+
 
 
 
 
 
   console.log(
-    "สร้างข้อมูลหน่วยงาน เจ้าหน้าที่ ผู้ใช้งาน และผู้ขายเรียบร้อย"
+    "Seed สำเร็จ : หน่วยงาน เจ้าหน้าที่ ผู้ใช้ ผู้ขาย และวัสดุครบ 6 หมวด"
   );
 
 
@@ -341,22 +393,22 @@ async function main() {
 
 
 
-
 main()
 
-  .then(async () => {
 
-    await prisma.$disconnect();
+.then(async()=>{
 
-  })
+  await prisma.$disconnect();
+
+})
 
 
-  .catch(async (e) => {
+.catch(async(e)=>{
 
-    console.error(e);
+  console.error(e);
 
-    await prisma.$disconnect();
+  await prisma.$disconnect();
 
-    process.exit(1);
+  process.exit(1);
 
-  });
+});
