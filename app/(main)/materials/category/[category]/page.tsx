@@ -130,9 +130,9 @@ export default async function CategoryPage({
 
           <h1
   className="
+    !text-white
     text-5xl
     font-extrabold
-    text-white
     leading-tight
   "
 >
@@ -183,14 +183,16 @@ export default async function CategoryPage({
             href="/materials"
             className="
   rounded-xl
-  bg-slate-700
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
   px-5
   py-3
   font-extrabold
   text-white
   shadow-lg
   transition
-  hover:bg-slate-600
+  hover:scale-105
 "
           >
             ← กลับ
