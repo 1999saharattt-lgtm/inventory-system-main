@@ -774,19 +774,18 @@ export default function MaterialForm({
           type="submit"
 
           className="
-            rounded-xl
-            bg-gradient-to-r
-            from-blue-600
-            to-cyan-500
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:shadow-xl
-          "
+  rounded-xl
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
+  px-8
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
 
         >
 
@@ -803,16 +802,18 @@ export default function MaterialForm({
           href="/materials"
 
           className="
-            rounded-xl
-            bg-slate-700
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:bg-slate-600
-          "
+  rounded-xl
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-8
+  py-3
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
 
         >
 
