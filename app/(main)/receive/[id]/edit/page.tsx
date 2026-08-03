@@ -129,12 +129,12 @@ export default async function EditReceivePage({
 
 
           <h1
-            className="
-              text-4xl
-              font-extrabold
-              text-white
-            "
-          >
+  className="
+    text-4xl
+    font-extrabold
+    !text-white
+  "
+>
 
             ✏️ แก้ไขรายการรับเข้าพัสดุ
 
@@ -143,13 +143,13 @@ export default async function EditReceivePage({
 
 
           <p
-            className="
-              mt-2
-              text-lg
-              font-semibold
-              text-slate-200
-            "
-          >
+  className="
+    mt-2
+    text-lg
+    font-semibold
+    !text-slate-200
+  "
+>
 
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
 

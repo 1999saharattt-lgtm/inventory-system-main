@@ -352,13 +352,13 @@ export default function EditReceiveForm({
               <thead>
 
                 <tr
-                  className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    text-white
-                  "
-                >
+  className="
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
+    !text-white
+  "
+>
 
                   {[
                     "ลำดับ",
@@ -372,16 +372,16 @@ export default function EditReceiveForm({
                   ].map((title)=>(
 
                     <th
-                      key={title}
-                      className="
-                        border
-                        px-3
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                      "
-                    >
+  className="
+    border
+    px-3
+    py-4
+    text-center
+    text-lg
+    font-extrabold
+    !text-white
+  "
+>
 
                       {title}
 
@@ -876,28 +876,25 @@ export default function EditReceiveForm({
 
 
           <button
-
-            type="submit"
-
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-8
-              py-3
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-
-          >
-
-            บันทึกการแก้ไข
-
-          </button>
+  type="submit"
+  className="
+    rounded-xl
+    bg-gradient-to-r
+    from-emerald-600
+    via-green-500
+    to-emerald-500
+    px-8
+    py-3
+    text-lg
+    font-extrabold
+    text-white
+    shadow-lg
+    transition
+    hover:scale-105
+  "
+>
+  💾 บันทึกการแก้ไข
+</button>
 
 
         </div>
