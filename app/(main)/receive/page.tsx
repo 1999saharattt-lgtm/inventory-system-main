@@ -17,59 +17,75 @@ type Receive = {
   }[];
 };
 
+
 export default async function ReceivePage() {
+
   const receives =
     await prisma.receive.findMany({
-      include: {
-        vendor: true,
-        items: true,
+
+      include:{
+        vendor:true,
+        items:true,
       },
-      orderBy: {
-        id: "desc",
+
+      orderBy:{
+        id:"desc",
       },
+
     });
 
+
+
   return (
+
     <div className="space-y-6">
 
+
       {/* Header */}
+
       <div
         className="
           flex
           items-center
           justify-between
-          rounded-3xl
+          rounded-2xl
           bg-gradient-to-r
           from-slate-950
-          via-slate-900
-          to-cyan-700
-          p-8
+          via-slate-800
+          to-slate-700
+          p-6
           text-white
-          shadow-2xl
+          shadow-xl
         "
       >
+
         <div>
+
           <h1
             className="
-              text-4xl
+              !text-white
+              text-5xl
               font-extrabold
-              tracking-tight
+              leading-tight
             "
           >
             📥 รายการรับเข้าพัสดุ
           </h1>
 
+
           <p
             className="
-              mt-2
-              text-lg
+              mt-3
+              text-xl
               font-semibold
               text-slate-200
             "
           >
             แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
           </p>
+
         </div>
+
 
 
         <Link
@@ -79,7 +95,7 @@ export default async function ReceivePage() {
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-7
+            px-5
             py-3
             font-extrabold
             text-white
@@ -91,45 +107,35 @@ export default async function ReceivePage() {
           + เพิ่มรายการรับ
         </Link>
 
+
       </div>
 
 
+
+
+
       {/* Table */}
+
       <div
         className="
           overflow-hidden
-          rounded-3xl
+          rounded-2xl
           border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          shadow-2xl
+          border-slate-200
+          bg-white
+          shadow-xl
         "
       >
 
         <div className="overflow-x-auto">
 
-          <table
-            className="
-              min-w-full
-              text-white
-            "
-          >
 
-            <thead
-              className="
-                bg-slate-950
-              "
-            >
+          <table className="min-w-full">
 
-              <tr
-                className="
-                  text-lg
-                  font-extrabold
-                "
-              >
+
+            <thead>
+
+              <tr>
 
                 {[
                   "ลำดับ",
@@ -139,17 +145,25 @@ export default async function ReceivePage() {
                   "รายละเอียด",
                   "หมายเหตุ",
                   "จัดการ",
-                ].map((title) => (
+                ].map((title)=>(
+
                   <th
                     key={title}
                     className="
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-4
                       py-4
                       text-center
+                      text-lg
+                      font-extrabold
+                      text-white
                     "
                   >
                     {title}
                   </th>
+
                 ))}
 
               </tr>
@@ -157,166 +171,214 @@ export default async function ReceivePage() {
             </thead>
 
 
+
             <tbody>
 
-              {receives.length > 0 ? (
 
-                receives.map(
-                  (
-                    receive: Receive,
-                    index: number
-                  ) => (
+              {
+                receives.length > 0 ? (
 
-                  <tr
-                    key={receive.id}
-                    className="
-                      border-t
-                      border-slate-700
-                      transition
-                      hover:bg-slate-800
-                    "
-                  >
+                  receives.map(
+                    (
+                      receive:Receive,
+                      index:number
+                    )=>(
 
-                    <td className="px-4 py-4 text-center font-bold">
-                      {index + 1}
-                    </td>
+                    <tr
+                      key={receive.id}
+                      className="
+                        border-b
+                        hover:bg-blue-50
+                      "
+                    >
 
 
-                    <td className="px-4 py-4 text-center font-semibold">
-                      {new Date(
-                        receive.receiveDate
-                      ).toLocaleDateString("th-TH")}
-                    </td>
-
-
-                    <td className="px-4 py-4 text-center">
-
-                      <span
+                      <td
                         className="
-                          rounded-xl
-                          bg-white/10
-                          px-3
-                          py-1
+                          px-4
+                          py-3
+                          text-center
                           font-bold
-                          text-cyan-300
+                          text-slate-700
+                        "
+                      >
+                        {index+1}
+                      </td>
+
+
+
+                      <td
+                        className="
+                          px-4
+                          py-3
+                          text-center
+                          font-semibold
+                          text-slate-700
+                        "
+                      >
+                        {
+                          new Date(
+                            receive.receiveDate
+                          ).toLocaleDateString("th-TH")
+                        }
+                      </td>
+
+
+
+                      <td
+                        className="
+                          px-4
+                          py-3
+                          text-center
+                          font-bold
+                          text-slate-800
                         "
                       >
                         {receive.documentNo}
-                      </span>
-
-                    </td>
+                      </td>
 
 
-                    <td className="px-4 py-4 font-semibold">
-                      {receive.vendor.name}
-                    </td>
 
-
-                    <td className="px-4 py-4 text-center">
-
-                      <Link
-                        href={`/receive/${receive.id}`}
+                      <td
                         className="
-                          rounded-xl
-                          bg-cyan-600
                           px-4
-                          py-2
-                          font-extrabold
-                          text-white
-                          shadow-md
-                          transition
-                          hover:bg-cyan-700
-                          hover:scale-105
+                          py-3
+                          font-bold
+                          text-slate-800
                         "
                       >
-                        ดูรายการ
-                      </Link>
-
-                    </td>
+                        {receive.vendor.name}
+                      </td>
 
 
-                    <td className="px-4 py-4 font-semibold">
 
-                      {
-                        receive.remark ??
-                        <span className="italic text-slate-400">
-                          -
-                        </span>
-                      }
-
-                    </td>
-
-
-                    <td className="px-4 py-4">
-
-                      <div
+                      <td
                         className="
-                          flex
-                          justify-center
-                          gap-3
+                          px-4
+                          py-3
+                          text-center
                         "
                       >
 
                         <Link
-                          href={`/receive/${receive.id}/edit`}
+                          href={`/receive/${receive.id}`}
                           className="
-                            rounded-xl
-                            bg-gradient-to-r
-                            from-amber-500
-                            to-orange-500
+                            rounded-lg
+                            bg-slate-800
                             px-4
                             py-2
                             font-extrabold
                             text-white
-                            shadow-md
+                            shadow
                             transition
-                            hover:scale-105
+                            hover:bg-slate-700
                           "
                         >
-                          แก้ไข
+                          ดูรายการ
                         </Link>
 
+                      </td>
 
-                        <DeleteButton
-                          id={receive.id}
-                        />
 
-                      </div>
 
+                      <td
+                        className="
+                          px-4
+                          py-3
+                          text-slate-700
+                        "
+                      >
+                        {
+                          receive.remark ?? "-"
+                        }
+                      </td>
+
+
+
+
+                      <td
+                        className="
+                          px-4
+                          py-3
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            justify-center
+                            gap-2
+                          "
+                        >
+
+                          <Link
+                            href={`/receive/${receive.id}/edit`}
+                            className="
+                              rounded-lg
+                              bg-slate-800
+                              px-4
+                              py-2
+                              font-extrabold
+                              text-white
+                              shadow
+                              transition
+                              hover:bg-slate-700
+                            "
+                          >
+                            แก้ไข
+                          </Link>
+
+
+                          <DeleteButton
+                            id={receive.id}
+                          />
+
+
+                        </div>
+
+                      </td>
+
+
+                    </tr>
+
+                  )
+
+                ) : (
+
+                  <tr>
+
+                    <td
+                      colSpan={7}
+                      className="
+                        py-12
+                        text-center
+                        text-lg
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      ยังไม่มีข้อมูลรับเข้าพัสดุ
                     </td>
 
                   </tr>
 
-                ))
+                )
+              }
 
-              ) : (
-
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="
-                      px-4
-                      py-16
-                      text-center
-                      text-lg
-                      font-bold
-                      text-slate-400
-                    "
-                  >
-                    ยังไม่มีข้อมูลการรับเข้าพัสดุ
-                  </td>
-                </tr>
-
-              )}
 
             </tbody>
 
+
           </table>
+
 
         </div>
 
+
       </div>
 
+
     </div>
+
   );
 }
