@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { createReceive } from "./actions";
 
-
 type Vendor = {
   id: number;
   name: string;
 };
-
 
 type Material = {
   id: number;
@@ -17,7 +15,6 @@ type Material = {
   unit: string;
   category: string;
 };
-
 
 type ReceiveRow = {
   category: string;
@@ -28,48 +25,24 @@ type ReceiveRow = {
   expiry: string;
 };
 
-
 type Props = {
   vendors: Vendor[];
   materials: Material[];
 };
 
-
-
 const categories = [
-  {
-    value: "OFFICE",
-    label: "วัสดุสำนักงาน",
-  },
-  {
-    value: "COMPUTER",
-    label: "วัสดุคอมพิวเตอร์",
-  },
-  {
-    value: "ELECTRIC",
-    label: "วัสดุไฟฟ้าและวิทยุ",
-  },
-  {
-    value: "HOUSEHOLD",
-    label: "วัสดุงานบ้านและงานครัว",
-  },
-  {
-    value: "VEHICLE",
-    label: "วัสดุยานพาหนะ",
-  },
-  {
-    value: "PRINTING",
-    label: "วัสดุสื่อสิ่งพิมพ์",
-  },
+  { value: "OFFICE", label: "วัสดุสำนักงาน" },
+  { value: "COMPUTER", label: "วัสดุคอมพิวเตอร์" },
+  { value: "ELECTRIC", label: "วัสดุไฟฟ้าและวิทยุ" },
+  { value: "HOUSEHOLD", label: "วัสดุงานบ้านและงานครัว" },
+  { value: "VEHICLE", label: "วัสดุยานพาหนะ" },
+  { value: "PRINTING", label: "วัสดุสื่อสิ่งพิมพ์" },
 ];
-
-
 
 export default function ReceiveForm({
   vendors,
   materials,
 }: Props) {
-
 
   const emptyRow = (): ReceiveRow => ({
     category: "",
@@ -81,14 +54,9 @@ export default function ReceiveForm({
   });
 
 
-
   const [items, setItems] = useState<ReceiveRow[]>(
-    Array.from(
-      { length: 5 },
-      emptyRow
-    )
+    Array.from({ length: 5 }, emptyRow)
   );
-
 
 
   function updateRow(
@@ -101,42 +69,34 @@ export default function ReceiveForm({
 
     copy[index][key] = value;
 
-
     if(key === "category"){
       copy[index].materialId = "";
     }
 
-
     setItems(copy);
-
   }
-
 
 
   return (
 
     <div
       className="
-        rounded-3xl
+        rounded-2xl
         border
         border-slate-700
         bg-gradient-to-br
         from-slate-950
-        via-slate-800
-        to-slate-700
+        to-slate-800
         p-6
         shadow-xl
       "
     >
-
 
       <form
         action={createReceive}
         className="space-y-6"
       >
 
-
-        {/* ข้อมูลเอกสาร */}
 
         <div
           className="
@@ -146,19 +106,10 @@ export default function ReceiveForm({
           "
         >
 
-
           <div>
-
-            <label className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            ">
+            <label className="mb-2 block text-lg font-extrabold text-white">
               วันที่รับเข้า
             </label>
-
 
             <input
               type="date"
@@ -168,24 +119,19 @@ export default function ReceiveForm({
                 w-full
                 rounded-xl
                 border
+                border-slate-300
+                bg-white
                 p-3
                 text-black
               "
             />
-
           </div>
-                    <div>
 
-            <label className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            ">
+
+          <div>
+            <label className="mb-2 block text-lg font-extrabold text-white">
               เลขที่เอกสาร
             </label>
-
 
             <input
               type="text"
@@ -195,29 +141,19 @@ export default function ReceiveForm({
                 w-full
                 rounded-xl
                 border
+                border-slate-300
+                bg-white
                 p-3
                 text-black
               "
             />
-
           </div>
 
 
-
-
-
           <div>
-
-            <label className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            ">
+            <label className="mb-2 block text-lg font-extrabold text-white">
               ผู้จำหน่าย
             </label>
-
 
             <select
               name="vendorId"
@@ -226,6 +162,8 @@ export default function ReceiveForm({
                 w-full
                 rounded-xl
                 border
+                border-slate-300
+                bg-white
                 p-3
                 text-black
               "
@@ -234,7 +172,6 @@ export default function ReceiveForm({
               <option value="">
                 -- เลือกผู้จำหน่าย --
               </option>
-
 
               {vendors.map((vendor)=>(
                 <option
@@ -245,125 +182,80 @@ export default function ReceiveForm({
                 </option>
               ))}
 
-
             </select>
-
-
           </div>
-
 
         </div>
 
 
-
-
-
-        {/* ตารางรายการพัสดุ */}
-
-
+        {/* ตาราง */}
         <div
           className="
             overflow-hidden
             rounded-2xl
             border
-            border-slate-600
+            border-slate-200
+            bg-white
+            shadow-xl
           "
         >
 
-
           <div className="overflow-x-auto">
-
 
             <table className="min-w-full">
 
+              <thead>
 
-              <thead
-                className="
-                  bg-slate-950
-                  text-white
-                "
-              >
+                <tr>
 
-                <tr
-                  className="
-                    text-lg
-                    font-extrabold
-                  "
-                >
-
-                  <th className="px-3 py-4">
-                    ลำดับ
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    หมวดหมู่
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    รายการพัสดุ
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    หน่วย
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    จำนวน
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    ราคา
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    วันผลิต
-                  </th>
-
-
-                  <th className="px-3 py-4">
-                    วันหมดอายุ
-                  </th>
-
+                  {[
+                    "ลำดับ",
+                    "หมวดหมู่",
+                    "รายการพัสดุ",
+                    "หน่วย",
+                    "จำนวน",
+                    "ราคา",
+                    "วันผลิต",
+                    "วันหมดอายุ",
+                  ].map((title)=>(
+                    <th
+                      key={title}
+                      className="
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+                        px-3
+                        py-4
+                        text-center
+                        text-lg
+                        font-extrabold
+                        text-white
+                      "
+                    >
+                      {title}
+                    </th>
+                  ))}
 
                 </tr>
-
 
               </thead>
 
 
-
-
-              <tbody
-                className="
-                  bg-slate-800
-                  text-white
-                "
-              >
-
+              <tbody>
+                              <tbody>
 
                 {items.map((row,index)=>{
 
-
                   const filteredMaterials =
                     materials.filter(
-                      (m)=>
-                        m.category === row.category
+                      (m)=>m.category === row.category
                     );
-
 
 
                   const selectedMaterial =
                     materials.find(
-                      (m)=>
-                        m.id === Number(row.materialId)
+                      (m)=>m.id === Number(row.materialId)
                     );
-
 
 
                   return (
@@ -371,12 +263,11 @@ export default function ReceiveForm({
                     <tr
                       key={index}
                       className="
-                        border-t
-                        border-slate-700
-                        hover:bg-slate-700
+                        border-b
+                        border-slate-200
+                        hover:bg-blue-50
                       "
                     >
-
 
                       <td
                         className="
@@ -384,13 +275,17 @@ export default function ReceiveForm({
                           py-3
                           text-center
                           font-bold
+                          text-slate-700
                         "
                       >
-                        {index+1}
+                        {index + 1}
                       </td>
-                                            <td className="px-3 py-3">
+
+
+                      <td className="px-3 py-3">
 
                         <select
+                          name={`items[${index}].category`}
                           value={row.category}
                           onChange={(e)=>
                             updateRow(
@@ -403,6 +298,8 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
+                            bg-white
                             p-2
                             text-black
                           "
@@ -412,16 +309,16 @@ export default function ReceiveForm({
                             เลือกหมวด
                           </option>
 
-
                           {categories.map((c)=>(
+
                             <option
                               key={c.value}
                               value={c.value}
                             >
                               {c.label}
                             </option>
-                          ))}
 
+                          ))}
 
                         </select>
 
@@ -429,11 +326,10 @@ export default function ReceiveForm({
 
 
 
-
-
                       <td className="px-3 py-3">
 
                         <select
+                          name={`items[${index}].materialId`}
                           value={row.materialId}
                           onChange={(e)=>
                             updateRow(
@@ -446,6 +342,8 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
+                            bg-white
                             p-2
                             text-black
                           "
@@ -469,12 +367,9 @@ export default function ReceiveForm({
 
                           ))}
 
-
                         </select>
 
                       </td>
-
-
 
 
 
@@ -490,15 +385,14 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
-                            bg-slate-200
+                            border-slate-300
+                            bg-slate-100
                             p-2
                             text-black
                           "
                         />
 
                       </td>
-
-
 
 
 
@@ -519,11 +413,11 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
                             p-2
                             text-black
                           "
                         />
-
 
                         <input
                           type="hidden"
@@ -532,8 +426,6 @@ export default function ReceiveForm({
                         />
 
                       </td>
-
-
 
 
 
@@ -554,6 +446,7 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
                             p-2
                             text-black
                           "
@@ -567,8 +460,6 @@ export default function ReceiveForm({
                         />
 
                       </td>
-
-
 
 
 
@@ -588,11 +479,11 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
                             p-2
                             text-black
                           "
                         />
-
 
                         <input
                           type="hidden"
@@ -601,8 +492,6 @@ export default function ReceiveForm({
                         />
 
                       </td>
-
-
 
 
 
@@ -622,6 +511,7 @@ export default function ReceiveForm({
                             w-full
                             rounded-xl
                             border
+                            border-slate-300
                             p-2
                             text-black
                           "
@@ -632,13 +522,6 @@ export default function ReceiveForm({
                           type="hidden"
                           name={`items[${index}].expiry`}
                           value={row.expiry}
-                        />
-
-
-                        <input
-                          type="hidden"
-                          name={`items[${index}].materialId`}
-                          value={row.materialId}
                         />
 
                       </td>
@@ -652,17 +535,15 @@ export default function ReceiveForm({
 
               </tbody>
 
-
             </table>
-
 
           </div>
 
-
         </div>
-                              
-        {/* Remark */}
 
+
+
+        {/* หมายเหตุ */}
 
         <div>
 
@@ -680,44 +561,34 @@ export default function ReceiveForm({
 
 
           <textarea
-
             name="remark"
-
             rows={4}
-
             className="
               w-full
               rounded-xl
               border
+              border-slate-300
+              bg-white
               p-3
               text-black
             "
-
           />
-
 
         </div>
 
 
 
-
-
-        {/* Submit */}
-
+        {/* ปุ่ม */}
 
         <div
           className="
             flex
             justify-end
-            gap-3
           "
         >
 
-
           <button
-
             type="submit"
-
             className="
               rounded-xl
               bg-gradient-to-r
@@ -731,23 +602,18 @@ export default function ReceiveForm({
               transition
               hover:scale-105
             "
-
           >
-
             บันทึกข้อมูล
-
           </button>
 
 
         </div>
 
 
-
       </form>
 
 
     </div>
-
 
   );
 
