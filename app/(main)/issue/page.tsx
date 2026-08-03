@@ -21,6 +21,8 @@ type Issue = {
   items:{
     id:number;
     qty:number;
+    manufacture: Date | null;
+    expiry: Date | null;
 
     material:{
       id:number;
@@ -28,7 +30,7 @@ type Issue = {
       unit:string;
     };
 
-  }[];
+}[];
 
 };
 
@@ -221,10 +223,10 @@ export default async function IssuePage(){
                 (
 
                   issues.map(
-                    (
-                      issue:Issue,
-                      index:number
-                    )=>(
+(
+  issue,
+  index:number
+)=>
 
 
                     <tr
@@ -274,8 +276,12 @@ export default async function IssuePage(){
                       >
 
                         {
-                          new Date(issue.issueDate)
-                          .toLocaleDateString("th-TH")
+                          issue.issueDate
+?
+new Date(issue.issueDate)
+.toLocaleDateString("th-TH")
+:
+"-"
                         }
 
                       </td>
@@ -325,7 +331,7 @@ export default async function IssuePage(){
                         "
                       >
 
-                        {issue.department.name}
+                        {issue.department?.name ?? "-"}
 
                       </td>
                                             <td
@@ -495,7 +501,7 @@ export default async function IssuePage(){
                     </tr>
 
 
-                  ))
+                  )
 
                 )
                                 :
