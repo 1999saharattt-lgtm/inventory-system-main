@@ -1,69 +1,51 @@
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import DeleteButton from "./DeleteButton";
+"use client";
+
+import { useState } from "react";
 
 
-type Issue = {
+type Department = {
   id: number;
-  issueDate: Date;
-  documentNo: string;
-  remark: string | null;
+  name: string;
+};
 
-  department: {
-    name: string;
-  };
 
-  officer: {
-    firstName: string;
-    lastName: string;
-  } | null;
+type Officer = {
+  id: number;
+  firstName: string;
+  lastName: string;
+};
 
-  items: {
-    id: number;
-    qty: number;
 
-    material: {
-      id:number;
-      name:string;
-      unit:string;
-    };
+type Material = {
+  id: number;
+  code: string;
+  name: string;
+  unit: string;
+};
 
-  }[];
 
+type Props = {
+  departments: Department[];
+  officers: Officer[];
+  materials: Material[];
 };
 
 
 
-export default async function IssuePage() {
+export default function IssueForm({
+  departments,
+  officers,
+  materials,
+}: Props) {
 
 
-  const issues = await prisma.issue.findMany({
-
-    orderBy:{
-      issueDate:"desc",
-    },
-
-    include:{
-
-      department:true,
-
-      officer:true,
-
-      items:{
-        include:{
-          material:true,
-        },
-      },
-
-    },
-
-  });
+  const [remark, setRemark] = useState("");
 
 
 
   return (
 
-    <div
+    <form
       className="
         space-y-6
       "
@@ -71,486 +53,245 @@ export default async function IssuePage() {
 
 
 
-      {/* Header */}
+      {/* หน่วยงาน */}
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-6
-          shadow-xl
-        "
-      >
+      <div>
 
-
-
-        <div>
-
-
-          <h1
-            className="
-              text-4xl
-              font-extrabold
-              text-white
-            "
-          >
-
-            📤 รายการเบิกจ่ายพัสดุ
-
-          </h1>
-
-
-
-          <p
-            className="
-              mt-2
-              text-lg
-              font-semibold
-              text-slate-200
-            "
-          >
-
-            แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
-
-          </p>
-
-
-
-        </div>
-
-
-
-
-        <Link
-
-          href="/issue/create"
-
+        <label
           className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-6
-            py-3
-            font-extrabold
+            mb-2
+            block
+            font-bold
             text-white
-            shadow-lg
-            transition
-            hover:scale-105
           "
+        >
+          หน่วยงาน / กลุ่มงาน
+        </label>
 
+
+        <select
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            text-slate-900
+          "
         >
 
-          + เพิ่มรายการเบิก
+          <option>
+            เลือกหน่วยงาน
+          </option>
 
-        </Link>
 
+          {
+            departments.map((department)=>(
+              <option
+                key={department.id}
+                value={department.id}
+              >
+                {department.name}
+              </option>
+            ))
+          }
+
+
+        </select>
 
 
       </div>
-            {/* Table */}
 
-      <div
+
+
+
+
+      {/* ผู้ขอเบิก */}
+
+      <div>
+
+        <label
+          className="
+            mb-2
+            block
+            font-bold
+            text-white
+          "
+        >
+          ผู้ขอเบิก
+        </label>
+
+
+        <select
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            text-slate-900
+          "
+        >
+
+          <option>
+            เลือกผู้ขอเบิก
+          </option>
+
+
+          {
+            officers.map((officer)=>(
+              <option
+                key={officer.id}
+                value={officer.id}
+              >
+
+                {officer.firstName} {officer.lastName}
+
+              </option>
+            ))
+          }
+
+
+        </select>
+
+
+      </div>
+
+
+
+
+
+      {/* รายการวัสดุ */}
+
+      <div>
+
+        <label
+          className="
+            mb-2
+            block
+            font-bold
+            text-white
+          "
+        >
+          รายการพัสดุ
+        </label>
+
+
+        <select
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            text-slate-900
+          "
+        >
+
+          <option>
+            เลือกพัสดุ
+          </option>
+
+
+          {
+            materials.map((material)=>(
+              <option
+                key={material.id}
+                value={material.id}
+              >
+
+                {material.code} - {material.name}
+
+              </option>
+            ))
+          }
+
+
+        </select>
+
+
+      </div>
+
+
+
+
+
+
+      {/* หมายเหตุ */}
+
+      <div>
+
+        <label
+          className="
+            mb-2
+            block
+            font-bold
+            text-white
+          "
+        >
+          หมายเหตุ
+        </label>
+
+
+        <textarea
+
+          value={remark}
+
+          onChange={(e)=>setRemark(e.target.value)}
+
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            text-slate-900
+          "
+
+          rows={3}
+
+        />
+
+
+      </div>
+
+
+
+
+
+      <button
+        type="submit"
         className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          shadow-xl
+          rounded-xl
+          bg-gradient-to-r
+          from-emerald-600
+          to-green-500
+          px-6
+          py-3
+          font-extrabold
+          text-white
+          shadow-lg
+          transition
+          hover:scale-105
         "
       >
 
+        บันทึกการเบิก
 
-        <div className="overflow-x-auto">
+      </button>
 
 
-          <table
-            className="
-              min-w-full
-            "
-          >
 
 
-
-            <thead>
-
-
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
-                "
-              >
-
-
-
-                {[
-                  "ลำดับ",
-                  "วันที่เบิกจ่าย",
-                  "เลขที่เอกสาร",
-                  "หน่วยงาน / กลุ่มงาน",
-                  "ผู้ขอเบิก",
-                  "รายละเอียด",
-                  "หมายเหตุ",
-                  "จัดการ",
-                ].map((title)=>(
-
-
-                  <th
-
-                    key={title}
-
-                    className="
-                      border
-                      border-slate-600
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                    "
-
-                  >
-
-                    {title}
-
-                  </th>
-
-
-                ))}
-
-
-
-              </tr>
-
-
-            </thead>
-
-
-
-            <tbody
-              className="
-                text-slate-900
-              "
-            >
-                          {
-                issues.length > 0 ? (
-
-                  issues.map(
-                    (issue:Issue,index:number)=>(
-
-
-                      <tr
-                        key={issue.id}
-
-                        className="
-                          border-b
-                          border-slate-200
-                          transition
-                          hover:bg-emerald-50
-                        "
-                      >
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                            text-center
-                            font-bold
-                          "
-                        >
-
-                          {index + 1}
-
-                        </td>
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                            text-center
-                          "
-                        >
-
-                          {
-                            new Date(issue.issueDate)
-                            .toLocaleDateString("th-TH")
-                          }
-
-                        </td>
-
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                            text-center
-                          "
-                        >
-
-                          <span
-                            className="
-                              inline-flex
-                              rounded-full
-                              bg-slate-100
-                              px-3
-                              py-1
-                              font-bold
-                              text-slate-700
-                            "
-                          >
-
-                            {issue.documentNo}
-
-                          </span>
-
-
-                        </td>
-
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                          "
-                        >
-
-                          {issue.department.name}
-
-                        </td>
-
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                          "
-                        >
-
-                          {
-                            issue.officer
-                            ?
-                            `${issue.officer.firstName} ${issue.officer.lastName}`
-                            :
-                            "-"
-                          }
-
-                        </td>
-
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                            text-center
-                          "
-                        >
-
-
-                          <Link
-
-                            href={`/issue/${issue.id}`}
-
-                            className="
-                              rounded-xl
-                              bg-gradient-to-r
-                              from-emerald-600
-                              to-green-500
-                              px-4
-                              py-2
-                              font-extrabold
-                              text-white
-                              shadow
-                              transition
-                              hover:scale-105
-                            "
-
-                          >
-
-                            แสดงรายการพัสดุ
-
-                          </Link>
-
-
-                        </td>
-
-
-
-
-
-                        <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                          "
-                        >
-
-                          {
-                            issue.remark
-                            ||
-                            (
-                              <span
-                                className="
-                                  italic
-                                  text-slate-400
-                                "
-                              >
-                                -
-                              </span>
-                            )
-                          }
-
-                        </td>
-                                                <td
-                          className="
-                            border
-                            px-4
-                            py-3
-                          "
-                        >
-
-
-                          <div
-                            className="
-                              flex
-                              justify-center
-                              gap-2
-                            "
-                          >
-
-
-
-                            <Link
-
-                              href={`/issue/${issue.id}/edit`}
-
-                              className="
-                                rounded-xl
-                                bg-gradient-to-r
-                                from-amber-500
-                                to-yellow-500
-                                px-4
-                                py-2
-                                font-extrabold
-                                text-white
-                                shadow
-                                transition
-                                hover:scale-105
-                              "
-
-                            >
-
-                              แก้ไข
-
-                            </Link>
-
-
-
-
-                            <DeleteButton
-                              id={issue.id}
-                            />
-
-
-
-                          </div>
-
-
-                        </td>
-
-
-
-                      </tr>
-
-
-                    )
-
-                  )
-
-
-                )
-                :
-                (
-
-                  <tr>
-
-
-                    <td
-
-                      colSpan={8}
-
-                      className="
-                        py-12
-                        text-center
-                        text-lg
-                        font-semibold
-                        text-slate-500
-                      "
-
-                    >
-
-                      ยังไม่มีรายการเบิกจ่ายพัสดุ
-
-
-                    </td>
-
-
-                  </tr>
-
-
-                )
-
-              }
-
-
-
-            </tbody>
-
-
-          </table>
-
-
-        </div>
-
-
-      </div>
-
-
-    </div>
-
+    </form>
 
   );
 
