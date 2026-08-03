@@ -182,20 +182,19 @@ export default async function IssuePage(){
                   ].map((title)=>(
 
                     <th
-                      key={title}
-                      className="
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        border
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        text-white
-                      "
-                    >
+  key={title}
+  className="
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
+    px-4
+    py-4
+    text-center
+    text-lg
+    font-extrabold
+    text-white
+  "
+>
 
                       {title}
 
