@@ -5,28 +5,52 @@ const PREFIX = {
   COMPUTER: "COM",
   ELECTRIC: "ELE",
   HOUSEHOLD: "HOU",
-  VEHICLE: "VEH",
+  VEHICLE: "VEC",
+  PRINTING: "PRI",
 } as const;
+
 
 export async function generateMaterialCode(
   category: keyof typeof PREFIX
 ) {
+
   const prefix = PREFIX[category];
 
+
   const last = await prisma.material.findFirst({
+
     where: {
       category,
     },
+
     orderBy: {
       code: "desc",
     },
+
   });
 
+
+
   if (!last) {
-    return `${prefix}-001`;
+
+    return `${prefix}-0001`;
+
   }
 
-  const number = Number(last.code.split("-")[1]) + 1;
 
-  return `${prefix}-${String(number).padStart(3, "0")}`;
+
+  const lastNumber =
+    Number(
+      last.code.split("-")[1]
+    );
+
+
+
+  const nextNumber =
+    lastNumber + 1;
+
+
+
+  return `${prefix}-${String(nextNumber).padStart(4,"0")}`;
+
 }

@@ -189,7 +189,7 @@ export default function IssueForm({
               font-bold
             "
           >
-            หน่วยงาน
+            หน่วยงาน / กลุ่มงาน
           </label>
 
 
@@ -208,7 +208,7 @@ export default function IssueForm({
           >
 
             <option value="">
-              เลือกหน่วยงาน
+              เลือกหน่วยงาน / กลุ่มงาน
             </option>
 
 
@@ -328,7 +328,7 @@ export default function IssueForm({
               {
                 [
                   "ลำดับ",
-                  "หมวด",
+                  "หมวดหมู่",
                   "รายการพัสดุ",
                   "หน่วย",
                   "ราคา",

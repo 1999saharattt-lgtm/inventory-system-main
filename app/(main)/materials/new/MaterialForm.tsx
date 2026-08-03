@@ -34,8 +34,6 @@ const categoryMap: Record<string, string> = {
   "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
 };
 
-
-
 export default function MaterialForm({
   vendors,
   materialMasters,
@@ -43,16 +41,10 @@ export default function MaterialForm({
 
 
   const categories = Object.keys(categoryMap);
-
-
   const [category, setCategory] = useState("");
   const [name, setName] = useState("");
-
   const [newName, setNewName] = useState("");
   const [newUnit, setNewUnit] = useState("");
-
-
-
   const names = useMemo(() => {
 
 
@@ -157,49 +149,32 @@ export default function MaterialForm({
 
     const body = {
 
+  vendorId:
+    formData.get("vendorId")
+      ? Number(formData.get("vendorId"))
+      : null,
 
-      code:
-        formData.get("code"),
+  category:
+    categoryMap[category],
 
+  name:
+    materialName,
 
+  unit,
 
-      vendorId:
-        formData.get("vendorId")
-          ? Number(formData.get("vendorId"))
-          : null,
+  balance:
+    Number(
+      formData.get("balance")
+    ),
 
+  latestPrice:
+    Number(
+      Number(
+        formData.get("latestPrice")
+      ).toFixed(2)
+    ),
 
-
-      category:
-        categoryMap[category],
-
-
-
-      name:
-        materialName,
-
-
-
-      unit,
-
-
-
-      balance:
-        Number(
-          formData.get("balance")
-        ),
-
-
-
-      latestPrice:
-        Number(
-          Number(
-            formData.get("latestPrice")
-          ).toFixed(2)
-        ),
-
-
-    };
+};
 
 
 
@@ -282,25 +257,20 @@ export default function MaterialForm({
         </label>
 
 
-        <input
-          name="code"
-          required
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            text-white
-            placeholder:text-slate-400
-            focus:border-cyan-400
-            focus:outline-none
-          "
-        />
-
-      </div>
-
+        <div
+  className="
+    w-full
+    rounded-xl
+    border
+    border-slate-600
+    bg-slate-700
+    p-3
+    text-white
+  "
+>
+  รหัสจะสร้างอัตโนมัติเมื่อบันทึก
+</div>
+</div>
 
 
 
@@ -395,12 +365,15 @@ export default function MaterialForm({
 
           onChange={(e)=>{
 
-            setCategory(e.target.value);
-            setName("");
-            setNewName("");
-            setNewUnit("");
+  const value = e.target.value;
 
-          }}
+  setCategory(value);
+
+  setName("");
+  setNewName("");
+  setNewUnit("");
+
+}}
 
           required
 
