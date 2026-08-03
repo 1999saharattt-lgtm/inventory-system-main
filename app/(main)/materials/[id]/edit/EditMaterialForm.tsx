@@ -56,8 +56,7 @@ export default function EditMaterialForm({
   const [vendorId, setVendorId] = useState(
     material.vendorId?.toString() ?? ""
   );
-
-  const names = useMemo(() => {
+    const names = useMemo(() => {
     const thaiCategory = categoryName[category];
 
     return (
@@ -68,7 +67,8 @@ export default function EditMaterialForm({
   }, [category]);
 
   const unit = name ? UNITS[name] ?? "" : "";
-    async function handleSubmit(
+
+  async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
@@ -76,28 +76,15 @@ export default function EditMaterialForm({
     setLoading(true);
 
     try {
-      const formData = new FormData(
-        e.currentTarget
-      );
+      const formData = new FormData(e.currentTarget);
 
       const body = {
         code: formData.get("code"),
-
         category,
-
         name,
-
         unit,
-
-        balance: Number(
-          formData.get("balance")
-        ),
-
-        latestPrice: Number(
-          formData.get("latestPrice")
-        ),
-
-        // ใช้ค่าที่เลือกจาก Dropdown
+        balance: Number(formData.get("balance")),
+        latestPrice: Number(formData.get("latestPrice")),
         vendorId: vendorId
           ? Number(vendorId)
           : null,
@@ -108,8 +95,7 @@ export default function EditMaterialForm({
         {
           method: "PUT",
           headers: {
-            "Content-Type":
-              "application/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(body),
         }
@@ -117,9 +103,7 @@ export default function EditMaterialForm({
 
       const text = await res.text();
 
-      let data: {
-  message: string;
-} | null = null;
+      let data: { message: string } | null = null;
 
       try {
         data = text
@@ -133,8 +117,7 @@ export default function EditMaterialForm({
 
       if (!res.ok) {
         throw new Error(
-          data?.message ??
-            "บันทึกไม่สำเร็จ"
+          data?.message ?? "บันทึกไม่สำเร็จ"
         );
       }
 
@@ -155,51 +138,29 @@ export default function EditMaterialForm({
       setLoading(false);
     }
   }
-        <div>
-        <label className="mb-2 block font-medium">
-          ผู้จำหน่าย
-        </label>
-
-        <select
-          value={vendorId}
-          onChange={(e) =>
-            setVendorId(e.target.value)
-          }
-          className="
-            w-full
-            rounded-lg
-            border
-            p-3
-          "
-        >
-          <option value="">
-            -- ไม่ระบุผู้จำหน่าย --
-          </option>
-
-          {vendors.map((vendor) => (
-            <option
-              key={vendor.id}
-              value={vendor.id}
-            >
-              {vendor.name}
-            </option>
-          ))}
-        </select>
-      </div>
-        return (
+    return (
     <form
       onSubmit={handleSubmit}
       className="
-        space-y-5
-        rounded-xl
-        bg-white
-        p-6
-        shadow
-        text-black
+        space-y-6
+        rounded-3xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        p-8
+        text-white
+        shadow-2xl
       "
     >
+
+      {/* รหัสพัสดุ */}
+
       <div>
-        <label className="mb-2 block font-medium">
+
+        <label className="mb-2 block text-lg font-extrabold text-white">
           รหัสพัสดุ
         </label>
 
@@ -208,16 +169,25 @@ export default function EditMaterialForm({
           defaultValue={material.code}
           className="
             w-full
-            rounded-lg
+            rounded-xl
             border
+            border-slate-600
+            bg-slate-800
             p-3
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
         />
+
       </div>
 
+      {/* หมวดหมู่ */}
+
       <div>
-        <label className="mb-2 block font-medium">
-          หมวด
+
+        <label className="mb-2 block text-lg font-extrabold text-white">
+          หมวดหมู่
         </label>
 
         <select
@@ -228,24 +198,30 @@ export default function EditMaterialForm({
           }}
           className="
             w-full
-            rounded-lg
+            rounded-xl
             border
+            border-slate-600
+            bg-slate-800
             p-3
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           {categories.map((c) => (
-            <option
-              key={c}
-              value={c}
-            >
+            <option key={c} value={c}>
               {categoryName[c]}
             </option>
           ))}
         </select>
+
       </div>
 
+      {/* รายการพัสดุ */}
+
       <div>
-        <label className="mb-2 block font-medium">
+
+        <label className="mb-2 block text-lg font-extrabold text-white">
           รายการพัสดุ
         </label>
 
@@ -254,13 +230,18 @@ export default function EditMaterialForm({
           onChange={(e) => setName(e.target.value)}
           className="
             w-full
-            rounded-lg
+            rounded-xl
             border
+            border-slate-600
+            bg-slate-800
             p-3
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           <option value="">
-            เลือกพัสดุ
+            เลือกรายการพัสดุ
           </option>
 
           {names.map((item) => (
@@ -272,10 +253,14 @@ export default function EditMaterialForm({
             </option>
           ))}
         </select>
+
       </div>
 
+      {/* ผู้จำหน่าย */}
+
       <div>
-        <label className="mb-2 block font-medium">
+
+        <label className="mb-2 block text-lg font-extrabold text-white">
           ผู้จำหน่าย
         </label>
 
@@ -286,9 +271,14 @@ export default function EditMaterialForm({
           }
           className="
             w-full
-            rounded-lg
+            rounded-xl
             border
+            border-slate-600
+            bg-slate-800
             p-3
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           <option value="">
@@ -304,11 +294,22 @@ export default function EditMaterialForm({
             </option>
           ))}
         </select>
-      </div>
 
-      <div className="grid grid-cols-2 gap-5">
+      </div>
+            {/* จำนวนคงเหลือ + หน่วย */}
+
+      <div
+        className="
+          grid
+          grid-cols-1
+          gap-5
+          md:grid-cols-2
+        "
+      >
+
         <div>
-          <label className="mb-2 block font-medium">
+
+          <label className="mb-2 block text-lg font-extrabold text-white">
             จำนวนคงเหลือ
           </label>
 
@@ -318,15 +319,22 @@ export default function EditMaterialForm({
             defaultValue={material.balance}
             className="
               w-full
-              rounded-lg
+              rounded-xl
               border
+              border-slate-600
+              bg-slate-800
               p-3
+              text-white
+              focus:border-cyan-400
+              focus:outline-none
             "
           />
+
         </div>
 
         <div>
-          <label className="mb-2 block font-medium">
+
+          <label className="mb-2 block text-lg font-extrabold text-white">
             หน่วย
           </label>
 
@@ -335,17 +343,24 @@ export default function EditMaterialForm({
             readOnly
             className="
               w-full
-              rounded-lg
+              rounded-xl
               border
-              bg-gray-100
+              border-slate-600
+              bg-slate-700
               p-3
+              text-white
             "
           />
+
         </div>
+
       </div>
 
+      {/* ราคาล่าสุด */}
+
       <div>
-        <label className="mb-2 block font-medium">
+
+        <label className="mb-2 block text-lg font-extrabold text-white">
           ราคาล่าสุด
         </label>
 
@@ -356,30 +371,49 @@ export default function EditMaterialForm({
           defaultValue={material.latestPrice}
           className="
             w-full
-            rounded-lg
+            rounded-xl
             border
+            border-slate-600
+            bg-slate-800
             p-3
+            text-right
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
         />
+
       </div>
 
-      <div className="flex gap-3">
+      {/* Buttons */}
+
+      <div
+        className="
+          flex
+          gap-4
+          pt-4
+        "
+      >
+
         <button
           type="submit"
           disabled={loading}
           className="
-            rounded-lg
-            bg-blue-600
-            px-6
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-8
             py-3
+            font-extrabold
             text-white
-            hover:bg-blue-700
+            shadow-lg
+            transition
+            hover:scale-105
             disabled:opacity-50
           "
         >
-          {loading
-            ? "กำลังบันทึก..."
-            : "บันทึก"}
+          {loading ? "กำลังบันทึก..." : "บันทึก"}
         </button>
 
         <button
@@ -390,17 +424,24 @@ export default function EditMaterialForm({
             )
           }
           className="
-            rounded-lg
-            bg-slate-200
-            px-6
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-8
             py-3
-            text-slate-700
-            hover:bg-slate-300
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
           "
         >
           ← กลับ
         </button>
+
       </div>
+
     </form>
   );
 }
