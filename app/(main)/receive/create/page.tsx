@@ -31,12 +31,9 @@ export default async function CreateReceivePage() {
 
 
 
-
-
   return (
 
     <div className="space-y-6">
-
 
 
       {/* Header */}
@@ -46,13 +43,12 @@ export default async function CreateReceivePage() {
           flex
           items-center
           justify-between
-          rounded-3xl
+          rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-cyan-700
           p-6
-          text-white
           shadow-xl
         "
       >
@@ -63,8 +59,11 @@ export default async function CreateReceivePage() {
 
           <h1
             className="
-              text-3xl
+              !text-white
+              text-5xl
               font-extrabold
+              leading-tight
+              tracking-wide
             "
           >
             📥 บันทึกการรับเข้าพัสดุ
@@ -74,10 +73,10 @@ export default async function CreateReceivePage() {
 
           <p
             className="
-              mt-2
-              text-lg
+              mt-3
+              text-xl
               font-semibold
-              text-slate-200
+              !text-slate-200
             "
           >
             เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
@@ -89,16 +88,17 @@ export default async function CreateReceivePage() {
 
 
 
-
         <Link
           href="/receive"
           className="
             rounded-xl
+            border
+            border-white/20
             bg-white/10
             px-6
             py-3
             font-extrabold
-            text-white
+            !text-white
             backdrop-blur
             shadow-lg
             transition
@@ -118,11 +118,12 @@ export default async function CreateReceivePage() {
 
 
 
+
       {/* Form */}
 
       <div
         className="
-          rounded-3xl
+          rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
