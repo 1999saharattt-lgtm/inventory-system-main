@@ -87,20 +87,21 @@ export default async function IssuePage(){
         <div>
 
           <h1
-  className="
-    !text-white
-    text-4xl
-    font-extrabold
-  "
->
+            className="
+              !text-white
+              text-5xl
+              font-extrabold
+              leading-tight
+            "
+          >
   📤 รายการเบิกจ่ายพัสดุ
 </h1>
 
 
           <p
   className="
-    mt-2
-    text-lg
+    mt-3
+    text-xl
     font-semibold
     !text-slate-200
   "

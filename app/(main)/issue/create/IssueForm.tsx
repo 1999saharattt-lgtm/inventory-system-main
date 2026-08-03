@@ -1,418 +1,557 @@
-"use client";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import DeleteButton from "./DeleteButton";
 
-import { useState } from "react";
-import { createIssue } from "./action";
 
-type Department = {
+type Issue = {
   id: number;
-  name: string;
-};
+  issueDate: Date;
+  documentNo: string;
+  remark: string | null;
 
-type Officer = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  section: {
-    departmentId: number;
+  department: {
+    name: string;
+  };
+
+  officer: {
+    firstName: string;
+    lastName: string;
   } | null;
+
+  items: {
+    id: number;
+    qty: number;
+
+    material: {
+      id:number;
+      name:string;
+      unit:string;
+    };
+
+  }[];
+
 };
 
-type Material = {
-  id: number;
-  code: string;
-  name: string;
-  unit: string;
-  category: string;
-  latestPrice: number;
-};
 
-type Props = {
-  departments: Department[];
-  officers: Officer[];
-  materials: Material[];
-};
 
-type IssueRow = {
-  category: string;
-  materialId: string;
-  qty: string;
-};
+export default async function IssuePage() {
 
-const categories = [
-  {
-    value: "OFFICE",
-    label: "วัสดุสำนักงาน",
-  },
-  {
-    value: "COMPUTER",
-    label: "วัสดุคอมพิวเตอร์",
-  },
-  {
-    value: "ELECTRIC",
-    label: "วัสดุไฟฟ้าและวิทยุ",
-  },
-  {
-    value: "HOUSEHOLD",
-    label: "วัสดุงานบ้านและงานครัว",
-  },
-  {
-    value: "VEHICLE",
-    label: "วัสดุยานพาหนะ",
-  },
-];
 
-export default function IssueForm({
-  departments,
-  officers,
-  materials,
-}: Props) {
-  const emptyRow = (): IssueRow => ({
-    category: "",
-    materialId: "",
-    qty: "",
+  const issues = await prisma.issue.findMany({
+
+    orderBy:{
+      issueDate:"desc",
+    },
+
+    include:{
+
+      department:true,
+
+      officer:true,
+
+      items:{
+        include:{
+          material:true,
+        },
+      },
+
+    },
+
   });
 
-  const [items, setItems] = useState<IssueRow[]>(
-    Array.from(
-      {
-        length: 15,
-      },
-      emptyRow
-    )
-  );
 
-  const [departmentId, setDepartmentId] = useState("");
-
-  const [pdfFile, setPdfFile] =
-    useState<File | null>(null);
-
-  function updateRow(
-    index: number,
-    key: keyof IssueRow,
-    value: string
-  ) {
-    const copy = [...items];
-
-    copy[index][key] = value;
-
-    if (key === "category") {
-      copy[index].materialId = "";
-    }
-
-    setItems(copy);
-  }
-
-  const filteredOfficers = officers.filter(
-  (officer) =>
-    officer.section?.departmentId === Number(departmentId)
-);
 
   return (
-    <div className="rounded-xl bg-white p-6 shadow">
-  <form
-    action={createIssue}
-    encType="multipart/form-data"
-    className="space-y-6"
-  >
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div>
-        <label className="mb-2 block font-medium text-gray-900">
-          วันที่เบิกจ่าย
-        </label>
 
-        <input
-          type="date"
-          name="issueDate"
-          required
-          className="w-full rounded-lg border p-2 text-gray-900"
-        />
-      </div>
+    <div
+      className="
+        space-y-6
+      "
+    >
 
-      <div>
-        <label className="mb-2 block font-medium text-gray-900">
-          เลขที่เอกสาร
-        </label>
 
-        <input
-          type="text"
-          name="documentNo"
-          required
-          className="w-full rounded-lg border p-2 text-gray-900"
-        />
-      </div>
 
-      <div>
-        <label className="mb-2 block font-medium text-gray-900">
-          หน่วยงาน
-        </label>
+      {/* Header */}
 
-        <select
-          name="departmentId"
-          required
-          value={departmentId}
-          onChange={(e) => setDepartmentId(e.target.value)}
-          className="w-full rounded-lg border p-2 text-gray-900"
-        >
-          <option value="">
-            -- เลือกหน่วยงาน --
-          </option>
-
-          {departments.map((department) => (
-            <option
-              key={department.id}
-              value={department.id}
-            >
-              {department.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="mb-2 block font-medium text-gray-900">
-          ผู้ขอเบิก
-        </label>
-
-        <select
-          name="officerId"
-          required
-          disabled={!departmentId}
-          className="w-full rounded-lg border p-2 text-gray-900 disabled:bg-gray-100"
-        >
-          <option value="">
-            {departmentId
-              ? "-- เลือกผู้ขอเบิก --"
-              : "-- กรุณาเลือกหน่วยงานก่อน --"}
-          </option>
-
-          {filteredOfficers.map((officer) => (
-            <option
-              key={officer.id}
-              value={officer.id}
-            >
-              {officer.firstName} {officer.lastName}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-
-    <div className="overflow-x-auto">
-  <table className="w-full border border-gray-300 text-sm">
-    <thead className="bg-gray-100 text-black">
-      <tr>
-        <th className="w-12 border p-2 text-center">
-          ลำดับ
-        </th>
-
-        <th className="w-40 border p-2 text-center">
-          หมวดหมู่
-        </th>
-
-        <th className="w-72 border p-2 text-center">
-          รายการพัสดุ
-        </th>
-
-        <th className="w-24 border p-2 text-center">
-          หน่วย
-        </th>
-
-        <th className="w-28 border p-2 text-center">
-          จำนวน
-        </th>
-
-        <th className="w-36 border p-2 text-center">
-          ราคาล่าสุด
-        </th>
-      </tr>
-    </thead>
-
-    <tbody className="text-black">
-      {items.map((row, index) => {
-        const filteredMaterials = materials.filter(
-          (m) => m.category === row.category
-        );
-
-        const selectedMaterial = materials.find(
-          (m) => m.id === Number(row.materialId)
-        );
-
-        return (
-          <tr key={index}>
-            <td className="border p-2 text-center">
-              {index + 1}
-            </td>
-
-            <td className="border p-2">
-              <select
-                value={row.category}
-                onChange={(e) =>
-                  updateRow(
-                    index,
-                    "category",
-                    e.target.value
-                  )
-                }
-                className="w-full rounded border p-2 text-gray-900"
-              >
-                <option value="">
-                  เลือกหมวดหมู่
-                </option>
-
-                {categories.map((c) => (
-                  <option
-                    key={c.value}
-                    value={c.value}
-                  >
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </td>
-
-            <td className="border p-2">
-              <select
-                name={`items[${index}].materialId`}
-                value={row.materialId}
-                onChange={(e) =>
-                  updateRow(
-                    index,
-                    "materialId",
-                    e.target.value
-                  )
-                }
-                className="w-full rounded border p-2 text-gray-900"
-              >
-                <option value="">
-                  เลือกพัสดุ
-                </option>
-
-                {filteredMaterials.map((material) => (
-                  <option
-                    key={material.id}
-                    value={material.id}
-                  >
-                    {material.code} - {material.name}
-                  </option>
-                ))}
-              </select>
-            </td>
-
-            <td className="border p-2">
-              <input
-                type="text"
-                readOnly
-                value={selectedMaterial?.unit ?? ""}
-                className="w-full rounded border bg-gray-100 p-2 text-center text-gray-900"
-              />
-            </td>
-
-            <td className="border p-2">
-              <input
-                type="number"
-                name={`items[${index}].qty`}
-                value={row.qty}
-                onChange={(e) =>
-                  updateRow(
-                    index,
-                    "qty",
-                    e.target.value
-                  )
-                }
-                min={1}
-                className="w-full rounded border p-2 text-center text-gray-900"
-              />
-            </td>
-
-            <td className="border p-2">
-              <input
-                type="text"
-                name={`items[${index}].price`}
-                readOnly
-                value={
-                  selectedMaterial
-                    ? Number(
-                        selectedMaterial.latestPrice
-                      ).toFixed(2)
-                    : ""
-                }
-                className="w-full rounded border bg-gray-100 p-2 text-right text-gray-900"
-              />
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-</div>
-<div>
-  <label className="mb-2 block font-medium text-gray-900">
-    เอกสารแนบใบเบิก (PDF)
-  </label>
-
-  <input
-    type="file"
-    name="pdf"
-    accept="application/pdf"
-    onChange={(e) => {
-      const file =
-        e.target.files?.[0] ?? null;
-
-      setPdfFile(file);
-    }}
-    className="w-full rounded-lg border p-2 text-gray-900"
-  />
-
-  {pdfFile && (
-    <div className="mt-3 flex items-center gap-3">
-      <span className="text-gray-700">
-        {pdfFile.name}
-      </span>
-
-      <button
-        type="button"
-        onClick={() => {
-          setPdfFile(null);
-
-          const input =
-            document.querySelector(
-              'input[name="pdf"]'
-            ) as HTMLInputElement;
-
-          if (input) {
-            input.value = "";
-          }
-        }}
-        className="rounded-lg bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          p-6
+          shadow-xl
+        "
       >
-        ลบไฟล์
-      </button>
-    </div>
-  )}
-</div>
 
-<div>
-  <label className="mb-2 block font-medium text-gray-900">
-    หมายเหตุ
-  </label>
 
-  <textarea
-    name="remark"
-    rows={4}
-    className="w-full rounded-lg border p-2 text-gray-900"
-  />
-</div>
 
-<div className="flex justify-end">
-  <button
-    type="submit"
-    className="rounded-lg bg-green-700 px-6 py-2 text-white hover:bg-green-800"
+        <div>
+
+
+          <h1
+            className="
+              text-4xl
+              font-extrabold
+              text-white
+            "
           >
-            บันทึกข้อมูล
-  </button>
-</div>
 
-  </form>
-</div>
+            📤 รายการเบิกจ่ายพัสดุ
+
+          </h1>
+
+
+
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              text-slate-200
+            "
+          >
+
+            แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
+
+          </p>
+
+
+
+        </div>
+
+
+
+
+        <Link
+
+          href="/issue/create"
+
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+
+        >
+
+          + เพิ่มรายการเบิก
+
+        </Link>
+
+
+
+      </div>
+            {/* Table */}
+
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-xl
+        "
+      >
+
+
+        <div className="overflow-x-auto">
+
+
+          <table
+            className="
+              min-w-full
+            "
+          >
+
+
+
+            <thead>
+
+
+              <tr
+                className="
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  text-white
+                "
+              >
+
+
+
+                {[
+                  "ลำดับ",
+                  "วันที่เบิกจ่าย",
+                  "เลขที่เอกสาร",
+                  "หน่วยงาน / กลุ่มงาน",
+                  "ผู้ขอเบิก",
+                  "รายละเอียด",
+                  "หมายเหตุ",
+                  "จัดการ",
+                ].map((title)=>(
+
+
+                  <th
+
+                    key={title}
+
+                    className="
+                      border
+                      border-slate-600
+                      px-4
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                    "
+
+                  >
+
+                    {title}
+
+                  </th>
+
+
+                ))}
+
+
+
+              </tr>
+
+
+            </thead>
+
+
+
+            <tbody
+              className="
+                text-slate-900
+              "
+            >
+                          {
+                issues.length > 0 ? (
+
+                  issues.map(
+                    (issue:Issue,index:number)=>(
+
+
+                      <tr
+                        key={issue.id}
+
+                        className="
+                          border-b
+                          border-slate-200
+                          transition
+                          hover:bg-emerald-50
+                        "
+                      >
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                            text-center
+                            font-bold
+                          "
+                        >
+
+                          {index + 1}
+
+                        </td>
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                            text-center
+                          "
+                        >
+
+                          {
+                            new Date(issue.issueDate)
+                            .toLocaleDateString("th-TH")
+                          }
+
+                        </td>
+
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                            text-center
+                          "
+                        >
+
+                          <span
+                            className="
+                              inline-flex
+                              rounded-full
+                              bg-slate-100
+                              px-3
+                              py-1
+                              font-bold
+                              text-slate-700
+                            "
+                          >
+
+                            {issue.documentNo}
+
+                          </span>
+
+
+                        </td>
+
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                          "
+                        >
+
+                          {issue.department.name}
+
+                        </td>
+
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                          "
+                        >
+
+                          {
+                            issue.officer
+                            ?
+                            `${issue.officer.firstName} ${issue.officer.lastName}`
+                            :
+                            "-"
+                          }
+
+                        </td>
+
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                            text-center
+                          "
+                        >
+
+
+                          <Link
+
+                            href={`/issue/${issue.id}`}
+
+                            className="
+                              rounded-xl
+                              bg-gradient-to-r
+                              from-emerald-600
+                              to-green-500
+                              px-4
+                              py-2
+                              font-extrabold
+                              text-white
+                              shadow
+                              transition
+                              hover:scale-105
+                            "
+
+                          >
+
+                            แสดงรายการพัสดุ
+
+                          </Link>
+
+
+                        </td>
+
+
+
+
+
+                        <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                          "
+                        >
+
+                          {
+                            issue.remark
+                            ||
+                            (
+                              <span
+                                className="
+                                  italic
+                                  text-slate-400
+                                "
+                              >
+                                -
+                              </span>
+                            )
+                          }
+
+                        </td>
+                                                <td
+                          className="
+                            border
+                            px-4
+                            py-3
+                          "
+                        >
+
+
+                          <div
+                            className="
+                              flex
+                              justify-center
+                              gap-2
+                            "
+                          >
+
+
+
+                            <Link
+
+                              href={`/issue/${issue.id}/edit`}
+
+                              className="
+                                rounded-xl
+                                bg-gradient-to-r
+                                from-amber-500
+                                to-yellow-500
+                                px-4
+                                py-2
+                                font-extrabold
+                                text-white
+                                shadow
+                                transition
+                                hover:scale-105
+                              "
+
+                            >
+
+                              แก้ไข
+
+                            </Link>
+
+
+
+
+                            <DeleteButton
+                              id={issue.id}
+                            />
+
+
+
+                          </div>
+
+
+                        </td>
+
+
+
+                      </tr>
+
+
+                    )
+
+                  )
+
+
+                )
+                :
+                (
+
+                  <tr>
+
+
+                    <td
+
+                      colSpan={8}
+
+                      className="
+                        py-12
+                        text-center
+                        text-lg
+                        font-semibold
+                        text-slate-500
+                      "
+
+                    >
+
+                      ยังไม่มีรายการเบิกจ่ายพัสดุ
+
+
+                    </td>
+
+
+                  </tr>
+
+
+                )
+
+              }
+
+
+
+            </tbody>
+
+
+          </table>
+
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+
   );
+
 }

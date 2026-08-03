@@ -8,45 +8,50 @@ export default async function CreateIssuePage() {
 
   const materials = await prisma.material.findMany({
 
-    orderBy: [
+    orderBy:[
       {
-        category: "asc",
+        category:"asc",
       },
       {
-        code: "asc",
+        code:"asc",
       },
     ],
 
   });
+
 
 
 
   const departments = await prisma.department.findMany({
 
-    orderBy: {
-      name: "asc",
+    orderBy:{
+      name:"asc",
     },
 
   });
+
+
 
 
 
   const officers = await prisma.officer.findMany({
 
-    include: {
-      section: true,
+    include:{
+      section:true,
     },
 
-    orderBy: [
+    orderBy:[
       {
-        firstName: "asc",
+        firstName:"asc",
       },
       {
-        lastName: "asc",
+        lastName:"asc",
       },
     ],
 
   });
+
+
 
 
 
@@ -54,7 +59,8 @@ export default async function CreateIssuePage() {
 
   return (
 
-    <div className="space-y-8">
+    <div className="space-y-6">
+
 
 
       {/* Header */}
@@ -64,14 +70,16 @@ export default async function CreateIssuePage() {
           flex
           items-center
           justify-between
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          shadow-xl
         "
       >
+
 
 
         <div>
@@ -79,19 +87,28 @@ export default async function CreateIssuePage() {
 
           <h1
             className="
-              text-3xl
-              font-bold
-              tracking-tight
-              text-slate-800
+              text-4xl
+              font-extrabold
+              !text-white
             "
           >
-            บันทึกการเบิกจ่ายพัสดุ
+            📤 บันทึกการเบิกจ่ายพัสดุ
           </h1>
 
 
-          <p className="mt-2 text-slate-600">
+
+
+          <p
+            className="
+              mt-2
+              text-lg
+              font-semibold
+              !text-slate-200
+            "
+          >
             เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
           </p>
+
 
 
         </div>
@@ -99,18 +116,24 @@ export default async function CreateIssuePage() {
 
 
 
+
+
         <Link
           href="/issue"
           className="
-            rounded-lg
-            bg-slate-200
-            px-5
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            via-green-500
+            to-emerald-500
+            px-6
             py-3
-            font-semibold
-            text-slate-700
-            shadow-sm
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
             transition
-            hover:bg-slate-300
+            hover:scale-105
           "
         >
           ← กลับ
@@ -124,13 +147,39 @@ export default async function CreateIssuePage() {
 
 
 
+
+
       {/* Form */}
 
-      <IssueForm
-        departments={departments}
-        officers={officers}
-        materials={materials}
-      />
+
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
+          p-6
+          shadow-xl
+        "
+      >
+
+
+        <IssueForm
+
+          departments={departments}
+
+          officers={officers}
+
+          materials={materials}
+
+        />
+
+
+      </div>
+
+
 
 
 
