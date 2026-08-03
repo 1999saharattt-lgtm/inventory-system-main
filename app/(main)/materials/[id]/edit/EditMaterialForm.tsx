@@ -416,30 +416,6 @@ export default function EditMaterialForm({
           {loading ? "กำลังบันทึก..." : "บันทึก"}
         </button>
 
-        <button
-          type="button"
-          onClick={() =>
-            router.push(
-              `/materials/category/${material.category}`
-            )
-          }
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-          "
-        >
-          ← กลับ
-        </button>
-
       </div>
 
     </form>

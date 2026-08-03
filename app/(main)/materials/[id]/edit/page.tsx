@@ -31,77 +31,76 @@ export default async function EditMaterialPage({
   });
 
   return (
-    <div className="space-y-6">
+  <div className="space-y-6">
 
-      {/* Header */}
+    {/* Header */}
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-3xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-7
-          text-white
-          shadow-xl
-        "
-      >
+    <div
+      className="
+        flex
+        items-center
+        justify-between
+        rounded-3xl
+        bg-gradient-to-r
+        from-slate-950
+        via-slate-800
+        to-slate-700
+        p-7
+        text-white
+        shadow-xl
+      "
+    >
 
-        <div>
+      <div>
 
-          <h1
-            className="
-              text-5xl
-              font-extrabold
-              text-white
-            "
-          >
-            ✏️ แก้ไขข้อมูลพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              text-xl
-              font-semibold
-              text-slate-200
-            "
-          >
-            แก้ไขรายละเอียดข้อมูลพัสดุ
-          </p>
-
-        </div>
-
-        <Link
-          href="/materials"
+        <h1
           className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-6
-            py-3
+            text-5xl
             font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
+            !text-white
           "
         >
-          ← กลับ
-        </Link>
+          ✏️ แก้ไขข้อมูลพัสดุ
+        </h1>
+
+        <p
+          className="
+            mt-2
+            text-xl
+            font-bold
+            text-slate-200
+          "
+        >
+          แก้ไขรายละเอียดรายการพัสดุ
+        </p>
 
       </div>
 
-      <EditMaterialForm
-        material={material}
-        vendors={vendors}
-      />
+      <a
+        href={`/materials/category/${material.category}`}
+        className="
+          rounded-xl
+          bg-gradient-to-r
+          from-emerald-600
+          to-green-500
+          px-6
+          py-3
+          font-extrabold
+          text-white
+          shadow-lg
+          transition
+          hover:scale-105
+        "
+      >
+        ← กลับ
+      </a>
 
     </div>
-  );
-}
+
+    <EditMaterialForm
+      material={material}
+      vendors={vendors}
+    />
+
+  </div>
+);
