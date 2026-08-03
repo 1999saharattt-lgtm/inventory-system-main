@@ -113,26 +113,26 @@ export default async function ReceiveDetailPage({
         <div>
 
           <h1
-            className="
-              text-4xl
-              font-extrabold
-              text-white
-            "
-          >
-            📄 รายละเอียดเอกสารรับเข้า
-          </h1>
+  className="
+    text-4xl
+    font-extrabold
+    !text-white
+  "
+>
+  📄 รายละเอียดเอกสารรับเข้า
+</h1>
 
 
           <p
-            className="
-              mt-2
-              text-lg
-              font-semibold
-              text-slate-200
-            "
-          >
-            รายละเอียดรายการรับเข้าพัสดุ
-          </p>
+  className="
+    mt-2
+    text-lg
+    font-semibold
+    !text-slate-200
+  "
+>
+  รายละเอียดรายการรับเข้าพัสดุ
+</p>
 
 
         </div>
@@ -260,34 +260,6 @@ export default async function ReceiveDetailPage({
           shadow-xl
         "
       >
-
-
-        <div
-          className="
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-6
-            py-4
-          "
-        >
-
-          <h2
-            className="
-              text-2xl
-              font-extrabold
-              text-white
-            "
-          >
-
-            รายการพัสดุ
-
-          </h2>
-
-
-        </div>
-
-
 
         <div className="overflow-x-auto">
 
