@@ -176,12 +176,15 @@ model IssueItem {
   id Int @id @default(autoincrement())
 
   issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id])
+  issue Issue @relation(fields:[issueId], references:[id])
 
   materialId Int
-  material   Material @relation(fields: [materialId], references: [id])
+  material Material @relation(fields:[materialId], references:[id])
 
   qty Int
+
+  manufacture DateTime?
+  expiry DateTime?
 }
 
 // ======================
