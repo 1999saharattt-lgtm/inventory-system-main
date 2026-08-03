@@ -292,19 +292,18 @@ export default async function ReceiveDetailPage({
         <div className="overflow-x-auto">
 
 
-          <table className="w-full">
+          <table className="w-full border-collapse">
 
 
             <thead>
 
-
-              <tr
-                className="
-                  bg-slate-100
-                  text-slate-900
-                  font-extrabold
-                "
-              >
+  <tr
+    className="
+      bg-gradient-to-r
+      from-slate-800
+      to-slate-700
+    "
+  >
 
 
                 {[
@@ -320,14 +319,18 @@ export default async function ReceiveDetailPage({
                 ].map((title)=>(
 
                   <th
-                    key={title}
-                    className="
-                      border
-                      px-3
-                      py-3
-                      text-center
-                    "
-                  >
+  key={title}
+  className="
+    border
+    border-slate-600
+    px-3
+    py-3
+    text-center
+    text-lg
+    font-extrabold
+    text-white
+  "
+>
                     {title}
                   </th>
 
@@ -342,7 +345,7 @@ export default async function ReceiveDetailPage({
 
 
 
-            <tbody>
+            <tbody className="text-slate-900">
 
 
               {
