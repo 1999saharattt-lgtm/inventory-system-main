@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
+
 type Receive = {
   id: number;
   receiveDate: Date;
@@ -18,18 +19,20 @@ type Receive = {
 };
 
 
+
 export default async function ReceivePage() {
+
 
   const receives =
     await prisma.receive.findMany({
 
-      include:{
-        vendor:true,
-        items:true,
+      include: {
+        vendor: true,
+        items: true,
       },
 
-      orderBy:{
-        id:"desc",
+      orderBy: {
+        id: "desc",
       },
 
     });
@@ -84,6 +87,7 @@ export default async function ReceivePage() {
             แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
           </p>
 
+
         </div>
 
 
@@ -116,6 +120,7 @@ export default async function ReceivePage() {
 
       {/* Table */}
 
+
       <div
         className="
           overflow-hidden
@@ -127,6 +132,7 @@ export default async function ReceivePage() {
         "
       >
 
+
         <div className="overflow-x-auto">
 
 
@@ -137,6 +143,7 @@ export default async function ReceivePage() {
 
               <tr>
 
+
                 {[
                   "ลำดับ",
                   "วันที่รับเข้า",
@@ -145,7 +152,7 @@ export default async function ReceivePage() {
                   "รายละเอียด",
                   "หมายเหตุ",
                   "จัดการ",
-                ].map((title)=>(
+                ].map((title) => (
 
                   <th
                     key={title}
@@ -166,23 +173,25 @@ export default async function ReceivePage() {
 
                 ))}
 
+
               </tr>
 
+
             </thead>
+
+
 
 
 
             <tbody>
 
 
-              {
-                receives.length > 0 ? (
+              {receives.length > 0 ? (
 
-                  receives.map(
-                    (
-                      receive:Receive,
-                      index:number
-                    )=>(
+
+                receives.map(
+                  (receive: Receive, index: number) => (
+
 
                     <tr
                       key={receive.id}
@@ -202,8 +211,10 @@ export default async function ReceivePage() {
                           text-slate-700
                         "
                       >
-                        {index+1}
+                        {index + 1}
                       </td>
+
+
 
 
 
@@ -216,12 +227,14 @@ export default async function ReceivePage() {
                           text-slate-700
                         "
                       >
-                        {
-                          new Date(
-                            receive.receiveDate
-                          ).toLocaleDateString("th-TH")
-                        }
+                        {new Date(
+                          receive.receiveDate
+                        ).toLocaleDateString(
+                          "th-TH"
+                        )}
                       </td>
+
+
 
 
 
@@ -239,6 +252,8 @@ export default async function ReceivePage() {
 
 
 
+
+
                       <td
                         className="
                           px-4
@@ -249,6 +264,8 @@ export default async function ReceivePage() {
                       >
                         {receive.vendor.name}
                       </td>
+
+
 
 
 
@@ -277,7 +294,10 @@ export default async function ReceivePage() {
                           ดูรายการ
                         </Link>
 
+
                       </td>
+
+
 
 
 
@@ -288,10 +308,13 @@ export default async function ReceivePage() {
                           text-slate-700
                         "
                       >
+
                         {
                           receive.remark ?? "-"
                         }
+
                       </td>
+
 
 
 
@@ -336,34 +359,40 @@ export default async function ReceivePage() {
 
                         </div>
 
+
                       </td>
 
 
                     </tr>
 
+
                   )
 
-                ) : (
-
-                  <tr>
-
-                    <td
-                      colSpan={7}
-                      className="
-                        py-12
-                        text-center
-                        text-lg
-                        font-bold
-                        text-slate-500
-                      "
-                    >
-                      ยังไม่มีข้อมูลรับเข้าพัสดุ
-                    </td>
-
-                  </tr>
-
                 )
-              }
+
+
+              ) : (
+
+
+                <tr>
+
+                  <td
+                    colSpan={7}
+                    className="
+                      py-12
+                      text-center
+                      text-lg
+                      font-bold
+                      text-slate-500
+                    "
+                  >
+                    ยังไม่มีข้อมูลรับเข้าพัสดุ
+                  </td>
+
+                </tr>
+
+
+              )}
 
 
             </tbody>
@@ -381,4 +410,5 @@ export default async function ReceivePage() {
     </div>
 
   );
+
 }
