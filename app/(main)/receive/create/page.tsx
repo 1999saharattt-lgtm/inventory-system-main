@@ -89,25 +89,24 @@ export default async function CreateReceivePage() {
 
 
         <Link
-          href="/receive"
-          className="
-            rounded-xl
-            border
-            border-white/20
-            bg-white/10
-            px-6
-            py-3
-            font-extrabold
-            !text-white
-            backdrop-blur
-            shadow-lg
-            transition
-            hover:bg-white/20
-            hover:-translate-y-1
-          "
-        >
-          ← กลับ
-        </Link>
+  href="/receive"
+  className="
+    rounded-xl
+    bg-gradient-to-r
+    from-emerald-600
+    to-green-500
+    px-6
+    py-3
+    font-extrabold
+    text-white
+    shadow-lg
+    transition
+    hover:scale-105
+    hover:shadow-xl
+  "
+>
+  ← กลับ
+</Link>
 
 
 
