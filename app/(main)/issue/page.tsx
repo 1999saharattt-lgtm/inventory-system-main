@@ -187,59 +187,46 @@ export default async function IssuePage(){
 
             <thead>
 
+  <tr>
 
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                "
-              >
+    {
+      [
+        "ลำดับ",
+        "วันที่เบิกจ่าย",
+        "เลขที่เอกสาร",
+        "หน่วยงาน / กลุ่มงาน",
+        "ผู้ขอเบิก",
+        "รายละเอียด",
+        "หมายเหตุ",
+        "จัดการ",
+      ].map((title)=>(
 
+        <th
+          key={title}
+          className="
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            border
+            px-4
+            py-4
+            text-center
+            text-lg
+            font-extrabold
+            text-white
+          "
+        >
+          {title}
+        </th>
 
-                {
-                  [
-                    "ลำดับ",
-                    "วันที่เบิกจ่าย",
-                    "เลขที่เอกสาร",
-                    "หน่วยงาน / กลุ่มงาน",
-                    "ผู้ขอเบิก",
-                    "รายละเอียด",
-                    "หมายเหตุ",
-                    "จัดการ",
-                  ].map((title)=>(
-
-
-                    <th
-
-                      key={title}
-
-                      className="
-                        border
-                        border-slate-600
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        text-white
-                      "
-
-                    >
-
-                      {title}
-
-                    </th>
+      ))
+    }
 
 
-                  ))
-                }
+  </tr>
 
 
-              </tr>
-
-
-            </thead>
+</thead>
 
 
 
@@ -280,29 +267,28 @@ export default async function IssuePage(){
 
 
                       <td
-                        className="
-                          border
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                        "
-                      >
+  className="
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
+  "
+>
 
                         {index+1}
 
                       </td>
 
-
-
-
-
                       <td
                         className="
-                          border
-                          px-4
-                          py-3
-                          text-center
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                         "
                       >
 
@@ -319,11 +305,12 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
-                          px-4
-                          py-3
-                          text-center
-                        "
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
 
@@ -351,10 +338,12 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
-                          px-4
-                          py-3
-                        "
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
                         {issue.department.name}
@@ -367,10 +356,12 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
-                          px-4
-                          py-3
-                        "
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
                         {
@@ -392,11 +383,12 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
-                          px-4
-                          py-3
-                          text-center
-                        "
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
 
@@ -434,13 +426,13 @@ export default async function IssuePage(){
 
 
                       <td
-
-                        className="
-                          border
-                          px-4
-                          py-3
-                        "
-
+className="
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
                         {
@@ -468,13 +460,13 @@ export default async function IssuePage(){
 
 
                       <td
-
-                        className="
-                          border
-                          px-4
-                          py-3
-                        "
-
+className="
+    border
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-700
                       >
 
 
