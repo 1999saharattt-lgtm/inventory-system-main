@@ -127,32 +127,32 @@ export default async function UsersPage() {
       {/* Table Card */}
 
       <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-900
-          via-slate-800
-          to-slate-700
-          shadow-xl
-        "
-      >
+  className="
+    overflow-hidden
+    rounded-2xl
+    border
+    border-slate-500
+    bg-gradient-to-br
+    from-slate-950
+    via-slate-900
+    to-slate-800
+    shadow-xl
+  "
+>
 
 
         <div className="overflow-x-auto">
 
 
           <table
-            className="
-              min-w-full
-border-collapse
-overflow-hidden
-text-xl
-font-bold
-            "
-          >
+  className="
+    min-w-full
+    border-collapse
+    overflow-hidden
+    text-xl
+    font-bold
+  "
+>
 
 
             <thead>
@@ -161,8 +161,8 @@ font-bold
               <tr
                 className="
                   bg-gradient-to-r
-                  from-slate-700
-                  to-slate-950
+                  from-slate-800
+to-slate-950
                   text-white
                 "
               >
