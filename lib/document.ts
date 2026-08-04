@@ -25,19 +25,46 @@ export async function generateDocumentNo(
 
 
 
-  const model =
-    type === "RECEIVE"
-      ? prisma.receive
-      : prisma.issue;
+  let last:
+    {
+      documentNo: string;
+    }
+    | null;
 
 
 
-  const last =
-    await model.findFirst({
-      orderBy:{
-        id:"desc",
-      },
-    });
+  if (type === "RECEIVE") {
+
+
+    last =
+      await prisma.receive.findFirst({
+
+        orderBy: {
+
+          id: "desc",
+
+        },
+
+      });
+
+
+  } else {
+
+
+    last =
+      await prisma.issue.findFirst({
+
+        orderBy: {
+
+          id: "desc",
+
+        },
+
+      });
+
+
+  }
+
 
 
 
@@ -45,7 +72,7 @@ export async function generateDocumentNo(
 
 
 
-  if(last?.documentNo){
+  if (last?.documentNo) {
 
 
     const regex =
@@ -54,12 +81,13 @@ export async function generateDocumentNo(
       );
 
 
+
     const match =
       last.documentNo.match(regex);
 
 
 
-    if(match){
+    if (match) {
 
 
       const lastYear =
@@ -71,10 +99,12 @@ export async function generateDocumentNo(
 
 
 
-      if(lastYear === shortYear){
+      if (lastYear === shortYear) {
+
 
         next =
           lastNumber + 1;
+
 
       }
 
@@ -87,9 +117,10 @@ export async function generateDocumentNo(
 
 
 
+
   return (
     `${prefix}` +
-    `${String(next).padStart(2,"0")}` +
+    `${String(next).padStart(2, "0")}` +
     `/${shortYear}`
   );
 
