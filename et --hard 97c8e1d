@@ -1,0 +1,129 @@
+[33m2d476cf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m update officer pages theme and ui
+[33m63477c1[m update section officer create page theme
+[33mba74217[m update officer pages theme
+[33m79fd8fb[m update officer table theme
+[33m97c8e1d[m update users page to match receive table style
+[33m549f74e[m update login page to match dashboard theme
+[33m234f25c[m change users table to white theme
+[33mdb7fca4[m update users table theme
+[33mb3930cf[m update users table theme
+[33m3f3d39d[m update users management theme
+[33mfb3de94[m update departments theme ui
+[33mf19597e[m update departments card theme
+[33m18ca2f8[m update officer create page ui theme
+[33m4b4bcda[m update vendor pages ui theme
+[33m092554c[m adjust stock card pdf pagination
+[33m79147dd[m update stock card pdf pagination
+[33m94e1c61[m update stock card UI theme
+[33m2b3fce5[m ปรับ stock card category UI ให้เหมือน materials
+[33m25dc013[m Standardize all page headers and buttons UI
+[33mb8e5ac8[m Standardize issue page header layout
+[33m71c091c[m Fix materials page JSX layout
+[33mdd21f76[m unify UI layout for stock card and pages
+[33mc33523a[m adjust issue and receive header typography
+[33m9806a32[m match issue subtitle typography with receive
+[33mdf33604[m adjust issue header size
+[33md02dfd1[m add material seed data
+[33m3bc49dd[m replace sqlite migrations with postgresql baseline
+[33mf6218e7[m fix issue page jsx syntax
+[33md752bc0[m add manufacture expiry for issue receive
+[33mb31b050[m update receive form table 15 rows and dark theme
+[33m3552c5f[m fix material auto code generation and update issue form
+[33mc595579[m rebuild issue form
+[33m086110f[m fix issue form component
+[33mb93e49d[m update issue pages theme and ui
+[33meee2663[m fix issue header text color
+[33m95face4[m fix issue table header style
+[33m1508ad5[m fix issue page theme and syntax
+[33m952d4a3[m fix issue table header theme
+[33mc08e1d6[m update issue list dark theme
+[33m3fce722[m update issue list dark theme
+[33m10919bb[m update issue detail theme
+[33m27c12ab[m fix receive pages theme and typography
+[33m4fefa85[m fix receive detail header text and remove table title
+[33mca20de9[m update receive detail and edit pages theme
+[33m72b6ae1[m ปรับธีมหน้า receive detail
+[33mfbbd189[m update receive create back button theme
+[33m14c58d7[m fix receive create header theme
+[33mbf8f5da[m fix receive form jsx structure
+[33m953b465[m update receive form ui theme
+[33m8a899c9[m fix receive page ui theme and syntax
+[33m5387242[m match receive page theme with materials
+[33mf24dc11[m update receive page dark theme ui
+[33m6caa98c[m update edit material ui
+[33m5e51f32[m update edit material ui
+[33m803f7ae[m update edit material ui
+[33m8cdca72[m update material form button ui
+[33mde475cb[m update materials new page ui
+[33me00dd0f[m update material category ui
+[33m6f122dd[m ปรับธีมหน้ารายการพัสดุตามหมวดหมู่
+[33m2e72417[m fix materials page theme
+[33m5c37fb5[m fix materials page theme
+[33me1acfe7[m fix materials page theme
+[33mc8e3b86[m fix materials page header and card layout
+[33m0ab2992[m fix materials page header and card layout
+[33m96fc4d8[m update materials page theme
+[33mf02beaf[m fix receive form jsx
+[33m4dcc763[m ปรับหน้า receive form UI
+[33m79f3337[m improve material form enterprise style
+[33m56a0295[m improve material create page style
+[33m4adc0e2[m upgrade material form UI
+[33m44ac5e8[m upgrade new material page UI
+[33m622dc59[m upgrade material category table UI
+[33m13b09c4[m upgrade materials category cards
+[33m616d83a[m improve header user section
+[33m345687a[m remove duplicate header title
+[33mfe97e56[m fix dashboard card text color
+[33mbd93dbd[m fix dashboard card text color
+[33m1b502e3[m fix dashboard card text color
+[33m1e8e289[m upgrade dashboard card style
+[33m231ffd5[m redesign dashboard welcome section
+[33m3572af3[m adjust header typography
+[33m358fc51[m fix global typography override
+[33ma785307[m fix global h1 font size
+[33m7c6bca7[m adjust header typography size
+[33m87bdb9d[m improve header title alignment
+[33mbd0aef4[m fix sidebar title color
+[33m8687d50[m fix sidebar group title color
+[33m59c39d9[m enhance sidebar group title visibility
+[33md61f23b[m improve sidebar typography
+[33m21e6489[m ปรับ sidebar
+[33m701f1a6[m add lucide-react dependency
+[33m8eb33f1[m fix sidebar ElementType import
+[33m5baf411[m adjust global UI size
+[33m4879b75[m adjust global font size
+[33m80b242a[m fix header sidebar layout typography
+[33mc15fbdb[m fix header sidebar layout typography
+[33md798eaa[m fix header sidebar layout typography
+[33me2bb7a8[m fix header sidebar layout typography
+[33m3c212e6[m fix header sidebar layout typography
+[33me6c518f[m fix thai font weight
+[33m6f831b2[m update all pages ui theme
+[33m2a81c10[m fix TH Sarabun normal and bold weights
+[33mb9186d1[m fix TH Sarabun font
+[33m6ef329d[m fix thai font weight
+[33mc403b4c[m Fix TH Sarabun font
+[33m8c0d3bc[m fix prisma generate on deploy
+[33m1db2500[m fix officer type prisma enum
+[33m366a18f[m fix typescript build errors
+[33me244587[m fix typescript errors
+[33maf0f0fe[m fix receive page type
+[33m92bd9bc[m fix receive detail item type
+[33m1c12c95[m fix category type
+[33m7c849df[m fix materials category types
+[33md4e0a96[m fix material master type
+[33m27bc6c5[m fix issue list type
+[33m13eec2b[m fix issue detail item type
+[33m01512c2[m fix typescript errors and update pages
+[33mc366229[m Fix materials category page TypeScript type
+[33m375cdab[m Fix material master page TypeScript type
+[33m2d7f15b[m Fix issue list TypeScript type
+[33mcd5a8c3[m Fix create issue transaction type
+[33m5afe9bc[m Fix issue action TypeScript type
+[33m305a10c[m Fix issue page TypeScript type
+[33mb0be9c0[m Fix transaction TypeScript type
+[33mffe84f4[m Fix departments page TypeScript type
+[33m4ccd14a[m Fix remaining section TypeScript error
+[33md6985c9[m Fix department page TypeScript
+[33m9e69447[m Build passed and fix TypeScript errors
+[33mf995ed6[m Initial inventory system
