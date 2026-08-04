@@ -4,11 +4,13 @@ import Link from "next/link";
 
 import { officerTypeText } from "@/lib/officerType";
 
+
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
+
 
 const officerPriority = [
   "CIVIL_SERVANT",
@@ -17,108 +19,248 @@ const officerPriority = [
   "OUTSOURCE",
 ];
 
+
+
 export default async function DepartmentDetailPage({
   params,
 }: Props) {
+
+
   const { id } = await params;
 
+
+
   const department = await prisma.department.findUnique({
+
     where: {
       id: Number(id),
     },
+
+
     include: {
+
       officers: {
         orderBy: {
           firstName: "asc",
         },
       },
+
+
       sections: {
+
         include: {
+
           officers: {
+
             orderBy: {
               firstName: "asc",
             },
+
           },
+
         },
+
       },
+
     },
+
   });
 
+
+
   if (!department) {
+
     notFound();
+
   }
+
+
+
+
 
   function sortOfficers(officers: any[]) {
+
     return [...officers].sort((a, b) => {
-      const aHead = a.position.includes("หัวหน้ากลุ่ม") ? 0 : 1;
-      const bHead = b.position.includes("หัวหน้ากลุ่ม") ? 0 : 1;
+
+
+      const aHead =
+        a.position.includes("หัวหน้ากลุ่ม")
+          ? 0
+          : 1;
+
+
+      const bHead =
+        b.position.includes("หัวหน้ากลุ่ม")
+          ? 0
+          : 1;
+
+
 
       if (aHead !== bHead) {
+
         return aHead - bHead;
+
       }
 
-      const aType = officerPriority.indexOf(a.type);
-      const bType = officerPriority.indexOf(b.type);
+
+
+
+
+      const aType =
+        officerPriority.indexOf(a.type);
+
+
+      const bType =
+        officerPriority.indexOf(b.type);
+
+
 
       if (aType !== bType) {
+
         return aType - bType;
+
       }
 
-      return a.firstName.localeCompare(b.firstName, "th");
+
+
+      return a.firstName.localeCompare(
+        b.firstName,
+        "th"
+      );
+
+
     });
+
   }
-    function OfficerTable({
+
+
+
+
+
+
+
+  function OfficerTable({
     officers,
   }: {
     officers: any[];
   }) {
+
+
     return (
+
       <div
         className="
           overflow-hidden
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
+          shadow-xl
         "
       >
+
+
         <div className="overflow-x-auto">
+
+
           <table
             className="
               min-w-full
               border-collapse
-              text-xl
-              font-bold
             "
           >
-            <thead className="bg-slate-200">
+
+
+
+            <thead>
+
+
               <tr
                 className="
-                  text-xl
-                  font-extrabold
-                  text-slate-800
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  text-white
                 "
               >
-                <th className="border border-slate-300 px-4 py-3">
+
+
+                <th
+                  className="
+                    border
+                    border-slate-300
+                    px-5
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
                   ชื่อ - นามสกุล
                 </th>
 
-                <th className="border border-slate-300 px-4 py-3">
+
+                <th
+                  className="
+                    border
+                    border-slate-300
+                    px-5
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
                   ตำแหน่ง
                 </th>
 
-                <th className="border border-slate-300 px-4 py-3 text-center">
+
+                <th
+                  className="
+                    border
+                    border-slate-300
+                    px-5
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
                   ประเภทบุคลากร
                 </th>
 
-                <th className="border border-slate-300 px-4 py-3 text-center">
+
+                <th
+                  className="
+                    border
+                    border-slate-300
+                    px-5
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
                   จัดการ
                 </th>
+
+
               </tr>
+
+
             </thead>
 
+
+
+
+
             <tbody>
-              {sortOfficers(officers).map((officer: any) => (
+
+
+              {sortOfficers(officers).map(
+                (officer:any)=>(
+                
+
                 <tr
                   key={officer.id}
                   className="
@@ -128,146 +270,264 @@ export default async function DepartmentDetailPage({
                     transition
                   "
                 >
-                  <td className="border border-slate-300 px-4 py-3 text-xl font-bold">
-                    {officer.firstName} {officer.lastName}
+
+
+                  <td
+                    className="
+                      border
+                      border-slate-300
+                      px-5
+                      py-4
+                      text-lg
+                      font-bold
+                      text-slate-800
+                    "
+                  >
+                    {officer.firstName}{" "}
+                    {officer.lastName}
                   </td>
 
-                  <td className="border border-slate-300 px-4 py-3 text-xl font-bold">
+
+
+
+                  <td
+                    className="
+                      border
+                      border-slate-300
+                      px-5
+                      py-4
+                      text-lg
+                      font-bold
+                      text-slate-800
+                    "
+                  >
                     {officer.position}
                   </td>
 
-                  <td className="border border-slate-300 px-4 py-3 text-center">
+
+
+
+
+                  <td
+                    className="
+                      border
+                      border-slate-300
+                      px-5
+                      py-4
+                      text-center
+                    "
+                  >
+
                     <span
                       className="
-                        inline-block
+                        inline-flex
                         rounded-full
                         bg-emerald-100
                         px-4
                         py-1
-                        text-xl
-                        font-bold
+                        text-lg
+                        font-extrabold
                         text-emerald-700
                       "
                     >
-                      {officerTypeText(officer.type)}
+
+                      {officerTypeText(
+                        officer.type
+                      )}
+
                     </span>
+
+
                   </td>
 
-                  <td className="border border-slate-300 px-4 py-3 text-center">
-                    <div className="flex justify-center gap-2">
+
+
+
+
+                  <td
+                    className="
+                      border
+                      border-slate-300
+                      px-5
+                      py-4
+                    "
+                  >
+
+
+                    <div
+                      className="
+                        flex
+                        justify-center
+                        gap-3
+                      "
+                    >
+
+
                       <Link
                         href={`/officers/${officer.id}/edit`}
                         className="
-                          rounded-lg
+                          rounded-xl
                           bg-amber-500
                           px-4
                           py-2
-                          text-xl
-                          font-bold
+                          text-lg
+                          font-extrabold
                           text-white
+                          transition
                           hover:bg-amber-600
                         "
                       >
                         แก้ไข
                       </Link>
 
+
+
                       <Link
                         href={`/officers/${officer.id}/delete`}
                         className="
-                          rounded-lg
+                          rounded-xl
                           bg-red-600
                           px-4
                           py-2
-                          text-xl
-                          font-bold
+                          text-lg
+                          font-extrabold
                           text-white
+                          transition
                           hover:bg-red-700
                         "
                       >
                         ลบ
                       </Link>
+
+
                     </div>
+
+
                   </td>
+
+
                 </tr>
+
+
               ))}
+
+
             </tbody>
+
+
           </table>
+
+
         </div>
+
+
       </div>
+
     );
+
   }
     return (
-    <div className="space-y-8">
+
+    <div className="space-y-6">
+
+
 
       {/* Header */}
 
       <div
         className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          text-white
+          shadow-xl
         "
       >
-        <div className="flex items-center justify-between">
 
-          <div>
 
-            <h1
-              className="
-                text-4xl
-                font-extrabold
-                text-slate-800
-              "
-            >
-              {department.name}
-            </h1>
+        <div>
 
-            <p
-              className="
-                mt-2
-                text-xl
-                font-bold
-                text-slate-600
-              "
-            >
-              รายละเอียดหน่วยงานและรายชื่อเจ้าหน้าที่
-            </p>
 
-          </div>
-
-          <Link
-            href="/departments"
+          <h1
             className="
-              rounded-lg
-              bg-slate-200
-              px-5
-              py-3
-              text-xl
-              font-bold
-              text-slate-700
-              hover:bg-slate-300
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
             "
           >
-            ← กลับ
-          </Link>
+            🏢 {department.name}
+          </h1>
+
+
+          <p
+            className="
+              mt-3
+              text-xl
+              font-semibold
+              text-slate-200
+            "
+          >
+            รายละเอียดหน่วยงานและรายชื่อเจ้าหน้าที่
+          </p>
+
 
         </div>
+
+
+
+
+        <Link
+          href="/departments"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+        >
+          ← กลับ
+        </Link>
+
+
+
       </div>
+
+
+
+
+
+
 
       {department.sections.length === 0 ? (
 
+
+
         <div
           className="
-            rounded-xl
+            rounded-2xl
             border
-            border-slate-300
-            bg-slate-100
+            border-slate-200
+            bg-white
             p-6
+            shadow-xl
           "
         >
+
 
           <div
             className="
@@ -278,11 +538,13 @@ export default async function DepartmentDetailPage({
             "
           >
 
+
             <div>
+
 
               <h2
                 className="
-                  text-2xl
+                  text-3xl
                   font-extrabold
                   text-slate-800
                 "
@@ -290,44 +552,59 @@ export default async function DepartmentDetailPage({
                 รายชื่อเจ้าหน้าที่
               </h2>
 
+
               <p
                 className="
-                  mt-1
+                  mt-2
                   text-xl
-                  font-bold
-                  text-slate-600
+                  font-semibold
+                  text-slate-500
                 "
               >
                 จำนวนเจ้าหน้าที่ {department.officers.length} คน
               </p>
 
+
             </div>
+
+
+
 
             <Link
               href={`/departments/${department.id}/officers/create`}
               className="
-                rounded-lg
-                bg-blue-700
+                rounded-xl
+                bg-gradient-to-r
+                from-emerald-600
+                to-green-500
                 px-5
                 py-3
-                text-xl
-                font-bold
+                text-lg
+                font-extrabold
                 text-white
-                hover:bg-blue-800
+                shadow-lg
+                transition
+                hover:scale-105
               "
             >
               + เพิ่มรายชื่อ
             </Link>
 
+
           </div>
+
+
+
+
 
           {department.officers.length === 0 ? (
 
+
             <div
               className="
-                rounded-lg
-                bg-white
-                p-8
+                rounded-xl
+                bg-slate-50
+                p-10
                 text-center
                 text-xl
                 font-bold
@@ -337,72 +614,167 @@ export default async function DepartmentDetailPage({
               ยังไม่มีเจ้าหน้าที่
             </div>
 
+
+
           ) : (
 
-            <OfficerTable officers={department.officers} />
+
+            <OfficerTable
+              officers={department.officers}
+            />
+
 
           )}
 
+
+
         </div>
 
-            ) : (
-        department.sections.map((section: any) => (
+
+
+
+      ) : (
+
+
+
+
+        department.sections.map((section:any)=>(
+
+
+          <div
+            key={section.id}
+            className="
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              p-6
+              shadow-xl
+            "
+          >
+
+
+
             <div
-              key={section.id}
               className="
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-100
-                p-6
+                mb-6
+                flex
+                items-center
+                justify-between
               "
             >
-              <div
-                className="
-                  mb-6
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                <div>
-                  <h2 className="text-2xl font-extrabold text-slate-800">
-                    {section.name}
-                  </h2>
 
-                  <p className="text-xl font-bold text-slate-600">
-                    จำนวนเจ้าหน้าที่ {section.officers.length} คน
-                  </p>
-                </div>
 
-                <Link
-                  href={`/sections/${section.id}/officers/create`}
+              <div>
+
+
+                <h2
                   className="
-                    rounded-lg
-                    bg-blue-700
-                    px-5
-                    py-3
-                    text-xl
-                    font-bold
-                    text-white
-                    hover:bg-blue-800
+                    text-3xl
+                    font-extrabold
+                    text-slate-800
                   "
                 >
-                  + เพิ่มรายชื่อ
-                </Link>
+                  {section.name}
+                </h2>
+
+
+
+                <p
+                  className="
+                    mt-2
+                    text-xl
+                    font-semibold
+                    text-slate-500
+                  "
+                >
+                  จำนวนเจ้าหน้าที่ {section.officers.length} คน
+                </p>
+
+
               </div>
 
-              {section.officers.length === 0 ? (
-                <div className="rounded-lg bg-white p-8 text-center text-xl font-bold text-slate-500">
-                  ยังไม่มีเจ้าหน้าที่
-                </div>
-              ) : (
-                <OfficerTable officers={section.officers} />
-              )}
+
+
+
+
+              <Link
+                href={`/sections/${section.id}/officers/create`}
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-emerald-600
+                  to-green-500
+                  px-5
+                  py-3
+                  text-lg
+                  font-extrabold
+                  text-white
+                  shadow-lg
+                  transition
+                  hover:scale-105
+                "
+              >
+                + เพิ่มรายชื่อ
+              </Link>
+
+
+
             </div>
-          )
-        )
+
+
+
+
+
+
+            {section.officers.length === 0 ? (
+
+
+              <div
+                className="
+                  rounded-xl
+                  bg-slate-50
+                  p-10
+                  text-center
+                  text-xl
+                  font-bold
+                  text-slate-500
+                "
+              >
+                ยังไม่มีเจ้าหน้าที่
+              </div>
+
+
+
+            ) : (
+
+
+
+              <OfficerTable
+                officers={section.officers}
+              />
+
+
+
+            )}
+
+
+
+          </div>
+
+
+
+        ))
+
+
+
       )}
+
+
+
     </div>
+
+
   );
+
 }
