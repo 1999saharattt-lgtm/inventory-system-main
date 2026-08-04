@@ -530,7 +530,7 @@ export default function ReceiveForm({
                         >
 
                           <option value="">
-                            เลือกพัสดุ
+                            เลือกรายการพัสดุ
                           </option>
 
 
