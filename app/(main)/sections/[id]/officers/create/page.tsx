@@ -92,199 +92,260 @@ export default async function CreateOfficerPage({
 
 
 
+
   return (
 
     <div className="space-y-6">
 
 
+
+      {/* Header */}
+
       <div
         className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
-          p-6
-          shadow-sm
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-8
+          py-6
+          min-h-[140px]
+          text-white
+          shadow-xl
         "
       >
 
-        <div className="flex items-center justify-between">
+
+        <div>
 
 
-          <div>
-
-            <h1
-              className="
-                text-3xl
-                font-bold
-                text-slate-800
-              "
-            >
-              เพิ่มรายชื่อเจ้าหน้าที่
-            </h1>
-
-
-            <p className="mt-2 text-slate-600">
-
-              {section.department.name}
-              {" / "}
-              {section.name}
-
-            </p>
-
-
-          </div>
-
-
-
-          <Link
-
-            href={`/departments/${departmentId}`}
-
+          <h1
             className="
-              rounded-lg
-              bg-slate-200
-              px-5
-              py-3
-              font-semibold
-              text-slate-700
-              shadow-sm
-              transition
-              hover:bg-slate-300
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
             "
+          >
+            👤 เพิ่มรายชื่อเจ้าหน้าที่
+          </h1>
 
+
+
+          <p
+            className="
+              mt-2
+              text-xl
+              font-semibold
+              !text-slate-200
+            "
           >
 
-            ← กลับ
+            {section.department.name}
+            {" / "}
+            {section.name}
 
-          </Link>
+          </p>
 
 
         </div>
+
+
+
+
+
+        <Link
+
+          href={`/departments/${departmentId}`}
+
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+
+        >
+
+          ← กลับ
+
+        </Link>
+
 
       </div>
 
 
 
 
+
+
+
+      {/* Form */}
+
+
       <div
+
         className="
           max-w-xl
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
-          bg-slate-100
-          p-6
-          shadow-sm
+          border-slate-200
+          bg-white
+          p-8
+          shadow-xl
         "
+
       >
 
 
+
         <form
+
           action={createOfficer}
-          className="space-y-5"
+
+          className="space-y-6"
+
         >
 
 
+
+
+          {[
+            {
+              label:"ชื่อ",
+              name:"firstName",
+            },
+            {
+              label:"นามสกุล",
+              name:"lastName",
+            },
+            {
+              label:"ตำแหน่ง",
+              name:"position",
+            },
+
+          ].map((field)=>(
+
+
+            <div key={field.name}>
+
+
+              <label
+
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-bold
+                  text-slate-700
+                "
+
+              >
+
+                {field.label}
+
+              </label>
+
+
+
+              <input
+
+                name={field.name}
+
+                required
+
+
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  text-lg
+                  font-medium
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-blue-500
+                  focus:ring-4
+                  focus:ring-blue-100
+                "
+
+              />
+
+
+            </div>
+
+
+          ))}
+
+
+
+
+
+
+
           <div>
 
-            <label className="mb-1 block font-medium text-slate-700">
-              ชื่อ
-            </label>
 
+            <label
 
-            <input
-              name="firstName"
-              required
               className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-2
-                text-slate-900
+                mb-2
+                block
+                text-lg
+                font-bold
+                text-slate-700
               "
-            />
 
-          </div>
+            >
 
-
-
-          <div>
-
-            <label className="mb-1 block font-medium text-slate-700">
-              นามสกุล
-            </label>
-
-
-            <input
-              name="lastName"
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-2
-                text-slate-900
-              "
-            />
-
-          </div>
-
-
-
-          <div>
-
-            <label className="mb-1 block font-medium text-slate-700">
-              ตำแหน่ง
-            </label>
-
-
-            <input
-              name="position"
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-2
-                text-slate-900
-              "
-            />
-
-          </div>
-
-
-
-
-          <div>
-
-            <label className="mb-1 block font-medium text-slate-700">
               ประเภทบุคลากร
+
             </label>
+
+
 
 
             <select
+
               name="type"
+
+
               className="
                 w-full
-                rounded-lg
+                rounded-xl
                 border
                 border-slate-300
                 bg-white
                 px-4
-                py-2
+                py-3
+                text-lg
+                font-medium
                 text-slate-900
+                outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
+
             >
+
 
               <option value="CIVIL_SERVANT">
                 ข้าราชการ
@@ -308,23 +369,33 @@ export default async function CreateOfficerPage({
 
             </select>
 
+
           </div>
 
 
 
 
+
+
           <button
+
             type="submit"
+
             className="
-              rounded-lg
-              bg-green-700
-              px-6
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-8
               py-3
-              font-semibold
+              text-lg
+              font-extrabold
               text-white
-              shadow-sm
-              hover:bg-green-800
+              shadow-lg
+              transition
+              hover:scale-105
             "
+
           >
 
             บันทึกข้อมูล
@@ -333,10 +404,12 @@ export default async function CreateOfficerPage({
 
 
 
+
         </form>
 
 
       </div>
+
 
 
     </div>
