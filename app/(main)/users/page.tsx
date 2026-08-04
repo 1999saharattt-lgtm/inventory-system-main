@@ -131,11 +131,8 @@ export default async function UsersPage() {
     overflow-hidden
     rounded-2xl
     border
-    border-slate-500
-    bg-gradient-to-br
-    from-slate-950
-    via-slate-900
-    to-slate-800
+    border-slate-200
+bg-white
     shadow-xl
   "
 >
@@ -180,7 +177,7 @@ to-slate-950
                     key={title}
                     className="
                       border
-                      border-slate-600
+                      border-slate-200
                       px-4
                       py-4
                       text-center
@@ -214,11 +211,11 @@ users.map((user,index)=>(
 key={user.id}
 className="
 border-b
-border-slate-600
-bg-slate-800
-text-white
+border-slate-200
+bg-white
+text-slate-700
 transition
-hover:bg-slate-700
+hover:bg-slate-50
 "
 >
 
@@ -226,7 +223,7 @@ hover:bg-slate-700
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 text-center
@@ -242,7 +239,7 @@ font-bold
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 text-center
@@ -258,7 +255,7 @@ font-bold
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 text-xl
@@ -273,7 +270,7 @@ font-bold
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 text-center
@@ -284,12 +281,12 @@ text-center
 className="
 inline-block
 rounded-full
-bg-blue-500/20
+bg-blue-100
 px-5
 py-1
 text-lg
 font-bold
-text-blue-300
+text-blue-700
 "
 >
 {roleName[user.role] ?? user.role}
@@ -303,7 +300,7 @@ text-blue-300
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 text-center
@@ -317,12 +314,12 @@ user.active ? (
 className="
 inline-block
 rounded-full
-bg-emerald-500/20
+bg-emerald-100
 px-5
 py-1
 text-lg
 font-bold
-text-emerald-300
+text-emerald-700
 "
 >
 Active
@@ -335,12 +332,12 @@ Active
 className="
 inline-block
 rounded-full
-bg-red-500/20
+bg-red-100
 px-5
 py-1
 text-lg
 font-bold
-text-red-300
+text-red-700
 "
 >
 Inactive
@@ -359,7 +356,7 @@ Inactive
 <td
 className="
 border
-border-slate-600
+border-slate-200
 px-4
 py-4
 "
