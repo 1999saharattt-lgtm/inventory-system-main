@@ -48,42 +48,43 @@ export default async function ReceivePage() {
 
 <div
   className="
-    flex
-    items-center
-    justify-between
-    rounded-2xl
-    bg-gradient-to-r
-    from-slate-950
-    via-slate-800
-    to-slate-700
-    px-8
-    py-6
-    min-h-[140px]
-    shadow-xl
-  "
+  flex
+  items-center
+  justify-between
+  rounded-2xl
+  bg-gradient-to-r
+  from-slate-950
+  via-slate-800
+  to-slate-700
+  px-8
+  py-6
+  min-h-[140px]
+  text-white
+  shadow-xl
+"
 >
 
   <div>
 
     <h1
       className="
-        text-5xl
-        font-extrabold
-        leading-tight
-        !text-white
-      "
+  text-5xl
+  font-extrabold
+  leading-tight
+  !text-white
+"
     >
       📥 รายการรับเข้าพัสดุ
     </h1>
 
     <p
-      className="
-        mt-2
-        text-xl
-        font-semibold
-        text-slate-200
-      "
-    >
+  className="
+  mt-2
+  text-xl
+  font-semibold
+  !text-slate-200
+"
+>
       แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
     </p>
 
@@ -92,19 +93,19 @@ export default async function ReceivePage() {
   <Link
     href="/receive/create"
     className="
-      rounded-xl
-      bg-gradient-to-r
-      from-emerald-600
-      to-green-500
-      px-6
-      py-3
-      text-lg
-      font-extrabold
-      text-white
-      shadow-lg
-      transition
-      hover:scale-105
-    "
+  rounded-xl
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
+  px-5
+  py-3
+  text-lg
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
   >
     + เพิ่มรายการรับ
   </Link>
