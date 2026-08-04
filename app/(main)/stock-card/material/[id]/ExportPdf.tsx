@@ -1,6 +1,7 @@
 "use client";
 
 import "@/lib/fonts/THSarabunNew-normal";
+
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -12,44 +13,32 @@ type Props = {
 
 
 
-const categoryName: Record<string, string> = {
+const categoryName: Record<string,string> = {
 
-  OFFICE: "วัสดุสำนักงาน",
-
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-
-  VEHICLE: "วัสดุยานพาหนะ",
-
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+  OFFICE:"วัสดุสำนักงาน",
+  COMPUTER:"วัสดุคอมพิวเตอร์",
+  ELECTRIC:"วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD:"วัสดุงานบ้านและงานครัว",
+  VEHICLE:"วัสดุยานพาหนะ",
+  PRINTING:"วัสดุสื่อสิ่งพิมพ์",
 
 };
 
 
 
-// แสดงวันที่แบบ ค.ศ.
 function formatDate(date:any){
 
   if(!date) return "";
 
   const d = new Date(date);
 
-  return `${d.getDate()
-    .toString()
-    .padStart(2,"0")}/${
-      (d.getMonth()+1)
-      .toString()
-      .padStart(2,"0")
-    }/${d.getFullYear()}`;
+  return `${String(d.getDate()).padStart(2,"0")}/${
+    String(d.getMonth()+1).padStart(2,"0")
+  }/${d.getFullYear()}`;
 
 }
 
 
-
-// แสดงราคา 2 ตำแหน่ง
 
 function formatMoney(value:number){
 
@@ -57,7 +46,6 @@ function formatMoney(value:number){
     .toLocaleString("en-US",{
 
       minimumFractionDigits:2,
-
       maximumFractionDigits:2,
 
     });
@@ -66,447 +54,499 @@ function formatMoney(value:number){
 
 
 
+
 export default function ExportPdf({
 
   material,
-
   rows,
 
 }:Props){
 
 
-  async function exportPdf(){
 
+async function exportPdf(){
 
-    const doc = new jsPDF({
 
-      orientation:"landscape",
+const doc = new jsPDF({
 
-      unit:"mm",
+  orientation:"landscape",
+  unit:"mm",
+  format:"a4",
 
-      format:"a4",
+});
 
-    });
 
 
+doc.setFont(
+  "2.3.2 THSarabunNew",
+  "normal"
+);
 
-    doc.setFont(
-      "2.3.2 THSarabunNew",
-      "normal"
-    );
 
 
+const pageWidth =
+doc.internal.pageSize.getWidth();
 
-    const pageWidth =
-      doc.internal.pageSize.getWidth();
 
 
+const center =
+pageWidth / 2;
 
-    const center =
-      pageWidth / 2;
 
 
+const leftX = 14;
 
-    doc.setFontSize(26);
+const rightX = 150;
 
 
 
-    doc.text(
+const tableHeader = [
 
-      "บัญชีพัสดุ",
+"วันที่",
 
-      center,
+"เลขที่เอกสาร",
 
-      16,
+"ผู้จำหน่าย / หน่วยงาน",
 
-      {
-        align:"center",
-      }
+"ราคาล่าสุด",
 
-    );
+"รับเข้า",
 
+"เบิกจ่าย",
 
+"คงเหลือ",
 
-    doc.setFontSize(16);
+"วันผลิต",
 
+"วันหมดอายุ",
 
+];
 
-    doc.text(
 
-      "ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย",
 
-      232,
 
-      18,
+// =======================
+// แบ่งหน้า 10 รายการ
+// =======================
 
-      {
-        align:"center",
-      }
 
-    );
+const pageSize = 10;
 
 
-    doc.text(
+const pages:any[][] = [];
 
-      "หน่วยงาน  สำนักอนามัยการเจริญพันธุ์",
 
-      232,
+for(
+let i=0;
+i<rows.length;
+i+=pageSize
+){
 
-      24,
+pages.push(
+rows.slice(
+i,
+i+pageSize
+)
+);
 
-      {
-        align:"center",
-      }
+}
 
-    );
 
 
+if(pages.length===0){
 
-    const leftX = 14;
+pages.push([]);
 
-    const rightX = 150;
+}
 
 
 
-    doc.text(
 
-      `รหัสพัสดุ : ${material.code}`,
+pages.forEach((pageRows,pageIndex)=>{
 
-      leftX,
 
-      38
+if(pageIndex>0){
 
-    );
+doc.addPage();
 
+}
 
-    doc.text(
 
-      `รายการพัสดุ : ${material.name}`,
 
-      rightX,
+// =======================
+// HEADER
+// =======================
 
-      38
 
-    );
+doc.setFontSize(26);
 
 
-    doc.text(
+doc.text(
 
-      `หมวดหมู่ : ${
-        categoryName[material.category]
-        ?? material.category
-      }`,
+"บัญชีพัสดุ",
 
-      leftX,
+center,
 
-      46
+16,
 
-    );
+{
+align:"center"
+}
 
+);
 
-    doc.text(
 
-      `หน่วย : ${material.unit}`,
 
-      rightX,
+doc.setFontSize(16);
 
-      46
 
-    );
 
+doc.text(
 
+"ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย",
 
-    doc.text(
+232,
 
-      `ผู้จำหน่าย : ${
-        material.vendor?.name ?? "-"
-      }`,
+18,
 
-      leftX,
+{
+align:"center"
+}
 
-      54
+);
 
-    );
 
 
-    doc.text(
+doc.text(
 
-      `ราคาล่าสุด : ${
-        formatMoney(material.latestPrice)
-      } บาท`,
+"หน่วยงาน  สำนักอนามัยการเจริญพันธุ์",
 
-      rightX,
+232,
 
-      54
+24,
 
-    );
-        // ===============================
-    // เตรียมข้อมูลตาราง
-    // ===============================
+{
+align:"center"
+}
 
-    const body = rows.map((r) => [
+);
 
-      formatDate(r.date),
 
-      r.documentNo ?? "",
 
-      r.owner ?? "",
 
-      formatMoney(r.unitPrice),
+doc.text(
 
-      r.receiveQty || "",
+`รหัสพัสดุ : ${material.code}`,
 
-      r.issueQty || "",
+leftX,
 
-      r.balance ?? "",
+38
 
-      formatDate(r.manufacture),
+);
 
-      formatDate(r.expiry),
 
-    ]);
 
+doc.text(
 
+`รายการพัสดุ : ${material.name}`,
 
-    // เติมแถวว่างให้ครบ 10 แถว
+rightX,
 
-    while (body.length < 10) {
+38
 
-      body.push([
+);
 
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
 
-      ]);
 
-    }
+doc.text(
 
+`หมวดหมู่ : ${
+categoryName[material.category]
+?? material.category
+}`,
 
+leftX,
 
-    // ===============================
-    // สร้างตาราง PDF
-    // ===============================
+46
 
+);
 
-    autoTable(doc, {
 
-      startY: 60,
 
+doc.text(
 
-      head: [[
+`หน่วย : ${material.unit}`,
 
-        "วันที่",
+rightX,
 
-        "เลขที่เอกสาร",
+46
 
-        "ผู้จำหน่าย / หน่วยงาน",
+);
 
-        "ราคาล่าสุด",
 
-        "รับเข้า",
 
-        "เบิกจ่าย",
+doc.text(
 
-        "คงเหลือ",
+`ผู้จำหน่าย : ${
+material.vendor?.name ?? "-"
+}`,
 
-        "วันผลิต",
+leftX,
 
-        "วันหมดอายุ",
+54
 
-      ]],
+);
 
 
 
-      body,
+doc.text(
 
+`ราคาล่าสุด : ${
+formatMoney(material.latestPrice)
+} บาท`,
 
+rightX,
 
-      theme:"grid",
+54
 
+);
 
 
-      margin:{
 
-        left:10,
 
-        right:10,
+// =======================
+// TABLE DATA
+// =======================
 
-      },
 
+const body = pageRows.map((r)=>[
 
+formatDate(r.date),
 
-      styles:{
+r.documentNo ?? "",
 
-        font:"2.3.2 THSarabunNew",
+r.owner ?? "",
 
-        fontStyle:"normal",
+formatMoney(r.unitPrice),
 
-        fontSize:14,
+r.receiveQty || "",
 
-        cellPadding:3,
+r.issueQty || "",
 
-        halign:"center",
+r.balance ?? "",
 
-        valign:"middle",
+formatDate(r.manufacture),
 
-        lineColor:[0,0,0],
+formatDate(r.expiry),
 
-        lineWidth:0.25,
+]);
 
-      },
 
 
 
-      headStyles:{
+// เติมแถวให้ครบ 10
 
-        font:"2.3.2 THSarabunNew",
+while(body.length < 10){
 
-        fontStyle:"normal",
+body.push([
 
-        fontSize:14,
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
 
-        fillColor:[255,255,255],
+]);
 
-        textColor:0,
+}
 
-        halign:"center",
 
-        valign:"middle",
 
-        lineColor:[0,0,0],
+// =======================
+// TABLE
+// =======================
 
-        lineWidth:0.25,
 
-      },
+autoTable(doc,{
 
 
+startY:60,
 
-      bodyStyles:{
 
-        font:"2.3.2 THSarabunNew",
+head:[tableHeader],
 
-        fontStyle:"normal",
 
-        fontSize:16,
+body,
 
-      },
 
+theme:"grid",
 
 
-      columnStyles:{
 
+styles:{
 
-        0:{
+font:"2.3.2 THSarabunNew",
 
-          cellWidth:28,
+fontStyle:"normal",
 
-        },
+fontSize:15,
 
+cellPadding:3,
 
-        1:{
+halign:"center",
 
-          cellWidth:38,
+valign:"middle",
 
-        },
+lineColor:[0,0,0],
 
+lineWidth:0.25,
 
-        2:{
+},
 
-          cellWidth:72,
 
-          halign:"left",
 
-        },
+headStyles:{
 
+font:"2.3.2 THSarabunNew",
 
-        3:{
+fontStyle:"normal",
 
-          cellWidth:28,
+fontSize:15,
 
-          halign:"right",
+fillColor:[255,255,255],
 
-        },
+textColor:0,
 
+halign:"center",
 
-        4:{
+valign:"middle",
 
-          cellWidth:18,
+lineColor:[0,0,0],
 
-        },
+lineWidth:0.25,
 
+},
 
-        5:{
 
-          cellWidth:18,
 
-        },
+bodyStyles:{
 
+font:"2.3.2 THSarabunNew",
 
-        6:{
+fontSize:16,
 
-          cellWidth:18,
+},
 
-        },
 
 
-        7:{
+columnStyles:{
 
-          cellWidth:28,
 
-        },
+0:{
+cellWidth:28
+},
 
 
-        8:{
+1:{
+cellWidth:38
+},
 
-          cellWidth:28,
 
-        },
+2:{
+cellWidth:72,
+halign:"left"
+},
 
 
-      },
+3:{
+cellWidth:28,
+halign:"right"
+},
 
 
-    });
-        // ===============================
-    // บันทึกไฟล์
-    // ===============================
+4:{
+cellWidth:18
+},
 
-    doc.save(
-      `${material.code}-stock-card.pdf`
-    );
 
-  }
+5:{
+cellWidth:18
+},
 
 
+6:{
+cellWidth:18
+},
 
-  return (
 
-    <button
+7:{
+cellWidth:28
+},
 
-      onClick={exportPdf}
 
-      className="
-        rounded-lg
-        bg-red-600
-        px-4
-        py-2
-        text-white
-        hover:bg-red-700
-      "
+8:{
+cellWidth:28
+},
 
-    >
 
-      Export PDF
+},
 
-    </button>
 
-  );
+
+});
+
+
+
+});
+
+
+
+// =======================
+// SAVE
+// =======================
+
+
+doc.save(
+
+`${material.code}-stock-card.pdf`
+
+);
+
+
+
+}
+
+
+
+return (
+
+<button
+
+onClick={exportPdf}
+
+className="
+rounded-xl
+bg-red-600
+px-5
+py-2
+font-bold
+text-white
+shadow
+transition
+hover:bg-red-700
+"
+
+>
+
+Export PDF
+
+</button>
+
+);
+
 
 }
