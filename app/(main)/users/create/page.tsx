@@ -48,10 +48,14 @@ export default async function CreateUserPage() {
     <div className="space-y-6">
 
 
+
       {/* Header */}
 
       <div
         className="
+          flex
+          items-center
+          justify-between
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -59,32 +63,67 @@ export default async function CreateUserPage() {
           to-slate-700
           px-8
           py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
       >
 
-        <h1
+
+        <div>
+
+
+          <h1
+            className="
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
+            "
+          >
+            👤 เพิ่มผู้ใช้งานระบบ
+          </h1>
+
+
+
+          <p
+            className="
+              mt-2
+              text-xl
+              font-semibold
+              !text-slate-200
+            "
+          >
+            สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
+          </p>
+
+
+        </div>
+
+
+
+
+
+        <Link
+          href="/users"
+
           className="
-            text-5xl
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-lg
             font-extrabold
-            !text-white
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
           "
         >
-          👤 เพิ่มผู้ใช้งานระบบ
-        </h1>
-
-
-        <p
-          className="
-            mt-2
-            text-xl
-            font-semibold
-            !text-slate-200
-          "
-        >
-          สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
-        </p>
+          ← กลับ
+        </Link>
 
 
       </div>
@@ -93,14 +132,17 @@ export default async function CreateUserPage() {
 
 
 
+
+
       {/* Form Card */}
+
 
       <div
         className="
           max-w-2xl
           rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
           p-8
           shadow-xl
@@ -108,133 +150,90 @@ export default async function CreateUserPage() {
       >
 
 
+
         <form
+
           action={createUser}
-          className="space-y-5"
+
+          className="space-y-6"
+
         >
 
 
 
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              Username
-            </label>
 
 
-            <input
-              name="username"
-              required
+          {[
+            {
+              label:"Username",
+              name:"username",
+              type:"text",
+            },
+            {
+              label:"ชื่อ-นามสกุล",
+              name:"fullname",
+              type:"text",
+            },
+            {
+              label:"Password",
+              name:"password",
+              type:"password",
+            },
 
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-50
-                px-4
-                py-3
-                text-lg
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-slate-700
-              "
-            />
-
-          </div>
+          ].map((field)=>(
 
 
+            <div key={field.name}>
+
+
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-slate-700
+                "
+              >
+                {field.label}
+              </label>
 
 
 
-          <div>
+              <input
 
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              ชื่อ-นามสกุล
-            </label>
+                type={field.type}
+
+                name={field.name}
+
+                required
 
 
-            <input
-              name="fullname"
-              required
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  text-lg
+                  font-medium
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-blue-500
+                  focus:ring-4
+                  focus:ring-blue-100
+                "
 
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-50
-                px-4
-                py-3
-                text-lg
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-slate-700
-              "
-            />
-
-          </div>
+              />
 
 
+            </div>
 
 
-
-
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              Password
-            </label>
-
-
-            <input
-              type="password"
-              name="password"
-              required
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-50
-                px-4
-                py-3
-                text-lg
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-slate-700
-              "
-            />
-
-          </div>
+          ))}
 
 
 
@@ -244,13 +243,14 @@ export default async function CreateUserPage() {
 
           <div>
 
+
             <label
               className="
                 mb-2
                 block
                 text-lg
                 font-extrabold
-                text-slate-800
+                text-slate-700
               "
             >
               สิทธิ์การใช้งาน
@@ -259,23 +259,30 @@ export default async function CreateUserPage() {
 
 
             <select
+
               name="role"
+
 
               className="
                 w-full
                 rounded-xl
                 border
                 border-slate-300
-                bg-slate-50
+                bg-white
                 px-4
                 py-3
                 text-lg
-                font-semibold
+                font-medium
                 text-slate-900
                 outline-none
-                focus:border-slate-700
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
+
             >
+
 
               <option value="STAFF">
                 STAFF
@@ -303,61 +310,28 @@ export default async function CreateUserPage() {
 
 
 
-          <div
+          <button
+
+            type="submit"
+
             className="
-              flex
-              gap-3
-              pt-4
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-8
+              py-3
+              text-lg
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
             "
+
           >
-
-
-            <Link
-              href="/users"
-
-              className="
-                rounded-xl
-                bg-slate-700
-                px-6
-                py-3
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:bg-slate-800
-              "
-            >
-              ← กลับ
-            </Link>
-
-
-
-
-
-            <button
-
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-8
-                py-3
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-105
-              "
-
-            >
-              บันทึก
-            </button>
-
-
-          </div>
+            บันทึก
+          </button>
 
 
 
