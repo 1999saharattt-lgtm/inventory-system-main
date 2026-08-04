@@ -3,37 +3,158 @@ import { prisma } from "@/lib/prisma";
 import ReceiveForm from "./ReceiveForm";
 
 
+
+function getThaiYear() {
+
+  return String(
+    new Date().getFullYear() + 543
+  ).slice(-2);
+
+}
+
+
+
+
+
+async function generateReceiveNo() {
+
+  const year = getThaiYear();
+
+
+  const receives =
+    await prisma.receive.findMany({
+
+      where: {
+        documentNo: {
+          startsWith: "ร.",
+        },
+      },
+
+      select: {
+        documentNo: true,
+      },
+
+    });
+
+
+
+  let running = 1;
+
+
+
+  for (const receive of receives) {
+
+
+    const match =
+      receive.documentNo.match(
+        /ร\.(\d+)\/(\d+)/
+      );
+
+
+
+    if(match) {
+
+
+      const lastNumber =
+        Number(match[1]);
+
+
+      const lastYear =
+        match[2];
+
+
+
+      if(lastYear === year) {
+
+
+        if(lastNumber >= running){
+
+          running = lastNumber + 1;
+
+        }
+
+
+      }
+
+
+    }
+
+
+  }
+
+
+
+  return (
+    `ร.${String(running).padStart(2,"0")}/${year}`
+  );
+
+
+}
+
+
+
+
+
+
 export default async function CreateReceivePage() {
 
 
-  const materials = await prisma.material.findMany({
 
-    orderBy: [
-      {
-        category: "asc",
+  const [
+    materials,
+    vendors,
+    documentNo,
+  ] = await Promise.all([
+
+
+
+    prisma.material.findMany({
+
+      orderBy:[
+
+        {
+          category:"asc",
+        },
+
+        {
+          code:"asc",
+        },
+
+      ],
+
+    }),
+
+
+
+
+    prisma.vendor.findMany({
+
+      orderBy:{
+        name:"asc",
       },
-      {
-        code: "asc",
-      },
-    ],
 
-  });
+    }),
 
 
 
-  const vendors = await prisma.vendor.findMany({
 
-    orderBy: {
-      name: "asc",
-    },
+    generateReceiveNo(),
 
-  });
+
+
+  ]);
+
+
+
 
 
 
   return (
 
     <div className="space-y-6">
+
+
+
 
 
       {/* Header */}
@@ -54,6 +175,7 @@ export default async function CreateReceivePage() {
       >
 
 
+
         <div>
 
 
@@ -71,6 +193,7 @@ export default async function CreateReceivePage() {
 
 
 
+
           <p
             className="
               mt-3
@@ -83,30 +206,32 @@ export default async function CreateReceivePage() {
           </p>
 
 
+
         </div>
 
 
 
 
+
         <Link
-  href="/receive"
-  className="
-    rounded-xl
-    bg-gradient-to-r
-    from-emerald-600
-    to-green-500
-    px-6
-    py-3
-    font-extrabold
-    text-white
-    shadow-lg
-    transition
-    hover:scale-105
-    hover:shadow-xl
-  "
->
-  ← กลับ
-</Link>
+          href="/receive"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:shadow-xl
+          "
+        >
+          ← กลับ
+        </Link>
 
 
 
@@ -135,13 +260,22 @@ export default async function CreateReceivePage() {
       >
 
 
+
         <ReceiveForm
+
           vendors={vendors}
+
           materials={materials}
+
+          documentNo={documentNo}
+
         />
 
 
+
       </div>
+
+
 
 
 

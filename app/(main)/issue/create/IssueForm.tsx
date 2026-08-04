@@ -26,13 +26,12 @@ type Officer = {
 };
 
 
-
 type Props = {
   materials: Material[];
   departments: Department[];
   officers: Officer[];
+  documentNo: string;
 };
-
 
 
 type ItemRow = {
@@ -45,7 +44,7 @@ type ItemRow = {
 
 
 
-const categoryLabel: Record<string, string> = {
+const categoryLabel: Record<string,string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
@@ -56,10 +55,13 @@ const categoryLabel: Record<string, string> = {
 
 
 
+
+
 export default function IssueForm({
   materials,
   departments,
   officers,
+  documentNo,
 }: Props) {
 
 
@@ -67,27 +69,29 @@ export default function IssueForm({
   const categories = Array.from(
     new Set(
       materials.map(
-        (m) => m.category
+        (m)=>m.category
       )
     )
   );
 
 
 
+
   const emptyRow = (): ItemRow => ({
-    category: "",
-    materialId: "",
-    qty: "",
-    manufacture: "",
-    expiry: "",
+    category:"",
+    materialId:"",
+    qty:"",
+    manufacture:"",
+    expiry:"",
   });
 
 
 
-  const [rows, setRows] = useState<ItemRow[]>(
+
+  const [rows,setRows] = useState<ItemRow[]>(
     Array.from(
       {
-        length: 15,
+        length:15,
       },
       emptyRow
     )
@@ -96,26 +100,25 @@ export default function IssueForm({
 
 
 
+
   function updateRow(
-    index: number,
-    key: keyof ItemRow,
-    value: string
-  ) {
+    index:number,
+    key:keyof ItemRow,
+    value:string
+  ){
 
     const copy = [...rows];
 
 
     copy[index] = {
       ...copy[index],
-      [key]: value,
+      [key]:value,
     };
 
 
 
-    if (key === "category") {
-
-      copy[index].materialId = "";
-
+    if(key==="category"){
+      copy[index].materialId="";
     }
 
 
@@ -128,7 +131,10 @@ export default function IssueForm({
 
 
 
+
+
   return (
+
 
     <form
       action={createIssue}
@@ -139,223 +145,274 @@ export default function IssueForm({
 
 
 
-      {/* ข้อมูลเอกสาร */}
 
+
+      {/* ข้อมูลเอกสาร */}
 
       <div
         className="
-          grid
-          grid-cols-1
-          gap-5
-          md:grid-cols-2
+          rounded-2xl
+          border
+          border-slate-700
+          bg-slate-900/60
+          p-5
+          shadow-xl
         "
       >
 
 
-        <div>
-
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            เลขที่เอกสาร
-          </label>
-
-
-          <input
-
-            name="documentNo"
-
-            required
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-white
-              p-3
-              text-black
-              focus:outline-none
-            "
-
-          />
-
-        </div>
+        <div
+          className="
+            grid
+            gap-5
+            md:grid-cols-2
+          "
+        >
 
 
 
 
+          <div>
 
-        <div>
-
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            วันที่เบิก
-          </label>
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              เลขที่เอกสาร
+            </label>
 
 
-          <input
+            <input
+  type="text"
+  name="documentNo"
+  value={documentNo}
+  readOnly
+  className="
+    w-full
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    p-3
+    text-lg
+    font-extrabold
+    text-cyan-700
+    outline-none
+  "
+/>
 
-            type="date"
 
-            name="issueDate"
-
-            required
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-white
-              p-3
-              text-black
-              focus:outline-none
-            "
-
-          />
-
-        </div>
+          </div>
 
 
 
 
 
-        <div>
 
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            หน่วยงาน / กลุ่มงาน
-          </label>
+          <div>
 
 
-          <select
-
-            name="departmentId"
-
-            required
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-white
-              p-3
-              text-black
-              focus:outline-none
-            "
-
-          >
-
-            <option value="">
-              เลือกหน่วยงาน / กลุ่มงาน
-            </option>
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              วันที่เบิก
+            </label>
 
 
-            {
-              departments.map((d)=>(
-                <option
-                  key={d.id}
-                  value={d.id}
-                >
-                  {d.name}
-                </option>
-              ))
-            }
+
+            <input
+
+              type="date"
+
+              name="issueDate"
+
+              required
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                text-slate-900
+                outline-none
+              "
+
+            />
 
 
-          </select>
 
-
-        </div>
+          </div>
 
 
 
 
 
-        <div>
 
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            ผู้ขอเบิก
-          </label>
+          <div>
 
 
-          <select
-
-            name="officerId"
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-white
-              p-3
-              text-black
-              focus:outline-none
-            "
-
-          >
-
-            <option value="0">
-              เลือกผู้ขอเบิก
-            </option>
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              หน่วยงาน / กลุ่มงาน
+            </label>
 
 
-            {
-              officers.map((o)=>(
-                <option
-                  key={o.id}
-                  value={o.id}
-                >
-                  {o.firstName} {o.lastName}
-                </option>
-              ))
-            }
+
+            <select
+
+              name="departmentId"
+
+              required
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                text-slate-900
+                outline-none
+              "
+
+            >
 
 
-          </select>
+              <option value="">
+                -- เลือกหน่วยงาน --
+              </option>
+
+
+
+              {
+                departments.map((d)=>(
+
+                  <option
+                    key={d.id}
+                    value={d.id}
+                  >
+                    {d.name}
+                  </option>
+
+                ))
+              }
+
+
+            </select>
+
+
+          </div>
+
+
+
+
+
+
+
+          <div>
+
+
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              ผู้ขอเบิก
+            </label>
+
+
+
+
+            <select
+
+              name="officerId"
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                text-slate-900
+                outline-none
+              "
+
+            >
+
+
+              <option value="0">
+                -- เลือกผู้ขอเบิก --
+              </option>
+
+
+
+
+              {
+                officers.map((o)=>(
+
+                  <option
+                    key={o.id}
+                    value={o.id}
+                  >
+                    {o.firstName} {o.lastName}
+                  </option>
+
+                ))
+              }
+
+
+
+            </select>
+
+
+
+          </div>
+
 
 
         </div>
 
 
       </div>
-            {/* ตารางรายการเบิก */}
+
+
+
+
+
+
+
+
+      {/* ตารางรายการเบิก */}
 
 
       <div
         className="
-          overflow-x-auto
+          overflow-hidden
           rounded-2xl
           border
           border-slate-700
@@ -365,495 +422,562 @@ export default function IssueForm({
       >
 
 
-        <table
-          className="
-            min-w-full
-            text-white
-          "
-        >
+        <div className="overflow-x-auto">
 
 
-          <thead>
+          <table
+            className="
+              min-w-full
+            "
+          >
 
 
-            <tr
-              className="
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-              "
-            >
+
+            <thead>
+
+
+              <tr>
+
+
+                {
+                  [
+                    "ลำดับ",
+                    "หมวดหมู่",
+                    "รายการพัสดุ",
+                    "หน่วย",
+                    "ราคา",
+                    "จำนวน",
+                    "วันผลิต",
+                    "วันหมดอายุ",
+                  ].map((title)=>(
+
+
+                    <th
+                      key={title}
+                      className="
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+                        px-4
+                        py-4
+                        text-center
+                        text-lg
+                        font-extrabold
+                        text-white
+                        whitespace-nowrap
+                      "
+                    >
+                      {title}
+                    </th>
+
+
+                  ))
+                }
+
+
+              </tr>
+
+
+            </thead>
+
+
+
+
+
+            <tbody>
+
 
               {
-                [
-                  "ลำดับ",
-                  "หมวดหมู่",
-                  "รายการพัสดุ",
-                  "หน่วย",
-                  "ราคา",
-                  "จำนวน",
-                  "วันผลิต",
-                  "วันหมดอายุ",
-                ].map((title)=>(
+                rows.map((row,index)=>{
 
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    {title}
-                  </th>
 
-                ))
+                  const list =
+                    materials.filter(
+                      (m)=>
+                        m.category===row.category
+                    );
+
+
+
+                  const selected =
+                    materials.find(
+                      (m)=>
+                        String(m.id)===row.materialId
+                    );
+
+
+
+                  return (
+                                        <tr
+                      key={index}
+                      className="
+                        border-b
+                        border-slate-700
+                        transition
+                        hover:bg-slate-800
+                      "
+                    >
+
+
+
+                      {/* ลำดับ */}
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                          text-center
+                          font-bold
+                          text-white
+                        "
+                      >
+                        {index + 1}
+                      </td>
+
+
+
+
+
+                      {/* หมวดหมู่ */}
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                        "
+                      >
+
+                        <select
+
+                          value={row.category}
+
+                          onChange={(e)=>
+                            updateRow(
+                              index,
+                              "category",
+                              e.target.value
+                            )
+                          }
+
+                          className="
+                            min-w-[170px]
+                            rounded-xl
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            p-2
+                            text-white
+                            outline-none
+                          "
+
+                        >
+
+                          <option value="">
+                            เลือกหมวด
+                          </option>
+
+
+
+                          {
+                            categories.map((c)=>(
+
+                              <option
+                                key={c}
+                                value={c}
+                              >
+                                {categoryLabel[c] ?? c}
+                              </option>
+
+                            ))
+                          }
+
+
+
+                        </select>
+
+
+                      </td>
+
+
+
+
+
+
+
+                      {/* รายการพัสดุ */}
+
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                        "
+                      >
+
+
+                        <select
+
+                          name={`items[${index}].materialId`}
+
+                          value={row.materialId}
+
+                          onChange={(e)=>
+                            updateRow(
+                              index,
+                              "materialId",
+                              e.target.value
+                            )
+                          }
+
+
+                          className="
+                            min-w-[260px]
+                            rounded-xl
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            p-2
+                            text-white
+                            outline-none
+                          "
+
+                        >
+
+
+                          <option value="">
+                            เลือกรายการพัสดุ
+                          </option>
+
+
+
+
+                          {
+                            list.map((m)=>(
+
+                              <option
+                                key={m.id}
+                                value={m.id}
+                              >
+
+                                {m.name}
+
+                              </option>
+
+                            ))
+                          }
+
+
+
+                        </select>
+
+
+                      </td>
+
+
+
+
+
+
+
+
+                      {/* หน่วย */}
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                          text-center
+                        "
+                      >
+
+                        <div
+                          className="
+                            rounded-xl
+                            bg-slate-700
+                            px-4
+                            py-2
+                            font-bold
+                            text-white
+                          "
+                        >
+
+                          {selected?.unit ?? "-"}
+
+                        </div>
+
+
+                      </td>
+
+
+
+
+
+
+
+
+
+                      {/* ราคา */}
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                          text-center
+                        "
+                      >
+
+                        <div
+                          className="
+                            rounded-xl
+                            bg-slate-700
+                            px-4
+                            py-2
+                            font-bold
+                            text-emerald-300
+                          "
+                        >
+
+                          {selected?.latestPrice ?? 0}
+
+                        </div>
+
+
+                      </td>
+
+
+
+
+
+
+
+
+
+                      {/* จำนวน */}
+
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                        "
+                      >
+
+                        <input
+
+
+                          name={`items[${index}].qty`}
+
+
+                          type="number"
+
+
+                          min="1"
+
+
+
+                          value={row.qty}
+
+
+
+                          onChange={(e)=>
+                            updateRow(
+                              index,
+                              "qty",
+                              e.target.value
+                            )
+                          }
+
+
+
+                          className="
+                            w-24
+                            rounded-xl
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            p-2
+                            text-center
+                            text-white
+                            outline-none
+                          "
+
+                        />
+
+
+                      </td>
+
+
+
+
+
+
+
+
+
+
+                      {/* วันผลิต */}
+
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                        "
+                      >
+
+                        <input
+
+
+                          type="date"
+
+
+
+                          name={`items[${index}].manufacture`}
+
+
+
+                          value={row.manufacture}
+
+
+
+                          onChange={(e)=>
+                            updateRow(
+                              index,
+                              "manufacture",
+                              e.target.value
+                            )
+                          }
+
+
+
+                          className="
+                            w-36
+                            rounded-xl
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            p-2
+                            text-white
+                            outline-none
+                          "
+
+                        />
+
+
+                      </td>
+
+
+
+
+
+
+
+
+
+                      {/* วันหมดอายุ */}
+
+
+                      <td
+                        className="
+                          px-3
+                          py-3
+                        "
+                      >
+
+                        <input
+
+
+                          type="date"
+
+
+
+                          name={`items[${index}].expiry`}
+
+
+
+                          value={row.expiry}
+
+
+
+                          onChange={(e)=>
+                            updateRow(
+                              index,
+                              "expiry",
+                              e.target.value
+                            )
+                          }
+
+
+
+                          className="
+                            w-36
+                            rounded-xl
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            p-2
+                            text-white
+                            outline-none
+                          "
+
+                        />
+
+
+
+                      </td>
+
+
+
+                    </tr>
+
+
+                  );
+
+
+                })
               }
 
 
-            </tr>
 
+            </tbody>
 
-          </thead>
 
 
+          </table>
 
 
-          <tbody>
 
-
-            {
-              rows.map((row,index)=>{
-
-
-                const list =
-                  materials.filter(
-                    (m)=>
-                      m.category === row.category
-                  );
-
-
-
-                const selected =
-                  materials.find(
-                    (m)=>
-                      String(m.id) === row.materialId
-                  );
-
-
-
-                return (
-
-
-                  <tr
-                    key={index}
-                    className="
-                      border-b
-                      border-slate-700
-                      hover:bg-slate-800
-                    "
-                  >
-
-
-
-                    {/* ลำดับ */}
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                        text-white
-                      "
-                    >
-
-                      {index + 1}
-
-                    </td>
-
-
-
-
-
-                    {/* หมวดหมู่ */}
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                      "
-                    >
-
-                      <select
-
-                        value={row.category}
-
-                        onChange={(e)=>
-                          updateRow(
-                            index,
-                            "category",
-                            e.target.value
-                          )
-                        }
-
-
-                        className="
-                          min-w-[160px]
-                          rounded-xl
-                          bg-white
-                          p-2
-                          text-black
-                        "
-
-                      >
-
-                        <option value="">
-                          เลือกหมวด
-                        </option>
-
-
-                        {
-                          categories.map((c)=>(
-
-                            <option
-                              key={c}
-                              value={c}
-                            >
-                              {categoryLabel[c] ?? c}
-                            </option>
-
-                          ))
-                        }
-
-
-                      </select>
-
-
-                    </td>
-
-
-
-
-
-
-                    {/* รายการพัสดุ */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                      "
-                    >
-
-                      <select
-
-                        name={`items[${index}].materialId`}
-
-
-                        value={row.materialId}
-
-
-                        onChange={(e)=>
-                          updateRow(
-                            index,
-                            "materialId",
-                            e.target.value
-                          )
-                        }
-
-
-
-                        className="
-                          min-w-[240px]
-                          rounded-xl
-                          bg-white
-                          p-2
-                          text-black
-                        "
-
-                      >
-
-                        <option value="">
-                          เลือกรายการ
-                        </option>
-
-
-
-                        {
-                          list.map((m)=>(
-
-                            <option
-                              key={m.id}
-                              value={m.id}
-                            >
-
-                              {m.name}
-
-                            </option>
-
-                          ))
-                        }
-
-
-
-                      </select>
-
-
-                    </td>
-
-
-
-
-
-
-
-                    {/* หน่วย */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                      "
-                    >
-
-                      {selected?.unit ?? "-"}
-
-
-                    </td>
-
-
-
-
-
-
-
-                    {/* ราคา */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                        text-center
-                      "
-                    >
-
-                      {selected?.latestPrice ?? 0}
-
-
-                    </td>
-
-
-
-
-
-
-
-                    {/* จำนวน */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                      "
-                    >
-
-                      <input
-
-
-                        name={`items[${index}].qty`}
-
-
-                        type="number"
-
-
-                        min="1"
-
-
-
-                        value={row.qty}
-
-
-
-                        onChange={(e)=>
-                          updateRow(
-                            index,
-                            "qty",
-                            e.target.value
-                          )
-                        }
-
-
-
-                        className="
-                          w-24
-                          rounded-xl
-                          bg-white
-                          p-2
-                          text-center
-                          text-black
-                        "
-
-                      />
-
-
-                    </td>
-
-
-
-
-
-
-
-                    {/* วันผลิต */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                      "
-                    >
-
-                      <input
-
-
-                        type="date"
-
-
-
-                        name={`items[${index}].manufacture`}
-
-
-
-                        value={row.manufacture}
-
-
-
-                        onChange={(e)=>
-                          updateRow(
-                            index,
-                            "manufacture",
-                            e.target.value
-                          )
-                        }
-
-
-
-                        className="
-                          w-36
-                          rounded-xl
-                          bg-white
-                          p-2
-                          text-black
-                        "
-
-                      />
-
-
-                    </td>
-
-
-
-
-
-
-
-
-                    {/* วันหมดอายุ */}
-
-
-                    <td
-                      className="
-                        px-3
-                        py-3
-                      "
-                    >
-
-                      <input
-
-
-                        type="date"
-
-
-
-                        name={`items[${index}].expiry`}
-
-
-
-                        value={row.expiry}
-
-
-
-                        onChange={(e)=>
-                          updateRow(
-                            index,
-                            "expiry",
-                            e.target.value
-                          )
-                        }
-
-
-
-                        className="
-                          w-36
-                          rounded-xl
-                          bg-white
-                          p-2
-                          text-black
-                        "
-
-                      />
-
-
-
-                    </td>
-
-
-
-
-                  </tr>
-
-
-                );
-
-
-              })
-            }
-
-
-          </tbody>
-
-
-        </table>
+        </div>
 
 
       </div>
-            {/* หมายเหตุ */}
+
+
+
+
+
+
+
+
+
+      {/* หมายเหตุ */}
+
 
       <div>
+
 
         <label
           className="
             mb-2
             block
-            font-bold
-            text-white
             text-lg
+            font-extrabold
+            text-white
           "
         >
           หมายเหตุ
         </label>
+
 
 
         <textarea
@@ -865,16 +989,16 @@ export default function IssueForm({
           className="
             w-full
             rounded-xl
+            border
+            border-slate-300
             bg-white
-            px-4
-            py-3
+            p-3
             text-slate-900
-            focus:outline-none
-            focus:ring-2
-            focus:ring-cyan-400
+            outline-none
           "
 
         />
+
 
 
       </div>
@@ -883,15 +1007,20 @@ export default function IssueForm({
 
 
 
+
+
+
+
       {/* ปุ่มบันทึก */}
+
 
       <div
         className="
           flex
           justify-end
-          pt-4
         "
       >
+
 
         <button
 
@@ -915,7 +1044,9 @@ export default function IssueForm({
 
           💾 บันทึกการเบิก
 
+
         </button>
+
 
 
       </div>
@@ -924,6 +1055,8 @@ export default function IssueForm({
 
     </form>
 
+
   );
+
 
 }

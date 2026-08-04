@@ -3,53 +3,196 @@ import { prisma } from "@/lib/prisma";
 import IssueForm from "./IssueForm";
 
 
+
+function getThaiYear() {
+
+  return (
+    new Date().getFullYear() + 543
+  )
+    .toString()
+    .slice(-2);
+
+}
+
+
+
+
+async function generateIssueNo() {
+
+
+  const year = getThaiYear();
+
+
+
+  const lastIssue =
+    await prisma.issue.findFirst({
+
+      where: {
+
+        documentNo: {
+
+          startsWith: "จ.",
+
+        },
+
+      },
+
+
+      orderBy: {
+
+        id: "desc",
+
+      },
+
+    });
+
+
+
+
+  let running = 1;
+
+
+
+
+
+  if(lastIssue?.documentNo){
+
+
+    const match =
+      lastIssue.documentNo.match(
+        /จ\.(\d+)\/(\d+)/
+      );
+
+
+
+    if(match){
+
+
+      const lastNumber =
+        Number(match[1]);
+
+
+      const lastYear =
+        match[2];
+
+
+
+      if(lastYear === year){
+
+
+        running =
+          lastNumber + 1;
+
+
+      }
+
+
+    }
+
+
+  }
+
+
+
+
+  return (
+    `จ.${running
+      .toString()
+      .padStart(2,"0")}/${year}`
+  );
+
+
+}
+
+
+
+
+
+
+
 export default async function CreateIssuePage() {
 
 
-  const materials = await prisma.material.findMany({
 
-    orderBy:[
-      {
-        category:"asc",
+  const materials =
+    await prisma.material.findMany({
+
+
+      orderBy:[
+
+        {
+          category:"asc",
+        },
+
+        {
+          code:"asc",
+        },
+
+      ],
+
+
+    });
+
+
+
+
+
+
+
+  const departments =
+    await prisma.department.findMany({
+
+
+      orderBy:{
+
+        name:"asc",
+
       },
-      {
-        code:"asc",
+
+
+    });
+
+
+
+
+
+
+
+
+  const officers =
+    await prisma.officer.findMany({
+
+
+      include:{
+
+        section:true,
+
       },
-    ],
-
-  });
 
 
+      orderBy:[
+
+        {
+          firstName:"asc",
+        },
+
+        {
+          lastName:"asc",
+        },
+
+      ],
 
 
-  const departments = await prisma.department.findMany({
-
-    orderBy:{
-      name:"asc",
-    },
-
-  });
+    });
 
 
 
 
 
-  const officers = await prisma.officer.findMany({
 
-    include:{
-      section:true,
-    },
+  const documentNo =
+    await generateIssueNo();
 
-    orderBy:[
-      {
-        firstName:"asc",
-      },
-      {
-        lastName:"asc",
-      },
-    ],
-
-  });
 
 
 
@@ -59,11 +202,17 @@ export default async function CreateIssuePage() {
 
   return (
 
+
     <div className="space-y-6">
 
 
 
+
+
+
+
       {/* Header */}
+
 
       <div
         className="
@@ -74,11 +223,13 @@ export default async function CreateIssuePage() {
           bg-gradient-to-r
           from-slate-950
           via-slate-800
-          to-slate-700
+          to-cyan-700
           p-6
           shadow-xl
         "
       >
+
+
 
 
 
@@ -87,8 +238,9 @@ export default async function CreateIssuePage() {
 
           <h1
             className="
-              text-4xl
+              text-5xl
               font-extrabold
+              tracking-wide
               !text-white
             "
           >
@@ -98,10 +250,11 @@ export default async function CreateIssuePage() {
 
 
 
+
           <p
             className="
-              mt-2
-              text-lg
+              mt-3
+              text-xl
               font-semibold
               !text-slate-200
             "
@@ -118,30 +271,37 @@ export default async function CreateIssuePage() {
 
 
 
+
+
         <Link
           href="/issue"
           className="
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
-            via-green-500
-            to-emerald-500
+            to-green-500
             px-6
             py-3
-            text-lg
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            hover:shadow-xl
           "
         >
+
           ← กลับ
+
         </Link>
 
 
 
+
+
       </div>
+
+
 
 
 
@@ -159,11 +319,14 @@ export default async function CreateIssuePage() {
           border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
           p-6
           shadow-xl
         "
       >
+
+
 
 
         <IssueForm
@@ -174,7 +337,12 @@ export default async function CreateIssuePage() {
 
           materials={materials}
 
+          documentNo={documentNo}
+
         />
+
+
+
 
 
       </div>
@@ -183,8 +351,12 @@ export default async function CreateIssuePage() {
 
 
 
+
+
     </div>
 
+
   );
+
 
 }
