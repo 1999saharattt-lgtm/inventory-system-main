@@ -7,13 +7,13 @@ import autoTable from "jspdf-autotable";
 
 
 type Props = {
-  material: any;
-  rows: any[];
+  material:any;
+  rows:any[];
 };
 
 
 
-const categoryName: Record<string,string> = {
+const categoryName:Record<string,string> = {
 
   OFFICE:"วัสดุสำนักงาน",
   COMPUTER:"วัสดุคอมพิวเตอร์",
@@ -44,10 +44,8 @@ function formatMoney(value:number){
 
   return Number(value ?? 0)
     .toLocaleString("en-US",{
-
       minimumFractionDigits:2,
       maximumFractionDigits:2,
-
     });
 
 }
@@ -55,10 +53,11 @@ function formatMoney(value:number){
 
 
 
+
 export default function ExportPdf({
 
-  material,
-  rows,
+material,
+rows,
 
 }:Props){
 
@@ -100,54 +99,18 @@ const rightX = 150;
 
 
 
-const tableHeader = [
-
-"วันที่",
-
-"เลขที่เอกสาร",
-
-"ผู้จำหน่าย / หน่วยงาน",
-
-"ราคาล่าสุด",
-
-"รับเข้า",
-
-"เบิกจ่าย",
-
-"คงเหลือ",
-
-"วันผลิต",
-
-"วันหมดอายุ",
-
-];
-
-
-
-
-// =======================
-// แบ่งหน้า 10 รายการ
-// =======================
-
-
 const pageSize = 10;
 
+const pages: any[][] = [];
 
-const pages:any[][] = [];
+for(let i = 0; i < rows.length; i += pageSize){
 
-
-for(
-let i=0;
-i<rows.length;
-i+=pageSize
-){
-
-pages.push(
-rows.slice(
-i,
-i+pageSize
-)
-);
+  pages.push(
+    rows.slice(
+      i,
+      i + pageSize
+    )
+  );
 
 }
 
@@ -155,9 +118,10 @@ i+pageSize
 
 if(pages.length===0){
 
-pages.push([]);
+  pages.push([]);
 
 }
+
 
 
 
@@ -167,15 +131,17 @@ pages.forEach((pageRows,pageIndex)=>{
 
 if(pageIndex>0){
 
-doc.addPage();
+  doc.addPage();
 
 }
 
 
 
-// =======================
-// HEADER
-// =======================
+
+
+// ==========================
+// HEADER เดิม
+// ==========================
 
 
 doc.setFontSize(26);
@@ -230,6 +196,7 @@ align:"center"
 }
 
 );
+
 
 
 
@@ -314,9 +281,10 @@ rightX,
 
 
 
-// =======================
+
+// ==========================
 // TABLE DATA
-// =======================
+// ==========================
 
 
 const body = pageRows.map((r)=>[
@@ -344,12 +312,10 @@ formatDate(r.expiry),
 
 
 
-// เติมแถวให้ครบ 10
 
 while(body.length < 10){
 
 body.push([
-
 "",
 "",
 "",
@@ -358,26 +324,40 @@ body.push([
 "",
 "",
 "",
-"",
-
+""
 ]);
 
 }
 
 
 
-// =======================
-// TABLE
-// =======================
 
 
 autoTable(doc,{
 
-
 startY:60,
 
+head:[[
 
-head:[tableHeader],
+"วันที่",
+
+"เลขที่เอกสาร",
+
+"ผู้จำหน่าย / หน่วยงาน",
+
+"ราคาล่าสุด",
+
+"รับเข้า",
+
+"เบิกจ่าย",
+
+"คงเหลือ",
+
+"วันผลิต",
+
+"วันหมดอายุ",
+
+]],
 
 
 body,
@@ -386,16 +366,15 @@ body,
 theme:"grid",
 
 
-
 styles:{
 
 font:"2.3.2 THSarabunNew",
 
 fontStyle:"normal",
 
-fontSize:15,
+fontSize:16,
 
-cellPadding:3,
+cellPadding:2.5,
 
 halign:"center",
 
@@ -404,6 +383,8 @@ valign:"middle",
 lineColor:[0,0,0],
 
 lineWidth:0.25,
+
+minCellHeight:8,
 
 },
 
@@ -415,7 +396,7 @@ font:"2.3.2 THSarabunNew",
 
 fontStyle:"normal",
 
-fontSize:15,
+fontSize:16,
 
 fillColor:[255,255,255],
 
@@ -428,16 +409,6 @@ valign:"middle",
 lineColor:[0,0,0],
 
 lineWidth:0.25,
-
-},
-
-
-
-bodyStyles:{
-
-font:"2.3.2 THSarabunNew",
-
-fontSize:16,
 
 },
 
@@ -505,9 +476,6 @@ cellWidth:28
 
 
 
-// =======================
-// SAVE
-// =======================
 
 
 doc.save(
@@ -522,7 +490,7 @@ doc.save(
 
 
 
-return (
+return(
 
 <button
 

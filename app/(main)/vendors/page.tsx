@@ -3,261 +3,582 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+
 type Vendor = {
-  id: number;
-  name: string;
-  address: string | null;
-  phone: string | null;
-  taxId: string | null;
+  id:number;
+  name:string;
+  address:string | null;
+  phone:string | null;
+  taxId:string | null;
 };
 
-export default function VendorsPage() {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadVendors();
-  }, []);
 
-  async function loadVendors() {
-    try {
-      setLoading(true);
+export default function VendorsPage(){
 
-      const res = await fetch("/api/vendors", {
-        cache: "no-store",
-      });
 
-      if (!res.ok) {
-        throw new Error("โหลดข้อมูลไม่สำเร็จ");
-      }
+const [vendors,setVendors] =
+useState<Vendor[]>([]);
 
-      const data = await res.json();
-      setVendors(data);
-    } catch (err) {
-      console.error(err);
-      alert("ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้");
-    } finally {
-      setLoading(false);
-    }
-  }
+const [loading,setLoading] =
+useState(true);
 
-  async function handleDelete(id: number) {
-    const ok = confirm("ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?");
 
-    if (!ok) return;
 
-    try {
-      const res = await fetch(`/api/vendors/${id}`, {
-        method: "DELETE",
-      });
+useEffect(()=>{
 
-      if (res.ok) {
-        alert("ลบสำเร็จ");
-        loadVendors();
-      } else {
-        const data = await res.json();
-        alert(data.message ?? "ลบไม่สำเร็จ");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("เกิดข้อผิดพลาด");
-    }
-  }
+loadVendors();
 
-  return (
-    <div className="space-y-8">
+},[]);
 
-      {/* Header */}
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          p-6
-          shadow-md
-        "
-      >
-        <div>
 
-          <h1 className="text-3xl font-extrabold text-slate-800">
-            ผู้จำหน่าย
-          </h1>
 
-          <p className="mt-2 text-lg text-slate-500">
-            ทั้งหมด {vendors.length} รายการ
-          </p>
+async function loadVendors(){
 
-        </div>
+try{
 
-        <Link
-          href="/vendors/new"
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-blue-600
-            to-blue-700
-            px-6
-            py-3
-            font-bold
-            text-white
-            shadow-md
-            transition
-            hover:scale-105
-            hover:shadow-xl
-          "
-        >
-          + เพิ่มผู้จำหน่าย
-        </Link>
+setLoading(true);
 
-      </div>
 
-      {/* Table */}
+const res =
+await fetch(
+"/api/vendors",
+{
+cache:"no-store",
+}
+);
 
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          shadow-md
-        "
-      >
 
-        <div className="overflow-x-auto">
+if(!res.ok){
 
-          <table className="min-w-full">
+throw new Error();
 
-            <thead>
+}
 
-              <tr>
 
-                <th>ชื่อผู้จำหน่าย</th>
+const data =
+await res.json();
 
-                <th>ที่อยู่</th>
 
-                <th>เบอร์ติดต่อ</th>
+setVendors(data);
 
-                <th>เลขประจำตัวผู้เสียภาษี</th>
 
-                <th>จัดการ</th>
+}catch(err){
 
-              </tr>
+console.error(err);
 
-            </thead>
+alert("ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้");
 
-            <tbody>
 
-              {loading ? (
+}finally{
 
-                <tr>
+setLoading(false);
 
-                  <td
-                    colSpan={5}
-                    className="py-12 text-center text-slate-500"
-                  >
-                    กำลังโหลด...
-                  </td>
+}
 
-                </tr>
+}
 
-              ) : vendors.length === 0 ? (
 
-                <tr>
 
-                  <td
-                    colSpan={5}
-                    className="py-12 text-center text-slate-500"
-                  >
-                    ยังไม่มีข้อมูลผู้จำหน่าย
-                  </td>
 
-                </tr>
+async function handleDelete(id:number){
 
-              ) : (
 
-                vendors.map((vendor) => (
+const ok =
+confirm(
+"ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
+);
 
-                  <tr
-                    key={vendor.id}
-                    className="transition"
-                  >
 
-                    <td className="font-semibold">
-                      {vendor.name}
-                    </td>
+if(!ok) return;
 
-                    <td>
-                      {vendor.address || "-"}
-                    </td>
 
-                    <td className="text-center">
-                      {vendor.phone || "-"}
-                    </td>
 
-                    <td className="text-center">
-                      {vendor.taxId || "-"}
-                    </td>
+try{
 
-                    <td>
 
-                      <div className="flex justify-center gap-2">
+const res =
+await fetch(
+`/api/vendors/${id}`,
+{
+method:"DELETE",
+}
+);
 
-                        <Link
-                          href={`/vendors/${vendor.id}/edit`}
-                          className="
-                            rounded-xl
-                            bg-amber-500
-                            px-4
-                            py-2
-                            font-bold
-                            text-white
-                            transition
-                            hover:bg-amber-600
-                          "
-                        >
-                          แก้ไข
-                        </Link>
 
-                        <button
-                          onClick={() => handleDelete(vendor.id)}
-                          className="
-                            rounded-xl
-                            bg-red-600
-                            px-4
-                            py-2
-                            font-bold
-                            text-white
-                            transition
-                            hover:bg-red-700
-                          "
-                        >
-                          ลบ
-                        </button>
 
-                      </div>
+if(res.ok){
 
-                    </td>
+alert("ลบสำเร็จ");
 
-                  </tr>
+loadVendors();
 
-                ))
+}
 
-              )}
+else{
 
-            </tbody>
+const data =
+await res.json();
 
-          </table>
+alert(
+data.message ??
+"ลบไม่สำเร็จ"
+);
 
-        </div>
+}
 
-      </div>
 
-    </div>
-  );
+
+}catch(err){
+
+console.error(err);
+
+alert("เกิดข้อผิดพลาด");
+
+}
+
+
+
+}
+
+
+
+
+
+return (
+
+<div className="space-y-6">
+
+
+
+{/* Header */}
+
+
+<div
+
+className="
+flex
+items-center
+justify-between
+rounded-2xl
+bg-gradient-to-r
+from-slate-950
+via-slate-800
+to-slate-700
+p-6
+text-white
+shadow-xl
+"
+
+>
+
+
+<div>
+
+
+<h1
+
+className="
+!text-white
+text-5xl
+font-extrabold
+leading-tight
+"
+
+>
+
+🏢 ผู้จำหน่าย
+
+</h1>
+
+
+
+<p
+
+className="
+mt-3
+text-xl
+font-semibold
+text-slate-200
+"
+
+>
+
+ทั้งหมด {vendors.length} รายการ
+
+</p>
+
+
+</div>
+
+
+
+
+<Link
+
+href="/vendors/new"
+
+className="
+rounded-xl
+bg-gradient-to-r
+from-emerald-600
+to-green-500
+px-5
+py-3
+font-extrabold
+text-white
+shadow-lg
+transition
+hover:scale-105
+"
+
+>
+
++ เพิ่มผู้จำหน่าย
+
+</Link>
+
+
+</div>
+
+
+
+
+
+{/* Table */}
+
+
+
+<div
+
+className="
+overflow-hidden
+rounded-2xl
+border
+border-slate-200
+bg-white
+shadow-xl
+"
+
+>
+
+
+<div className="overflow-x-auto">
+
+
+<table className="min-w-full">
+
+
+
+<thead>
+
+
+<tr>
+
+
+{
+[
+"ชื่อผู้จำหน่าย",
+"ที่อยู่",
+"เบอร์ติดต่อ",
+"เลขประจำตัวผู้เสียภาษี",
+"จัดการ",
+
+].map((title)=>(
+
+
+<th
+
+key={title}
+
+className="
+bg-gradient-to-r
+from-slate-800
+to-slate-700
+px-4
+py-4
+text-center
+text-lg
+font-extrabold
+text-white
+"
+
+>
+
+{title}
+
+</th>
+
+
+))
+
+}
+
+
+
+</tr>
+
+
+</thead>
+
+
+
+
+
+<tbody>
+
+
+
+{
+loading ? (
+
+
+<tr>
+
+<td
+
+colSpan={5}
+
+className="
+py-12
+text-center
+font-bold
+text-slate-500
+"
+
+>
+
+กำลังโหลด...
+
+</td>
+
+</tr>
+
+
+
+) : vendors.length===0 ? (
+
+
+<tr>
+
+<td
+
+colSpan={5}
+
+className="
+py-12
+text-center
+font-bold
+text-slate-500
+"
+
+>
+
+ยังไม่มีข้อมูลผู้จำหน่าย
+
+</td>
+
+</tr>
+
+
+
+) : (
+
+
+
+vendors.map((vendor)=>(
+
+
+<tr
+
+key={vendor.id}
+
+className="
+border-b
+border-slate-200
+text-slate-700
+transition
+hover:bg-blue-50
+"
+
+>
+
+
+<td
+
+className="
+px-4
+py-3
+font-extrabold
+text-slate-800
+"
+
+>
+
+{vendor.name}
+
+</td>
+
+
+
+<td
+
+className="
+px-4
+py-3
+"
+
+>
+
+{vendor.address ?? "-"}
+
+</td>
+
+
+
+<td
+
+className="
+px-4
+py-3
+text-center
+font-semibold
+"
+
+>
+
+{vendor.phone ?? "-"}
+
+</td>
+
+
+
+<td
+
+className="
+px-4
+py-3
+text-center
+font-semibold
+"
+
+>
+
+{vendor.taxId ?? "-"}
+
+</td>
+
+
+
+
+<td
+
+className="
+px-4
+py-3
+"
+
+>
+
+
+<div
+
+className="
+flex
+justify-center
+gap-2
+"
+
+>
+
+
+<Link
+
+href={`/vendors/${vendor.id}/edit`}
+
+className="
+rounded-xl
+bg-slate-800
+px-4
+py-2
+font-extrabold
+text-white
+shadow
+transition
+hover:bg-slate-700
+"
+
+>
+
+แก้ไข
+
+</Link>
+
+
+
+
+<button
+
+onClick={()=>handleDelete(vendor.id)}
+
+className="
+rounded-xl
+bg-red-600
+px-4
+py-2
+font-extrabold
+text-white
+shadow
+transition
+hover:bg-red-700
+"
+
+>
+
+ลบ
+
+</button>
+
+
+</div>
+
+
+</td>
+
+
+
+</tr>
+
+
+
+))
+
+
+)
+
+
+}
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+);
+
+
 }
