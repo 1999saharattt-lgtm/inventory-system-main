@@ -1,25 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-
 export default async function DepartmentsPage() {
-
-
   const departments = await prisma.department.findMany({
-
     orderBy: {
       id: "asc",
     },
-
   });
 
-
-
   return (
-
     <div className="space-y-6">
-
-
 
       {/* Header */}
 
@@ -33,7 +23,9 @@ export default async function DepartmentsPage() {
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-8
+          py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
@@ -55,15 +47,14 @@ export default async function DepartmentsPage() {
 
           <p
             className="
-              mt-3
+              mt-2
               text-xl
               font-semibold
-              text-slate-200
+              !text-slate-200
             "
           >
             เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
           </p>
-
 
         </div>
 
@@ -73,23 +64,21 @@ export default async function DepartmentsPage() {
 
 
 
-
-      {/* Cards */}
+      {/* Department Cards */}
 
       <div
         className="
           grid
-          gap-6
-          md:grid-cols-3
+          gap-5
+          md:grid-cols-2
+          xl:grid-cols-3
         "
       >
 
         {departments.map((department: any) => (
 
           <Link
-
             key={department.id}
-
             href={`/departments/${department.id}`}
 
             className="
@@ -97,18 +86,14 @@ export default async function DepartmentsPage() {
               overflow-hidden
               rounded-2xl
               border
-border-slate-700
-bg-gradient-to-br
-from-slate-900
-via-slate-800
-to-slate-700
-shadow-xl
-              transition
+              border-slate-300
+              bg-white
+              shadow-lg
+              transition-all
               duration-300
-              hover:-translate-y-2
-              hover:border-emerald-300
+              hover:-translate-y-1
+              hover:shadow-2xl
             "
-
           >
 
 
@@ -118,8 +103,8 @@ shadow-xl
               className="
                 h-2
                 bg-gradient-to-r
-                from-emerald-600
-                to-green-500
+                from-slate-700
+                to-slate-900
               "
             />
 
@@ -128,64 +113,72 @@ shadow-xl
             <div
               className="
                 flex
-                h-64
+                min-h-[230px]
                 flex-col
-                justify-between
-                p-8
+                items-center
+                gap-5
+                p-6
+                text-center
               "
             >
 
 
-
               {/* Icon */}
 
-              <div className="flex justify-center">
-
-                <div
-                  className="
-                    flex
-                    h-24
-                    w-24
-                    items-center
-                    justify-center
-                    rounded-3xl
-                    bg-white/10
-text-6xl
-text-white
-backdrop-blur
-                    transition
-                    duration-300
-                    group-hover:scale-110
-                  "
-                >
-                  🏢
-                </div>
-
-
+              <div
+                className="
+                  flex
+                  h-16
+                  w-16
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-slate-200
+                  bg-slate-100
+                  text-4xl
+                  shadow-md
+                  transition
+                  duration-300
+                  group-hover:scale-110
+                "
+              >
+                🏢
               </div>
-
 
 
 
 
               {/* Name */}
 
-              <div className="text-center">
-
+              <div>
 
                 <h2
                   className="
-                    text-2xl
+                    mt-3
+                    text-xl
                     font-extrabold
-                    text-white
+                    text-slate-900
                   "
                 >
                   {department.name}
                 </h2>
 
 
-              </div>
+                <p
+                  className="
+                    mt-2
+                    text-lg
+                    font-semibold
+                    text-slate-600
+                  "
+                >
+                  คลิกเพื่อดูรายชื่อเจ้าหน้าที่
+                </p>
 
+
+              </div>
 
 
 
@@ -193,34 +186,25 @@ backdrop-blur
 
               {/* Button */}
 
-              <div className="flex justify-center">
-
-
-                <span
-                  className="
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    px-6
-                    py-3
-                    text-lg
-                    font-extrabold
-                    text-white
-                    shadow-lg
-hover:shadow-xl
-                    transition
-                    group-hover:scale-105
-                  "
-                >
-
-                  ดูรายชื่อเจ้าหน้าที่
-
-                </span>
-
-
-              </div>
-
+              <span
+                className="
+                  mt-3
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-950
+                  px-8
+                  py-3
+                  text-lg
+                  font-extrabold
+                  text-white
+                  shadow-lg
+                  transition
+                  group-hover:scale-105
+                "
+              >
+                เปิด
+              </span>
 
 
             </div>
@@ -228,9 +212,7 @@ hover:shadow-xl
 
           </Link>
 
-
         ))}
-
 
 
 
@@ -241,31 +223,25 @@ hover:shadow-xl
               col-span-full
               rounded-2xl
               border
-              border-slate-200
+              border-slate-300
               bg-white
               p-12
               text-center
               text-xl
               font-semibold
               text-slate-500
-              shadow-xl
+              shadow-lg
             "
           >
-
             ยังไม่มีข้อมูลหน่วยงาน
-
           </div>
 
         )}
 
 
-
       </div>
 
 
-
     </div>
-
   );
-
 }
