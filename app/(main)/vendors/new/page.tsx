@@ -5,71 +5,77 @@ export default function NewVendorPage() {
   return (
     <div className="space-y-6">
 
+
       {/* Header */}
 
       <div
         className="
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-6
-          shadow-sm
+          text-white
+          shadow-xl
         "
       >
 
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-          "
-        >
+        <div>
 
-          <div>
-
-            <h1
-              className="
-                text-3xl
-                font-bold
-                tracking-tight
-                text-slate-800
-              "
-            >
-              เพิ่มผู้จำหน่าย
-            </h1>
-
-
-            <p className="mt-2 text-slate-600">
-              เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ
-            </p>
-
-          </div>
-
-
-
-          <Link
-            href="/vendors"
+          <h1
             className="
-              rounded-lg
-              bg-slate-200
-              px-5
-              py-3
-              font-semibold
-              text-slate-700
-              shadow-sm
-              transition
-              hover:bg-slate-300
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
             "
           >
-            ← กลับ
-          </Link>
+            เพิ่มผู้จำหน่าย
+          </h1>
+
+
+          <p
+            className="
+              mt-3
+              text-xl
+              font-semibold
+              text-slate-200
+            "
+          >
+            เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ
+          </p>
 
 
         </div>
 
 
+
+        <Link
+          href="/vendors"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+        >
+          ← กลับ
+        </Link>
+
+
       </div>
+
 
 
 
@@ -78,12 +84,12 @@ export default function NewVendorPage() {
 
       <div
         className="
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-300
-          bg-slate-100
+          border-slate-200
+          bg-white
           p-6
-          shadow-sm
+          shadow-xl
         "
       >
 
