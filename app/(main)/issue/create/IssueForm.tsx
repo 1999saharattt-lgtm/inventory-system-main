@@ -33,15 +33,19 @@ type Department = {
 
 
 type Officer = {
-
   id: number;
-
   firstName: string;
-
   lastName: string;
 
   departmentId: number | null;
 
+  department?: {
+    id: number;
+  } | null;
+
+  section?: {
+    departmentId: number | null;
+  } | null;
 };
 
 
@@ -167,14 +171,11 @@ export default function IssueForm({
 
 
   const filteredOfficers =
-
-    officers.filter(
-
-      (o)=>
-
-        String(o.departmentId) === departmentId
-
-    );
+  officers.filter(
+    (o)=>
+      String(o.departmentId) === departmentId ||
+      String(o.section?.departmentId) === departmentId
+  );
 
 
 

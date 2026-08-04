@@ -160,30 +160,31 @@ export default async function CreateIssuePage() {
 
 
   const officers =
-    await prisma.officer.findMany({
+  await prisma.officer.findMany({
+
+    include:{
+
+      section:true,
+
+      department:true,
+
+    },
 
 
-      include:{
+    orderBy:[
 
-        section:true,
-
+      {
+        firstName:"asc",
       },
 
+      {
+        lastName:"asc",
+      },
 
-      orderBy:[
-
-        {
-          firstName:"asc",
-        },
-
-        {
-          lastName:"asc",
-        },
-
-      ],
+    ],
 
 
-    });
+  });
 
 
 
