@@ -71,76 +71,64 @@ export default async function IssuePage(){
 
       {/* Header */}
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-5
-          shadow-xl
-        "
-      >
-
-        <div>
-
-          <h1
+<div
   className="
-    !text-white
-    text-5xl
-    font-extrabold
-    leading-tight
-  "
->
-📤 รายการเบิกจ่ายพัสดุ
-</h1>
-
-
-<p
-  className="
-    mt-2
-    text-lg
-    font-semibold
-    !text-slate-200
-  "
->
-  แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
-</p>
-
-
-        </div>
-
-
-
-        <Link
-
-  href="/issue/create"
-
-  className="
-    rounded-xl
+    flex
+    items-center
+    justify-between
+    rounded-2xl
     bg-gradient-to-r
-    from-emerald-600
-    to-green-500
-    px-5
-    py-2.5
-    text-base
-    font-bold
+    from-slate-950
+    via-slate-800
+    to-slate-700
+    p-6
     text-white
-    shadow-lg
-    transition
-    hover:scale-105
+    shadow-xl
   "
-
 >
-+ เพิ่มรายการเบิก
-</Link>
+  <div>
+    <h1
+      className="
+        !text-white
+        text-5xl
+        font-extrabold
+        leading-tight
+      "
+    >
+      📤 รายการเบิกจ่ายพัสดุ
+    </h1>
 
+    <p
+      className="
+        mt-2
+        text-lg
+        font-semibold
+        text-slate-200
+      "
+    >
+      แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
+    </p>
+  </div>
 
-      </div>
+  <Link
+    href="/issue/create"
+    className="
+      rounded-xl
+      bg-gradient-to-r
+      from-emerald-600
+      to-green-500
+      px-5
+      py-3
+      font-extrabold
+      text-white
+      shadow-lg
+      transition
+      hover:scale-105
+    "
+  >
+    + เพิ่มรายการเบิก
+  </Link>
+</div>
             {/* Table */}
 
       <div

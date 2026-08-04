@@ -56,46 +56,45 @@ export default function MaterialsPage() {
 
       {/* Header */}
 
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-8
-          text-white
-          shadow-xl
-        "
-      >
-
-        <h1
+<div
   className="
-    text-lg
-    font-extrabold
-    !text-white
-    leading-tight
+    flex
+    items-center
+    justify-between
+    rounded-2xl
+    bg-gradient-to-r
+    from-slate-950
+    via-slate-800
+    to-slate-700
+    px-8
+    py-6
+    min-h-[140px]
+    shadow-xl
   "
 >
-  📦 รายการพัสดุทั้งหมด
-</h1>
+  <div>
+    <h1
+      className="
+        text-5xl
+        font-extrabold
+        leading-tight
+        !text-white
+      "
+    >
+      📦 รายการพัสดุทั้งหมด
+    </h1>
 
-        <p
-          className="
-            mt-3
-            text-lg
-            font-semibold
-            text-slate-200
-          "
-        >
-          เลือกหมวดหมู่เพื่อดูรายการพัสดุ
-        </p>
-
-
-      </div>
-
-
+    <p
+      className="
+        mt-2
+        text-xl
+        font-semibold
+        text-slate-200
+      "
+    >
+      เลือกหมวดหมู่เพื่อดูรายการพัสดุ
+    </p>
+  </div>
 
       {/* Category Cards */}
 

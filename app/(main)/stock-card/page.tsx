@@ -1,208 +1,212 @@
 import Link from "next/link";
 
-const categories = [
+type Category = {
+  code: string;
+  name: string;
+  icon: string;
+  color: string;
+};
+
+const categories: Category[] = [
   {
     code: "OFFICE",
     name: "วัสดุสำนักงาน",
     icon: "📄",
-    color: "bg-blue-700",
+    color: "from-blue-500 to-blue-700",
   },
   {
     code: "COMPUTER",
     name: "วัสดุคอมพิวเตอร์",
     icon: "💻",
-    color: "bg-violet-700",
+    color: "from-violet-500 to-violet-700",
   },
   {
     code: "ELECTRIC",
     name: "วัสดุไฟฟ้าและวิทยุ",
     icon: "⚡",
-    color: "bg-amber-600",
+    color: "from-amber-400 to-amber-600",
   },
   {
     code: "HOUSEHOLD",
     name: "วัสดุงานบ้านและงานครัว",
     icon: "🏠",
-    color: "bg-emerald-700",
+    color: "from-emerald-500 to-emerald-700",
   },
   {
     code: "VEHICLE",
     name: "วัสดุยานพาหนะ",
     icon: "🚗",
-    color: "bg-red-700",
-   },
+    color: "from-red-500 to-red-700",
+  },
   {
     code: "PRINTING",
     name: "วัสดุสื่อสิ่งพิมพ์",
     icon: "📰",
-    color: "bg-emerald-700",
+    color: "from-cyan-500 to-cyan-700",
   },
 ];
 
-
 export default function StockCardHome() {
-
   return (
-
-    <div className="space-y-8">
-
-
+    <div className="space-y-6">
       {/* Header */}
-
-      <div className="
-        rounded-xl
-        border
-        border-slate-300
-        bg-slate-100
-        p-6
-        shadow-sm
-      ">
-
-        <h1 className="
-          text-3xl
-          font-bold
-          tracking-tight
-          text-slate-800
-        ">
-          รายการบัญชีพัสดุ
-        </h1>
-
-
-        <p className="mt-2 text-slate-600">
-          เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ
-        </p>
-
-
-      </div>
-
-
-
-      {/* Category Cards */}
-
-      <div className="
-        grid
-        gap-8
-        md:grid-cols-3
-      ">
-
-
-        {categories.map((item)=>(
-
-
-          <Link
-            key={item.code}
-            href={`/stock-card/${item.code}`}
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-8
+          py-6
+          min-h-[140px]
+          shadow-xl
+        "
+      >
+        <div>
+          <h1
             className="
-              overflow-hidden
-              rounded-xl
-              border
-              border-slate-300
-              bg-slate-100
-              shadow-sm
-              transition-all
-              duration-200
-              hover:-translate-y-1
-              hover:shadow-lg
-              hover:border-blue-300
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
             "
           >
+            📚 รายการบัญชีพัสดุ
+          </h1>
 
-
-            {/* Top Color */}
-
-            <div className="h-2 bg-emerald-500" />
-
-
-
-            <div className="
-              flex
-              h-56
-              flex-col
-              justify-between
-              p-8
-            ">
-
-
-
-              {/* Icon */}
-
-              <div className="flex justify-center">
-
-                <div className="
-                  flex
-                  h-20
-                  w-20
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  bg-white
-                  shadow-sm
-                  border
-                  border-slate-200
-                  text-5xl
-                ">
-                  {item.icon}
-                </div>
-
-              </div>
-
-
-
-
-              {/* Title */}
-
-<div className="text-center">
-
-  <h2 className="
-    text-xl
-    font-bold
-    text-slate-800
-  ">
-    {item.name}
-  </h2>
-
-</div>
-
-
-
-
-              {/* Button */}
-
-<div className="flex justify-center">
-
-  <span
-  className="
-    rounded-lg
-    bg-emerald-500
-    px-4
-    py-2
-    text-sm
-    font-medium
-    text-white
-    shadow-sm
-    transition
-    hover:bg-emerald-600
-  "
->
-    คลิกเพื่อดูรายการ
-  </span>
-
-</div>
-
-
-            </div>
-
-
-          </Link>
-
-
-        ))}
-
-
+          <p
+            className="
+              mt-2
+              text-xl
+              font-semibold
+              text-slate-200
+            "
+          >
+            เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ
+          </p>
+        </div>
       </div>
 
+      {/* Category Cards */}
+      <div
+        className="
+          grid
+          gap-5
+          md:grid-cols-2
+          xl:grid-cols-3
+        "
+      >
+        {categories.map((cat) => (
+          <Link
+            key={cat.code}
+            href={`/stock-card/${cat.code}`}
+            className="
+              group
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-300
+              bg-white
+              shadow-lg
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:shadow-2xl
+            "
+          >
+            <div
+              className="
+                h-2
+                bg-gradient-to-r
+                from-slate-700
+                to-slate-900
+              "
+            />
 
+            <div
+              className="
+                flex
+                min-h-[230px]
+                flex-col
+                items-center
+                gap-5
+                p-6
+                text-center
+              "
+            >
+              <div
+                className="
+                  flex
+                  h-16
+                  w-16
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-slate-200
+                  bg-slate-100
+                  text-3xl
+                  shadow-md
+                  transition
+                  duration-300
+                  group-hover:scale-110
+                "
+              >
+                {cat.icon}
+              </div>
+
+              <div>
+                <h2
+                  className="
+                    mt-5
+                    text-xl
+                    font-extrabold
+                    text-slate-900
+                  "
+                >
+                  {cat.name}
+                </h2>
+
+                <p
+                  className="
+                    mt-2
+                    text-lg
+                    font-semibold
+                    text-slate-600
+                  "
+                >
+                  คลิกเพื่อดูรายการบัญชีพัสดุ
+                </p>
+              </div>
+
+              <span
+                className="
+                  mt-5
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-950
+                  px-8
+                  py-3
+                  text-lg
+                  font-extrabold
+                  text-white
+                  shadow-lg
+                  transition
+                  group-hover:scale-105
+                "
+              >
+                เปิด
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
-
   );
 }
