@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 
 
 type Props = {
@@ -102,161 +103,416 @@ export default async function EditOfficerPage({
 
   return (
 
-    <div className="max-w-xl p-6">
-
-
-      <h1 className="mb-5 text-2xl font-bold">
-
-        แก้ไขข้อมูลเจ้าหน้าที่
-
-      </h1>
+    <div className="space-y-6">
 
 
 
+      {/* Header */}
 
-      <form
-
-        action={updateOfficer}
-
-        className="space-y-4"
-
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-8
+          py-6
+          min-h-[140px]
+          text-white
+          shadow-xl
+        "
       >
 
 
-        <input
-
-          type="hidden"
-
-          name="sectionId"
-
-          value={officer.sectionId ?? 0}
-
-        />
-
-
-
         <div>
 
-          <label>
-            ชื่อ
-          </label>
 
-          <input
-
-            name="firstName"
-
-            defaultValue={officer.firstName}
-
-            className="w-full rounded border p-2"
-
-          />
-
-        </div>
-
-
-
-
-
-        <div>
-
-          <label>
-            นามสกุล
-          </label>
-
-          <input
-
-            name="lastName"
-
-            defaultValue={officer.lastName}
-
-            className="w-full rounded border p-2"
-
-          />
-
-        </div>
-
-
-
-
-
-        <div>
-
-          <label>
-            ตำแหน่ง
-          </label>
-
-          <input
-
-            name="position"
-
-            defaultValue={officer.position}
-
-            className="w-full rounded border p-2"
-
-          />
-
-        </div>
-
-
-
-
-
-        <div>
-
-          <label>
-            ระดับ
-          </label>
-
-
-          <select
-
-            name="type"
-
-            defaultValue={officer.type}
-
-            className="w-full rounded border p-2"
-
+          <h1
+            className="
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
+            "
           >
+            ✏️ แก้ไขข้อมูลเจ้าหน้าที่
+          </h1>
 
-            <option value="CIVIL_SERVANT">
-              ข้าราชการ
-            </option>
 
-            <option value="GOVERNMENT_EMPLOYEE">
-              พนักงานราชการ
-            </option>
 
-            <option value="PERMANENT_EMPLOYEE">
-              ลูกจ้างประจำ
-            </option>
+          <p
+            className="
+              mt-2
+              text-xl
+              font-semibold
+              !text-slate-200
+            "
+          >
+            ปรับปรุงข้อมูลรายชื่อและประเภทบุคลากร
+          </p>
 
-            <option value="OUTSOURCE">
-              จ้างเหมาบริการ
-            </option>
-
-          </select>
 
         </div>
 
 
 
 
+        <Link
 
-        <button
+          href={`/departments/${officer.sectionId}`}
 
-          type="submit"
-
-          className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
 
         >
 
-          บันทึกการแก้ไข
+          ← กลับ
 
-        </button>
+        </Link>
 
 
 
-      </form>
+      </div>
+
+
+
+
+
+
+
+      {/* Form */}
+
+
+      <div
+        className="
+          max-w-xl
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-8
+          shadow-xl
+        "
+      >
+
+
+
+        <form
+
+          action={updateOfficer}
+
+          className="space-y-6"
+
+        >
+
+
+
+          <input
+
+            type="hidden"
+
+            name="sectionId"
+
+            value={officer.sectionId ?? 0}
+
+          />
+
+
+
+
+
+          <div>
+
+
+            <label
+
+              className="
+                mb-2
+                block
+                text-lg
+                font-bold
+                text-slate-700
+              "
+
+            >
+              ชื่อ
+            </label>
+
+
+
+            <input
+
+              name="firstName"
+
+              defaultValue={officer.firstName}
+
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-medium
+                text-slate-900
+                outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
+              "
+
+            />
+
+
+          </div>
+
+
+
+
+
+
+          <div>
+
+
+            <label
+
+              className="
+                mb-2
+                block
+                text-lg
+                font-bold
+                text-slate-700
+              "
+
+            >
+              นามสกุล
+            </label>
+
+
+
+            <input
+
+              name="lastName"
+
+              defaultValue={officer.lastName}
+
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-medium
+                text-slate-900
+                outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
+              "
+
+            />
+
+
+          </div>
+
+
+
+
+
+
+
+          <div>
+
+
+            <label
+
+              className="
+                mb-2
+                block
+                text-lg
+                font-bold
+                text-slate-700
+              "
+
+            >
+              ตำแหน่ง
+            </label>
+
+
+
+            <input
+
+              name="position"
+
+              defaultValue={officer.position}
+
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-medium
+                text-slate-900
+                outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
+              "
+
+            />
+
+
+          </div>
+
+
+
+
+
+
+
+          <div>
+
+
+            <label
+
+              className="
+                mb-2
+                block
+                text-lg
+                font-bold
+                text-slate-700
+              "
+
+            >
+              ประเภทบุคลากร
+            </label>
+
+
+
+
+            <select
+
+              name="type"
+
+              defaultValue={officer.type}
+
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-medium
+                text-slate-900
+                outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
+              "
+
+            >
+
+
+              <option value="CIVIL_SERVANT">
+                ข้าราชการ
+              </option>
+
+
+              <option value="GOVERNMENT_EMPLOYEE">
+                พนักงานราชการ
+              </option>
+
+
+              <option value="PERMANENT_EMPLOYEE">
+                ลูกจ้างประจำ
+              </option>
+
+
+              <option value="OUTSOURCE">
+                จ้างเหมาบริการ
+              </option>
+
+
+            </select>
+
+
+          </div>
+
+
+
+
+
+
+
+          <button
+
+            type="submit"
+
+
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-8
+              py-3
+              text-lg
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
+            "
+
+          >
+
+            บันทึกการแก้ไข
+
+          </button>
+
+
+
+
+        </form>
+
+
+      </div>
 
 
 
