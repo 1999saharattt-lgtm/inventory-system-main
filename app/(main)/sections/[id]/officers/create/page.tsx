@@ -162,20 +162,20 @@ export default async function CreateOfficerPage({
         <Link
 
           href={`/departments/${departmentId}`}
-
-          className="
-            rounded-xl
-            bg-emerald-600
-            px-5
-            py-3
-            text-lg
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:bg-emerald-700
-          "
-
+className="
+  rounded-xl
+  bg-gradient-to-r
+  from-emerald-600
+  to-green-500
+  px-5
+  py-3
+  text-lg
+  font-extrabold
+  text-white
+  shadow-lg
+  transition
+  hover:scale-105
+"
         >
 
           ← กลับ
@@ -196,16 +196,16 @@ export default async function CreateOfficerPage({
 
 
       <div
-        className="
-          max-w-xl
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          p-8
-          shadow-xl
-        "
-      >
+  className="
+    max-w-2xl
+    rounded-2xl
+    border
+    border-slate-200
+    bg-white
+    p-8
+    shadow-xl
+  "
+>
 
 
 
@@ -269,6 +269,7 @@ export default async function CreateOfficerPage({
                   text-slate-900
                   outline-none
                   transition
+                  shadow-sm
                   focus:border-blue-500
                   focus:ring-4
                   focus:ring-blue-100
@@ -320,6 +321,7 @@ export default async function CreateOfficerPage({
                 text-slate-900
                 outline-none
                 transition
+                shadow-sm
                 focus:border-blue-500
                 focus:ring-4
                 focus:ring-blue-100
@@ -360,29 +362,25 @@ export default async function CreateOfficerPage({
 
 
           <button
-
-            type="submit"
-
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-
-          >
-
-            บันทึกข้อมูล
-
-          </button>
+  type="submit"
+  className="
+    rounded-xl
+    bg-gradient-to-r
+    from-emerald-600
+    to-green-500
+    px-8
+    py-3
+    text-lg
+    font-extrabold
+    text-white
+    shadow-lg
+    transition
+    hover:scale-105
+    active:scale-95
+  "
+>
+  บันทึกข้อมูล
+</button>
 
 
 
