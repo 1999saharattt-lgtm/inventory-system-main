@@ -120,20 +120,32 @@ export default function IssueForm({
 
 
 
-  const categories = Array.from(
-
-    new Set(
-
-      materials.map(
-
-        (m)=>m.category
-
-      )
-
-    )
-
-  );
-
+  const categories = [
+  {
+    value: "OFFICE",
+    label: "วัสดุสำนักงาน",
+  },
+  {
+    value: "COMPUTER",
+    label: "วัสดุคอมพิวเตอร์",
+  },
+  {
+    value: "ELECTRIC",
+    label: "วัสดุไฟฟ้าและวิทยุ",
+  },
+  {
+    value: "HOUSEHOLD",
+    label: "วัสดุงานบ้านและงานครัว",
+  },
+  {
+    value: "VEHICLE",
+    label: "วัสดุยานพาหนะ",
+  },
+  {
+    value: "PRINTING",
+    label: "วัสดุสื่อสิ่งพิมพ์",
+  },
+];
 
 
   const emptyRow = ():ItemRow => ({
@@ -765,26 +777,17 @@ export default function IssueForm({
 
 
                           {
+  categories.map((c) => (
 
-                            categories.map((c)=>(
+    <option
+      key={c.value}
+      value={c.value}
+    >
+      {c.label}
+    </option>
 
-
-                              <option
-
-                                key={c}
-
-                                value={c}
-
-                              >
-
-                                {categoryLabel[c] ?? c}
-
-                              </option>
-
-
-                            ))
-
-                          }
+  ))
+}
 
 
 
