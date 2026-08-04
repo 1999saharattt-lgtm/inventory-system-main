@@ -22,10 +22,10 @@ async function deleteUser(formData: FormData) {
 
 
 
-const roleName: Record<string,string> = {
-  ADMIN:"ผู้ดูแลระบบ",
-  STAFF:"เจ้าหน้าที่",
-  VIEWER:"ผู้ใช้งานทั่วไป",
+const roleName: Record<string, string> = {
+  ADMIN: "ผู้ดูแลระบบ",
+  STAFF: "เจ้าหน้าที่",
+  VIEWER: "ผู้ใช้งานทั่วไป",
 };
 
 
@@ -36,9 +36,11 @@ export default async function UsersPage() {
 
 
   const users = await prisma.user.findMany({
-    orderBy:{
-      id:"asc",
+
+    orderBy: {
+      id: "asc",
     },
+
   });
 
 
@@ -46,7 +48,6 @@ export default async function UsersPage() {
   return (
 
     <div className="space-y-6">
-
 
 
       {/* Header */}
@@ -63,6 +64,7 @@ export default async function UsersPage() {
           to-slate-700
           px-8
           py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
@@ -92,6 +94,7 @@ export default async function UsersPage() {
           >
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
           </p>
+
 
         </div>
 
@@ -124,45 +127,32 @@ export default async function UsersPage() {
 
 
 
-      {/* Table Card */}
+      {/* Table */}
+
 
       <div
-  className="
-    overflow-hidden
-    rounded-2xl
-    border
-    border-slate-200
-bg-white
-    shadow-xl
-  "
->
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-xl
+        "
+      >
 
 
         <div className="overflow-x-auto">
 
 
-          <table
-  className="
-    min-w-full
-    border-collapse
-    overflow-hidden
-    text-xl
-    font-bold
-  "
->
+          <table className="min-w-full">
+
 
 
             <thead>
 
+              <tr>
 
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-to-slate-950
-                  text-white
-                "
-              >
 
                 {[
                   "ลำดับ",
@@ -171,22 +161,26 @@ to-slate-950
                   "สิทธิ์",
                   "สถานะ",
                   "จัดการ",
-                ].map((title)=>(
+                ].map((title) => (
+
 
                   <th
                     key={title}
                     className="
-                      border
-                      border-slate-200
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-4
                       py-4
                       text-center
-                      text-xl
+                      text-lg
                       font-extrabold
+                      text-white
                     "
                   >
                     {title}
                   </th>
+
 
                 ))}
 
@@ -202,277 +196,261 @@ to-slate-950
 
             <tbody>
 
-{
-users.length > 0 ? (
-
-users.map((user,index)=>(
-
-<tr
-key={user.id}
-className="
-border-b
-border-slate-200
-bg-white
-text-slate-700
-transition
-hover:bg-slate-50
-"
->
-
-
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-text-center
-text-xl
-font-bold
-"
->
-{index+1}
-</td>
-
-
-
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-text-center
-text-xl
-font-bold
-"
->
-{user.username}
-</td>
-
-
-
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-text-xl
-font-bold
-"
->
-{user.fullname}
-</td>
-
-
-
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-text-center
-"
->
-
-<span
-className="
-inline-block
-rounded-full
-bg-blue-100
-px-5
-py-1
-text-lg
-font-bold
-text-blue-700
-"
->
-{roleName[user.role] ?? user.role}
-</span>
-
-</td>
-
-
-
-
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-text-center
-"
->
 
-{
-user.active ? (
+              {users.length > 0 ? (
 
-<span
-className="
-inline-block
-rounded-full
-bg-emerald-100
-px-5
-py-1
-text-lg
-font-bold
-text-emerald-700
-"
->
-Active
-</span>
-
-):(
 
+                users.map((user, index) => (
 
-<span
-className="
-inline-block
-rounded-full
-bg-red-100
-px-5
-py-1
-text-lg
-font-bold
-text-red-700
-"
->
-Inactive
-</span>
 
+                  <tr
+                    key={user.id}
+                    className="
+                      border-b
+                      hover:bg-blue-50
+                    "
+                  >
 
-)
 
-}
 
-</td>
+                    <td
+                      className="
+                        px-4
+                        py-3
+                        text-center
+                        font-bold
+                        text-slate-700
+                      "
+                    >
+                      {index + 1}
+                    </td>
 
 
 
 
-<td
-className="
-border
-border-slate-200
-px-4
-py-4
-"
->
 
-<div
-className="
-flex
-justify-center
-gap-3
-"
->
+                    <td
+                      className="
+                        px-4
+                        py-3
+                        text-center
+                        font-bold
+                        text-slate-800
+                      "
+                    >
+                      {user.username}
+                    </td>
 
 
-<Link
 
-href={`/users/${user.id}/edit`}
 
-className="
-rounded-xl
-bg-amber-500
-px-5
-py-2
-text-lg
-font-extrabold
-text-white
-shadow
-transition
-hover:bg-amber-600
-"
->
 
-แก้ไข
+                    <td
+                      className="
+                        px-4
+                        py-3
+                        font-bold
+                        text-slate-800
+                      "
+                    >
+                      {user.fullname}
+                    </td>
 
-</Link>
 
 
 
-<form action={deleteUser}>
 
-<input
-type="hidden"
-name="id"
-value={user.id}
-/>
+                    <td
+                      className="
+                        px-4
+                        py-3
+                        text-center
+                      "
+                    >
 
+                      <span
+                        className="
+                          rounded-lg
+                          bg-blue-100
+                          px-3
+                          py-1
+                          font-bold
+                          text-blue-700
+                        "
+                      >
+                        {roleName[user.role] ?? user.role}
+                      </span>
 
-<button
+                    </td>
 
-className="
-rounded-xl
-bg-red-600
-px-5
-py-2
-text-lg
-font-extrabold
-text-white
-shadow
-transition
-hover:bg-red-700
-"
 
->
 
-ลบ
 
-</button>
 
+                    <td
+                      className="
+                        px-4
+                        py-3
+                        text-center
+                      "
+                    >
 
-</form>
+                      {
+                        user.active ? (
 
+                          <span
+                            className="
+                              rounded-lg
+                              bg-emerald-100
+                              px-3
+                              py-1
+                              font-bold
+                              text-emerald-700
+                            "
+                          >
+                            Active
+                          </span>
 
-</div>
 
+                        ) : (
 
-</td>
 
+                          <span
+                            className="
+                              rounded-lg
+                              bg-red-100
+                              px-3
+                              py-1
+                              font-bold
+                              text-red-700
+                            "
+                          >
+                            Inactive
+                          </span>
 
-</tr>
 
+                        )
+                      }
 
-))
 
+                    </td>
 
-):(
 
 
-<tr>
 
-<td
 
-colSpan={6}
+                    <td
+                      className="
+                        px-4
+                        py-3
+                      "
+                    >
 
-className="
-py-12
-text-center
-text-xl
-font-bold
-text-slate-300
-"
 
->
+                      <div
+                        className="
+                          flex
+                          justify-center
+                          gap-2
+                        "
+                      >
 
-ยังไม่มีผู้ใช้งาน
 
-</td>
 
-</tr>
+                        <Link
+                          href={`/users/${user.id}/edit`}
+                          className="
+                            rounded-lg
+                            bg-slate-800
+                            px-4
+                            py-2
+                            font-extrabold
+                            text-white
+                            shadow
+                            transition
+                            hover:bg-slate-700
+                          "
+                        >
+                          แก้ไข
+                        </Link>
 
 
-)
 
-}
 
 
-</tbody>
+                        <form action={deleteUser}>
+
+
+                          <input
+                            type="hidden"
+                            name="id"
+                            value={user.id}
+                          />
+
+
+                          <button
+                            className="
+                              rounded-lg
+                              bg-red-600
+                              px-4
+                              py-2
+                              font-extrabold
+                              text-white
+                              shadow
+                              transition
+                              hover:bg-red-700
+                            "
+                          >
+                            ลบ
+                          </button>
+
+
+                        </form>
+
+
+
+                      </div>
+
+
+                    </td>
+
+
+
+                  </tr>
+
+
+                ))
+
+
+
+              ) : (
+
+
+                <tr>
+
+
+                  <td
+                    colSpan={6}
+                    className="
+                      py-12
+                      text-center
+                      text-lg
+                      font-bold
+                      text-slate-500
+                    "
+                  >
+                    ยังไม่มีผู้ใช้งาน
+                  </td>
+
+
+                </tr>
+
+
+              )}
+
+
+            </tbody>
+
 
 
           </table>
@@ -482,7 +460,6 @@ text-slate-300
 
 
       </div>
-
 
 
     </div>
