@@ -105,7 +105,7 @@ export default async function EditUserPage({
         className="
           rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
           p-8
           text-xl
@@ -130,11 +130,13 @@ export default async function EditUserPage({
     <div className="space-y-6">
 
 
-
       {/* Header */}
 
       <div
         className="
+          flex
+          items-center
+          justify-between
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -142,32 +144,62 @@ export default async function EditUserPage({
           to-slate-700
           px-8
           py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
       >
 
-        <h1
+
+        <div>
+
+          <h1
+            className="
+              text-5xl
+              font-extrabold
+              leading-tight
+              !text-white
+            "
+          >
+            👤 แก้ไขผู้ใช้งานระบบ
+          </h1>
+
+
+          <p
+            className="
+              mt-2
+              text-xl
+              font-semibold
+              !text-slate-200
+            "
+          >
+            แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
+          </p>
+
+
+        </div>
+
+
+
+        <Link
+          href="/users"
           className="
-            text-5xl
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-lg
             font-extrabold
-            !text-white
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
           "
         >
-          👤 แก้ไขผู้ใช้งานระบบ
-        </h1>
-
-
-        <p
-          className="
-            mt-2
-            text-xl
-            font-semibold
-            !text-slate-200
-          "
-        >
-          แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
-        </p>
+          ← กลับ
+        </Link>
 
 
       </div>
@@ -185,7 +217,7 @@ export default async function EditUserPage({
           max-w-2xl
           rounded-2xl
           border
-          border-slate-300
+          border-slate-200
           bg-white
           p-8
           shadow-xl
@@ -195,7 +227,7 @@ export default async function EditUserPage({
 
         <form
           action={updateUser}
-          className="space-y-5"
+          className="space-y-6"
         >
 
 
@@ -209,81 +241,82 @@ export default async function EditUserPage({
 
 
 
+          {[
+            {
+              label:"Username",
+              name:"username",
+              value:user.username,
+              type:"text",
+            },
+            {
+              label:"ชื่อ-นามสกุล",
+              name:"fullname",
+              value:user.fullname,
+              type:"text",
+            },
+
+          ].map((field)=>(
+
+            <div key={field.name}>
+
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-slate-800
+                "
+              >
+                {field.label}
+              </label>
+
+
+              <input
+                name={field.name}
+                defaultValue={field.value}
+                required
+                type={field.type}
+
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  text-lg
+                  font-medium
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-blue-500
+                  focus:ring-4
+                  focus:ring-blue-100
+                "
+              />
+
+            </div>
+
+
+          ))}
+
+
+
+
+
           <div>
 
-            <label className="mb-2 block text-lg font-extrabold text-slate-800">
-              Username
-            </label>
-
-
-            <input
-              name="username"
-              defaultValue={user.username}
-              required
-
+            <label
               className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-50
-                px-4
-                py-3
+                mb-2
+                block
                 text-lg
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-slate-700
+                font-extrabold
+                text-slate-800
               "
-            />
-
-          </div>
-
-
-
-
-
-
-
-          <div>
-
-            <label className="mb-2 block text-lg font-extrabold text-slate-800">
-              ชื่อ-นามสกุล
-            </label>
-
-
-            <input
-              name="fullname"
-              defaultValue={user.fullname}
-              required
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-50
-                px-4
-                py-3
-                text-lg
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-slate-700
-              "
-            />
-
-          </div>
-
-
-
-
-
-
-
-          <div>
-
-            <label className="mb-2 block text-lg font-extrabold text-slate-800">
+            >
               Password ใหม่
             </label>
 
@@ -298,14 +331,17 @@ export default async function EditUserPage({
                 rounded-xl
                 border
                 border-slate-300
-                bg-slate-50
+                bg-white
                 px-4
                 py-3
                 text-lg
-                font-semibold
+                font-medium
                 text-slate-900
                 outline-none
-                focus:border-slate-700
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
             />
 
@@ -319,7 +355,15 @@ export default async function EditUserPage({
 
           <div>
 
-            <label className="mb-2 block text-lg font-extrabold text-slate-800">
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-slate-800
+              "
+            >
               สิทธิ์การใช้งาน
             </label>
 
@@ -333,13 +377,17 @@ export default async function EditUserPage({
                 rounded-xl
                 border
                 border-slate-300
-                bg-slate-50
+                bg-white
                 px-4
                 py-3
                 text-lg
-                font-semibold
+                font-medium
                 text-slate-900
                 outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
             >
 
@@ -364,10 +412,17 @@ export default async function EditUserPage({
 
 
 
-
           <div>
 
-            <label className="mb-2 block text-lg font-extrabold text-slate-800">
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-slate-800
+              "
+            >
               สถานะ
             </label>
 
@@ -381,13 +436,17 @@ export default async function EditUserPage({
                 rounded-xl
                 border
                 border-slate-300
-                bg-slate-50
+                bg-white
                 px-4
                 py-3
                 text-lg
-                font-semibold
+                font-medium
                 text-slate-900
                 outline-none
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
             >
 
@@ -395,11 +454,9 @@ export default async function EditUserPage({
                 Active
               </option>
 
-
               <option value="false">
                 Inactive
               </option>
-
 
             </select>
 
@@ -412,8 +469,13 @@ export default async function EditUserPage({
 
 
 
-
-          <div className="flex gap-3 pt-4">
+          <div
+            className="
+              flex
+              gap-3
+              pt-4
+            "
+          >
 
 
             <Link
@@ -440,6 +502,7 @@ export default async function EditUserPage({
 
 
             <button
+              type="submit"
 
               className="
                 rounded-xl
@@ -455,7 +518,6 @@ export default async function EditUserPage({
                 transition
                 hover:scale-105
               "
-
             >
               บันทึกการแก้ไข
             </button>
