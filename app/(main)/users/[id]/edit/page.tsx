@@ -470,60 +470,35 @@ export default async function EditUserPage({
 
 
           <div
-            className="
-              flex
-              gap-3
-              pt-4
-            "
-          >
+  className="
+    flex
+    pt-4
+  "
+>
+
+  <button
+    type="submit"
+
+    className="
+      rounded-xl
+      bg-gradient-to-r
+      from-emerald-600
+      to-green-500
+      px-8
+      py-3
+      text-lg
+      font-extrabold
+      text-white
+      shadow-lg
+      transition
+      hover:scale-105
+    "
+  >
+    บันทึกการแก้ไข
+  </button>
 
 
-            <Link
-              href="/users"
-
-              className="
-                rounded-xl
-                bg-slate-700
-                px-6
-                py-3
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:bg-slate-800
-              "
-            >
-              ← กลับ
-            </Link>
-
-
-
-
-
-            <button
-              type="submit"
-
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-8
-                py-3
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-105
-              "
-            >
-              บันทึกการแก้ไข
-            </button>
-
-
-          </div>
+</div>
 
 
 
