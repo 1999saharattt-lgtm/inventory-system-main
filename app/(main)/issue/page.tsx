@@ -81,53 +81,55 @@ export default async function IssuePage(){
     from-slate-950
     via-slate-800
     to-slate-700
-    p-6
+    px-8
+    py-6
+    min-h-[140px]
     text-white
     shadow-xl
   "
 >
   <div>
     <h1
-      className="
-        !text-white
-        text-5xl
-        font-extrabold
-        leading-tight
-      "
-    >
-      📤 รายการเบิกจ่ายพัสดุ
-    </h1>
+  className="
+    text-5xl
+    font-extrabold
+    leading-tight
+    !text-white
+  "
+>
+  📤 รายการเบิกจ่ายพัสดุ
+</h1>
 
-    <p
-      className="
-        mt-2
-        text-lg
-        font-semibold
-        text-slate-200
-      "
-    >
-      แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
-    </p>
+<p
+  className="
+    mt-2
+    text-xl
+    font-semibold
+    text-slate-200
+  "
+>
+  แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
+</p>
   </div>
 
   <Link
-    href="/issue/create"
-    className="
-      rounded-xl
-      bg-gradient-to-r
-      from-emerald-600
-      to-green-500
-      px-5
-      py-3
-      font-extrabold
-      text-white
-      shadow-lg
-      transition
-      hover:scale-105
-    "
-  >
-    + เพิ่มรายการเบิก
-  </Link>
+  href="/issue/create"
+  className="
+    rounded-xl
+    bg-gradient-to-r
+    from-emerald-600
+    to-green-500
+    px-5
+    py-3
+    font-extrabold
+    text-white
+    shadow-lg
+    transition
+    hover:scale-105
+  "
+>
+  + เพิ่มรายการเบิก
+</Link>
 </div>
             {/* Table */}
 
