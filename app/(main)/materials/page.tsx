@@ -85,27 +85,28 @@ export default function MaterialsPage() {
     </h1>
 
     <p
-      className="
-        mt-2
-        text-xl
-        font-semibold
-        text-slate-200
-      "
-    >
-      เลือกหมวดหมู่เพื่อดูรายการพัสดุ
-    </p>
+  className="
+    mt-2
+    text-xl
+    font-semibold
+    text-slate-200
+  "
+>
+  เลือกหมวดหมู่เพื่อดูรายการพัสดุ
+</p>
+
   </div>
+</div>
 
-      {/* Category Cards */}
-
-      <div
-        className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-      >
+{/* Category Cards */}
+<div
+  className="
+    grid
+    gap-5
+    md:grid-cols-2
+    xl:grid-cols-3
+  "
+>
 
         {categories.map((cat)=>(
 
