@@ -66,204 +66,324 @@ export default async function CategoryPage({
   });
 
   return (
-    <div className="space-y-8">
+  <div className="space-y-6">
 
-      {/* Header */}
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-xl
-          border
-          border-slate-300
-          bg-slate-100
-          p-6
-          shadow-sm
-        "
-      >
-        <div>
-          <h1
-            className="
-              text-3xl
-              font-bold
-              tracking-tight
-              text-slate-800
-            "
-          >
-            {categoryNames[category]}
-          </h1>
+    {/* Header */}
 
-          <p className="mt-2 text-slate-600">
-            จำนวน {materials.length} รายการ
-          </p>
-        </div>
+    <div
+      className="
+        flex
+        items-center
+        justify-between
+        rounded-2xl
+        bg-gradient-to-r
+        from-slate-950
+        via-slate-800
+        to-slate-700
+        p-6
+        text-white
+        shadow-xl
+      "
+    >
 
-        <Link
-          href="/stock-card"
+      <div>
+
+        <h1
           className="
-            rounded-lg
-            bg-slate-200
-            px-5
-            py-3
-            font-semibold
-            text-slate-700
-            shadow-sm
-            transition
-            hover:bg-slate-300
+            !text-white
+            text-5xl
+            font-extrabold
+            leading-tight
           "
         >
-          ← กลับ
-        </Link>
+          {categoryNames[category]}
+        </h1>
+
+
+        <p
+          className="
+            mt-3
+            text-xl
+            font-semibold
+            text-slate-200
+          "
+        >
+          รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
+        </p>
+
+
       </div>
 
-      {/* Search */}
 
-      <SearchStockCard
-        category={category}
-        defaultSearch={search}
-      />
 
-      {/* Table */}
-
-      <div
+      <Link
+        href="/stock-card"
         className="
-          overflow-hidden
           rounded-xl
-          border
-          border-slate-300
-          bg-white
-          shadow-sm
+          bg-gradient-to-r
+          from-emerald-600
+          to-green-500
+          px-5
+          py-3
+          font-extrabold
+          text-white
+          shadow-lg
+          transition
+          hover:scale-105
         "
       >
-        <div className="overflow-x-auto">
+        ← กลับ
+      </Link>
 
-          <table className="min-w-full border-collapse">
 
-            <thead className="bg-slate-200">
+    </div>
 
-              <tr className="text-sm font-semibold text-slate-800">
 
-                <th className="w-20 border border-slate-300 px-4 py-3 text-center">
-                  ลำดับ
+
+
+
+    {/* Search */}
+
+    <SearchStockCard
+      category={category}
+      defaultSearch={search}
+    />
+
+
+
+
+
+
+    {/* Table */}
+
+    <div
+      className="
+        overflow-hidden
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        shadow-xl
+      "
+    >
+
+      <div className="overflow-x-auto">
+
+
+        <table className="min-w-full">
+
+
+          <thead>
+
+            <tr>
+
+
+              {[
+                "ลำดับ",
+                "รหัสพัสดุ",
+                "รายการพัสดุ",
+                "หน่วย",
+                "ผู้จำหน่าย",
+                "บัญชีพัสดุ",
+              ].map((title)=>(
+
+
+                <th
+                  key={title}
+                  className="
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+
+                  {title}
+
                 </th>
 
-                <th className="border border-slate-300 px-4 py-3 text-center">
-                  รหัสพัสดุ
-                </th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  รายการพัสดุ
-                </th>
+              ))}
 
-                <th className="border border-slate-300 px-4 py-3 text-center">
-                  หน่วย
-                </th>
 
-                <th className="border border-slate-300 px-4 py-3">
-                  ผู้จำหน่าย
-                </th>
+            </tr>
 
-                <th className="w-40 border border-slate-300 px-4 py-3 text-center">
-                  บัญชีพัสดุ
-                </th>
+
+          </thead>
+
+
+
+
+          <tbody>
+
+
+          {materials.length === 0 ? (
+
+            <tr>
+
+              <td
+                colSpan={6}
+                className="
+                  py-12
+                  text-center
+                  text-lg
+                  font-bold
+                  text-slate-500
+                "
+              >
+                ไม่พบข้อมูล
+              </td>
+
+
+            </tr>
+
+
+          ) : (
+
+
+            materials.map((material,index)=>(
+
+
+              <tr
+                key={material.id}
+                className="
+                  border-b
+                  hover:bg-blue-50
+                "
+              >
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    text-center
+                    font-bold
+                    text-slate-700
+                  "
+                >
+                  {index+1}
+                </td>
+
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    text-center
+                    font-bold
+                    text-slate-700
+                  "
+                >
+                  {material.code}
+                </td>
+
+
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    font-bold
+                    text-slate-800
+                  "
+                >
+                  {material.name}
+                </td>
+
+
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    text-center
+                    font-semibold
+                    text-slate-700
+                  "
+                >
+                  {material.unit}
+                </td>
+
+
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-700
+                  "
+                >
+                  {material.vendor?.name ?? "-"}
+                </td>
+
+
+
+
+                <td
+                  className="
+                    px-4
+                    py-3
+                    text-center
+                  "
+                >
+
+                  <Link
+                    href={`/stock-card/material/${material.id}`}
+                    className="
+                      rounded-xl
+                      bg-gradient-to-r
+                      from-emerald-600
+                      to-green-500
+                      px-5
+                      py-2
+                      font-extrabold
+                      text-white
+                      shadow-lg
+                      transition
+                      hover:scale-105
+                    "
+                  >
+                    เปิด
+                  </Link>
+
+
+                </td>
+
 
               </tr>
 
-            </thead>
 
-            <tbody>
-                            {materials.length === 0 ? (
+            ))
 
-                <tr>
 
-                  <td
-                    colSpan={6}
-                    className="
-                      py-12
-                      text-center
-                      text-slate-500
-                    "
-                  >
-                    ไม่พบข้อมูล
-                  </td>
+          )}
 
-                </tr>
 
-              ) : (
 
-                materials.map((material, index) => (
+          </tbody>
 
-                  <tr
-                    key={material.id}
-                    className="
-                      odd:bg-white
-                      even:bg-slate-50
-                      hover:bg-blue-50
-                      transition-colors
-                    "
-                  >
 
-                    <td className="border border-slate-300 px-4 py-3 text-center">
-                      {index + 1}
-                    </td>
+        </table>
 
-                    <td className="border border-slate-300 px-4 py-3 text-center font-medium">
-                      {material.code}
-                    </td>
-
-                    <td className="border border-slate-300 px-4 py-3">
-                      {material.name}
-                    </td>
-
-                    <td className="border border-slate-300 px-4 py-3 text-center">
-                      {material.unit}
-                    </td>
-
-                    <td className="border border-slate-300 px-4 py-3">
-                      {material.vendor?.name ?? "-"}
-                    </td>
-
-                    <td className="border border-slate-300 px-4 py-3 text-center">
-
-                      <Link
-                        href={`/stock-card/material/${material.id}`}
-                        className="
-                          inline-flex
-                          items-center
-                          justify-center
-                          rounded-lg
-                          bg-emerald-500
-                          px-4
-                          py-2
-                          text-sm
-                          font-medium
-                          text-white
-                          shadow-sm
-                          transition
-                          hover:bg-emerald-600
-                        "
-                      >
-                        เปิด
-                      </Link>
-
-                    </td>
-
-                  </tr>
-
-                ))
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
 
       </div>
 
+
     </div>
-  );
+
+
+  </div>
+);
 }
