@@ -91,7 +91,7 @@ export default async function IssuePage(){
           <h1
   className="
     !text-white
-    text-4xl
+    text-5xl
     font-extrabold
     leading-tight
   "

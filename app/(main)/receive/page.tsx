@@ -78,8 +78,8 @@ export default async function ReceivePage() {
 
           <p
             className="
-              mt-3
-              text-xl
+              mt-2
+              text-lg
               font-semibold
               text-slate-200
             "
