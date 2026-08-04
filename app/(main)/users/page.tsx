@@ -147,9 +147,10 @@ export default async function UsersPage() {
           <table
             className="
               min-w-full
-              border-collapse
-              text-xl
-              font-bold
+border-collapse
+overflow-hidden
+text-xl
+font-bold
             "
           >
 
@@ -204,194 +205,277 @@ export default async function UsersPage() {
 
             <tbody>
 
+{
+users.length > 0 ? (
+
+users.map((user,index)=>(
+
+<tr
+key={user.id}
+className="
+border-b
+border-slate-600
+bg-slate-800
+text-white
+transition
+hover:bg-slate-700
+"
+>
+
+
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+text-center
+text-xl
+font-bold
+"
+>
+{index+1}
+</td>
+
+
+
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+text-center
+text-xl
+font-bold
+"
+>
+{user.username}
+</td>
+
+
+
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+text-xl
+font-bold
+"
+>
+{user.fullname}
+</td>
+
+
+
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+text-center
+"
+>
+
+<span
+className="
+inline-block
+rounded-full
+bg-blue-500/20
+px-5
+py-1
+text-lg
+font-bold
+text-blue-300
+"
+>
+{roleName[user.role] ?? user.role}
+</span>
+
+</td>
+
+
+
+
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+text-center
+"
+>
 
-              {
-                users.length > 0 ? (
+{
+user.active ? (
 
-                  users.map((user,index)=>(
+<span
+className="
+inline-block
+rounded-full
+bg-emerald-500/20
+px-5
+py-1
+text-lg
+font-bold
+text-emerald-300
+"
+>
+Active
+</span>
+
+):(
 
-                    <tr
-                      key={user.id}
-                      className="
-                        border-b
-                        border-slate-600
-                        bg-slate-800
-                        text-white
-                        transition
-                        hover:bg-slate-700
-                      "
-                    >
 
+<span
+className="
+inline-block
+rounded-full
+bg-red-500/20
+px-5
+py-1
+text-lg
+font-bold
+text-red-300
+"
+>
+Inactive
+</span>
 
-                      <td className="border border-slate-600 px-4 py-3 text-center">
-                        {index+1}
-                      </td>
 
+)
 
+}
 
-                      <td className="border border-slate-600 px-4 py-3 text-center">
-                        {user.username}
-                      </td>
+</td>
 
 
 
-                      <td className="border border-slate-600 px-4 py-3">
-                        {user.fullname}
-                      </td>
 
+<td
+className="
+border
+border-slate-600
+px-4
+py-4
+"
+>
 
+<div
+className="
+flex
+justify-center
+gap-3
+"
+>
 
-                      <td className="border border-slate-600 px-4 py-3 text-center">
 
-                        <span
-                          className="
-                            rounded-full
-                            bg-blue-500/20
-                            px-4
-                            py-1
-                            text-blue-300
-                          "
-                        >
-                          {roleName[user.role] ?? user.role}
-                        </span>
+<Link
 
-                      </td>
+href={`/users/${user.id}/edit`}
 
+className="
+rounded-xl
+bg-amber-500
+px-5
+py-2
+text-lg
+font-extrabold
+text-white
+shadow
+transition
+hover:bg-amber-600
+"
+>
 
+แก้ไข
 
+</Link>
 
-                      <td className="border border-slate-600 px-4 py-3 text-center">
 
 
-                        {
-                          user.active ? (
+<form action={deleteUser}>
 
-                            <span
-                              className="
-                                rounded-full
-                                bg-emerald-500/20
-                                px-4
-                                py-1
-                                text-emerald-300
-                              "
-                            >
-                              Active
-                            </span>
+<input
+type="hidden"
+name="id"
+value={user.id}
+/>
 
-                          ) : (
 
-                            <span
-                              className="
-                                rounded-full
-                                bg-red-500/20
-                                px-4
-                                py-1
-                                text-red-300
-                              "
-                            >
-                              Inactive
-                            </span>
+<button
 
-                          )
-                        }
+className="
+rounded-xl
+bg-red-600
+px-5
+py-2
+text-lg
+font-extrabold
+text-white
+shadow
+transition
+hover:bg-red-700
+"
 
+>
 
-                      </td>
+ลบ
 
+</button>
 
 
+</form>
 
 
-                      <td className="border border-slate-600 px-4 py-3">
+</div>
 
 
-                        <div className="flex justify-center gap-2">
+</td>
 
 
-                          <Link
-                            href={`/users/${user.id}/edit`}
-                            className="
-                              rounded-lg
-                              bg-amber-500
-                              px-4
-                              py-2
-                              text-white
-                              shadow
-                              transition
-                              hover:bg-amber-600
-                            "
-                          >
-                            แก้ไข
-                          </Link>
+</tr>
 
 
+))
 
-                          <form action={deleteUser}>
 
-                            <input
-                              type="hidden"
-                              name="id"
-                              value={user.id}
-                            />
+):(
 
 
-                            <button
-                              className="
-                                rounded-lg
-                                bg-red-600
-                                px-4
-                                py-2
-                                text-white
-                                shadow
-                                transition
-                                hover:bg-red-700
-                              "
-                            >
-                              ลบ
-                            </button>
+<tr>
 
+<td
 
-                          </form>
+colSpan={6}
 
+className="
+py-12
+text-center
+text-xl
+font-bold
+text-slate-300
+"
 
-                        </div>
+>
 
+ยังไม่มีผู้ใช้งาน
 
-                      </td>
+</td>
 
+</tr>
 
 
-                    </tr>
+)
 
+}
 
-                  ))
 
-
-                ) : (
-
-
-                  <tr>
-
-                    <td
-                      colSpan={6}
-                      className="
-                        py-12
-                        text-center
-                        text-xl
-                        text-slate-300
-                      "
-                    >
-                      ยังไม่มีผู้ใช้งาน
-                    </td>
-
-                  </tr>
-
-
-                )
-              }
-
-
-            </tbody>
+</tbody>
 
 
           </table>
