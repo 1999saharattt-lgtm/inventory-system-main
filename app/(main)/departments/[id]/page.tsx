@@ -140,292 +140,220 @@ export default async function DepartmentDetailPage({
 
 
   function OfficerTable({
-    officers,
-  }: {
-    officers: any[];
-  }) {
+  officers,
+}: {
+  officers: any[];
+}) {
+
+  return (
+
+    <div
+      className="
+        overflow-hidden
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        shadow-xl
+      "
+    >
+
+      <div className="overflow-x-auto">
+
+        <table
+          className="
+            min-w-full
+            border-collapse
+          "
+        >
+
+          <thead>
+
+            <tr>
+
+              {[
+                "ชื่อ - นามสกุล",
+                "ตำแหน่ง",
+                "ประเภทบุคลากร",
+                "จัดการ",
+              ].map((title)=>(
+
+                <th
+                  key={title}
+                  className="
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-5
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+                  {title}
+                </th>
+
+              ))}
+
+            </tr>
+
+          </thead>
 
 
-    return (
 
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          shadow-xl
-        "
-      >
+          <tbody>
 
 
-        <div className="overflow-x-auto">
-
-
-          <table
-            className="
-              min-w-full
-              border-collapse
-            "
-          >
-
-
-
-            <thead>
+            {sortOfficers(officers).map(
+              (officer:any)=>(
 
 
               <tr
+                key={officer.id}
                 className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
+                  border-b
+                  border-slate-200
+                  hover:bg-blue-50
+                  transition
                 "
               >
 
 
-                <th
+                <td
                   className="
-                    border
-                    border-slate-300
                     px-5
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
+                    py-3
+                    font-bold
+                    text-slate-800
                   "
                 >
-                  ชื่อ - นามสกุล
-                </th>
+                  {officer.firstName}{" "}
+                  {officer.lastName}
+                </td>
 
 
-                <th
+
+                <td
                   className="
-                    border
-                    border-slate-300
                     px-5
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
+                    py-3
+                    font-bold
+                    text-slate-800
                   "
                 >
-                  ตำแหน่ง
-                </th>
+                  {officer.position}
+                </td>
 
 
-                <th
+
+                <td
                   className="
-                    border
-                    border-slate-300
                     px-5
-                    py-4
+                    py-3
                     text-center
-                    text-lg
-                    font-extrabold
                   "
                 >
-                  ประเภทบุคลากร
-                </th>
+
+                  <span
+                    className="
+                      rounded-lg
+                      bg-emerald-100
+                      px-3
+                      py-1
+                      font-bold
+                      text-emerald-700
+                    "
+                  >
+                    {
+                      officerTypeText(
+                        officer.type
+                      )
+                    }
+                  </span>
+
+                </td>
 
 
-                <th
+
+                <td
                   className="
-                    border
-                    border-slate-300
                     px-5
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
+                    py-3
                   "
                 >
-                  จัดการ
-                </th>
+
+                  <div
+                    className="
+                      flex
+                      justify-center
+                      gap-2
+                    "
+                  >
+
+                    <Link
+                      href={`/officers/${officer.id}/edit`}
+                      className="
+                        rounded-lg
+                        bg-slate-800
+                        px-4
+                        py-2
+                        font-extrabold
+                        text-white
+                        shadow
+                        transition
+                        hover:bg-slate-700
+                      "
+                    >
+                      แก้ไข
+                    </Link>
+
+
+
+                    <Link
+                      href={`/officers/${officer.id}/delete`}
+                      className="
+                        rounded-lg
+                        bg-red-600
+                        px-4
+                        py-2
+                        font-extrabold
+                        text-white
+                        shadow
+                        transition
+                        hover:bg-red-700
+                      "
+                    >
+                      ลบ
+                    </Link>
+
+
+                  </div>
+
+                </td>
 
 
               </tr>
 
 
-            </thead>
+            ))}
 
 
+          </tbody>
 
 
-
-            <tbody>
-
-
-              {sortOfficers(officers).map(
-                (officer:any)=>(
-                
-
-                <tr
-                  key={officer.id}
-                  className="
-                    odd:bg-white
-                    even:bg-slate-50
-                    hover:bg-emerald-50
-                    transition
-                  "
-                >
-
-
-                  <td
-                    className="
-                      border
-                      border-slate-300
-                      px-5
-                      py-4
-                      text-lg
-                      font-bold
-                      text-slate-800
-                    "
-                  >
-                    {officer.firstName}{" "}
-                    {officer.lastName}
-                  </td>
-
-
-
-
-                  <td
-                    className="
-                      border
-                      border-slate-300
-                      px-5
-                      py-4
-                      text-lg
-                      font-bold
-                      text-slate-800
-                    "
-                  >
-                    {officer.position}
-                  </td>
-
-
-
-
-
-                  <td
-                    className="
-                      border
-                      border-slate-300
-                      px-5
-                      py-4
-                      text-center
-                    "
-                  >
-
-                    <span
-                      className="
-                        inline-flex
-                        rounded-full
-                        bg-emerald-100
-                        px-4
-                        py-1
-                        text-lg
-                        font-extrabold
-                        text-emerald-700
-                      "
-                    >
-
-                      {officerTypeText(
-                        officer.type
-                      )}
-
-                    </span>
-
-
-                  </td>
-
-
-
-
-
-                  <td
-                    className="
-                      border
-                      border-slate-300
-                      px-5
-                      py-4
-                    "
-                  >
-
-
-                    <div
-                      className="
-                        flex
-                        justify-center
-                        gap-3
-                      "
-                    >
-
-
-                      <Link
-                        href={`/officers/${officer.id}/edit`}
-                        className="
-                          rounded-xl
-                          bg-amber-500
-                          px-4
-                          py-2
-                          text-lg
-                          font-extrabold
-                          text-white
-                          transition
-                          hover:bg-amber-600
-                        "
-                      >
-                        แก้ไข
-                      </Link>
-
-
-
-                      <Link
-                        href={`/officers/${officer.id}/delete`}
-                        className="
-                          rounded-xl
-                          bg-red-600
-                          px-4
-                          py-2
-                          text-lg
-                          font-extrabold
-                          text-white
-                          transition
-                          hover:bg-red-700
-                        "
-                      >
-                        ลบ
-                      </Link>
-
-
-                    </div>
-
-
-                  </td>
-
-
-                </tr>
-
-
-              ))}
-
-
-            </tbody>
-
-
-          </table>
-
-
-        </div>
+        </table>
 
 
       </div>
 
-    );
 
-  }
+    </div>
+
+  );
+
+}
     return (
 
     <div className="space-y-6">
