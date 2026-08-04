@@ -22,10 +22,6 @@ enum OfficerType {
   OUTSOURCE
 }
 
-// ======================
-// สิทธิ์ผู้ใช้งาน
-// ======================
-
 enum Role {
   ADMIN
   STAFF
@@ -66,7 +62,7 @@ model Material {
 }
 
 model Vendor {
-  id      Int    @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   name    String
   address String?
   phone   String?
@@ -86,8 +82,8 @@ model Department {
 }
 
 model Section {
-  id           Int    @id @default(autoincrement())
-  name         String
+  id   Int    @id @default(autoincrement())
+  name String
 
   departmentId Int
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
@@ -96,11 +92,12 @@ model Section {
 }
 
 model Officer {
-  id         Int    @id @default(autoincrement())
-  firstName  String
-  lastName   String
-  position   String
-  type       OfficerType
+  id Int @id @default(autoincrement())
+
+  firstName String
+  lastName  String
+  position  String
+  type      OfficerType
 
   sectionId Int?
   section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
@@ -114,236 +111,144 @@ model Officer {
   updatedAt DateTime @updatedAt
 }
 
-
 // ======================
 // รับพัสดุ
 // ======================
 
 model Receive {
+  id Int @id @default(autoincrement())
 
-  id          Int      @id @default(autoincrement())
-
-  // เลขที่เอกสารรับเข้า ห้ามซ้ำ
-  documentNo  String   @unique
+  documentNo String @unique
 
   receiveDate DateTime
 
-  pdf         String?
+  pdf String?
 
-  remark      String?
-
+  remark String?
 
   vendorId Int
 
-  vendor   Vendor @relation(
-    fields: [vendorId],
-    references: [id]
-  )
-
+  vendor Vendor @relation(fields: [vendorId], references: [id])
 
   items ReceiveItem[]
 
-
   createdAt DateTime @default(now())
-
 }
 
-
-
 model ReceiveItem {
-
   id Int @id @default(autoincrement())
-
 
   receiveId Int
 
-  receive Receive @relation(
-    fields: [receiveId],
-    references: [id]
-  )
-
+  receive Receive @relation(fields: [receiveId], references: [id])
 
   materialId Int
 
-  material Material @relation(
-    fields: [materialId],
-    references: [id]
-  )
-
+  material Material @relation(fields: [materialId], references: [id])
 
   qty Int
 
-
   unitPrice Float
-
 
   manufacture DateTime?
 
   expiry DateTime?
-
 }
-
-
 
 // ======================
 // เบิกพัสดุ
 // ======================
 
 model Issue {
-
   id Int @id @default(autoincrement())
 
-
-  // เลขที่เอกสารเบิก ห้ามซ้ำ
   documentNo String @unique
-
 
   issueDate DateTime
 
-
   pdf String?
-
 
   remark String?
 
-
-
   departmentId Int
 
-  department Department @relation(
-    fields: [departmentId],
-    references: [id]
-  )
-
+  department Department @relation(fields: [departmentId], references: [id])
 
   officerId Int?
 
-  officer Officer? @relation(
-    fields: [officerId],
-    references: [id]
-  )
-
+  officer Officer? @relation(fields: [officerId], references: [id])
 
   items IssueItem[]
 
-
   createdAt DateTime @default(now())
-
 }
 
-
-
 model IssueItem {
-
   id Int @id @default(autoincrement())
-
 
   issueId Int
 
-  issue Issue @relation(
-    fields: [issueId],
-    references: [id]
-  )
-
+  issue Issue @relation(fields: [issueId], references: [id])
 
   materialId Int
 
-  material Material @relation(
-    fields: [materialId],
-    references: [id]
-  )
-
+  material Material @relation(fields: [materialId], references: [id])
 
   qty Int
 
-
   manufacture DateTime?
 
-
   expiry DateTime?
-
 }
-
-
 
 // ======================
 // ประวัติการเคลื่อนไหว
 // ======================
 
 model Transaction {
-
   id Int @id @default(autoincrement())
-
 
   materialId Int
 
-  material Material @relation(
-    fields: [materialId],
-    references: [id]
-  )
-
+  material Material @relation(fields: [materialId], references: [id])
 
   date DateTime @default(now())
 
-
   type String
-
 
   documentNo String
 
-
   receiveQty Int @default(0)
-
 
   issueQty Int @default(0)
 
-
   balance Int
-
 
   unitPrice Float?
 
-
   vendor String?
-
 
   department String?
 
-
   remark String?
-
 }
 
-
-
 // ======================
-// ทะเบียนรายการพัสดุ (Master)
+// Master พัสดุ
 // ======================
 
 model MaterialMaster {
-
   id Int @id @default(autoincrement())
-
 
   category Category
 
-
   name String
-
 
   unit String
 
-
   createdAt DateTime @default(now())
-
 
   updatedAt DateTime @updatedAt
 
-
-
-  @@unique([
-    category,
-    name
-  ])
-
+  @@unique([category, name])
 }
