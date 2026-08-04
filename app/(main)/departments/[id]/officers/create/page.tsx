@@ -30,8 +30,6 @@ export default async function CreateOfficerPage({
 
 
 
-
-
   if (!department) {
 
     redirect("/departments");
@@ -42,33 +40,25 @@ export default async function CreateOfficerPage({
 
 
 
-
-
   async function createOfficer(formData: FormData) {
 
     "use server";
-
 
 
     const firstName =
       formData.get("firstName") as string;
 
 
-
     const lastName =
       formData.get("lastName") as string;
-
 
 
     const position =
       formData.get("position") as string;
 
 
-
     const type =
       formData.get("type") as any;
-
-
 
 
 
@@ -92,14 +82,17 @@ export default async function CreateOfficerPage({
 
 
 
-
-
     redirect(`/departments/${id}`);
 
   }
-    return (
+
+
+
+
+  return (
 
     <div className="space-y-6">
+
 
 
       {/* Header */}
@@ -114,7 +107,9 @@ export default async function CreateOfficerPage({
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-8
+          py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
@@ -128,6 +123,7 @@ export default async function CreateOfficerPage({
             className="
               text-5xl
               font-extrabold
+              leading-tight
               !text-white
             "
           >
@@ -135,13 +131,12 @@ export default async function CreateOfficerPage({
           </h1>
 
 
-
           <p
             className="
-              mt-3
+              mt-2
               text-xl
               font-semibold
-              text-slate-200
+              !text-slate-200
             "
           >
             หน่วยงาน : {department.name}
@@ -152,17 +147,13 @@ export default async function CreateOfficerPage({
 
 
 
-
-
         <Link
 
           href={`/departments/${id}`}
 
           className="
             rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
+            bg-emerald-600
             px-5
             py-3
             text-lg
@@ -170,7 +161,7 @@ export default async function CreateOfficerPage({
             text-white
             shadow-lg
             transition
-            hover:scale-105
+            hover:bg-emerald-700
           "
 
         >
@@ -211,145 +202,71 @@ export default async function CreateOfficerPage({
 
 
 
-          <div>
+          {[
+            {
+              label:"ชื่อ",
+              name:"firstName",
+            },
+            {
+              label:"นามสกุล",
+              name:"lastName",
+            },
+            {
+              label:"ตำแหน่ง",
+              name:"position",
+            },
+
+          ].map((field)=>(
 
 
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-bold
-                text-slate-700
-              "
-            >
-              ชื่อ
-            </label>
+            <div key={field.name}>
 
 
-
-            <input
-
-              name="firstName"
-
-              required
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                text-slate-900
-                outline-none
-                focus:border-emerald-500
-              "
-
-            />
-
-
-          </div>
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-bold
+                  text-slate-700
+                "
+              >
+                {field.label}
+              </label>
 
 
 
+              <input
+
+                name={field.name}
+
+                required
+
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  text-lg
+                  font-medium
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-blue-500
+                  focus:ring-4
+                  focus:ring-blue-100
+                "
+
+              />
 
 
+            </div>
 
 
-          <div>
-
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-bold
-                text-slate-700
-              "
-            >
-              นามสกุล
-            </label>
-
-
-
-            <input
-
-              name="lastName"
-
-              required
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                text-slate-900
-                outline-none
-                focus:border-emerald-500
-              "
-
-            />
-
-
-          </div>
-
-
-
-
-
-
-
-          <div>
-
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-bold
-                text-slate-700
-              "
-            >
-              ตำแหน่ง
-            </label>
-
-
-
-            <input
-
-              name="position"
-
-              required
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                text-slate-900
-                outline-none
-                focus:border-emerald-500
-              "
-
-            />
-
-
-          </div>
-
-
+          ))}
 
 
 
@@ -373,7 +290,6 @@ export default async function CreateOfficerPage({
 
 
 
-
             <select
 
               name="type"
@@ -387,9 +303,13 @@ export default async function CreateOfficerPage({
                 px-4
                 py-3
                 text-lg
+                font-medium
                 text-slate-900
                 outline-none
-                focus:border-emerald-500
+                transition
+                focus:border-blue-500
+                focus:ring-4
+                focus:ring-blue-100
               "
 
             >
@@ -448,6 +368,7 @@ export default async function CreateOfficerPage({
             บันทึกข้อมูล
 
           </button>
+
 
 
 
