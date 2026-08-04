@@ -1,56 +1,95 @@
 "use client";
 
+
 import { useState } from "react";
 import { createIssue } from "./action";
 
 
+
 type Material = {
+
   id: number;
+
   name: string;
+
   category: string;
+
   unit: string;
+
   latestPrice: number;
+
 };
+
 
 
 type Department = {
+
   id: number;
+
   name: string;
+
 };
+
 
 
 type Officer = {
+
   id: number;
+
   firstName: string;
+
   lastName: string;
+
+  departmentId: number | null;
+
 };
+
 
 
 type Props = {
+
   materials: Material[];
+
   departments: Department[];
+
   officers: Officer[];
+
   documentNo: string;
+
 };
 
 
+
 type ItemRow = {
+
   category: string;
+
   materialId: string;
+
   qty: string;
+
   manufacture: string;
+
   expiry: string;
+
 };
 
 
 
 const categoryLabel: Record<string,string> = {
+
   OFFICE: "วัสดุสำนักงาน",
+
   COMPUTER: "วัสดุคอมพิวเตอร์",
+
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+
   VEHICLE: "วัสดุยานพาหนะ",
+
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+
 };
 
 
@@ -58,83 +97,124 @@ const categoryLabel: Record<string,string> = {
 
 
 export default function IssueForm({
+
   materials,
+
   departments,
+
   officers,
+
   documentNo,
+
 }: Props) {
 
 
 
+  const [departmentId,setDepartmentId] = useState("");
+
+  const [officerId,setOfficerId] = useState("");
+
+
+
   const categories = Array.from(
+
     new Set(
+
       materials.map(
+
         (m)=>m.category
+
       )
+
     )
+
   );
 
 
 
+  const emptyRow = ():ItemRow => ({
 
-  const emptyRow = (): ItemRow => ({
     category:"",
+
     materialId:"",
+
     qty:"",
+
     manufacture:"",
+
     expiry:"",
+
   });
 
 
 
-
   const [rows,setRows] = useState<ItemRow[]>(
+
     Array.from(
+
       {
+
         length:15,
+
       },
+
       emptyRow
+
     )
+
   );
 
 
 
+  const filteredOfficers =
+
+    officers.filter(
+
+      (o)=>
+
+        String(o.departmentId) === departmentId
+
+    );
+
 
 
   function updateRow(
+
     index:number,
+
     key:keyof ItemRow,
+
     value:string
+
   ){
+
 
     const copy = [...rows];
 
 
     copy[index] = {
+
       ...copy[index],
+
       [key]:value,
+
     };
 
 
 
     if(key==="category"){
+
       copy[index].materialId="";
+
     }
 
 
 
     setRows(copy);
 
+
   }
-
-
-
-
-
-
-
   return (
-
 
     <form
       action={createIssue}
@@ -142,9 +222,6 @@ export default function IssueForm({
         space-y-8
       "
     >
-
-
-
 
 
       {/* ข้อมูลเอกสาร */}
@@ -171,6 +248,7 @@ export default function IssueForm({
 
 
 
+          {/* เลขที่เอกสาร */}
 
           <div>
 
@@ -188,23 +266,29 @@ export default function IssueForm({
 
 
             <input
-  type="text"
-  name="documentNo"
-  value={documentNo}
-  readOnly
-  className="
-    w-full
-    rounded-xl
-    border
-    border-cyan-400
-    bg-slate-100
-    p-3
-    text-lg
-    font-extrabold
-    text-cyan-700
-    outline-none
-  "
-/>
+
+              type="text"
+
+              name="documentNo"
+
+              value={documentNo}
+
+              readOnly
+
+              className="
+                w-full
+                rounded-xl
+                border
+                border-cyan-400
+                bg-slate-100
+                p-3
+                text-lg
+                font-extrabold
+                text-cyan-700
+                outline-none
+              "
+
+            />
 
 
           </div>
@@ -214,6 +298,8 @@ export default function IssueForm({
 
 
 
+          {/* วันที่เบิก */}
+
           <div>
 
 
@@ -222,7 +308,7 @@ export default function IssueForm({
                 mb-2
                 block
                 text-lg
-                font-extrabold
+                font-extrabด
                 text-white
               "
             >
@@ -253,13 +339,15 @@ export default function IssueForm({
             />
 
 
-
           </div>
 
 
 
 
 
+
+
+          {/* หน่วยงาน */}
 
           <div>
 
@@ -284,6 +372,23 @@ export default function IssueForm({
 
               required
 
+              value={departmentId}
+
+
+              onChange={(e)=>{
+
+
+                setDepartmentId(
+                  e.target.value
+                );
+
+
+                setOfficerId("");
+
+              }}
+
+
+
               className="
                 w-full
                 rounded-xl
@@ -299,7 +404,9 @@ export default function IssueForm({
 
 
               <option value="">
+
                 -- เลือกหน่วยงาน --
+
               </option>
 
 
@@ -308,10 +415,15 @@ export default function IssueForm({
                 departments.map((d)=>(
 
                   <option
+
                     key={d.id}
+
                     value={d.id}
+
                   >
+
                     {d.name}
+
                   </option>
 
                 ))
@@ -328,6 +440,8 @@ export default function IssueForm({
 
 
 
+
+          {/* ผู้ขอเบิก */}
 
           <div>
 
@@ -346,10 +460,29 @@ export default function IssueForm({
 
 
 
-
             <select
 
+
               name="officerId"
+
+
+              value={officerId}
+
+
+
+              onChange={(e)=>{
+
+                setOfficerId(
+                  e.target.value
+                );
+
+              }}
+
+
+
+              disabled={!departmentId}
+
+
 
               className="
                 w-full
@@ -360,29 +493,41 @@ export default function IssueForm({
                 p-3
                 text-slate-900
                 outline-none
+                disabled:bg-slate-200
               "
 
             >
 
 
-              <option value="0">
+
+              <option value="">
+
                 -- เลือกผู้ขอเบิก --
+
               </option>
 
 
 
-
               {
-                officers.map((o)=>(
+
+                filteredOfficers.map((o)=>(
+
 
                   <option
+
                     key={o.id}
+
                     value={o.id}
+
                   >
+
                     {o.firstName} {o.lastName}
+
                   </option>
 
+
                 ))
+
               }
 
 
@@ -399,15 +544,7 @@ export default function IssueForm({
 
 
       </div>
-
-
-
-
-
-
-
-
-      {/* ตารางรายการเบิก */}
+            {/* ตารางรายการเบิก */}
 
 
       <div
@@ -432,7 +569,6 @@ export default function IssueForm({
           >
 
 
-
             <thead>
 
 
@@ -453,7 +589,9 @@ export default function IssueForm({
 
 
                     <th
+
                       key={title}
+
                       className="
                         bg-gradient-to-r
                         from-slate-800
@@ -466,8 +604,11 @@ export default function IssueForm({
                         text-white
                         whitespace-nowrap
                       "
+
                     >
+
                       {title}
+
                     </th>
 
 
@@ -488,41 +629,59 @@ export default function IssueForm({
 
 
               {
+
                 rows.map((row,index)=>{
 
 
                   const list =
+
                     materials.filter(
+
                       (m)=>
-                        m.category===row.category
+
+                        m.category === row.category
+
                     );
+
 
 
 
                   const selected =
+
                     materials.find(
+
                       (m)=>
-                        String(m.id)===row.materialId
+
+                        String(m.id) === row.materialId
+
                     );
 
 
 
+
                   return (
-                                        <tr
+
+
+                    <tr
+
                       key={index}
+
                       className="
                         border-b
                         border-slate-700
                         transition
                         hover:bg-slate-800
                       "
+
                     >
+
 
 
 
                       {/* ลำดับ */}
 
                       <td
+
                         className="
                           px-3
                           py-3
@@ -530,9 +689,14 @@ export default function IssueForm({
                           font-bold
                           text-white
                         "
+
                       >
+
                         {index + 1}
+
                       </td>
+
+
 
 
 
@@ -540,24 +704,39 @@ export default function IssueForm({
 
                       {/* หมวดหมู่ */}
 
+
                       <td
+
                         className="
                           px-3
                           py-3
                         "
+
                       >
+
 
                         <select
 
+
                           value={row.category}
 
+
+
                           onChange={(e)=>
+
                             updateRow(
+
                               index,
+
                               "category",
+
                               e.target.value
+
                             )
+
                           }
+
+
 
                           className="
                             min-w-[170px]
@@ -570,30 +749,46 @@ export default function IssueForm({
                             outline-none
                           "
 
+
                         >
 
+
+
                           <option value="">
+
                             เลือกหมวด
+
                           </option>
 
 
 
+
                           {
+
                             categories.map((c)=>(
 
+
                               <option
+
                                 key={c}
+
                                 value={c}
+
                               >
+
                                 {categoryLabel[c] ?? c}
+
                               </option>
 
+
                             ))
+
                           }
 
 
 
                         </select>
+
 
 
                       </td>
@@ -608,26 +803,40 @@ export default function IssueForm({
 
 
                       <td
+
                         className="
                           px-3
                           py-3
                         "
+
                       >
 
 
                         <select
 
+
                           name={`items[${index}].materialId`}
+
+
 
                           value={row.materialId}
 
+
+
                           onChange={(e)=>
+
                             updateRow(
+
                               index,
+
                               "materialId",
+
                               e.target.value
+
                             )
+
                           }
+
 
 
                           className="
@@ -641,34 +850,46 @@ export default function IssueForm({
                             outline-none
                           "
 
+
                         >
 
 
+
                           <option value="">
+
                             เลือกรายการพัสดุ
+
                           </option>
 
 
 
 
                           {
+
                             list.map((m)=>(
 
+
                               <option
+
                                 key={m.id}
+
                                 value={m.id}
+
                               >
 
                                 {m.name}
 
                               </option>
 
+
                             ))
+
                           }
 
 
 
                         </select>
+
 
 
                       </td>
@@ -679,18 +900,20 @@ export default function IssueForm({
 
 
 
-
                       {/* หน่วย */}
 
                       <td
+
                         className="
                           px-3
                           py-3
                           text-center
                         "
+
                       >
 
                         <div
+
                           className="
                             rounded-xl
                             bg-slate-700
@@ -699,6 +922,7 @@ export default function IssueForm({
                             font-bold
                             text-white
                           "
+
                         >
 
                           {selected?.unit ?? "-"}
@@ -714,19 +938,20 @@ export default function IssueForm({
 
 
 
-
-
                       {/* ราคา */}
 
                       <td
+
                         className="
                           px-3
                           py-3
                           text-center
                         "
+
                       >
 
                         <div
+
                           className="
                             rounded-xl
                             bg-slate-700
@@ -735,6 +960,7 @@ export default function IssueForm({
                             font-bold
                             text-emerald-300
                           "
+
                         >
 
                           {selected?.latestPrice ?? 0}
@@ -750,16 +976,15 @@ export default function IssueForm({
 
 
 
-
-
                       {/* จำนวน */}
 
-
                       <td
+
                         className="
                           px-3
                           py-3
                         "
+
                       >
 
                         <input
@@ -768,7 +993,9 @@ export default function IssueForm({
                           name={`items[${index}].qty`}
 
 
+
                           type="number"
+
 
 
                           min="1"
@@ -780,11 +1007,17 @@ export default function IssueForm({
 
 
                           onChange={(e)=>
+
                             updateRow(
+
                               index,
+
                               "qty",
+
                               e.target.value
+
                             )
+
                           }
 
 
@@ -805,17 +1038,7 @@ export default function IssueForm({
 
 
                       </td>
-
-
-
-
-
-
-
-
-
-
-                      {/* วันผลิต */}
+                                            {/* วันผลิต */}
 
 
                       <td
@@ -827,18 +1050,11 @@ export default function IssueForm({
 
                         <input
 
-
                           type="date"
-
-
 
                           name={`items[${index}].manufacture`}
 
-
-
                           value={row.manufacture}
-
-
 
                           onChange={(e)=>
                             updateRow(
@@ -847,7 +1063,6 @@ export default function IssueForm({
                               e.target.value
                             )
                           }
-
 
 
                           className="
@@ -863,12 +1078,7 @@ export default function IssueForm({
 
                         />
 
-
                       </td>
-
-
-
-
 
 
 
@@ -886,18 +1096,11 @@ export default function IssueForm({
 
                         <input
 
-
                           type="date"
-
-
 
                           name={`items[${index}].expiry`}
 
-
-
                           value={row.expiry}
-
-
 
                           onChange={(e)=>
                             updateRow(
@@ -906,7 +1109,6 @@ export default function IssueForm({
                               e.target.value
                             )
                           }
-
 
 
                           className="
@@ -921,8 +1123,6 @@ export default function IssueForm({
                           "
 
                         />
-
-
 
                       </td>
 
