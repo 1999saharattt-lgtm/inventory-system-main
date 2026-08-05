@@ -209,96 +209,105 @@ const [documentValue,setDocumentValue] = useState(documentNo);
             />
 
           </div>
+{/* เลขที่เอกสาร */}
 
+<div>
 
-
-
-
-
-          {/* เลขที่เอกสาร */}
-
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-base
-                font-bold
-                text-white
-              "
-            >
-              เลขที่เอกสาร
-            </label>
-
-            <label
-  className="
-    mt-3
-    flex
-    items-center
-    gap-2
-    text-white
-    font-semibold
-  "
->
-  <input
-    type="checkbox"
-    checked={isOpeningBalance}
-    onChange={(e)=>{
-
-      const checked = e.target.checked;
-
-      setIsOpeningBalance(checked);
-
-      if(checked){
-        setDocumentValue("ยอดยกเข้าระบบ");
-      }else{
-        setDocumentValue(documentNo);
-      }
-
-    }}
+  <label
     className="
-      h-5
-      w-5
+      mb-2
+      block
+      text-base
+      font-bold
+      text-white
     "
-  />
-
-  ยอดยกเข้าระบบ
-
-</label>
+  >
+    เลขที่เอกสาร
+  </label>
 
 
-            <input
-  type="text"
-  name="documentNo"
-  value={documentValue}
-  onChange={(e)=>{
-  setDocumentValue(e.target.value);
-}}
-  readOnly={!isOpeningBalance}
-  className="
-    w-full
-    rounded-xl
-    border
-    border-cyan-400
-    bg-slate-100
-    px-4
-    py-3
-    text-lg
-    font-extrabold
-    text-cyan-700
-    outline-none
-  "
-/>
+  <div
+    className="
+      rounded-xl
+      border
+      border-cyan-400
+      bg-slate-100
+      p-3
+    "
+  >
+
+    <input
+      type="text"
+      name="documentNo"
+      value={documentValue}
+      onChange={(e)=>{
+        setDocumentValue(e.target.value);
+      }}
+      readOnly={!isOpeningBalance}
+      className="
+        w-full
+        bg-transparent
+        px-2
+        py-2
+        text-lg
+        font-extrabold
+        text-cyan-700
+        outline-none
+      "
+    />
 
 
-          </div>
+    <label
+      className="
+        mt-2
+        flex
+        items-center
+        gap-2
+        border-t
+        border-slate-300
+        pt-2
+        text-sm
+        font-bold
+        text-slate-700
+        cursor-pointer
+      "
+    >
+
+      <input
+        type="checkbox"
+        checked={isOpeningBalance}
+        onChange={(e)=>{
+
+          const checked = e.target.checked;
+
+          setIsOpeningBalance(checked);
+
+          if(checked){
+
+            setDocumentValue("ยอดยกเข้าระบบ");
+
+          }else{
+
+            setDocumentValue(documentNo);
+
+          }
+
+        }}
+        className="
+          h-4
+          w-4
+        "
+      />
+
+      ยอดยกเข้าระบบ
+
+    </label>
 
 
+  </div>
 
 
-
-
+</div>
 
           {/* ผู้จำหน่าย */}
 
@@ -601,47 +610,6 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
                       </td>
 
-
-
-
-
-
-
-                      {/* หน่วย */}
-
-                      <td className="px-3 py-3">
-
-
-                        <input
-  type="text"
-  name="documentNo"
-  value={documentValue}
-  readOnly
-  className="
-    w-full
-    rounded-xl
-    border
-    border-cyan-400
-    bg-slate-100
-    px-4
-    py-3
-    text-lg
-    font-extrabold
-    text-cyan-700
-    outline-none
-  "
-/>
-
-
-                      </td>
-
-
-
-
-
-
-
-
                       {/* จำนวน */}
 
                       <td className="px-3 py-3">
@@ -675,11 +643,32 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
                       </td>
 
+{/* หน่วย */}
+
+                      <td className="px-3 py-3">
+                        <input
+                          type="text"
+                          readOnly
+                          value={
+                            selectedMaterial?.unit ?? ""
+                          }
+                          className="
+                            w-full
+                            rounded-lg
+                            border
+                            border-slate-600
+                            bg-slate-800
+                            px-3
+                            py-2
+                            text-sm
+                            font-semibold
+                            text-white
+                            outline-none
+                          "
+                        />
 
 
-
-
-
+                      </td>
 
                       {/* ราคา */}
 
