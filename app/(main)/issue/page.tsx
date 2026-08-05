@@ -223,12 +223,9 @@ export default async function IssuePage(){
                       key={issue.id}
 
                       className="
-                        border-b
-                        border-slate-200
-                        text-slate-900
-                        transition
-                        hover:bg-emerald-50
-                      "
+  border-b
+  hover:bg-blue-50
+"
 
                     >
 
@@ -236,7 +233,6 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
                           px-4
                           py-3
                           text-center
@@ -255,7 +251,6 @@ export default async function IssuePage(){
 
                       <td
                         className="
-                          border
                           px-4
                           py-3
                           text-center
@@ -280,43 +275,25 @@ new Date(issue.issueDate)
 
 
                       <td
-                        className="
-                          border
-                          px-4
-                          py-3
-                          text-center
-                        "
-                      >
+  className="
+    px-4
+    py-3
+    text-center
+    font-bold
+    text-slate-800
+  "
+>
 
-                        <span
-                          className="
-                            rounded-full
-                            bg-slate-100
-                            px-3
-                            py-1
-                            font-bold
-                            text-slate-700
-                          "
-                        >
+  {issue.documentNo}
 
-                          {issue.documentNo}
-
-                        </span>
-
-
-                      </td>
-
-
-
-
+</td>
 
                       <td
                         className="
-                          border
                           px-4
                           py-3
                           font-bold
-                          text-slate-700
+                          text-slate-800
                         "
                       >
 
@@ -325,11 +302,10 @@ new Date(issue.issueDate)
                       </td>
                                             <td
                         className="
-                          border
                           px-4
                           py-3
                           font-bold
-                          text-slate-700
+                          text-slate-800
                         "
                       >
 
@@ -350,7 +326,7 @@ new Date(issue.issueDate)
 
                       <td
                         className="
-                          border
+                          
                           px-4
                           py-3
                           text-center
@@ -361,21 +337,17 @@ new Date(issue.issueDate)
                         <Link
 
                           href={`/issue/${issue.id}`}
-
                           className="
-                            rounded-xl
-                            bg-gradient-to-r
-                            from-emerald-600
-                            to-green-500
-                            px-4
-                            py-2
-                            font-extrabold
-                            text-white
-                            shadow-lg
-                            transition
-                            hover:scale-105
-                          "
-
+  rounded-lg
+  bg-slate-800
+  px-4
+  py-2
+  font-extrabold
+  text-white
+  shadow
+  transition
+  hover:bg-slate-700
+"
                         >
 
                           แสดงรายการพัสดุ
@@ -392,7 +364,7 @@ new Date(issue.issueDate)
 
                       <td
                         className="
-                          border
+                          
                           px-4
                           py-3
                           text-slate-700
@@ -426,7 +398,7 @@ new Date(issue.issueDate)
 
                       <td
                         className="
-                          border
+                          
                           px-4
                           py-3
                         "
@@ -448,19 +420,16 @@ new Date(issue.issueDate)
                             href={`/issue/${issue.id}/edit`}
 
                             className="
-                              rounded-xl
-                              bg-gradient-to-r
-                              from-amber-500
-                              to-orange-500
-                              px-4
-                              py-2
-                              font-extrabold
-                              text-white
-                              shadow-lg
-                              transition
-                              hover:scale-105
-                            "
-
+  rounded-lg
+  bg-slate-800
+  px-4
+  py-2
+  font-extrabold
+  text-white
+  shadow
+  transition
+  hover:bg-slate-700
+"
                           >
 
                             แก้ไข
