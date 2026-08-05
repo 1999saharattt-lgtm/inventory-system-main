@@ -260,7 +260,9 @@ const [documentValue,setDocumentValue] = useState(documentNo);
   className="
     mt-2
     flex
+    w-full
     items-center
+    justify-start
     gap-2
     border-t
     border-slate-300
@@ -300,7 +302,7 @@ const [documentValue,setDocumentValue] = useState(documentNo);
     "
   />
 
-  <span>
+  <span className="leading-none">
     ยอดยกเข้าระบบ
   </span>
 
