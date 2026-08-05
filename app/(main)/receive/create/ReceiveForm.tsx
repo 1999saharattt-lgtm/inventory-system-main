@@ -227,15 +227,17 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
 
   <div
-  className="
-    rounded-xl
-    border
-    border-cyan-400
-    bg-slate-100
-    px-3
-    py-1
-  "
->
+    className="
+      flex
+      h-[50px]
+      items-center
+      rounded-xl
+      border
+      border-slate-300
+      bg-white
+      px-4
+    "
+  >
 
     <input
       type="text"
@@ -246,34 +248,32 @@ const [documentValue,setDocumentValue] = useState(documentNo);
       }}
       readOnly={!isOpeningBalance}
       className="
-  w-full
-  bg-transparent
-  px-2
-  py-3
-  text-base
-  font-bold
-  text-cyan-700
-  outline-none
-"
+        w-full
+        bg-transparent
+        text-base
+        font-semibold
+        text-cyan-700
+        outline-none
+      "
     />
 
   </div>
 
 
   <label
-  className="
-    mt-3
-    flex
-    w-max
-    items-center
-    gap-2
-    cursor-pointer
-    whitespace-nowrap
-    text-sm
-    font-semibold
-    text-white
-  "
->
+    className="
+      mt-2
+      flex
+      w-fit
+      items-center
+      gap-2
+      cursor-pointer
+      whitespace-nowrap
+      text-sm
+      font-semibold
+      text-white
+    "
+  >
 
     <input
       type="checkbox"
@@ -298,17 +298,16 @@ const [documentValue,setDocumentValue] = useState(documentNo);
       className="
         h-4
         w-4
-        shrink-0
         cursor-pointer
       "
     />
-<span
-  className="
-    whitespace-nowrap
-  "
->
-  ยอดยกเข้าระบบ
-</span>
+
+
+    <span>
+      ยอดยกเข้าระบบ
+    </span>
+
+
   </label>
 
 
