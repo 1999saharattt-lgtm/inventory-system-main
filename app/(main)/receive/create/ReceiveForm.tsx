@@ -226,38 +226,31 @@ const [documentValue,setDocumentValue] = useState(documentNo);
   </label>
 
 
-  <div
-    className="
-      flex
-      h-[50px]
-      items-center
-      rounded-xl
-      border
-      border-slate-300
-      bg-white
-      px-4
-    "
-  >
-
-    <input
-      type="text"
-      name="documentNo"
-      value={documentValue}
-      onChange={(e)=>{
-        setDocumentValue(e.target.value);
-      }}
-      readOnly={!isOpeningBalance}
-      className="
-        w-full
-        bg-transparent
-        text-base
-        font-semibold
-        text-cyan-700
-        outline-none
-      "
-    />
-
-  </div>
+  <input
+  type="text"
+  name="documentNo"
+  value={documentValue}
+  onChange={(e)=>{
+    setDocumentValue(e.target.value);
+  }}
+  readOnly={!isOpeningBalance}
+  className="
+    w-full
+    rounded-xl
+    border
+    border-slate-300
+    bg-white
+    px-4
+    py-3
+    text-base
+    font-semibold
+    text-slate-900
+    outline-none
+    focus:border-cyan-500
+    focus:ring-4
+    focus:ring-cyan-100
+  "
+/>
 
 
   <label
