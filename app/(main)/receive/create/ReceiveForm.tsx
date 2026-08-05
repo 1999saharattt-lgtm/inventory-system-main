@@ -256,52 +256,55 @@ const [documentValue,setDocumentValue] = useState(documentNo);
       "
     />
 
+<label
+  className="
+    mt-2
+    flex
+    items-center
+    gap-2
+    border-t
+    border-slate-300
+    pt-2
+    text-sm
+    font-semibold
+    text-slate-700
+    cursor-pointer
+    whitespace-nowrap
+  "
+>
 
-    <label
-      className="
-        mt-2
-        flex
-        items-center
-        gap-2
-        border-t
-        border-slate-300
-        pt-2
-        text-sm
-        font-bold
-        text-slate-700
-        cursor-pointer
-      "
-    >
+  <input
+    type="checkbox"
+    checked={isOpeningBalance}
+    onChange={(e)=>{
 
-      <input
-        type="checkbox"
-        checked={isOpeningBalance}
-        onChange={(e)=>{
+      const checked = e.target.checked;
 
-          const checked = e.target.checked;
+      setIsOpeningBalance(checked);
 
-          setIsOpeningBalance(checked);
+      if(checked){
 
-          if(checked){
+        setDocumentValue("ยอดยกเข้าระบบ");
 
-            setDocumentValue("ยอดยกเข้าระบบ");
+      }else{
 
-          }else{
+        setDocumentValue(documentNo);
 
-            setDocumentValue(documentNo);
+      }
 
-          }
+    }}
+    className="
+      h-4
+      w-4
+      shrink-0
+    "
+  />
 
-        }}
-        className="
-          h-4
-          w-4
-        "
-      />
+  <span>
+    ยอดยกเข้าระบบ
+  </span>
 
-      ยอดยกเข้าระบบ
-
-    </label>
+</label>
 
 
   </div>
