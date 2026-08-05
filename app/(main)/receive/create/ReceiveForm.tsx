@@ -224,17 +224,16 @@ const [documentValue,setDocumentValue] = useState(documentNo);
   >
     เลขที่เอกสาร
   </label>
-
-
   <div
-    className="
-      rounded-xl
-      border
-      border-cyan-400
-      bg-slate-100
-      p-3
-    "
-  >
+  className="
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    p-3
+    overflow-hidden
+  "
+>
 
     <input
       type="text"
@@ -262,7 +261,6 @@ const [documentValue,setDocumentValue] = useState(documentNo);
     flex
     w-full
     items-center
-    justify-start
     gap-2
     border-t
     border-slate-300
@@ -271,7 +269,6 @@ const [documentValue,setDocumentValue] = useState(documentNo);
     text-sm
     font-semibold
     text-slate-700
-    whitespace-nowrap
   "
 >
 
@@ -296,16 +293,21 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
     }}
     className="
-  h-4
-  w-4
-  shrink-0
-  cursor-pointer
-"
+      h-4
+      w-4
+      shrink-0
+      cursor-pointer
+    "
   />
 
-  <span className="flex items-center leading-none">
-  ยอดยกเข้าระบบ
-</span>
+  <span
+    className="
+      whitespace-nowrap
+      leading-none
+    "
+  >
+    ยอดยกเข้าระบบ
+  </span>
 
 </label>
 
