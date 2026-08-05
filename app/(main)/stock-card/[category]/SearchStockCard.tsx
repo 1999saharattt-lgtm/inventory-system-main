@@ -91,7 +91,7 @@ export default function SearchStockCard({
           active:scale-95
         "
       >
-        🔍 ค้นหา
+        ค้นหา
       </button>
     </form>
   );
