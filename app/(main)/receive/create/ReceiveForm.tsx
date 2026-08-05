@@ -258,7 +258,7 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
 <label
   className="
-    mt-2
+    mt-3
     flex
     w-full
     items-center
@@ -266,11 +266,11 @@ const [documentValue,setDocumentValue] = useState(documentNo);
     gap-2
     border-t
     border-slate-300
-    pt-2
+    pt-3
+    cursor-pointer
     text-sm
     font-semibold
     text-slate-700
-    cursor-pointer
     whitespace-nowrap
   "
 >
@@ -296,15 +296,16 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
     }}
     className="
-      h-4
-      w-4
-      shrink-0
-    "
+  h-4
+  w-4
+  shrink-0
+  cursor-pointer
+"
   />
 
-  <span className="leading-none">
-    ยอดยกเข้าระบบ
-  </span>
+  <span className="flex items-center leading-none">
+  ยอดยกเข้าระบบ
+</span>
 
 </label>
 
