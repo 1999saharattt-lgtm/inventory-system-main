@@ -227,14 +227,15 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
 
   <div
-    className="
-      rounded-xl
-      border
-      border-cyan-400
-      bg-slate-100
-      p-3
-    "
-  >
+  className="
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    px-3
+    py-1
+  "
+>
 
     <input
       type="text"
@@ -245,15 +246,15 @@ const [documentValue,setDocumentValue] = useState(documentNo);
       }}
       readOnly={!isOpeningBalance}
       className="
-        w-full
-        bg-transparent
-        px-2
-        py-2
-        text-lg
-        font-extrabold
-        text-cyan-700
-        outline-none
-      "
+  w-full
+  bg-transparent
+  px-2
+  py-3
+  text-base
+  font-bold
+  text-cyan-700
+  outline-none
+"
     />
 
   </div>
