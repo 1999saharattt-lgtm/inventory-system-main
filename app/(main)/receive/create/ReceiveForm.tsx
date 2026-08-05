@@ -95,6 +95,10 @@ export default function ReceiveForm({
     )
   );
 
+  const [isOpeningBalance,setIsOpeningBalance] = useState(false);
+
+const [documentValue,setDocumentValue] = useState(documentNo);
+
 
 
 
@@ -227,26 +231,65 @@ export default function ReceiveForm({
               เลขที่เอกสาร
             </label>
 
+            <label
+  className="
+    mt-3
+    flex
+    items-center
+    gap-2
+    text-white
+    font-semibold
+  "
+>
+  <input
+    type="checkbox"
+    checked={isOpeningBalance}
+    onChange={(e)=>{
+
+      const checked = e.target.checked;
+
+      setIsOpeningBalance(checked);
+
+      if(checked){
+        setDocumentValue("ยอดยกเข้าระบบ");
+      }else{
+        setDocumentValue(documentNo);
+      }
+
+    }}
+    className="
+      h-5
+      w-5
+    "
+  />
+
+  ยอดยกเข้าระบบ
+
+</label>
+
 
             <input
-              type="text"
-              name="documentNo"
-              value={documentNo}
-              readOnly
-              className="
-                w-full
-                rounded-xl
-                border
-                border-cyan-400
-                bg-slate-100
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                text-cyan-700
-                outline-none
-              "
-            />
+  type="text"
+  name="documentNo"
+  value={documentValue}
+  onChange={(e)=>{
+  setDocumentValue(e.target.value);
+}}
+  readOnly={!isOpeningBalance}
+  className="
+    w-full
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    px-4
+    py-3
+    text-lg
+    font-extrabold
+    text-cyan-700
+    outline-none
+  "
+/>
 
 
           </div>
@@ -570,25 +613,24 @@ export default function ReceiveForm({
 
 
                         <input
-                          type="text"
-                          readOnly
-                          value={
-                            selectedMaterial?.unit ?? ""
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-600
-                            bg-slate-700
-                            px-3
-                            py-2
-                            text-center
-                            text-sm
-                            font-semibold
-                            text-white
-                          "
-                        />
+  type="text"
+  name="documentNo"
+  value={documentValue}
+  readOnly
+  className="
+    w-full
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    px-4
+    py-3
+    text-lg
+    font-extrabold
+    text-cyan-700
+    outline-none
+  "
+/>
 
 
                       </td>
