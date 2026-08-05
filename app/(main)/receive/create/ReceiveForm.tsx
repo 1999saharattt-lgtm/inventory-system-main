@@ -157,7 +157,7 @@ const [documentValue,setDocumentValue] = useState(documentNo);
           className="
             grid
             gap-5
-            md:grid-cols-3
+            md:grid-cols-[1fr_1fr_1.2fr]
           "
         >
 
@@ -260,17 +260,19 @@ const [documentValue,setDocumentValue] = useState(documentNo);
 
 
   <label
-    className="
-      mt-3
-      flex
-      items-center
-      gap-2
-      cursor-pointer
-      text-sm
-      font-semibold
-      text-white
-    "
-  >
+  className="
+    mt-3
+    flex
+    w-max
+    items-center
+    gap-2
+    cursor-pointer
+    whitespace-nowrap
+    text-sm
+    font-semibold
+    text-white
+  "
+>
 
     <input
       type="checkbox"
@@ -299,13 +301,13 @@ const [documentValue,setDocumentValue] = useState(documentNo);
         cursor-pointer
       "
     />
-
-
-    <span>
-      ยอดยกเข้าระบบ
-    </span>
-
-
+<span
+  className="
+    whitespace-nowrap
+  "
+>
+  ยอดยกเข้าระบบ
+</span>
   </label>
 
 
