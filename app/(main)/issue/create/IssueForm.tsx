@@ -259,7 +259,7 @@ export default function IssueForm({
           className="
             grid
             gap-5
-            md:grid-cols-2
+            md:grid-cols-[2fr_1fr]
           "
         >
 
@@ -319,6 +319,7 @@ export default function IssueForm({
     items-center
     gap-2
     cursor-pointer
+    whitespace-nowrap
     text-sm
     font-semibold
     text-white
@@ -346,9 +347,9 @@ export default function IssueForm({
     "
   />
 
-  <span>
-    แก้ไขเลขที่เอกสาร
-  </span>
+  <span className="whitespace-nowrap">
+  แก้ไขเลขที่เอกสาร
+</span>
 
 </label>
 
