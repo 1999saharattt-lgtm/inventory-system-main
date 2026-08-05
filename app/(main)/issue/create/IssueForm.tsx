@@ -118,6 +118,10 @@ export default function IssueForm({
 
   const [officerId,setOfficerId] = useState("");
 
+  const [editDocumentNo,setEditDocumentNo] = useState(false);
+
+  const [documentValue,setDocumentValue] = useState(documentNo);
+
 
 
   const categories = [
@@ -280,28 +284,73 @@ export default function IssueForm({
 
             <input
 
-              type="text"
+  type="text"
 
-              name="documentNo"
+  name="documentNo"
 
-              value={documentNo}
+  value={documentValue}
 
-              readOnly
+  onChange={(e)=>{
+    setDocumentValue(e.target.value);
+  }}
 
-              className="
-                w-full
-                rounded-xl
-                border
-                border-cyan-400
-                bg-slate-100
-                p-3
-                text-lg
-                font-extrabold
-                text-cyan-700
-                outline-none
-              "
+  readOnly={!editDocumentNo}
 
-            />
+  className="
+    w-full
+    rounded-xl
+    border
+    border-cyan-400
+    bg-slate-100
+    p-3
+    text-lg
+    font-extrabold
+    text-cyan-700
+    outline-none
+  "
+
+/>
+
+<label
+  className="
+    mt-2
+    flex
+    w-fit
+    items-center
+    gap-2
+    cursor-pointer
+    text-sm
+    font-semibold
+    text-white
+  "
+>
+
+  <input
+    type="checkbox"
+    checked={editDocumentNo}
+    onChange={(e)=>{
+
+      const checked = e.target.checked;
+
+      setEditDocumentNo(checked);
+
+      if(!checked){
+        setDocumentValue(documentNo);
+      }
+
+    }}
+    className="
+      h-4
+      w-4
+      cursor-pointer
+    "
+  />
+
+  <span>
+    แก้ไขเลขที่เอกสาร
+  </span>
+
+</label>
 
 
           </div>
