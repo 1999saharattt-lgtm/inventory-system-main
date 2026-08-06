@@ -157,8 +157,8 @@ export default function EditIssueForm({
     rounded-2xl
     border
     border-slate-200
-    bg-white
-    p-6
+    bg-slate-50
+    p-8
     shadow-xl
   "
 >
@@ -288,12 +288,13 @@ export default function EditIssueForm({
 
         <div
   className="
+    mt-2
     overflow-hidden
     rounded-2xl
     border
-    border-slate-200
+    border-slate-300
     bg-white
-    shadow-xl
+    shadow-lg
   "
 >
           <div className="overflow-x-auto">
