@@ -150,11 +150,13 @@ export default async function IssuePage(){
 
 
           <table
-            className="
-              min-w-full
-              text-sm
-            "
-          >
+  className="
+    min-w-full
+    text-sm
+    border
+    border-slate-900
+  "
+>
 
 
             <thead>
@@ -176,6 +178,8 @@ export default async function IssuePage(){
                     <th
   key={title}
   className="
+    border
+    border-slate-900
     bg-gradient-to-r
     from-slate-800
     to-slate-700
@@ -219,27 +223,28 @@ export default async function IssuePage(){
 
 
                     <tr
+  key={issue.id}
 
-                      key={issue.id}
-
-                      className="
-  border-b
-  hover:bg-blue-50
+  className="
+    border-b
+    border-slate-900
+    hover:bg-blue-50
 "
-
-                    >
+>
 
 
 
                       <td
-                        className="
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                          text-slate-700
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                         {index+1}
 
@@ -250,14 +255,16 @@ export default async function IssuePage(){
 
 
                       <td
-                        className="
-                          px-4
-                          py-3
-                          text-center
-                          font-semibold
-                          text-slate-700
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                         {
                           issue.issueDate
@@ -276,11 +283,13 @@ new Date(issue.issueDate)
 
                       <td
   className="
+    border
+    border-slate-900
     px-4
     py-3
     text-center
-    font-bold
-    text-slate-800
+    font-extrabold
+    text-slate-900
   "
 >
 
@@ -289,25 +298,31 @@ new Date(issue.issueDate)
 </td>
 
                       <td
-                        className="
-                          px-4
-                          py-3
-                          font-bold
-                          text-slate-800
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                         {issue.department?.name ?? "-"}
 
                       </td>
-                                            <td
-                        className="
-                          px-4
-                          py-3
-                          font-bold
-                          text-slate-800
-                        "
-                      >
+                        <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                         {
                           issue.officer
@@ -325,13 +340,16 @@ new Date(issue.issueDate)
 
 
                       <td
-                        className="
-                          
-                          px-4
-                          py-3
-                          text-center
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                         <Link
@@ -363,13 +381,16 @@ new Date(issue.issueDate)
 
 
                       <td
-                        className="
-                          
-                          px-4
-                          py-3
-                          text-slate-700
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                         {
                           issue.remark
@@ -397,12 +418,16 @@ new Date(issue.issueDate)
 
 
                       <td
-                        className="
-                          
-                          px-4
-                          py-3
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                         <div
@@ -470,16 +495,19 @@ new Date(issue.issueDate)
 
                     <td
 
-                      colSpan={8}
+  colSpan={8}
 
-                      className="
-                        py-12
-                        text-center
-                        font-semibold
-                        text-slate-500
-                      "
+  className="
+    border
+    border-slate-900
+    py-12
+    text-center
+    text-lg
+    font-extrabold
+    text-slate-500
+  "
 
-                    >
+>
 
                       ยังไม่มีรายการเบิกจ่ายพัสดุ
 
