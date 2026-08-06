@@ -122,14 +122,48 @@ export default async function EditIssuePage({
     <div className="space-y-6 p-6">
 
 
-      <div className="flex items-center justify-between">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-900
+          to-slate-700
+          p-6
+          shadow-xl
+        "
+      >
 
 
-        <h1 className="text-3xl font-bold text-white">
+        <div>
 
-          แก้ไขใบเบิกพัสดุ
 
-        </h1>
+          <div
+            className="
+              text-lg
+              font-extrabold
+              text-white
+            "
+          >
+            🖊️ แก้ไขรายการเบิกพัสดุ
+          </div>
+
+
+
+          <div
+            className="
+              mt-2
+              text-white
+              font-bold
+            "
+          >
+            แก้ไขรายละเอียดเอกสารและรายการพัสดุ
+          </div>
+
+
+        </div>
 
 
 
@@ -138,13 +172,24 @@ export default async function EditIssuePage({
 
           href="/issue"
 
-          className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+          className="
+            rounded-xl
+            bg-emerald-500
+            px-6
+            py-3
+            font-extrab-bold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
 
         >
 
           ← กลับ
 
         </Link>
+
 
 
       </div>
