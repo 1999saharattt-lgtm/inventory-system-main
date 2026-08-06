@@ -156,7 +156,7 @@ export default function EditIssueForm({
   className="
     rounded-2xl
     border
-    border-slate-700
+    border-slate-200
     bg-white
     p-6
     shadow-xl
@@ -291,7 +291,7 @@ export default function EditIssueForm({
     overflow-hidden
     rounded-2xl
     border
-    border-slate-700
+    border-slate-200
     bg-white
     shadow-xl
   "
@@ -532,7 +532,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
@@ -585,7 +585,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
@@ -632,7 +632,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
@@ -669,7 +669,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
@@ -705,7 +705,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
@@ -807,7 +807,7 @@ font-extrabold
   rounded-xl
   border
   border-slate-300
-  bg-slate-100
+  bg-white
   p-3
   font-bold
   text-center
