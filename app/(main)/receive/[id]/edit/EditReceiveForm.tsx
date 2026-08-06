@@ -157,17 +157,15 @@ export default function EditReceiveForm({
   return (
 
     <div
-      className="
-        rounded-2xl
-        border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        to-slate-800
-        p-6
-        shadow-xl
-      "
-    >
+  className="
+    rounded-2xl
+    border
+    border-slate-700
+    bg-white
+    p-6
+    shadow-xl
+  "
+>
 
 
       <form
@@ -203,7 +201,7 @@ export default function EditReceiveForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               วันที่รับเข้า
@@ -225,7 +223,8 @@ export default function EditReceiveForm({
                 border-slate-300
                 bg-white
                 p-3
-                text-black
+                font-bold
+text-black
               "
             />
 
@@ -243,7 +242,7 @@ export default function EditReceiveForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               เลขที่เอกสาร
@@ -265,7 +264,8 @@ export default function EditReceiveForm({
                 border-slate-300
                 bg-white
                 p-3
-                text-black
+                font-bold
+text-black
               "
 
             />
@@ -285,7 +285,7 @@ export default function EditReceiveForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               ผู้จำหน่าย
@@ -305,7 +305,8 @@ export default function EditReceiveForm({
                 border-slate-300
                 bg-white
                 p-3
-                text-black
+                font-bold
+text-black
               "
 
             >
@@ -346,7 +347,15 @@ export default function EditReceiveForm({
 
           <div className="overflow-x-auto">
 
-            <table className="w-full text-sm">
+            <table
+  className="
+    w-full
+    text-sm
+    border
+    border-slate-900
+    border-collapse
+  "
+>
 
 
               <thead>
@@ -374,6 +383,10 @@ export default function EditReceiveForm({
                     <th
   className="
     border
+    border-slate-900
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
     px-3
     py-4
     text-center
@@ -425,29 +438,28 @@ export default function EditReceiveForm({
 
 
                       <tr
-
-                        key={index}
-
-                        className="
-                          border-b
-                          border-slate-200
-                          text-slate-900
-                          hover:bg-emerald-50
-                        "
-
-                      >
+  key={index}
+  className="
+    border
+    border-slate-900
+    text-slate-900
+    hover:bg-emerald-50
+  "
+>
 
 
 
                         <td
-                          className="
-                            border
-                            px-3
-                            py-3
-                            text-center
-                            font-bold
-                          "
-                        >
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
 
                           {index+1}
 
@@ -457,7 +469,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <select
@@ -479,7 +500,8 @@ export default function EditReceiveForm({
                               border-slate-300
                               bg-white
                               p-2
-                              text-black
+                              font-bold
+text-black
                             "
 
                           >
@@ -522,7 +544,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <select
@@ -546,7 +577,8 @@ export default function EditReceiveForm({
                               border-slate-300
                               bg-white
                               p-2
-                              text-black
+                              font-bold
+text-black
                             "
 
                           >
@@ -592,7 +624,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <input
@@ -613,7 +654,8 @@ export default function EditReceiveForm({
                               bg-slate-100
                               p-2
                               text-center
-                              text-black
+                              font-bold
+text-black
                             "
 
                           />
@@ -627,7 +669,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <input
@@ -653,7 +704,8 @@ export default function EditReceiveForm({
                               border-slate-300
                               p-2
                               text-center
-                              text-black
+                              font-bold
+text-black
                             "
 
                           />
@@ -667,7 +719,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <input
@@ -697,7 +758,8 @@ export default function EditReceiveForm({
                               border-slate-300
                               p-2
                               text-right
-                              text-black
+                              font-bold
+text-black
                             "
 
                           />
@@ -711,7 +773,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <input
@@ -736,7 +807,8 @@ export default function EditReceiveForm({
                               border
                               border-slate-300
                               p-2
-                              text-black
+                              font-bold
+text-black
                             "
 
                           />
@@ -750,7 +822,16 @@ export default function EditReceiveForm({
 
 
 
-                        <td className="border px-3 py-3">
+                        <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
 
 
                           <input
@@ -775,7 +856,8 @@ export default function EditReceiveForm({
                               border
                               border-slate-300
                               p-2
-                              text-black
+                              font-bold
+text-black
                             "
 
                           />
@@ -820,14 +902,14 @@ export default function EditReceiveForm({
 
 
           <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
+  className="
+    mb-2
+    block
+    text-lg
+    font-extrabold
+    text-slate-900
+  "
+>
 
             หมายเหตุ
 
@@ -850,7 +932,8 @@ export default function EditReceiveForm({
               border-slate-300
               bg-white
               p-3
-              text-black
+              font-bold
+text-black
             "
 
           />
