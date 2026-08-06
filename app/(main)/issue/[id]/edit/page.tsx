@@ -27,17 +27,11 @@ export default async function EditIssuePage({
     },
 
     include:{
-
       items:{
-
         include:{
-
           material:true,
-
         },
-
       },
-
     },
 
   });
@@ -95,6 +89,34 @@ export default async function EditIssuePage({
 
 
 
+  // ดึงล็อตที่ยังเหลืออยู่
+  // เรียงวันหมดอายุใกล้หมดก่อน (FEFO)
+
+  const receiveItems =
+    await prisma.receiveItem.findMany({
+
+      where:{
+        qty:{
+          gt:0,
+        },
+      },
+
+      include:{
+        material:true,
+      },
+
+      orderBy:[
+        {
+          expiry:"asc",
+        },
+      ],
+
+    });
+
+
+
+
+
   return (
 
     <div className="space-y-6 p-6">
@@ -138,6 +160,8 @@ export default async function EditIssuePage({
         departments={departments}
 
         materials={materials}
+
+        receiveItems={receiveItems}
 
       />
 

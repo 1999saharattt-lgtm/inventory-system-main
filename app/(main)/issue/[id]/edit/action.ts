@@ -49,22 +49,28 @@ export async function updateIssue(
 
   for(let i = 0; i < 15; i++){
 
-
-    const materialId =
-      Number(
-        formData.get(
-          `items[${i}].materialId`
-        )
-      );
-
+  const materialId =
+    Number(
+      formData.get(
+        `items[${i}].materialId`
+      )
+    );
 
 
-    const qty =
-      Number(
-        formData.get(
-          `items[${i}].qty`
-        )
-      );
+  const qty =
+    Number(
+      formData.get(
+        `items[${i}].qty`
+      )
+    );
+
+
+  const receiveItemId =
+    Number(
+      formData.get(
+        `items[${i}].receiveItemId`
+      )
+    );
 
 
 
@@ -75,11 +81,14 @@ export async function updateIssue(
 
       newItems.push({
 
-        materialId,
+  materialId,
 
-        qty,
+  qty,
 
-      });
+  receiveItemId:
+    receiveItemId || null,
+
+});
 
     }
 
@@ -260,19 +269,22 @@ export async function updateIssue(
 
         await tx.issueItem.create({
 
-          data:{
+  data:{
 
-            issueId,
+    issueId,
 
-            materialId:
-              item.materialId,
+    materialId:
+      item.materialId,
 
-            qty:
-              item.qty,
+    qty:
+      item.qty,
 
-          },
+    receiveItemId:
+      item.receiveItemId,
 
-        });
+  },
+
+});
 
 
 

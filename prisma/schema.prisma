@@ -148,6 +148,8 @@ model ReceiveItem {
 
   qty Int
 
+  balance Int @default(0)
+
   unitPrice Float
 
   manufacture DateTime?

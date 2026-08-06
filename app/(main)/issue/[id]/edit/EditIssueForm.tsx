@@ -15,12 +15,23 @@ type Material = {
   unit: string;
   category: string;
   latestPrice: number;
+  balance:number;
 };
+
+type ReceiveItem = {
+  id:number;
+  materialId:number;
+  qty:number;
+  manufacture:Date | null;
+  expiry:Date | null;
+};
+
 
 type Props = {
   issue: any;
   departments: Department[];
   materials: Material[];
+  receiveItems: ReceiveItem[];
 };
 
 const categories = [
@@ -44,33 +55,82 @@ const categories = [
     value: "VEHICLE",
     label: "วัสดุยานพาหนะ",
   },
+  {
+  value: "PRINTING",
+  label: "วัสดุสื่อสิ่งพิมพ์",
+},
 ];
 
 type IssueRow = {
   category: string;
   materialId: string;
   qty: string;
+  manufacture: string;
+  expiry: string;
+  receiveItemId: string;
 };
 
 export default function EditIssueForm({
   issue,
   departments,
   materials,
+  receiveItems,
 }: Props) {
   const [items, setItems] = useState<IssueRow[]>(() => {
-    const rows = issue.items.map((item: any) => ({
-      category: item.material.category,
-      materialId: String(item.materialId),
-      qty: String(item.qty),
-    }));
+    const rows = issue.items.map((item:any)=>{
+
+  const lot =
+  receiveItems.find(
+    (r)=>
+      r.materialId === item.materialId
+  );
+
+
+  return {
+  category:item.material.category,
+
+  materialId:String(item.materialId),
+
+  qty:String(item.qty),
+
+  receiveItemId:
+    lot
+      ? String(lot.id)
+      : "",
+
+    manufacture:
+      lot?.manufacture
+      ?
+      new Date(lot.manufacture)
+      .toISOString()
+      .split("T")[0]
+      :
+      "",
+
+
+    expiry:
+      lot?.expiry
+      ?
+      new Date(lot.expiry)
+      .toISOString()
+      .split("T")[0]
+      :
+      "",
+
+  };
+
+});
 
     while (rows.length < 15) {
-      rows.push({
-        category: "",
-        materialId: "",
-        qty: "",
-      });
-    }
+  rows.push({
+    category: "",
+    materialId: "",
+    qty: "",
+    manufacture:"",
+    expiry:"",
+    receiveItemId:"",
+  });
+}
 
     return rows;
   });
@@ -93,17 +153,15 @@ export default function EditIssueForm({
 
   return (
     <div
-      className="
-        rounded-2xl
-        border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        to-slate-800
-        p-6
-        shadow-xl
-      "
-    >
+  className="
+    rounded-2xl
+    border
+    border-slate-700
+    bg-white
+    p-6
+    shadow-xl
+  "
+>
       <form
         action={updateIssue}
         className="space-y-6"
@@ -130,7 +188,7 @@ export default function EditIssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               วันที่เบิกจ่าย
@@ -146,12 +204,13 @@ export default function EditIssueForm({
               }
               className="
                 w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-3
-                text-black
+  rounded-xl
+  border
+  border-slate-300
+  bg-white
+  p-3
+  font-bold
+  text-black
               "
             />
           </div>
@@ -163,7 +222,7 @@ export default function EditIssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               เลขที่ใบเบิก
@@ -175,12 +234,13 @@ export default function EditIssueForm({
               defaultValue={issue.documentNo}
               className="
                 w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-3
-                text-black
+  rounded-xl
+  border
+  border-slate-300
+  bg-white
+  p-3
+  font-bold
+  text-black
               "
             />
           </div>
@@ -192,7 +252,7 @@ export default function EditIssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
               หน่วยงาน
@@ -202,14 +262,15 @@ export default function EditIssueForm({
               name="departmentId"
               defaultValue={issue.departmentId}
               className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-3
-                text-black
-              "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-white
+  p-3
+  font-bold
+  text-black
+"
             >
               {departments.map((department: any) => (
                 <option
@@ -226,115 +287,183 @@ export default function EditIssueForm({
         {/* ตารางรายการ */}
 
         <div
-          className="
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-200
-            bg-white
-            shadow-xl
-          "
-        >
+  className="
+    overflow-hidden
+    rounded-2xl
+    border
+    border-slate-700
+    bg-white
+    shadow-xl
+  "
+>
           <div className="overflow-x-auto">
 
-            <table className="w-full text-sm">
+            <table
+  className="
+    w-full
+    border-collapse
+    border
+    border-slate-900
+    text-sm
+  "
+>
                           <thead>
+  <tr
+    className="
+      bg-gradient-to-r
+      from-slate-800
+      to-slate-700
+      !text-white
+    "
+  >
+    <th
+      className="
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-3
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  !text-white
+"
+    >
+      ลำดับ
+    </th>
 
-                <tr
-                  className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                  "
-                >
+    <th
+  className="
+    border
+    border-slate-900
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
+    px-3
+    py-4
+    text-center
+    text-lg
+    font-extrabold
+    !text-white
+  "
+>
+  หมวด
+</th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    ลำดับ
-                  </th>
+    <th
+      className="
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-3
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  !text-white
+"
+    >
+      รายการพัสดุ
+    </th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    หมวด
-                  </th>
+    <th
+      className="
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-3
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  !text-white
+"
+    >
+      หน่วย
+    </th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    ชื่อพัสดุ
-                  </th>
+    <th
+      className="
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-3
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  !text-white
+"
+    >
+      จำนวน
+    </th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    หน่วย
-                  </th>
+    <th
+      className="
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-3
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  !text-white
+"
+    >
+      ราคาต่อหน่วย
+    </th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    จำนวน
-                  </th>
+    <th
+className="
+border
+border-slate-900
+bg-gradient-to-r
+from-slate-800
+to-slate-700
+px-3
+py-4
+text-center
+text-lg
+font-extrabold
+!text-white
+"
+>
+วันผลิต
+</th>
 
-                  <th
-                    className="
-                      border
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    ราคาต่อหน่วย
-                  </th>
 
-                </tr>
+<th
+className="
+border
+border-slate-900
+bg-gradient-to-r
+from-slate-800
+to-slate-700
+px-3
+py-4
+text-center
+text-lg
+font-extrabold
+!text-white
+"
+>
+วันหมดอายุ
+</th>
 
-              </thead>
+
+  </tr>
+</thead>
 
               <tbody>
 
@@ -355,20 +484,39 @@ export default function EditIssueForm({
                   return (
 
                     <tr
-                      key={index}
-                      className="
-                        border-b
-                        border-slate-200
-                        text-slate-900
-                        hover:bg-emerald-50
-                      "
-                    >
+ key={index}
+ className="
+   border
+   border-slate-900
+   text-slate-900
+   hover:bg-emerald-50
+ "
+>
 
-                      <td className="border px-3 py-3 text-center font-bold">
+                      <td
+  className="
+    border
+    border-slate-900
+    px-3
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
                         {index + 1}
                       </td>
 
-                      <td className="border px-3 py-3">
+                      <td
+ className="
+   border
+   border-slate-900
+   px-3
+   py-3
+   font-extrabold
+   text-slate-900
+ "
+>
 
                         <select
                           value={row.category}
@@ -380,18 +528,20 @@ export default function EditIssueForm({
                             )
                           }
                           className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
-                          "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
                         >
 
                           <option value="">
-                            เลือกหมวด
+                            เลือกหมวดหมู่
                           </option>
 
                           {categories.map((c: any) => (
@@ -409,7 +559,16 @@ export default function EditIssueForm({
 
                       </td>
 
-                      <td className="border px-3 py-3">
+                      <td
+ className="
+   border
+   border-slate-900
+   px-3
+   py-3
+   font-extrabold
+   text-slate-900
+ "
+>
 
                         <select
                           name={`items[${index}].materialId`}
@@ -422,18 +581,20 @@ export default function EditIssueForm({
                             )
                           }
                           className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-black
-                          "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
                         >
 
                           <option value="">
-                            เลือกพัสดุ
+                            เลือกรายการพัสดุ
                           </option>
 
                           {filteredMaterials.map((material: any) => (
@@ -451,26 +612,45 @@ export default function EditIssueForm({
 
                       </td>
 
-                      <td className="border px-3 py-3">
+                      <td
+ className="
+   border
+   border-slate-900
+   px-3
+   py-3
+   font-extrabold
+   text-slate-900
+ "
+>
 
                         <input
                           type="text"
                           value={selectedMaterial?.unit ?? ""}
                           readOnly
                           className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-slate-100
-                            p-2
-                            text-center
-                            text-black
-                          "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
                         />
 
                       </td>
-                                            <td className="border px-3 py-3">
+                                            <td
+ className="
+   border
+   border-slate-900
+   px-3
+   py-3
+   font-extrabold
+   text-slate-900
+ "
+>
 
                         <input
                           type="number"
@@ -485,20 +665,30 @@ export default function EditIssueForm({
                           }
                           min={1}
                           className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-center
-                            text-black
-                          "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
                         />
 
                       </td>
 
-                      <td className="border px-3 py-3">
+                      <td
+ className="
+   border
+   border-slate-900
+   px-3
+   py-3
+   font-extrabold
+   text-slate-900
+ "
+>
 
                         <input
                           type="text"
@@ -511,17 +701,71 @@ export default function EditIssueForm({
                           }
                           readOnly
                           className="
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
+                        />
+
+                      </td>
+
+                                            <td
+                        className="
+                          border
+                          border-slate-900
+                          px-3
+                          py-3
+                        "
+                      >
+                        <input
+                          type="date"
+                          value={row.manufacture}
+                          readOnly
+                          className="
                             w-full
                             rounded-xl
                             border
                             border-slate-300
                             bg-slate-100
-                            p-2
-                            text-right
+                            p-3
+                            font-bold
+                            text-center
                             text-black
                           "
                         />
+                      </td>
 
+
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-3
+                          py-3
+                        "
+                      >
+                        <input
+                          type="date"
+                          value={row.expiry}
+                          readOnly
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-slate-100
+                            p-3
+                            font-bold
+                            text-center
+                            text-black
+                          "
+                        />
                       </td>
 
                     </tr>
@@ -548,7 +792,7 @@ export default function EditIssueForm({
               block
               text-lg
               font-extrabold
-              text-white
+              text-slate-900
             "
           >
             หมายเหตุ
@@ -559,14 +803,16 @@ export default function EditIssueForm({
             rows={4}
             defaultValue={issue.remark ?? ""}
             className="
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-3
-              text-black
-            "
+  w-full
+  rounded-xl
+  border
+  border-slate-300
+  bg-slate-100
+  p-3
+  font-bold
+  text-center
+  text-black
+"
           />
 
         </div>
@@ -580,25 +826,25 @@ export default function EditIssueForm({
           "
         >
                   <button
-            type="submit"
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              via-green-500
-              to-emerald-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-          >
-            💾 บันทึกการแก้ไข
-          </button>
+  type="submit"
+  className="
+    rounded-xl
+    bg-gradient-to-r
+    from-emerald-600
+    via-green-500
+    to-emerald-500
+    px-8
+    py-3
+    text-lg
+    font-extrabold
+    text-white
+    shadow-lg
+    transition
+    hover:scale-105
+  "
+>
+  💾 บันทึกการแก้ไข
+</button>
 
         </div>
 
