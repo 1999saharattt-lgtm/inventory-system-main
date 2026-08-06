@@ -409,7 +409,7 @@ export default async function IssueDetailPage({
               >
                 {[
                   "ลำดับ",
-                  "หมวด",
+                  "หมวดหมู่",
                   "รายการพัสดุ",
                   "หน่วย",
                   "จำนวน",

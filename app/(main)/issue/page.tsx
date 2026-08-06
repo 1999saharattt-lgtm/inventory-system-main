@@ -368,7 +368,7 @@ new Date(issue.issueDate)
 "
                         >
 
-                          แสดงรายการพัสดุ
+                          ดูรายการ
 
                         </Link>
 

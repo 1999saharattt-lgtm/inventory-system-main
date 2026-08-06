@@ -349,7 +349,7 @@ export default function EditIssueForm({
     !text-white
   "
 >
-  หมวด
+  หมวดหมู่
 </th>
 
     <th
