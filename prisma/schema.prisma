@@ -118,7 +118,7 @@ model Officer {
 model Receive {
   id Int @id @default(autoincrement())
 
-  documentNo String @unique
+  documentNo String
 
   receiveDate DateTime
 
@@ -164,7 +164,7 @@ model ReceiveItem {
 model Issue {
   id Int @id @default(autoincrement())
 
-  documentNo String @unique
+  documentNo String
 
   issueDate DateTime
 
