@@ -134,7 +134,13 @@ export default async function ReceivePage() {
         <div className="overflow-x-auto">
 
 
-          <table className="min-w-full">
+          <table
+  className="
+    min-w-full
+    border
+    border-slate-900
+  "
+>
 
 
             <thead>
@@ -155,16 +161,18 @@ export default async function ReceivePage() {
                   <th
                     key={title}
                     className="
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-4
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  text-white
+"
                   >
                     {title}
                   </th>
@@ -192,22 +200,25 @@ export default async function ReceivePage() {
 
 
                     <tr
-                      key={receive.id}
-                      className="
-                        border-b
-                        hover:bg-blue-50
-                      "
-                    >
+  key={receive.id}
+  className="
+    border-b
+    border-slate-900
+    hover:bg-blue-50
+  "
+>
 
 
                       <td
                         className="
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                          text-slate-700
-                        "
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
                       >
                         {index + 1}
                       </td>
@@ -218,12 +229,14 @@ export default async function ReceivePage() {
 
                       <td
                         className="
-                          px-4
-                          py-3
-                          text-center
-                          font-semibold
-                          text-slate-700
-                        "
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
                       >
                         {new Date(
                           receive.receiveDate
@@ -238,12 +251,14 @@ export default async function ReceivePage() {
 
                       <td
                         className="
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                          text-slate-800
-                        "
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
                       >
                         {receive.documentNo}
                       </td>
@@ -254,11 +269,14 @@ export default async function ReceivePage() {
 
                       <td
                         className="
-                          px-4
-                          py-3
-                          font-bold
-                          text-slate-800
-                        "
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
                       >
                         {receive.vendor.name}
                       </td>
@@ -269,10 +287,14 @@ export default async function ReceivePage() {
 
                       <td
                         className="
-                          px-4
-                          py-3
-                          text-center
-                        "
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
                       >
 
                         <Link
@@ -300,12 +322,16 @@ export default async function ReceivePage() {
 
 
                       <td
-                        className="
-                          px-4
-                          py-3
-                          text-slate-700
-                        "
-                      >
+  className="
+  border
+  border-slate-900
+  px-4
+  py-3
+  text-center
+  font-extrabold
+  text-slate-900
+"
+>
 
                         {
                           receive.remark ?? "-"
@@ -318,11 +344,13 @@ export default async function ReceivePage() {
 
 
                       <td
-                        className="
-                          px-4
-                          py-3
-                        "
-                      >
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+  "
+>
 
                         <div
                           className="
