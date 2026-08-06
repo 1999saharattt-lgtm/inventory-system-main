@@ -287,7 +287,13 @@ export default async function CategoryPage({
         <div className="overflow-x-auto">
 
 
-          <table className="min-w-full">
+          <table
+  className="
+    min-w-full
+    border
+    border-slate-900
+  "
+>
 
 
             <thead>
@@ -308,16 +314,18 @@ export default async function CategoryPage({
                   <th
                     key={title}
                     className="
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
+  border
+  border-slate-900
+  bg-gradient-to-r
+  from-slate-800
+  to-slate-700
+  px-4
+  py-4
+  text-center
+  text-lg
+  font-extrabold
+  text-white
+"
                   >
                     {title}
                   </th>
@@ -339,35 +347,82 @@ export default async function CategoryPage({
                 materials.map((material: Material) => (
 
                   <tr
-                    key={material.id}
-                    className="
-                      border-b
-                      hover:bg-blue-50
-                    "
-                  >
+  key={material.id}
+  className="
+    hover:bg-blue-50
+  "
+>
 
 
-                    <td className="px-4 py-3 font-bold text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.code}
                     </td>
 
 
-                    <td className="px-4 py-3 font-bold text-slate-800">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.name}
                     </td>
 
 
-                    <td className="px-4 py-3 text-center font-bold text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.balance}
                     </td>
 
 
-                    <td className="px-4 py-3 text-center text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.unit}
                     </td>
 
 
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-right
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.latestPrice.toLocaleString(
                         "th-TH",
                         {
@@ -378,7 +433,17 @@ export default async function CategoryPage({
                     </td>
 
 
-                    <td className="px-4 py-3 text-center text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.receiveItems[0]?.manufacture
                         ? new Date(
                             material.receiveItems[0].manufacture
@@ -388,7 +453,17 @@ export default async function CategoryPage({
                     </td>
 
 
-                    <td className="px-4 py-3 text-center text-slate-700">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+    text-center
+    font-extrabold
+    text-slate-900
+  "
+>
                       {material.receiveItems[0]?.expiry
                         ? new Date(
                             material.receiveItems[0].expiry
@@ -398,7 +473,14 @@ export default async function CategoryPage({
                     </td>
 
 
-                    <td className="px-4 py-3">
+                    <td
+  className="
+    border
+    border-slate-900
+    px-4
+    py-3
+  "
+>
 
                       <div className="flex justify-center gap-2">
 
