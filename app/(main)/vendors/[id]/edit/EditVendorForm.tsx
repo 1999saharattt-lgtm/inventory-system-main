@@ -10,7 +10,6 @@ type Vendor = {
   taxId: string | null;
 };
 
-
 export default function EditVendorForm({
   vendor,
 }: {
@@ -20,15 +19,19 @@ export default function EditVendorForm({
   const [loading, setLoading] = useState(false);
 
 
-
   async function handleSubmit(
-    formData: FormData
+    e: React.FormEvent
   ) {
+
+    e.preventDefault();
 
     setLoading(true);
 
 
     try {
+
+      const formData =
+        new FormData(e.currentTarget as HTMLFormElement);
 
 
       const body = {
@@ -48,13 +51,13 @@ export default function EditVendorForm({
       const res = await fetch(
         `/api/vendors/${vendor.id}`,
         {
-          method: "PUT",
+          method:"PUT",
 
           headers:{
             "Content-Type":"application/json",
           },
 
-          body: JSON.stringify(body),
+          body:JSON.stringify(body),
         }
       );
 
@@ -65,7 +68,6 @@ export default function EditVendorForm({
         alert("บันทึกสำเร็จ");
 
         location.href="/vendors";
-
 
       }else{
 
@@ -95,10 +97,23 @@ export default function EditVendorForm({
   return (
 
     <form
-      action={handleSubmit}
+
+      onSubmit={handleSubmit}
+
       className="
         space-y-6
+        rounded-3xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        p-8
+        text-white
+        shadow-2xl
       "
+
     >
 
 
@@ -113,7 +128,7 @@ export default function EditVendorForm({
 
 
 
-        {/* ชื่อผู้จำหน่าย */}
+        {/* ชื่อ */}
 
         <div>
 
@@ -123,7 +138,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-slate-900
+              text-white
             "
           >
             ชื่อผู้จำหน่าย
@@ -136,21 +151,19 @@ export default function EditVendorForm({
 
             defaultValue={vendor.name}
 
+            required
+
             className="
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
-              outline-none
-              transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              text-white
+              focus:border-cyan-400
+              focus:outline-none
             "
 
           />
@@ -170,8 +183,8 @@ export default function EditVendorForm({
               mb-2
               block
               text-lg
-              font-extrabold
-              text-slate-900
+              font-extrabолд
+              text-white
             "
           >
             เบอร์โทร
@@ -188,17 +201,13 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
-              outline-none
-              transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              text-white
+              focus:border-cyan-400
+              focus:outline-none
             "
 
           />
@@ -219,8 +228,8 @@ export default function EditVendorForm({
               mb-2
               block
               text-lg
-              font-extrabold
-              text-slate-900
+              font-extrabолд
+              text-white
             "
           >
             เลขประจำตัวผู้เสียภาษี
@@ -237,17 +246,13 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
-              outline-none
-              transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              text-white
+              focus:border-cyan-400
+              focus:outline-none
             "
 
           />
@@ -263,9 +268,12 @@ export default function EditVendorForm({
 
 
 
+
+
       {/* ที่อยู่ */}
 
       <div>
+
 
         <label
           className="
@@ -273,11 +281,12 @@ export default function EditVendorForm({
             block
             text-lg
             font-extrabold
-            text-slate-900
+            text-white
           "
         >
           ที่อยู่
         </label>
+
 
 
         <textarea
@@ -292,20 +301,17 @@ export default function EditVendorForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
+            border-slate-600
+            bg-slate-800
+            p-3
             font-bold
-            text-black
-            outline-none
-            transition
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
           "
 
         />
+
 
       </div>
 
@@ -315,18 +321,24 @@ export default function EditVendorForm({
 
 
 
-      {/* Button */}
+
+      {/* Buttons */}
 
       <div
+
         className="
           flex
           gap-4
           pt-4
         "
+
       >
 
 
+
         <button
+
+          type="submit"
 
           disabled={loading}
 
@@ -350,29 +362,39 @@ export default function EditVendorForm({
           {
             loading
             ? "กำลังบันทึก..."
-            : "บันทึก"
+            : "💾 บันทึกการแก้ไข"
           }
 
         </button>
 
 
 
+
+
         <a
+
           href="/vendors"
+
           className="
             rounded-xl
-            bg-slate-700
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
             px-8
             py-3
             font-extrabอด
             text-white
             shadow-lg
             transition
-            hover:bg-slate-800
+            hover:scale-105
           "
+
         >
+
           ยกเลิก
+
         </a>
+
 
 
       </div>
