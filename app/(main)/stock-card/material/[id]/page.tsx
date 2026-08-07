@@ -3,576 +3,820 @@ import { prisma } from "@/lib/prisma";
 import ExportPdf from "./ExportPdf";
 import ExportExcel from "./ExportExcel";
 
+
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
 
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+
+
+const categoryName: Record<string,string> = {
+
+  OFFICE:"วัสดุสำนักงาน",
+  COMPUTER:"วัสดุคอมพิวเตอร์",
+  ELECTRIC:"วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD:"วัสดุงานบ้านและงานครัว",
+  VEHICLE:"วัสดุยานพาหนะ",
+  PRINTING:"วัสดุสื่อสิ่งพิมพ์",
+
 };
 
 
-function formatDateAD(date: Date | string) {
+
+function formatDateAD(date: Date | string){
+
   const d = new Date(date);
 
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
+  return `${String(d.getDate()).padStart(2,"0")}/${
+    String(d.getMonth()+1).padStart(2,"0")
+  }/${d.getFullYear()}`;
 
-  return `${day}/${month}/${year}`;
 }
+
+
 
 
 
 export default async function StockCardPage({
   params,
-}: Props) {
+}:Props){
 
 
-  const { id } = await params;
+const {id}=await params;
 
 
-  const material = await prisma.material.findUnique({
 
-    where:{
-      id:Number(id),
-    },
+const material = await prisma.material.findUnique({
 
-    include:{
+where:{
+  id:Number(id),
+},
 
-      vendor:true,
 
-      receiveItems:{
-        include:{
-          receive:{
-            include:{
-              vendor:true,
-            },
-          },
-        },
+include:{
 
-        orderBy:{
-          receive:{
-            receiveDate:"asc",
-          },
-        },
+
+ vendor:true,
+
+
+ receiveItems:{
+
+  include:{
+    receive:{
+      include:{
+        vendor:true,
       },
-
-
-      issueItems:{
-        include:{
-          issue:{
-            include:{
-              department:true,
-            },
-          },
-        },
-
-        orderBy:{
-          issue:{
-            issueDate:"asc",
-          },
-        },
-      },
-
     },
+  },
 
-  });
 
+  orderBy:{
+    receive:{
+      receiveDate:"asc",
+    },
+  },
 
 
-  if(!material){
+ },
 
-    return(
-      <div className="
-        p-10
-        text-center
-        text-lg
-        font-bold
-        text-slate-700
-      ">
-        ไม่พบข้อมูลพัสดุ
-      </div>
-    );
 
-  }
+ issueItems:{
 
+  include:{
+    issue:{
+      include:{
+        department:true,
+      },
+    },
+  },
 
 
+  orderBy:{
+    issue:{
+      issueDate:"asc",
+    },
+  },
 
-  const rows = [
 
-    ...material.receiveItems.map((item)=>({
+ },
 
-      date:item.receive.receiveDate,
 
-      documentNo:item.receive.documentNo,
+},
 
-      owner:item.receive.vendor?.name ?? "-",
 
-      unitPrice:Number(item.unitPrice),
+});
 
-      receiveQty:item.qty,
 
-      issueQty:0,
 
-      manufacture:item.manufacture,
 
-      expiry:item.expiry,
+if(!material){
 
-    })),
+return(
 
+<div
+className="
+rounded-2xl
+bg-white
+border
+border-slate-200
+p-10
+text-center
+text-lg
+font-bold
+text-slate-700
+"
+>
 
-    ...material.issueItems.map((item)=>({
+ไม่พบข้อมูลพัสดุ
 
-      date:item.issue.issueDate,
+</div>
 
-      documentNo:item.issue.documentNo,
+);
 
-      owner:item.issue.department?.name ?? "-",
+}
 
-      unitPrice:Number(material.latestPrice),
 
-      receiveQty:0,
 
-      issueQty:item.qty,
 
-      manufacture:null,
 
-      expiry:null,
+const rows=[
 
-    })),
 
+...material.receiveItems.map((item)=>({
 
-  ].sort(
+date:item.receive.receiveDate,
 
-    (a,b)=>
-      new Date(a.date).getTime() -
-      new Date(b.date).getTime()
+documentNo:item.receive.documentNo,
 
-  );
+owner:item.receive.vendor?.name ?? "-",
 
+unitPrice:Number(item.unitPrice),
 
+receiveQty:item.qty,
 
-  let balance = 0;
+issueQty:0,
 
+manufacture:item.manufacture,
 
-  const stockRows = rows.map((row)=>{
+expiry:item.expiry,
 
-    balance += row.receiveQty;
+})),
 
-    balance -= row.issueQty;
 
 
-    return{
-      ...row,
-      balance,
-    };
+...material.issueItems.map((item)=>({
 
-  });
+date:item.issue.issueDate,
 
+documentNo:item.issue.documentNo,
 
+owner:item.issue.department?.name ?? "-",
 
+unitPrice:Number(material.latestPrice),
 
-  return (
+receiveQty:0,
 
-    <div className="space-y-6">
+issueQty:item.qty,
 
+manufacture:null,
 
+expiry:null,
 
-      {/* Header */}
+})),
 
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-6
-          text-white
-          shadow-xl
-        "
-      >
 
-        <div>
+].sort(
 
-          <h1
-            className="
-              text-5xl
-              font-extrabold
-              leading-tight
-              !text-white
-            "
-          >
-            📒 บัญชีพัสดุ
-          </h1>
+(a,b)=>
+new Date(a.date).getTime()
+-
+new Date(b.date).getTime()
 
+);
 
-          <p
-            className="
-              mt-2
-              text-xl
-              font-semibold
-              text-slate-200
-            "
-          >
-            {material.name}
-          </p>
 
 
-        </div>
 
+let balance=0;
 
 
-        <div className="flex gap-3">
+const stockRows=rows.map((row)=>{
 
 
-          <Link
-            href={`/stock-card/${material.category}`}
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-3
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-          >
-            ← กลับ
-          </Link>
+balance += row.receiveQty;
 
+balance -= row.issueQty;
 
 
-          <ExportPdf
-            material={material}
-            rows={stockRows}
-          />
 
+return{
 
-          <ExportExcel
-            material={material}
-            rows={stockRows}
-          />
+...row,
 
+balance,
 
-        </div>
+};
 
 
-      </div>
+});
 
 
 
 
+return(
 
+<div className="space-y-6">
 
-      {/* Material Info */}
 
 
-      <div
-        className="
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          p-6
-          shadow-xl
-        "
-      >
+{/* Header */}
 
+<div
+className="
+flex
+items-center
+justify-between
+rounded-2xl
+bg-gradient-to-r
+from-slate-950
+via-slate-800
+to-slate-700
+p-6
+text-white
+shadow-xl
+"
+>
 
-        <h2
-          className="
-            mb-6
-            text-center
-            text-4xl
-            font-extrabold
-            text-slate-900
-          "
-        >
-          รายละเอียดพัสดุ
-        </h2>
 
+<div>
 
 
-        <div
-          className="
-            grid
-            gap-4
-            md:grid-cols-2
-            text-lg
-          "
-        >
+<h1
+className="
+text-5xl
+font-extrabold
+leading-tight
+!text-white
+"
+>
 
-          <div>
-            <b>รหัสพัสดุ :</b> {material.code}
-          </div>
+📒 บัญชีพัสดุ
 
+</h1>
 
-          <div>
-            <b>รายการพัสดุ :</b> {material.name}
-          </div>
 
 
-          <div>
-            <b>หมวดหมู่ :</b>{" "}
-            {categoryName[material.category]}
-          </div>
+<p
+className="
+mt-3
+text-xl
+font-semibold
+text-slate-200
+"
+>
 
+{material.name}
 
-          <div>
-            <b>หน่วย :</b> {material.unit}
-          </div>
+</p>
 
 
-          <div>
-            <b>ผู้จำหน่าย :</b>{" "}
-            {material.vendor?.name ?? "-"}
-          </div>
+</div>
 
 
-          <div>
-            <b>ราคาล่าสุด :</b>{" "}
-            {Number(material.latestPrice).toLocaleString(
-              "th-TH",
-              {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2,
-              }
-            )}
-            {" "}บาท
-          </div>
 
 
-        </div>
 
+<div
+className="
+flex
+gap-3
+"
+>
 
-      </div>
 
+<Link
 
+href={`/stock-card/${material.category}`}
 
+className="
+rounded-xl
+bg-gradient-to-r
+from-emerald-600
+to-green-500
+px-5
+py-3
+font-extrabold
+text-white
+shadow-lg
+transition
+hover:scale-105
+"
 
+>
 
+← กลับ
 
-      {/* Table */}
+</Link>
 
 
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          shadow-xl
-        "
-      >
 
+<ExportPdf
+material={material}
+rows={stockRows}
+/>
 
-        <div className="overflow-x-auto">
 
 
-          <table className="min-w-full">
+<ExportExcel
+material={material}
+rows={stockRows}
+/>
 
 
-            <thead>
 
+</div>
 
-              <tr>
 
+</div>
+{/* รายละเอียดพัสดุ */}
 
-                {[
-                  "วันที่",
-                  "เลขที่เอกสาร",
-                  "ผู้จำหน่าย / หน่วยงาน",
-                  "ราคาล่าสุด",
-                  "รับเข้า",
-                  "เบิกจ่าย",
-                  "คงเหลือ",
-                  "วันผลิต",
-                  "วันหมดอายุ",
-                ].map((title)=>(
+<div
+className="
+rounded-2xl
+border
+border-slate-200
+bg-white
+p-6
+shadow-xl
+"
+>
 
 
-                  <th
-                    key={title}
-                    className="
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
+<h2
+className="
+mb-6
+text-center
+text-4xl
+font-extrabold
+text-slate-900
+"
+>
 
-                    {title}
+รายละเอียดพัสดุ
 
-                  </th>
+</h2>
 
 
-                ))}
 
+<div
+className="
+grid
+gap-4
+md:grid-cols-2
+text-lg
+font-semibold
+text-slate-800
+"
+>
 
-              </tr>
 
+<div>
+<b>รหัสพัสดุ :</b> {material.code}
+</div>
 
-            </thead>
 
+<div>
+<b>รายการพัสดุ :</b> {material.name}
+</div>
 
 
+<div>
+<b>หมวดหมู่ :</b>{" "}
+{categoryName[material.category]}
+</div>
 
 
-            <tbody>
+<div>
+<b>หน่วย :</b> {material.unit}
+</div>
 
 
-              {
-                stockRows.length === 0 ? (
+<div>
+<b>ผู้จำหน่าย :</b>{" "}
+{material.vendor?.name ?? "-"}
+</div>
 
-                  <tr>
 
-                    <td
-                      colSpan={9}
-                      className="
-                        py-12
-                        text-center
-                        text-lg
-                        font-bold
-                        text-slate-500
-                      "
-                    >
-                      ยังไม่มีข้อมูล
-                    </td>
+<div>
+<b>ราคาล่าสุด :</b>{" "}
+{
+Number(material.latestPrice)
+.toLocaleString(
+"th-TH",
+{
+minimumFractionDigits:2,
+maximumFractionDigits:2,
+}
+)
+}
+{" "}บาท
+</div>
 
-                  </tr>
 
 
-                ) : (
+</div>
 
 
-                  <>
+</div>
 
 
-                  {stockRows.map((row,index)=>(
 
 
-                    <tr
-                      key={index}
-                      className="
-                        border-b
-                        hover:bg-blue-50
-                      "
-                    >
 
+{/* ตารางบัญชีพัสดุ */}
 
-                      <td className="px-4 py-3 text-center text-slate-700">
-                        {formatDateAD(row.date)}
-                      </td>
 
+<div
+className="
+overflow-hidden
+rounded-2xl
+border
+border-slate-200
+bg-white
+shadow-xl
+"
+>
 
-                      <td className="px-4 py-3 text-slate-700">
-                        {row.documentNo}
-                      </td>
 
+<div className="overflow-x-auto">
 
-                      <td className="px-4 py-3 text-slate-700">
-                        {row.owner}
-                      </td>
 
 
-                      <td className="px-4 py-3 text-right text-slate-700">
-                        {Number(row.unitPrice).toLocaleString(
-                          "th-TH",
-                          {
-                            minimumFractionDigits:2,
-                            maximumFractionDigits:2,
-                          }
-                        )}
-                      </td>
+<table
+className="
+min-w-full
+border
+border-slate-900
+"
+>
 
 
-                      <td className="px-4 py-3 text-center font-bold">
-                        {row.receiveQty || "-"}
-                      </td>
+<thead>
 
 
-                      <td className="px-4 py-3 text-center font-bold">
-                        {row.issueQty || "-"}
-                      </td>
+<tr>
 
 
-                      <td className="
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      ">
-                        {row.balance}
-                      </td>
+{[
+"วันที่",
+"เลขที่เอกสาร",
+"ผู้จำหน่าย / หน่วยงาน",
+"ราคาล่าสุด",
+"รับเข้า",
+"เบิกจ่าย",
+"คงเหลือ",
+"วันผลิต",
+"วันหมดอายุ",
+].map((title)=>(
 
 
-                      <td className="px-4 py-3 text-center">
-                        {row.manufacture
-                          ? formatDateAD(row.manufacture)
-                          : "-"
-                        }
-                      </td>
+<th
 
+key={title}
 
-                      <td className="px-4 py-3 text-center">
-                        {row.expiry
-                          ? formatDateAD(row.expiry)
-                          : "-"
-                        }
-                      </td>
+className="
+border
+border-slate-900
+bg-gradient-to-r
+from-slate-800
+to-slate-700
+px-4
+py-4
+text-center
+text-lg
+font-extrabold
+text-white
+"
 
+>
 
-                    </tr>
+{title}
 
+</th>
 
-                  ))}
 
+))}
 
-                  </>
 
-                )
-              }
+</tr>
 
 
-            </tbody>
+</thead>
 
 
-          </table>
 
 
-        </div>
 
+<tbody>
 
-      </div>
 
 
+{
+stockRows.length === 0 ? (
 
-    </div>
 
-  );
+<tr>
+
+
+<td
+
+colSpan={9}
+
+className="
+py-12
+text-center
+text-lg
+font-bold
+text-slate-500
+"
+
+>
+
+ยังไม่มีข้อมูล
+
+</td>
+
+
+</tr>
+
+
+
+) : (
+
+
+
+stockRows.map((row,index)=>(
+
+
+<tr
+
+key={index}
+
+className="
+border
+border-slate-900
+hover:bg-blue-50
+"
+
+>
+
+
+
+<td
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-semibold
+text-slate-700
+"
+>
+
+{formatDateAD(row.date)}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+font-semibold
+text-slate-700
+"
+
+>
+
+{row.documentNo}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+font-semibold
+text-slate-700
+"
+
+>
+
+{row.owner}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-right
+font-semibold
+text-slate-700
+"
+
+>
+
+{
+Number(row.unitPrice)
+.toLocaleString(
+"th-TH",
+{
+minimumFractionDigits:2,
+maximumFractionDigits:2,
+}
+)
+}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-extrabold
+text-slate-900
+"
+
+>
+
+{
+row.receiveQty || "-"
+}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-extrabold
+text-slate-900
+"
+
+>
+
+{
+row.issueQty || "-"
+}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-extrabold
+text-slate-900
+"
+
+>
+
+{row.balance}
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-semibold
+text-slate-700
+"
+
+>
+
+
+{
+row.manufacture
+?
+formatDateAD(row.manufacture)
+:
+"-"
+}
+
+
+</td>
+
+
+
+
+<td
+
+className="
+border
+border-slate-900
+px-4
+py-3
+text-center
+font-semibold
+text-slate-700
+"
+
+>
+
+
+{
+row.expiry
+?
+formatDateAD(row.expiry)
+:
+"-"
+}
+
+
+</td>
+
+
+
+
+</tr>
+
+
+))
+
+
+)
+
+
+}
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+);
+
 
 }
