@@ -2,109 +2,56 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-
 type Props = {
   params: Promise<{
-    id:string;
+    id: string;
   }>;
 };
-
-
 
 export default async function EditOfficerPage({
   params,
 }: Props) {
-
-
   const { id } = await params;
 
-
-
   const officer = await prisma.officer.findUnique({
-
-    where:{
-      id:Number(id),
+    where: {
+      id: Number(id),
     },
-
   });
 
-
-
-  if(!officer){
-
+  if (!officer) {
     notFound();
-
   }
 
+  // เก็บไว้ใช้ภายหลัง
+  const sectionId = officer.sectionId;
 
-
-
-
-  async function updateOfficer(
-    formData:FormData
-  ){
-
+  async function updateOfficer(formData: FormData) {
     "use server";
 
-
-
-    const firstName =
-      formData.get("firstName") as string;
-
-
-    const lastName =
-      formData.get("lastName") as string;
-
-
-    const position =
-      formData.get("position") as string;
-
-
-    const type =
-      formData.get("type") as any;
-
-
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const position = formData.get("position") as string;
+    const type = formData.get("type") as any;
 
     await prisma.officer.update({
-
-      where:{
-        id:Number(id),
+      where: {
+        id: Number(id),
       },
-
-
-      data:{
-
+      data: {
         firstName,
-
         lastName,
-
         position,
-
         type,
-
       },
-
     });
 
-
-
-    redirect(
-      `/departments/${officer.sectionId}`
-    );
-
+    redirect(`/departments/${sectionId}`);
   }
 
-
-
-
-
   return (
-
     <div className="space-y-6">
-
-
       {/* Header */}
-
       <div
         className="
           flex
@@ -120,9 +67,7 @@ export default async function EditOfficerPage({
           shadow-xl
         "
       >
-
         <div>
-
           <h1
             className="
               text-5xl
@@ -132,7 +77,6 @@ export default async function EditOfficerPage({
           >
             ✏️ แก้ไขข้อมูลเจ้าหน้าที่
           </h1>
-
 
           <p
             className="
@@ -144,13 +88,10 @@ export default async function EditOfficerPage({
           >
             ปรับปรุงข้อมูลรายชื่อและประเภทบุคลากร
           </p>
-
         </div>
 
-
-
         <Link
-          href={`/departments/${officer.sectionId}`}
+          href={`/departments/${sectionId}`}
           className="
             rounded-xl
             bg-gradient-to-r
@@ -167,16 +108,9 @@ export default async function EditOfficerPage({
         >
           ← กลับ
         </Link>
-
-
       </div>
 
-
-
-
-
       {/* Form */}
-
       <div
         className="
           rounded-2xl
@@ -187,14 +121,10 @@ export default async function EditOfficerPage({
           shadow-xl
         "
       >
-
-
         <form
           action={updateOfficer}
           className="space-y-6"
         >
-
-
           <div
             className="
               grid
@@ -202,29 +132,14 @@ export default async function EditOfficerPage({
               md:grid-cols-2
             "
           >
-
-
             <div>
-
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-900
-                "
-              >
+              <label className="mb-2 block text-lg font-extrabold text-slate-900">
                 ชื่อ
               </label>
 
-
               <input
-
                 name="firstName"
-
                 defaultValue={officer.firstName}
-
                 className="
                   w-full
                   rounded-xl
@@ -240,35 +155,17 @@ export default async function EditOfficerPage({
                   focus:ring-2
                   focus:ring-emerald-200
                 "
-
               />
-
             </div>
 
-
-
-
             <div>
-
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-900
-                "
-              >
+              <label className="mb-2 block text-lg font-extrabold text-slate-900">
                 นามสกุล
               </label>
 
-
               <input
-
                 name="lastName"
-
                 defaultValue={officer.lastName}
-
                 className="
                   w-full
                   rounded-xl
@@ -284,40 +181,18 @@ export default async function EditOfficerPage({
                   focus:ring-2
                   focus:ring-emerald-200
                 "
-
               />
-
             </div>
-
-
           </div>
 
-
-
-
-
           <div>
-
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-900
-              "
-            >
+            <label className="mb-2 block text-lg font-extrabold text-slate-900">
               ตำแหน่ง
             </label>
 
-
             <input
-
               name="position"
-
               defaultValue={officer.position}
-
               className="
                 w-full
                 rounded-xl
@@ -333,38 +208,17 @@ export default async function EditOfficerPage({
                 focus:ring-2
                 focus:ring-emerald-200
               "
-
             />
-
-
           </div>
 
-
-
-
-
           <div>
-
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-900
-              "
-            >
+            <label className="mb-2 block text-lg font-extrabold text-slate-900">
               ประเภทบุคลากร
             </label>
 
-
             <select
-
               name="type"
-
               defaultValue={officer.type}
-
               className="
                 w-full
                 rounded-xl
@@ -380,38 +234,16 @@ export default async function EditOfficerPage({
                 focus:ring-2
                 focus:ring-emerald-200
               "
-
             >
-
-              <option value="CIVIL_SERVANT">
-                ข้าราชการ
-              </option>
-
-              <option value="GOVERNMENT_EMPLOYEE">
-                พนักงานราชการ
-              </option>
-
-              <option value="PERMANENT_EMPLOYEE">
-                ลูกจ้างประจำ
-              </option>
-
-              <option value="OUTSOURCE">
-                จ้างเหมาบริการ
-              </option>
-
+              <option value="CIVIL_SERVANT">ข้าราชการ</option>
+              <option value="GOVERNMENT_EMPLOYEE">พนักงานราชการ</option>
+              <option value="PERMANENT_EMPLOYEE">ลูกจ้างประจำ</option>
+              <option value="OUTSOURCE">จ้างเหมาบริการ</option>
             </select>
-
-
           </div>
 
-
-
-
-
           <button
-
             type="submit"
-
             className="
               rounded-xl
               bg-gradient-to-r
@@ -425,23 +257,11 @@ export default async function EditOfficerPage({
               transition
               hover:scale-105
             "
-
           >
-
             💾 บันทึกการแก้ไข
-
           </button>
-
-
-
         </form>
-
-
       </div>
-
-
     </div>
-
   );
-
 }
