@@ -29,10 +29,17 @@ export default async function EditOfficerPage({
   async function updateOfficer(formData: FormData) {
     "use server";
 
-    const firstName = formData.get("firstName") as string;
-    const lastName = formData.get("lastName") as string;
-    const position = formData.get("position") as string;
-    const type = formData.get("type") as any;
+    const firstName =
+      formData.get("firstName") as string;
+
+    const lastName =
+      formData.get("lastName") as string;
+
+    const position =
+      formData.get("position") as string;
+
+    const type =
+      formData.get("type") as any;
 
     await prisma.officer.update({
       where: {
@@ -50,9 +57,11 @@ export default async function EditOfficerPage({
   }
 
   return (
+
   <div className="space-y-6">
 
     {/* Header */}
+
     <div
       className="
         flex
@@ -81,11 +90,12 @@ export default async function EditOfficerPage({
           ✏️ แก้ไขข้อมูลเจ้าหน้าที่
         </h1>
 
+
         <p
           className="
-            mt-2
+            mt-3
             text-xl
-            font-bold
+            font-semibold
             text-slate-200
           "
         >
@@ -102,7 +112,7 @@ export default async function EditOfficerPage({
           bg-gradient-to-r
           from-emerald-600
           to-green-500
-          px-6
+          px-5
           py-3
           font-extrabold
           text-white
@@ -120,6 +130,7 @@ export default async function EditOfficerPage({
 
 
     {/* Form */}
+
     <div
       className="
         w-full
@@ -150,12 +161,20 @@ export default async function EditOfficerPage({
           "
         >
 
-
           <div>
 
-            <label className="mb-2 block text-lg font-extrabold text-white">
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
               ชื่อ
             </label>
+
 
             <input
               name="firstName"
@@ -166,14 +185,12 @@ export default async function EditOfficerPage({
                 border
                 border-slate-600
                 bg-slate-800
-                p-3
+                px-4
+                py-3
                 font-bold
                 text-white
                 outline-none
-                transition
                 focus:border-cyan-400
-                focus:ring-2
-                focus:ring-cyan-300
               "
             />
 
@@ -183,9 +200,18 @@ export default async function EditOfficerPage({
 
           <div>
 
-            <label className="mb-2 block text-lg font-extrabold text-white">
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
               นามสกุล
             </label>
+
 
             <input
               name="lastName"
@@ -196,14 +222,12 @@ export default async function EditOfficerPage({
                 border
                 border-slate-600
                 bg-slate-800
-                p-3
+                px-4
+                py-3
                 font-bold
                 text-white
                 outline-none
-                transition
                 focus:border-cyan-400
-                focus:ring-2
-                focus:ring-cyan-300
               "
             />
 
@@ -214,12 +238,12 @@ export default async function EditOfficerPage({
 
 
 
-
         <div>
 
           <label className="mb-2 block text-lg font-extrabold text-white">
             ตำแหน่ง
           </label>
+
 
           <input
             name="position"
@@ -230,14 +254,12 @@ export default async function EditOfficerPage({
               border
               border-slate-600
               bg-slate-800
-              p-3
+              px-4
+              py-3
               font-bold
               text-white
               outline-none
-              transition
               focus:border-cyan-400
-              focus:ring-2
-              focus:ring-cyan-300
             "
           />
 
@@ -245,12 +267,12 @@ export default async function EditOfficerPage({
 
 
 
-
         <div>
 
-          <label className="mb-2 block text-lg font-extrabold text-white">
+          <label className="mb-2 block text-lg font-extrabอด text-white">
             ประเภทบุคลากร
           </label>
+
 
           <select
             name="type"
@@ -261,14 +283,12 @@ export default async function EditOfficerPage({
               border
               border-slate-600
               bg-slate-800
-              p-3
+              px-4
+              py-3
               font-bold
               text-white
               outline-none
-              transition
               focus:border-cyan-400
-              focus:ring-2
-              focus:ring-cyan-300
             "
           >
 
@@ -290,8 +310,8 @@ export default async function EditOfficerPage({
 
           </select>
 
-        </div>
 
+        </div>
 
 
 
@@ -322,4 +342,6 @@ export default async function EditOfficerPage({
 
 
   </div>
+
 );
+}
