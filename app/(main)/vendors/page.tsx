@@ -266,7 +266,6 @@ export default function VendorsPage() {
                   ].map((title)=>(
 
 
-                    <th
   <th
   key={title}
   className={`
