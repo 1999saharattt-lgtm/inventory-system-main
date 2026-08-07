@@ -460,7 +460,7 @@ export default function EditIssueForm({
 
 
 
-        {/* ตารางรายการ */}
+{/* ตารางรายการ */}
 
 
 <div
@@ -470,17 +470,17 @@ export default function EditIssueForm({
 >
 
 
-<table
+  <table
 
-  className="
-    w-full
-    border-collapse
-    border
-    border-slate-900
-    text-sm
-  "
+    className="
+      w-full
+      border-collapse
+      border
+      border-slate-900
+      text-sm
+    "
 
->
+  >
 
 
 
