@@ -213,7 +213,7 @@ export default function EditIssueForm({
         rounded-2xl
         border
         border-slate-700
-        bg-white
+        bg-slate-800
         p-6
         shadow-xl
       "
@@ -472,6 +472,7 @@ export default function EditIssueForm({
             border-collapse
             border
             border-slate-900
+            bg-white
             text-sm
           "
 
