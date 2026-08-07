@@ -247,14 +247,11 @@ export default async function CreateReceivePage() {
 
       <div
         className="
-          rounded-2xl
+          rounded-3xl
           border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-6
+          border-slate-200
+          bg-white
+          p-8
           shadow-xl
         "
       >
