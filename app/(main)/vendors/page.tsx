@@ -267,25 +267,26 @@ export default function VendorsPage() {
 
 
                     <th
-                      key={title}
-                      className="
-                        border
-                        border-slate-900
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        text-white
-                      "
-                    >
-
-                      {title}
-
-                    </th>
+  key={title}
+  className={`
+    border
+    border-slate-900
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
+    px-4
+    py-4
+    text-center
+    text-lg
+    font-extrabold
+    text-white
+    whitespace-nowrap
+    ${title === "ที่อยู่" ? "min-w-[280px]" : ""}
+    ${title === "เลขประจำตัวผู้เสียภาษี" ? "min-w-[220px]" : ""}
+  `}
+>
+  {title}
+</th>
 
 
                   ))
@@ -395,6 +396,8 @@ export default function VendorsPage() {
                           px-4
                           py-3
                           font-semibold
+                          max-w-[280px]
+                          truncate
                         "
                       >
 
