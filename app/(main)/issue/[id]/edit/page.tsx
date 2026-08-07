@@ -143,7 +143,7 @@ export default async function EditIssuePage({
 
           <div
             className="
-              text-4xl
+              text-lg
               font-extrabold
               !text-white
             "
