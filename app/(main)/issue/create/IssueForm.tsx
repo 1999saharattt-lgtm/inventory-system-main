@@ -552,6 +552,8 @@ export default function IssueForm({
             className="
               w-full
               border-collapse
+              border
+              border-black
               text-sm
             "
           >
@@ -633,7 +635,7 @@ export default function IssueForm({
                       key={index}
                       className="
                         border-b
-                        border-slate-300
+                        border-black
                         transition
                         hover:bg-emerald-50
                       "
@@ -646,7 +648,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                           text-center
@@ -666,7 +668,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                         "
@@ -739,7 +741,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                         "
@@ -814,7 +816,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                           text-center
@@ -856,7 +858,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                           text-center
@@ -899,7 +901,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                         "
@@ -946,7 +948,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                         "
@@ -994,7 +996,7 @@ export default function IssueForm({
                       <td
                         className="
                           border
-                          border-slate-300
+                          border-black
                           px-3
                           py-3
                         "
