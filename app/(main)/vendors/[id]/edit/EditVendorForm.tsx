@@ -102,7 +102,7 @@ export default function EditVendorForm({
       onSubmit={handleSubmit}
 
       className="
-        max-w-5xl
+        w-full
         space-y-6
         rounded-3xl
         border
@@ -357,7 +357,7 @@ export default function EditVendorForm({
           {
             loading
             ? "กำลังบันทึก..."
-            : "💾 บันทึก"
+            : "💾 บันทึกการแก้ไข"
           }
 
         </button>

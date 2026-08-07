@@ -2,22 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import EditVendorForm from "./EditVendorForm";
 
-
 type Props = {
   params: Promise<{
-    id:string;
+    id: string;
   }>;
 };
-
-
 
 export default async function EditVendorPage({
   params,
 }: Props) {
 
-
   const { id } = await params;
-
 
 
   const vendor = await prisma.vendor.findUnique({
@@ -43,7 +38,6 @@ export default async function EditVendorPage({
     <div className="space-y-6">
 
 
-
       {/* Header */}
 
       <div
@@ -63,7 +57,6 @@ export default async function EditVendorPage({
         "
 
       >
-
 
 
         <div>
@@ -101,11 +94,7 @@ export default async function EditVendorPage({
           </p>
 
 
-
         </div>
-
-
-
 
 
 
@@ -135,12 +124,7 @@ export default async function EditVendorPage({
         </a>
 
 
-
       </div>
-
-
-
-
 
 
 
@@ -151,16 +135,19 @@ export default async function EditVendorPage({
       <div
 
         className="
-          rounded-2xl
+          w-full
+          rounded-3xl
           border
-          border-slate-200
-          bg-white
-          p-6
-          shadow-xl
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-8
+          shadow-2xl
         "
 
       >
-
 
 
         <EditVendorForm
@@ -170,10 +157,7 @@ export default async function EditVendorPage({
         />
 
 
-
       </div>
-
-
 
 
 
