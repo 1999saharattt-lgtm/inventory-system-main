@@ -31,7 +31,9 @@ export default function EditVendorForm({
     try {
 
       const formData =
-        new FormData(e.currentTarget as HTMLFormElement);
+        new FormData(
+          e.currentTarget as HTMLFormElement
+        );
 
 
       const body = {
@@ -94,315 +96,317 @@ export default function EditVendorForm({
 
 
 
-  return (
 
-    <form
+return (
 
-      onSubmit={handleSubmit}
+<form
+
+  onSubmit={handleSubmit}
+
+  className="
+    max-w-5xl
+    space-y-6
+    rounded-3xl
+    border
+    border-slate-700
+    bg-gradient-to-br
+    from-slate-950
+    via-slate-900
+    to-slate-800
+    p-8
+    text-white
+    shadow-2xl
+  "
+
+>
+
+
+  <div
+
+    className="
+      grid
+      gap-6
+      md:grid-cols-2
+    "
+
+  >
+
+
+
+    <div>
+
+      <label
+        className="
+          mb-2
+          block
+          text-lg
+          font-extrabold
+          text-white
+        "
+      >
+        ชื่อผู้จำหน่าย
+      </label>
+
+
+      <input
+
+        name="name"
+
+        defaultValue={vendor.name}
+
+        required
+
+        className="
+          w-full
+          rounded-xl
+          border
+          border-slate-600
+          bg-slate-800
+          p-3
+          font-bold
+          text-white
+          outline-none
+          transition
+          focus:border-cyan-400
+          focus:ring-2
+          focus:ring-cyan-300
+        "
+
+      />
+
+    </div>
+
+
+
+
+
+    <div>
+
+      <label
+        className="
+          mb-2
+          block
+          text-lg
+          font-extrabold
+          text-white
+        "
+      >
+        เบอร์โทร
+      </label>
+
+
+      <input
+
+        name="phone"
+
+        defaultValue={vendor.phone ?? ""}
+
+        className="
+          w-full
+          rounded-xl
+          border
+          border-slate-600
+          bg-slate-800
+          p-3
+          font-bold
+          text-white
+          outline-none
+          transition
+          focus:border-cyan-400
+          focus:ring-2
+          focus:ring-cyan-300
+        "
+
+      />
+
+    </div>
+
+
+
+
+
+    <div>
+
+      <label
+        className="
+          mb-2
+          block
+          text-lg
+          font-extrabold
+          text-white
+        "
+      >
+        เลขประจำตัวผู้เสียภาษี
+      </label>
+
+
+      <input
+
+        name="taxId"
+
+        defaultValue={vendor.taxId ?? ""}
+
+        className="
+          w-full
+          rounded-xl
+          border
+          border-slate-600
+          bg-slate-800
+          p-3
+          font-bold
+          text-white
+          outline-none
+          transition
+          focus:border-cyan-400
+          focus:ring-2
+          focus:ring-cyan-300
+        "
+
+      />
+
+    </div>
+
+
+  </div>
+
+
+
+
+
+
+
+  <div>
+
+
+    <label
+      className="
+        mb-2
+        block
+        text-lg
+        font-extrabold
+        text-white
+      "
+    >
+      ที่อยู่
+    </label>
+
+
+
+    <textarea
+
+      name="address"
+
+      rows={4}
+
+      defaultValue={vendor.address ?? ""}
 
       className="
-        space-y-6
-        rounded-3xl
+        w-full
+        rounded-xl
         border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
-        p-8
+        border-slate-600
+        bg-slate-800
+        p-3
+        font-bold
         text-white
-        shadow-2xl
+        outline-none
+        transition
+        focus:border-cyan-400
+        focus:ring-2
+        focus:ring-cyan-300
+      "
+
+    />
+
+
+  </div>
+
+
+
+
+
+
+
+
+  <div
+
+    className="
+      flex
+      gap-4
+      pt-4
+    "
+
+  >
+
+
+
+    <button
+
+      type="submit"
+
+      disabled={loading}
+
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-emerald-600
+        to-green-500
+        px-8
+        py-3
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:scale-105
+        disabled:opacity-50
       "
 
     >
 
+      {
+        loading
+        ? "กำลังบันทึก..."
+        : "💾 บันทึก"
+      }
 
+    </button>
 
-      <div
-        className="
-          grid
-          gap-6
-          md:grid-cols-2
-        "
-      >
 
 
 
-        {/* ชื่อ */}
 
-        <div>
+    <a
 
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            ชื่อผู้จำหน่าย
-          </label>
+      href="/vendors"
 
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-slate-800
+        to-slate-700
+        px-8
+        py-3
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:scale-105
+      "
 
-          <input
+    >
 
-            name="name"
+      ยกเลิก
 
-            defaultValue={vendor.name}
+    </a>
 
-            required
 
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
-              focus:border-cyan-400
-              focus:outline-none
-            "
 
-          />
+  </div>
 
-        </div>
 
 
+</form>
 
-
-
-        {/* เบอร์โทร */}
-
-        <div>
-
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabолд
-              text-white
-            "
-          >
-            เบอร์โทร
-          </label>
-
-
-          <input
-
-            name="phone"
-
-            defaultValue={vendor.phone ?? ""}
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
-              focus:border-cyan-400
-              focus:outline-none
-            "
-
-          />
-
-        </div>
-
-
-
-
-
-
-        {/* Tax */}
-
-        <div>
-
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabолд
-              text-white
-            "
-          >
-            เลขประจำตัวผู้เสียภาษี
-          </label>
-
-
-          <input
-
-            name="taxId"
-
-            defaultValue={vendor.taxId ?? ""}
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
-              focus:border-cyan-400
-              focus:outline-none
-            "
-
-          />
-
-        </div>
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-      {/* ที่อยู่ */}
-
-      <div>
-
-
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          ที่อยู่
-        </label>
-
-
-
-        <textarea
-
-          name="address"
-
-          rows={4}
-
-          defaultValue={vendor.address ?? ""}
-
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            font-bold
-            text-white
-            focus:border-cyan-400
-            focus:outline-none
-          "
-
-        />
-
-
-      </div>
-
-
-
-
-
-
-
-
-      {/* Buttons */}
-
-      <div
-
-        className="
-          flex
-          gap-4
-          pt-4
-        "
-
-      >
-
-
-
-        <button
-
-          type="submit"
-
-          disabled={loading}
-
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            disabled:opacity-50
-          "
-
-        >
-
-          {
-            loading
-            ? "กำลังบันทึก..."
-            : "💾 บันทึกการแก้ไข"
-          }
-
-        </button>
-
-
-
-
-
-        <a
-
-          href="/vendors"
-
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-8
-            py-3
-            font-extrabอด
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-          "
-
-        >
-
-          ยกเลิก
-
-        </a>
-
-
-
-      </div>
-
-
-
-    </form>
-
-  );
+);
 
 }

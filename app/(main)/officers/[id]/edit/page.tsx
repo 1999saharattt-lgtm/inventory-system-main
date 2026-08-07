@@ -29,7 +29,6 @@ export default function EditVendorForm({
 
     try {
 
-
       const body = {
 
         name: formData.get("name"),
@@ -47,13 +46,13 @@ export default function EditVendorForm({
       const res = await fetch(
         `/api/vendors/${vendor.id}`,
         {
-          method: "PUT",
+          method:"PUT",
 
           headers:{
             "Content-Type":"application/json",
           },
 
-          body: JSON.stringify(body),
+          body:JSON.stringify(body),
         }
       );
 
@@ -64,7 +63,6 @@ export default function EditVendorForm({
         alert("บันทึกสำเร็จ");
 
         location.href="/vendors";
-
 
       }else{
 
@@ -92,7 +90,7 @@ export default function EditVendorForm({
 
 
 
-  return (
+return (
 
 <form
 
@@ -116,6 +114,7 @@ export default function EditVendorForm({
 >
 
 
+
   <div
 
     className="
@@ -128,12 +127,9 @@ export default function EditVendorForm({
 
 
 
-    {/* ชื่อผู้จำหน่าย */}
-
     <div>
 
       <label
-
         className="
           mb-2
           block
@@ -141,11 +137,8 @@ export default function EditVendorForm({
           font-extrabold
           text-white
         "
-
       >
-
         ชื่อผู้จำหน่าย
-
       </label>
 
 
@@ -154,6 +147,8 @@ export default function EditVendorForm({
         name="name"
 
         defaultValue={vendor.name}
+
+        required
 
         className="
           w-full
@@ -174,18 +169,16 @@ export default function EditVendorForm({
 
       />
 
+
     </div>
 
 
 
 
 
-    {/* เบอร์โทร */}
-
     <div>
 
       <label
-
         className="
           mb-2
           block
@@ -193,11 +186,8 @@ export default function EditVendorForm({
           font-extrabold
           text-white
         "
-
       >
-
         เบอร์โทร
-
       </label>
 
 
@@ -226,6 +216,7 @@ export default function EditVendorForm({
 
       />
 
+
     </div>
 
 
@@ -233,12 +224,9 @@ export default function EditVendorForm({
 
 
 
-    {/* Tax */}
-
     <div>
 
       <label
-
         className="
           mb-2
           block
@@ -246,11 +234,8 @@ export default function EditVendorForm({
           font-extrabold
           text-white
         "
-
       >
-
         เลขประจำตัวผู้เสียภาษี
-
       </label>
 
 
@@ -279,8 +264,8 @@ export default function EditVendorForm({
 
       />
 
-    </div>
 
+    </div>
 
 
   </div>
@@ -290,8 +275,6 @@ export default function EditVendorForm({
 
 
 
-
-  {/* ที่อยู่ */}
 
   <div>
 
@@ -341,6 +324,7 @@ export default function EditVendorForm({
 
     />
 
+
   </div>
 
 
@@ -349,8 +333,6 @@ export default function EditVendorForm({
 
 
 
-
-  {/* Button */}
 
   <div
 
@@ -391,6 +373,7 @@ export default function EditVendorForm({
         : "💾 บันทึก"
       }
 
+
     </button>
 
 
@@ -427,8 +410,9 @@ export default function EditVendorForm({
 
 
 
+
 </form>
 
-  );
+);
 
 }
