@@ -102,20 +102,9 @@ export default function EditVendorForm({
       onSubmit={handleSubmit}
 
       className="
-        max-w-5xl
+        w-full
         space-y-6
-        rounded-3xl
-        border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
-        p-8
-        text-white
-        shadow-2xl
       "
-
     >
 
 
@@ -138,7 +127,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-white
+              text-slate-900
             "
           >
             ชื่อผู้จำหน่าย
@@ -157,15 +146,17 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
+              border-slate-300
+              bg-white
+              px-4
+              py-3
               font-bold
-              text-white
+              text-black
               outline-none
-              focus:border-cyan-400
+              transition
+              focus:border-emerald-500
               focus:ring-2
-              focus:ring-cyan-300
+              focus:ring-emerald-200
             "
 
           />
@@ -184,7 +175,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-white
+              text-slate-900
             "
           >
             เบอร์โทร
@@ -201,15 +192,17 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
+              border-slate-300
+              bg-white
+              px-4
+              py-3
               font-bold
-              text-white
+              text-black
               outline-none
-              focus:border-cyan-400
+              transition
+              focus:border-emerald-500
               focus:ring-2
-              focus:ring-cyan-300
+              focus:ring-emerald-200
             "
 
           />
@@ -228,7 +221,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-white
+              text-slate-900
             "
           >
             เลขประจำตัวผู้เสียภาษี
@@ -245,15 +238,17 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
+              border-slate-300
+              bg-white
+              px-4
+              py-3
               font-bold
-              text-white
+              text-black
               outline-none
-              focus:border-cyan-400
+              transition
+              focus:border-emerald-500
               focus:ring-2
-              focus:ring-cyan-300
+              focus:ring-emerald-200
             "
 
           />
@@ -275,7 +270,7 @@ export default function EditVendorForm({
             block
             text-lg
             font-extrabold
-            text-white
+            text-slate-900
           "
         >
           ที่อยู่
@@ -294,15 +289,17 @@ export default function EditVendorForm({
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
-            p-3
+            border-slate-300
+            bg-white
+            px-4
+            py-3
             font-bold
-            text-white
+            text-black
             outline-none
-            focus:border-cyan-400
+            transition
+            focus:border-emerald-500
             focus:ring-2
-            focus:ring-cyan-300
+            focus:ring-emerald-200
           "
 
         />
@@ -366,16 +363,16 @@ export default function EditVendorForm({
 
           className="
             rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
+            border
+            border-slate-300
+            bg-white
             px-8
             py-3
             font-extrabold
-            text-white
-            shadow-lg
+            text-slate-700
+            shadow-sm
             transition
-            hover:scale-105
+            hover:bg-slate-100
           "
 
         >
