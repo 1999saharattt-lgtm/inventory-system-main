@@ -1,42 +1,28 @@
 "use client";
 
-
 import { useState } from "react";
 import { createIssue } from "./action";
 
 
-
 type Material = {
-
   id: number;
-
   name: string;
-
   category: string;
-
   unit: string;
-
   latestPrice: number;
-
 };
-
 
 
 type Department = {
-
   id: number;
-
   name: string;
-
 };
-
 
 
 type Officer = {
   id: number;
   firstName: string;
   lastName: string;
-
   departmentId: number | null;
 
   department?: {
@@ -49,82 +35,24 @@ type Officer = {
 };
 
 
-
 type Props = {
-
   materials: Material[];
-
   departments: Department[];
-
   officers: Officer[];
-
   documentNo: string;
-
 };
-
 
 
 type ItemRow = {
-
   category: string;
-
   materialId: string;
-
   qty: string;
-
   manufacture: string;
-
   expiry: string;
-
 };
 
 
-
-const categoryLabel: Record<string,string> = {
-
-  OFFICE: "วัสดุสำนักงาน",
-
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-
-  VEHICLE: "วัสดุยานพาหนะ",
-
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
-
-};
-
-
-
-
-
-export default function IssueForm({
-
-  materials,
-
-  departments,
-
-  officers,
-
-  documentNo,
-
-}: Props) {
-
-
-
-  const [departmentId,setDepartmentId] = useState("");
-
-  const [officerId,setOfficerId] = useState("");
-
-  const [editDocumentNo,setEditDocumentNo] = useState(false);
-
-  const [documentValue,setDocumentValue] = useState(documentNo);
-
-
-
-  const categories = [
+const categories = [
   {
     value: "OFFICE",
     label: "วัสดุสำนักงาน",
@@ -152,117 +80,110 @@ export default function IssueForm({
 ];
 
 
-  const emptyRow = ():ItemRow => ({
 
-    category:"",
+export default function IssueForm({
+  materials,
+  departments,
+  officers,
+  documentNo,
+}: Props) {
 
-    materialId:"",
 
-    qty:"",
+  const [departmentId, setDepartmentId] = useState("");
 
-    manufacture:"",
+  const [officerId, setOfficerId] = useState("");
 
-    expiry:"",
+  const [editDocumentNo, setEditDocumentNo] =
+    useState(false);
 
+  const [documentValue, setDocumentValue] =
+    useState(documentNo);
+
+
+
+  const emptyRow = (): ItemRow => ({
+    category: "",
+    materialId: "",
+    qty: "",
+    manufacture: "",
+    expiry: "",
   });
 
 
 
-  const [rows,setRows] = useState<ItemRow[]>(
-
+  const [rows, setRows] = useState<ItemRow[]>(
     Array.from(
-
       {
-
-        length:15,
-
+        length: 15,
       },
-
       emptyRow
-
     )
-
   );
 
 
 
   const filteredOfficers =
-  officers.filter(
-    (o)=>
-      String(o.departmentId) === departmentId ||
-      String(o.section?.departmentId) === departmentId
-  );
+    officers.filter(
+      (o) =>
+        String(o.departmentId) === departmentId ||
+        String(o.section?.departmentId) === departmentId
+    );
 
 
 
   function updateRow(
-
-    index:number,
-
-    key:keyof ItemRow,
-
-    value:string
-
-  ){
-
+    index: number,
+    key: keyof ItemRow,
+    value: string
+  ) {
 
     const copy = [...rows];
 
 
     copy[index] = {
-
       ...copy[index],
-
-      [key]:value,
-
+      [key]: value,
     };
 
 
-
-    if(key==="category"){
-
-      copy[index].materialId="";
-
+    if (key === "category") {
+      copy[index].materialId = "";
     }
-
 
 
     setRows(copy);
 
-
   }
+
+
   return (
 
-    <form
-      action={createIssue}
+    <div
       className="
-        space-y-8
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        p-6
+        shadow-xl
       "
     >
 
-
-      {/* ข้อมูลเอกสาร */}
-
-      <div
-        className="
-          rounded-2xl
-          border
-          border-slate-700
-          bg-slate-900/60
-          p-5
-          shadow-xl
-        "
+      <form
+        action={createIssue}
+        className="space-y-6"
       >
 
+
+        {/* ข้อมูลเอกสาร */}
 
         <div
           className="
             grid
             gap-5
-            md:grid-cols-[2fr_1fr]
+            md:grid-cols-2
           "
         >
-
 
 
           {/* เลขที่เอกสาร */}
@@ -275,89 +196,108 @@ export default function IssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
+
               เลขที่เอกสาร
+
             </label>
 
 
             <input
 
-  type="text"
+              type="text"
 
-  name="documentNo"
+              name="documentNo"
 
-  value={documentValue}
+              value={documentValue}
 
-  onChange={(e)=>{
-    setDocumentValue(e.target.value);
-  }}
+              onChange={(e)=>
+                setDocumentValue(
+                  e.target.value
+                )
+              }
 
-  readOnly={!editDocumentNo}
+              readOnly={!editDocumentNo}
 
-  className="
-    w-full
-    rounded-xl
-    border
-    border-cyan-400
-    bg-slate-100
-    p-3
-    text-lg
-    font-extrabold
-    text-cyan-700
-    outline-none
-  "
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                text-lg
+                font-extrabold
+                text-cyan-700
+                outline-none
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-100
+              "
 
-/>
+            />
 
-<label
-  className="
-    mt-2
-    flex
-    w-fit
-    items-center
-    gap-2
-    cursor-pointer
-    whitespace-nowrap
-    text-sm
-    font-semibold
-    text-white
-  "
->
 
-  <input
-    type="checkbox"
-    checked={editDocumentNo}
-    onChange={(e)=>{
+            <label
+              className="
+                mt-2
+                flex
+                w-fit
+                cursor-pointer
+                items-center
+                gap-2
+                whitespace-nowrap
+                text-sm
+                font-semibold
+                text-slate-900
+              "
+            >
 
-      const checked = e.target.checked;
+              <input
 
-      setEditDocumentNo(checked);
+                type="checkbox"
 
-      if(!checked){
-        setDocumentValue(documentNo);
-      }
+                checked={editDocumentNo}
 
-    }}
-    className="
-      h-4
-      w-4
-      cursor-pointer
-    "
-  />
+                onChange={(e)=>{
 
-  <span className="whitespace-nowrap">
-  แก้ไขเลขที่เอกสาร
-</span>
+                  const checked =
+                    e.target.checked;
 
-</label>
+
+                  setEditDocumentNo(
+                    checked
+                  );
+
+
+                  if(!checked){
+
+                    setDocumentValue(
+                      documentNo
+                    );
+
+                  }
+
+                }}
+
+                className="
+                  h-4
+                  w-4
+                  cursor-pointer
+                "
+
+              />
+
+
+              แก้ไขเลขที่เอกสาร
+
+
+            </label>
 
 
           </div>
-
-
-
 
 
 
@@ -365,19 +305,19 @@ export default function IssueForm({
 
           <div>
 
-
             <label
               className="
                 mb-2
                 block
                 text-lg
-                font-extrabด
-                text-white
+                font-extrabold
+                text-slate-900
               "
             >
-              วันที่เบิก
-            </label>
 
+              วันที่เบิก
+
+            </label>
 
 
             <input
@@ -395,8 +335,12 @@ export default function IssueForm({
                 border-slate-300
                 bg-white
                 p-3
+                font-semibold
                 text-slate-900
                 outline-none
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-100
               "
 
             />
@@ -406,14 +350,9 @@ export default function IssueForm({
 
 
 
-
-
-
-
           {/* หน่วยงาน */}
 
           <div>
-
 
             <label
               className="
@@ -421,12 +360,13 @@ export default function IssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
-              หน่วยงาน / กลุ่มงาน
-            </label>
 
+              หน่วยงาน / กลุ่มงาน
+
+            </label>
 
 
             <select
@@ -437,9 +377,7 @@ export default function IssueForm({
 
               value={departmentId}
 
-
               onChange={(e)=>{
-
 
                 setDepartmentId(
                   e.target.value
@@ -450,8 +388,6 @@ export default function IssueForm({
 
               }}
 
-
-
               className="
                 w-full
                 rounded-xl
@@ -459,19 +395,21 @@ export default function IssueForm({
                 border-slate-300
                 bg-white
                 p-3
+                font-semibold
                 text-slate-900
                 outline-none
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-100
               "
 
             >
-
 
               <option value="">
 
                 -- เลือกหน่วยงาน --
 
               </option>
-
 
 
               {
@@ -500,14 +438,9 @@ export default function IssueForm({
 
 
 
-
-
-
-
           {/* ผู้ขอเบิก */}
 
           <div>
-
 
             <label
               className="
@@ -515,37 +448,28 @@ export default function IssueForm({
                 block
                 text-lg
                 font-extrabold
-                text-white
+                text-slate-900
               "
             >
-              ผู้ขอเบิก
-            </label>
 
+              ผู้ขอเบิก
+
+            </label>
 
 
             <select
 
-
               name="officerId"
-
 
               value={officerId}
 
-
-
-              onChange={(e)=>{
-
+              onChange={(e)=>
                 setOfficerId(
                   e.target.value
-                );
-
-              }}
-
-
+                )
+              }
 
               disabled={!departmentId}
-
-
 
               className="
                 w-full
@@ -554,13 +478,14 @@ export default function IssueForm({
                 border-slate-300
                 bg-white
                 p-3
+                font-semibold
                 text-slate-900
                 outline-none
-                disabled:bg-slate-200
+                focus:border-cyan-500
+                disabled:bg-slate-100
               "
 
             >
-
 
 
               <option value="">
@@ -570,11 +495,8 @@ export default function IssueForm({
               </option>
 
 
-
               {
-
                 filteredOfficers.map((o)=>(
-
 
                   <option
 
@@ -588,15 +510,11 @@ export default function IssueForm({
 
                   </option>
 
-
                 ))
-
               }
 
 
-
             </select>
-
 
 
           </div>
@@ -606,37 +524,41 @@ export default function IssueForm({
         </div>
 
 
-      </div>
-            {/* ตารางรายการเบิก */}
+
+        <input
+
+          type="hidden"
+
+          name="documentNo"
+
+          value={documentValue}
+
+        />
 
 
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-700
-          bg-slate-900
-          shadow-xl
-        "
-      >
-
-
-        <div className="overflow-x-auto">
-
+        {/* ตารางรายการเบิก เริ่มส่วน 3/4 */}
+        <div
+          className="
+            overflow-x-auto
+            rounded-2xl
+            border
+            border-slate-900
+            bg-white
+            shadow-xl
+          "
+        >
 
           <table
             className="
-              min-w-full
+              w-full
+              border-collapse
+              text-sm
             "
           >
 
-
             <thead>
 
-
               <tr>
-
 
                 {
                   [
@@ -650,30 +572,27 @@ export default function IssueForm({
                     "วันหมดอายุ",
                   ].map((title)=>(
 
-
                     <th
-
                       key={title}
-
                       className="
+                        border
+                        border-slate-900
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-                        px-4
+                        px-3
                         py-4
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
                         whitespace-nowrap
+                        !text-white
                       "
-
                     >
 
                       {title}
 
                     </th>
-
 
                   ))
                 }
@@ -681,10 +600,7 @@ export default function IssueForm({
 
               </tr>
 
-
             </thead>
-
-
 
 
 
@@ -692,67 +608,51 @@ export default function IssueForm({
 
 
               {
-
                 rows.map((row,index)=>{
 
 
                   const list =
-
                     materials.filter(
-
                       (m)=>
-
                         m.category === row.category
-
                     );
-
-
 
 
                   const selected =
-
                     materials.find(
-
                       (m)=>
-
-                        String(m.id) === row.materialId
-
+                        String(m.id) ===
+                        row.materialId
                     );
-
 
 
 
                   return (
 
-
                     <tr
-
                       key={index}
-
                       className="
                         border-b
-                        border-slate-700
+                        border-slate-300
                         transition
-                        hover:bg-slate-800
+                        hover:bg-emerald-50
                       "
-
                     >
-
 
 
 
                       {/* ลำดับ */}
 
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                           text-center
                           font-bold
-                          text-white
+                          text-slate-900
                         "
-
                       >
 
                         {index + 1}
@@ -761,88 +661,72 @@ export default function IssueForm({
 
 
 
-
-
-
-
                       {/* หมวดหมู่ */}
 
-
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                         "
-
                       >
-
 
                         <select
 
-
                           value={row.category}
 
-
-
                           onChange={(e)=>
-
                             updateRow(
-
                               index,
-
                               "category",
-
                               e.target.value
-
                             )
-
                           }
-
 
 
                           className="
                             min-w-[170px]
                             rounded-xl
                             border
-                            border-slate-600
-                            bg-slate-800
+                            border-slate-300
+                            bg-white
                             p-2
-                            text-white
+                            font-semibold
+                            text-slate-900
                             outline-none
+                            focus:border-cyan-500
                           "
-
 
                         >
 
-
-
                           <option value="">
 
-                            เลือกหมวด
+                            เลือกหมวดหมู่
 
                           </option>
 
 
-
-
                           {
-  categories.map((c) => (
+                            categories.map((c)=>(
 
-    <option
-      key={c.value}
-      value={c.value}
-    >
-      {c.label}
-    </option>
+                              <option
 
-  ))
-}
+                                key={c.value}
 
+                                value={c.value}
+
+                              >
+
+                                {c.label}
+
+                              </option>
+
+                            ))
+                          }
 
 
                         </select>
-
 
 
                       </td>
@@ -850,64 +734,46 @@ export default function IssueForm({
 
 
 
-
-
-
                       {/* รายการพัสดุ */}
 
-
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                         "
-
                       >
-
 
                         <select
 
-
                           name={`items[${index}].materialId`}
-
-
 
                           value={row.materialId}
 
-
-
                           onChange={(e)=>
-
                             updateRow(
-
                               index,
-
                               "materialId",
-
                               e.target.value
-
                             )
-
                           }
-
 
 
                           className="
                             min-w-[260px]
                             rounded-xl
                             border
-                            border-slate-600
-                            bg-slate-800
+                            border-slate-300
+                            bg-white
                             p-2
-                            text-white
+                            font-semibold
+                            text-slate-900
                             outline-none
+                            focus:border-cyan-500
                           "
 
-
                         >
-
-
 
                           <option value="">
 
@@ -916,12 +782,8 @@ export default function IssueForm({
                           </option>
 
 
-
-
                           {
-
                             list.map((m)=>(
-
 
                               <option
 
@@ -935,21 +797,14 @@ export default function IssueForm({
 
                               </option>
 
-
                             ))
-
                           }
-
 
 
                         </select>
 
 
-
                       </td>
-
-
-
 
 
 
@@ -957,37 +812,41 @@ export default function IssueForm({
                       {/* หน่วย */}
 
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                           text-center
                         "
-
                       >
 
-                        <div
+                        <input
+
+                          type="text"
+
+                          readOnly
+
+                          value={
+                            selected?.unit ?? "-"
+                          }
 
                           className="
+                            w-full
                             rounded-xl
-                            bg-slate-700
-                            px-4
-                            py-2
+                            border
+                            border-slate-300
+                            bg-slate-100
+                            p-2
+                            text-center
                             font-bold
-                            text-white
+                            text-slate-900
                           "
 
-                        >
-
-                          {selected?.unit ?? "-"}
-
-                        </div>
+                        />
 
 
                       </td>
-
-
-
 
 
 
@@ -995,37 +854,42 @@ export default function IssueForm({
                       {/* ราคา */}
 
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                           text-center
                         "
-
                       >
 
-                        <div
+                        <input
+
+                          type="text"
+
+                          readOnly
+
+                          value={
+                            selected?.latestPrice ?? 0
+                          }
+
 
                           className="
+                            w-full
                             rounded-xl
-                            bg-slate-700
-                            px-4
-                            py-2
+                            border
+                            border-slate-300
+                            bg-slate-100
+                            p-2
+                            text-center
                             font-bold
-                            text-emerald-300
+                            text-emerald-600
                           "
 
-                        >
-
-                          {selected?.latestPrice ?? 0}
-
-                        </div>
+                        />
 
 
                       </td>
-
-
-
 
 
 
@@ -1033,70 +897,56 @@ export default function IssueForm({
                       {/* จำนวน */}
 
                       <td
-
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                         "
-
                       >
 
                         <input
 
-
                           name={`items[${index}].qty`}
-
-
 
                           type="number"
 
-
-
                           min="1"
-
-
 
                           value={row.qty}
 
-
-
                           onChange={(e)=>
-
                             updateRow(
-
                               index,
-
                               "qty",
-
                               e.target.value
-
                             )
-
                           }
-
 
 
                           className="
                             w-24
                             rounded-xl
                             border
-                            border-slate-600
-                            bg-slate-800
+                            border-slate-300
+                            bg-white
                             p-2
                             text-center
-                            text-white
-                            outline-none
+                            font-bold
+                            text-slate-900
                           "
 
                         />
 
 
                       </td>
-                                            {/* วันผลิต */}
 
+                      {/* วันผลิต */}
 
                       <td
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                         "
@@ -1123,26 +973,28 @@ export default function IssueForm({
                             w-36
                             rounded-xl
                             border
-                            border-slate-600
-                            bg-slate-800
+                            border-slate-300
+                            bg-white
                             p-2
-                            text-white
+                            font-bold
+                            text-slate-900
                             outline-none
+                            focus:border-cyan-500
                           "
 
                         />
+
 
                       </td>
 
 
 
-
-
                       {/* วันหมดอายุ */}
-
 
                       <td
                         className="
+                          border
+                          border-slate-300
                           px-3
                           py-3
                         "
@@ -1169,14 +1021,17 @@ export default function IssueForm({
                             w-36
                             rounded-xl
                             border
-                            border-slate-600
-                            bg-slate-800
+                            border-slate-300
+                            bg-white
                             p-2
-                            text-white
+                            font-bold
+                            text-slate-900
                             outline-none
+                            focus:border-cyan-500
                           "
 
                         />
+
 
                       </td>
 
@@ -1184,131 +1039,119 @@ export default function IssueForm({
 
                     </tr>
 
-
                   );
-
 
                 })
               }
 
 
-
             </tbody>
-
 
 
           </table>
 
 
+        </div>
+
+
+
+        {/* หมายเหตุ */}
+
+        <div>
+
+          <label
+
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-slate-900
+            "
+
+          >
+
+            หมายเหตุ
+
+
+          </label>
+
+
+          <textarea
+
+            name="remark"
+
+            className="
+              min-h-[120px]
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-3
+              font-semibold
+              text-slate-900
+              outline-none
+              focus:border-cyan-500
+              focus:ring-4
+              focus:ring-cyan-100
+            "
+
+          />
+
 
         </div>
 
 
-      </div>
 
 
+        {/* ปุ่มบันทึก */}
 
-
-
-
-
-
-
-      {/* หมายเหตุ */}
-
-
-      <div>
-
-
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          หมายเหตุ
-        </label>
-
-
-
-        <textarea
-
-          name="remark"
-
-          rows={4}
+        <div
 
           className="
-            w-full
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            p-3
-            text-slate-900
-            outline-none
-          "
-
-        />
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-
-      {/* ปุ่มบันทึก */}
-
-
-      <div
-        className="
-          flex
-          justify-end
-        "
-      >
-
-
-        <button
-
-          type="submit"
-
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
+            flex
+            justify-end
           "
 
         >
 
-          💾 บันทึกการเบิก
+          <button
+
+            type="submit"
+
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              via-green-500
+              to-emerald-500
+              px-8
+              py-3
+              text-lg
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
+            "
+
+          >
+
+            💾 บันทึกการเบิกจ่าย
 
 
-        </button>
+          </button>
+
+
+        </div>
 
 
 
-      </div>
+      </form>
 
 
-
-    </form>
-
+    </div>
 
   );
 
