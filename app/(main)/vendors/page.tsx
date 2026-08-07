@@ -267,6 +267,7 @@ export default function VendorsPage() {
 
 
                     <th
+  <th
   key={title}
   className={`
     border
@@ -281,8 +282,8 @@ export default function VendorsPage() {
     font-extrabold
     text-white
     whitespace-nowrap
-    ${title === "ที่อยู่" ? "min-w-[280px]" : ""}
-    ${title === "เลขประจำตัวผู้เสียภาษี" ? "min-w-[220px]" : ""}
+    ${title === "ที่อยู่" ? "min-w-[320px]" : ""}
+    ${title === "เลขประจำตัวผู้เสียภาษี" ? "min-w-[160px]" : ""}
   `}
 >
   {title}
@@ -396,8 +397,9 @@ export default function VendorsPage() {
                           px-4
                           py-3
                           font-semibold
-                          max-w-[280px]
-                          truncate
+                          whitespace-normal
+                          break-words
+                          max-w-[320px]
                         "
                       >
 
@@ -432,10 +434,11 @@ export default function VendorsPage() {
                         className="
                           border
                           border-slate-900
-                          px-4
+                          px-3
                           py-3
                           text-center
                           font-semibold
+                          whitespace-nowrap
                         "
                       >
 
