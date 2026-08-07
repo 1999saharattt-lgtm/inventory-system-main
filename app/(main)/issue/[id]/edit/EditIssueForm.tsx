@@ -463,21 +463,24 @@ export default function EditIssueForm({
         {/* ตารางรายการ */}
 
 
-
-        <table
-
-
-          className="
-            w-full
-            border-collapse
-            border
-            border-slate-900
-            bg-white
-            text-sm
-          "
+<div
+  className="
+    overflow-x-auto
+  "
+>
 
 
-        >
+<table
+
+  className="
+    w-full
+    border-collapse
+    border
+    border-slate-900
+    text-sm
+  "
+
+>
 
 
 
@@ -1394,7 +1397,15 @@ export default function EditIssueForm({
 
 
         </table>
-            {/* หมายเหตุ */}
+
+        </div>
+
+
+
+
+
+
+        {/* หมายเหตุ */}
 
 
     <div>
