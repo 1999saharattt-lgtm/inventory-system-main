@@ -18,13 +18,17 @@ export default function NewVendorPage() {
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-8
+          py-6
+          min-h-[140px]
           text-white
           shadow-xl
         "
       >
 
+
         <div>
+
 
           <h1
             className="
@@ -34,16 +38,17 @@ export default function NewVendorPage() {
               !text-white
             "
           >
-            เพิ่มผู้จำหน่าย
+            🏢 เพิ่มผู้จำหน่าย
           </h1>
+
 
 
           <p
             className="
-              mt-3
+              mt-2
               text-xl
               font-semibold
-              text-slate-200
+              !text-slate-200
             "
           >
             เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ
@@ -51,6 +56,7 @@ export default function NewVendorPage() {
 
 
         </div>
+
 
 
 
@@ -63,6 +69,7 @@ export default function NewVendorPage() {
             to-green-500
             px-5
             py-3
+            text-lg
             font-extrabold
             text-white
             shadow-lg
@@ -84,11 +91,12 @@ export default function NewVendorPage() {
 
       <div
         className="
+          max-w-xl
           rounded-2xl
           border
           border-slate-200
           bg-white
-          p-6
+          p-8
           shadow-xl
         "
       >
@@ -96,6 +104,7 @@ export default function NewVendorPage() {
         <VendorForm />
 
       </div>
+
 
 
     </div>

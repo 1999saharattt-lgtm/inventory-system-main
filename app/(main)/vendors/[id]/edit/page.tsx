@@ -11,24 +11,27 @@ type Props = {
 };
 
 
+
 export default async function EditVendorPage({
   params,
 }: Props) {
 
+
   const { id } = await params;
+
 
 
   const vendor = await prisma.vendor.findUnique({
 
-    where: {
-      id: Number(id),
+    where:{
+      id:Number(id),
     },
 
   });
 
 
 
-  if (!vendor) {
+  if(!vendor){
 
     notFound();
 
@@ -36,9 +39,12 @@ export default async function EditVendorPage({
 
 
 
+
   return (
 
     <div className="space-y-6">
+
+
 
 
 
@@ -61,19 +67,21 @@ export default async function EditVendorPage({
       >
 
 
+
         <div>
 
 
           <h1
             className="
+              !text-white
               text-5xl
               font-extrabold
               leading-tight
-              !text-white
             "
           >
             แก้ไขผู้จำหน่าย
           </h1>
+
 
 
           <p
@@ -88,7 +96,10 @@ export default async function EditVendorPage({
           </p>
 
 
+
         </div>
+
+
 
 
 
@@ -118,7 +129,11 @@ export default async function EditVendorPage({
         </Link>
 
 
+
       </div>
+
+
+
 
 
 
@@ -128,6 +143,7 @@ export default async function EditVendorPage({
 
       <div
         className="
+          overflow-hidden
           rounded-2xl
           border
           border-slate-200
@@ -137,11 +153,15 @@ export default async function EditVendorPage({
         "
       >
 
+
         <EditVendorForm
           vendor={vendor}
         />
 
+
       </div>
+
+
 
 
 

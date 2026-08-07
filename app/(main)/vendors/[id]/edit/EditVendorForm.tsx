@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-
 type Vendor = {
   id: number;
   name: string;
@@ -12,15 +11,13 @@ type Vendor = {
 };
 
 
-
 export default function EditVendorForm({
   vendor,
 }: {
   vendor: Vendor;
 }) {
 
-
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 
 
@@ -28,9 +25,7 @@ export default function EditVendorForm({
     formData: FormData
   ) {
 
-
     setLoading(true);
-
 
 
     try {
@@ -53,13 +48,13 @@ export default function EditVendorForm({
       const res = await fetch(
         `/api/vendors/${vendor.id}`,
         {
-          method:"PUT",
+          method: "PUT",
 
           headers:{
             "Content-Type":"application/json",
           },
 
-          body:JSON.stringify(body),
+          body: JSON.stringify(body),
         }
       );
 
@@ -93,192 +88,226 @@ export default function EditVendorForm({
 
     }
 
-
   }
 
 
 
+  return (
 
-return (
+    <form
+      action={handleSubmit}
+      className="
+        space-y-6
+      "
+    >
 
-<form
 
-  action={handleSubmit}
 
-  className="
-    space-y-6
-  "
+      <div
+        className="
+          grid
+          gap-6
+          md:grid-cols-2
+        "
+      >
 
->
 
 
+        {/* ชื่อผู้จำหน่าย */}
 
-<div
+        <div>
 
-className="
-grid
-gap-6
-md:grid-cols-2
-"
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-slate-900
+            "
+          >
+            ชื่อผู้จำหน่าย
+          </label>
 
->
 
+          <input
 
-{/* ชื่อ */}
+            name="name"
 
-<div>
+            defaultValue={vendor.name}
 
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-bold
+              text-black
+              outline-none
+              transition
+              focus:border-emerald-500
+              focus:ring-2
+              focus:ring-emerald-200
+            "
 
-<label
+          />
 
-className="
-mb-2
-block
-text-lg
-font-extrabold
-text-slate-900
-"
+        </div>
 
->
-ชื่อผู้จำหน่าย
-</label>
 
 
-<input
 
-name="name"
 
-defaultValue={vendor.name}
+        {/* เบอร์โทร */}
 
-className="
-w-full
-rounded-xl
-border
-border-slate-300
-bg-white
-px-4
-py-3
-font-bold
-text-black
-outline-none
-transition
-focus:border-emerald-500
-focus:ring-2
-focus:ring-emerald-200
-"
+        <div>
 
-/>
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-slate-900
+            "
+          >
+            เบอร์โทร
+          </label>
 
 
-</div>
+          <input
 
+            name="phone"
 
+            defaultValue={vendor.phone ?? ""}
 
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-bold
+              text-black
+              outline-none
+              transition
+              focus:border-emerald-500
+              focus:ring-2
+              focus:ring-emerald-200
+            "
 
+          />
 
-{/* เบอร์โทร */}
+        </div>
 
-<div>
 
 
-<label
 
-className="
-mb-2
-block
-text-lg
-font-extrabold
-text-slate-900
-"
 
->
-เบอร์โทร
-</label>
 
+        {/* Tax */}
 
-<input
+        <div>
 
-name="phone"
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-slate-900
+            "
+          >
+            เลขประจำตัวผู้เสียภาษี
+          </label>
 
-defaultValue={vendor.phone ?? ""}
 
-className="
-w-full
-rounded-xl
-border
-border-slate-300
-bg-white
-px-4
-py-3
-font-bold
-text-black
-outline-none
-transition
-focus:border-emerald-500
-focus:ring-2
-focus:ring-emerald-200
-"
+          <input
 
-/>
+            name="taxId"
 
+            defaultValue={vendor.taxId ?? ""}
 
-</div>
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-bold
+              text-black
+              outline-none
+              transition
+              focus:border-emerald-500
+              focus:ring-2
+              focus:ring-emerald-200
+            "
 
+          />
 
+        </div>
 
 
 
+      </div>
 
-{/* Tax */}
 
-<div>
 
 
-<label
 
-className="
-mb-2
-block
-text-lg
-font-extrabold
-text-slate-900
-"
 
->
-เลขประจำตัวผู้เสียภาษี
-</label>
+      {/* ที่อยู่ */}
 
+      <div>
 
-<input
+        <label
+          className="
+            mb-2
+            block
+            text-lg
+            font-extrabold
+            text-slate-900
+          "
+        >
+          ที่อยู่
+        </label>
 
-name="taxId"
 
-defaultValue={vendor.taxId ?? ""}
+        <textarea
 
-className="
-w-full
-rounded-xl
-border
-border-slate-300
-bg-white
-px-4
-py-3
-font-bold
-text-black
-outline-none
-transition
-focus:border-emerald-500
-focus:ring-2
-focus:ring-emerald-200
-"
+          name="address"
 
-/>
+          rows={4}
 
+          defaultValue={vendor.address ?? ""}
 
-</div>
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            font-bold
+            text-black
+            outline-none
+            transition
+            focus:border-emerald-500
+            focus:ring-2
+            focus:ring-emerald-200
+          "
 
+        />
 
-</div>
+      </div>
 
 
 
@@ -286,139 +315,72 @@ focus:ring-emerald-200
 
 
 
-{/* ที่อยู่ */}
+      {/* Button */}
 
-<div>
+      <div
+        className="
+          flex
+          gap-4
+          pt-4
+        "
+      >
 
 
-<label
+        <button
 
-className="
-mb-2
-block
-text-lg
-font-extrabold
-text-slate-900
-"
+          disabled={loading}
 
->
-ที่อยู่
-</label>
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-8
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            disabled:opacity-50
+          "
 
+        >
 
+          {
+            loading
+            ? "กำลังบันทึก..."
+            : "บันทึก"
+          }
 
-<textarea
+        </button>
 
-name="address"
 
-rows={4}
 
-defaultValue={vendor.address ?? ""}
+        <a
+          href="/vendors"
+          className="
+            rounded-xl
+            bg-slate-700
+            px-8
+            py-3
+            font-extrabอด
+            text-white
+            shadow-lg
+            transition
+            hover:bg-slate-800
+          "
+        >
+          ยกเลิก
+        </a>
 
-className="
-w-full
-rounded-xl
-border
-border-slate-300
-bg-white
-px-4
-py-3
-font-bold
-text-black
-outline-none
-transition
-focus:border-emerald-500
-focus:ring-2
-focus:ring-emerald-200
-"
 
-/>
+      </div>
 
 
-</div>
 
+    </form>
 
-
-
-
-
-
-{/* ปุ่ม */}
-
-<div
-
-className="
-flex
-justify-end
-gap-3
-pt-4
-"
-
->
-
-
-<a
-
-href="/vendors"
-
-className="
-rounded-xl
-bg-slate-700
-px-6
-py-3
-font-extrabold
-text-white
-shadow-lg
-transition
-hover:bg-slate-800
-"
-
->
-ยกเลิก
-</a>
-
-
-
-
-<button
-
-disabled={loading}
-
-className="
-rounded-xl
-bg-gradient-to-r
-from-emerald-600
-to-green-500
-px-8
-py-3
-font-extrabold
-text-white
-shadow-lg
-transition
-hover:scale-105
-disabled:opacity-50
-"
-
->
-
-{
-loading
-?
-"กำลังบันทึก..."
-:
-"💾 บันทึก"
-}
-
-</button>
-
-
-
-</div>
-
-
-
-</form>
-
-);
+  );
 
 }

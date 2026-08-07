@@ -8,7 +8,7 @@ export default function VendorForm() {
 
 
   async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
+    e: React.FormEvent
   ) {
 
     e.preventDefault();
@@ -18,50 +18,61 @@ export default function VendorForm() {
 
     try {
 
-      const formData = new FormData(e.currentTarget);
+      const formData =
+        new FormData(e.currentTarget);
 
 
-      const body = Object.fromEntries(
-        formData.entries()
-      );
+      const body =
+        Object.fromEntries(
+          formData.entries()
+        );
 
 
-      const res = await fetch(
-        "/api/vendors",
-        {
-          method:"POST",
+      const res =
+        await fetch(
+          "/api/vendors",
+          {
+            method: "POST",
 
-          headers:{
-            "Content-Type":"application/json",
-          },
+            headers:{
+              "Content-Type":"application/json",
+            },
 
-          body:JSON.stringify(body),
-        }
-      );
+            body: JSON.stringify(body),
+          }
+        );
 
 
 
-      if(res.ok){
+      const text = await res.text();
 
-        alert("เพิ่มผู้จำหน่ายสำเร็จ");
 
-        window.location.href="/vendors";
+      if(!res.ok){
 
-      }else{
-
-        alert("เกิดข้อผิดพลาด");
+        throw new Error(
+          text || "บันทึกไม่สำเร็จ"
+        );
 
       }
 
 
-    }catch(error){
 
-      console.error(error);
-
-      alert("ไม่สามารถบันทึกข้อมูลได้");
+      alert("เพิ่มผู้จำหน่ายสำเร็จ");
 
 
-    }finally{
+      window.location.href="/vendors";
+
+
+    } catch(error){
+
+      alert(
+        error instanceof Error
+        ? error.message
+        : "เกิดข้อผิดพลาด"
+      );
+
+
+    } finally {
 
       setLoading(false);
 
@@ -72,33 +83,29 @@ export default function VendorForm() {
 
 
 
+
   return (
 
     <form
-
       onSubmit={handleSubmit}
-
       className="
         space-y-6
       "
-
     >
 
 
 
       <div
-
         className="
           grid
           gap-6
           md:grid-cols-2
         "
-
       >
 
 
 
-        {/* ชื่อ */}
+        {/* ชื่อผู้จำหน่าย */}
 
         <div>
 
@@ -131,13 +138,14 @@ export default function VendorForm() {
               bg-white
               px-4
               py-3
-              font-bold
-              text-black
+              text-lg
+              font-medium
+              text-slate-900
               outline-none
               transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-100
             "
 
           />
@@ -158,7 +166,7 @@ export default function VendorForm() {
               mb-2
               block
               text-lg
-              font-extrabold
+              font-extrabด
               text-slate-900
             "
           >
@@ -180,13 +188,14 @@ export default function VendorForm() {
               bg-white
               px-4
               py-3
-              font-bold
-              text-black
+              text-lg
+              font-medium
+              text-slate-900
               outline-none
               transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-100
             "
 
           />
@@ -202,7 +211,6 @@ export default function VendorForm() {
 
         <div>
 
-
           <label
             className="
               mb-2
@@ -214,7 +222,6 @@ export default function VendorForm() {
           >
             เลขประจำตัวผู้เสียภาษี
           </label>
-
 
 
           <input
@@ -231,13 +238,14 @@ export default function VendorForm() {
               bg-white
               px-4
               py-3
-              font-bold
-              text-black
+              text-lg
+              font-medium
+              text-slate-900
               outline-none
               transition
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-100
             "
 
           />
@@ -254,10 +262,10 @@ export default function VendorForm() {
 
 
 
+
       {/* ที่อยู่ */}
 
       <div>
-
 
         <label
           className="
@@ -270,7 +278,6 @@ export default function VendorForm() {
         >
           ที่อยู่
         </label>
-
 
 
         <textarea
@@ -289,13 +296,14 @@ export default function VendorForm() {
             bg-white
             px-4
             py-3
-            font-bold
-            text-black
+            text-lg
+            font-medium
+            text-slate-900
             outline-none
             transition
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            focus:border-blue-500
+            focus:ring-4
+            focus:ring-blue-100
           "
 
         />
@@ -312,15 +320,48 @@ export default function VendorForm() {
       {/* ปุ่ม */}
 
       <div
-
         className="
           flex
-          justify-end
-          gap-3
+          gap-4
           pt-4
         "
-
       >
+
+
+        <button
+
+          type="submit"
+
+          disabled={loading}
+
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-8
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            disabled:opacity-50
+          "
+
+        >
+
+          {
+            loading
+            ? "กำลังบันทึก..."
+            : "💾 บันทึกข้อมูล"
+          }
+
+
+        </button>
+
+
 
 
 
@@ -331,8 +372,9 @@ export default function VendorForm() {
           className="
             rounded-xl
             bg-slate-700
-            px-6
+            px-8
             py-3
+            text-lg
             font-extrabold
             text-white
             shadow-lg
@@ -348,42 +390,7 @@ export default function VendorForm() {
 
 
 
-
-
-        <button
-
-          disabled={loading}
-
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            disabled:opacity-50
-          "
-
-        >
-
-          {
-            loading
-            ? "กำลังบันทึก..."
-            : "💾 บันทึก"
-          }
-
-
-        </button>
-
-
-
       </div>
-
 
 
 
