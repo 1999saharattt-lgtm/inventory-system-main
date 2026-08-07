@@ -18,6 +18,7 @@ function getThaiYear() {
 
 async function generateReceiveNo() {
 
+
   const year = getThaiYear();
 
 
@@ -25,16 +26,24 @@ async function generateReceiveNo() {
     await prisma.receive.findMany({
 
       where: {
+
         documentNo: {
+
           startsWith: "ร.",
+
         },
+
       },
 
+
       select: {
+
         documentNo: true,
+
       },
 
     });
+
 
 
 
@@ -42,29 +51,39 @@ async function generateReceiveNo() {
 
 
 
+
   for (const receive of receives) {
 
 
     const match =
+
       receive.documentNo.match(
+
         /ร\.(\d+)\/(\d+)/
+
       );
 
 
 
-    if(match) {
+
+    if(match){
+
 
 
       const lastNumber =
+
         Number(match[1]);
 
 
+
       const lastYear =
+
         match[2];
 
 
 
-      if(lastYear === year) {
+
+      if(lastYear === year){
 
 
         if(lastNumber >= running){
@@ -77,15 +96,20 @@ async function generateReceiveNo() {
       }
 
 
+
     }
+
 
 
   }
 
 
 
+
   return (
+
     `ร.${String(running).padStart(2,"0")}/${year}`
+
   );
 
 
@@ -96,15 +120,20 @@ async function generateReceiveNo() {
 
 
 
-export default async function CreateReceivePage() {
+export default async function CreateReceivePage(){
 
 
 
   const [
+
     materials,
+
     vendors,
+
     documentNo,
+
   ] = await Promise.all([
+
 
 
 
@@ -113,11 +142,15 @@ export default async function CreateReceivePage() {
       orderBy:[
 
         {
+
           category:"asc",
+
         },
 
         {
+
           code:"asc",
+
         },
 
       ],
@@ -127,13 +160,18 @@ export default async function CreateReceivePage() {
 
 
 
+
+
     prisma.vendor.findMany({
 
       orderBy:{
+
         name:"asc",
+
       },
 
     }),
+
 
 
 
@@ -142,16 +180,22 @@ export default async function CreateReceivePage() {
 
 
 
+
   ]);
-
-
 
 
 
 
   return (
 
-    <div className="space-y-6">
+
+    <div
+
+      className="
+        space-y-6
+      "
+
+    >
 
 
 
@@ -159,7 +203,10 @@ export default async function CreateReceivePage() {
 
       {/* Header */}
 
+
+
       <div
+
         className="
           flex
           items-center
@@ -172,38 +219,52 @@ export default async function CreateReceivePage() {
           p-6
           shadow-xl
         "
+
       >
+
 
 
 
         <div>
 
 
+
           <h1
+
             className="
-              !text-white
               text-5xl
               font-extrabold
               leading-tight
               tracking-wide
+              !text-white
             "
+
           >
+
             📥 บันทึกการรับเข้าพัสดุ
+
+
           </h1>
 
 
 
 
           <p
+
             className="
               mt-3
               text-xl
               font-semibold
               !text-slate-200
             "
+
           >
+
             เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
+
+
           </p>
+
 
 
 
@@ -214,7 +275,10 @@ export default async function CreateReceivePage() {
 
 
         <Link
+
           href="/receive"
+
+
           className="
             rounded-xl
             bg-gradient-to-r
@@ -229,55 +293,44 @@ export default async function CreateReceivePage() {
             hover:scale-105
             hover:shadow-xl
           "
+
         >
+
           ← กลับ
+
+
         </Link>
 
 
 
-      </div>
-
-
-
-
-
-
-
-      {/* Form */}
-
-      <div
-        className="
-          rounded-3xl
-          border
-          border-slate-200
-          bg-white
-          p-8
-          shadow-xl
-        "
-      >
-
-
-
-        <ReceiveForm
-
-          vendors={vendors}
-
-          materials={materials}
-
-          documentNo={documentNo}
-
-        />
-
-
 
       </div>
+            {/* Form */}
 
+
+      <ReceiveForm
+
+
+        vendors={vendors}
+
+
+        materials={materials}
+
+
+        documentNo={documentNo}
+
+
+
+      />
 
 
 
 
     </div>
 
+
+
   );
+
 
 }
