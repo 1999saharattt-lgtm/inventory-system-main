@@ -53,39 +53,39 @@ export default function EditVendorForm({
       const res = await fetch(
         `/api/vendors/${vendor.id}`,
         {
-          method:"PUT",
+          method: "PUT",
 
-          headers:{
-            "Content-Type":"application/json",
+          headers: {
+            "Content-Type": "application/json",
           },
 
-          body:JSON.stringify(body),
+          body: JSON.stringify(body),
         }
       );
 
 
 
-      if(res.ok){
+      if (res.ok) {
 
         alert("บันทึกสำเร็จ");
 
-        location.href="/vendors";
+        location.href = "/vendors";
 
-      }else{
+      } else {
 
         alert("บันทึกไม่สำเร็จ");
 
       }
 
 
-    }catch(error){
+    } catch (error) {
 
       console.error(error);
 
       alert("เกิดข้อผิดพลาด");
 
 
-    }finally{
+    } finally {
 
       setLoading(false);
 
@@ -102,9 +102,20 @@ export default function EditVendorForm({
       onSubmit={handleSubmit}
 
       className="
-        w-full
+        max-w-5xl
         space-y-6
+        rounded-3xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        p-8
+        text-white
+        shadow-2xl
       "
+
     >
 
 
@@ -127,7 +138,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-slate-900
+              text-white
             "
           >
             ชื่อผู้จำหน่าย
@@ -146,20 +157,20 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
+              text-white
               outline-none
               transition
-              focus:border-emerald-500
+              focus:border-cyan-400
               focus:ring-2
-              focus:ring-emerald-200
+              focus:ring-cyan-300
             "
 
           />
+
 
         </div>
 
@@ -175,7 +186,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-slate-900
+              text-white
             "
           >
             เบอร์โทร
@@ -192,17 +203,16 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
+              text-white
               outline-none
               transition
-              focus:border-emerald-500
+              focus:border-cyan-400
               focus:ring-2
-              focus:ring-emerald-200
+              focus:ring-cyan-300
             "
 
           />
@@ -221,7 +231,7 @@ export default function EditVendorForm({
               block
               text-lg
               font-extrabold
-              text-slate-900
+              text-white
             "
           >
             เลขประจำตัวผู้เสียภาษี
@@ -238,17 +248,16 @@ export default function EditVendorForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
+              border-slate-600
+              bg-slate-800
+              p-3
               font-bold
-              text-black
+              text-white
               outline-none
               transition
-              focus:border-emerald-500
+              focus:border-cyan-400
               focus:ring-2
-              focus:ring-emerald-200
+              focus:ring-cyan-300
             "
 
           />
@@ -264,13 +273,14 @@ export default function EditVendorForm({
 
       <div>
 
+
         <label
           className="
             mb-2
             block
             text-lg
             font-extrabold
-            text-slate-900
+            text-white
           "
         >
           ที่อยู่
@@ -289,23 +299,22 @@ export default function EditVendorForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
+            border-slate-600
+            bg-slate-800
+            p-3
             font-bold
-            text-black
+            text-white
             outline-none
             transition
-            focus:border-emerald-500
+            focus:border-cyan-400
             focus:ring-2
-            focus:ring-emerald-200
+            focus:ring-cyan-300
           "
 
         />
 
-      </div>
 
+      </div>
 
 
 
@@ -363,16 +372,16 @@ export default function EditVendorForm({
 
           className="
             rounded-xl
-            border
-            border-slate-300
-            bg-white
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
             px-8
             py-3
             font-extrabold
-            text-slate-700
-            shadow-sm
+            text-white
+            shadow-lg
             transition
-            hover:bg-slate-100
+            hover:scale-105
           "
 
         >
