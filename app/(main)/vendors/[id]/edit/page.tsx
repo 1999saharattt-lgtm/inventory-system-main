@@ -132,32 +132,11 @@ export default async function EditVendorPage({
 
       {/* Form */}
 
-      <div
+      <EditVendorForm
 
-        className="
-          w-full
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-8
-          shadow-2xl
-        "
+        vendor={vendor}
 
-      >
-
-
-        <EditVendorForm
-
-          vendor={vendor}
-
-        />
-
-
-      </div>
+      />
 
 
 
