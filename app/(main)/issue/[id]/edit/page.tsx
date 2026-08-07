@@ -119,7 +119,7 @@ export default async function EditIssuePage({
 
   return (
 
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
 
 
       <div
@@ -129,7 +129,8 @@ export default async function EditIssuePage({
           justify-between
           rounded-2xl
           bg-gradient-to-r
-          from-slate-900
+          from-slate-950
+          via-slate-800
           to-slate-700
           p-6
           shadow-xl
@@ -142,9 +143,9 @@ export default async function EditIssuePage({
 
           <div
             className="
-              text-lg
+              text-4xl
               font-extrabold
-              text-white
+              !text-white
             "
           >
             🖊️ แก้ไขรายการเบิกพัสดุ
@@ -198,17 +199,32 @@ export default async function EditIssuePage({
 
 
 
-      <EditIssueForm
+        <div
+    className="
+      rounded-2xl
+      border
+      border-slate-700
+      bg-gradient-to-br
+      from-slate-950
+      to-slate-800
+      p-6
+      shadow-xl
+    "
+  >
 
-        issue={issue}
+    <EditIssueForm
 
-        departments={departments}
+      issue={issue}
 
-        materials={materials}
+      departments={departments}
 
-        receiveItems={receiveItems}
+      materials={materials}
 
-      />
+      receiveItems={receiveItems}
+
+    />
+
+  </div>
 
 
 
