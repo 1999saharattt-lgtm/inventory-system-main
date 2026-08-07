@@ -4,12 +4,10 @@ import { requireRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
-
 async function updateUser(formData: FormData) {
   "use server";
 
   await requireRole("ADMIN");
-
 
   const id = Number(formData.get("id"));
 
@@ -19,7 +17,6 @@ async function updateUser(formData: FormData) {
   const active = formData.get("active") === "true";
 
   const password = formData.get("password") as string;
-
 
 
   const existingUser = await prisma.user.findFirst({
@@ -74,8 +71,6 @@ async function updateUser(formData: FormData) {
 
 
 
-
-
 export default async function EditUserPage({
   params,
 }:{
@@ -105,12 +100,12 @@ export default async function EditUserPage({
         className="
           rounded-2xl
           border
-          border-slate-200
-          bg-white
+          border-slate-700
+          bg-slate-900
           p-8
           text-xl
           font-bold
-          text-slate-600
+          text-white
           shadow-xl
         "
       >
@@ -122,73 +117,409 @@ export default async function EditUserPage({
 
 
 
-
-
-
   return(
 
-    <div className="space-y-6">
+<div className="space-y-6">
 
 
-      {/* Header */}
+  {/* Header */}
+
+  <div
+    className="
+      flex
+      items-center
+      justify-between
+      rounded-3xl
+      bg-gradient-to-r
+      from-slate-950
+      via-slate-800
+      to-slate-700
+      px-8
+      py-7
+      text-white
+      shadow-xl
+    "
+  >
+
+
+    <div>
+
+      <h1
+        className="
+          text-5xl
+          font-extrabold
+          !text-white
+        "
+      >
+        👤 แก้ไขผู้ใช้งานระบบ
+      </h1>
+
+
+      <p
+        className="
+          mt-2
+          text-xl
+          font-semibold
+          text-slate-200
+        "
+      >
+        แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
+      </p>
+
+
+    </div>
+
+
+
+    <Link
+      href="/users"
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-emerald-600
+        to-green-500
+        px-6
+        py-3
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:scale-105
+      "
+    >
+      ← กลับ
+    </Link>
+
+
+  </div>
+
+
+
+
+  {/* Form */}
+
+  <div
+    className="
+      w-full
+      rounded-3xl
+      border
+      border-slate-700
+      bg-gradient-to-br
+      from-slate-950
+      via-slate-900
+      to-slate-800
+      p-8
+      shadow-2xl
+    "
+  >
+
+
+    <form
+      action={updateUser}
+      className="w-full space-y-6"
+    >
+
+
+      <input
+        type="hidden"
+        name="id"
+        value={user.id}
+      />
+
 
       <div
         className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-8
-          py-6
-          min-h-[140px]
-          text-white
-          shadow-xl
+          grid
+          gap-6
+          md:grid-cols-2
         "
       >
 
 
         <div>
 
-          <h1
+          <label
             className="
-              text-5xl
+              mb-2
+              block
+              text-lg
               font-extrabold
-              leading-tight
-              !text-white
+              text-white
             "
           >
-            👤 แก้ไขผู้ใช้งานระบบ
-          </h1>
+            Username
+          </label>
 
 
-          <p
+          <input
+            name="username"
+            defaultValue={user.username}
+            required
+
             className="
-              mt-2
-              text-xl
-              font-semibold
-              !text-slate-200
+              w-full
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800
+              px-4
+              py-3
+              text-lg
+              font-bold
+              text-white
+              outline-none
+              transition
+              focus:border-cyan-400
+              focus:ring-2
+              focus:ring-cyan-300
+            "
+          />
+
+        </div>
+
+
+
+        <div>
+
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-white
             "
           >
-            แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
-          </p>
+            ชื่อ-นามสกุล
+          </label>
+
+
+          <input
+            name="fullname"
+            defaultValue={user.fullname}
+            required
+
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800
+              px-4
+              py-3
+              text-lg
+              font-bold
+              text-white
+              outline-none
+              transition
+              focus:border-cyan-400
+              focus:ring-2
+              focus:ring-cyan-300
+            "
+          />
+
+        </div>
+
+
+      </div>
+            <div>
+
+        <label
+          className="
+            mb-2
+            block
+            text-lg
+            font-extrabold
+            text-white
+          "
+        >
+          Password ใหม่
+        </label>
+
+
+        <input
+          type="password"
+          name="password"
+          placeholder="เว้นว่างไว้ถ้าไม่เปลี่ยนรหัสผ่าน"
+
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-600
+            bg-slate-800
+            px-4
+            py-3
+            text-lg
+            font-bold
+            text-white
+            placeholder:text-slate-400
+            outline-none
+            transition
+            focus:border-cyan-400
+            focus:ring-2
+            focus:ring-cyan-300
+          "
+        />
+
+      </div>
+
+
+
+
+
+      <div
+        className="
+          grid
+          gap-6
+          md:grid-cols-2
+        "
+      >
+
+
+        <div>
+
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-white
+            "
+          >
+            สิทธิ์การใช้งาน
+          </label>
+
+
+          <select
+            name="role"
+            defaultValue={user.role}
+
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800
+              px-4
+              py-3
+              text-lg
+              font-bold
+              text-white
+              outline-none
+              transition
+              focus:border-cyan-400
+              focus:ring-2
+              focus:ring-cyan-300
+            "
+          >
+
+            <option value="ADMIN">
+              ADMIN
+            </option>
+
+
+            <option value="STAFF">
+              STAFF
+            </option>
+
+
+            <option value="VIEWER">
+              VIEWER
+            </option>
+
+
+          </select>
 
 
         </div>
 
 
 
-        <Link
-          href="/users"
+
+
+        <div>
+
+          <label
+            className="
+              mb-2
+              block
+              text-lg
+              font-extrabold
+              text-white
+            "
+          >
+            สถานะ
+          </label>
+
+
+          <select
+            name="active"
+            defaultValue={String(user.active)}
+
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800
+              px-4
+              py-3
+              text-lg
+              font-bold
+              text-white
+              outline-none
+              transition
+              focus:border-cyan-400
+              focus:ring-2
+              focus:ring-cyan-300
+            "
+          >
+
+            <option value="true">
+              Active
+            </option>
+
+
+            <option value="false">
+              Inactive
+            </option>
+
+
+          </select>
+
+
+        </div>
+
+
+      </div>
+
+
+
+
+
+
+
+      <div
+        className="
+          flex
+          gap-4
+          pt-4
+        "
+      >
+
+
+        <button
+
+          type="submit"
+
           className="
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
+            px-8
             py-3
             text-lg
             font-extrabold
@@ -197,8 +528,38 @@ export default async function EditUserPage({
             transition
             hover:scale-105
           "
+
         >
-          ← กลับ
+          💾 บันทึกการแก้ไข
+
+        </button>
+
+
+
+
+
+        <Link
+
+          href="/users"
+
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-8
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+
+        >
+          ยกเลิก
+
         </Link>
 
 
@@ -206,312 +567,14 @@ export default async function EditUserPage({
 
 
 
+    </form>
 
 
+  </div>
 
-
-      {/* Form */}
-
-      <div
-        className="
-          max-w-2xl
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          p-8
-          shadow-xl
-        "
-      >
-
-
-        <form
-          action={updateUser}
-          className="space-y-6"
-        >
-
-
-          <input
-            type="hidden"
-            name="id"
-            value={user.id}
-          />
-
-
-
-
-
-          {[
-            {
-              label:"Username",
-              name:"username",
-              value:user.username,
-              type:"text",
-            },
-            {
-              label:"ชื่อ-นามสกุล",
-              name:"fullname",
-              value:user.fullname,
-              type:"text",
-            },
-
-          ].map((field)=>(
-
-            <div key={field.name}>
-
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-800
-                "
-              >
-                {field.label}
-              </label>
-
-
-              <input
-                name={field.name}
-                defaultValue={field.value}
-                required
-                type={field.type}
-
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  text-lg
-                  font-medium
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-blue-500
-                  focus:ring-4
-                  focus:ring-blue-100
-                "
-              />
-
-            </div>
-
-
-          ))}
-
-
-
-
-
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              Password ใหม่
-            </label>
-
-
-            <input
-              type="password"
-              name="password"
-              placeholder="เว้นว่างไว้ถ้าไม่เปลี่ยนรหัสผ่าน"
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-medium
-                text-slate-900
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-4
-                focus:ring-blue-100
-              "
-            />
-
-          </div>
-
-
-
-
-
-
-
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              สิทธิ์การใช้งาน
-            </label>
-
-
-            <select
-              name="role"
-              defaultValue={user.role}
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-medium
-                text-slate-900
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-4
-                focus:ring-blue-100
-              "
-            >
-
-              <option value="ADMIN">
-                ADMIN
-              </option>
-
-              <option value="STAFF">
-                STAFF
-              </option>
-
-              <option value="VIEWER">
-                VIEWER
-              </option>
-
-            </select>
-
-          </div>
-
-
-
-
-
-
-          <div>
-
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-slate-800
-              "
-            >
-              สถานะ
-            </label>
-
-
-            <select
-              name="active"
-              defaultValue={String(user.active)}
-
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-medium
-                text-slate-900
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-4
-                focus:ring-blue-100
-              "
-            >
-
-              <option value="true">
-                Active
-              </option>
-
-              <option value="false">
-                Inactive
-              </option>
-
-            </select>
-
-
-          </div>
-
-
-
-
-
-
-
-          <div
-  className="
-    flex
-    pt-4
-  "
->
-
-  <button
-    type="submit"
-
-    className="
-      rounded-xl
-      bg-gradient-to-r
-      from-emerald-600
-      to-green-500
-      px-8
-      py-3
-      text-lg
-      font-extrabold
-      text-white
-      shadow-lg
-      transition
-      hover:scale-105
-    "
-  >
-    บันทึกการแก้ไข
-  </button>
 
 
 </div>
-
-
-
-
-
-        </form>
-
-
-      </div>
-
-
-
-    </div>
 
   );
 
