@@ -10,11 +10,14 @@ type Vendor = {
   taxId: string | null;
 };
 
+
+
 export default function EditVendorForm({
   vendor,
 }: {
   vendor: Vendor;
 }) {
+
 
   const [loading, setLoading] = useState(false);
 
@@ -24,10 +27,12 @@ export default function EditVendorForm({
     formData: FormData
   ) {
 
+
     setLoading(true);
 
 
     try {
+
 
       const body = {
 
@@ -90,7 +95,8 @@ export default function EditVendorForm({
 
 
 
-return (
+  return (
+
 
 <form
 
@@ -129,7 +135,9 @@ return (
 
     <div>
 
+
       <label
+
         className="
           mb-2
           block
@@ -137,9 +145,13 @@ return (
           font-extrabold
           text-white
         "
+
       >
+
         ชื่อผู้จำหน่าย
+
       </label>
+
 
 
       <input
@@ -176,9 +188,13 @@ return (
 
 
 
+
+
     <div>
 
+
       <label
+
         className="
           mb-2
           block
@@ -186,9 +202,13 @@ return (
           font-extrabold
           text-white
         "
+
       >
+
         เบอร์โทร
+
       </label>
+
 
 
       <input
@@ -226,7 +246,9 @@ return (
 
     <div>
 
+
       <label
+
         className="
           mb-2
           block
@@ -234,9 +256,13 @@ return (
           font-extrabold
           text-white
         "
+
       >
+
         เลขประจำตัวผู้เสียภาษี
+
       </label>
+
 
 
       <input
@@ -268,7 +294,9 @@ return (
     </div>
 
 
+
   </div>
+
 
 
 
@@ -380,6 +408,7 @@ return (
 
 
 
+
     <a
 
       href="/vendors"
@@ -413,6 +442,7 @@ return (
 
 </form>
 
-);
+
+  );
 
 }

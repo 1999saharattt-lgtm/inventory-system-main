@@ -1,12 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import EditVendorForm from "./EditVendorForm";
 
 
 type Props = {
   params: Promise<{
-    id: string;
+    id:string;
   }>;
 };
 
@@ -39,31 +38,30 @@ export default async function EditVendorPage({
 
 
 
-
   return (
 
     <div className="space-y-6">
 
 
 
-
-
       {/* Header */}
 
       <div
+
         className="
           flex
           items-center
           justify-between
-          rounded-2xl
+          rounded-3xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          p-7
           text-white
           shadow-xl
         "
+
       >
 
 
@@ -72,27 +70,34 @@ export default async function EditVendorPage({
 
 
           <h1
+
             className="
-              !text-white
               text-5xl
               font-extrabold
-              leading-tight
+              !text-white
             "
+
           >
-            แก้ไขผู้จำหน่าย
+
+            ✏️ แก้ไขข้อมูลผู้จำหน่าย
+
           </h1>
 
 
 
           <p
+
             className="
-              mt-3
+              mt-2
               text-xl
-              font-semibold
+              font-bold
               text-slate-200
             "
+
           >
-            แก้ไขข้อมูลผู้จำหน่ายในระบบพัสดุ
+
+            แก้ไขรายละเอียดข้อมูลผู้จำหน่ายในระบบพัสดุ
+
           </p>
 
 
@@ -104,7 +109,8 @@ export default async function EditVendorPage({
 
 
 
-        <Link
+
+        <a
 
           href="/vendors"
 
@@ -113,7 +119,7 @@ export default async function EditVendorPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
+            px-6
             py-3
             font-extrabold
             text-white
@@ -126,7 +132,7 @@ export default async function EditVendorPage({
 
           ← กลับ
 
-        </Link>
+        </a>
 
 
 
@@ -139,11 +145,12 @@ export default async function EditVendorPage({
 
 
 
+
       {/* Form */}
 
       <div
+
         className="
-          overflow-hidden
           rounded-2xl
           border
           border-slate-200
@@ -151,12 +158,17 @@ export default async function EditVendorPage({
           p-6
           shadow-xl
         "
+
       >
 
 
+
         <EditVendorForm
+
           vendor={vendor}
+
         />
+
 
 
       </div>
