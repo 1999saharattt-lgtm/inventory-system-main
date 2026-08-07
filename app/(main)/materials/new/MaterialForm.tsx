@@ -4,12 +4,10 @@ import { useMemo, useState } from "react";
 import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
 
-
 type Vendor = {
   id: number;
   name: string;
 };
-
 
 type MaterialMaster = {
   id: number;
@@ -18,14 +16,13 @@ type MaterialMaster = {
   unit: string;
 };
 
-
 type Props = {
   vendors: Vendor[];
   materialMasters: MaterialMaster[];
 };
 
 
-const categoryMap: Record<string, string> = {
+const categoryMap: Record<string,string> = {
   "วัสดุสำนักงาน": "OFFICE",
   "วัสดุคอมพิวเตอร์": "COMPUTER",
   "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
@@ -34,21 +31,40 @@ const categoryMap: Record<string, string> = {
   "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
 };
 
+
+
 export default function MaterialForm({
   vendors,
   materialMasters,
 }: Props) {
 
 
-  const categories = Object.keys(categoryMap);
-  const [category, setCategory] = useState("");
-  const [name, setName] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newUnit, setNewUnit] = useState("");
-  const names = useMemo(() => {
+  const categories =
+    Object.keys(categoryMap);
 
 
-    if (!category) return [];
+  const [category,setCategory] =
+    useState("");
+
+
+  const [name,setName] =
+    useState("");
+
+
+  const [newName,setNewName] =
+    useState("");
+
+
+  const [newUnit,setNewUnit] =
+    useState("");
+
+
+
+  const names = useMemo(()=>{
+
+
+    if(!category)
+      return [];
 
 
 
@@ -62,11 +78,11 @@ export default function MaterialForm({
     const newNames =
       materialMasters
         .filter(
-          (item) =>
+          (item)=>
             item.category === categoryMap[category]
         )
         .map(
-          (item) => item.name
+          (item)=>item.name
         );
 
 
@@ -79,7 +95,7 @@ export default function MaterialForm({
     );
 
 
-  }, [
+  },[
     category,
     materialMasters
   ]);
@@ -90,11 +106,11 @@ export default function MaterialForm({
   const unit =
     name === "__NEW__"
       ? newUnit.trim()
-      :
+      : 
         UNITS[name]
         ??
         materialMasters.find(
-          (item) =>
+          (item)=>
             item.name === name
         )?.unit
         ??
@@ -106,16 +122,16 @@ export default function MaterialForm({
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
-  ) {
-
+  ){
 
     e.preventDefault();
 
 
 
     const formData =
-      new FormData(e.currentTarget);
-
+      new FormData(
+        e.currentTarget
+      );
 
 
 
@@ -126,55 +142,84 @@ export default function MaterialForm({
 
 
 
-    if (!materialName) {
-      alert("กรุณาระบุชื่อรายการพัสดุ");
+    if(!materialName){
+
+      alert(
+        "กรุณาระบุชื่อรายการพัสดุ"
+      );
+
       return;
+
     }
 
 
 
-    if (!unit) {
-      alert("กรุณาระบุหน่วย");
+    if(!unit){
+
+      alert(
+        "กรุณาระบุหน่วย"
+      );
+
       return;
+
     }
 
 
 
-    if (!categoryMap[category]) {
-      alert("กรุณาเลือกหมวดหมู่");
+    if(!categoryMap[category]){
+
+      alert(
+        "กรุณาเลือกหมวดหมู่"
+      );
+
       return;
+
     }
 
 
 
     const body = {
 
-  vendorId:
-    formData.get("vendorId")
-      ? Number(formData.get("vendorId"))
-      : null,
 
-  category:
-    categoryMap[category],
+      vendorId:
+        formData.get("vendorId")
+        ?
+        Number(
+          formData.get("vendorId")
+        )
+        :
+        null,
 
-  name:
-    materialName,
 
-  unit,
+      category:
+        categoryMap[category],
 
-  balance:
-    Number(
-      formData.get("balance")
-    ),
 
-  latestPrice:
-    Number(
-      Number(
-        formData.get("latestPrice")
-      ).toFixed(2)
-    ),
+      name:
+        materialName,
 
-};
+
+      unit,
+
+
+      balance:
+        Number(
+          formData.get("balance")
+        ),
+
+
+
+      latestPrice:
+        Number(
+          Number(
+            formData.get("latestPrice")
+          )
+          .toFixed(2)
+        ),
+
+
+    };
+
 
 
 
@@ -182,14 +227,17 @@ export default function MaterialForm({
       await fetch(
         "/api/materials",
         {
-          method: "POST",
+
+          method:"POST",
 
           headers:{
-            "Content-Type":"application/json",
+            "Content-Type":
+              "application/json",
           },
 
           body:
             JSON.stringify(body),
+
         }
       );
 
@@ -197,12 +245,11 @@ export default function MaterialForm({
 
     if(res.ok){
 
-
       window.location.href =
         `/materials/category/${categoryMap[category]}`;
 
-
-    } else {
+    }
+    else{
 
 
       const data =
@@ -219,588 +266,591 @@ export default function MaterialForm({
 
 
   }
-    return (
-
-    <form
-      onSubmit={handleSubmit}
-      className="
-        max-w-5xl
-        space-y-6
-        rounded-3xl
-        border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
-        p-8
-        text-white
-        shadow-2xl
-      "
-    >
 
 
-      {/* รหัสพัสดุ */}
-
-      <div>
-
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          รหัสพัสดุ
-        </label>
 
 
-        <div
+
+  return (
+
+<form
+  onSubmit={handleSubmit}
   className="
-    w-full
-    rounded-xl
+    space-y-6
+    rounded-2xl
     border
-    border-slate-600
-    bg-slate-700
-    p-3
-    text-white
+    border-slate-700
+    bg-white
+    p-6
+    shadow-xl
   "
 >
-  รหัสจะสร้างอัตโนมัติเมื่อบันทึก
+
+
+
+{/* ผู้จำหน่าย */}
+
+<div>
+
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
+>
+ผู้จำหน่าย
+</label>
+
+
+<select
+
+name="vendorId"
+
+defaultValue=""
+
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-bold
+text-black
+outline-none
+focus:border-emerald-500
+focus:ring-2
+focus:ring-emerald-200
+"
+
+>
+
+
+<option value="">
+เลือกผู้จำหน่าย
+</option>
+
+
+{
+vendors.map((vendor)=>(
+
+<option
+key={vendor.id}
+value={vendor.id}
+>
+
+{vendor.name}
+
+</option>
+
+))
+}
+
+
+</select>
+
+
 </div>
-</div>
-
-
-
-
-      {/* ผู้จำหน่าย */}
-
-      <div>
-
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          ผู้จำหน่าย
-        </label>
-
-
-
-        <select
-          name="vendorId"
-          defaultValue=""
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            text-white
-            focus:border-cyan-400
-            focus:outline-none
-          "
-        >
-
-
-          <option value="">
-            เลือกผู้จำหน่าย
-          </option>
-
-
-
-          {
-            vendors.map(
-              (vendor: Vendor) => (
-
-                <option
-                  key={vendor.id}
-                  value={vendor.id}
-                >
-                  {vendor.name}
-                </option>
-
-              )
-            )
-          }
-
-
-        </select>
-
-
-      </div>
 
 
 
 
 
-      {/* หมวดหมู่ */}
 
-      <div>
+{/* หมวดหมู่ */}
 
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          หมวดหมู่
-        </label>
+<div>
+
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
+>
+หมวดหมู่
+</label>
 
 
 
-        <select
+<select
 
-          value={category}
+value={category}
 
-          onChange={(e)=>{
+onChange={(e)=>{
 
-  const value = e.target.value;
+const value =
+e.target.value;
 
-  setCategory(value);
+setCategory(value);
 
-  setName("");
-  setNewName("");
-  setNewUnit("");
+setName("");
+
+setNewName("");
+
+setNewUnit("");
 
 }}
 
-          required
+required
 
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            text-white
-            focus:border-cyan-400
-            focus:outline-none
-          "
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-bold
+text-black
+outline-none
+focus:border-emerald-500
+focus:ring-2
+focus:ring-emerald-200
+"
 
-        >
-
-
-          <option value="">
-            เลือกหมวดหมู่
-          </option>
+>
 
 
-
-          {
-            categories.map(
-              (c:string)=> (
-
-                <option
-                  key={c}
-                  value={c}
-                >
-                  {c}
-                </option>
-
-              )
-            )
-          }
-
-
-        </select>
-
-
-      </div>
+<option value="">
+เลือกหมวดหมู่
+</option>
 
 
 
+{
+categories.map((c)=>(
+
+<option
+key={c}
+value={c}
+>
+
+{c}
+
+</option>
+
+))
+}
 
 
-      {/* รายการพัสดุ */}
-
-      <div>
+</select>
 
 
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          รายการพัสดุ
-        </label>
-
-
-
-        <select
-
-          value={name}
-
-          onChange={(e)=>
-            setName(e.target.value)
-          }
-
-          required
-
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            text-white
-            focus:border-cyan-400
-            focus:outline-none
-          "
-
-        >
-
-
-          <option value="">
-            เลือกรายการพัสดุ
-          </option>
+</div>
 
 
 
-          {
-            names.map(
-              (item:string)=> (
-
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-
-              )
-            )
-          }
 
 
 
-          <option value="__NEW__">
-            + เพิ่มรายการใหม่...
-          </option>
+{/* รายการพัสดุ */}
 
+<div>
 
-        </select>
-                {
-          name === "__NEW__" && (
-
-            <div
-              className="
-                mt-4
-                space-y-3
-              "
-            >
-
-
-              <input
-
-                value={newName}
-
-                onChange={(e)=>
-                  setNewName(e.target.value)
-                }
-
-                placeholder="ชื่อรายการใหม่"
-
-                required
-
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-white
-                  placeholder:text-slate-400
-                  focus:border-cyan-400
-                  focus:outline-none
-                "
-
-              />
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
+>
+รายการพัสดุ
+</label>
 
 
 
-              <input
+<select
 
-                value={newUnit}
+value={name}
 
-                onChange={(e)=>
-                  setNewUnit(e.target.value)
-                }
+onChange={(e)=>
+setName(e.target.value)
+}
 
-                placeholder="หน่วย เช่น ชิ้น, กล่อง, อัน"
+required
 
-                required
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-bold
+text-black
+outline-none
+focus:border-emerald-500
+focus:ring-2
+focus:ring-emerald-200
+"
 
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-white
-                  placeholder:text-slate-400
-                  focus:border-cyan-400
-                  focus:outline-none
-                "
-
-              />
+>
 
 
-            </div>
+<option value="">
+เลือกรายการพัสดุ
+</option>
 
-          )
+
+
+{
+names.map((item)=>(
+
+<option
+key={item}
+value={item}
+>
+
+{item}
+
+</option>
+
+))
+}
+
+
+
+<option value="__NEW__">
++ เพิ่มรายการใหม่...
+</option>
+
+
+</select>
+{
+  name === "__NEW__" && (
+
+    <div
+      className="
+        mt-4
+        space-y-3
+      "
+    >
+
+      <input
+
+        value={newName}
+
+        onChange={(e)=>
+          setNewName(e.target.value)
         }
 
+        placeholder="ชื่อรายการใหม่"
 
-      </div>
+        required
 
-
-
-
-
-
-      {/* จำนวน + หน่วย */}
-
-      <div
         className="
-          grid
-          grid-cols-1
-          gap-5
-          md:grid-cols-2
+          w-full
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-3
+          font-bold
+          text-black
+          placeholder:text-slate-400
+          outline-none
+          focus:border-emerald-500
+          focus:ring-2
+          focus:ring-emerald-200
         "
-      >
+
+      />
 
 
 
-        <div>
+      <input
 
+        value={newUnit}
 
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            จำนวน
-          </label>
+        onChange={(e)=>
+          setNewUnit(e.target.value)
+        }
 
+        placeholder="หน่วย เช่น ชิ้น, กล่อง, อัน"
 
+        required
 
-          <input
-
-            type="number"
-
-            name="balance"
-
-            defaultValue={0}
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-800
-              p-3
-              text-white
-              focus:border-cyan-400
-              focus:outline-none
-            "
-
-          />
-
-
-        </div>
-
-
-
-
-
-        <div>
-
-
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
-            หน่วย
-          </label>
-
-
-
-          <input
-
-            value={unit}
-
-            readOnly
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-600
-              bg-slate-700
-              p-3
-              text-white
-            "
-
-          />
-
-
-        </div>
-
-
-      </div>
-
-
-
-
-
-
-
-      {/* ราคาล่าสุด */}
-
-      <div>
-
-
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
-          ราคาล่าสุด
-        </label>
-
-
-
-        <input
-
-          type="number"
-
-          name="latestPrice"
-
-          defaultValue="0.00"
-
-          step="0.01"
-
-          min="0"
-
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            text-right
-            text-white
-            focus:border-cyan-400
-            focus:outline-none
-          "
-
-        />
-
-
-      </div>
-            {/* Action Buttons */}
-
-      <div
         className="
-          flex
-          gap-4
-          pt-4
+          w-full
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-3
+          font-bold
+          text-black
+          placeholder:text-slate-400
+          outline-none
+          focus:border-emerald-500
+          focus:ring-2
+          focus:ring-emerald-200
         "
-      >
+
+      />
 
 
-        <button
+    </div>
 
-          type="submit"
+  )
+}
 
-          className="
-  rounded-xl
-  bg-gradient-to-r
-  from-emerald-600
-  to-green-500
-  px-8
-  py-3
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
+
+
+
+</div>
+
+
+
+
+
+
+{/* จำนวน + หน่วย */}
+
+<div
+className="
+grid
+grid-cols-1
+gap-5
+md:grid-cols-2
+"
+>
+
+
+<div>
+
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
+>
+จำนวน
+</label>
+
+
+
+<input
+
+type="number"
+
+name="balance"
+
+defaultValue={0}
+
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-bold
+text-black
+outline-none
+focus:border-emerald-500
+focus:ring-2
+focus:ring-emerald-200
 "
 
-        >
+/>
 
-          บันทึก
 
-        </button>
-
+</div>
 
 
 
 
-        <a
 
-          href="/materials"
 
-          className="
-  rounded-xl
-  bg-gradient-to-r
-  from-slate-800
-  to-slate-700
-  px-8
-  py-3
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
+<div>
+
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabอด
+text-slate-900
+"
+>
+หน่วย
+</label>
+
+
+
+<input
+
+value={unit}
+
+readOnly
+
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-slate-100
+p-3
+font-bold
+text-black
 "
 
-        >
-
-          ยกเลิก
-
-        </a>
+/>
 
 
+</div>
 
-      </div>
+
+</div>
 
 
 
-    </form>
+
+
+
+
+
+{/* ราคาล่าสุด */}
+
+<div>
+
+
+<label
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
+>
+ราคาล่าสุด
+</label>
+
+
+
+<input
+
+type="number"
+
+name="latestPrice"
+
+defaultValue="0.00"
+
+step="0.01"
+
+min="0"
+
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+text-right
+font-bold
+text-black
+outline-none
+focus:border-emerald-500
+focus:ring-2
+focus:ring-emerald-200
+"
+
+/>
+
+
+</div>
+
+
+
+
+
+
+
+
+{/* ปุ่ม */}
+
+<div
+className="
+flex
+justify-end
+gap-3
+pt-4
+"
+>
+
+
+<a
+
+href="/materials"
+
+className="
+rounded-xl
+bg-slate-700
+px-8
+py-3
+font-extrabold
+text-white
+shadow-lg
+transition
+hover:bg-slate-800
+"
+
+>
+ยกเลิก
+</a>
+
+
+
+
+
+<button
+
+type="submit"
+
+className="
+rounded-xl
+bg-gradient-to-r
+from-emerald-600
+via-green-500
+to-emerald-500
+px-8
+py-3
+font-extrabold
+text-white
+shadow-lg
+transition
+hover:scale-105
+"
+
+>
+
+💾 บันทึก
+
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+</form>
 
   );
 
