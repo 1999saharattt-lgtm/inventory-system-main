@@ -5,63 +5,72 @@ import { createReceive } from "./actions";
 
 
 type Vendor = {
-  id: number;
-  name: string;
+  id:number;
+  name:string;
 };
 
 
 type Material = {
-  id: number;
-  code: string;
-  name: string;
-  unit: string;
-  category: string;
+  id:number;
+  code:string;
+  name:string;
+  unit:string;
+  category:string;
 };
 
 
 type ReceiveRow = {
-  category: string;
-  materialId: string;
-  qty: string;
-  unitPrice: string;
-  manufacture: string;
-  expiry: string;
+  category:string;
+  materialId:string;
+  qty:string;
+  unitPrice:string;
+  manufacture:string;
+  expiry:string;
 };
 
 
 type Props = {
-  vendors: Vendor[];
-  materials: Material[];
-  documentNo: string;
+  vendors:Vendor[];
+  materials:Material[];
+  documentNo:string;
 };
 
 
+
 const categories = [
+
   {
-    value: "OFFICE",
-    label: "วัสดุสำนักงาน",
+    value:"OFFICE",
+    label:"วัสดุสำนักงาน",
   },
+
   {
-    value: "COMPUTER",
-    label: "วัสดุคอมพิวเตอร์",
+    value:"COMPUTER",
+    label:"วัสดุคอมพิวเตอร์",
   },
+
   {
-    value: "ELECTRIC",
-    label: "วัสดุไฟฟ้าและวิทยุ",
+    value:"ELECTRIC",
+    label:"วัสดุไฟฟ้าและวิทยุ",
   },
+
   {
-    value: "HOUSEHOLD",
-    label: "วัสดุงานบ้านและงานครัว",
+    value:"HOUSEHOLD",
+    label:"วัสดุงานบ้านและงานครัว",
   },
+
   {
-    value: "VEHICLE",
-    label: "วัสดุยานพาหนะ",
+    value:"VEHICLE",
+    label:"วัสดุยานพาหนะ",
   },
+
   {
-    value: "PRINTING",
-    label: "วัสดุสื่อสิ่งพิมพ์",
+    value:"PRINTING",
+    label:"วัสดุสื่อสิ่งพิมพ์",
   },
+
 ];
+
 
 
 
@@ -73,278 +82,313 @@ export default function ReceiveForm({
 
   documentNo,
 
-}: Props) {
-
-
-  const emptyRow = (): ReceiveRow => ({
-    category: "",
-    materialId: "",
-    qty: "",
-    unitPrice: "",
-    manufacture: "",
-    expiry: "",
-  });
+}:Props){
 
 
 
-  const [items,setItems] = useState<ReceiveRow[]>(
+const emptyRow = ():ReceiveRow=>({
 
-    Array.from(
-      {
-        length:15,
-      },
-      emptyRow
-    )
+  category:"",
 
-  );
+  materialId:"",
 
+  qty:"",
 
+  unitPrice:"",
 
-  const [isOpeningBalance,setIsOpeningBalance] = useState(false);
+  manufacture:"",
 
+  expiry:"",
 
-
-  const [documentValue,setDocumentValue] =
-    useState(documentNo);
+});
 
 
 
 
-  function updateRow(
+const [items,setItems] = useState<ReceiveRow[]>(
 
-    index:number,
+  Array.from(
+    {
+      length:15,
+    },
+    emptyRow
+  )
 
-    key:keyof ReceiveRow,
-
-    value:string
-
-  ){
-
-
-    const copy = [...items];
-
-
-    copy[index] = {
-
-      ...copy[index],
-
-      [key]:value,
-
-    };
+);
 
 
 
-    if(key==="category"){
-
-      copy[index].materialId="";
-
-    }
+const [isOpeningBalance,setIsOpeningBalance]
+=
+useState(false);
 
 
-    setItems(copy);
+
+const [documentValue,setDocumentValue]
+=
+useState(documentNo);
+
+
+
+
+
+function updateRow(
+
+  index:number,
+
+  key:keyof ReceiveRow,
+
+  value:string
+
+){
+
+  const copy=[...items];
+
+
+  copy[index]={
+
+    ...copy[index],
+
+    [key]:value,
+
+  };
+
+
+  if(key==="category"){
+
+    copy[index].materialId="";
 
   }
 
 
+  setItems(copy);
 
+}
 
-  return (
 
-    <div
-      className="
-        rounded-2xl
-        border
-        border-slate-200
-        bg-white
-        p-6
-        shadow-xl
-      "
-    >
 
 
-      <form
-        action={createReceive}
-        className="space-y-6"
-      >
+return (
 
+<div
 
+className="
+rounded-2xl
+border
+border-slate-200
+bg-white
+p-6
+shadow-xl
+"
 
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-          "
-        >
+>
 
 
-          <div>
+<form
 
+action={createReceive}
 
-            <label
-              className="
-                mb-2
-                block
-                text-base
-                font-bold
-                text-slate-900
-              "
-            >
+className="space-y-6"
 
-              วันที่รับเข้า
+>
 
-            </label>
 
+<div
 
+className="
+grid
+gap-5
+md:grid-cols-2
+"
 
-            <input
+>
 
-              type="date"
 
-              name="receiveDate"
+<div>
 
-              defaultValue={
-                new Date()
-                  .toISOString()
-                  .split("T")[0]
-              }
 
-              required
+<label
 
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-              "
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
 
-            />
+>
 
+วันที่รับเข้า
 
-          </div>
+</label>
 
 
+<input
 
-          <div>
+type="date"
 
+name="receiveDate"
 
-            <label
-              className="
-                mb-2
-                block
-                text-base
-                font-bold
-                text-slate-900
-              "
-            >
+defaultValue={
+new Date()
+.toISOString()
+.split("T")[0]
+}
 
-              เลขที่เอกสาร
+required
 
-            </label>
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-semibold
+text-slate-900
+focus:border-cyan-500
+focus:ring-4
+focus:ring-cyan-100
+"
 
+/>
 
 
-            <input
+</div>
 
-              type="text"
 
-              name="documentNo"
+<div>
 
-              value={documentValue}
 
-              readOnly={!isOpeningBalance}
+<label
 
-              onChange={(e)=>
-                setDocumentValue(e.target.value)
-              }
+className="
+mb-2
+block
+text-lg
+font-extrabold
+text-slate-900
+"
 
+>
 
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-              "
+เลขที่เอกสาร
 
-            />
+</label>
 
 
-            <label
+<input
 
-              className="
-                mt-2
-                flex
-                items-center
-                gap-2
-                text-sm
-                font-semibold
-                text-slate-900
-              "
+type="text"
 
-            >
+name="documentNo"
 
-              <input
+value={documentValue}
 
-                type="checkbox"
+readOnly={!isOpeningBalance}
 
-                checked={isOpeningBalance}
+onChange={(e)=>
+setDocumentValue(e.target.value)
+}
 
-                onChange={(e)=>{
+className="
+w-full
+rounded-xl
+border
+border-slate-300
+bg-white
+p-3
+font-extrabold
+text-cyan-700
+focus:border-cyan-500
+focus:ring-4
+focus:ring-cyan-100
+"
 
-                  const checked=e.target.checked;
+/>
 
-                  setIsOpeningBalance(checked);
 
+<label
 
-                  setDocumentValue(
+className="
+mt-2
+flex
+w-fit
+cursor-pointer
+items-center
+gap-2
+whitespace-nowrap
+text-sm
+font-semibold
+text-slate-900
+"
 
-                    checked
+>
 
-                    ? "ยอดยกเข้าระบบ"
 
-                    : documentNo
+<input
 
-                  );
+type="checkbox"
 
-                }}
+checked={isOpeningBalance}
 
-              />
+onChange={(e)=>{
 
+const checked=e.target.checked;
 
-              ยอดยกเข้าระบบ
+setIsOpeningBalance(checked);
 
 
-            </label>
+setDocumentValue(
 
+checked
 
-          </div>
+?
+"ยอดยกเข้าระบบ"
 
+:
 
-        </div>
-                <div>
+documentNo
+
+);
+
+
+}}
+
+
+/>
+
+
+ยอดยกเข้าระบบ
+
+
+</label>
+
+
+</div>
+
+
+</div>
+        {/* ผู้จำหน่าย */}
+
+        <div>
 
 
           <label
+
             className="
               mb-2
               block
-              text-base
-              font-bold
+              text-lg
+              font-extrabold
               text-slate-900
             "
+
           >
 
             ผู้จำหน่าย
+
 
           </label>
 
@@ -356,16 +400,20 @@ export default function ReceiveForm({
 
             required
 
+
             className="
               w-full
               rounded-xl
               border
               border-slate-300
               bg-white
-              px-4
-              py-3
+              p-3
               font-semibold
               text-slate-900
+              outline-none
+              focus:border-cyan-500
+              focus:ring-4
+              focus:ring-cyan-100
             "
 
           >
@@ -407,25 +455,34 @@ export default function ReceiveForm({
 
 
 
+        {/* ตารางรายการรับเข้า */}
+
+
         <div
+
           className="
             overflow-x-auto
             rounded-2xl
             border
-            border-slate-300
+            border-slate-900
             bg-white
-            shadow-lg
+            shadow-xl
           "
+
         >
 
 
+
           <table
+
             className="
               w-full
               border-collapse
               text-sm
             "
+
           >
+
 
 
             <thead>
@@ -435,15 +492,25 @@ export default function ReceiveForm({
 
 
                 {
+
                   [
+
                     "ลำดับ",
+
                     "หมวดหมู่",
+
                     "รายการพัสดุ",
+
                     "จำนวน",
+
                     "หน่วย",
+
                     "ราคา",
+
                     "วันผลิต",
+
                     "วันหมดอายุ",
+
                   ].map((title)=>(
 
 
@@ -453,17 +520,17 @@ export default function ReceiveForm({
 
                       className="
                         border
-                        border-slate-700
+                        border-slate-900
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
                         px-3
                         py-4
                         text-center
-                        text-base
+                        text-lg
                         font-extrabold
-                        text-white
                         whitespace-nowrap
+                        text-white
                       "
 
                     >
@@ -475,6 +542,7 @@ export default function ReceiveForm({
 
 
                   ))
+
                 }
 
 
@@ -491,6 +559,7 @@ export default function ReceiveForm({
 
 
               {
+
                 items.map((row,index)=>{
 
 
@@ -512,7 +581,8 @@ export default function ReceiveForm({
 
                       (material)=>
 
-                        material.id === Number(row.materialId)
+                        String(material.id) ===
+                        row.materialId
 
                     );
 
@@ -520,13 +590,16 @@ export default function ReceiveForm({
 
                   return (
 
+
+
                     <tr
 
                       key={index}
 
                       className="
                         border-b
-                        border-slate-200
+                        border-slate-900
+                        transition
                         hover:bg-emerald-50
                       "
 
@@ -534,11 +607,14 @@ export default function ReceiveForm({
 
 
 
+                      {/* ลำดับ */}
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                           text-center
@@ -556,12 +632,14 @@ export default function ReceiveForm({
 
 
 
+                      {/* หมวดหมู่ */}
+
 
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                         "
@@ -571,9 +649,12 @@ export default function ReceiveForm({
 
                         <select
 
+
                           name={`items[${index}].category`}
 
+
                           value={row.category}
+
 
 
                           onChange={(e)=>
@@ -591,31 +672,37 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             min-w-[170px]
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
+                            p-2
                             font-semibold
                             text-slate-900
+                            outline-none
+                            focus:border-cyan-500
                           "
 
                         >
 
 
+
                           <option value="">
 
-                            -- เลือกหมวดหมู่ --
+                            เลือกหมวดหมู่
+
 
                           </option>
 
 
 
                           {
+
                             categories.map((category)=>(
+
 
                               <option
 
@@ -630,19 +717,26 @@ export default function ReceiveForm({
 
                               </option>
 
+
                             ))
+
                           }
+
 
 
                         </select>
 
 
+
                       </td>
-                                            <td
+                                            {/* รายการพัสดุ */}
+
+
+                      <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                         "
@@ -650,11 +744,15 @@ export default function ReceiveForm({
                       >
 
 
+
                         <select
+
 
                           name={`items[${index}].materialId`}
 
+
                           value={row.materialId}
+
 
 
                           onChange={(e)=>
@@ -672,31 +770,37 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             min-w-[260px]
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
+                            p-2
                             font-semibold
                             text-slate-900
+                            outline-none
+                            focus:border-cyan-500
                           "
 
                         >
 
 
+
                           <option value="">
 
-                            -- เลือกรายการพัสดุ --
+                            เลือกรายการพัสดุ
+
 
                           </option>
 
 
 
                           {
+
                             filteredMaterials.map((material)=>(
+
 
                               <option
 
@@ -715,12 +819,15 @@ export default function ReceiveForm({
 
                               </option>
 
+
                             ))
+
                           }
 
 
 
                         </select>
+
 
 
                       </td>
@@ -729,11 +836,16 @@ export default function ReceiveForm({
 
 
 
+
+                      {/* จำนวน */}
+
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                         "
@@ -743,14 +855,19 @@ export default function ReceiveForm({
 
                         <input
 
+
                           type="number"
 
-                          min={1}
+
+                          min="1"
+
 
                           name={`items[${index}].qty`}
 
 
+
                           value={row.qty}
+
 
 
                           onChange={(e)=>
@@ -768,18 +885,19 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             w-24
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
+                            p-2
                             text-center
-                            font-semibold
+                            font-bold
                             text-slate-900
                           "
+
 
                         />
 
@@ -790,44 +908,56 @@ export default function ReceiveForm({
 
 
 
+
+
+                      {/* หน่วย */}
+
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
+                          text-center
                         "
 
                       >
 
 
+
                         <input
 
+
                           type="text"
+
 
                           readOnly
 
 
+
                           value={
 
-                            selectedMaterial?.unit ?? ""
+                            selectedMaterial?.unit ?? "-"
 
                           }
 
 
+
                           className="
-                            w-24
-                            rounded-lg
+                            w-full
+                            rounded-xl
                             border
                             border-slate-300
                             bg-slate-100
-                            px-3
-                            py-2
+                            p-2
                             text-center
-                            font-semibold
+                            font-bold
                             text-slate-900
                           "
+
 
                         />
 
@@ -838,28 +968,42 @@ export default function ReceiveForm({
 
 
 
+
+
+                      {/* ราคา */}
+
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
+                          text-center
                         "
 
                       >
 
 
+
                         <input
+
 
                           type="number"
 
+
                           step="0.01"
+
+
 
                           name={`items[${index}].unitPrice`}
 
 
+
                           value={row.unitPrice}
+
 
 
                           onChange={(e)=>
@@ -877,18 +1021,19 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             w-28
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
+                            p-2
                             text-center
-                            font-semibold
+                            font-bold
                             text-slate-900
                           "
+
 
                         />
 
@@ -899,11 +1044,18 @@ export default function ReceiveForm({
 
 
 
+
+
+
+                      {/* วันผลิต */}
+
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                         "
@@ -911,14 +1063,20 @@ export default function ReceiveForm({
                       >
 
 
+
                         <input
 
+
                           type="date"
+
+
 
                           name={`items[${index}].manufacture`}
 
 
+
                           value={row.manufacture}
+
 
 
                           onChange={(e)=>
@@ -936,17 +1094,20 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             w-36
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
-                            font-semibold
+                            p-2
+                            font-bold
                             text-slate-900
+                            outline-none
+                            focus:border-cyan-500
                           "
+
 
                         />
 
@@ -957,11 +1118,17 @@ export default function ReceiveForm({
 
 
 
+
+
+                      {/* วันหมดอายุ */}
+
+
+
                       <td
 
                         className="
                           border
-                          border-slate-200
+                          border-slate-900
                           px-3
                           py-3
                         "
@@ -969,14 +1136,20 @@ export default function ReceiveForm({
                       >
 
 
+
                         <input
 
+
                           type="date"
+
+
 
                           name={`items[${index}].expiry`}
 
 
+
                           value={row.expiry}
+
 
 
                           onChange={(e)=>
@@ -994,22 +1167,26 @@ export default function ReceiveForm({
                           }
 
 
+
                           className="
                             w-36
-                            rounded-lg
+                            rounded-xl
                             border
                             border-slate-300
                             bg-white
-                            px-3
-                            py-2
-                            font-semibold
+                            p-2
+                            font-bold
                             text-slate-900
+                            outline-none
+                            focus:border-cyan-500
                           "
+
 
                         />
 
 
                       </td>
+
 
 
                     </tr>
@@ -1019,17 +1196,24 @@ export default function ReceiveForm({
 
 
                 })
+
               }
+
 
 
             </tbody>
 
 
+
           </table>
 
 
+
         </div>
-                <div>
+                {/* หมายเหตุ */}
+
+
+        <div>
 
 
           <label
@@ -1037,8 +1221,8 @@ export default function ReceiveForm({
             className="
               mb-2
               block
-              text-base
-              font-bold
+              text-lg
+              font-extrabold
               text-slate-900
             "
 
@@ -1053,18 +1237,19 @@ export default function ReceiveForm({
 
           <textarea
 
+
             name="remark"
 
-            rows={3}
+
 
             className="
+              min-h-[120px]
               w-full
               rounded-xl
               border
               border-slate-300
               bg-white
-              px-4
-              py-3
+              p-3
               font-semibold
               text-slate-900
               outline-none
@@ -1073,7 +1258,9 @@ export default function ReceiveForm({
               focus:ring-cyan-100
             "
 
+
           />
+
 
 
         </div>
@@ -1082,13 +1269,20 @@ export default function ReceiveForm({
 
 
 
+
+
+        {/* ปุ่มบันทึก */}
+
+
+
         <div
+
 
           className="
             flex
             justify-end
-            gap-3
           "
+
 
         >
 
@@ -1096,7 +1290,10 @@ export default function ReceiveForm({
 
           <button
 
+
             type="submit"
+
+
 
             className="
               rounded-xl
@@ -1114,9 +1311,13 @@ export default function ReceiveForm({
               hover:scale-105
             "
 
+
           >
 
+
+
             💾 บันทึกรับเข้า
+
 
 
           </button>
@@ -1127,7 +1328,10 @@ export default function ReceiveForm({
 
 
 
+
+
       </form>
+
 
 
     </div>
