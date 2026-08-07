@@ -74,6 +74,7 @@ const categories = [
 
 
 
+
 export default function ReceiveForm({
 
   vendors,
@@ -86,89 +87,101 @@ export default function ReceiveForm({
 
 
 
-const emptyRow = ():ReceiveRow=>({
+  const emptyRow = ():ReceiveRow => ({
 
-  category:"",
+    category:"",
 
-  materialId:"",
+    materialId:"",
 
-  qty:"",
+    qty:"",
 
-  unitPrice:"",
+    unitPrice:"",
 
-  manufacture:"",
+    manufacture:"",
 
-  expiry:"",
+    expiry:"",
 
-});
-
-
-
-
-const [items,setItems] = useState<ReceiveRow[]>(
-
-  Array.from(
-    {
-      length:15,
-    },
-    emptyRow
-  )
-
-);
+  });
 
 
 
-const [isOpeningBalance,setIsOpeningBalance]
-=
-useState(false);
+  const [items,setItems] = useState<ReceiveRow[]>(
+
+    Array.from(
+
+      {
+
+        length:15,
+
+      },
+
+      emptyRow
+
+    )
+
+  );
 
 
 
-const [documentValue,setDocumentValue]
-=
-useState(documentNo);
+  const [isOpeningBalance,setIsOpeningBalance] =
+
+    useState(false);
+
+
+
+  const [documentValue,setDocumentValue] =
+
+    useState(documentNo);
 
 
 
 
 
-function updateRow(
 
-  index:number,
+  function updateRow(
 
-  key:keyof ReceiveRow,
+    index:number,
 
-  value:string
+    key:keyof ReceiveRow,
 
-){
+    value:string
 
-  const copy=[...items];
-
-
-  copy[index]={
-
-    ...copy[index],
-
-    [key]:value,
-
-  };
+  ){
 
 
-  if(key==="category"){
+    const copy = [...items];
 
-    copy[index].materialId="";
+
+    copy[index] = {
+
+      ...copy[index],
+
+      [key]:value,
+
+    };
+
+
+
+    if(key==="category"){
+
+      copy[index].materialId="";
+
+    }
+
+
+
+    setItems(copy);
+
 
   }
 
 
-  setItems(copy);
-
-}
 
 
 
 
 return (
+
 
 <div
 
@@ -184,6 +197,7 @@ shadow-xl
 >
 
 
+
 <form
 
 action={createReceive}
@@ -191,6 +205,12 @@ action={createReceive}
 className="space-y-6"
 
 >
+
+
+
+
+
+{/* ข้อมูลรับเข้า */}
 
 
 <div
@@ -202,6 +222,12 @@ md:grid-cols-2
 "
 
 >
+
+
+
+
+
+{/* วันที่รับเข้า */}
 
 
 <div>
@@ -224,6 +250,7 @@ text-slate-900
 </label>
 
 
+
 <input
 
 type="date"
@@ -231,12 +258,17 @@ type="date"
 name="receiveDate"
 
 defaultValue={
+
 new Date()
+
 .toISOString()
+
 .split("T")[0]
+
 }
 
 required
+
 
 className="
 w-full
@@ -247,6 +279,7 @@ bg-white
 p-3
 font-semibold
 text-slate-900
+outline-none
 focus:border-cyan-500
 focus:ring-4
 focus:ring-cyan-100
@@ -256,6 +289,12 @@ focus:ring-cyan-100
 
 
 </div>
+
+
+
+
+
+{/* เลขที่เอกสาร */}
 
 
 <div>
@@ -278,6 +317,7 @@ text-slate-900
 </label>
 
 
+
 <input
 
 type="text"
@@ -288,9 +328,17 @@ value={documentValue}
 
 readOnly={!isOpeningBalance}
 
+
 onChange={(e)=>
-setDocumentValue(e.target.value)
+
+setDocumentValue(
+
+e.target.value
+
+)
+
 }
+
 
 className="
 w-full
@@ -299,14 +347,19 @@ border
 border-slate-300
 bg-white
 p-3
+text-lg
 font-extrabold
 text-cyan-700
+outline-none
 focus:border-cyan-500
 focus:ring-4
 focus:ring-cyan-100
 "
 
 />
+
+
+
 
 
 <label
@@ -333,11 +386,15 @@ type="checkbox"
 
 checked={isOpeningBalance}
 
+
 onChange={(e)=>{
 
-const checked=e.target.checked;
+
+const checked = e.target.checked;
+
 
 setIsOpeningBalance(checked);
+
 
 
 setDocumentValue(
@@ -345,6 +402,7 @@ setDocumentValue(
 checked
 
 ?
+
 "ยอดยกเข้าระบบ"
 
 :
@@ -354,8 +412,15 @@ documentNo
 );
 
 
+
 }}
 
+
+className="
+h-4
+w-4
+cursor-pointer
+"
 
 />
 
@@ -366,978 +431,1079 @@ documentNo
 </label>
 
 
-</div>
-
 
 </div>
-        {/* ผู้จำหน่าย */}
-
-        <div>
-
-
-          <label
-
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-slate-900
-            "
-
-          >
-
-            ผู้จำหน่าย
-
-
-          </label>
-
-
-
-          <select
-
-            name="vendorId"
-
-            required
-
-
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-3
-              font-semibold
-              text-slate-900
-              outline-none
-              focus:border-cyan-500
-              focus:ring-4
-              focus:ring-cyan-100
-            "
-
-          >
-
-
-            <option value="">
-
-              -- เลือกผู้จำหน่าย --
-
-            </option>
-
-
-
-            {
-              vendors.map((vendor)=>(
-
-                <option
-
-                  key={vendor.id}
-
-                  value={vendor.id}
-
-                >
-
-                  {vendor.name}
-
-                </option>
-
-              ))
-            }
-
-
-          </select>
-
-
-        </div>
 
 
 
 
 
-        {/* ตารางรายการรับเข้า */}
+</div>
+      {/* ผู้จำหน่าย */}
 
 
-        <div
+      <div>
+
+
+        <label
 
           className="
-            overflow-x-auto
-            rounded-2xl
+            mb-2
+            block
+            text-lg
+            font-extrabold
+            text-slate-900
+          "
+
+        >
+
+          ผู้จำหน่าย
+
+
+        </label>
+
+
+
+
+        <select
+
+          name="vendorId"
+
+          required
+
+
+          className="
+            w-full
+            rounded-xl
             border
-            border-slate-900
+            border-slate-300
             bg-white
-            shadow-xl
+            p-3
+            font-semibold
+            text-slate-900
+            outline-none
+            focus:border-cyan-500
+            focus:ring-4
+            focus:ring-cyan-100
           "
 
         >
 
 
 
-          <table
+          <option value="">
 
-            className="
-              w-full
-              border-collapse
-              text-sm
-            "
+            -- เลือกผู้จำหน่าย --
 
-          >
+          </option>
 
 
 
-            <thead>
+          {
+
+            vendors.map((vendor)=>(
 
 
-              <tr>
+              <option
+
+                key={vendor.id}
+
+                value={vendor.id}
+
+              >
+
+                {vendor.name}
 
 
-                {
-
-                  [
-
-                    "ลำดับ",
-
-                    "หมวดหมู่",
-
-                    "รายการพัสดุ",
-
-                    "จำนวน",
-
-                    "หน่วย",
-
-                    "ราคา",
-
-                    "วันผลิต",
-
-                    "วันหมดอายุ",
-
-                  ].map((title)=>(
+              </option>
 
 
-                    <th
+            ))
 
-                      key={title}
-
-                      className="
-                        border
-                        border-slate-900
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-3
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        whitespace-nowrap
-                        text-white
-                      "
-
-                    >
-
-                      {title}
+          }
 
 
-                    </th>
+
+        </select>
 
 
-                  ))
 
-                }
-
-
-              </tr>
-
-
-            </thead>
+      </div>
 
 
 
 
 
-            <tbody>
+
+
+      {/* ตารางรายการรับเข้า */}
+
+
+
+      <div
+
+        className="
+          overflow-x-auto
+          rounded-2xl
+          border
+          border-slate-900
+          bg-white
+          shadow-xl
+        "
+
+      >
+
+
+
+
+        <table
+
+          className="
+            w-full
+            border-collapse
+            text-sm
+          "
+
+        >
+
+
+
+          <thead>
+
+
+            <tr>
+
 
 
               {
 
-                items.map((row,index)=>{
+                [
 
+                  "ลำดับ",
 
-                  const filteredMaterials =
+                  "หมวดหมู่",
 
-                    materials.filter(
+                  "รายการพัสดุ",
 
-                      (material)=>
+                  "หน่วย",
 
-                        material.category === row.category
+                  "ราคา",
 
-                    );
+                  "จำนวน",
 
+                  "วันผลิต",
 
+                  "วันหมดอายุ",
 
-                  const selectedMaterial =
+                ].map((title)=>(
 
-                    materials.find(
 
-                      (material)=>
+                  <th
 
-                        String(material.id) ===
-                        row.materialId
+                    key={title}
 
-                    );
+                    className="
+                      border
+                      border-slate-900
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      whitespace-nowrap
+                      !text-white
+                    "
 
+                  >
 
 
-                  return (
+                    {title}
 
 
 
-                    <tr
+                  </th>
 
-                      key={index}
 
-                      className="
-                        border-b
-                        border-slate-900
-                        transition
-                        hover:bg-emerald-50
-                      "
 
-                    >
-
-
-
-                      {/* ลำดับ */}
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                          text-center
-                          font-bold
-                          text-slate-900
-                        "
-
-                      >
-
-                        {index + 1}
-
-
-                      </td>
-
-
-
-
-                      {/* หมวดหมู่ */}
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                        "
-
-                      >
-
-
-                        <select
-
-
-                          name={`items[${index}].category`}
-
-
-                          value={row.category}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "category",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            min-w-[170px]
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                          "
-
-                        >
-
-
-
-                          <option value="">
-
-                            เลือกหมวดหมู่
-
-
-                          </option>
-
-
-
-                          {
-
-                            categories.map((category)=>(
-
-
-                              <option
-
-                                key={category.value}
-
-                                value={category.value}
-
-                              >
-
-                                {category.label}
-
-
-                              </option>
-
-
-                            ))
-
-                          }
-
-
-
-                        </select>
-
-
-
-                      </td>
-                                            {/* รายการพัสดุ */}
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                        "
-
-                      >
-
-
-
-                        <select
-
-
-                          name={`items[${index}].materialId`}
-
-
-                          value={row.materialId}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "materialId",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            min-w-[260px]
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                          "
-
-                        >
-
-
-
-                          <option value="">
-
-                            เลือกรายการพัสดุ
-
-
-                          </option>
-
-
-
-                          {
-
-                            filteredMaterials.map((material)=>(
-
-
-                              <option
-
-                                key={material.id}
-
-                                value={material.id}
-
-                              >
-
-                                {material.code}
-
-                                {" - "}
-
-                                {material.name}
-
-
-                              </option>
-
-
-                            ))
-
-                          }
-
-
-
-                        </select>
-
-
-
-                      </td>
-
-
-
-
-
-
-                      {/* จำนวน */}
-
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                        "
-
-                      >
-
-
-                        <input
-
-
-                          type="number"
-
-
-                          min="1"
-
-
-                          name={`items[${index}].qty`}
-
-
-
-                          value={row.qty}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "qty",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            w-24
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                          "
-
-
-                        />
-
-
-                      </td>
-
-
-
-
-
-
-
-                      {/* หน่วย */}
-
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                          text-center
-                        "
-
-                      >
-
-
-
-                        <input
-
-
-                          type="text"
-
-
-                          readOnly
-
-
-
-                          value={
-
-                            selectedMaterial?.unit ?? "-"
-
-                          }
-
-
-
-                          className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-slate-100
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                          "
-
-
-                        />
-
-
-                      </td>
-
-
-
-
-
-
-
-                      {/* ราคา */}
-
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                          text-center
-                        "
-
-                      >
-
-
-
-                        <input
-
-
-                          type="number"
-
-
-                          step="0.01"
-
-
-
-                          name={`items[${index}].unitPrice`}
-
-
-
-                          value={row.unitPrice}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "unitPrice",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            w-28
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                          "
-
-
-                        />
-
-
-                      </td>
-
-
-
-
-
-
-
-
-                      {/* วันผลิต */}
-
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                        "
-
-                      >
-
-
-
-                        <input
-
-
-                          type="date"
-
-
-
-                          name={`items[${index}].manufacture`}
-
-
-
-                          value={row.manufacture}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "manufacture",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            w-36
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-bold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                          "
-
-
-                        />
-
-
-                      </td>
-
-
-
-
-
-
-
-                      {/* วันหมดอายุ */}
-
-
-
-                      <td
-
-                        className="
-                          border
-                          border-slate-900
-                          px-3
-                          py-3
-                        "
-
-                      >
-
-
-
-                        <input
-
-
-                          type="date"
-
-
-
-                          name={`items[${index}].expiry`}
-
-
-
-                          value={row.expiry}
-
-
-
-                          onChange={(e)=>
-
-                            updateRow(
-
-                              index,
-
-                              "expiry",
-
-                              e.target.value
-
-                            )
-
-                          }
-
-
-
-                          className="
-                            w-36
-                            rounded-xl
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-bold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                          "
-
-
-                        />
-
-
-                      </td>
-
-
-
-                    </tr>
-
-
-                  );
-
-
-                })
+                ))
 
               }
 
 
 
-            </tbody>
+            </tr>
 
 
-
-          </table>
-
-
-
-        </div>
-                {/* หมายเหตุ */}
-
-
-        <div>
-
-
-          <label
-
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-slate-900
-            "
-
-          >
-
-            หมายเหตุ
-
-
-          </label>
-
-
-
-          <textarea
-
-
-            name="remark"
-
-
-
-            className="
-              min-h-[120px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-3
-              font-semibold
-              text-slate-900
-              outline-none
-              focus:border-cyan-500
-              focus:ring-4
-              focus:ring-cyan-100
-            "
-
-
-          />
-
-
-
-        </div>
+          </thead>
 
 
 
 
 
 
-
-        {/* ปุ่มบันทึก */}
-
+          <tbody>
 
 
-        <div
+
+            {
+
+              items.map((row,index)=>{
+
+
+                const list =
+
+                  materials.filter(
+
+                    (m)=>
+
+                      m.category === row.category
+
+                  );
+
+
+
+
+                const selected =
+
+                  materials.find(
+
+                    (m)=>
+
+                      String(m.id) === row.materialId
+
+                  );
+
+
+
+
+
+                return (
+
+
+
+                  <tr
+
+
+                    key={index}
+
+
+                    className="
+                      border-b
+                      border-slate-300
+                      transition
+                      hover:bg-emerald-50
+                    "
+
+
+                  >
+
+
+
+
+                    {/* ลำดับ */}
+
+
+
+                    <td
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                        text-center
+                        font-bold
+                        text-slate-900
+                      "
+
+                    >
+
+
+                      {index + 1}
+
+
+
+                    </td>
+
+
+
+
+
+
+
+                    {/* หมวดหมู่ */}
+
+
+
+                    <td
+
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                      "
+
+
+                    >
+
+
+
+                      <select
+
+
+                        name={`items[${index}].category`}
+
+
+                        value={row.category}
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "category",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+                        className="
+                          min-w-[170px]
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                        "
+
+
+                      >
+
+
+
+                        <option value="">
+
+
+                          เลือกหมวดหมู่
+
+
+                        </option>
+
+
+
+
+                        {
+
+                          categories.map((c)=>(
+
+
+                            <option
+
+                              key={c.value}
+
+                              value={c.value}
+
+                            >
+
+
+                              {c.label}
+
+
+
+                            </option>
+
+
+                          ))
+
+                        }
+
+
+
+                      </select>
+
+
+
+                    </td>
+                                        {/* รายการพัสดุ */}
+
+
+                    <td
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                      "
+
+                    >
+
+
+
+                      <select
+
+
+                        name={`items[${index}].materialId`}
+
+
+                        value={row.materialId}
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "materialId",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+                        className="
+                          min-w-[260px]
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                        "
+
+
+                      >
+
+
+
+                        <option value="">
+
+
+                          เลือกรายการพัสดุ
+
+
+                        </option>
+
+
+
+
+                        {
+
+                          list.map((m)=>(
+
+
+                            <option
+
+                              key={m.id}
+
+                              value={m.id}
+
+                            >
+
+
+                              {m.code}
+
+                              {" - "}
+
+                              {m.name}
+
+
+
+                            </option>
+
+
+                          ))
+
+                        }
+
+
+
+                      </select>
+
+
+
+                    </td>
+
+
+
+
+
+
+
+
+                    {/* หน่วย */}
+
+
+
+                    <td
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                        text-center
+                      "
+
+                    >
+
+
+
+                      <input
+
+
+                        type="text"
+
+
+                        readOnly
+
+
+
+                        value={
+
+                          selected?.unit ?? "-"
+
+                        }
+
+
+
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-slate-100
+                          p-2
+                          text-center
+                          font-bold
+                          text-slate-900
+                        "
+
+
+                      />
+
+
+
+                    </td>
+
+
+
+
+
+
+
+                    {/* ราคา */}
+
+
+
+                    <td
+
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                        text-center
+                      "
+
+
+                    >
+
+
+
+                      <input
+
+
+
+                        type="number"
+
+
+                        step="0.01"
+
+
+
+                        name={`items[${index}].unitPrice`}
+
+
+
+                        value={row.unitPrice}
+
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "unitPrice",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+
+                        className="
+                          w-28
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          text-center
+                          font-bold
+                          text-slate-900
+                        "
+
+
+
+                      />
+
+
+
+                    </td>
+
+
+
+
+
+
+
+
+                    {/* จำนวน */}
+
+
+
+                    <td
+
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                      "
+
+
+                    >
+
+
+
+                      <input
+
+
+
+                        name={`items[${index}].qty`}
+
+
+
+                        type="number"
+
+
+
+                        min="1"
+
+
+
+                        value={row.qty}
+
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "qty",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+
+
+                        className="
+                          w-24
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          text-center
+                          font-bold
+                          text-slate-900
+                        "
+
+
+
+                      />
+
+
+
+                    </td>
+
+
+
+
+
+
+
+
+
+                    {/* วันผลิต */}
+
+
+
+                    <td
+
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                      "
+
+
+                    >
+
+
+
+                      <input
+
+
+
+                        type="date"
+
+
+
+                        name={`items[${index}].manufacture`}
+
+
+
+                        value={row.manufacture}
+
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "manufacture",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+
+
+                        className="
+                          w-36
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                        "
+
+
+
+                      />
+
+
+
+                    </td>
+
+
+
+
+
+
+
+
+                    {/* วันหมดอายุ */}
+
+
+
+                    <td
+
+
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-3
+                      "
+
+
+                    >
+
+
+
+                      <input
+
+
+
+                        type="date"
+
+
+
+                        name={`items[${index}].expiry`}
+
+
+
+                        value={row.expiry}
+
+
+
+
+                        onChange={(e)=>
+
+                          updateRow(
+
+                            index,
+
+                            "expiry",
+
+                            e.target.value
+
+                          )
+
+                        }
+
+
+
+
+
+                        className="
+                          w-36
+                          rounded-xl
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                        "
+
+
+
+                      />
+
+
+
+                    </td>
+
+
+
+
+
+                  </tr>
+
+
+
+                );
+
+
+              })
+
+            }
+
+
+
+          </tbody>
+
+
+
+        </table>
+
+
+
+      </div>
+            {/* หมายเหตุ */}
+
+
+      <div>
+
+
+        <label
+
+          className="
+            mb-2
+            block
+            text-lg
+            font-extrabold
+            text-slate-900
+          "
+
+        >
+
+          หมายเหตุ
+
+
+        </label>
+
+
+
+
+        <textarea
+
+
+          name="remark"
+
 
 
           className="
-            flex
-            justify-end
+            min-h-[120px]
+            w-full
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            p-3
+            font-semibold
+            text-slate-900
+            outline-none
+            focus:border-cyan-500
+            focus:ring-4
+            focus:ring-cyan-100
           "
+
+
+        />
+
+
+
+      </div>
+
+
+
+
+
+
+
+      {/* ปุ่มบันทึก */}
+
+
+
+      <div
+
+
+        className="
+          flex
+          justify-end
+        "
+
+
+      >
+
+
+
+        <button
+
+
+
+          type="submit"
+
+
+
+
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            via-green-500
+            to-emerald-500
+            px-8
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+
 
 
         >
 
 
 
-          <button
-
-
-            type="submit"
+          💾 บันทึกรับเข้า
 
 
 
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              via-green-500
-              to-emerald-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
 
-
-          >
+        </button>
 
 
 
-            💾 บันทึกรับเข้า
-
-
-
-          </button>
-
-
-
-        </div>
+      </div>
 
 
 
 
 
-      </form>
+    </form>
 
 
 
-    </div>
+  </div>
 
 
-  );
+
+);
+
 
 
 }
