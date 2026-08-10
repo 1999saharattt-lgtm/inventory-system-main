@@ -64,53 +64,44 @@ export default function MaterialsSummaryClient({
       <form onSubmit={handleSubmit}>
         <div
           className="
+            overflow-hidden
             rounded-2xl
             border
-            border-slate-300
-            bg-white
-            p-5
-            shadow-lg
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
+            p-4
+            shadow-xl
           "
         >
-          <div className="flex flex-col gap-3 md:flex-row md:items-end">
-            <div className="flex-1">
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-800
-                "
-              >
-                🔎 ค้นหาพัสดุ
-              </label>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
 
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-4
-                  py-3
-                  text-base
-                  font-semibold
-                  text-white
-                  placeholder:text-slate-400
-                  outline-none
-                  transition
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-500/20
-                "
-              />
-            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-slate-600
+                bg-slate-800
+                px-4
+                py-3
+                text-base
+                font-semibold
+                text-white
+                placeholder:text-slate-400
+                outline-none
+                transition
+                focus:border-cyan-400
+                focus:ring-4
+                focus:ring-cyan-500/20
+              "
+            />
 
             <button
               type="submit"
@@ -136,16 +127,19 @@ export default function MaterialsSummaryClient({
             <div
               className="
                 rounded-xl
-                bg-slate-100
+                border
+                border-slate-600
+                bg-slate-800
                 px-5
                 py-3
                 text-center
                 font-extrabold
-                text-slate-700
+                text-white
               "
             >
               พบ {filteredMaterials.length} รายการ
             </div>
+
           </div>
         </div>
       </form>

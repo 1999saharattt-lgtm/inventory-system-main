@@ -1,3 +1,4 @@
+```tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MaterialsSummaryClient from "./MaterialsSummaryClient";
@@ -58,17 +59,19 @@ export default async function MaterialsSummaryPage() {
       balance: material.balance,
       unit: material.unit,
 
+      // ราคาจากรายการรับเข้าล่าสุด
       latestPrice: latestReceive
         ? Number(latestReceive.unitPrice)
         : null,
 
+      // ผู้จำหน่ายจากรายการรับเข้าล่าสุด
       latestVendor:
         latestReceive?.receive.vendor?.name ?? "-",
     };
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
       {/* Header */}
 
@@ -87,9 +90,7 @@ export default async function MaterialsSummaryPage() {
           shadow-xl
         "
       >
-
         <div>
-
           <h1
             className="
               text-4xl
@@ -110,7 +111,6 @@ export default async function MaterialsSummaryPage() {
           >
             แสดงข้อมูลล่าสุดจากบัญชี Stock Card
           </p>
-
         </div>
 
         <Link
@@ -131,10 +131,9 @@ export default async function MaterialsSummaryPage() {
         >
           ← กลับ
         </Link>
-
       </div>
 
-      {/* Search */}
+      {/* Search + Categories + Tables */}
 
       <MaterialsSummaryClient
         materials={data}
@@ -145,3 +144,4 @@ export default async function MaterialsSummaryPage() {
     </div>
   );
 }
+```
