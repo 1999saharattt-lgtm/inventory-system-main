@@ -79,50 +79,64 @@ export default async function CategoryPage({
 
       {/* Header */}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1
-            className="
-              !text-white
-              text-5xl
-              font-extrabold
-              leading-tight
-            "
-          >
-            {categoryNames[category]}
-          </h1>
+<div
+  className="
+    flex
+    items-center
+    justify-between
+    rounded-2xl
+    bg-gradient-to-r
+    from-slate-950
+    via-slate-800
+    to-slate-700
+    p-6
+    text-white
+    shadow-xl
+  "
+>
+  <div>
+    <h1
+      className="
+        !text-white
+        text-5xl
+        font-extrabold
+        leading-tight
+      "
+    >
+      {categoryNames[category]}
+    </h1>
 
-          <p
-            className="
-              mt-3
-              text-xl
-              font-semibold
-              text-slate-200
-            "
-          >
-            รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
-          </p>
-        </div>
+    <p
+      className="
+        mt-3
+        text-xl
+        font-semibold
+        text-slate-200
+      "
+    >
+      รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
+    </p>
+  </div>
 
-        <Link
-          href="/stock-card"
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
+  <Link
+    href="/stock-card"
+    className="
+      rounded-xl
+      bg-gradient-to-r
+      from-emerald-600
+      to-green-500
+      px-5
+      py-3
+      font-extrabold
+      text-white
+      shadow-lg
+      transition
+      hover:scale-105
+    "
+  >
+    ← กลับ
+  </Link>
+</div>
 
       {/* Search */}
 
