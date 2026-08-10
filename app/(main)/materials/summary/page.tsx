@@ -1,4 +1,3 @@
-```tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import MaterialsSummaryClient from "./MaterialsSummaryClient";
@@ -72,7 +71,6 @@ export default async function MaterialsSummaryPage() {
 
   return (
     <div className="space-y-5">
-
       {/* Header */}
 
       <div
@@ -140,8 +138,6 @@ export default async function MaterialsSummaryPage() {
         categories={categories}
         categoryName={categoryName}
       />
-
     </div>
   );
 }
-```
