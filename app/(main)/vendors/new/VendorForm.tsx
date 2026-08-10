@@ -6,35 +6,28 @@ export default function VendorForm() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(
-    e: React.FormEvent
+    e: React.FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
 
     setLoading(true);
 
     try {
-      const formData =
-        new FormData(e.currentTarget);
+      const formData = new FormData(e.currentTarget);
 
-      const body =
-        Object.fromEntries(
-          formData.entries()
-        );
+      const body = Object.fromEntries(
+        formData.entries()
+      );
 
-      const res =
-        await fetch(
-          "/api/vendors",
-          {
-            method: "POST",
+      const res = await fetch("/api/vendors", {
+        method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-            body: JSON.stringify(body),
-          }
-        );
+        body: JSON.stringify(body),
+      });
 
       const text = await res.text();
 
@@ -46,16 +39,13 @@ export default function VendorForm() {
 
       alert("เพิ่มผู้จำหน่ายสำเร็จ");
 
-      window.location.href =
-        "/vendors";
-
+      window.location.href = "/vendors";
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
           : "เกิดข้อผิดพลาด"
       );
-
     } finally {
       setLoading(false);
     }
@@ -64,10 +54,9 @@ export default function VendorForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="
-        space-y-6
-      "
+      className="space-y-6"
     >
+      {/* ข้อมูลผู้จำหน่าย */}
 
       <div
         className="
@@ -76,11 +65,9 @@ export default function VendorForm() {
           md:grid-cols-2
         "
       >
-
         {/* ชื่อผู้จำหน่าย */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -110,18 +97,16 @@ export default function VendorForm() {
               text-white
               outline-none
               transition
+              placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
             "
           />
-
         </div>
-
 
         {/* เบอร์โทร */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -150,18 +135,16 @@ export default function VendorForm() {
               text-white
               outline-none
               transition
+              placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
             "
           />
-
         </div>
-
 
         {/* เลขภาษี */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -190,20 +173,17 @@ export default function VendorForm() {
               text-white
               outline-none
               transition
+              placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
             "
           />
-
         </div>
-
       </div>
-
 
       {/* ที่อยู่ */}
 
       <div>
-
         <label
           className="
             mb-2
@@ -233,13 +213,12 @@ export default function VendorForm() {
             text-white
             outline-none
             transition
+            placeholder:text-slate-400
             focus:border-cyan-400
             focus:outline-none
           "
         />
-
       </div>
-
 
       {/* ปุ่ม */}
 
@@ -250,7 +229,6 @@ export default function VendorForm() {
           pt-4
         "
       >
-
         <button
           type="submit"
           disabled={loading}
@@ -270,13 +248,10 @@ export default function VendorForm() {
             disabled:opacity-50
           "
         >
-          {
-            loading
-              ? "กำลังบันทึก..."
-              : "💾 บันทึก"
-          }
+          {loading
+            ? "กำลังบันทึก..."
+            : "💾 บันทึก"}
         </button>
-
 
         <a
           href="/vendors"
@@ -295,9 +270,7 @@ export default function VendorForm() {
         >
           ยกเลิก
         </a>
-
       </div>
-
     </form>
   );
 }
