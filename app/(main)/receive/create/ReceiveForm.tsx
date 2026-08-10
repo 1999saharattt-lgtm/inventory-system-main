@@ -378,8 +378,6 @@ export default function ReceiveForm({
                       hover:bg-emerald-50
                     "
                   >
-                    {/* ลำดับ */}
-
                     <td
                       className="
                         border
@@ -393,8 +391,6 @@ export default function ReceiveForm({
                     >
                       {index + 1}
                     </td>
-
-                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -441,8 +437,6 @@ export default function ReceiveForm({
                         ))}
                       </select>
                     </td>
-
-                    {/* รายการพัสดุ */}
 
                     <td
                       className="
@@ -492,8 +486,6 @@ export default function ReceiveForm({
                       </select>
                     </td>
 
-                    {/* หน่วย */}
-
                     <td
                       className="
                         border
@@ -522,8 +514,6 @@ export default function ReceiveForm({
                         "
                       />
                     </td>
-
-                    {/* ราคา */}
 
                     <td
                       className="
@@ -560,8 +550,6 @@ export default function ReceiveForm({
                       />
                     </td>
 
-                    {/* จำนวน */}
-
                     <td
                       className="
                         border
@@ -596,8 +584,6 @@ export default function ReceiveForm({
                       />
                     </td>
 
-                    {/* วันผลิต */}
-
                     <td
                       className="
                         border
@@ -631,8 +617,6 @@ export default function ReceiveForm({
                         "
                       />
                     </td>
-
-                    {/* วันหมดอายุ */}
 
                     <td
                       className="
