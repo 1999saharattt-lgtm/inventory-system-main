@@ -29,11 +29,10 @@ function formatDate(date: any) {
   }/${d.getFullYear()}`;
 }
 
-function formatMoney(value: number) {
+function formatMoney(value: number | null | undefined) {
   if (
     value === null ||
-    value === undefined ||
-    value === ""
+    value === undefined
   ) {
     return "-";
   }
