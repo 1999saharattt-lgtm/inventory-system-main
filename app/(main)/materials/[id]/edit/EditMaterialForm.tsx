@@ -29,6 +29,7 @@ const categories = [
   "ELECTRIC",
   "HOUSEHOLD",
   "VEHICLE",
+  "PRINTING",
 ];
 
 const categoryName: Record<string, string> = {
@@ -37,6 +38,7 @@ const categoryName: Record<string, string> = {
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 export default function EditMaterialForm({
@@ -296,7 +298,7 @@ export default function EditMaterialForm({
         </select>
 
       </div>
-            {/* จำนวนคงเหลือ + หน่วย */}
+            {/* จำนวน + หน่วย */}
 
       <div
         className="
@@ -310,7 +312,7 @@ export default function EditMaterialForm({
         <div>
 
           <label className="mb-2 block text-lg font-extrabold text-white">
-            จำนวนคงเหลือ
+            จำนวน
           </label>
 
           <input
@@ -413,7 +415,7 @@ export default function EditMaterialForm({
             disabled:opacity-50
           "
         >
-          {loading ? "กำลังบันทึก..." : "บันทึก"}
+          {loading ? "กำลังบันทึก..." : "💾 บันทึก"}
         </button>
 
       </div>

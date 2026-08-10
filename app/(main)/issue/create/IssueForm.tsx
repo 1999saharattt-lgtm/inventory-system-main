@@ -1140,7 +1140,7 @@ export default function IssueForm({
 
           >
 
-            💾 บันทึกการเบิกจ่าย
+            💾 บันทึก
 
 
           </button>
