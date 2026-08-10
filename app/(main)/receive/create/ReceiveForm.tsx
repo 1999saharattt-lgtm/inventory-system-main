@@ -111,165 +111,148 @@ export default function ReceiveForm({
       className="
         rounded-2xl
         border
-        border-slate-900
-        bg-slate-100
-        p-2
+        border-slate-200
+        bg-white
+        p-6
         shadow-xl
       "
     >
       <form
         action={createReceive}
-        className="
-          space-y-6
-          rounded-xl
-          border
-          border-slate-200
-          bg-white
-          p-6
-        "
+        className="space-y-6"
       >
         {/* ข้อมูลรับเข้า */}
 
         <div
           className="
-            rounded-xl
-            border
-            border-slate-200
-            bg-white
-            p-6
+            grid
+            gap-5
+            md:grid-cols-2
           "
         >
-          <div
-            className="
-              grid
-              gap-5
-              md:grid-cols-2
-            "
-          >
-            {/* วันที่รับเข้า */}
+          {/* วันที่รับเข้า */}
 
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                วันที่รับเข้า
-              </label>
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-slate-900
+              "
+            >
+              วันที่รับเข้า
+            </label>
 
+            <input
+              type="date"
+              name="receiveDate"
+              defaultValue={
+                new Date()
+                  .toISOString()
+                  .split("T")[0]
+              }
+              required
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-100
+              "
+            />
+          </div>
+
+          {/* เลขที่เอกสาร */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-slate-900
+              "
+            >
+              เลขที่เอกสาร
+            </label>
+
+            <input
+              type="text"
+              name="documentNo"
+              value={documentValue}
+              readOnly={!isOpeningBalance}
+              onChange={(e) =>
+                setDocumentValue(e.target.value)
+              }
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-3
+                text-lg
+                font-extrabold
+                text-cyan-700
+                outline-none
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-100
+              "
+            />
+
+            <label
+              className="
+                mt-2
+                flex
+                w-fit
+                cursor-pointer
+                items-center
+                gap-2
+                whitespace-nowrap
+                text-sm
+                font-semibold
+                text-slate-900
+              "
+            >
               <input
-                type="date"
-                name="receiveDate"
-                defaultValue={
-                  new Date()
-                    .toISOString()
-                    .split("T")[0]
-                }
-                required
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  p-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-cyan-500
-                  focus:ring-4
-                  focus:ring-cyan-100
-                "
-              />
-            </div>
+                type="checkbox"
+                checked={isOpeningBalance}
+                onChange={(e) => {
+                  const checked = e.target.checked;
 
-            {/* เลขที่เอกสาร */}
+                  setIsOpeningBalance(checked);
 
-            <div>
-              <label
+                  setDocumentValue(
+                    checked
+                      ? "ยอดยกเข้าระบบ"
+                      : documentNo
+                  );
+                }}
                 className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                เลขที่เอกสาร
-              </label>
-
-              <input
-                type="text"
-                name="documentNo"
-                value={documentValue}
-                readOnly={!isOpeningBalance}
-                onChange={(e) =>
-                  setDocumentValue(e.target.value)
-                }
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  p-3
-                  text-lg
-                  font-extrabold
-                  text-cyan-700
-                  outline-none
-                  focus:border-cyan-500
-                  focus:ring-4
-                  focus:ring-cyan-100
-                "
-              />
-
-              <label
-                className="
-                  mt-2
-                  flex
-                  w-fit
+                  h-4
+                  w-4
                   cursor-pointer
-                  items-center
-                  gap-2
-                  whitespace-nowrap
-                  text-sm
-                  font-semibold
-                  text-slate-900
                 "
-              >
-                <input
-                  type="checkbox"
-                  checked={isOpeningBalance}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
+              />
 
-                    setIsOpeningBalance(checked);
-
-                    setDocumentValue(
-                      checked
-                        ? "ยอดยกเข้าระบบ"
-                        : documentNo
-                    );
-                  }}
-                  className="
-                    h-4
-                    w-4
-                    cursor-pointer
-                  "
-                />
-
-                ยอดยกเข้าระบบ
-              </label>
-            </div>
+              ยอดยกเข้าระบบ
+            </label>
           </div>
 
           {/* ผู้จำหน่าย */}
 
-          <div className="mt-5">
+          <div>
             <label
               className="
                 mb-2
@@ -352,7 +335,6 @@ export default function ReceiveForm({
                   <th
                     key={title}
                     className="
-                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -363,6 +345,7 @@ export default function ReceiveForm({
                       text-center
                       text-lg
                       font-extrabold
+                      whitespace-nowrap
                       !text-white
                     "
                   >
@@ -693,15 +676,7 @@ export default function ReceiveForm({
 
         {/* หมายเหตุ */}
 
-        <div
-          className="
-            rounded-xl
-            border
-            border-slate-200
-            bg-white
-            p-6
-          "
-        >
+        <div>
           <label
             className="
               mb-2
