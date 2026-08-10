@@ -1,9 +1,8 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
-
   const totalMaterials = await prisma.material.count();
-
 
   const lowStock = await prisma.material
     .count({
@@ -15,13 +14,8 @@ export default async function Home() {
     })
     .catch(() => 0);
 
-
-
   const today = new Date();
-
   today.setHours(0, 0, 0, 0);
-
-
 
   const receiveToday = await prisma.receive.count({
     where: {
@@ -31,8 +25,6 @@ export default async function Home() {
     },
   });
 
-
-
   const issueToday = await prisma.issue.count({
     where: {
       issueDate: {
@@ -40,8 +32,6 @@ export default async function Home() {
       },
     },
   });
-
-
 
   const cards = [
     {
@@ -53,6 +43,7 @@ export default async function Home() {
       bg: "bg-blue-100",
       border: "border-blue-200",
       hover: "hover:border-blue-300",
+      href: "/materials/summary",
     },
 
     {
@@ -88,9 +79,9 @@ export default async function Home() {
       hover: "hover:border-red-300",
     },
   ];
-    return (
-    <div className="space-y-5">
 
+  return (
+    <div className="space-y-6">
 
       {/* Hero */}
 
@@ -106,7 +97,6 @@ export default async function Home() {
           shadow-md
         "
       >
-
         <h1
           className="
             text-4xl
@@ -116,7 +106,6 @@ export default async function Home() {
         >
           👋 ยินดีต้อนรับ
         </h1>
-
 
         <p
           className="
@@ -128,10 +117,9 @@ export default async function Home() {
         >
           สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
         </p>
-
-
       </div>
-            {/* Summary */}
+
+      {/* Summary */}
 
       <div
         className="
@@ -141,89 +129,99 @@ export default async function Home() {
           xl:grid-cols-4
         "
       >
+        {cards.map((card) => {
 
-        {cards.map((card) => (
+          const content = (
+            <>
+              <div className={`h-1 ${card.color}`} />
 
-          <div
-  key={card.title}
-  className={`
-    group
-    overflow-hidden
-    rounded-2xl
-    border
-    border-slate-700
-    bg-gradient-to-br
-    from-slate-900
-    via-slate-800
-    to-slate-700
-    text-white
-    shadow-xl
-    transition-all
-    duration-300
-    hover:-translate-y-1
-    hover:shadow-2xl
-    ${card.hover}
-  `}
->
+              <div className="p-5">
 
-            <div className={`h-1 ${card.color}`} />
+                <div className="flex items-center justify-between">
 
+                  <div>
 
-            <div className="p-5">
+                    <p className="text-base font-bold text-white">
+                      {card.title}
+                    </p>
 
-              <div className="flex items-center justify-between">
+                    <p className="mt-1 text-3xl font-extrabold text-white">
+                      {card.value}
+                    </p>
 
+                    <p className="text-sm font-semibold text-slate-200">
+                      {card.unit}
+                    </p>
 
-                <div>
+                  </div>
 
-                  <p className="text-base font-bold text-white">
-                    {card.title}
-                  </p>
-
-
-                  <p className="mt-1 text-3xl font-extrabold text-white">
-                    {card.value}
-                  </p>
-
-
-                  <p className="text-sm font-semibold text-slate-200">
-                    {card.unit}
-                  </p>
+                  <div
+                    className="
+                      flex
+                      h-12
+                      w-12
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-white/20
+                      bg-white/10
+                      text-xl
+                      backdrop-blur
+                    "
+                  >
+                    {card.icon}
+                  </div>
 
                 </div>
 
-
-
-                <div
-  className="
-    flex
-    h-12
-    w-12
-    items-center
-    justify-center
-    rounded-xl
-    border
-    border-white/20
-    bg-white/10
-    text-xl
-    backdrop-blur
-  "
->
-  {card.icon}
-</div>
-
-
               </div>
+            </>
+          );
 
+          const className = `
+            group
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-900
+            via-slate-800
+            to-slate-700
+            text-white
+            shadow-xl
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:shadow-2xl
+            ${card.hover}
+          `;
+
+          if (card.href) {
+            return (
+              <Link
+                key={card.title}
+                href={card.href}
+                className={className}
+              >
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <div
+              key={card.title}
+              className={className}
+            >
+              {content}
             </div>
-
-
-          </div>
-
-        ))}
-
+          );
+        })}
       </div>
-            {/* Information */}
+
+      {/* Information */}
 
       <div
         className="
@@ -245,7 +243,6 @@ export default async function Home() {
             py-3
           "
         >
-
           <h2
             className="
               text-xl
@@ -255,10 +252,7 @@ export default async function Home() {
           >
             ข้อมูลระบบ
           </h2>
-
         </div>
-
-
 
         <div
           className="
@@ -269,18 +263,14 @@ export default async function Home() {
             text-slate-700
           "
         >
-
           <div>✅ รองรับการรับเข้าพัสดุ</div>
           <div>✅ รองรับการเบิกจ่ายพัสดุ</div>
           <div>✅ ตรวจสอบจำนวนคงเหลืออัตโนมัติ</div>
           <div>✅ รองรับบัญชีพัสดุ (Stock Card)</div>
           <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
-
         </div>
 
-
       </div>
-
 
     </div>
   );
