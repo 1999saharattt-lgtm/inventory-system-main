@@ -1,3 +1,4 @@
+```tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ReceiveForm from "./ReceiveForm";
@@ -14,13 +15,9 @@ function getThaiYear() {
 
 
 
-
-
 async function generateReceiveNo() {
 
-
   const year = getThaiYear();
-
 
   const receives =
     await prisma.receive.findMany({
@@ -35,7 +32,6 @@ async function generateReceiveNo() {
 
       },
 
-
       select: {
 
         documentNo: true,
@@ -46,14 +42,11 @@ async function generateReceiveNo() {
 
 
 
-
   let running = 1;
 
 
 
-
   for (const receive of receives) {
-
 
     const match =
 
@@ -65,10 +58,7 @@ async function generateReceiveNo() {
 
 
 
-
     if(match){
-
-
 
       const lastNumber =
 
@@ -82,9 +72,7 @@ async function generateReceiveNo() {
 
 
 
-
       if(lastYear === year){
-
 
         if(lastNumber >= running){
 
@@ -92,17 +80,11 @@ async function generateReceiveNo() {
 
         }
 
-
       }
-
-
 
     }
 
-
-
   }
-
 
 
 
@@ -112,11 +94,7 @@ async function generateReceiveNo() {
 
   );
 
-
 }
-
-
-
 
 
 
@@ -133,7 +111,6 @@ export default async function CreateReceivePage(){
     documentNo,
 
   ] = await Promise.all([
-
 
 
 
@@ -159,9 +136,6 @@ export default async function CreateReceivePage(){
 
 
 
-
-
-
     prisma.vendor.findMany({
 
       orderBy:{
@@ -174,30 +148,15 @@ export default async function CreateReceivePage(){
 
 
 
-
-
     generateReceiveNo(),
-
-
-
 
   ]);
 
 
 
-
   return (
 
-
-    <div
-
-      className="
-        space-y-6
-      "
-
-    >
-
-
+    <div className="space-y-6">
 
 
 
@@ -206,7 +165,6 @@ export default async function CreateReceivePage(){
 
 
       <div
-
         className="
           flex
           items-center
@@ -219,18 +177,14 @@ export default async function CreateReceivePage(){
           p-6
           shadow-xl
         "
-
       >
-
 
 
 
         <div>
 
 
-
           <h1
-
             className="
               text-5xl
               font-extrabold
@@ -238,47 +192,34 @@ export default async function CreateReceivePage(){
               tracking-wide
               !text-white
             "
-
           >
 
             📥 บันทึกการรับเข้าพัสดุ
-
 
           </h1>
 
 
 
-
           <p
-
             className="
               mt-3
               text-xl
               font-semibold
               !text-slate-200
             "
-
           >
 
             เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
 
-
           </p>
-
-
 
 
         </div>
 
 
 
-
-
         <Link
-
           href="/receive"
-
-
           className="
             rounded-xl
             bg-gradient-to-r
@@ -293,44 +234,51 @@ export default async function CreateReceivePage(){
             hover:scale-105
             hover:shadow-xl
           "
-
         >
 
           ← กลับ
 
-
         </Link>
 
 
+      </div>
 
+
+
+      {/* Form */}
+
+
+
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-6
+          shadow-xl
+        "
+      >
+
+        <ReceiveForm
+
+          vendors={vendors}
+
+          materials={materials}
+
+          documentNo={documentNo}
+
+        />
 
       </div>
-            {/* Form */}
-
-
-      <ReceiveForm
-
-
-        vendors={vendors}
-
-
-        materials={materials}
-
-
-        documentNo={documentNo}
-
-
-
-      />
-
 
 
 
     </div>
 
-
-
   );
-
 
 }
