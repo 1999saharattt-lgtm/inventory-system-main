@@ -352,6 +352,7 @@ export default function ReceiveForm({
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -362,7 +363,6 @@ export default function ReceiveForm({
                       text-center
                       text-lg
                       font-extrabold
-                      whitespace-nowrap
                       !text-white
                     "
                   >
@@ -762,4 +762,3 @@ export default function ReceiveForm({
     </div>
   );
 }
-
