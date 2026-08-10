@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ReceiveForm from "./ReceiveForm";
@@ -49,32 +48,27 @@ async function generateReceiveNo() {
   for (const receive of receives) {
 
     const match =
-
       receive.documentNo.match(
-
         /ร\.(\d+)\/(\d+)/
-
       );
 
 
 
-    if(match){
+    if (match) {
 
       const lastNumber =
-
         Number(match[1]);
 
 
 
       const lastYear =
-
         match[2];
 
 
 
-      if(lastYear === year){
+      if (lastYear === year) {
 
-        if(lastNumber >= running){
+        if (lastNumber >= running) {
 
           running = lastNumber + 1;
 
@@ -94,37 +88,61 @@ async function generateReceiveNo() {
 
 
 
-export default async function CreateReceivePage(){
+export default async function CreateReceivePage() {
 
 
 
   const [
-  materials,
-  vendors,
-  documentNo,
-] = await Promise.all([
-  prisma.material.findMany({
-    orderBy: [
-      {
-        category: "asc",
-      },
-      {
-        code: "asc",
-      },
-    ],
-  }),
+    materials,
+    vendors,
+    documentNo,
+  ] = await Promise.all([
 
-  prisma.vendor.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  }),
+    prisma.material.findMany({
 
-  generateReceiveNo(),
-]);
+      orderBy: [
+
+        {
+
+          category: "asc",
+
+        },
+
+        {
+
+          code: "asc",
+
+        },
+
+      ],
+
+    }),
+
+
+
+    prisma.vendor.findMany({
+
+      orderBy: {
+
+        name: "asc",
+
+      },
+
+    }),
+
+
+
+    generateReceiveNo(),
+
+  ]);
+
+
 
   return (
+
     <div className="space-y-6">
+
+
 
       {/* Header */}
 
@@ -157,6 +175,8 @@ export default async function CreateReceivePage(){
             📥 บันทึกการรับเข้าพัสดุ
           </h1>
 
+
+
           <p
             className="
               mt-3
@@ -169,6 +189,8 @@ export default async function CreateReceivePage(){
           </p>
 
         </div>
+
+
 
         <Link
           href="/receive"
@@ -192,14 +214,36 @@ export default async function CreateReceivePage(){
 
       </div>
 
+
+
       {/* Form */}
 
-      <ReceiveForm
-        vendors={vendors}
-        materials={materials}
-        documentNo={documentNo}
-      />
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-6
+          shadow-xl
+        "
+      >
+
+        <ReceiveForm
+          vendors={vendors}
+          materials={materials}
+          documentNo={documentNo}
+        />
+
+      </div>
+
+
 
     </div>
+
   );
+
 }

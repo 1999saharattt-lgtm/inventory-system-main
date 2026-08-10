@@ -107,35 +107,31 @@ export default function ReceiveForm({
   }
 
   return (
-  <div
-    className="
-      rounded-2xl
-      border
-      border-slate-900
-      bg-slate-100
-      p-2
-      shadow-xl
-    "
-  >
-    <form
-      action={createReceive}
+    <div
       className="
-        space-y-6
-        rounded-xl
+        rounded-2xl
+        border
+        border-slate-200
         bg-white
         p-6
+        shadow-xl
       "
     >
-
-      {/* ข้อมูลรับเข้า */}
-
-      <div
-        className="
-          grid
-          gap-5
-          md:grid-cols-2
-        "
+      <form
+        action={createReceive}
+        className="space-y-6"
       >
+
+        {/* ข้อมูลรับเข้า */}
+
+        <div
+          className="
+            grid
+            gap-5
+            md:grid-cols-2
+          "
+        >
+
           {/* วันที่รับเข้า */}
 
           <div>
@@ -303,6 +299,7 @@ export default function ReceiveForm({
               ))}
             </select>
           </div>
+
         </div>
 
         {/* ตารางรายการรับเข้า */}
@@ -384,6 +381,7 @@ export default function ReceiveForm({
                       hover:bg-emerald-50
                     "
                   >
+
                     <td
                       className="
                         border
@@ -657,6 +655,7 @@ export default function ReceiveForm({
                         "
                       />
                     </td>
+
                   </tr>
                 );
               })}
@@ -723,6 +722,7 @@ export default function ReceiveForm({
             💾 บันทึก
           </button>
         </div>
+
       </form>
     </div>
   );
