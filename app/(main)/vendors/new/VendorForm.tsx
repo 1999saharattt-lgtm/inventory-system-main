@@ -21,11 +21,9 @@ export default function VendorForm() {
 
       const res = await fetch("/api/vendors", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(body),
       });
 
@@ -88,18 +86,20 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
+              border-slate-300
+              bg-white
               px-4
               py-3
               text-lg
               font-medium
-              text-white
+              text-slate-900
               outline-none
               transition
               placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
+              focus:ring-2
+              focus:ring-cyan-400/30
             "
           />
         </div>
@@ -126,18 +126,20 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
+              border-slate-300
+              bg-white
               px-4
               py-3
               text-lg
               font-medium
-              text-white
+              text-slate-900
               outline-none
               transition
               placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
+              focus:ring-2
+              focus:ring-cyan-400/30
             "
           />
         </div>
@@ -164,18 +166,20 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
+              border-slate-300
+              bg-white
               px-4
               py-3
               text-lg
               font-medium
-              text-white
+              text-slate-900
               outline-none
               transition
               placeholder:text-slate-400
               focus:border-cyan-400
               focus:outline-none
+              focus:ring-2
+              focus:ring-cyan-400/30
             "
           />
         </div>
@@ -204,18 +208,20 @@ export default function VendorForm() {
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
+            border-slate-300
+            bg-white
             px-4
             py-3
             text-lg
             font-medium
-            text-white
+            text-slate-900
             outline-none
             transition
             placeholder:text-slate-400
             focus:border-cyan-400
             focus:outline-none
+            focus:ring-2
+            focus:ring-cyan-400/30
           "
         />
       </div>

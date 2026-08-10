@@ -4,7 +4,6 @@ import VendorForm from "./VendorForm";
 export default function NewVendorPage() {
   return (
     <div className="space-y-6">
-
       {/* Header */}
 
       <div
@@ -22,9 +21,7 @@ export default function NewVendorPage() {
           shadow-xl
         "
       >
-
         <div>
-
           <h1
             className="
               text-5xl
@@ -45,7 +42,6 @@ export default function NewVendorPage() {
           >
             เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ
           </p>
-
         </div>
 
         <Link
@@ -66,14 +62,13 @@ export default function NewVendorPage() {
         >
           ← กลับ
         </Link>
-
       </div>
 
       {/* Form */}
 
       <div
         className="
-          max-w-xl
+          w-full
           rounded-3xl
           border
           border-slate-700
@@ -81,26 +76,12 @@ export default function NewVendorPage() {
           from-slate-950
           via-slate-900
           to-slate-800
-          p-6
+          p-7
           shadow-xl
         "
       >
-
-        <div
-          className="
-            rounded-2xl
-            border
-            border-slate-200
-            bg-white
-            p-8
-            shadow-lg
-          "
-        >
-          <VendorForm />
-        </div>
-
+        <VendorForm />
       </div>
-
     </div>
   );
 }
