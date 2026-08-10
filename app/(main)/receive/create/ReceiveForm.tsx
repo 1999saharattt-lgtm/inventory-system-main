@@ -107,29 +107,35 @@ export default function ReceiveForm({
   }
 
   return (
-    <div
+  <div
+    className="
+      rounded-2xl
+      border
+      border-slate-900
+      bg-slate-100
+      p-2
+      shadow-xl
+    "
+  >
+    <form
+      action={createReceive}
       className="
-        rounded-2xl
-        border
-        border-slate-200
+        space-y-6
+        rounded-xl
         bg-white
         p-6
-        shadow-xl
       "
     >
-      <form
-        action={createReceive}
-        className="space-y-6"
-      >
-        {/* ข้อมูลรับเข้า */}
 
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-          "
-        >
+      {/* ข้อมูลรับเข้า */}
+
+      <div
+        className="
+          grid
+          gap-5
+          md:grid-cols-2
+        "
+      >
           {/* วันที่รับเข้า */}
 
           <div>
