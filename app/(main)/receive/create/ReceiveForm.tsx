@@ -109,32 +109,36 @@ export default function ReceiveForm({
   return (
     <div
       className="
-        overflow-hidden
         rounded-2xl
         border
         border-slate-900
-        bg-slate-950
-        p-6
+        bg-slate-100
+        p-2
         shadow-xl
       "
     >
       <form
         action={createReceive}
-        className="space-y-6"
+        className="
+          space-y-6
+          rounded-xl
+          border
+          border-slate-200
+          bg-white
+          p-6
+        "
       >
-
         {/* ข้อมูลรับเข้า */}
 
         <div
           className="
-            rounded-2xl
+            rounded-xl
             border
             border-slate-200
             bg-white
             p-6
           "
         >
-
           <div
             className="
               grid
@@ -142,11 +146,9 @@ export default function ReceiveForm({
               md:grid-cols-2
             "
           >
-
             {/* วันที่รับเข้า */}
 
             <div>
-
               <label
                 className="
                   mb-2
@@ -183,13 +185,11 @@ export default function ReceiveForm({
                   focus:ring-cyan-100
                 "
               />
-
             </div>
 
             {/* เลขที่เอกสาร */}
 
             <div>
-
               <label
                 className="
                   mb-2
@@ -208,9 +208,7 @@ export default function ReceiveForm({
                 value={documentValue}
                 readOnly={!isOpeningBalance}
                 onChange={(e) =>
-                  setDocumentValue(
-                    e.target.value
-                  )
+                  setDocumentValue(e.target.value)
                 }
                 className="
                   w-full
@@ -243,17 +241,13 @@ export default function ReceiveForm({
                   text-slate-900
                 "
               >
-
                 <input
                   type="checkbox"
                   checked={isOpeningBalance}
                   onChange={(e) => {
-                    const checked =
-                      e.target.checked;
+                    const checked = e.target.checked;
 
-                    setIsOpeningBalance(
-                      checked
-                    );
+                    setIsOpeningBalance(checked);
 
                     setDocumentValue(
                       checked
@@ -269,17 +263,13 @@ export default function ReceiveForm({
                 />
 
                 ยอดยกเข้าระบบ
-
               </label>
-
             </div>
-
           </div>
 
           {/* ผู้จำหน่าย */}
 
           <div className="mt-5">
-
             <label
               className="
                 mb-2
@@ -310,7 +300,6 @@ export default function ReceiveForm({
                 focus:ring-cyan-100
               "
             >
-
               <option value="">
                 -- เลือกผู้จำหน่าย --
               </option>
@@ -323,11 +312,8 @@ export default function ReceiveForm({
                   {vendor.name}
                 </option>
               ))}
-
             </select>
-
           </div>
-
         </div>
 
         {/* ตารางรายการรับเข้า */}
@@ -342,7 +328,6 @@ export default function ReceiveForm({
             shadow-xl
           "
         >
-
           <table
             className="
               w-full
@@ -352,11 +337,8 @@ export default function ReceiveForm({
               text-sm
             "
           >
-
             <thead>
-
               <tr>
-
                 {[
                   "ลำดับ",
                   "หมวดหมู่",
@@ -387,28 +369,21 @@ export default function ReceiveForm({
                     {title}
                   </th>
                 ))}
-
               </tr>
-
             </thead>
 
             <tbody>
-
               {items.map((row, index) => {
+                const list = materials.filter(
+                  (m) =>
+                    m.category === row.category
+                );
 
-                const list =
-                  materials.filter(
-                    (m) =>
-                      m.category ===
-                      row.category
-                  );
-
-                const selected =
-                  materials.find(
-                    (m) =>
-                      String(m.id) ===
-                      row.materialId
-                  );
+                const selected = materials.find(
+                  (m) =>
+                    String(m.id) ===
+                    row.materialId
+                );
 
                 return (
                   <tr
@@ -420,7 +395,6 @@ export default function ReceiveForm({
                       hover:bg-emerald-50
                     "
                   >
-
                     {/* ลำดับ */}
 
                     <td
@@ -447,7 +421,6 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-
                       <select
                         name={`items[${index}].category`}
                         value={row.category}
@@ -471,7 +444,6 @@ export default function ReceiveForm({
                           focus:border-cyan-500
                         "
                       >
-
                         <option value="">
                           เลือกหมวดหมู่
                         </option>
@@ -484,9 +456,7 @@ export default function ReceiveForm({
                             {c.label}
                           </option>
                         ))}
-
                       </select>
-
                     </td>
 
                     {/* รายการพัสดุ */}
@@ -499,7 +469,6 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-
                       <select
                         name={`items[${index}].materialId`}
                         value={row.materialId}
@@ -523,7 +492,6 @@ export default function ReceiveForm({
                           focus:border-cyan-500
                         "
                       >
-
                         <option value="">
                           เลือกรายการพัสดุ
                         </option>
@@ -538,9 +506,7 @@ export default function ReceiveForm({
                             {m.name}
                           </option>
                         ))}
-
                       </select>
-
                     </td>
 
                     {/* หน่วย */}
@@ -554,7 +520,6 @@ export default function ReceiveForm({
                         text-center
                       "
                     >
-
                       <input
                         type="text"
                         readOnly
@@ -573,7 +538,6 @@ export default function ReceiveForm({
                           text-slate-900
                         "
                       />
-
                     </td>
 
                     {/* ราคา */}
@@ -587,7 +551,6 @@ export default function ReceiveForm({
                         text-center
                       "
                     >
-
                       <input
                         type="number"
                         step="0.01"
@@ -612,7 +575,6 @@ export default function ReceiveForm({
                           text-slate-900
                         "
                       />
-
                     </td>
 
                     {/* จำนวน */}
@@ -625,7 +587,6 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-
                       <input
                         name={`items[${index}].qty`}
                         type="number"
@@ -650,7 +611,6 @@ export default function ReceiveForm({
                           text-slate-900
                         "
                       />
-
                     </td>
 
                     {/* วันผลิต */}
@@ -663,7 +623,6 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-
                       <input
                         type="date"
                         name={`items[${index}].manufacture`}
@@ -688,7 +647,6 @@ export default function ReceiveForm({
                           focus:border-cyan-500
                         "
                       />
-
                     </td>
 
                     {/* วันหมดอายุ */}
@@ -701,7 +659,6 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-
                       <input
                         type="date"
                         name={`items[${index}].expiry`}
@@ -726,31 +683,25 @@ export default function ReceiveForm({
                           focus:border-cyan-500
                         "
                       />
-
                     </td>
-
                   </tr>
                 );
               })}
-
             </tbody>
-
           </table>
-
         </div>
 
         {/* หมายเหตุ */}
 
         <div
           className="
-            rounded-2xl
+            rounded-xl
             border
             border-slate-200
             bg-white
             p-6
           "
         >
-
           <label
             className="
               mb-2
@@ -781,18 +732,11 @@ export default function ReceiveForm({
               focus:ring-cyan-100
             "
           />
-
         </div>
 
         {/* ปุ่มบันทึก */}
 
-        <div
-          className="
-            flex
-            justify-end
-          "
-        >
-
+        <div className="flex justify-end">
           <button
             type="submit"
             className="
@@ -813,10 +757,9 @@ export default function ReceiveForm({
           >
             💾 บันทึก
           </button>
-
         </div>
-
       </form>
     </div>
   );
 }
+
