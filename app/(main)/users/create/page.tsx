@@ -4,22 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
-
 async function createUser(formData: FormData) {
   "use server";
 
   await requireRole("ADMIN");
 
-
   const username = formData.get("username") as string;
   const fullname = formData.get("fullname") as string;
   const password = formData.get("password") as string;
-  const role = formData.get("role") as "ADMIN" | "STAFF" | "VIEWER";
-
+  const role = formData.get("role") as
+    | "ADMIN"
+    | "STAFF"
+    | "VIEWER";
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
-
 
   await prisma.user.create({
     data: {
@@ -30,24 +28,14 @@ async function createUser(formData: FormData) {
     },
   });
 
-
   redirect("/users");
 }
 
-
-
-
-
 export default async function CreateUserPage() {
-
   await requireRole("ADMIN");
 
-
   return (
-
     <div className="space-y-6">
-
-
 
       {/* Header */}
 
@@ -69,9 +57,7 @@ export default async function CreateUserPage() {
         "
       >
 
-
         <div>
-
 
           <h1
             className="
@@ -84,8 +70,6 @@ export default async function CreateUserPage() {
             👤 เพิ่มผู้ใช้งานระบบ
           </h1>
 
-
-
           <p
             className="
               mt-2
@@ -97,16 +81,10 @@ export default async function CreateUserPage() {
             สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
           </p>
 
-
         </div>
-
-
-
-
 
         <Link
           href="/users"
-
           className="
             rounded-xl
             bg-gradient-to-r
@@ -125,124 +103,34 @@ export default async function CreateUserPage() {
           ← กลับ
         </Link>
 
-
       </div>
 
 
-
-
-
-
-
-      {/* Form Card */}
-
+      {/* Form */}
 
       <div
         className="
-          max-w-2xl
+          w-full
           rounded-2xl
           border
-          border-slate-200
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
           p-8
           shadow-xl
         "
       >
 
-
-
         <form
-
           action={createUser}
-
           className="space-y-6"
-
         >
 
-
-
-
-
-          {[
-            {
-              label:"Username",
-              name:"username",
-              type:"text",
-            },
-            {
-              label:"ชื่อ-นามสกุล",
-              name:"fullname",
-              type:"text",
-            },
-            {
-              label:"Password",
-              name:"password",
-              type:"password",
-            },
-
-          ].map((field)=>(
-
-
-            <div key={field.name}>
-
-
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-slate-700
-                "
-              >
-                {field.label}
-              </label>
-
-
-
-              <input
-
-                type={field.type}
-
-                name={field.name}
-
-                required
-
-
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  text-lg
-                  font-medium
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-blue-500
-                  focus:ring-4
-                  focus:ring-blue-100
-                "
-
-              />
-
-
-            </div>
-
-
-          ))}
-
-
-
-
-
-
+          {/* Username */}
 
           <div>
-
 
             <label
               className="
@@ -250,19 +138,16 @@ export default async function CreateUserPage() {
                 block
                 text-lg
                 font-extrabold
-                text-slate-700
+                text-white
               "
             >
-              สิทธิ์การใช้งาน
+              Username
             </label>
 
-
-
-            <select
-
-              name="role"
-
-
+            <input
+              type="text"
+              name="username"
+              required
               className="
                 w-full
                 rounded-xl
@@ -272,77 +157,187 @@ export default async function CreateUserPage() {
                 px-4
                 py-3
                 text-lg
-                font-medium
-                text-slate-900
+                font-bold
+                text-black
                 outline-none
                 transition
-                focus:border-blue-500
+                focus:border-cyan-400
                 focus:ring-4
-                focus:ring-blue-100
+                focus:ring-cyan-100
               "
+            />
 
+          </div>
+
+
+          {/* ชื่อ-นามสกุล */}
+
+          <div>
+
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
             >
+              ชื่อ-นามสกุล
+            </label>
 
+            <input
+              type="text"
+              name="fullname"
+              required
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-bold
+                text-black
+                outline-none
+                transition
+                focus:border-cyan-400
+                focus:ring-4
+                focus:ring-cyan-100
+              "
+            />
+
+          </div>
+
+
+          {/* Password */}
+
+          <div>
+
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              Password
+            </label>
+
+            <input
+              type="password"
+              name="password"
+              required
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-bold
+                text-black
+                outline-none
+                transition
+                focus:border-cyan-400
+                focus:ring-4
+                focus:ring-cyan-100
+              "
+            />
+
+          </div>
+
+
+          {/* สิทธิ์การใช้งาน */}
+
+          <div>
+
+            <label
+              className="
+                mb-2
+                block
+                text-lg
+                font-extrabold
+                text-white
+              "
+            >
+              สิทธิ์การใช้งาน
+            </label>
+
+            <select
+              name="role"
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                text-lg
+                font-bold
+                text-black
+                outline-none
+                transition
+                focus:border-cyan-400
+                focus:ring-4
+                focus:ring-cyan-100
+              "
+            >
 
               <option value="STAFF">
                 STAFF
               </option>
 
-
               <option value="ADMIN">
                 ADMIN
               </option>
-
 
               <option value="VIEWER">
                 VIEWER
               </option>
 
-
             </select>
-
 
           </div>
 
 
+          {/* ปุ่ม */}
 
+          <div className="pt-4">
 
+            <button
+              type="submit"
+              className="
+                rounded-xl
+                bg-gradient-to-r
+                from-emerald-600
+                to-green-500
+                px-8
+                py-3
+                text-lg
+                font-extrabold
+                text-white
+                shadow-lg
+                transition
+                hover:scale-105
+              "
+            >
+              💾 บันทึก
+            </button>
 
-
-
-          <button
-
-            type="submit"
-
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-
-          >
-            บันทึก
-          </button>
-
-
-
+          </div>
 
         </form>
 
-
       </div>
 
-
     </div>
-
   );
 }
