@@ -139,20 +139,19 @@ export default async function DepartmentDetailPage({
 
 
 
-  function OfficerTable({
+function OfficerTable({
   officers,
 }: {
   officers: any[];
 }) {
 
   return (
-
     <div
       className="
         overflow-hidden
         rounded-2xl
         border
-        border-slate-200
+        border-slate-900
         bg-white
         shadow-xl
       "
@@ -163,6 +162,8 @@ export default async function DepartmentDetailPage({
         <table
           className="
             min-w-full
+            border
+            border-slate-900
             border-collapse
           "
         >
@@ -176,11 +177,13 @@ export default async function DepartmentDetailPage({
                 "ตำแหน่ง",
                 "ประเภทบุคลากร",
                 "จัดการ",
-              ].map((title)=>(
+              ].map((title) => (
 
                 <th
                   key={title}
                   className="
+                    border
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -202,157 +205,148 @@ export default async function DepartmentDetailPage({
           </thead>
 
 
-
           <tbody>
 
-
             {sortOfficers(officers).map(
-              (officer:any)=>(
+              (officer: any) => (
 
-
-              <tr
-                key={officer.id}
-                className="
-                  border-b
-                  border-slate-200
-                  hover:bg-blue-50
-                  transition
-                "
-              >
-
-
-                <td
+                <tr
+                  key={officer.id}
                   className="
-                    px-5
-                    py-3
-                    font-bold
-                    text-slate-800
-                  "
-                >
-                  {officer.firstName}{" "}
-                  {officer.lastName}
-                </td>
-
-
-
-                <td
-                  className="
-                    px-5
-                    py-3
-                    font-bold
-                    text-slate-800
-                  "
-                >
-                  {officer.position}
-                </td>
-
-
-
-                <td
-                  className="
-                    px-5
-                    py-3
-                    text-center
+                    text-slate-900
+                    transition
+                    hover:bg-blue-50
                   "
                 >
 
-                  <span
+                  <td
                     className="
-                      rounded-lg
-                      bg-emerald-100
-                      px-3
-                      py-1
+                      border
+                      border-slate-900
+                      px-5
+                      py-3
                       font-bold
-                      text-emerald-700
+                      text-slate-800
                     "
                   >
-                    {
-                      officerTypeText(
-                        officer.type
-                      )
-                    }
-                  </span>
-
-                </td>
+                    {officer.firstName}{" "}
+                    {officer.lastName}
+                  </td>
 
 
-
-                <td
-                  className="
-                    px-5
-                    py-3
-                  "
-                >
-
-                  <div
+                  <td
                     className="
-                      flex
-                      justify-center
-                      gap-2
+                      border
+                      border-slate-900
+                      px-5
+                      py-3
+                      font-bold
+                      text-slate-800
+                    "
+                  >
+                    {officer.position}
+                  </td>
+
+
+                  <td
+                    className="
+                      border
+                      border-slate-900
+                      px-5
+                      py-3
+                      text-center
                     "
                   >
 
-                    <Link
-                      href={`/officers/${officer.id}/edit`}
+                    <span
                       className="
                         rounded-lg
-                        bg-slate-800
-                        px-4
-                        py-2
-                        font-extrabold
-                        text-white
-                        shadow
-                        transition
-                        hover:bg-slate-700
+                        bg-emerald-100
+                        px-3
+                        py-1
+                        font-bold
+                        text-emerald-700
                       "
                     >
-                      แก้ไข
-                    </Link>
+                      {
+                        officerTypeText(
+                          officer.type
+                        )
+                      }
+                    </span>
+
+                  </td>
 
 
+                  <td
+                    className="
+                      border
+                      border-slate-900
+                      px-5
+                      py-3
+                    "
+                  >
 
-                    <Link
-                      href={`/officers/${officer.id}/delete`}
+                    <div
                       className="
-                        rounded-lg
-                        bg-red-600
-                        px-4
-                        py-2
-                        font-extrabold
-                        text-white
-                        shadow
-                        transition
-                        hover:bg-red-700
+                        flex
+                        justify-center
+                        gap-2
                       "
                     >
-                      ลบ
-                    </Link>
+
+                      <Link
+                        href={`/officers/${officer.id}/edit`}
+                        className="
+                          rounded-lg
+                          bg-slate-800
+                          px-4
+                          py-2
+                          font-extrabold
+                          text-white
+                          shadow
+                          transition
+                          hover:bg-slate-700
+                        "
+                      >
+                        แก้ไข
+                      </Link>
 
 
-                  </div>
+                      <Link
+                        href={`/officers/${officer.id}/delete`}
+                        className="
+                          rounded-lg
+                          bg-red-600
+                          px-4
+                          py-2
+                          font-extrabold
+                          text-white
+                          shadow
+                          transition
+                          hover:bg-red-700
+                        "
+                      >
+                        ลบ
+                      </Link>
 
-                </td>
+                    </div>
 
+                  </td>
 
-              </tr>
+                </tr>
 
-
-            ))}
-
+              )
+            )}
 
           </tbody>
 
-
         </table>
-
 
       </div>
 
-
     </div>
-
   );
-
 }
     return (
 

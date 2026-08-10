@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-
 async function deleteUser(formData: FormData) {
   "use server";
 
@@ -20,35 +19,23 @@ async function deleteUser(formData: FormData) {
   redirect("/users");
 }
 
-
-
 const roleName: Record<string, string> = {
   ADMIN: "ผู้ดูแลระบบ",
   STAFF: "เจ้าหน้าที่",
   VIEWER: "ผู้ใช้งานทั่วไป",
 };
 
-
-
 export default async function UsersPage() {
-
   await requireRole("ADMIN");
 
-
   const users = await prisma.user.findMany({
-
     orderBy: {
       id: "asc",
     },
-
   });
 
-
-
   return (
-
     <div className="space-y-6">
-
 
       {/* Header */}
 
@@ -83,7 +70,6 @@ export default async function UsersPage() {
             👤 ผู้ใช้งานระบบ
           </h1>
 
-
           <p
             className="
               mt-2
@@ -95,10 +81,7 @@ export default async function UsersPage() {
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
           </p>
 
-
         </div>
-
-
 
         <Link
           href="/users/create"
@@ -120,39 +103,35 @@ export default async function UsersPage() {
           + เพิ่มผู้ใช้งาน
         </Link>
 
-
       </div>
 
-
-
-
-
       {/* Table */}
-
 
       <div
         className="
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-slate-900
           bg-white
           shadow-xl
         "
       >
 
-
         <div className="overflow-x-auto">
 
-
-          <table className="min-w-full">
-
-
+          <table
+            className="
+              min-w-full
+              border-collapse
+              border
+              border-slate-900
+            "
+          >
 
             <thead>
 
               <tr>
-
 
                 {[
                   "ลำดับ",
@@ -163,10 +142,11 @@ export default async function UsersPage() {
                   "จัดการ",
                 ].map((title) => (
 
-
                   <th
                     key={title}
                     className="
+                      border
+                      border-slate-900
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
@@ -181,40 +161,32 @@ export default async function UsersPage() {
                     {title}
                   </th>
 
-
                 ))}
-
 
               </tr>
 
-
             </thead>
-
-
-
-
 
             <tbody>
 
-
               {users.length > 0 ? (
 
-
                 users.map((user, index) => (
-
 
                   <tr
                     key={user.id}
                     className="
-                      border-b
+                      border
+                      border-slate-900
+                      text-slate-900
                       hover:bg-blue-50
                     "
                   >
 
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                         text-center
@@ -225,12 +197,10 @@ export default async function UsersPage() {
                       {index + 1}
                     </td>
 
-
-
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                         text-center
@@ -241,12 +211,10 @@ export default async function UsersPage() {
                       {user.username}
                     </td>
 
-
-
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                         font-bold
@@ -256,12 +224,10 @@ export default async function UsersPage() {
                       {user.fullname}
                     </td>
 
-
-
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                         text-center
@@ -283,69 +249,58 @@ export default async function UsersPage() {
 
                     </td>
 
-
-
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                         text-center
                       "
                     >
 
-                      {
-                        user.active ? (
+                      {user.active ? (
 
-                          <span
-                            className="
-                              rounded-lg
-                              bg-emerald-100
-                              px-3
-                              py-1
-                              font-bold
-                              text-emerald-700
-                            "
-                          >
-                            Active
-                          </span>
+                        <span
+                          className="
+                            rounded-lg
+                            bg-emerald-100
+                            px-3
+                            py-1
+                            font-bold
+                            text-emerald-700
+                          "
+                        >
+                          Active
+                        </span>
 
+                      ) : (
 
-                        ) : (
+                        <span
+                          className="
+                            rounded-lg
+                            bg-red-100
+                            px-3
+                            py-1
+                            font-bold
+                            text-red-700
+                          "
+                        >
+                          Inactive
+                        </span>
 
-
-                          <span
-                            className="
-                              rounded-lg
-                              bg-red-100
-                              px-3
-                              py-1
-                              font-bold
-                              text-red-700
-                            "
-                          >
-                            Inactive
-                          </span>
-
-
-                        )
-                      }
-
+                      )}
 
                     </td>
 
-
-
-
-
                     <td
                       className="
+                        border
+                        border-slate-900
                         px-4
                         py-3
                       "
                     >
-
 
                       <div
                         className="
@@ -354,8 +309,6 @@ export default async function UsersPage() {
                           gap-2
                         "
                       >
-
-
 
                         <Link
                           href={`/users/${user.id}/edit`}
@@ -374,19 +327,13 @@ export default async function UsersPage() {
                           แก้ไข
                         </Link>
 
-
-
-
-
                         <form action={deleteUser}>
-
 
                           <input
                             type="hidden"
                             name="id"
                             value={user.id}
                           />
-
 
                           <button
                             className="
@@ -404,34 +351,25 @@ export default async function UsersPage() {
                             ลบ
                           </button>
 
-
                         </form>
-
-
 
                       </div>
 
-
                     </td>
-
-
 
                   </tr>
 
-
                 ))
-
-
 
               ) : (
 
-
                 <tr>
-
 
                   <td
                     colSpan={6}
                     className="
+                      border
+                      border-slate-900
                       py-12
                       text-center
                       text-lg
@@ -442,28 +380,18 @@ export default async function UsersPage() {
                     ยังไม่มีผู้ใช้งาน
                   </td>
 
-
                 </tr>
-
 
               )}
 
-
             </tbody>
-
-
 
           </table>
 
-
         </div>
-
 
       </div>
 
-
     </div>
-
   );
-
 }
