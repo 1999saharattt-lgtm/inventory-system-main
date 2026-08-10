@@ -14,6 +14,7 @@ const categoryName: Record<string, string> = {
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 export default function ExportExcel({
@@ -125,31 +126,34 @@ export default function ExportExcel({
     // ข้อมูลพัสดุ
     // ===========================
 
-    worksheet.mergeCells("A6");
     worksheet.getCell("A6").value = "รหัสพัสดุ";
-    worksheet.getCell("B6").value = material.code;
+    worksheet.getCell("B6").value =
+      material.code || "-";
 
-    worksheet.mergeCells("A7");
     worksheet.getCell("A7").value = "รายการพัสดุ";
-    worksheet.getCell("B7").value = material.name;
+    worksheet.getCell("B7").value =
+      material.name || "-";
 
-    worksheet.mergeCells("A8");
     worksheet.getCell("A8").value = "หมวดหมู่";
     worksheet.getCell("B8").value =
-    categoryName[material.category];
+      categoryName[material.category] ??
+      material.category ??
+      "-";
 
-    worksheet.mergeCells("A9");
     worksheet.getCell("A9").value = "หน่วย";
-    worksheet.getCell("B9").value = material.unit;
-    worksheet.mergeCells("A10");
+    worksheet.getCell("B9").value =
+      material.unit || "-";
+
     worksheet.getCell("A10").value = "ผู้จำหน่าย";
     worksheet.getCell("B10").value =
-    material.vendor?.name ?? "-";
+      material.vendor?.name ?? "-";
 
-    worksheet.mergeCells("A11");
     worksheet.getCell("A11").value = "ราคาล่าสุด";
     worksheet.getCell("B11").value =
-    Number(material.latestPrice) 
+      material.latestPrice !== null &&
+      material.latestPrice !== undefined
+        ? Number(material.latestPrice)
+        : "-";
 
     // จัดรูปแบบข้อมูลพัสดุ
     for (let i = 6; i <= 11; i++) {
@@ -175,19 +179,20 @@ export default function ExportExcel({
     // หัวตาราง
     // ===========================
 
-    const headerRow = worksheet.getRow(13);
+    const headerRow =
+      worksheet.getRow(13);
 
-headerRow.values = [
-  "วันที่",
-  "เลขที่เอกสาร",
-  "ผู้จำหน่าย / หน่วยงาน",
-  "ราคาล่าสุด",
-  "รับเข้า",
-  "เบิกจ่าย",
-  "คงเหลือ",
-  "วันผลิต",
-  "วันหมดอายุ",
-];
+    headerRow.values = [
+      "วันที่",
+      "เลขที่เอกสาร",
+      "ผู้จำหน่าย / หน่วยงาน",
+      "ราคาล่าสุด",
+      "รับเข้า",
+      "เบิกจ่าย",
+      "คงเหลือ",
+      "วันผลิต",
+      "วันหมดอายุ",
+    ];
 
     headerRow.height = 24;
 
@@ -234,28 +239,74 @@ headerRow.values = [
 
     rows.forEach((r) => {
 
+      const hasReceive =
+        r.receiveQty !== null &&
+        r.receiveQty !== undefined &&
+        r.receiveQty !== "" &&
+        Number(r.receiveQty) !== 0;
+
+      const hasIssue =
+        r.issueQty !== null &&
+        r.issueQty !== undefined &&
+        r.issueQty !== "" &&
+        Number(r.issueQty) !== 0;
+
       const row =
         worksheet.addRow([
-          new Date(r.date)
-            .toLocaleDateString("th-TH"),
-          r.documentNo,
-          r.owner,
-          Number(r.unitPrice),
-          r.receiveQty || "",
-          r.issueQty || "",
-          r.balance,
+
+          // วันที่
+          r.date
+            ? new Date(r.date)
+                .toLocaleDateString("th-TH")
+            : "-",
+
+          // เลขที่เอกสาร
+          r.documentNo || "-",
+
+          // ผู้จำหน่าย / หน่วยงาน
+          r.owner || "-",
+
+          // ราคาล่าสุด
+          r.unitPrice !== null &&
+          r.unitPrice !== undefined &&
+          r.unitPrice !== ""
+            ? Number(r.unitPrice)
+            : "-",
+
+          // รับเข้า
+          hasReceive
+            ? r.receiveQty
+            : "-",
+
+          // เบิกจ่าย
+          hasIssue
+            ? r.issueQty
+            : "-",
+
+          // คงเหลือ
+          r.balance !== null &&
+          r.balance !== undefined &&
+          r.balance !== ""
+            ? r.balance
+            : "-",
+
+          // วันผลิต
           r.manufacture
             ? new Date(r.manufacture)
                 .toLocaleDateString("th-TH")
-            : "",
+            : "-",
+
+          // วันหมดอายุ
           r.expiry
             ? new Date(r.expiry)
                 .toLocaleDateString("th-TH")
-            : "",
+            : "-",
+
         ]);
 
       row.height = 22;
-            row.eachCell((cell) => {
+
+      row.eachCell((cell) => {
 
         cell.alignment = {
           horizontal: "center",
@@ -286,25 +337,33 @@ headerRow.values = [
     // เติมแถวว่างให้ครบ 20 รายการ
     // ===========================
 
-    const currentRows = rows.length;
-    const emptyRows = Math.max(
-      20 - currentRows,
-      0
-    );
+    const currentRows =
+      rows.length;
 
-    for (let i = 0; i < emptyRows; i++) {
+    const emptyRows =
+      Math.max(
+        20 - currentRows,
+        0
+      );
 
-      const row = worksheet.addRow([
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-      ]);
+    for (
+      let i = 0;
+      i < emptyRows;
+      i++
+    ) {
+
+      const row =
+        worksheet.addRow([
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]);
 
       row.height = 22;
 
@@ -338,12 +397,22 @@ headerRow.values = [
     // รูปแบบตัวเลข
     // ===========================
 
-    worksheet.getColumn(4).numFmt = "#,##0.00";
-    worksheet.getColumn(5).numFmt = "#,##0";
-    worksheet.getColumn(6).numFmt = "#,##0";
-    worksheet.getColumn(7).numFmt = "#,##0";
+    worksheet.getColumn(4).numFmt =
+      "#,##0.00";
 
+    worksheet.getColumn(5).numFmt =
+      "#,##0";
+
+    worksheet.getColumn(6).numFmt =
+      "#,##0";
+
+    worksheet.getColumn(7).numFmt =
+      "#,##0";
+
+    // ===========================
     // Freeze หัวตาราง
+    // ===========================
+
     worksheet.views = [
       {
         state: "frozen",
@@ -351,7 +420,10 @@ headerRow.values = [
       },
     ];
 
+    // ===========================
     // ไม่มีเส้นขอบส่วน Header
+    // ===========================
+
     [
       "A1",
       "G3",
@@ -375,38 +447,66 @@ headerRow.values = [
     });
 
     // ลบเส้นขอบของเซลล์ที่ Merge
-    for (let r = 1; r <= 11; r++) {
+    for (
+      let r = 1;
+      r <= 11;
+      r++
+    ) {
 
-      for (let c = 1; c <= 9; c++) {
+      for (
+        let c = 1;
+        c <= 9;
+        c++
+      ) {
 
-        worksheet.getCell(r, c).border = {};
+        worksheet
+          .getCell(r, c)
+          .border = {};
 
       }
 
     }
-        // ความสูงทุกแถว
+
+    // ===========================
+    // ความสูงทุกแถว
+    // ===========================
+
     worksheet.eachRow((row) => {
+
       if (!row.height) {
         row.height = 22;
       }
+
     });
 
+    // ===========================
     // จัดกึ่งกลางทุกเซลล์ในตาราง
+    // ===========================
+
     for (
       let r = 13;
       r <= worksheet.rowCount;
       r++
     ) {
-      worksheet.getRow(r).eachCell((cell) => {
-        cell.alignment = {
-          horizontal: "center",
-          vertical: "middle",
-          wrapText: true,
-        };
-      });
+
+      worksheet
+        .getRow(r)
+        .eachCell((cell) => {
+
+          cell.alignment = {
+            horizontal: "center",
+            vertical: "middle",
+            wrapText: true,
+          };
+
+        });
+
     }
 
+    // ===========================
     // ดาวน์โหลดไฟล์
+    // ===========================
+
     const buffer =
       await workbook.xlsx.writeBuffer();
 
@@ -414,14 +514,27 @@ headerRow.values = [
       new Blob([buffer]),
       `${material.code}-stock-card.xlsx`
     );
+
   }
 
   return (
+
     <button
       onClick={exportExcel}
-      className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+      className="
+        rounded-xl
+        bg-emerald-600
+        px-5
+        py-2
+        font-bold
+        text-white
+        shadow
+        transition
+        hover:bg-emerald-700
+      "
     >
       Export Excel
     </button>
+
   );
 }
