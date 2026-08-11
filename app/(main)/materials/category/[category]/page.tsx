@@ -12,7 +12,6 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-
 type Category =
   | "OFFICE"
   | "COMPUTER"
@@ -20,7 +19,6 @@ type Category =
   | "HOUSEHOLD"
   | "VEHICLE"
   | "PRINTING";
-
 
 type Material = {
   id: number;
@@ -40,7 +38,6 @@ type Material = {
   }[];
 };
 
-
 type Props = {
   params: Promise<{
     category: string;
@@ -50,20 +47,15 @@ type Props = {
   }>;
 };
 
-
 export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
-
   const { category } = await params;
   const { search } = await searchParams;
 
-
   const materials = await prisma.material.findMany({
-
     where: {
-
       category: category as Category,
 
       ...(search
@@ -82,33 +74,24 @@ export default async function CategoryPage({
             ],
           }
         : {}),
-
     },
 
     include: {
-
       receiveItems: {
         orderBy: {
           id: "desc",
         },
         take: 1,
       },
-
     },
 
     orderBy: {
       code: "asc",
     },
-
   });
 
-
-
   return (
-
     <div className="space-y-6">
-
-
       {/* Header */}
 
       <div
@@ -126,20 +109,17 @@ export default async function CategoryPage({
           shadow-xl
         "
       >
-
         <div>
-
           <h1
-  className="
-    !text-white
-    text-5xl
-    font-extrabold
-    leading-tight
-  "
->
+            className="
+              !text-white
+              text-5xl
+              font-extrabold
+              leading-tight
+            "
+          >
             {categoryName[category]}
           </h1>
-
 
           <p
             className="
@@ -151,62 +131,48 @@ export default async function CategoryPage({
           >
             รายการพัสดุในหมวดนี้
           </p>
-
         </div>
 
-
-
         <div className="flex gap-3">
-
-
           <Link
             href="/materials/new"
             className="
-  rounded-xl
-  bg-gradient-to-r
-  from-emerald-600
-  to-green-500
-  px-5
-  py-3
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
-"
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-5
+              py-3
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
+            "
           >
             + เพิ่มรายการ
           </Link>
 
-
-
           <Link
             href="/materials"
             className="
-  rounded-xl
-  bg-gradient-to-r
-  from-emerald-600
-  to-green-500
-  px-5
-  py-3
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
-"
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-5
+              py-3
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
+            "
           >
             ← กลับ
           </Link>
-
-
         </div>
-
-
       </div>
-
-
-
 
       {/* Search */}
 
@@ -222,11 +188,7 @@ export default async function CategoryPage({
           shadow-xl
         "
       >
-
-
         <form className="flex gap-3">
-
-
           <input
             name="search"
             defaultValue={search ?? ""}
@@ -242,35 +204,26 @@ export default async function CategoryPage({
             "
           />
 
-
-
           <button
             type="submit"
             className="
-  rounded-xl
-  bg-gradient-to-r
-  from-emerald-600
-  to-green-500
-  px-5
-  py-3
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
-"
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-5
+              py-3
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:scale-105
+            "
           >
             ค้นหา
           </button>
-
-
         </form>
-
-
       </div>
-
-
-
 
       {/* Table */}
 
@@ -284,23 +237,16 @@ export default async function CategoryPage({
           shadow-xl
         "
       >
-
         <div className="overflow-x-auto">
-
-
           <table
-  className="
-    min-w-full
-    border
-    border-slate-900
-  "
->
-
-
+            className="
+              min-w-full
+              border
+              border-slate-900
+            "
+          >
             <thead>
-
               <tr>
-
                 {[
                   "รหัสพัสดุ",
                   "รายการพัสดุ",
@@ -312,181 +258,156 @@ export default async function CategoryPage({
                   "จัดการ",
                   "QR Code",
                 ].map((title) => (
-
                   <th
                     key={title}
                     className="
-  border
-  border-slate-900
-  bg-gradient-to-r
-  from-slate-800
-  to-slate-700
-  px-4
-  py-4
-  text-center
-  text-lg
-  font-extrabold
-  text-white
-"
+                      border
+                      border-slate-900
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-4
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
                   >
                     {title}
                   </th>
-
                 ))}
-
               </tr>
-
-
             </thead>
 
-
-
             <tbody>
-
-
               {materials.length > 0 ? (
-
                 materials.map((material: Material) => (
-
                   <tr
-  key={material.id}
-  className="
-    hover:bg-blue-50
-  "
->
-
-
+                    key={material.id}
+                    className="
+                      hover:bg-blue-50
+                    "
+                  >
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.code}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.name}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    text-center
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.balance}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    text-center
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.unit}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    text-right
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-right
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.latestPrice.toLocaleString(
                         "th-TH",
                         {
-                          minimumFractionDigits:2,
-                          maximumFractionDigits:2,
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
                         }
                       )}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    text-center
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.receiveItems[0]?.manufacture
                         ? new Date(
                             material.receiveItems[0].manufacture
                           ).toLocaleDateString("th-TH")
-                        : "-"
-                      }
+                        : "-"}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-    text-center
-    font-extrabold
-    text-slate-900
-  "
->
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
                       {material.receiveItems[0]?.expiry
                         ? new Date(
                             material.receiveItems[0].expiry
                           ).toLocaleDateString("th-TH")
-                        : "-"
-                      }
+                        : "-"}
                     </td>
 
-
                     <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-  "
->
-
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                      "
+                    >
                       <div className="flex justify-center gap-2">
-
-
                         <Link
                           href={`/materials/${material.id}/edit`}
                           className="
@@ -497,20 +418,18 @@ export default async function CategoryPage({
                             font-extrabold
                             text-white
                             shadow
-                            hover:bg-amber-600
                             transition
-hover:bg-slate-700
+                            hover:bg-amber-600
+                            hover:bg-slate-700
                           "
                         >
                           แก้ไข
                         </Link>
 
-
-                        <DeleteButton id={material.id}/>
-
-
+                        <DeleteButton
+                          id={material.id}
+                        />
                       </div>
-
                     </td>
 
                     <td
@@ -525,22 +444,15 @@ hover:bg-slate-700
                       <div className="flex justify-center">
                         <QRCodeButton
                           materialId={material.id}
+                          materialCode={material.code}
+                          materialName={material.name}
                         />
                       </div>
                     </td>
-
-
-
-
-
                   </tr>
-
                 ))
-
               ) : (
-
                 <tr>
-
                   <td
                     colSpan={9}
                     className="
@@ -553,25 +465,12 @@ hover:bg-slate-700
                   >
                     ยังไม่มีพัสดุในหมวดนี้
                   </td>
-
                 </tr>
-
               )}
-
-
             </tbody>
-
-
           </table>
-
-
         </div>
-
-
       </div>
-
-
     </div>
-
   );
 }
