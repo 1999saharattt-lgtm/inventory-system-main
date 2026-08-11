@@ -6,30 +6,23 @@ import fs from "fs/promises";
 import path from "path";
 
 export async function createIssue(formData: FormData) {
-
   const issueDate = new Date(
     formData.get("issueDate") as string
   );
 
-
   const documentNo =
     formData.get("documentNo") as string;
-
 
   const departmentId = Number(
     formData.get("departmentId")
   );
 
-
   const officerId = Number(
     formData.get("officerId")
   );
 
-
   const remark =
     (formData.get("remark") as string) || "";
-
-
 
   // =====================
   // Upload PDF
@@ -37,30 +30,21 @@ export async function createIssue(formData: FormData) {
 
   let pdfPath: string | null = null;
 
-
   const file =
     formData.get("pdf") as File;
 
-
-
   if (file && file.size > 0) {
-
     const bytes =
       await file.arrayBuffer();
 
-
     const buffer =
       Buffer.from(bytes);
-
-
 
     const uploadDir =
       path.join(
         process.cwd(),
         "public/uploads/issue"
       );
-
-
 
     await fs.mkdir(
       uploadDir,
@@ -69,12 +53,8 @@ export async function createIssue(formData: FormData) {
       }
     );
 
-
-
     const filename =
       `${Date.now()}-${file.name}`;
-
-
 
     const filepath =
       path.join(
@@ -82,227 +62,277 @@ export async function createIssue(formData: FormData) {
         filename
       );
 
-
-
     await fs.writeFile(
       filepath,
       buffer
     );
 
-
-
     pdfPath =
       `/uploads/issue/${filename}`;
-
   }
-
-
-
 
   // =====================
   // รายการพัสดุ
   // =====================
 
-
   const items: {
     materialId: number;
     qty: number;
-    manufacture: Date | null;
-    expiry: Date | null;
   }[] = [];
-
-
 
   for (
     let i = 0;
     i < 15;
     i++
   ) {
-
-
     const materialId =
       formData.get(
         `items[${i}].materialId`
       );
-
-
 
     const qty =
       formData.get(
         `items[${i}].qty`
       );
 
-
-
-    const manufacture =
-      formData.get(
-        `items[${i}].manufacture`
-      );
-
-
-
-    const expiry =
-      formData.get(
-        `items[${i}].expiry`
-      );
-
-
-
-
     if (
       materialId &&
       qty &&
       Number(qty) > 0
     ) {
-
-
       items.push({
-
         materialId:
           Number(materialId),
 
-
         qty:
           Number(qty),
-
-
-
-        manufacture:
-          manufacture
-            ? new Date(
-                manufacture as string
-              )
-            : null,
-
-
-
-        expiry:
-          expiry
-            ? new Date(
-                expiry as string
-              )
-            : null,
-
       });
-
-
     }
-
-
   }
 
-
-
-
   if (items.length === 0) {
-
     throw new Error(
       "กรุณาเลือกรายการพัสดุ"
     );
-
   }
-
-
-
-
 
   // =====================
   // บันทึกข้อมูล
   // =====================
 
-
   await prisma.$transaction(
     async (tx: any) => {
 
+      // =====================
+      // สร้างใบเบิกก่อน
+      // =====================
 
-      await tx.issue.create({
+      const issue =
+        await tx.issue.create({
+          data: {
+            issueDate,
 
-        data: {
+            documentNo,
 
-          issueDate,
+            departmentId,
 
-          documentNo,
+            officerId:
+              officerId > 0
+                ? officerId
+                : null,
 
+            remark,
 
-          departmentId,
-
-
-          officerId:
-            officerId > 0
-              ? officerId
-              : null,
-
-
-          remark,
-
-
-          pdf:
-            pdfPath,
-
-
-
-          items: {
-
-            create:
-              items,
-
+            pdf:
+              pdfPath,
           },
-
-
-        },
-
-
-      });
-
-
-
-
-
+        });
 
       // =====================
-      // ตัดสต็อก
+      // ตัดสต็อกตาม FEFO
       // =====================
-
 
       for (
         const item of items
       ) {
 
+        let remainingQty =
+          item.qty;
 
-        await tx.material.update({
+        // ---------------------
+        // ตรวจสอบ Material
+        // ---------------------
 
-          where: {
+        const material =
+          await tx.material.findUnique({
+            where: {
+              id:
+                item.materialId,
+            },
+          });
 
-            id:
-              item.materialId,
+        if (!material) {
+          throw new Error(
+            `ไม่พบพัสดุ ID ${item.materialId}`
+          );
+        }
 
-          },
+        if (
+          material.balance <
+          item.qty
+        ) {
+          throw new Error(
+            `พัสดุ "${material.name}" มีจำนวนคงเหลือไม่เพียงพอ`
+          );
+        }
 
+        // ---------------------
+        // หา ReceiveItem
+        // เรียง FEFO
+        // ---------------------
 
-          data: {
+        const receiveItems =
+          await tx.receiveItem.findMany({
+            where: {
+              materialId:
+                item.materialId,
 
-            balance: {
-
-              decrement:
-                item.qty,
-
+              balance: {
+                gt: 0,
+              },
             },
 
+            orderBy: [
+              {
+                expiry: "asc",
+              },
+              {
+                manufacture: "asc",
+              },
+              {
+                id: "asc",
+              },
+            ],
+          });
+
+        // ---------------------
+        // ตรวจสอบจำนวนล็อต
+        // ---------------------
+
+        const totalReceiveBalance =
+          receiveItems.reduce(
+            (
+              total: number,
+              receiveItem: any
+            ) =>
+              total +
+              Number(
+                receiveItem.balance
+              ),
+            0
+          );
+
+        if (
+          totalReceiveBalance <
+          item.qty
+        ) {
+          throw new Error(
+            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ`
+          );
+        }
+
+        // ---------------------
+        // ตัดแต่ละล็อต
+        // ---------------------
+
+        for (
+          const receiveItem
+          of receiveItems
+        ) {
+
+          if (
+            remainingQty <= 0
+          ) {
+            break;
+          }
+
+          const available =
+            Number(
+              receiveItem.balance
+            );
+
+          const issueQty =
+            Math.min(
+              remainingQty,
+              available
+            );
+
+          // ---------------------
+          // ลด ReceiveItem.balance
+          // ---------------------
+
+          await tx.receiveItem.update({
+            where: {
+              id:
+                receiveItem.id,
+            },
+
+            data: {
+              balance: {
+                decrement:
+                  issueQty,
+              },
+            },
+          });
+
+          // ---------------------
+          // สร้าง IssueItem
+          // ตามล็อตจริง
+          // ---------------------
+
+          await tx.issueItem.create({
+            data: {
+              issueId:
+                issue.id,
+
+              materialId:
+                item.materialId,
+
+              qty:
+                issueQty,
+
+              manufacture:
+                receiveItem.manufacture,
+
+              expiry:
+                receiveItem.expiry,
+            },
+          });
+
+          remainingQty -=
+            issueQty;
+        }
+
+        // ---------------------
+        // ลด Material.balance
+        // ---------------------
+
+        await tx.material.update({
+          where: {
+            id:
+              item.materialId,
           },
 
-
+          data: {
+            balance: {
+              decrement:
+                item.qty,
+            },
+          },
         });
-
-
       }
-
-
-
     }
   );
 
-
-
   redirect("/issue");
-
 }

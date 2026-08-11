@@ -123,6 +123,55 @@ export default async function CreateIssuePage() {
 
 
 
+  // =====================
+  // ล็อตพัสดุที่ยังเหลือ
+  // =====================
+
+  const receiveLots =
+    await prisma.receiveItem.findMany({
+
+      where: {
+
+        balance: {
+          gt: 0,
+        },
+
+      },
+
+      select: {
+
+        id: true,
+
+        materialId: true,
+
+        balance: true,
+
+        manufacture: true,
+
+        expiry: true,
+
+      },
+
+      orderBy: [
+
+        {
+          expiry: "asc",
+        },
+
+        {
+          manufacture: "asc",
+        },
+
+        {
+          id: "asc",
+        },
+
+      ],
+
+    });
+
+
+
   const departments =
     await prisma.department.findMany({
 
@@ -280,6 +329,8 @@ export default async function CreateIssuePage() {
           officers={officers}
 
           materials={materials}
+
+          receiveLots={receiveLots}
 
           documentNo={documentNo}
 

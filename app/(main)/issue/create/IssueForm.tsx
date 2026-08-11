@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { createIssue } from "./action";
 
-
 type Material = {
   id: number;
   name: string;
@@ -12,12 +11,18 @@ type Material = {
   latestPrice: number;
 };
 
+type ReceiveLot = {
+  id: number;
+  materialId: number;
+  balance: number;
+  manufacture: Date | string | null;
+  expiry: Date | string | null;
+};
 
 type Department = {
   id: number;
   name: string;
 };
-
 
 type Officer = {
   id: number;
@@ -34,23 +39,19 @@ type Officer = {
   } | null;
 };
 
-
 type Props = {
   materials: Material[];
+  receiveLots: ReceiveLot[];
   departments: Department[];
   officers: Officer[];
   documentNo: string;
 };
 
-
 type ItemRow = {
   category: string;
   materialId: string;
   qty: string;
-  manufacture: string;
-  expiry: string;
 };
-
 
 const categories = [
   {
@@ -79,19 +80,44 @@ const categories = [
   },
 ];
 
+function formatDate(
+  value: Date | string | null
+) {
+  if (!value) {
+    return "-";
+  }
 
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleDateString(
+    "th-TH",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }
+  );
+}
 
 export default function IssueForm({
   materials,
+  receiveLots,
   departments,
   officers,
   documentNo,
 }: Props) {
+  const [departmentId, setDepartmentId] =
+    useState("");
 
-
-  const [departmentId, setDepartmentId] = useState("");
-
-  const [officerId, setOfficerId] = useState("");
+  const [officerId, setOfficerId] =
+    useState("");
 
   const [editDocumentNo, setEditDocumentNo] =
     useState(false);
@@ -99,17 +125,11 @@ export default function IssueForm({
   const [documentValue, setDocumentValue] =
     useState(documentNo);
 
-
-
   const emptyRow = (): ItemRow => ({
     category: "",
     materialId: "",
     qty: "",
-    manufacture: "",
-    expiry: "",
   });
-
-
 
   const [rows, setRows] = useState<ItemRow[]>(
     Array.from(
@@ -120,8 +140,6 @@ export default function IssueForm({
     )
   );
 
-
-
   const filteredOfficers =
     officers.filter(
       (o) =>
@@ -129,35 +147,31 @@ export default function IssueForm({
         String(o.section?.departmentId) === departmentId
     );
 
-
-
   function updateRow(
     index: number,
     key: keyof ItemRow,
     value: string
   ) {
-
     const copy = [...rows];
-
 
     copy[index] = {
       ...copy[index],
       [key]: value,
     };
 
-
     if (key === "category") {
       copy[index].materialId = "";
+      copy[index].qty = "";
     }
 
+    if (key === "materialId") {
+      copy[index].qty = "";
+    }
 
     setRows(copy);
-
   }
 
-
   return (
-
     <div
       className="
         rounded-2xl
@@ -168,13 +182,10 @@ export default function IssueForm({
         shadow-xl
       "
     >
-
       <form
         action={createIssue}
         className="space-y-6"
       >
-
-
         {/* ข้อมูลเอกสาร */}
 
         <div
@@ -184,12 +195,9 @@ export default function IssueForm({
             md:grid-cols-2
           "
         >
-
-
           {/* เลขที่เอกสาร */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -199,28 +207,19 @@ export default function IssueForm({
                 text-slate-900
               "
             >
-
               เลขที่เอกสาร
-
             </label>
 
-
             <input
-
               type="text"
-
               name="documentNo"
-
               value={documentValue}
-
-              onChange={(e)=>
+              onChange={(e) =>
                 setDocumentValue(
                   e.target.value
                 )
               }
-
               readOnly={!editDocumentNo}
-
               className="
                 w-full
                 rounded-xl
@@ -236,9 +235,7 @@ export default function IssueForm({
                 focus:ring-4
                 focus:ring-cyan-100
               "
-
             />
-
 
             <label
               className="
@@ -254,57 +251,37 @@ export default function IssueForm({
                 text-slate-900
               "
             >
-
               <input
-
                 type="checkbox"
-
                 checked={editDocumentNo}
-
-                onChange={(e)=>{
-
+                onChange={(e) => {
                   const checked =
                     e.target.checked;
-
 
                   setEditDocumentNo(
                     checked
                   );
 
-
-                  if(!checked){
-
+                  if (!checked) {
                     setDocumentValue(
                       documentNo
                     );
-
                   }
-
                 }}
-
                 className="
                   h-4
                   w-4
                   cursor-pointer
                 "
-
               />
 
-
               แก้ไขเลขที่เอกสาร
-
-
             </label>
-
-
           </div>
-
-
 
           {/* วันที่เบิก */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -314,20 +291,13 @@ export default function IssueForm({
                 text-slate-900
               "
             >
-
               วันที่เบิก
-
             </label>
 
-
             <input
-
               type="date"
-
               name="issueDate"
-
               required
-
               className="
                 w-full
                 rounded-xl
@@ -342,18 +312,12 @@ export default function IssueForm({
                 focus:ring-4
                 focus:ring-cyan-100
               "
-
             />
-
-
           </div>
-
-
 
           {/* หน่วยงาน */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -363,31 +327,20 @@ export default function IssueForm({
                 text-slate-900
               "
             >
-
               หน่วยงาน / กลุ่มงาน
-
             </label>
 
-
             <select
-
               name="departmentId"
-
               required
-
               value={departmentId}
-
-              onChange={(e)=>{
-
+              onChange={(e) => {
                 setDepartmentId(
                   e.target.value
                 );
 
-
                 setOfficerId("");
-
               }}
-
               className="
                 w-full
                 rounded-xl
@@ -402,46 +355,25 @@ export default function IssueForm({
                 focus:ring-4
                 focus:ring-cyan-100
               "
-
             >
-
               <option value="">
-
                 -- เลือกหน่วยงาน --
-
               </option>
 
-
-              {
-                departments.map((d)=>(
-
-                  <option
-
-                    key={d.id}
-
-                    value={d.id}
-
-                  >
-
-                    {d.name}
-
-                  </option>
-
-                ))
-              }
-
-
+              {departments.map((d) => (
+                <option
+                  key={d.id}
+                  value={d.id}
+                >
+                  {d.name}
+                </option>
+              ))}
             </select>
-
-
           </div>
-
-
 
           {/* ผู้ขอเบิก */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -451,26 +383,18 @@ export default function IssueForm({
                 text-slate-900
               "
             >
-
               ผู้ขอเบิก
-
             </label>
 
-
             <select
-
               name="officerId"
-
               value={officerId}
-
-              onChange={(e)=>
+              onChange={(e) =>
                 setOfficerId(
                   e.target.value
                 )
               }
-
               disabled={!departmentId}
-
               className="
                 w-full
                 rounded-xl
@@ -484,59 +408,32 @@ export default function IssueForm({
                 focus:border-cyan-500
                 disabled:bg-slate-100
               "
-
             >
-
-
               <option value="">
-
                 -- เลือกผู้ขอเบิก --
-
               </option>
 
-
-              {
-                filteredOfficers.map((o)=>(
-
-                  <option
-
-                    key={o.id}
-
-                    value={o.id}
-
-                  >
-
-                    {o.firstName} {o.lastName}
-
-                  </option>
-
-                ))
-              }
-
-
+              {filteredOfficers.map((o) => (
+                <option
+                  key={o.id}
+                  value={o.id}
+                >
+                  {o.firstName}{" "}
+                  {o.lastName}
+                </option>
+              ))}
             </select>
-
-
           </div>
-
-
-
         </div>
 
-
-
         <input
-
           type="hidden"
-
           name="documentNo"
-
           value={documentValue}
-
         />
 
+        {/* ตารางรายการเบิก */}
 
-        {/* ตารางรายการเบิก เริ่มส่วน 3/4 */}
         <div
           className="
             overflow-x-auto
@@ -547,7 +444,6 @@ export default function IssueForm({
             shadow-xl
           "
         >
-
           <table
             className="
               w-full
@@ -557,80 +453,110 @@ export default function IssueForm({
               text-sm
             "
           >
-
             <thead>
-
               <tr>
-
-                {
-                  [
-                    "ลำดับ",
-                    "หมวดหมู่",
-                    "รายการพัสดุ",
-                    "หน่วย",
-                    "ราคา",
-                    "จำนวน",
-                    "วันผลิต",
-                    "วันหมดอายุ",
-                  ].map((title)=>(
-
-                    <th
-                      key={title}
-                      className="
-                        border
-                        border-slate-900
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-3
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        whitespace-nowrap
-                        !text-white
-                      "
-                    >
-
-                      {title}
-
-                    </th>
-
-                  ))
-                }
-
-
+                {[
+                  "ลำดับ",
+                  "หมวดหมู่",
+                  "รายการพัสดุ",
+                  "หน่วย",
+                  "ราคา",
+                  "จำนวน",
+                  "วันผลิต",
+                  "วันหมดอายุ",
+                ].map((title) => (
+                  <th
+                    key={title}
+                    className="
+                      border
+                      border-slate-900
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      whitespace-nowrap
+                      !text-white
+                    "
+                  >
+                    {title}
+                  </th>
+                ))}
               </tr>
-
             </thead>
 
-
-
             <tbody>
-
-
-              {
-                rows.map((row,index)=>{
-
-
+              {rows.map(
+                (row, index) => {
                   const list =
                     materials.filter(
-                      (m)=>
-                        m.category === row.category
+                      (m) =>
+                        m.category ===
+                        row.category
                     );
-
 
                   const selected =
                     materials.find(
-                      (m)=>
+                      (m) =>
                         String(m.id) ===
                         row.materialId
                     );
 
+                  /*
+                   * หา ReceiveItem ที่มี stock
+                   * และเรียงตาม FEFO
+                   */
+                  const lots =
+                    receiveLots
+                      .filter(
+                        (lot) =>
+                          String(
+                            lot.materialId
+                          ) ===
+                            row.materialId &&
+                          Number(
+                            lot.balance
+                          ) > 0
+                      )
+                      .sort(
+                        (a, b) => {
+                          const aTime =
+                            a.expiry
+                              ? new Date(
+                                  a.expiry
+                                ).getTime()
+                              : Number.MAX_SAFE_INTEGER;
 
+                          const bTime =
+                            b.expiry
+                              ? new Date(
+                                  b.expiry
+                                ).getTime()
+                              : Number.MAX_SAFE_INTEGER;
+
+                          return (
+                            aTime - bTime
+                          );
+                        }
+                      );
+
+                  /*
+                   * ล็อตที่ FEFO จะเลือก
+                   *
+                   * ถ้าจำนวนที่กรอกยังไม่เกิน
+                   * balance ของล็อตแรก
+                   * ก็แสดงล็อตแรก
+                   *
+                   * ถ้าเกินล็อตแรก
+                   * แสดงวันของล็อตแรกก่อน
+                   */
+                  const selectedLot =
+                    lots[0];
 
                   return (
-
                     <tr
                       key={index}
                       className="
@@ -640,9 +566,6 @@ export default function IssueForm({
                         hover:bg-emerald-50
                       "
                     >
-
-
-
                       {/* ลำดับ */}
 
                       <td
@@ -656,12 +579,8 @@ export default function IssueForm({
                           text-slate-900
                         "
                       >
-
                         {index + 1}
-
                       </td>
-
-
 
                       {/* หมวดหมู่ */}
 
@@ -673,20 +592,17 @@ export default function IssueForm({
                           py-3
                         "
                       >
-
                         <select
-
-                          value={row.category}
-
-                          onChange={(e)=>
+                          value={
+                            row.category
+                          }
+                          onChange={(e) =>
                             updateRow(
                               index,
                               "category",
                               e.target.value
                             )
                           }
-
-
                           className="
                             min-w-[170px]
                             rounded-xl
@@ -699,42 +615,27 @@ export default function IssueForm({
                             outline-none
                             focus:border-cyan-500
                           "
-
                         >
-
                           <option value="">
-
                             เลือกหมวดหมู่
-
                           </option>
 
-
-                          {
-                            categories.map((c)=>(
-
+                          {categories.map(
+                            (c) => (
                               <option
-
-                                key={c.value}
-
-                                value={c.value}
-
+                                key={
+                                  c.value
+                                }
+                                value={
+                                  c.value
+                                }
                               >
-
                                 {c.label}
-
                               </option>
-
-                            ))
-                          }
-
-
+                            )
+                          )}
                         </select>
-
-
                       </td>
-
-
-
 
                       {/* รายการพัสดุ */}
 
@@ -746,22 +647,18 @@ export default function IssueForm({
                           py-3
                         "
                       >
-
                         <select
-
                           name={`items[${index}].materialId`}
-
-                          value={row.materialId}
-
-                          onChange={(e)=>
+                          value={
+                            row.materialId
+                          }
+                          onChange={(e) =>
                             updateRow(
                               index,
                               "materialId",
                               e.target.value
                             )
                           }
-
-
                           className="
                             min-w-[260px]
                             rounded-xl
@@ -774,42 +671,25 @@ export default function IssueForm({
                             outline-none
                             focus:border-cyan-500
                           "
-
                         >
-
                           <option value="">
-
                             เลือกรายการพัสดุ
-
                           </option>
 
-
-                          {
-                            list.map((m)=>(
-
+                          {list.map(
+                            (m) => (
                               <option
-
                                 key={m.id}
-
-                                value={m.id}
-
+                                value={
+                                  m.id
+                                }
                               >
-
                                 {m.name}
-
                               </option>
-
-                            ))
-                          }
-
-
+                            )
+                          )}
                         </select>
-
-
                       </td>
-
-
-
 
                       {/* หน่วย */}
 
@@ -822,17 +702,13 @@ export default function IssueForm({
                           text-center
                         "
                       >
-
                         <input
-
                           type="text"
-
                           readOnly
-
                           value={
-                            selected?.unit ?? "-"
+                            selected?.unit ??
+                            "-"
                           }
-
                           className="
                             w-full
                             rounded-xl
@@ -844,14 +720,8 @@ export default function IssueForm({
                             font-bold
                             text-slate-900
                           "
-
                         />
-
-
                       </td>
-
-
-
 
                       {/* ราคา */}
 
@@ -864,18 +734,13 @@ export default function IssueForm({
                           text-center
                         "
                       >
-
                         <input
-
                           type="text"
-
                           readOnly
-
                           value={
-                            selected?.latestPrice ?? 0
+                            selected?.latestPrice ??
+                            0
                           }
-
-
                           className="
                             w-full
                             rounded-xl
@@ -887,14 +752,8 @@ export default function IssueForm({
                             font-bold
                             text-emerald-600
                           "
-
                         />
-
-
                       </td>
-
-
-
 
                       {/* จำนวน */}
 
@@ -906,26 +765,20 @@ export default function IssueForm({
                           py-3
                         "
                       >
-
                         <input
-
                           name={`items[${index}].qty`}
-
                           type="number"
-
                           min="1"
-
-                          value={row.qty}
-
-                          onChange={(e)=>
+                          value={
+                            row.qty
+                          }
+                          onChange={(e) =>
                             updateRow(
                               index,
                               "qty",
                               e.target.value
                             )
                           }
-
-
                           className="
                             w-24
                             rounded-xl
@@ -937,13 +790,10 @@ export default function IssueForm({
                             font-bold
                             text-slate-900
                           "
-
                         />
-
-
                       </td>
 
-                      {/* วันผลิต */}
+                      {/* วันผลิตจากล็อต */}
 
                       <td
                         className="
@@ -951,47 +801,34 @@ export default function IssueForm({
                           border-black
                           px-3
                           py-3
+                          text-center
                         "
                       >
-
                         <input
-
-                          type="date"
-
-                          name={`items[${index}].manufacture`}
-
-                          value={row.manufacture}
-
-                          onChange={(e)=>
-                            updateRow(
-                              index,
-                              "manufacture",
-                              e.target.value
-                            )
+                          type="text"
+                          readOnly
+                          value={
+                            selectedLot
+                              ? formatDate(
+                                  selectedLot.manufacture
+                                )
+                              : "-"
                           }
-
-
                           className="
                             w-36
                             rounded-xl
                             border
                             border-slate-300
-                            bg-white
+                            bg-slate-100
                             p-2
+                            text-center
                             font-bold
                             text-slate-900
-                            outline-none
-                            focus:border-cyan-500
                           "
-
                         />
-
-
                       </td>
 
-
-
-                      {/* วันหมดอายุ */}
+                      {/* วันหมดอายุจากล็อต */}
 
                       <td
                         className="
@@ -999,70 +836,44 @@ export default function IssueForm({
                           border-black
                           px-3
                           py-3
+                          text-center
                         "
                       >
-
                         <input
-
-                          type="date"
-
-                          name={`items[${index}].expiry`}
-
-                          value={row.expiry}
-
-                          onChange={(e)=>
-                            updateRow(
-                              index,
-                              "expiry",
-                              e.target.value
-                            )
+                          type="text"
+                          readOnly
+                          value={
+                            selectedLot
+                              ? formatDate(
+                                  selectedLot.expiry
+                                )
+                              : "-"
                           }
-
-
                           className="
                             w-36
                             rounded-xl
                             border
                             border-slate-300
-                            bg-white
+                            bg-slate-100
                             p-2
+                            text-center
                             font-bold
                             text-slate-900
-                            outline-none
-                            focus:border-cyan-500
                           "
-
                         />
-
-
                       </td>
-
-
-
                     </tr>
-
                   );
-
-                })
-              }
-
-
+                }
+              )}
             </tbody>
-
-
           </table>
-
-
         </div>
-
-
 
         {/* หมายเหตุ */}
 
         <div>
-
           <label
-
             className="
               mb-2
               block
@@ -1070,19 +881,12 @@ export default function IssueForm({
               font-extrabold
               text-slate-900
             "
-
           >
-
             หมายเหตุ
-
-
           </label>
 
-
           <textarea
-
             name="remark"
-
             className="
               min-h-[120px]
               w-full
@@ -1098,30 +902,19 @@ export default function IssueForm({
               focus:ring-4
               focus:ring-cyan-100
             "
-
           />
-
-
         </div>
-
-
-
 
         {/* ปุ่มบันทึก */}
 
         <div
-
           className="
             flex
             justify-end
           "
-
         >
-
           <button
-
             type="submit"
-
             className="
               rounded-xl
               bg-gradient-to-r
@@ -1137,25 +930,11 @@ export default function IssueForm({
               transition
               hover:scale-105
             "
-
           >
-
             💾 บันทึก
-
-
           </button>
-
-
         </div>
-
-
-
       </form>
-
-
     </div>
-
   );
-
-
 }
