@@ -69,6 +69,7 @@ export async function createReceive(formData: FormData) {
           receiveId: receive.id,
           materialId,
           qty,
+          balance: qty,
           unitPrice,
           manufacture,
           expiry,

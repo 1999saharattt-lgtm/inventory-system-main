@@ -139,22 +139,19 @@ model ReceiveItem {
   id Int @id @default(autoincrement())
 
   receiveId Int
-
   receive Receive @relation(fields: [receiveId], references: [id])
 
   materialId Int
-
   material Material @relation(fields: [materialId], references: [id])
 
   qty Int
-
   balance Int @default(0)
 
   unitPrice Float
-
   manufacture DateTime?
-
   expiry DateTime?
+
+  issueItems IssueItem[]
 }
 
 // ======================
@@ -189,17 +186,17 @@ model IssueItem {
   id Int @id @default(autoincrement())
 
   issueId Int
-
   issue Issue @relation(fields: [issueId], references: [id])
 
   materialId Int
-
   material Material @relation(fields: [materialId], references: [id])
+
+  receiveItemId Int?
+  receiveItem ReceiveItem? @relation(fields: [receiveItemId], references: [id])
 
   qty Int
 
   manufacture DateTime?
-
   expiry DateTime?
 }
 
