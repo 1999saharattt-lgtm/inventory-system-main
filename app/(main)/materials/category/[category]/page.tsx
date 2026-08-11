@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
+import QRCodeButton from "./QRCodeButton";
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -309,6 +310,7 @@ export default async function CategoryPage({
                   "วันผลิต",
                   "วันหมดอายุ",
                   "จัดการ",
+                  "QR Code",
                 ].map((title) => (
 
                   <th
@@ -511,6 +513,25 @@ hover:bg-slate-700
 
                     </td>
 
+                    <td
+                      className="
+                        border
+                        border-slate-900
+                        px-4
+                        py-3
+                        text-center
+                      "
+                    >
+                      <div className="flex justify-center">
+                        <QRCodeButton
+                          materialId={material.id}
+                        />
+                      </div>
+                    </td>
+
+
+
+
 
                   </tr>
 
@@ -521,7 +542,7 @@ hover:bg-slate-700
                 <tr>
 
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="
                       py-12
                       text-center
