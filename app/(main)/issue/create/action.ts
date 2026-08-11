@@ -298,6 +298,10 @@ export async function createIssue(formData: FormData) {
               materialId:
                 item.materialId,
 
+              // ผูกกับล็อตที่ถูกเบิกจริง
+              receiveItemId:
+                receiveItem.id,
+
               qty:
                 issueQty,
 
