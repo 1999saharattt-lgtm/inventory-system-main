@@ -22,26 +22,22 @@ export default function QRCodeButton({
 
 
   useEffect(() => {
-    if (!open) return;
+  if (!open) return;
 
+  const generateQRCode = async () => {
+    const url = `https://inventory-system-main-e4y5c1ump-inventory-system2.vercel.app/stock-card/material/${materialId}/pdf`;
 
-    const generateQRCode = async () => {
-      const url = `https://inventory-system-main-e4y5c1ump-inventory-system2.vercel.app/stock-card/material/${materialId}/pdf`;
+    const dataUrl = await QRCode.toDataURL(url, {
+      width: 400,
+      margin: 2,
+      errorCorrectionLevel: "H",
+    });
 
+    setQrCode(dataUrl);
+  };
 
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 400,
-        margin: 2,
-        errorCorrectionLevel: "H",
-      });
-
-
-      setQrCode(dataUrl);
-    };
-
-
-    generateQRCode();
-  }, [open, materialId]);
+  generateQRCode();
+}, [open, materialId]);
 
 
   return (
