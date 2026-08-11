@@ -21,7 +21,10 @@ export default function QRCodeButton({
     if (!open) return;
 
     const generateQRCode = async () => {
-      const url = `https://rh-inventory.vercel.app/stock-card/material/${materialId}/pdf`;
+      const url = new URL(
+        `/stock-card/material/${materialId}/pdf`,
+        window.location.origin
+      ).toString();
 
       const dataUrl = await QRCode.toDataURL(url, {
         width: 400,
