@@ -3,11 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
-
 export async function updateIssue(
   formData: FormData
 ) {
-
 
   const issueId =
     Number(
@@ -40,55 +38,39 @@ export async function updateIssue(
 
 
 
+  const newItems: any[] = [];
 
 
 
-  const newItems:any[] = [];
+  for (let i = 0; i < 15; i++) {
+
+    const materialId =
+      Number(
+        formData.get(
+          `items[${i}].materialId`
+        )
+      );
 
 
 
-  for(let i = 0; i < 15; i++){
-
-  const materialId =
-    Number(
-      formData.get(
-        `items[${i}].materialId`
-      )
-    );
-
-
-  const qty =
-    Number(
-      formData.get(
-        `items[${i}].qty`
-      )
-    );
-
-
-  const receiveItemId =
-    Number(
-      formData.get(
-        `items[${i}].receiveItemId`
-      )
-    );
+    const qty =
+      Number(
+        formData.get(
+          `items[${i}].qty`
+        )
+      );
 
 
 
-    if(
+    if (
       materialId &&
       qty > 0
-    ){
+    ) {
 
       newItems.push({
-
-  materialId,
-
-  qty,
-
-  receiveItemId:
-    receiveItemId || null,
-
-});
+        materialId,
+        qty,
+      });
 
     }
 
@@ -96,34 +78,31 @@ export async function updateIssue(
 
 
 
-
-
-
   await prisma.$transaction(
-  async (tx: any) => {
+    async (tx: any) => {
 
 
 
-
+      // =========================
+      // ดึงข้อมูลใบเบิกเดิม
+      // =========================
 
       const oldIssue =
         await tx.issue.findUnique({
 
-          where:{
-            id:issueId,
+          where: {
+            id: issueId,
           },
 
-          include:{
-            items:true,
+          include: {
+            items: true,
           },
 
         });
 
 
 
-
-
-      if(!oldIssue){
+      if (!oldIssue) {
 
         throw new Error(
           "ไม่พบใบเบิก"
@@ -133,49 +112,41 @@ export async function updateIssue(
 
 
 
+      // =========================
+      // คืน Stock ของรายการเดิม
+      // =========================
 
-
-
-
-
-      // คืนสต็อกของเดิม
-
-      for(
+      for (
         const oldItem of oldIssue.items
-      ){
-
+      ) {
 
         await tx.material.update({
 
-          where:{
-            id:oldItem.materialId,
+          where: {
+            id: oldItem.materialId,
           },
 
-          data:{
+          data: {
 
-            balance:{
-              increment:oldItem.qty,
+            balance: {
+              increment: oldItem.qty,
             },
 
           },
 
         });
 
-
       }
 
 
 
-
-
-
-
-
+      // =========================
       // ลบรายการเดิม
+      // =========================
 
       await tx.issueItem.deleteMany({
 
-        where:{
+        where: {
           issueId,
         },
 
@@ -183,20 +154,17 @@ export async function updateIssue(
 
 
 
-
-
-
-
-
+      // =========================
       // แก้ไขข้อมูลหัวเอกสาร
+      // =========================
 
       await tx.issue.update({
 
-        where:{
-          id:issueId,
+        where: {
+          id: issueId,
         },
 
-        data:{
+        data: {
 
           issueDate,
 
@@ -212,34 +180,28 @@ export async function updateIssue(
 
 
 
-
-
-
-
-
+      // =========================
       // เพิ่มรายการใหม่
+      // =========================
 
-      for(
+      for (
         const item of newItems
-      ){
+      ) {
 
 
 
         const material =
           await tx.material.findUnique({
 
-            where:{
-              id:item.materialId,
+            where: {
+              id: item.materialId,
             },
 
           });
 
 
 
-
-
-
-        if(!material){
+        if (!material) {
 
           throw new Error(
             "ไม่พบพัสดุ"
@@ -249,12 +211,10 @@ export async function updateIssue(
 
 
 
-
-
-
-        if(
+        // ตรวจสอบ Stock
+        if (
           material.balance < item.qty
-        ){
+        ) {
 
           throw new Error(
             `พัสดุ ${material.name} ไม่เพียงพอ`
@@ -264,44 +224,42 @@ export async function updateIssue(
 
 
 
-
-
+        // =========================
+        // สร้าง Issue Item
+        // =========================
 
         await tx.issueItem.create({
 
-  data:{
+          data: {
 
-    issueId,
+            issueId,
 
-    materialId:
-      item.materialId,
+            materialId:
+              item.materialId,
 
-    qty:
-      item.qty,
+            qty:
+              item.qty,
 
-    receiveItemId:
-      item.receiveItemId,
+          },
 
-  },
-
-});
+        });
 
 
 
-
-
-
+        // =========================
+        // ตัด Stock
+        // =========================
 
         await tx.material.update({
 
-          where:{
-            id:item.materialId,
+          where: {
+            id: item.materialId,
           },
 
-          data:{
+          data: {
 
-            balance:{
-              decrement:item.qty,
+            balance: {
+              decrement: item.qty,
             },
 
           },
@@ -310,17 +268,19 @@ export async function updateIssue(
 
 
 
-
-
+        // =========================
+        // บันทึก Transaction
+        // =========================
 
         await tx.transaction.create({
 
-          data:{
+          data: {
 
             materialId:
               item.materialId,
 
-            type:"ISSUE_EDIT",
+            type:
+              "ISSUE_EDIT",
 
             documentNo,
 
@@ -339,22 +299,13 @@ export async function updateIssue(
 
         });
 
-
-
-
       }
 
-
-
     }
-
   );
 
 
 
-
-
   redirect("/issue");
-
 
 }
