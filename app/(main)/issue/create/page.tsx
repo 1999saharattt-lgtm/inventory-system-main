@@ -16,97 +16,87 @@ function getThaiYear() {
 
 
 
-
 async function generateIssueNo() {
-
 
   const year = getThaiYear();
 
 
 
-  const lastIssue =
-    await prisma.issue.findFirst({
+  // ดึงเลขที่เอกสารของปีปัจจุบันทั้งหมด
+  const issues = await prisma.issue.findMany({
 
-      where: {
+    where: {
 
-        documentNo: {
-
-          startsWith: "จ.",
-
-        },
-
+      documentNo: {
+        startsWith: "จ.",
       },
 
+    },
 
-      orderBy: {
+    select: {
+      documentNo: true,
+    },
 
-        id: "desc",
-
-      },
-
-    });
-
+  });
 
 
 
-  let running = 1;
+  let maxNumber = 0;
 
 
 
-
-
-  if(lastIssue?.documentNo){
-
+  for (const issue of issues) {
 
     const match =
-      lastIssue.documentNo.match(
-        /จ\.(\d+)\/(\d+)/
+      issue.documentNo.match(
+        /^จ\.(\d+)\/(\d+)$/
       );
 
 
 
-    if(match){
-
-
-      const lastNumber =
-        Number(match[1]);
-
-
-      const lastYear =
-        match[2];
-
-
-
-      if(lastYear === year){
-
-
-        running =
-          lastNumber + 1;
-
-
-      }
-
-
+    if (!match) {
+      continue;
     }
 
 
+
+    const number =
+      Number(match[1]);
+
+
+
+    const documentYear =
+      match[2];
+
+
+
+    // เอาเฉพาะเอกสารของปีปัจจุบัน
+    if (documentYear === year) {
+
+      if (number > maxNumber) {
+
+        maxNumber = number;
+
+      }
+
+    }
+
   }
 
+
+
+  const running =
+    maxNumber + 1;
 
 
 
   return (
     `จ.${running
       .toString()
-      .padStart(2,"0")}/${year}`
+      .padStart(2, "0")}/${year}`
   );
 
-
 }
-
-
-
-
 
 
 
@@ -117,77 +107,59 @@ export default async function CreateIssuePage() {
   const materials =
     await prisma.material.findMany({
 
-
-      orderBy:[
+      orderBy: [
 
         {
-          category:"asc",
+          category: "asc",
         },
 
         {
-          code:"asc",
+          code: "asc",
         },
 
       ],
 
-
     });
-
-
-
-
 
 
 
   const departments =
     await prisma.department.findMany({
 
+      orderBy: {
 
-      orderBy:{
-
-        name:"asc",
+        name: "asc",
 
       },
-
 
     });
 
 
 
-
-
-
-
-
   const officers =
-  await prisma.officer.findMany({
+    await prisma.officer.findMany({
 
-    include:{
+      include: {
 
-      section:true,
+        section: true,
 
-      department:true,
+        department: true,
 
-    },
-
-
-    orderBy:[
-
-      {
-        firstName:"asc",
       },
 
-      {
-        lastName:"asc",
-      },
+      orderBy: [
 
-    ],
+        {
+          firstName: "asc",
+        },
 
+        {
+          lastName: "asc",
+        },
 
-  });
+      ],
 
-
-
+    });
 
 
 
@@ -196,19 +168,9 @@ export default async function CreateIssuePage() {
 
 
 
-
-
-
-
-
   return (
 
-
     <div className="space-y-6">
-
-
-
-
 
 
 
@@ -232,8 +194,6 @@ export default async function CreateIssuePage() {
 
 
 
-
-
         <div>
 
 
@@ -247,8 +207,6 @@ export default async function CreateIssuePage() {
           >
             📤 บันทึกการเบิกจ่ายพัสดุ
           </h1>
-
-
 
 
 
@@ -266,11 +224,6 @@ export default async function CreateIssuePage() {
 
 
         </div>
-
-
-
-
-
 
 
 
@@ -298,15 +251,7 @@ export default async function CreateIssuePage() {
 
 
 
-
-
       </div>
-
-
-
-
-
-
 
 
 
@@ -328,8 +273,6 @@ export default async function CreateIssuePage() {
       >
 
 
-
-
         <IssueForm
 
           departments={departments}
@@ -343,21 +286,12 @@ export default async function CreateIssuePage() {
         />
 
 
-
-
-
       </div>
-
-
-
-
 
 
 
     </div>
 
-
   );
-
 
 }
