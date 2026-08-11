@@ -110,206 +110,330 @@ export default async function StockCardPage({ params }: Props) {
 
 
   // ==========================================
-  // สร้างข้อมูลล็อตสำหรับจำลอง FEFO
-  // ==========================================
+// สร้างข้อมูลล็อตสำหรับจำลอง FEFO
+// ==========================================
+
+type Lot = {
+  id: number;
+  qty: number;
+  manufacture: Date | null;
+  expiry: Date | null;
+};
 
 
-  type Lot = {
-    id: number;
-    qty: number;
+const lots: Lot[] = [];
+
+
+// ==========================================
+// รวมรายการรับเข้าและรายการเบิกจ่าย
+// แล้วเรียงตามวันที่
+// ==========================================
+
+const events = [
+  ...material.receiveItems.map((item) => ({
+    type: "receive" as const,
+    date: item.receive.receiveDate,
+    item,
+  })),
+
+  ...material.issueItems.map((item) => ({
+    type: "issue" as const,
+    date: item.issue.issueDate,
+    item,
+  })),
+].sort((a, b) => {
+  const dateDiff =
+    new Date(a.date).getTime() -
+    new Date(b.date).getTime();
+
+  if (dateDiff !== 0) {
+    return dateDiff;
+  }
+
+
+  // ถ้าวันเดียวกัน
+  // ให้รับเข้าก่อนเบิก
+  if (
+    a.type === "receive" &&
+    b.type === "issue"
+  ) {
+    return -1;
+  }
+
+
+  if (
+    a.type === "issue" &&
+    b.type === "receive"
+  ) {
+    return 1;
+  }
+
+
+  return 0;
+});
+
+
+// ==========================================
+// เก็บว่ารายการเบิกแต่ละรายการ
+// ถูกตัดออกจากล็อตไหน
+// ==========================================
+
+const issueLotMap = new Map<
+  number,
+  {
     manufacture: Date | null;
     expiry: Date | null;
-  };
+  }
+>();
 
 
-  const lots: Lot[] = material.receiveItems.map((item) => ({
-    id: item.id,
-    qty: Number(item.qty),
-    manufacture: item.manufacture,
-    expiry: item.expiry,
-  }));
+// ==========================================
+// จำลองการเคลื่อนไหวของสต็อก
+// ตามลำดับเวลาจริง
+// ==========================================
+
+for (const event of events) {
+
+  // ========================================
+  // ถ้าเป็นรายการรับเข้า
+  // ให้สร้างล็อตใหม่
+  // ========================================
+
+  if (event.type === "receive") {
+
+    const receiveItem = event.item;
+
+    lots.push({
+      id: receiveItem.id,
+
+      qty: Number(receiveItem.qty),
+
+      manufacture:
+        receiveItem.manufacture,
+
+      expiry:
+        receiveItem.expiry,
+    });
+
+    continue;
+  }
 
 
-  // ==========================================
-  // รวมรายการรับเข้าและรายการเบิกจ่าย
-  // แล้วเรียงตามวันที่
-  // ==========================================
+  // ========================================
+  // ถ้าเป็นรายการเบิก
+  // ========================================
+
+  const issueItem = event.item;
+
+  let remainingQty =
+    Number(issueItem.qty);
 
 
-  const events = [
-    ...material.receiveItems.map((item) => ({
-      type: "receive" as const,
-      date: item.receive.receiveDate,
-      item,
-    })),
+  // ========================================
+  // เรียงล็อตสำหรับตัด FEFO
+  //
+  // ลำดับที่ต้องการ:
+  //
+  // 1. ล็อตที่ไม่มีวันผลิตและไม่มีวันหมดอายุ
+  //    ให้ตัดก่อน
+  //
+  // 2. ล็อตที่ระบุวัน
+  //    ให้ใช้วันหมดอายุเร็วที่สุด
+  //
+  // 3. ถ้าวันหมดอายุเท่ากัน
+  //    ใช้วันผลิตเก่าก่อน
+  //
+  // 4. ถ้าเหมือนกัน
+  //    ใช้ล็อตที่รับเข้าก่อน
+  // ========================================
 
-    ...material.issueItems.map((item) => ({
-      type: "issue" as const,
-      date: item.issue.issueDate,
-      item,
-    })),
-  ].sort((a, b) => {
-    const dateDiff =
-      new Date(a.date).getTime() -
-      new Date(b.date).getTime();
+  const availableLots = lots
+    .filter(
+      (lot) =>
+        lot.qty > 0
+    )
+    .sort((a, b) => {
 
-    if (dateDiff !== 0) {
-      return dateDiff;
-    }
+      // ------------------------------------
+      // ตรวจสอบว่าล็อตไหน "ไม่ระบุวัน"
+      // ------------------------------------
 
+      const aUnspecified =
+        !a.manufacture &&
+        !a.expiry;
 
-    // ถ้าวันเดียวกัน ให้รายการรับเข้ามาก่อนรายการเบิก
-    if (
-      a.type === "receive" &&
-      b.type === "issue"
-    ) {
-      return -1;
-    }
-
-
-    if (
-      a.type === "issue" &&
-      b.type === "receive"
-    ) {
-      return 1;
-    }
-
-
-    return 0;
-  });
+      const bUnspecified =
+        !b.manufacture &&
+        !b.expiry;
 
 
-  // ==========================================
-  // เก็บว่ารายการเบิกแต่ละรายการ
-  // ถูกตัดออกจากล็อตไหน
-  // ==========================================
-
-
-  const issueLotMap = new Map<
-    number,
-    {
-      manufacture: Date | null;
-      expiry: Date | null;
-    }
-  >();
-
-
-  // ==========================================
-  // จำลองการตัดสต็อกแบบ FEFO
-  // ==========================================
-
-
-  for (const event of events) {
-
-    // ถ้าเป็นรายการรับเข้า
-    // ไม่ต้องทำอะไร เพราะล็อตถูกสร้างไว้แล้ว
-    if (event.type === "receive") {
-      continue;
-    }
-
-
-    const issueItem = event.item;
-
-
-    let remainingQty = Number(issueItem.qty);
-
-
-    // เลือกลอตที่ยังเหลือ
-    // เรียงตามวันหมดอายุเร็วที่สุดก่อน
-    const availableLots = lots
-      .filter((lot) => lot.qty > 0)
-      .sort((a, b) => {
-
-        const aExpiry = a.expiry
-          ? new Date(a.expiry).getTime()
-          : Number.MAX_SAFE_INTEGER;
-
-
-        const bExpiry = b.expiry
-          ? new Date(b.expiry).getTime()
-          : Number.MAX_SAFE_INTEGER;
-
-
-        if (aExpiry !== bExpiry) {
-          return aExpiry - bExpiry;
-        }
-
-
-        // ถ้าวันหมดอายุเท่ากัน
-        // ใช้วันผลิตเก่าก่อน
-        const aManufacture = a.manufacture
-          ? new Date(a.manufacture).getTime()
-          : Number.MAX_SAFE_INTEGER;
-
-
-        const bManufacture = b.manufacture
-          ? new Date(b.manufacture).getTime()
-          : Number.MAX_SAFE_INTEGER;
-
-
-        if (
-          aManufacture !== bManufacture
-        ) {
-          return (
-            aManufacture -
-            bManufacture
-          );
-        }
-
-
-        // ถ้าเหมือนกันทั้งหมด
-        // ใช้ล็อตที่สร้างก่อน
-        return a.id - b.id;
-      });
-
-
-    // เก็บล็อตแรกที่รายการเบิกนี้ใช้
-    let selectedLot: Lot | null = null;
-
-
-    for (const lot of availableLots) {
-
-      if (remainingQty <= 0) {
-        break;
+      // ล็อตไม่ระบุวันมาก่อนเสมอ
+      if (
+        aUnspecified &&
+        !bUnspecified
+      ) {
+        return -1;
       }
 
 
-      const issueQty = Math.min(
+      if (
+        !aUnspecified &&
+        bUnspecified
+      ) {
+        return 1;
+      }
+
+
+      // ------------------------------------
+      // ถ้าทั้งคู่เป็นล็อตไม่ระบุวัน
+      // ใช้ล็อตที่รับเข้าก่อน
+      // ------------------------------------
+
+      if (
+        aUnspecified &&
+        bUnspecified
+      ) {
+        return a.id - b.id;
+      }
+
+
+      // ------------------------------------
+      // จากตรงนี้คือทั้งคู่เป็นล็อตที่มีวัน
+      // ------------------------------------
+
+      const aExpiry =
+        a.expiry
+          ? new Date(
+              a.expiry
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
+
+      const bExpiry =
+        b.expiry
+          ? new Date(
+              b.expiry
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
+
+
+      // วันหมดอายุเร็วกว่า ใช้ก่อน
+      if (
+        aExpiry !== bExpiry
+      ) {
+        return (
+          aExpiry -
+          bExpiry
+        );
+      }
+
+
+      // ------------------------------------
+      // ถ้าวันหมดอายุเท่ากัน
+      // ใช้วันผลิตเก่าก่อน
+      // ------------------------------------
+
+      const aManufacture =
+        a.manufacture
+          ? new Date(
+              a.manufacture
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
+
+      const bManufacture =
+        b.manufacture
+          ? new Date(
+              b.manufacture
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
+
+
+      if (
+        aManufacture !==
+        bManufacture
+      ) {
+        return (
+          aManufacture -
+          bManufacture
+        );
+      }
+
+
+      // ------------------------------------
+      // ถ้าเหมือนกันทั้งหมด
+      // ใช้ล็อตที่รับเข้าก่อน
+      // ------------------------------------
+
+      return a.id - b.id;
+    });
+
+
+  // ========================================
+  // เก็บล็อตแรกที่ถูกใช้
+  // ========================================
+
+  let selectedLot: Lot | null =
+    null;
+
+
+  // ========================================
+  // ตัดจำนวนจากล็อต
+  // ========================================
+
+  for (
+    const lot of availableLots
+  ) {
+
+    if (
+      remainingQty <= 0
+    ) {
+      break;
+    }
+
+
+    const issueQty =
+      Math.min(
         remainingQty,
         lot.qty
       );
 
 
-      // จำล็อตแรกที่ถูกตัด
-      if (!selectedLot) {
-        selectedLot = lot;
-      }
-
-
-      // หักจำนวนออกจากล็อต
-      lot.qty -= issueQty;
-
-
-      // หักจำนวนที่ยังต้องเบิก
-      remainingQty -= issueQty;
+    // จำล็อตแรกที่รายการเบิกนี้ใช้
+    if (
+      !selectedLot
+    ) {
+      selectedLot = lot;
     }
 
 
-    // ถ้าหาล็อตได้
-    // บันทึกวันผลิตและวันหมดอายุของล็อต
-    if (selectedLot) {
-      issueLotMap.set(
-        issueItem.id,
-        {
-          manufacture:
-            selectedLot.manufacture,
+    // หักจำนวนออกจากล็อต
+    lot.qty -= issueQty;
 
-          expiry:
-            selectedLot.expiry,
-        }
-      );
-    }
+
+    // จำนวนที่ยังต้องเบิก
+    remainingQty -= issueQty;
   }
+
+
+  // ========================================
+  // บันทึกล็อตที่รายการเบิกนี้ใช้
+  // ========================================
+
+  if (
+    selectedLot
+  ) {
+
+    issueLotMap.set(
+      issueItem.id,
+      {
+        manufacture:
+          selectedLot.manufacture,
+
+        expiry:
+          selectedLot.expiry,
+      }
+    );
+  }
+}
 
 
   // ==========================================
