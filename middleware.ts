@@ -33,6 +33,14 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // หน้า PDF สำหรับ QR Code ไม่ต้อง Login
+  if (
+    pathname.startsWith("/stock-card/material/") &&
+    pathname.endsWith("/pdf")
+  ) {
+    return NextResponse.next();
+  }
+
   // หน้าอื่นต้อง Login
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
