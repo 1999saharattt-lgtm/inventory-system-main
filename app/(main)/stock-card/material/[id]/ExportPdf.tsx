@@ -188,21 +188,6 @@ export default function ExportPdf({
 
         const body = pageRows.map(
           (r: any) => {
-            const hasReceive =
-              r.receiveQty !== null &&
-              r.receiveQty !== undefined &&
-              r.receiveQty !== "";
-
-            const hasIssue =
-              r.issueQty !== null &&
-              r.issueQty !== undefined &&
-              r.issueQty !== "";
-
-            const hasBalance =
-              r.balance !== null &&
-              r.balance !== undefined &&
-              r.balance !== "";
-
             return [
               // วันที่
               formatDate(r.date),
@@ -217,19 +202,28 @@ export default function ExportPdf({
               formatMoney(r.unitPrice),
 
               // รับเข้า
-              hasReceive
-                ? r.receiveQty
-                : "-",
+              r.receiveQty === 0 ||
+              r.receiveQty === null ||
+              r.receiveQty === undefined ||
+              r.receiveQty === ""
+                ? "-"
+                : r.receiveQty,
 
               // เบิกจ่าย
-              hasIssue
-                ? r.issueQty
-                : "-",
+              r.issueQty === 0 ||
+              r.issueQty === null ||
+              r.issueQty === undefined ||
+              r.issueQty === ""
+                ? "-"
+                : r.issueQty,
 
               // คงเหลือ
-              hasBalance
-                ? r.balance
-                : "-",
+              r.balance === 0 ||
+              r.balance === null ||
+              r.balance === undefined ||
+              r.balance === ""
+                ? "-"
+                : r.balance,
 
               // วันผลิต
               formatDate(
