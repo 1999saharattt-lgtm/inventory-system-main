@@ -5,12 +5,10 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "inventory-secret-key"
 );
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ==========================================
-  // PDF จาก QR Code ไม่ต้อง Login
-  // ==========================================
+  // PDF จาก QR Code เปิดได้โดยไม่ต้อง Login
   if (
     pathname.startsWith("/stock-card/material/") &&
     pathname.endsWith("/pdf")
@@ -18,9 +16,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ==========================================
-  // Static files
-  // ==========================================
+  // Static
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico")
@@ -30,9 +26,7 @@ export async function middleware(req: NextRequest) {
 
   const token = req.cookies.get("session")?.value;
 
-  // ==========================================
   // Login
-  // ==========================================
   if (pathname.startsWith("/login")) {
     if (!token) {
       return NextResponse.next();
@@ -40,32 +34,22 @@ export async function middleware(req: NextRequest) {
 
     try {
       await jwtVerify(token, secret);
-
-      return NextResponse.redirect(
-        new URL("/", req.url)
-      );
+      return NextResponse.redirect(new URL("/", req.url));
     } catch {
       return NextResponse.next();
     }
   }
 
-  // ==========================================
   // หน้าอื่นต้อง Login
-  // ==========================================
   if (!token) {
-    return NextResponse.redirect(
-      new URL("/login", req.url)
-    );
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   try {
     await jwtVerify(token, secret);
-
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(
-      new URL("/login", req.url)
-    );
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
