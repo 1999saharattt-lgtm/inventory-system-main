@@ -1,16 +1,13 @@
 "use client";
 
-
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-
 
 type Props = {
   materialId: number;
   materialCode: string;
   materialName: string;
 };
-
 
 export default function QRCodeButton({
   materialId,
@@ -20,25 +17,23 @@ export default function QRCodeButton({
   const [open, setOpen] = useState(false);
   const [qrCode, setQrCode] = useState("");
 
-
   useEffect(() => {
-  if (!open) return;
+    if (!open) return;
 
-  const generateQRCode = async () => {
-    const url = `https://rh-inventory.vercel.app/stock-card/material/${materialId}/pdf`;
+    const generateQRCode = async () => {
+      const url = `https://rh-inventory.vercel.app/stock-card/material/${materialId}/pdf`;
 
-    const dataUrl = await QRCode.toDataURL(url, {
-      width: 400,
-      margin: 2,
-      errorCorrectionLevel: "H",
-    });
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: "H",
+      });
 
-    setQrCode(dataUrl);
-  };
+      setQrCode(dataUrl);
+    };
 
-  generateQRCode();
-}, [open, materialId]);
-
+    generateQRCode();
+  }, [open, materialId]);
 
   return (
     <>
@@ -63,7 +58,6 @@ export default function QRCodeButton({
       >
         เปิด
       </button>
-
 
       {/* Modal QR Code */}
       {open && (
@@ -97,17 +91,14 @@ export default function QRCodeButton({
                 QR Code พัสดุ
               </h2>
 
-
               <p className="mt-2 text-lg font-bold text-slate-700">
                 รหัสพัสดุ : {materialCode}
               </p>
-
 
               <p className="mt-1 text-lg font-bold text-slate-700">
                 {materialName}
               </p>
             </div>
-
 
             {/* QR */}
             <div className="flex justify-center">
@@ -126,12 +117,10 @@ export default function QRCodeButton({
               )}
             </div>
 
-
             {/* คำอธิบาย */}
             <p className="mt-4 text-center text-base font-semibold text-slate-600">
               สแกน QR Code เพื่อเปิดบัญชีพัสดุ
             </p>
-
 
             {/* ปุ่มปิด */}
             <div className="mt-5 flex justify-center">
