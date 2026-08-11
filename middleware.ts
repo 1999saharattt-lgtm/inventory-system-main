@@ -9,7 +9,7 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
   const { pathname } = req.nextUrl;
 
-  // ไฟล์ Static
+  // Static files
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico")
@@ -17,7 +17,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ถ้าเปิดหน้า Login
+  // PDF จาก QR Code ไม่ต้อง Login
+  if (
+    /^\/stock-card\/material\/\d+\/pdf$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
+  // หน้า Login
   if (pathname.startsWith("/login")) {
     if (!token) {
       return NextResponse.next();
@@ -26,19 +33,10 @@ export async function middleware(req: NextRequest) {
     try {
       await jwtVerify(token, secret);
 
-      // Login แล้ว ไม่ต้องกลับไปหน้า Login
       return NextResponse.redirect(new URL("/", req.url));
     } catch {
       return NextResponse.next();
     }
-  }
-
-  // หน้า PDF สำหรับ QR Code ไม่ต้อง Login
-  if (
-    pathname.startsWith("/stock-card/material/") &&
-    pathname.endsWith("/pdf")
-  ) {
-    return NextResponse.next();
   }
 
   // หน้าอื่นต้อง Login
@@ -48,6 +46,7 @@ export async function middleware(req: NextRequest) {
 
   try {
     await jwtVerify(token, secret);
+
     return NextResponse.next();
   } catch {
     return NextResponse.redirect(new URL("/login", req.url));
