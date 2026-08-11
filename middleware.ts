@@ -6,10 +6,21 @@ const secret = new TextEncoder().encode(
 );
 
 export async function middleware(req: NextRequest) {
-  const token = req.cookies.get("session")?.value;
   const { pathname } = req.nextUrl;
 
+  // ==========================================
+  // PDF จาก QR Code ไม่ต้อง Login
+  // ==========================================
+  if (
+    pathname.startsWith("/stock-card/material/") &&
+    pathname.endsWith("/pdf")
+  ) {
+    return NextResponse.next();
+  }
+
+  // ==========================================
   // Static files
+  // ==========================================
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico")
@@ -17,14 +28,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // PDF จาก QR Code ไม่ต้อง Login
-  if (
-    /^\/stock-card\/material\/\d+\/pdf$/.test(pathname)
-  ) {
-    return NextResponse.next();
-  }
+  const token = req.cookies.get("session")?.value;
 
-  // หน้า Login
+  // ==========================================
+  // Login
+  // ==========================================
   if (pathname.startsWith("/login")) {
     if (!token) {
       return NextResponse.next();
@@ -33,15 +41,21 @@ export async function middleware(req: NextRequest) {
     try {
       await jwtVerify(token, secret);
 
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(
+        new URL("/", req.url)
+      );
     } catch {
       return NextResponse.next();
     }
   }
 
+  // ==========================================
   // หน้าอื่นต้อง Login
+  // ==========================================
   if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 
   try {
@@ -49,10 +63,14 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };
