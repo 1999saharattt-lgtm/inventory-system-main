@@ -42,17 +42,31 @@ export default async function MaterialsSummaryPage() {
           },
         },
       },
+
+      issueItems: true,
     },
   });
 
   const data = materials.map((material) => {
     const latestReceive = material.receiveItems[0];
 
-    // จำนวนคงเหลือจริงจากทุกล็อต
-    const balance = material.receiveItems.reduce(
-      (sum, item) => sum + item.balance,
+    // =====================================================
+    // คำนวณยอดคงเหลือแบบเดียวกับ Stock Card
+    //
+    // ยอดคงเหลือ = รับเข้าทั้งหมด - เบิกจ่ายทั้งหมด
+    // =====================================================
+
+    const totalReceive = material.receiveItems.reduce(
+      (sum, item) => sum + item.qty,
       0
     );
+
+    const totalIssue = material.issueItems.reduce(
+      (sum, item) => sum + item.qty,
+      0
+    );
+
+    const balance = totalReceive - totalIssue;
 
     return {
       id: material.id,
