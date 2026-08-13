@@ -3,32 +3,133 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+type IssueRow = {
+  materialId: number;
+  qty: number;
+};
+
+function sortFEFO(a: any, b: any) {
+  const aUnspecified =
+    !a.manufacture &&
+    !a.expiry;
+
+  const bUnspecified =
+    !b.manufacture &&
+    !b.expiry;
+
+  // ไม่มี manufacture + expiry มาก่อน
+  if (
+    aUnspecified &&
+    !bUnspecified
+  ) {
+    return -1;
+  }
+
+  if (
+    !aUnspecified &&
+    bUnspecified
+  ) {
+    return 1;
+  }
+
+  // ทั้งคู่ไม่มีวัน
+  if (
+    aUnspecified &&
+    bUnspecified
+  ) {
+    return a.id - b.id;
+  }
+
+  const aExpiry =
+    a.expiry
+      ? new Date(
+          a.expiry
+        ).getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+  const bExpiry =
+    b.expiry
+      ? new Date(
+          b.expiry
+        ).getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+  if (
+    aExpiry !== bExpiry
+  ) {
+    return (
+      aExpiry -
+      bExpiry
+    );
+  }
+
+  const aManufacture =
+    a.manufacture
+      ? new Date(
+          a.manufacture
+        ).getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+  const bManufacture =
+    b.manufacture
+      ? new Date(
+          b.manufacture
+        ).getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+  if (
+    aManufacture !==
+    bManufacture
+  ) {
+    return (
+      aManufacture -
+      bManufacture
+    );
+  }
+
+  return a.id - b.id;
+}
+
 export async function updateIssue(
   formData: FormData
 ) {
   const issueId =
-    Number(formData.get("issueId"));
+    Number(
+      formData.get("issueId")
+    );
 
   const issueDate =
     new Date(
-      formData.get("issueDate") as string
+      formData.get(
+        "issueDate"
+      ) as string
     );
 
   const documentNo =
-    formData.get("documentNo") as string;
+    formData.get(
+      "documentNo"
+    ) as string;
 
   const departmentId =
-    Number(formData.get("departmentId"));
+    Number(
+      formData.get(
+        "departmentId"
+      )
+    );
 
   const remark =
-    (formData.get("remark") as string) || "";
+    (formData.get(
+      "remark"
+    ) as string) || "";
 
-  const newItems: {
-    materialId: number;
-    qty: number;
-  }[] = [];
+  const newItems: IssueRow[] =
+    [];
 
-  for (let i = 0; i < 15; i++) {
+  for (
+    let i = 0;
+    i < 15;
+    i++
+  ) {
     const materialId =
       Number(
         formData.get(
@@ -54,12 +155,20 @@ export async function updateIssue(
     }
   }
 
+  if (
+    newItems.length === 0
+  ) {
+    throw new Error(
+      "กรุณาเลือกรายการพัสดุ"
+    );
+  }
+
   await prisma.$transaction(
     async (tx: any) => {
 
-      // =========================
-      // ดึงข้อมูลใบเบิกเดิม
-      // =========================
+      // =====================================================
+      // ดึงใบเบิกเดิม
+      // =====================================================
 
       const oldIssue =
         await tx.issue.findUnique({
@@ -78,39 +187,34 @@ export async function updateIssue(
         );
       }
 
-      // =========================
-      // คืน Stock เดิม
-      // =========================
+      // =====================================================
+      // คืนยอดจากใบเบิกเดิม
+      // =====================================================
 
       for (
-        const oldItem of oldIssue.items
+        const oldItem
+        of oldIssue.items
       ) {
 
-        // -------------------------
         // คืน Material.balance
-        // -------------------------
-
         await tx.material.update({
           where: {
-            id: oldItem.materialId,
+            id:
+              oldItem.materialId,
           },
 
           data: {
             balance: {
-              increment: oldItem.qty,
+              increment:
+                oldItem.qty,
             },
           },
         });
 
-        // -------------------------
-        // คืน ReceiveItem.balance
-        // กลับล็อตเดิม
-        // -------------------------
-
+        // คืนยอดล็อตเดิม
         if (
           oldItem.receiveItemId
         ) {
-
           await tx.receiveItem.update({
             where: {
               id:
@@ -124,13 +228,12 @@ export async function updateIssue(
               },
             },
           });
-
         }
       }
 
-      // =========================
+      // =====================================================
       // ลบ IssueItem เดิม
-      // =========================
+      // =====================================================
 
       await tx.issueItem.deleteMany({
         where: {
@@ -138,9 +241,9 @@ export async function updateIssue(
         },
       });
 
-      // =========================
+      // =====================================================
       // แก้ข้อมูลใบเบิก
-      // =========================
+      // =====================================================
 
       await tx.issue.update({
         where: {
@@ -155,20 +258,28 @@ export async function updateIssue(
         },
       });
 
-      // =========================
-      // สร้างรายการใหม่แบบ FEFO
-      // =========================
+      // =====================================================
+      // เก็บ Material.balance ที่คำนวณจากล็อต
+      // หลังจากการคืนล็อตเดิม
+      // =====================================================
+
+      const materialIds =
+        [
+          ...new Set(
+            newItems.map(
+              (item) =>
+                item.materialId
+            )
+          ),
+        ];
+
+      // =====================================================
+      // สร้างรายการใหม่ตาม FEFO
+      // =====================================================
 
       for (
         const item of newItems
       ) {
-
-        let remainingQty =
-          item.qty;
-
-        // -------------------------
-        // ตรวจสอบ Material
-        // -------------------------
 
         const material =
           await tx.material.findUnique({
@@ -184,23 +295,9 @@ export async function updateIssue(
           );
         }
 
-        // -------------------------
-        // ตรวจสอบ Material.balance
-        // -------------------------
-
-        if (
-          material.balance <
-          item.qty
-        ) {
-          throw new Error(
-            `พัสดุ "${material.name}" มีจำนวนคงเหลือไม่เพียงพอ`
-          );
-        }
-
-        // -------------------------
-        // หา ReceiveItem
-        // เรียง FEFO
-        // -------------------------
+        // ===================================================
+        // ดึงล็อตที่ยังเหลือ
+        // ===================================================
 
         const receiveItems =
           await tx.receiveItem.findMany({
@@ -212,31 +309,23 @@ export async function updateIssue(
                 gt: 0,
               },
             },
-
-            orderBy: [
-              {
-                expiry: "asc",
-              },
-              {
-                manufacture: "asc",
-              },
-              {
-                id: "asc",
-              },
-            ],
           });
 
-        // -------------------------
-        // ตรวจจำนวนล็อต
-        // -------------------------
+        receiveItems.sort(
+          sortFEFO
+        );
+
+        // ===================================================
+        // ตรวจยอดล็อต
+        // ===================================================
 
         const totalReceiveBalance =
           receiveItems.reduce(
             (
-              total: number,
+              sum: number,
               receiveItem: any
             ) =>
-              total +
+              sum +
               Number(
                 receiveItem.balance
               ),
@@ -248,13 +337,16 @@ export async function updateIssue(
           item.qty
         ) {
           throw new Error(
-            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ`
+            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ (ล็อตเหลือ ${totalReceiveBalance} แต่ต้องการเบิก ${item.qty})`
           );
         }
 
-        // -------------------------
-        // ตัดแต่ละล็อต
-        // -------------------------
+        let remainingQty =
+          item.qty;
+
+        // ===================================================
+        // ตัดล็อตตาม FEFO
+        // ===================================================
 
         for (
           const receiveItem
@@ -278,10 +370,13 @@ export async function updateIssue(
               available
             );
 
-          // -------------------------
-          // ลด ReceiveItem.balance
-          // -------------------------
+          if (
+            issueQty <= 0
+          ) {
+            continue;
+          }
 
+          // ลด ReceiveItem.balance
           await tx.receiveItem.update({
             where: {
               id:
@@ -296,15 +391,10 @@ export async function updateIssue(
             },
           });
 
-          // -------------------------
           // สร้าง IssueItem
-          // ผูกกับล็อตจริง
-          // -------------------------
-
           await tx.issueItem.create({
             data: {
               issueId,
-
               materialId:
                 item.materialId,
 
@@ -326,52 +416,57 @@ export async function updateIssue(
             issueQty;
         }
 
-        // -------------------------
-        // ลด Material.balance
-        // -------------------------
+        if (
+          remainingQty > 0
+        ) {
+          throw new Error(
+            `พัสดุ "${material.name}" ไม่สามารถตัดล็อตได้ครบ ${remainingQty} หน่วย`
+          );
+        }
+      }
+
+      // =====================================================
+      // คำนวณ Material.balance ใหม่จาก ReceiveItem
+      // หลังจากตัดล็อตทั้งหมด
+      // =====================================================
+
+      for (
+        const materialId
+        of materialIds
+      ) {
+
+        const remainingLots =
+          await tx.receiveItem.aggregate({
+            where: {
+              materialId,
+            },
+
+            _sum: {
+              balance: true,
+            },
+          });
+
+        const newBalance =
+          Number(
+            remainingLots._sum
+              .balance ?? 0
+          );
 
         await tx.material.update({
           where: {
-            id:
-              item.materialId,
+            id: materialId,
           },
 
           data: {
-            balance: {
-              decrement:
-                item.qty,
-            },
-          },
-        });
-
-        // -------------------------
-        // Transaction
-        // -------------------------
-
-        await tx.transaction.create({
-          data: {
-            materialId:
-              item.materialId,
-
-            type:
-              "ISSUE_EDIT",
-
-            documentNo,
-
-            issueQty:
-              item.qty,
-
             balance:
-              material.balance -
-              item.qty,
-
-            department:
-              String(departmentId),
-
-            remark,
+              newBalance,
           },
         });
       }
+    },
+    {
+      maxWait: 10000,
+      timeout: 30000,
     }
   );
 

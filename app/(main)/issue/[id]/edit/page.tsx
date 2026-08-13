@@ -2,126 +2,81 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import EditIssueForm from "./EditIssueForm";
 
-
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
 
-
-
 export default async function EditIssuePage({
   params,
 }: Props) {
-
-
   const { id } = await params;
 
-
-
   const issue = await prisma.issue.findUnique({
-
-    where:{
-      id:Number(id),
+    where: {
+      id: Number(id),
     },
 
-    include:{
-      items:{
-        include:{
-          material:true,
+    include: {
+      items: {
+        include: {
+          material: true,
         },
       },
     },
-
   });
 
-
-
-
-
-  if(!issue){
-
+  if (!issue) {
     return (
-
       <div className="p-6 text-white">
-
         ไม่พบรายการเบิกจ่าย
-
       </div>
-
     );
-
   }
-
-
-
-
 
   const departments =
     await prisma.department.findMany({
-
-      orderBy:{
-        name:"asc",
+      orderBy: {
+        name: "asc",
       },
-
     });
-
-
-
-
 
   const materials =
     await prisma.material.findMany({
-
-      orderBy:[
+      orderBy: [
         {
-          category:"asc",
+          category: "asc",
         },
         {
-          code:"asc",
+          code: "asc",
         },
       ],
-
     });
 
-
-
-
-
-  // ดึงล็อตที่ยังเหลืออยู่
-  // เรียงวันหมดอายุใกล้หมดก่อน (FEFO)
-
+  // ดึงเฉพาะล็อตที่ยังมีจำนวนคงเหลือจริง
+  // ใช้ balance ไม่ใช่ qty
   const receiveItems =
     await prisma.receiveItem.findMany({
-
-      where:{
-        qty:{
-          gt:0,
+      where: {
+        balance: {
+          gt: 0,
         },
       },
 
-      include:{
-        material:true,
+      include: {
+        material: true,
       },
 
-      orderBy:[
+      orderBy: [
         {
-          expiry:"asc",
+          expiry: "asc",
         },
       ],
-
     });
 
-
-
-
-
   return (
-
     <div className="space-y-6">
-
-
       <div
         className="
           flex
@@ -136,11 +91,7 @@ export default async function EditIssuePage({
           shadow-xl
         "
       >
-
-
         <div>
-
-
           <div
             className="
               text-lg
@@ -151,28 +102,19 @@ export default async function EditIssuePage({
             🖊️ แก้ไขรายการเบิกพัสดุ
           </div>
 
-
-
           <div
             className="
               mt-2
-              text-white
               font-bold
+              text-white
             "
           >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
           </div>
-
-
         </div>
 
-
-
-
         <Link
-
           href="/issue"
-
           className="
             rounded-xl
             bg-emerald-500
@@ -184,52 +126,30 @@ export default async function EditIssuePage({
             transition
             hover:scale-105
           "
-
         >
-
           ← กลับ
-
         </Link>
-
-
-
       </div>
 
-
-
-
-
-        <div
-    className="
-      rounded-2xl
-      border
-      border-slate-700
-      bg-gradient-to-br
-      from-slate-950
-      to-slate-800
-      p-6
-      shadow-xl
-    "
-  >
-
-    <EditIssueForm
-
-      issue={issue}
-
-      departments={departments}
-
-      materials={materials}
-
-      receiveItems={receiveItems}
-
-    />
-
-  </div>
-
-
-
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
+          p-6
+          shadow-xl
+        "
+      >
+        <EditIssueForm
+          issue={issue}
+          departments={departments}
+          materials={materials}
+          receiveItems={receiveItems}
+        />
+      </div>
     </div>
-
   );
-
 }
