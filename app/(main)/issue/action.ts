@@ -5,220 +5,161 @@ import { revalidatePath } from "next/cache";
 import fs from "fs/promises";
 import path from "path";
 
-
-
 export async function deleteIssue(
-  id:number
-){
-
-
+  id: number
+) {
   await prisma.$transaction(
-  async (tx: any) => {
-
+    async (tx: any) => {
 
       const issue =
         await tx.issue.findUnique({
-
-          where:{
+          where: {
             id,
           },
 
-          include:{
-            items:true,
+          include: {
+            items: true,
           },
-
         });
 
-
-
-      if(!issue){
-
+      if (!issue) {
         throw new Error(
           "ไม่พบใบเบิก"
         );
-
       }
 
-
-
-
-
-
+      // =====================
       // คืนจำนวนพัสดุกลับเข้าสต็อก
+      // =====================
 
-      for(
+      for (
         const item of issue.items
-      ){
+      ) {
 
+        // ---------------------
+        // คืน Material.balance
+        // ---------------------
 
         await tx.material.update({
-
-          where:{
-            id:item.materialId,
+          where: {
+            id: item.materialId,
           },
 
-          data:{
-
-            balance:{
-              increment:item.qty,
+          data: {
+            balance: {
+              increment: item.qty,
             },
-
           },
-
         });
 
+        // ---------------------
+        // ถ้าเป็นรายการที่ผูกล็อต
+        // ให้คืน ReceiveItem.balance
+        // กลับไปยังล็อตเดิม
+        // ---------------------
+
+        if (
+          item.receiveItemId
+        ) {
+
+          await tx.receiveItem.update({
+            where: {
+              id: item.receiveItemId,
+            },
+
+            data: {
+              balance: {
+                increment: item.qty,
+              },
+            },
+          });
+
+        }
 
       }
 
-
-
-
-
-
-
+      // =====================
       // ลบรายการพัสดุในใบเบิก
+      // =====================
 
       await tx.issueItem.deleteMany({
-
-        where:{
-          issueId:id,
+        where: {
+          issueId: id,
         },
-
       });
 
-
-
-
-
-
-
-
+      // =====================
       // ลบใบเบิก
+      // =====================
 
       await tx.issue.delete({
-
-        where:{
+        where: {
           id,
         },
-
       });
-
-
 
     }
   );
 
-
-
   revalidatePath("/issue");
-
-
 }
 
-
-
-
-
-
-
-
-
+// =====================
 // ลบเฉพาะไฟล์ PDF ใบเบิก
+// =====================
 
 export async function deleteIssuePdf(
-  issueId:number
-){
-
+  issueId: number
+) {
 
   const issue =
     await prisma.issue.findUnique({
-
-      where:{
-        id:issueId,
+      where: {
+        id: issueId,
       },
-
     });
 
-
-
-  if(!issue){
-
+  if (!issue) {
     throw new Error(
       "ไม่พบใบเบิก"
     );
-
   }
 
-
-
-
-
-  if(issue.pdf){
-
+  if (issue.pdf) {
 
     const filePath =
       path.join(
-
         process.cwd(),
-
         "public",
-
         issue.pdf
-
       );
 
-
-
-    try{
-
+    try {
 
       await fs.unlink(
         filePath
       );
 
-
-    }catch{
-
+    } catch {
 
       console.log(
         "ไม่พบไฟล์ PDF"
       );
 
-
     }
-
-
   }
 
-
-
-
-
-
-
   await prisma.issue.update({
-
-    where:{
-      id:issueId,
+    where: {
+      id: issueId,
     },
 
-
-    data:{
-
-      pdf:null,
-
+    data: {
+      pdf: null,
     },
-
-
   });
-
-
-
-
 
   revalidatePath(
     `/issue/${issueId}`
   );
-
-
 }
