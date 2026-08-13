@@ -6,52 +6,35 @@ import { redirect } from "next/navigation";
 export async function updateIssue(
   formData: FormData
 ) {
-
   const issueId =
-    Number(
-      formData.get("issueId")
-    );
-
-
+    Number(formData.get("issueId"));
 
   const issueDate =
     new Date(
       formData.get("issueDate") as string
     );
 
-
-
   const documentNo =
     formData.get("documentNo") as string;
 
-
-
   const departmentId =
-    Number(
-      formData.get("departmentId")
-    );
-
-
+    Number(formData.get("departmentId"));
 
   const remark =
-    formData.get("remark") as string;
+    (formData.get("remark") as string) || "";
 
-
-
-  const newItems: any[] = [];
-
-
+  const newItems: {
+    materialId: number;
+    qty: number;
+  }[] = [];
 
   for (let i = 0; i < 15; i++) {
-
     const materialId =
       Number(
         formData.get(
           `items[${i}].materialId`
         )
       );
-
-
 
     const qty =
       Number(
@@ -60,28 +43,19 @@ export async function updateIssue(
         )
       );
 
-
-
     if (
       materialId &&
       qty > 0
     ) {
-
       newItems.push({
         materialId,
         qty,
       });
-
     }
-
   }
-
-
 
   await prisma.$transaction(
     async (tx: any) => {
-
-
 
       // =========================
       // ดึงข้อมูลใบเบิกเดิม
@@ -89,7 +63,6 @@ export async function updateIssue(
 
       const oldIssue =
         await tx.issue.findUnique({
-
           where: {
             id: issueId,
           },
@@ -97,185 +70,286 @@ export async function updateIssue(
           include: {
             items: true,
           },
-
         });
 
-
-
       if (!oldIssue) {
-
         throw new Error(
           "ไม่พบใบเบิก"
         );
-
       }
 
-
-
       // =========================
-      // คืน Stock ของรายการเดิม
+      // คืน Stock เดิม
       // =========================
 
       for (
         const oldItem of oldIssue.items
       ) {
 
-        await tx.material.update({
+        // -------------------------
+        // คืน Material.balance
+        // -------------------------
 
+        await tx.material.update({
           where: {
             id: oldItem.materialId,
           },
 
           data: {
-
             balance: {
               increment: oldItem.qty,
             },
-
           },
-
         });
 
+        // -------------------------
+        // คืน ReceiveItem.balance
+        // กลับล็อตเดิม
+        // -------------------------
+
+        if (
+          oldItem.receiveItemId
+        ) {
+
+          await tx.receiveItem.update({
+            where: {
+              id:
+                oldItem.receiveItemId,
+            },
+
+            data: {
+              balance: {
+                increment:
+                  oldItem.qty,
+              },
+            },
+          });
+
+        }
       }
 
-
-
       // =========================
-      // ลบรายการเดิม
+      // ลบ IssueItem เดิม
       // =========================
 
       await tx.issueItem.deleteMany({
-
         where: {
           issueId,
         },
-
       });
 
-
-
       // =========================
-      // แก้ไขข้อมูลหัวเอกสาร
+      // แก้ข้อมูลใบเบิก
       // =========================
 
       await tx.issue.update({
-
         where: {
           id: issueId,
         },
 
         data: {
-
           issueDate,
-
           documentNo,
-
           departmentId,
-
           remark,
-
         },
-
       });
 
-
-
       // =========================
-      // เพิ่มรายการใหม่
+      // สร้างรายการใหม่แบบ FEFO
       // =========================
 
       for (
         const item of newItems
       ) {
 
+        let remainingQty =
+          item.qty;
 
+        // -------------------------
+        // ตรวจสอบ Material
+        // -------------------------
 
         const material =
           await tx.material.findUnique({
-
             where: {
-              id: item.materialId,
+              id:
+                item.materialId,
             },
-
           });
 
-
-
         if (!material) {
-
           throw new Error(
-            "ไม่พบพัสดุ"
+            `ไม่พบพัสดุ ID ${item.materialId}`
           );
-
         }
 
+        // -------------------------
+        // ตรวจสอบ Material.balance
+        // -------------------------
 
-
-        // ตรวจสอบ Stock
         if (
-          material.balance < item.qty
+          material.balance <
+          item.qty
         ) {
-
           throw new Error(
-            `พัสดุ ${material.name} ไม่เพียงพอ`
+            `พัสดุ "${material.name}" มีจำนวนคงเหลือไม่เพียงพอ`
           );
-
         }
 
+        // -------------------------
+        // หา ReceiveItem
+        // เรียง FEFO
+        // -------------------------
 
+        const receiveItems =
+          await tx.receiveItem.findMany({
+            where: {
+              materialId:
+                item.materialId,
 
-        // =========================
-        // สร้าง Issue Item
-        // =========================
-
-        await tx.issueItem.create({
-
-          data: {
-
-            issueId,
-
-            materialId:
-              item.materialId,
-
-            qty:
-              item.qty,
-
-          },
-
-        });
-
-
-
-        // =========================
-        // ตัด Stock
-        // =========================
-
-        await tx.material.update({
-
-          where: {
-            id: item.materialId,
-          },
-
-          data: {
-
-            balance: {
-              decrement: item.qty,
+              balance: {
+                gt: 0,
+              },
             },
 
+            orderBy: [
+              {
+                expiry: "asc",
+              },
+              {
+                manufacture: "asc",
+              },
+              {
+                id: "asc",
+              },
+            ],
+          });
+
+        // -------------------------
+        // ตรวจจำนวนล็อต
+        // -------------------------
+
+        const totalReceiveBalance =
+          receiveItems.reduce(
+            (
+              total: number,
+              receiveItem: any
+            ) =>
+              total +
+              Number(
+                receiveItem.balance
+              ),
+            0
+          );
+
+        if (
+          totalReceiveBalance <
+          item.qty
+        ) {
+          throw new Error(
+            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ`
+          );
+        }
+
+        // -------------------------
+        // ตัดแต่ละล็อต
+        // -------------------------
+
+        for (
+          const receiveItem
+          of receiveItems
+        ) {
+
+          if (
+            remainingQty <= 0
+          ) {
+            break;
+          }
+
+          const available =
+            Number(
+              receiveItem.balance
+            );
+
+          const issueQty =
+            Math.min(
+              remainingQty,
+              available
+            );
+
+          // -------------------------
+          // ลด ReceiveItem.balance
+          // -------------------------
+
+          await tx.receiveItem.update({
+            where: {
+              id:
+                receiveItem.id,
+            },
+
+            data: {
+              balance: {
+                decrement:
+                  issueQty,
+              },
+            },
+          });
+
+          // -------------------------
+          // สร้าง IssueItem
+          // ผูกกับล็อตจริง
+          // -------------------------
+
+          await tx.issueItem.create({
+            data: {
+              issueId,
+
+              materialId:
+                item.materialId,
+
+              receiveItemId:
+                receiveItem.id,
+
+              qty:
+                issueQty,
+
+              manufacture:
+                receiveItem.manufacture,
+
+              expiry:
+                receiveItem.expiry,
+            },
+          });
+
+          remainingQty -=
+            issueQty;
+        }
+
+        // -------------------------
+        // ลด Material.balance
+        // -------------------------
+
+        await tx.material.update({
+          where: {
+            id:
+              item.materialId,
           },
 
+          data: {
+            balance: {
+              decrement:
+                item.qty,
+            },
+          },
         });
 
-
-
-        // =========================
-        // บันทึก Transaction
-        // =========================
+        // -------------------------
+        // Transaction
+        // -------------------------
 
         await tx.transaction.create({
-
           data: {
-
             materialId:
               item.materialId,
 
@@ -288,24 +362,18 @@ export async function updateIssue(
               item.qty,
 
             balance:
-              material.balance - item.qty,
+              material.balance -
+              item.qty,
 
             department:
               String(departmentId),
 
             remark,
-
           },
-
         });
-
       }
-
     }
   );
 
-
-
   redirect("/issue");
-
 }
