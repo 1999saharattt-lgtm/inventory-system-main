@@ -34,8 +34,6 @@ export default async function MaterialsSummaryPage() {
           },
         },
 
-        take: 1,
-
         include: {
           receive: {
             include: {
@@ -50,12 +48,18 @@ export default async function MaterialsSummaryPage() {
   const data = materials.map((material) => {
     const latestReceive = material.receiveItems[0];
 
+    // จำนวนคงเหลือจริงจากทุกล็อต
+    const balance = material.receiveItems.reduce(
+      (sum, item) => sum + item.balance,
+      0
+    );
+
     return {
       id: material.id,
       category: material.category,
       code: material.code,
       name: material.name,
-      balance: material.balance,
+      balance,
       unit: material.unit,
 
       // ราคาจากรายการรับเข้าล่าสุด
