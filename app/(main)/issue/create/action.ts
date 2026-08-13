@@ -124,7 +124,7 @@ export async function createIssue(formData: FormData) {
     async (tx: any) => {
 
       // =====================
-      // สร้างใบเบิกก่อน
+      // สร้างใบเบิก
       // =====================
 
       const issue =
@@ -159,9 +159,9 @@ export async function createIssue(formData: FormData) {
         let remainingQty =
           item.qty;
 
-        // ---------------------
+        // =====================
         // ตรวจสอบ Material
-        // ---------------------
+        // =====================
 
         const material =
           await tx.material.findUnique({
@@ -177,19 +177,10 @@ export async function createIssue(formData: FormData) {
           );
         }
 
-        if (
-          material.balance <
-          item.qty
-        ) {
-          throw new Error(
-            `พัสดุ "${material.name}" มีจำนวนคงเหลือไม่เพียงพอ`
-          );
-        }
-
-        // ---------------------
+        // =====================
         // หา ReceiveItem
-        // เรียง FEFO
-        // ---------------------
+        // FEFO
+        // =====================
 
         const receiveItems =
           await tx.receiveItem.findMany({
@@ -215,9 +206,9 @@ export async function createIssue(formData: FormData) {
             ],
           });
 
-        // ---------------------
-        // ตรวจสอบจำนวนล็อต
-        // ---------------------
+        // =====================
+        // ตรวจจำนวนล็อต
+        // =====================
 
         const totalReceiveBalance =
           receiveItems.reduce(
@@ -241,9 +232,9 @@ export async function createIssue(formData: FormData) {
           );
         }
 
-        // ---------------------
+        // =====================
         // ตัดแต่ละล็อต
-        // ---------------------
+        // =====================
 
         for (
           const receiveItem
@@ -267,9 +258,9 @@ export async function createIssue(formData: FormData) {
               available
             );
 
-          // ---------------------
+          // =====================
           // ลด ReceiveItem.balance
-          // ---------------------
+          // =====================
 
           await tx.receiveItem.update({
             where: {
@@ -285,10 +276,10 @@ export async function createIssue(formData: FormData) {
             },
           });
 
-          // ---------------------
+          // =====================
           // สร้าง IssueItem
-          // ตามล็อตจริง
-          // ---------------------
+          // ผูกล็อตจริง
+          // =====================
 
           await tx.issueItem.create({
             data: {
@@ -298,7 +289,6 @@ export async function createIssue(formData: FormData) {
               materialId:
                 item.materialId,
 
-              // ผูกกับล็อตที่ถูกเบิกจริง
               receiveItemId:
                 receiveItem.id,
 
@@ -317,9 +307,27 @@ export async function createIssue(formData: FormData) {
             issueQty;
         }
 
-        // ---------------------
-        // ลด Material.balance
-        // ---------------------
+        // =====================
+        // คำนวณ Material.balance ใหม่
+        // จากยอด ReceiveItem จริง
+        // =====================
+
+        const remainingLots =
+          await tx.receiveItem.aggregate({
+            where: {
+              materialId:
+                item.materialId,
+            },
+
+            _sum: {
+              balance: true,
+            },
+          });
+
+        const newMaterialBalance =
+          Number(
+            remainingLots._sum.balance || 0
+          );
 
         await tx.material.update({
           where: {
@@ -328,10 +336,8 @@ export async function createIssue(formData: FormData) {
           },
 
           data: {
-            balance: {
-              decrement:
-                item.qty,
-            },
+            balance:
+              newMaterialBalance,
           },
         });
       }
