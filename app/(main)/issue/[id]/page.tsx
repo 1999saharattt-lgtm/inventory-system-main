@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeletePdfButton from "./DeletePdfButton";
 
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{
@@ -10,105 +11,57 @@ type Props = {
   }>;
 };
 
-
 type IssueItem = {
   id: number;
   qty: number;
-
-  material:{
-    code:string;
-    name:string;
-    unit:string;
-    category:string;
-    latestPrice:{
-      toString():string;
+  material: {
+    code: string;
+    name: string;
+    unit: string;
+    category: string;
+    latestPrice: {
+      toString(): string;
     };
   };
 };
 
-
-
-
 export default async function IssueDetailPage({
   params,
-}:Props){
-
-
+}: Props) {
   const { id } = await params;
-
-
 
   const issue =
     await prisma.issue.findUnique({
-
-      where:{
-        id:Number(id),
+      where: {
+        id: Number(id),
       },
 
+      include: {
+        department: true,
 
-      include:{
-
-        department:true,
-
-
-        items:{
-          include:{
-            material:true,
+        items: {
+          include: {
+            material: true,
           },
         },
-
       },
-
     });
 
-
-
-  if(!issue){
-
+  if (!issue) {
     notFound();
-
   }
 
-
-
-
-  const categoryName:Record<string,string>={
-
-
-    OFFICE:
-    "วัสดุสำนักงาน",
-
-
-    COMPUTER:
-    "วัสดุคอมพิวเตอร์",
-
-
-    ELECTRIC:
-    "วัสดุไฟฟ้าและวิทยุ",
-
-
-    HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
-
-
-    VEHICLE:
-    "วัสดุยานพาหนะ",
-
-
-    PRINTING:
-    "วัสดุสื่อสิ่งพิมพ์",
-
-
+  const categoryName: Record<string, string> = {
+    OFFICE: "วัสดุสำนักงาน",
+    COMPUTER: "วัสดุคอมพิวเตอร์",
+    ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+    HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+    VEHICLE: "วัสดุยานพาหนะ",
+    PRINTING: "วัสดุสื่อสิ่งพิมพ์",
   };
 
-
-
-
   return (
-
     <div className="space-y-6">
-
-
       {/* Header */}
 
       <div
@@ -125,11 +78,7 @@ export default async function IssueDetailPage({
           shadow-xl
         "
       >
-
-
         <div>
-
-
           <h1
             className="
               text-4xl
@@ -137,12 +86,8 @@ export default async function IssueDetailPage({
               text-white
             "
           >
-
             📤 รายละเอียดใบเบิกพัสดุ
-
           </h1>
-
-
 
           <p
             className="
@@ -152,20 +97,12 @@ export default async function IssueDetailPage({
               text-slate-200
             "
           >
-
             รายละเอียดรายการเบิกจ่ายพัสดุ
-
           </p>
-
-
         </div>
 
-
-
         <Link
-
           href="/issue"
-
           className="
             rounded-xl
             bg-gradient-to-r
@@ -179,20 +116,16 @@ export default async function IssueDetailPage({
             transition
             hover:scale-105
           "
-
         >
-
           ← กลับ
-
         </Link>
-
-
-
       </div>
-            {/* ข้อมูลใบเบิก */}
+
+      {/* ข้อมูลใบเบิก */}
 
       <div
         className="
+          space-y-4
           rounded-2xl
           border
           border-slate-700
@@ -200,80 +133,39 @@ export default async function IssueDetailPage({
           from-slate-950
           to-slate-800
           p-6
-          shadow-xl
           text-white
-          space-y-4
+          shadow-xl
         "
       >
-
-
         <p>
-
           <span className="font-extrabold">
             เลขที่ใบเบิก :
-          </span>
-
-          {" "}
-
+          </span>{" "}
           {issue.documentNo}
-
         </p>
 
-
-
-
         <p>
-
-          <span className="font-extrabอด">
+          <span className="font-extrabold">
             วันที่เบิก :
-          </span>
-
-          {" "}
-
-
-          {
-            new Date(issue.issueDate)
-            .toLocaleDateString("th-TH")
-          }
-
-
+          </span>{" "}
+          {new Date(
+            issue.issueDate
+          ).toLocaleDateString("th-TH")}
         </p>
 
-
-
-
         <p>
-
           <span className="font-extrabold">
             หน่วยงาน :
-          </span>
-
-          {" "}
-
+          </span>{" "}
           {issue.department.name}
-
-
         </p>
-
-
-
 
         <p>
-
           <span className="font-extrabold">
             หมายเหตุ :
-          </span>
-
-          {" "}
-
+          </span>{" "}
           {issue.remark || "-"}
-
-
         </p>
-
-
-
-
 
         <div
           className="
@@ -282,22 +174,11 @@ export default async function IssueDetailPage({
             gap-3
           "
         >
-
-
           <span className="font-extrabold">
-
             เอกสารแนบ :
-
           </span>
 
-
-
-
-          {
-            issue.pdf
-
-            ?
-
+          {issue.pdf ? (
             <div
               className="
                 flex
@@ -305,13 +186,9 @@ export default async function IssueDetailPage({
                 gap-3
               "
             >
-
               <a
-
                 href={issue.pdf}
-
                 target="_blank"
-
                 className="
                   rounded-lg
                   bg-blue-600
@@ -321,52 +198,23 @@ export default async function IssueDetailPage({
                   text-white
                   hover:bg-blue-700
                 "
-
               >
-
                 เปิดไฟล์ PDF
-
               </a>
 
-
-
-
               <DeletePdfButton
-
                 id={issue.id}
-
               />
-
-
             </div>
-
-
-            :
-
-
+          ) : (
             <span className="text-slate-300">
-
               -
-
             </span>
-
-
-          }
-
-
-
+          )}
         </div>
-
-
-
       </div>
 
-
-
-
-
       {/* ตารางรายการ */}
-
 
       <div
         className="
@@ -378,27 +226,14 @@ export default async function IssueDetailPage({
           shadow-xl
         "
       >
-
-
-        <div
-          className="
-            overflow-x-auto
-          "
-        >
-
-
+        <div className="overflow-x-auto">
           <table
             className="
               w-full
               text-sm
             "
           >
-
-
-
             <thead>
-
-
               <tr
                 className="
                   bg-gradient-to-r
@@ -414,8 +249,7 @@ export default async function IssueDetailPage({
                   "หน่วย",
                   "จำนวน",
                   "ราคาต่อหน่วย",
-                ].map((title)=>(
-
+                ].map((title) => (
                   <th
                     key={title}
                     className="
@@ -429,205 +263,106 @@ export default async function IssueDetailPage({
                       text-white
                     "
                   >
-
                     {title}
-
                   </th>
-
                 ))}
-
-
               </tr>
-
-
             </thead>
 
-
-
-
-
             <tbody>
-
-
-              {
-                issue.items.map(
-                  (
-                    item:IssueItem,
-                    index:number
-                  )=>(
-
-
-                    <tr
-
-                      key={item.id}
-
+              {issue.items.map(
+                (
+                  item: IssueItem,
+                  index: number
+                ) => (
+                  <tr
+                    key={item.id}
+                    className="
+                      text-slate-900
+                      transition
+                      hover:bg-emerald-50
+                    "
+                  >
+                    <td
                       className="
-                        text-slate-900
-                        transition
-                        hover:bg-emerald-50
+                        border
+                        px-3
+                        py-3
+                        text-center
+                        font-bold
                       "
-
                     >
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                          text-center
-                          font-bold
-                        "
-                      >
-
-                        {index + 1}
-
-                      </td>
-
-
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                        "
-                      >
-
-                        {
-                          categoryName[
-                            item.material.category
-                          ]
-                        }
-
-
-                      </td>
-
-
-
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                          font-semibold
-                        "
-                      >
-
-
-                        {item.material.code}
-
-                        {" - "}
-
-                        {item.material.name}
-
-
-                      </td>
-
-
-
-
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                          text-center
-                        "
-                      >
-
-
-                        {item.material.unit}
-
-
-                      </td>
-
-
-
-
-
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                          text-center
-                        "
-                      >
-
-
-                        {item.qty}
-
-
-                      </td>
-
-
-
-
-
-
-
-
-                      <td
-                        className="
-                          border
-                          px-3
-                          py-3
-                          text-right
-                        "
-                      >
-
-
-                        {
-                          Number(
-                            item.material.latestPrice
-                          )
-                          .toFixed(2)
-                        }
-
-
-                      </td>
-
-
-
-
-
-                    </tr>
-
-
-                  )
+                      {index + 1}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        px-3
+                        py-3
+                      "
+                    >
+                      {
+                        categoryName[
+                          item.material.category
+                        ]
+                      }
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        px-3
+                        py-3
+                        font-semibold
+                      "
+                    >
+                      {item.material.code}
+                      {" - "}
+                      {item.material.name}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
+                      {item.material.unit}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
+                      {item.qty}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        px-3
+                        py-3
+                        text-right
+                      "
+                    >
+                      {Number(
+                        item.material.latestPrice
+                      ).toFixed(2)}
+                    </td>
+                  </tr>
                 )
-              }
-
-
+              )}
             </tbody>
-
-
-
           </table>
-
-
-
         </div>
-
-
-
       </div>
-          </div>
-
+    </div>
   );
-
-
 }
