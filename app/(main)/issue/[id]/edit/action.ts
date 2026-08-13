@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 type IssueRow = {
   materialId: number;
@@ -17,7 +18,6 @@ function sortFEFO(a: any, b: any) {
     !b.manufacture &&
     !b.expiry;
 
-  // ไม่มีวันผลิต + ไม่มีวันหมดอายุ
   if (
     aUnspecified &&
     !bUnspecified
@@ -32,7 +32,6 @@ function sortFEFO(a: any, b: any) {
     return 1;
   }
 
-  // ทั้งคู่ไม่มีวัน
   if (
     aUnspecified &&
     bUnspecified
@@ -122,10 +121,6 @@ export async function updateIssue(
       "remark"
     ) as string) || "";
 
-  // =====================================================
-  // อ่านรายการใหม่จาก FormData
-  // =====================================================
-
   const newItems: IssueRow[] =
     [];
 
@@ -189,11 +184,6 @@ export async function updateIssue(
   try {
     await prisma.$transaction(
       async (tx: any) => {
-
-        // =================================================
-        // ดึงใบเบิกเดิม
-        // =================================================
-
         const oldIssue =
           await tx.issue.findUnique({
             where: {
@@ -227,11 +217,6 @@ export async function updateIssue(
           )
         );
 
-        // =================================================
-        // รวม material เดิมทั้งหมด
-        // เพื่อคำนวณยอดหลังคืนล็อต
-        // =================================================
-
         const affectedMaterialIds =
           [
             ...new Set([
@@ -246,22 +231,10 @@ export async function updateIssue(
             ]),
           ];
 
-        // =================================================
-        // คืนยอดจากใบเบิกเดิม
-        // =================================================
-
         for (
           const oldItem
           of oldIssue.items
         ) {
-
-          // คืน Material.balance
-          //
-          // ค่าจริงสุดท้ายจะคำนวณใหม่
-          // จาก ReceiveItem ด้านล่าง
-          // แต่คืนไว้ก่อนเพื่อรักษาสถานะ
-          // ระหว่างการทำ transaction
-
           if (
             oldItem.receiveItemId
           ) {
@@ -281,19 +254,11 @@ export async function updateIssue(
           }
         }
 
-        // =================================================
-        // ลบ IssueItem เดิม
-        // =================================================
-
         await tx.issueItem.deleteMany({
           where: {
             issueId,
           },
         });
-
-        // =================================================
-        // แก้ Header ใบเบิก
-        // =================================================
 
         await tx.issue.update({
           where: {
@@ -308,14 +273,9 @@ export async function updateIssue(
           },
         });
 
-        // =================================================
-        // สร้างรายการใหม่ตาม FEFO
-        // =================================================
-
         for (
           const item of newItems
         ) {
-
           const material =
             await tx.material.findUnique({
               where: {
@@ -330,10 +290,6 @@ export async function updateIssue(
             );
           }
 
-          // =================================================
-          // ดึงล็อตที่ยังเหลือ
-          // =================================================
-
           const receiveItems =
             await tx.receiveItem.findMany({
               where: {
@@ -346,17 +302,9 @@ export async function updateIssue(
               },
             });
 
-          // =================================================
-          // เรียง FEFO
-          // =================================================
-
           receiveItems.sort(
             sortFEFO
           );
-
-          // =================================================
-          // รวมยอดล็อต
-          // =================================================
 
           const totalReceiveBalance =
             receiveItems.reduce(
@@ -415,15 +363,10 @@ export async function updateIssue(
           let remainingQty =
             item.qty;
 
-          // =================================================
-          // ตัดล็อตตาม FEFO
-          // =================================================
-
           for (
             const receiveItem
             of receiveItems
           ) {
-
             if (
               remainingQty <= 0
             ) {
@@ -447,7 +390,6 @@ export async function updateIssue(
               continue;
             }
 
-            // ลดล็อต
             await tx.receiveItem.update({
               where: {
                 id:
@@ -462,7 +404,6 @@ export async function updateIssue(
               },
             });
 
-            // สร้าง IssueItem
             await tx.issueItem.create({
               data: {
                 issueId,
@@ -497,16 +438,10 @@ export async function updateIssue(
           }
         }
 
-        // =================================================
-        // คำนวณ Material.balance ใหม่
-        // สำหรับ Material ที่ได้รับผลกระทบทั้งหมด
-        // =================================================
-
         for (
           const materialId
           of affectedMaterialIds
         ) {
-
           const remainingLots =
             await tx.receiveItem.aggregate({
               where: {
@@ -550,6 +485,13 @@ export async function updateIssue(
 
     throw error;
   }
+
+  // บังคับให้หน้า Issue และหน้ารายละเอียด
+  // ดึงข้อมูลใหม่จากฐานข้อมูล
+  revalidatePath("/issue");
+  revalidatePath(
+    `/issue/${issueId}`
+  );
 
   redirect("/issue");
 }
