@@ -80,11 +80,7 @@ export async function createIssue(formData: FormData) {
     qty: number;
   }[] = [];
 
-  for (
-    let i = 0;
-    i < 15;
-    i++
-  ) {
+  for (let i = 0; i < 15; i++) {
     const materialId =
       formData.get(
         `items[${i}].materialId`
@@ -101,11 +97,8 @@ export async function createIssue(formData: FormData) {
       Number(qty) > 0
     ) {
       items.push({
-        materialId:
-          Number(materialId),
-
-        qty:
-          Number(qty),
+        materialId: Number(materialId),
+        qty: Number(qty),
       });
     }
   }
@@ -117,23 +110,17 @@ export async function createIssue(formData: FormData) {
   }
 
   // =====================
-  // บันทึกข้อมูล
+  // Transaction
   // =====================
 
   await prisma.$transaction(
     async (tx: any) => {
 
-      // =====================
-      // สร้างใบเบิก
-      // =====================
-
       const issue =
         await tx.issue.create({
           data: {
             issueDate,
-
             documentNo,
-
             departmentId,
 
             officerId:
@@ -142,19 +129,15 @@ export async function createIssue(formData: FormData) {
                 : null,
 
             remark,
-
-            pdf:
-              pdfPath,
+            pdf: pdfPath,
           },
         });
 
       // =====================
-      // ตัดสต็อกตาม FEFO
+      // ตัด Stock ตาม FEFO
       // =====================
 
-      for (
-        const item of items
-      ) {
+      for (const item of items) {
 
         let remainingQty =
           item.qty;
@@ -166,14 +149,26 @@ export async function createIssue(formData: FormData) {
         const material =
           await tx.material.findUnique({
             where: {
-              id:
-                item.materialId,
+              id: item.materialId,
             },
           });
 
         if (!material) {
           throw new Error(
             `ไม่พบพัสดุ ID ${item.materialId}`
+          );
+        }
+
+        // =====================
+        // ตรวจ Material.balance
+        // =====================
+
+        if (
+          material.balance <
+          item.qty
+        ) {
+          throw new Error(
+            `พัสดุ "${material.name}" มีจำนวนคงเหลือไม่เพียงพอ`
           );
         }
 
@@ -207,7 +202,73 @@ export async function createIssue(formData: FormData) {
           });
 
         // =====================
-        // ตรวจจำนวนล็อต
+        // กรณีไม่มีล็อต
+        // =====================
+
+        if (
+          receiveItems.length === 0
+        ) {
+
+          /*
+           * กรณีนี้คือ Stock เดิม
+           * มีอยู่ใน Material.balance
+           * แต่ไม่มี ReceiveItem
+           *
+           * จึงสร้าง ReceiveItem
+           * สำหรับยอดยกเข้าระบบ
+           */
+
+          const openingReceive =
+            await tx.receive.findFirst({
+              where: {
+                documentNo:
+                  "ยอดยกเข้าระบบ",
+              },
+
+              orderBy: {
+                id: "asc",
+              },
+            });
+
+          if (!openingReceive) {
+            throw new Error(
+              "ไม่พบรายการรับ 'ยอดยกเข้าระบบ' สำหรับสร้างล็อตเริ่มต้น"
+            );
+          }
+
+          const openingLot =
+            await tx.receiveItem.create({
+              data: {
+                receiveId:
+                  openingReceive.id,
+
+                materialId:
+                  item.materialId,
+
+                qty:
+                  material.balance,
+
+                balance:
+                  material.balance,
+
+                unitPrice:
+                  material.latestPrice,
+
+                manufacture:
+                  null,
+
+                expiry:
+                  null,
+              },
+            });
+
+          receiveItems.push(
+            openingLot
+          );
+        }
+
+        // =====================
+        // ตรวจยอดล็อต
         // =====================
 
         const totalReceiveBalance =
@@ -228,7 +289,7 @@ export async function createIssue(formData: FormData) {
           item.qty
         ) {
           throw new Error(
-            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ`
+            `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ (ล็อตเหลือ ${totalReceiveBalance} แต่ต้องการเบิก ${item.qty})`
           );
         }
 
@@ -259,7 +320,7 @@ export async function createIssue(formData: FormData) {
             );
 
           // =====================
-          // ลด ReceiveItem.balance
+          // ลดล็อต
           // =====================
 
           await tx.receiveItem.update({
@@ -278,7 +339,6 @@ export async function createIssue(formData: FormData) {
 
           // =====================
           // สร้าง IssueItem
-          // ผูกล็อตจริง
           // =====================
 
           await tx.issueItem.create({
@@ -308,8 +368,8 @@ export async function createIssue(formData: FormData) {
         }
 
         // =====================
-        // คำนวณ Material.balance ใหม่
-        // จากยอด ReceiveItem จริง
+        // คำนวณ Material.balance
+        // จาก ReceiveItem จริง
         // =====================
 
         const remainingLots =
