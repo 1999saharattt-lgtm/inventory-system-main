@@ -14,22 +14,23 @@ export default async function Header() {
         w-full
         items-center
         justify-between
-        gap-6
+        gap-3
         border-b
         border-slate-200
         bg-white/95
-        backdrop-blur
-        px-8
-        py-3
+        px-3
+        py-2
         shadow-sm
+        backdrop-blur
+        sm:gap-4
+        sm:px-5
+        sm:py-3
+        md:px-8
       "
     >
-
       {/* Spacer */}
 
-<div className="flex-1" />
-
-
+      <div className="flex-1 min-w-0" />
 
       {/* User */}
 
@@ -38,75 +39,75 @@ export default async function Header() {
           flex
           shrink-0
           items-center
-          gap-3
+          gap-2
+          sm:gap-3
         "
       >
-
         <div
-  className="
-    rounded-xl
-    border
-    border-slate-200
-    bg-white
-    px-5
-    py-2
-    text-right
-    shadow-sm
-  "
->
-
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-3
+            py-1.5
+            text-right
+            shadow-sm
+            sm:px-5
+            sm:py-2
+          "
+        >
           <div
-  className="
-    whitespace-nowrap
-    text-lg
-    font-extrabold
-    text-slate-800
-  "
->
+            className="
+              max-w-[140px]
+              truncate
+              whitespace-nowrap
+              text-sm
+              font-extrabold
+              text-slate-800
+              sm:max-w-none
+              sm:text-lg
+            "
+          >
             {user.fullname}
           </div>
 
-
           <div
-  className="
-    whitespace-nowrap
-    text-base
-    font-bold
-    text-blue-600
-  "
->
+            className="
+              whitespace-nowrap
+              text-xs
+              font-bold
+              text-blue-600
+              sm:text-base
+            "
+          >
             {user.role}
           </div>
-
         </div>
 
-
-
         <form action={logout}>
-
           <button
             type="submit"
             className="
-  whitespace-nowrap
-  rounded-xl
-  bg-red-600
-  px-5
-  py-2
-  text-base
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:bg-red-700
-"
+              whitespace-nowrap
+              rounded-xl
+              bg-red-600
+              px-3
+              py-2
+              text-sm
+              font-extrabold
+              text-white
+              shadow-lg
+              transition
+              hover:bg-red-700
+              sm:px-5
+              sm:text-base
+            "
           >
             ออกจากระบบ
           </button>
-
         </form>
-
       </div>
-
     </header>
   );
 }

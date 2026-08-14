@@ -8,31 +8,24 @@ export default function MainLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-100">
-
       <Sidebar />
 
-      <div
-        className="
-          flex-1
-          min-w-0
-        "
-      >
-
+      <div className="flex-1 min-w-0">
         <Header />
 
         <main
           className="
-            p-4
+            min-w-0
+            p-3
             bg-white
             min-h-screen
-            overflow-x-auto
+            overflow-x-hidden
+            sm:p-4
           "
         >
           {children}
         </main>
-
       </div>
-
     </div>
   );
 }

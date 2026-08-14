@@ -98,6 +98,8 @@ export default function Sidebar() {
   return (
     <aside
       className="
+        hidden
+        md:block
         w-72
         shrink-0
         min-h-screen
@@ -113,7 +115,6 @@ export default function Sidebar() {
       {/* Logo */}
 
       <div className="border-b border-slate-800 p-5">
-
         <div
           className="
             rounded-2xl
@@ -124,9 +125,7 @@ export default function Sidebar() {
             shadow-xl
           "
         >
-
           <div className="flex items-center gap-4">
-
             <div
               className="
                 flex
@@ -139,17 +138,14 @@ export default function Sidebar() {
                 shadow-inner
               "
             >
-
               <img
                 src="/images/dohl-logo.png"
                 alt="กรมอนามัย"
                 className="h-10 w-10 object-contain"
               />
-
             </div>
 
             <div className="min-w-0 flex-1">
-
               <h1
                 className="
                   truncate
@@ -171,13 +167,9 @@ export default function Sidebar() {
               >
                 สำนักอนามัยการเจริญพันธุ์
               </p>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
 
       <nav
@@ -187,40 +179,32 @@ export default function Sidebar() {
           py-6
         "
       >
-              {menus.map((group) => (
+        {menus.map((group) => (
           <div key={group.title}>
-
             <div className="mb-3 px-3">
-
               <p
-  className="
-    sidebar-title
-    text-lg
-    font-black
-    tracking-[0.15em]
-    mb-3
-  "
->
-  {group.title}
-</p>
-
+                className="
+                  sidebar-title
+                  text-lg
+                  font-black
+                  tracking-[0.15em]
+                  mb-3
+                "
+              >
+                {group.title}
+              </p>
             </div>
 
             <div className="space-y-2">
-
               {group.items.map((item) => {
-
                 const active =
                   pathname === item.href ||
-                  (
-                    item.href !== "/" &&
-                    pathname.startsWith(item.href)
-                  );
+                  (item.href !== "/" &&
+                    pathname.startsWith(item.href));
 
                 const Icon = item.icon;
 
                 return (
-
                   <Link
                     key={item.href}
                     href={item.href}
@@ -256,7 +240,6 @@ export default function Sidebar() {
                       }
                     `}
                   >
-
                     {active && (
                       <div
                         className="
@@ -288,32 +271,30 @@ export default function Sidebar() {
                         }
                       `}
                     >
-
                       <Icon
                         size={20}
                         strokeWidth={2.2}
                       />
-
                     </div>
 
                     <div className="flex flex-1 flex-col">
-  <span
-    className={`
-      whitespace-nowrap
-      text-[17px]
-      font-extrabold
-      leading-tight
+                      <span
+                        className={`
+                          whitespace-nowrap
+                          text-[17px]
+                          font-extrabold
+                          leading-tight
 
-      ${
-        active
-          ? "text-white"
-          : "text-white"
-      }
-    `}
-  >
-    {item.name}
-  </span>
-</div>
+                          ${
+                            active
+                              ? "text-white"
+                              : "text-white"
+                          }
+                        `}
+                      >
+                        {item.name}
+                      </span>
+                    </div>
 
                     <div
                       className={`
@@ -327,7 +308,6 @@ export default function Sidebar() {
                         }
                       `}
                     >
-
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="18"
@@ -341,21 +321,14 @@ export default function Sidebar() {
                       >
                         <path d="m9 18 6-6-6-6" />
                       </svg>
-
                     </div>
-
                   </Link>
-
                 );
-
               })}
-
             </div>
-
           </div>
-
         ))}
       </nav>
-          </aside>
+    </aside>
   );
 }
