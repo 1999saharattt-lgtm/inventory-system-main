@@ -1,5 +1,6 @@
 import { logout } from "@/app/logout/action";
 import { requireLogin } from "@/lib/auth";
+import MobileMenu from "@/components/MobileMenu";
 
 export default async function Header() {
   const user = await requireLogin();
@@ -28,6 +29,10 @@ export default async function Header() {
         md:px-8
       "
     >
+      {/* Mobile Menu */}
+
+      <MobileMenu />
+
       {/* Spacer */}
 
       <div className="flex-1 min-w-0" />
