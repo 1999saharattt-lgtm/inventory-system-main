@@ -26,6 +26,11 @@ export default function RootLayout({
           type="font/ttf"
           crossOrigin="anonymous"
         />
+
+        <meta
+          name="google-site-verification"
+          content="csaYjXfNZG2BT_fsSEpRBqFVc2dtLSNNkkywzoStvO0"
+        />
       </head>
 
       <body className="bg-gray-100 text-black">
