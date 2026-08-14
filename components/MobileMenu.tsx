@@ -40,6 +40,7 @@ const menus: MenuGroup[] = [
       },
     ],
   },
+
   {
     title: "รายงานพัสดุ",
     items: [
@@ -70,6 +71,7 @@ const menus: MenuGroup[] = [
       },
     ],
   },
+
   {
     title: "ผู้ดูแลระบบ",
     items: [
@@ -98,6 +100,8 @@ export default function MobileMenu() {
 
   return (
     <>
+      {/* Menu Button */}
+
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -119,8 +123,19 @@ export default function MobileMenu() {
         <Menu size={22} />
       </button>
 
+      {/* Mobile Drawer */}
+
       {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div
+          className="
+            fixed
+            inset-0
+            z-[9999]
+            md:hidden
+          "
+        >
+          {/* Overlay */}
+
           <div
             className="
               absolute
@@ -130,13 +145,19 @@ export default function MobileMenu() {
             onClick={() => setOpen(false)}
           />
 
+          {/* Drawer */}
+
           <aside
             className="
-              absolute
+              fixed
               left-0
               top-0
-              h-full
+              z-[10000]
+              flex
+              h-[100dvh]
               w-[290px]
+              max-w-[85vw]
+              flex-col
               overflow-y-auto
               bg-gradient-to-b
               from-slate-950
@@ -145,9 +166,12 @@ export default function MobileMenu() {
               shadow-2xl
             "
           >
+            {/* Header */}
+
             <div
               className="
                 flex
+                shrink-0
                 items-center
                 justify-between
                 border-b
@@ -158,6 +182,7 @@ export default function MobileMenu() {
               <div
                 className="
                   flex
+                  min-w-0
                   items-center
                   gap-3
                 "
@@ -167,6 +192,7 @@ export default function MobileMenu() {
                     flex
                     h-11
                     w-11
+                    shrink-0
                     items-center
                     justify-center
                     rounded-xl
@@ -180,12 +206,26 @@ export default function MobileMenu() {
                   />
                 </div>
 
-                <div>
-                  <div className="text-sm font-extrabold text-white">
+                <div className="min-w-0">
+                  <div
+                    className="
+                      truncate
+                      text-sm
+                      font-extrabold
+                      text-white
+                    "
+                  >
                     ระบบบริหารคลังพัสดุ
                   </div>
 
-                  <div className="text-xs font-semibold text-blue-400">
+                  <div
+                    className="
+                      truncate
+                      text-xs
+                      font-semibold
+                      text-blue-400
+                    "
+                  >
                     สำนักอนามัยการเจริญพันธุ์
                   </div>
                 </div>
@@ -198,6 +238,7 @@ export default function MobileMenu() {
                   flex
                   h-9
                   w-9
+                  shrink-0
                   items-center
                   justify-center
                   rounded-xl
@@ -210,7 +251,17 @@ export default function MobileMenu() {
               </button>
             </div>
 
-            <nav className="space-y-7 px-4 py-6">
+            {/* Menu */}
+
+            <nav
+              className="
+                flex-1
+                space-y-7
+                overflow-y-auto
+                px-4
+                py-6
+              "
+            >
               {menus.map((group) => (
                 <div key={group.title}>
                   <p
@@ -242,6 +293,7 @@ export default function MobileMenu() {
                           onClick={() => setOpen(false)}
                           className={`
                             flex
+                            min-h-12
                             items-center
                             gap-3
                             rounded-2xl
@@ -259,6 +311,7 @@ export default function MobileMenu() {
                               flex
                               h-10
                               w-10
+                              shrink-0
                               items-center
                               justify-center
                               rounded-xl
@@ -275,7 +328,13 @@ export default function MobileMenu() {
                             />
                           </div>
 
-                          <span className="text-[17px] font-extrabold">
+                          <span
+                            className="
+                              whitespace-nowrap
+                              text-[17px]
+                              font-extrabold
+                            "
+                          >
                             {item.name}
                           </span>
                         </Link>
