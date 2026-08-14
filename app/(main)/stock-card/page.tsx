@@ -48,60 +48,72 @@ const categories: Category[] = [
 
 export default function StockCardHome() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+
       {/* Header */}
+
       <div
         className="
-  flex
-  items-center
-  justify-between
-  rounded-2xl
-  bg-gradient-to-r
-  from-slate-950
-  via-slate-800
-  to-slate-700
-  px-8
-  py-6
-  min-h-[140px]
-  text-white
-  shadow-xl
-"
+          flex
+          flex-col
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-4
+          py-5
+          text-white
+          shadow-xl
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
+        "
       >
         <div>
+
           <h1
             className="
-  text-5xl
-  font-extrabold
-  leading-tight
-  !text-white
-"
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-5xl
+            "
           >
             📚 รายการบัญชีพัสดุ
           </h1>
 
           <p
-  className="
-  mt-2
-  text-xl
-  font-semibold
-  !text-slate-200
-"
->
+            className="
+              mt-2
+              text-base
+              font-semibold
+              !text-slate-200
+              sm:text-xl
+            "
+          >
             เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ
           </p>
+
         </div>
       </div>
 
       {/* Category Cards */}
+
       <div
         className="
           grid
-          gap-5
+          grid-cols-1
+          gap-4
+          sm:gap-5
           md:grid-cols-2
           xl:grid-cols-3
         "
       >
+
         {categories.map((cat) => (
+
           <Link
             key={cat.code}
             href={`/stock-card/${cat.code}`}
@@ -119,6 +131,7 @@ export default function StockCardHome() {
               hover:shadow-2xl
             "
           >
+
             <div
               className="
                 h-2
@@ -131,19 +144,23 @@ export default function StockCardHome() {
             <div
               className="
                 flex
-                min-h-[230px]
+                min-h-[190px]
                 flex-col
                 items-center
-                gap-5
-                p-6
+                gap-4
+                p-5
                 text-center
+                sm:min-h-[230px]
+                sm:gap-5
+                sm:p-6
               "
             >
+
               <div
                 className="
                   flex
-                  h-16
-                  w-16
+                  h-14
+                  w-14
                   shrink-0
                   items-center
                   justify-center
@@ -151,23 +168,29 @@ export default function StockCardHome() {
                   border
                   border-slate-200
                   bg-slate-100
-                  text-3xl
+                  text-2xl
                   shadow-md
                   transition
                   duration-300
                   group-hover:scale-110
+                  sm:h-16
+                  sm:w-16
+                  sm:text-3xl
                 "
               >
                 {cat.icon}
               </div>
 
               <div>
+
                 <h2
                   className="
-                    mt-5
-                    text-xl
+                    mt-2
+                    text-lg
                     font-extrabold
                     text-slate-900
+                    sm:mt-5
+                    sm:text-xl
                   "
                 >
                   {cat.name}
@@ -175,39 +198,51 @@ export default function StockCardHome() {
 
                 <p
                   className="
-                    mt-2
-                    text-lg
+                    mt-1
+                    text-base
                     font-semibold
                     text-slate-600
+                    sm:mt-2
+                    sm:text-lg
                   "
                 >
                   คลิกเพื่อดูรายการบัญชีพัสดุ
                 </p>
+
               </div>
 
               <span
                 className="
-                  mt-5
+                  mt-2
                   rounded-xl
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-950
-                  px-8
-                  py-3
-                  text-lg
+                  px-7
+                  py-2.5
+                  text-base
                   font-extrabold
                   text-white
                   shadow-lg
                   transition
                   group-hover:scale-105
+                  sm:mt-5
+                  sm:px-8
+                  sm:py-3
+                  sm:text-lg
                 "
               >
                 เปิด
               </span>
+
             </div>
+
           </Link>
+
         ))}
+
       </div>
+
     </div>
   );
 }

@@ -75,68 +75,83 @@ export default async function CategoryPage({
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
 
       {/* Header */}
 
-<div
-  className="
-    flex
-    items-center
-    justify-between
-    rounded-2xl
-    bg-gradient-to-r
-    from-slate-950
-    via-slate-800
-    to-slate-700
-    p-6
-    text-white
-    shadow-xl
-  "
->
-  <div>
-    <h1
-      className="
-        !text-white
-        text-5xl
-        font-extrabold
-        leading-tight
-      "
-    >
-      {categoryNames[category]}
-    </h1>
+      <div
+        className="
+          flex
+          flex-col
+          gap-4
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          p-4
+          text-white
+          shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:p-6
+        "
+      >
+        <div className="min-w-0">
 
-    <p
-      className="
-        mt-3
-        text-xl
-        font-semibold
-        text-slate-200
-      "
-    >
-      รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
-    </p>
-  </div>
+          <h1
+            className="
+              !text-white
+              text-2xl
+              font-extrabold
+              leading-tight
+              sm:text-5xl
+            "
+          >
+            {categoryNames[category]}
+          </h1>
 
-  <Link
-    href="/stock-card"
-    className="
-      rounded-xl
-      bg-gradient-to-r
-      from-emerald-600
-      to-green-500
-      px-5
-      py-3
-      font-extrabold
-      text-white
-      shadow-lg
-      transition
-      hover:scale-105
-    "
-  >
-    ← กลับ
-  </Link>
-</div>
+          <p
+            className="
+              mt-2
+              text-base
+              font-semibold
+              text-slate-200
+              sm:mt-3
+              sm:text-xl
+            "
+          >
+            รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
+          </p>
+
+        </div>
+
+        <Link
+          href="/stock-card"
+          className="
+            w-full
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-2.5
+            text-center
+            text-base
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            sm:w-auto
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          ← กลับ
+        </Link>
+      </div>
 
       {/* Search */}
 
@@ -148,16 +163,20 @@ export default async function CategoryPage({
       {/* Table */}
 
       <div className="overflow-x-auto">
+
         <table
           className="
-            min-w-full
+            min-w-[900px]
             border
             border-slate-900
             border-collapse
           "
         >
+
           <thead>
+
             <tr>
+
               {[
                 "ลำดับ",
                 "รหัสพัสดุ",
@@ -185,12 +204,17 @@ export default async function CategoryPage({
                   {title}
                 </th>
               ))}
+
             </tr>
+
           </thead>
 
           <tbody>
+
             {materials.length === 0 ? (
+
               <tr>
+
                 <td
                   colSpan={6}
                   className="
@@ -205,21 +229,25 @@ export default async function CategoryPage({
                 >
                   ไม่พบข้อมูล
                 </td>
+
               </tr>
+
             ) : (
+
               materials.map((material, index) => {
+
                 const latestReceive = material.receiveItems[0];
 
                 const latestVendor =
                   latestReceive?.receive.vendor?.name ?? "-";
 
                 return (
+
                   <tr
                     key={material.id}
-                    className="
-                      hover:bg-blue-50
-                    "
+                    className="hover:bg-blue-50"
                   >
+
                     <td
                       className="
                         border
@@ -300,6 +328,7 @@ export default async function CategoryPage({
                       <Link
                         href={`/stock-card/material/${material.id}`}
                         className="
+                          inline-block
                           rounded-xl
                           bg-gradient-to-r
                           from-emerald-600
@@ -316,13 +345,20 @@ export default async function CategoryPage({
                         เปิด
                       </Link>
                     </td>
+
                   </tr>
+
                 );
               })
+
             )}
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
   );
 }

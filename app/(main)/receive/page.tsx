@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
-
 type Receive = {
   id: number;
   receiveDate: Date;
@@ -18,106 +17,100 @@ type Receive = {
   }[];
 };
 
-
-
 export default async function ReceivePage() {
+  const receives = await prisma.receive.findMany({
+    include: {
+      vendor: true,
+      items: true,
+    },
 
-
-  const receives =
-    await prisma.receive.findMany({
-
-      include: {
-        vendor: true,
-        items: true,
-      },
-
-      orderBy: {
-        id: "desc",
-      },
-
-    });
-
-
+    orderBy: {
+      id: "desc",
+    },
+  });
 
   return (
-
-    <div className="space-y-6">
-
+    <div className="space-y-4 sm:space-y-6">
 
       {/* Header */}
 
-<div
-  className="
-  flex
-  items-center
-  justify-between
-  rounded-2xl
-  bg-gradient-to-r
-  from-slate-950
-  via-slate-800
-  to-slate-700
-  px-8
-  py-6
-  min-h-[140px]
-  text-white
-  shadow-xl
-"
->
+      <div
+        className="
+          flex
+          flex-col
+          gap-4
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-4
+          py-5
+          text-white
+          shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:px-8
+          sm:py-6
+        "
+      >
+        <div className="min-w-0">
 
-  <div>
+          <h1
+            className="
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-5xl
+            "
+          >
+            📥 รายการรับเข้าพัสดุ
+          </h1>
 
-    <h1
-      className="
-  text-5xl
-  font-extrabold
-  leading-tight
-  !text-white
-"
-    >
-      📥 รายการรับเข้าพัสดุ
-    </h1>
+          <p
+            className="
+              mt-2
+              text-base
+              font-semibold
+              !text-slate-200
+              sm:text-xl
+            "
+          >
+            แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
+          </p>
 
-    <p
-  className="
-  mt-2
-  text-xl
-  font-semibold
-  !text-slate-200
-"
->
-      แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
-    </p>
+        </div>
 
-  </div>
-
-  <Link
-    href="/receive/create"
-    className="
-  rounded-xl
-  bg-gradient-to-r
-  from-emerald-600
-  to-green-500
-  px-5
-  py-3
-  text-lg
-  font-extrabold
-  text-white
-  shadow-lg
-  transition
-  hover:scale-105
-"
-  >
-    + เพิ่มรายการรับ
-  </Link>
-
-</div>
-
-
-
-
+        <Link
+          href="/receive/create"
+          className="
+            w-full
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-2.5
+            text-center
+            text-base
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            sm:w-auto
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          + เพิ่มรายการรับ
+        </Link>
+      </div>
 
       {/* Table */}
-
 
       <div
         className="
@@ -130,23 +123,19 @@ export default async function ReceivePage() {
         "
       >
 
-
         <div className="overflow-x-auto">
 
-
           <table
-  className="
-    min-w-full
-    border
-    border-slate-900
-  "
->
-
+            className="
+              min-w-[1000px]
+              border
+              border-slate-900
+            "
+          >
 
             <thead>
 
               <tr>
-
 
                 {[
                   "ลำดับ",
@@ -157,86 +146,70 @@ export default async function ReceivePage() {
                   "หมายเหตุ",
                   "จัดการ",
                 ].map((title) => (
-
                   <th
                     key={title}
                     className="
-  border
-  border-slate-900
-  bg-gradient-to-r
-  from-slate-800
-  to-slate-700
-  px-4
-  py-4
-  text-center
-  text-lg
-  font-extrabold
-  text-white
-"
+                      border
+                      border-slate-900
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-4
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
                   >
                     {title}
                   </th>
-
                 ))}
-
 
               </tr>
 
-
             </thead>
-
-
-
-
 
             <tbody>
 
-
               {receives.length > 0 ? (
-
 
                 receives.map(
                   (receive: Receive, index: number) => (
 
-
                     <tr
-  key={receive.id}
-  className="
-    border-b
-    border-slate-900
-    hover:bg-blue-50
-  "
->
-
+                      key={receive.id}
+                      className="
+                        border-b
+                        border-slate-900
+                        hover:bg-blue-50
+                      "
+                    >
 
                       <td
                         className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
                       >
                         {index + 1}
                       </td>
 
-
-
-
-
                       <td
                         className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
                       >
                         {new Date(
                           receive.receiveDate
@@ -245,61 +218,49 @@ export default async function ReceivePage() {
                         )}
                       </td>
 
-
-
-
-
                       <td
                         className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
                       >
                         {receive.documentNo}
                       </td>
 
-
-
-
-
                       <td
                         className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
                       >
                         {receive.vendor.name}
                       </td>
 
-
-
-
-
                       <td
                         className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
                       >
-
                         <Link
                           href={`/receive/${receive.id}`}
                           className="
+                            inline-block
                             rounded-lg
                             bg-slate-800
                             px-4
@@ -313,45 +274,30 @@ export default async function ReceivePage() {
                         >
                           ดูรายการ
                         </Link>
-
-
                       </td>
 
-
-
-
-
                       <td
-  className="
-  border
-  border-slate-900
-  px-4
-  py-3
-  text-center
-  font-extrabold
-  text-slate-900
-"
->
-
-                        {
-                          receive.remark ?? "-"
-                        }
-
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        {receive.remark ?? "-"}
                       </td>
 
-
-
-
-
                       <td
-  className="
-    border
-    border-slate-900
-    px-4
-    py-3
-  "
->
-
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                        "
+                      >
                         <div
                           className="
                             flex
@@ -377,28 +323,19 @@ export default async function ReceivePage() {
                             แก้ไข
                           </Link>
 
-
                           <DeleteButton
                             id={receive.id}
                           />
 
-
                         </div>
-
-
                       </td>
-
 
                     </tr>
 
-
                   )
-
                 )
 
-
               ) : (
-
 
                 <tr>
 
@@ -417,24 +354,16 @@ export default async function ReceivePage() {
 
                 </tr>
 
-
               )}
-
 
             </tbody>
 
-
           </table>
-
 
         </div>
 
-
       </div>
 
-
     </div>
-
   );
-
 }

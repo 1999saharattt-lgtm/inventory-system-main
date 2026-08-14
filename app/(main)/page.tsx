@@ -81,7 +81,7 @@ export default async function Home() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
 
       {/* Hero */}
 
@@ -91,17 +91,20 @@ export default async function Home() {
           border
           border-slate-200
           bg-white
-          px-6
-          py-6
+          px-4
+          py-5
           text-center
           shadow-md
+          sm:px-6
+          sm:py-6
         "
       >
         <h1
           className="
-            text-4xl
+            text-2xl
             font-extrabold
             text-slate-800
+            sm:text-4xl
           "
         >
           👋 ยินดีต้อนรับ
@@ -110,9 +113,10 @@ export default async function Home() {
         <p
           className="
             mt-2
-            text-2xl
+            text-lg
             font-extrabold
             text-blue-700
+            sm:text-2xl
           "
         >
           สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
@@ -124,32 +128,33 @@ export default async function Home() {
       <div
         className="
           grid
-          gap-4
+          grid-cols-1
+          gap-3
+          sm:gap-4
           md:grid-cols-2
           xl:grid-cols-4
         "
       >
         {cards.map((card) => {
-
           const content = (
             <>
               <div className={`h-1 ${card.color}`} />
 
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
 
-                  <div>
+                  <div className="min-w-0">
 
-                    <p className="text-base font-bold text-white">
+                    <p className="text-sm font-bold text-white sm:text-base">
                       {card.title}
                     </p>
 
-                    <p className="mt-1 text-3xl font-extrabold text-white">
+                    <p className="mt-1 text-2xl font-extrabold text-white sm:text-3xl">
                       {card.value}
                     </p>
 
-                    <p className="text-sm font-semibold text-slate-200">
+                    <p className="text-xs font-semibold text-slate-200 sm:text-sm">
                       {card.unit}
                     </p>
 
@@ -158,16 +163,20 @@ export default async function Home() {
                   <div
                     className="
                       flex
-                      h-12
-                      w-12
+                      h-10
+                      w-10
+                      shrink-0
                       items-center
                       justify-center
                       rounded-xl
                       border
                       border-white/20
                       bg-white/10
-                      text-xl
+                      text-lg
                       backdrop-blur
+                      sm:h-12
+                      sm:w-12
+                      sm:text-xl
                     "
                   >
                     {card.icon}
@@ -239,15 +248,17 @@ export default async function Home() {
             border-b
             border-slate-200
             bg-slate-50
-            px-5
+            px-4
             py-3
+            sm:px-5
           "
         >
           <h2
             className="
-              text-xl
+              text-lg
               font-extrabold
               text-slate-800
+              sm:text-xl
             "
           >
             ข้อมูลระบบ
@@ -257,10 +268,12 @@ export default async function Home() {
         <div
           className="
             space-y-1
-            p-5
-            text-base
+            p-4
+            text-sm
             font-semibold
             text-slate-700
+            sm:p-5
+            sm:text-base
           "
         >
           <div>✅ รองรับการรับเข้าพัสดุ</div>
