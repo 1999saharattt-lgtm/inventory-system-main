@@ -48,7 +48,7 @@ const categories: Category[] = [
 
 export default function MaterialsPage() {
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Header */}
 
@@ -56,14 +56,16 @@ export default function MaterialsPage() {
         className="
           flex
           min-h-[110px]
+          w-full
+          min-w-0
           items-center
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-4
-          py-5
+          px-3
+          py-4
           text-white
           shadow-xl
           sm:min-h-[140px]
@@ -75,6 +77,7 @@ export default function MaterialsPage() {
 
           <h1
             className="
+              break-words
               text-2xl
               font-extrabold
               leading-tight
@@ -88,8 +91,10 @@ export default function MaterialsPage() {
           <p
             className="
               mt-2
+              break-words
               text-base
               font-semibold
+              leading-tight
               !text-slate-200
               sm:text-xl
             "
@@ -105,6 +110,8 @@ export default function MaterialsPage() {
       <div
         className="
           grid
+          w-full
+          min-w-0
           grid-cols-1
           gap-3
           sm:gap-5
@@ -119,6 +126,7 @@ export default function MaterialsPage() {
             href={`/materials/category/${cat.code}`}
             className="
               group
+              min-w-0
               overflow-hidden
               rounded-2xl
               border
@@ -145,11 +153,12 @@ export default function MaterialsPage() {
             <div
               className="
                 flex
-                min-h-[190px]
+                min-h-[170px]
+                min-w-0
                 flex-col
                 items-center
-                gap-3
-                p-4
+                gap-2
+                p-3
                 text-center
                 sm:min-h-[230px]
                 sm:gap-5
@@ -160,8 +169,8 @@ export default function MaterialsPage() {
               <div
                 className="
                   flex
-                  h-14
-                  w-14
+                  h-12
+                  w-12
                   shrink-0
                   items-center
                   justify-center
@@ -169,7 +178,7 @@ export default function MaterialsPage() {
                   border
                   border-slate-200
                   bg-slate-100
-                  text-2xl
+                  text-xl
                   shadow-md
                   transition
                   duration-300
@@ -182,13 +191,15 @@ export default function MaterialsPage() {
                 {cat.icon}
               </div>
 
-              <div>
+              <div className="min-w-0 max-w-full">
 
                 <h2
                   className="
-                    mt-2
-                    text-lg
+                    mt-1
+                    break-words
+                    text-base
                     font-extrabold
+                    leading-tight
                     text-slate-900
                     sm:mt-5
                     sm:text-xl
@@ -200,8 +211,10 @@ export default function MaterialsPage() {
                 <p
                   className="
                     mt-1
-                    text-sm
+                    break-words
+                    text-xs
                     font-semibold
+                    leading-tight
                     text-slate-600
                     sm:mt-2
                     sm:text-lg
@@ -214,14 +227,14 @@ export default function MaterialsPage() {
 
               <span
                 className="
-                  mt-2
+                  mt-1
                   rounded-xl
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-950
-                  px-6
+                  px-5
                   py-2
-                  text-base
+                  text-sm
                   font-extrabold
                   text-white
                   shadow-lg

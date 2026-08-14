@@ -81,18 +81,20 @@ export default async function Home() {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Hero */}
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-200
           bg-white
-          px-4
-          py-5
+          px-3
+          py-4
           text-center
           shadow-md
           sm:px-6
@@ -101,8 +103,10 @@ export default async function Home() {
       >
         <h1
           className="
+            break-words
             text-2xl
             font-extrabold
+            leading-tight
             text-slate-800
             sm:text-4xl
           "
@@ -113,8 +117,10 @@ export default async function Home() {
         <p
           className="
             mt-2
-            text-lg
+            break-words
+            text-base
             font-extrabold
+            leading-tight
             text-blue-700
             sm:text-2xl
           "
@@ -128,6 +134,8 @@ export default async function Home() {
       <div
         className="
           grid
+          w-full
+          min-w-0
           grid-cols-1
           gap-3
           sm:gap-4
@@ -140,13 +148,13 @@ export default async function Home() {
             <>
               <div className={`h-1 ${card.color}`} />
 
-              <div className="p-4 sm:p-5">
+              <div className="p-3 sm:p-5">
 
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center justify-between gap-3">
 
                   <div className="min-w-0">
 
-                    <p className="text-sm font-bold text-white sm:text-base">
+                    <p className="break-words text-sm font-bold text-white sm:text-base">
                       {card.title}
                     </p>
 
@@ -190,6 +198,7 @@ export default async function Home() {
 
           const className = `
             group
+            min-w-0
             overflow-hidden
             rounded-2xl
             border
@@ -234,6 +243,8 @@ export default async function Home() {
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-xl
           border
@@ -248,7 +259,7 @@ export default async function Home() {
             border-b
             border-slate-200
             bg-slate-50
-            px-4
+            px-3
             py-3
             sm:px-5
           "
@@ -268,7 +279,7 @@ export default async function Home() {
         <div
           className="
             space-y-1
-            p-4
+            p-3
             text-sm
             font-semibold
             text-slate-700

@@ -51,28 +51,31 @@ export default async function IssuePage() {
   });
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Header */}
 
       <div
         className="
           flex
+          w-full
+          min-w-0
           flex-col
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-4
-          py-5
+          px-3
+          py-4
           text-white
           shadow-xl
           sm:min-h-[140px]
           sm:flex-row
           sm:items-center
           sm:justify-between
+          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -81,6 +84,7 @@ export default async function IssuePage() {
 
           <h1
             className="
+              break-words
               text-2xl
               font-extrabold
               leading-tight
@@ -94,8 +98,10 @@ export default async function IssuePage() {
           <p
             className="
               mt-2
-              text-base
+              break-words
+              text-sm
               font-semibold
+              leading-tight
               !text-slate-200
               sm:text-xl
             "
@@ -109,20 +115,22 @@ export default async function IssuePage() {
           href="/issue/create"
           className="
             w-full
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
+            px-4
             py-2.5
             text-center
-            text-base
+            text-sm
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
             sm:w-auto
+            sm:px-5
             sm:py-3
             sm:text-lg
           "
@@ -135,6 +143,8 @@ export default async function IssuePage() {
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           border
@@ -144,7 +154,7 @@ export default async function IssuePage() {
         "
       >
 
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
 
           <table
             className="
@@ -171,6 +181,7 @@ export default async function IssuePage() {
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -209,6 +220,7 @@ export default async function IssuePage() {
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -223,6 +235,7 @@ export default async function IssuePage() {
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -241,6 +254,7 @@ export default async function IssuePage() {
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -285,6 +299,7 @@ export default async function IssuePage() {
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -358,6 +373,7 @@ export default async function IssuePage() {
                         <Link
                           href={`/issue/${issue.id}/edit`}
                           className="
+                            whitespace-nowrap
                             rounded-lg
                             bg-slate-800
                             px-4
