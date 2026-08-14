@@ -155,10 +155,10 @@ export default function MobileMenu() {
               z-[10000]
               flex
               h-[100dvh]
-              w-[290px]
-              max-w-[85vw]
+              w-[250px]
+              max-w-[80vw]
               flex-col
-              overflow-y-auto
+              overflow-hidden
               bg-gradient-to-b
               from-slate-950
               via-slate-900
@@ -176,7 +176,7 @@ export default function MobileMenu() {
                 justify-between
                 border-b
                 border-slate-800
-                p-4
+                p-3
               "
             >
               <div
@@ -184,14 +184,14 @@ export default function MobileMenu() {
                   flex
                   min-w-0
                   items-center
-                  gap-3
+                  gap-2
                 "
               >
                 <div
                   className="
                     flex
-                    h-11
-                    w-11
+                    h-9
+                    w-9
                     shrink-0
                     items-center
                     justify-center
@@ -202,7 +202,7 @@ export default function MobileMenu() {
                   <img
                     src="/images/dohl-logo.png"
                     alt="กรมอนามัย"
-                    className="h-8 w-8 object-contain"
+                    className="h-7 w-7 object-contain"
                   />
                 </div>
 
@@ -210,7 +210,7 @@ export default function MobileMenu() {
                   <div
                     className="
                       truncate
-                      text-sm
+                      text-xs
                       font-extrabold
                       text-white
                     "
@@ -221,7 +221,7 @@ export default function MobileMenu() {
                   <div
                     className="
                       truncate
-                      text-xs
+                      text-[11px]
                       font-semibold
                       text-blue-400
                     "
@@ -236,18 +236,18 @@ export default function MobileMenu() {
                 onClick={() => setOpen(false)}
                 className="
                   flex
-                  h-9
-                  w-9
+                  h-8
+                  w-8
                   shrink-0
                   items-center
                   justify-center
-                  rounded-xl
+                  rounded-lg
                   bg-slate-800
                   text-white
                 "
                 aria-label="ปิดเมนู"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
@@ -256,28 +256,28 @@ export default function MobileMenu() {
             <nav
               className="
                 flex-1
-                space-y-7
+                space-y-5
                 overflow-y-auto
-                px-4
-                py-6
+                px-3
+                py-4
               "
             >
               {menus.map((group) => (
                 <div key={group.title}>
                   <p
                     className="
-                      mb-3
-                      px-3
-                      text-lg
+                      mb-2
+                      px-2
+                      text-base
                       font-black
-                      tracking-[0.15em]
-                      text-white
+                      tracking-[0.12em]
+                      !text-white
                     "
                   >
                     {group.title}
                   </p>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {group.items.map((item) => {
                       const active =
                         pathname === item.href ||
@@ -293,15 +293,15 @@ export default function MobileMenu() {
                           onClick={() => setOpen(false)}
                           className={`
                             flex
-                            min-h-12
+                            min-h-10
                             items-center
-                            gap-3
-                            rounded-2xl
-                            px-4
-                            py-3
+                            gap-2.5
+                            rounded-xl
+                            px-3
+                            py-2
                             ${
                               active
-                                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-xl"
+                                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg"
                                 : "text-white hover:bg-slate-800"
                             }
                           `}
@@ -309,12 +309,12 @@ export default function MobileMenu() {
                           <div
                             className={`
                               flex
-                              h-10
-                              w-10
+                              h-8
+                              w-8
                               shrink-0
                               items-center
                               justify-center
-                              rounded-xl
+                              rounded-lg
                               ${
                                 active
                                   ? "bg-white/20"
@@ -323,7 +323,7 @@ export default function MobileMenu() {
                             `}
                           >
                             <Icon
-                              size={20}
+                              size={18}
                               strokeWidth={2.2}
                             />
                           </div>
@@ -331,8 +331,9 @@ export default function MobileMenu() {
                           <span
                             className="
                               whitespace-nowrap
-                              text-[17px]
+                              text-[15px]
                               font-extrabold
+                              text-white
                             "
                           >
                             {item.name}
