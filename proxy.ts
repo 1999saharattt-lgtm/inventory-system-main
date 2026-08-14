@@ -8,6 +8,10 @@ const secret = new TextEncoder().encode(
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // =====================================================
+  // Public
+  // =====================================================
+
   // PDF จาก QR Code เปิดได้โดยไม่ต้อง Login
   if (
     pathname.startsWith("/stock-card/material/") &&
@@ -16,7 +20,18 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Google SEO files เปิดได้โดยไม่ต้อง Login
+  if (
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml"
+  ) {
+    return NextResponse.next();
+  }
+
+  // =====================================================
   // Static
+  // =====================================================
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico")
@@ -24,32 +39,53 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get("session")?.value;
+  const token =
+    req.cookies.get("session")?.value;
 
+  // =====================================================
   // Login
+  // =====================================================
+
   if (pathname.startsWith("/login")) {
     if (!token) {
       return NextResponse.next();
     }
 
     try {
-      await jwtVerify(token, secret);
-      return NextResponse.redirect(new URL("/", req.url));
+      await jwtVerify(
+        token,
+        secret
+      );
+
+      return NextResponse.redirect(
+        new URL("/", req.url)
+      );
     } catch {
       return NextResponse.next();
     }
   }
 
+  // =====================================================
   // หน้าอื่นต้อง Login
+  // =====================================================
+
   if (!token) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 
   try {
-    await jwtVerify(token, secret);
+    await jwtVerify(
+      token,
+      secret
+    );
+
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 }
 
