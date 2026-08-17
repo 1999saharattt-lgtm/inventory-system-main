@@ -188,15 +188,23 @@ export default function PdfAutoExport({
 
           const body = pageRows.map(
             (r: any) => {
+              const receiveQty =
+                Number(r.receiveQty);
+
+              const issueQty =
+                Number(r.issueQty);
+
               const hasReceive =
                 r.receiveQty !== null &&
                 r.receiveQty !== undefined &&
-                r.receiveQty !== "";
+                r.receiveQty !== "" &&
+                receiveQty !== 0;
 
               const hasIssue =
                 r.issueQty !== null &&
                 r.issueQty !== undefined &&
-                r.issueQty !== "";
+                r.issueQty !== "" &&
+                issueQty !== 0;
 
               const hasBalance =
                 r.balance !== null &&
@@ -204,30 +212,39 @@ export default function PdfAutoExport({
                 r.balance !== "";
 
               return [
+                // วันที่
                 formatDate(r.date),
 
+                // เลขที่เอกสาร
                 r.documentNo || "-",
 
+                // ผู้จำหน่าย / หน่วยงาน
                 r.owner || "-",
 
+                // ราคาล่าสุด
                 formatMoney(r.unitPrice),
 
+                // รับเข้า
                 hasReceive
                   ? r.receiveQty
                   : "-",
 
+                // เบิกจ่าย
                 hasIssue
                   ? r.issueQty
                   : "-",
 
+                // คงเหลือ
                 hasBalance
                   ? r.balance
                   : "-",
 
+                // วันผลิต
                 formatDate(
                   r.manufacture
                 ),
 
+                // วันหมดอายุ
                 formatDate(
                   r.expiry
                 ),
