@@ -860,7 +860,7 @@ export default async function StockCardPage({ params }: Props) {
                         sm:text-base
                       "
                     >
-                      {row.receiveQty || "-"}
+                      {row.receiveQty > 0 ? row.receiveQty : "-"}
                     </td>
 
                     <td
@@ -878,7 +878,7 @@ export default async function StockCardPage({ params }: Props) {
                         sm:text-base
                       "
                     >
-                      {row.issueQty || "-"}
+                      {row.issueQty > 0 ? row.issueQty : "-"}
                     </td>
 
                     <td
