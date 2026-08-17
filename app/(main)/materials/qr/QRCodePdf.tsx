@@ -95,17 +95,17 @@ export default function QRCodePdf({
               )
               .sort((a, b) => {
                 const aCode = Number(
-                  a.code
+                  a.code.replace(/\D/g, "")
                 );
 
                 const bCode = Number(
-                  b.code
+                  b.code.replace(/\D/g, "")
                 );
 
                 // ------------------------------------------
-                // กรณีรหัสเป็นตัวเลข
-                // เช่น 1, 2, 9, 10, 110
-                // ให้เรียงตามค่าตัวเลขจริง
+                // กรณีรหัสมีตัวเลข
+                // เช่น OFF-0001, OFF-0109, OFF-0111
+                // ให้เรียงตามตัวเลขจริง
                 // ------------------------------------------
 
                 if (
@@ -149,6 +149,14 @@ export default function QRCodePdf({
           );
 
       let isFirstPage = true;
+
+      // ==========================================
+      // เลขลำดับรายการทั้งหมด
+      // ใช้สำหรับแสดงเลข 1, 2, 3, ... 110, 111
+      // แยกจาก material.code
+      // ==========================================
+
+      let globalItemIndex = 0;
 
       // ==========================================
       // สร้าง PDF แยกตามหมวด
@@ -229,6 +237,17 @@ export default function QRCodePdf({
             const material =
               pageMaterials[position];
 
+            // ==========================================
+            // เลขลำดับที่แสดงใน PDF
+            // ใช้ลำดับจริงของรายการ
+            // ไม่ใช้เลขท้ายจาก material.code
+            // ==========================================
+
+            const displayNumber =
+              globalItemIndex +
+              position +
+              1;
+
             const column =
               position % columns;
 
@@ -296,8 +315,7 @@ export default function QRCodePdf({
             const qrX =
               x +
               (cardWidth -
-                qrSize) /
-                2;
+                qrSize) / 2;
 
             const qrY =
               y + 3;
@@ -312,7 +330,7 @@ export default function QRCodePdf({
             );
 
             // ==========================================
-            // รหัสพัสดุ
+            // เลขลำดับรายการ
             // ==========================================
 
             doc.setFont(
@@ -323,10 +341,7 @@ export default function QRCodePdf({
             doc.setFontSize(11);
 
             doc.text(
-              `รหัสพัสดุ : ${
-                material.code ||
-                "-"
-              }`,
+              `รหัสพัสดุ : ${displayNumber}`,
               x +
                 cardWidth / 2,
               y + 42,
@@ -363,6 +378,13 @@ export default function QRCodePdf({
               }
             );
           }
+
+          // ==========================================
+          // เพิ่มเลขลำดับตามจำนวนรายการจริง
+          // ==========================================
+
+          globalItemIndex +=
+            pageMaterials.length;
 
           // ==========================================
           // ไปหน้าถัดไปของหมวด
