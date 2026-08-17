@@ -47,7 +47,6 @@ export default function QRCodePdf({
       );
 
       const pageWidth = 210;
-      const pageHeight = 297;
 
       const marginX = 10;
       const marginY = 10;
@@ -66,7 +65,7 @@ export default function QRCodePdf({
       const cardHeight = 58;
 
       // ==========================================
-      // แบ่งตามหมวดหมู่
+      // ลำดับหมวดหมู่
       // ==========================================
 
       const categoryOrder = [
@@ -77,6 +76,11 @@ export default function QRCodePdf({
         "VEHICLE",
         "PRINTING",
       ];
+
+      // ==========================================
+      // แบ่งรายการตามหมวด
+      // และเรียงรหัสพัสดุแบบตัวเลขจริง
+      // ==========================================
 
       const groupedMaterials =
         categoryOrder
@@ -98,21 +102,45 @@ export default function QRCodePdf({
                   b.code
                 );
 
-                // ถ้ารหัสเป็นตัวเลข
+                // ------------------------------------------
+                // กรณีรหัสเป็นตัวเลข
+                // เช่น 1, 2, 9, 10, 110
                 // ให้เรียงตามค่าตัวเลขจริง
+                // ------------------------------------------
+
                 if (
                   !Number.isNaN(aCode) &&
                   !Number.isNaN(bCode)
                 ) {
-                  return aCode - bCode;
+                  if (aCode !== bCode) {
+                    return aCode - bCode;
+                  }
+
+                  // ถ้ารหัสซ้ำ ให้ใช้ id เป็นตัวเรียง
+                  return a.id - b.id;
                 }
 
-                // ถ้าไม่ใช่ตัวเลข
-                // ให้เรียงตามรหัสเดิม
-                return a.code.localeCompare(
-                  b.code,
-                  "th"
-                );
+                // ------------------------------------------
+                // กรณีรหัสไม่ใช่ตัวเลข
+                // ให้เรียงแบบ natural sort
+                // ------------------------------------------
+
+                const codeCompare =
+                  a.code.localeCompare(
+                    b.code,
+                    "th",
+                    {
+                      numeric: true,
+                      sensitivity: "base",
+                    }
+                  );
+
+                if (codeCompare !== 0) {
+                  return codeCompare;
+                }
+
+                // ถ้ารหัสเหมือนกัน ใช้ id เป็นตัวสำรอง
+                return a.id - b.id;
               }),
           }))
           .filter(
@@ -134,16 +162,23 @@ export default function QRCodePdf({
         const categoryMaterials =
           group.materials;
 
+        let itemIndex = 0;
+
         // ==========================================
-        // เริ่มหมวดใหม่
+        // 16 รายการ / หน้า
+        // 4 คอลัมน์ x 4 แถว
         // ==========================================
 
-        let itemIndex = 0;
+        const itemsPerPage = 16;
 
         while (
           itemIndex <
           categoryMaterials.length
         ) {
+          // ------------------------------------------
+          // ขึ้นหน้าใหม่เมื่อไม่ใช่หน้าแรก
+          // ------------------------------------------
+
           if (!isFirstPage) {
             doc.addPage();
           }
@@ -171,10 +206,8 @@ export default function QRCodePdf({
           );
 
           // ==========================================
-          // 4 คอลัมน์ x 4 แถว
+          // รายการของหน้านี้
           // ==========================================
-
-          const itemsPerPage = 16;
 
           const pageMaterials =
             categoryMaterials.slice(
@@ -182,6 +215,10 @@ export default function QRCodePdf({
               itemIndex +
                 itemsPerPage
             );
+
+          // ==========================================
+          // สร้าง QR แต่ละรายการ
+          // ==========================================
 
           for (
             let position = 0;
@@ -212,7 +249,7 @@ export default function QRCodePdf({
                 (cardHeight + gapY);
 
             // ==========================================
-            // QR URL
+            // URL ของ QR
             // ==========================================
 
             const url = new URL(
@@ -251,7 +288,7 @@ export default function QRCodePdf({
             );
 
             // ==========================================
-            // QR
+            // QR Code
             // ==========================================
 
             const qrSize = 35;
@@ -262,7 +299,8 @@ export default function QRCodePdf({
                 qrSize) /
                 2;
 
-            const qrY = y + 3;
+            const qrY =
+              y + 3;
 
             doc.addImage(
               qrDataUrl,
@@ -325,6 +363,10 @@ export default function QRCodePdf({
               }
             );
           }
+
+          // ==========================================
+          // ไปหน้าถัดไปของหมวด
+          // ==========================================
 
           itemIndex +=
             itemsPerPage;
