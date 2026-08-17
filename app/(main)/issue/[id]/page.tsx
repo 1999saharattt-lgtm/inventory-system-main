@@ -169,7 +169,7 @@ export default async function IssueDetailPage({
           {issue.remark || "-"}
         </p>
 
-        {/* ปุ่ม PDF */}
+        {/* ปุ่ม Export PDF */}
 
         <div
           className="
@@ -180,10 +180,15 @@ export default async function IssueDetailPage({
           "
         >
           <IssuePdf
+            issueId={issue.id}
             documentNo={issue.documentNo}
             issueDate={issue.issueDate}
-            departmentName={issue.department.name}
-            items={issue.items}
+            departmentName={
+              issue.department.name
+            }
+            items={
+              issue.items as IssueItem[]
+            }
           />
 
           {issue.pdf && (
@@ -195,6 +200,7 @@ export default async function IssueDetailPage({
               <a
                 href={issue.pdf}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="
                   rounded-lg
                   bg-blue-600
