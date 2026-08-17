@@ -527,7 +527,7 @@ export async function GET() {
     // ส่ง PDF กลับ Browser
     // =====================================================
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
