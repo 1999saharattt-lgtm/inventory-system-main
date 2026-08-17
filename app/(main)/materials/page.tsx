@@ -59,6 +59,8 @@ export default function MaterialsPage() {
           w-full
           min-w-0
           items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -103,6 +105,33 @@ export default function MaterialsPage() {
           </p>
 
         </div>
+
+        {/* QR Code รวม */}
+
+        <Link
+          href="/materials/qr"
+          className="
+            shrink-0
+            rounded-xl
+            bg-white
+            px-3
+            py-2
+            text-center
+            text-sm
+            font-extrabold
+            text-slate-900
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:bg-slate-100
+            sm:px-5
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          📱 QR Code รวม
+        </Link>
+
       </div>
 
       {/* Category Cards */}
