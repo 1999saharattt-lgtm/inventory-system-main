@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeletePdfButton from "./DeletePdfButton";
+import IssuePdf from "./IssuePdf";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,7 @@ export default async function IssueDetailPage({
 
   return (
     <div className="space-y-6">
+
       {/* Header */}
 
       <div
@@ -167,25 +169,29 @@ export default async function IssueDetailPage({
           {issue.remark || "-"}
         </p>
 
+        {/* ปุ่ม PDF */}
+
         <div
           className="
             flex
+            flex-wrap
             items-center
             gap-3
           "
         >
-          <span className="font-extrabold">
-            เอกสารแนบ :
-          </span>
+          <IssuePdf
+            documentNo={issue.documentNo}
+            issueDate={issue.issueDate}
+            departmentName={issue.department.name}
+            items={issue.items}
+          />
 
-          {issue.pdf ? (
-            <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
-            >
+          {issue.pdf && (
+            <>
+              <span className="font-extrabold">
+                เอกสารแนบ :
+              </span>
+
               <a
                 href={issue.pdf}
                 target="_blank"
@@ -205,11 +211,7 @@ export default async function IssueDetailPage({
               <DeletePdfButton
                 id={issue.id}
               />
-            </div>
-          ) : (
-            <span className="text-slate-300">
-              -
-            </span>
+            </>
           )}
         </div>
       </div>
