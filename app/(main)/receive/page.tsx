@@ -31,7 +31,6 @@ export default async function ReceivePage() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* Header */}
 
       <div
@@ -60,14 +59,13 @@ export default async function ReceivePage() {
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
+              !text-white
               text-2xl
               font-extrabold
               leading-tight
-              !text-white
               sm:text-5xl
             "
           >
@@ -78,16 +76,16 @@ export default async function ReceivePage() {
             className="
               mt-2
               break-words
-              text-sm
+              !text-slate-200
+              text-base
               font-semibold
               leading-tight
-              !text-slate-200
+              sm:mt-3
               sm:text-xl
             "
           >
             แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
           </p>
-
         </div>
 
         <Link
@@ -132,21 +130,16 @@ export default async function ReceivePage() {
           shadow-xl
         "
       >
-
-        <div className="w-full overflow-x-auto">
-
+        <div className="w-full min-w-0 overflow-x-auto">
           <table
             className="
-              min-w-[1000px]
+              min-w-[1100px]
               border
               border-slate-900
             "
           >
-
             <thead>
-
               <tr>
-
                 {[
                   "ลำดับ",
                   "วันที่รับเข้า",
@@ -176,18 +169,13 @@ export default async function ReceivePage() {
                     {title}
                   </th>
                 ))}
-
               </tr>
-
             </thead>
 
             <tbody>
-
               {receives.length > 0 ? (
-
                 receives.map(
                   (receive: Receive, index: number) => (
-
                     <tr
                       key={receive.id}
                       className="
@@ -196,7 +184,6 @@ export default async function ReceivePage() {
                         hover:bg-blue-50
                       "
                     >
-
                       <td
                         className="
                           whitespace-nowrap
@@ -226,9 +213,7 @@ export default async function ReceivePage() {
                       >
                         {new Date(
                           receive.receiveDate
-                        ).toLocaleDateString(
-                          "th-TH"
-                        )}
+                        ).toLocaleDateString("th-TH")}
                       </td>
 
                       <td
@@ -248,6 +233,7 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-slate-900
                           px-4
@@ -276,6 +262,7 @@ export default async function ReceivePage() {
                           href={`/receive/${receive.id}`}
                           className="
                             inline-block
+                            whitespace-nowrap
                             rounded-lg
                             bg-slate-800
                             px-4
@@ -293,6 +280,7 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-slate-900
                           px-4
@@ -307,6 +295,7 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-slate-900
                           px-4
@@ -320,7 +309,6 @@ export default async function ReceivePage() {
                             gap-2
                           "
                         >
-
                           <Link
                             href={`/receive/${receive.id}/edit`}
                             className="
@@ -342,19 +330,13 @@ export default async function ReceivePage() {
                           <DeleteButton
                             id={receive.id}
                           />
-
                         </div>
                       </td>
-
                     </tr>
-
                   )
                 )
-
               ) : (
-
                 <tr>
-
                   <td
                     colSpan={7}
                     className="
@@ -367,19 +349,12 @@ export default async function ReceivePage() {
                   >
                     ยังไม่มีข้อมูลรับเข้าพัสดุ
                   </td>
-
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -132,8 +132,6 @@ export default async function StockCardPage({ params }: Props) {
       return dateDiff;
     }
 
-    // ถ้าวันเดียวกัน
-    // ให้รับเข้าก่อนเบิก
     if (
       a.type === "receive" &&
       b.type === "issue"
@@ -170,55 +168,23 @@ export default async function StockCardPage({ params }: Props) {
   // ==========================================
 
   for (const event of events) {
-    // ========================================
-    // ถ้าเป็นรายการรับเข้า
-    // ให้สร้างล็อตใหม่
-    // ========================================
-
     if (event.type === "receive") {
       const receiveItem = event.item;
 
       lots.push({
         id: receiveItem.id,
-
         qty: Number(receiveItem.qty),
-
-        manufacture:
-          receiveItem.manufacture,
-
-        expiry:
-          receiveItem.expiry,
+        manufacture: receiveItem.manufacture,
+        expiry: receiveItem.expiry,
       });
 
       continue;
     }
 
-    // ========================================
-    // ถ้าเป็นรายการเบิก
-    // ========================================
-
     const issueItem = event.item;
 
     let remainingQty =
       Number(issueItem.qty);
-
-    // ========================================
-    // เรียงล็อตสำหรับตัด FEFO
-    //
-    // ลำดับที่ต้องการ:
-    //
-    // 1. ล็อตที่ไม่มีวันผลิตและไม่มีวันหมดอายุ
-    //    ให้ตัดก่อน
-    //
-    // 2. ล็อตที่ระบุวัน
-    //    ให้ใช้วันหมดอายุเร็วที่สุด
-    //
-    // 3. ถ้าวันหมดอายุเท่ากัน
-    //    ใช้วันผลิตเก่าก่อน
-    //
-    // 4. ถ้าเหมือนกัน
-    //    ใช้ล็อตที่รับเข้าก่อน
-    // ========================================
 
     const availableLots = lots
       .filter(
@@ -226,10 +192,6 @@ export default async function StockCardPage({ params }: Props) {
           lot.qty > 0
       )
       .sort((a, b) => {
-        // ------------------------------------
-        // ตรวจสอบว่าล็อตไหน "ไม่ระบุวัน"
-        // ------------------------------------
-
         const aUnspecified =
           !a.manufacture &&
           !a.expiry;
@@ -238,7 +200,6 @@ export default async function StockCardPage({ params }: Props) {
           !b.manufacture &&
           !b.expiry;
 
-        // ล็อตไม่ระบุวันมาก่อนเสมอ
         if (
           aUnspecified &&
           !bUnspecified
@@ -253,21 +214,12 @@ export default async function StockCardPage({ params }: Props) {
           return 1;
         }
 
-        // ------------------------------------
-        // ถ้าทั้งคู่เป็นล็อตไม่ระบุวัน
-        // ใช้ล็อตที่รับเข้าก่อน
-        // ------------------------------------
-
         if (
           aUnspecified &&
           bUnspecified
         ) {
           return a.id - b.id;
         }
-
-        // ------------------------------------
-        // จากตรงนี้คือทั้งคู่เป็นล็อตที่มีวัน
-        // ------------------------------------
 
         const aExpiry =
           a.expiry
@@ -283,7 +235,6 @@ export default async function StockCardPage({ params }: Props) {
               ).getTime()
             : Number.MAX_SAFE_INTEGER;
 
-        // วันหมดอายุเร็วกว่า ใช้ก่อน
         if (
           aExpiry !== bExpiry
         ) {
@@ -292,11 +243,6 @@ export default async function StockCardPage({ params }: Props) {
             bExpiry
           );
         }
-
-        // ------------------------------------
-        // ถ้าวันหมดอายุเท่ากัน
-        // ใช้วันผลิตเก่าก่อน
-        // ------------------------------------
 
         const aManufacture =
           a.manufacture
@@ -322,24 +268,11 @@ export default async function StockCardPage({ params }: Props) {
           );
         }
 
-        // ------------------------------------
-        // ถ้าเหมือนกันทั้งหมด
-        // ใช้ล็อตที่รับเข้าก่อน
-        // ------------------------------------
-
         return a.id - b.id;
       });
 
-    // ========================================
-    // เก็บล็อตแรกที่ถูกใช้
-    // ========================================
-
     let selectedLot: Lot | null =
       null;
-
-    // ========================================
-    // ตัดจำนวนจากล็อต
-    // ========================================
 
     for (
       const lot of availableLots
@@ -356,23 +289,16 @@ export default async function StockCardPage({ params }: Props) {
           lot.qty
         );
 
-      // จำล็อตแรกที่รายการเบิกนี้ใช้
       if (
         !selectedLot
       ) {
         selectedLot = lot;
       }
 
-      // หักจำนวนออกจากล็อต
       lot.qty -= issueQty;
 
-      // จำนวนที่ยังต้องเบิก
       remainingQty -= issueQty;
     }
-
-    // ========================================
-    // บันทึกล็อตที่รายการเบิกนี้ใช้
-    // ========================================
 
     if (
       selectedLot
@@ -415,7 +341,6 @@ export default async function StockCardPage({ params }: Props) {
     })),
 
     ...material.issueItems.map((item) => {
-      // ค้นหาล็อตที่รายการเบิกนี้ถูกตัด
       const lot =
         issueLotMap.get(item.id);
 
@@ -427,18 +352,15 @@ export default async function StockCardPage({ params }: Props) {
         owner:
           item.issue.department?.name ?? "-",
 
-        // ใช้ราคาจากรายการรับเข้าล่าสุด
         unitPrice: latestPrice,
 
         receiveQty: 0,
 
         issueQty: item.qty,
 
-        // ใช้วันผลิตจากล็อตที่ถูกตัด
         manufacture:
           lot?.manufacture ?? null,
 
-        // ใช้วันหมดอายุจากล็อตที่ถูกตัด
         expiry:
           lot?.expiry ?? null,
       };
@@ -467,15 +389,17 @@ export default async function StockCardPage({ params }: Props) {
   });
 
   return (
-    <div className="w-full min-w-0 space-y-5 sm:space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Header */}
 
       <div
         className="
           flex
+          w-full
+          min-w-0
           flex-col
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -484,16 +408,18 @@ export default async function StockCardPage({ params }: Props) {
           p-4
           text-white
           shadow-xl
+          sm:gap-4
           sm:p-6
           md:flex-row
           md:items-center
           md:justify-between
         "
       >
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1
             className="
-              text-3xl
+              break-words
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
@@ -508,8 +434,9 @@ export default async function StockCardPage({ params }: Props) {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
+              leading-tight
               text-slate-200
               sm:mt-3
               sm:text-xl
@@ -523,18 +450,21 @@ export default async function StockCardPage({ params }: Props) {
           href={`/stock-card/${material.category}`}
           className="
             w-fit
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-3
-            text-base
+            px-4
+            py-2.5
+            text-sm
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:px-5
+            sm:py-3
             sm:text-lg
           "
         >
@@ -546,6 +476,8 @@ export default async function StockCardPage({ params }: Props) {
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-200
@@ -555,12 +487,21 @@ export default async function StockCardPage({ params }: Props) {
           sm:p-6
         "
       >
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <div
+          className="
+            grid
+            min-w-0
+            grid-cols-1
+            gap-4
+            sm:gap-6
+            md:grid-cols-2
+          "
+        >
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -573,7 +514,7 @@ export default async function StockCardPage({ params }: Props) {
               className="
                 mt-1
                 break-words
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
                 sm:text-xl
@@ -583,10 +524,10 @@ export default async function StockCardPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -599,8 +540,9 @@ export default async function StockCardPage({ params }: Props) {
               className="
                 mt-1
                 break-words
-                text-lg
+                text-base
                 font-extrabold
+                leading-tight
                 text-slate-900
                 sm:text-xl
               "
@@ -609,10 +551,10 @@ export default async function StockCardPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -625,8 +567,9 @@ export default async function StockCardPage({ params }: Props) {
               className="
                 mt-1
                 break-words
-                text-lg
+                text-base
                 font-extrabold
+                leading-tight
                 text-slate-900
                 sm:text-xl
               "
@@ -637,10 +580,10 @@ export default async function StockCardPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -652,7 +595,7 @@ export default async function StockCardPage({ params }: Props) {
             <p
               className="
                 mt-1
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
                 sm:text-xl
@@ -662,10 +605,10 @@ export default async function StockCardPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -678,8 +621,9 @@ export default async function StockCardPage({ params }: Props) {
               className="
                 mt-1
                 break-words
-                text-lg
+                text-base
                 font-extrabold
+                leading-tight
                 text-slate-900
                 sm:text-xl
               "
@@ -688,10 +632,10 @@ export default async function StockCardPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p
               className="
-                text-base
+                text-sm
                 font-bold
                 text-slate-500
                 sm:text-lg
@@ -703,7 +647,7 @@ export default async function StockCardPage({ params }: Props) {
             <p
               className="
                 mt-1
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
                 sm:text-xl
@@ -739,13 +683,15 @@ export default async function StockCardPage({ params }: Props) {
         <div
           className="
             w-full
+            max-w-full
             overflow-x-auto
+            overscroll-x-contain
           "
         >
           <table
             className="
               w-max
-              min-w-[1100px]
+              min-w-[1000px]
               border-collapse
             "
           >
@@ -771,10 +717,10 @@ export default async function StockCardPage({ params }: Props) {
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-                      px-3
-                      py-3
+                      px-2
+                      py-2.5
                       text-center
-                      text-sm
+                      text-xs
                       font-extrabold
                       !text-white
                       sm:px-4
@@ -796,11 +742,12 @@ export default async function StockCardPage({ params }: Props) {
                     className="
                       border
                       border-slate-900
-                      py-12
+                      py-10
                       text-center
-                      text-base
+                      text-sm
                       font-bold
                       text-slate-500
+                      sm:py-12
                       sm:text-lg
                     "
                   >
@@ -822,13 +769,14 @@ export default async function StockCardPage({ params }: Props) {
                         whitespace-nowrap
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-semibold
                         text-slate-700
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -840,12 +788,13 @@ export default async function StockCardPage({ params }: Props) {
                         whitespace-nowrap
                         border
                         border-slate-900
-                        px-3
-                        py-3
-                        text-sm
+                        px-2
+                        py-2.5
+                        text-xs
                         font-semibold
                         text-slate-700
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -854,14 +803,17 @@ export default async function StockCardPage({ params }: Props) {
 
                     <td
                       className="
+                        max-w-[180px]
                         border
                         border-slate-900
-                        px-3
-                        py-3
-                        text-sm
+                        px-2
+                        py-2.5
+                        text-xs
                         font-semibold
                         text-slate-700
+                        sm:max-w-none
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -873,13 +825,14 @@ export default async function StockCardPage({ params }: Props) {
                         whitespace-nowrap
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-right
-                        text-sm
+                        text-xs
                         font-semibold
                         text-slate-700
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -896,13 +849,14 @@ export default async function StockCardPage({ params }: Props) {
                       className="
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-extrabold
                         text-slate-900
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -913,13 +867,14 @@ export default async function StockCardPage({ params }: Props) {
                       className="
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-extrabold
                         text-slate-900
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -930,13 +885,14 @@ export default async function StockCardPage({ params }: Props) {
                       className="
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-extrabold
                         text-slate-900
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -948,13 +904,14 @@ export default async function StockCardPage({ params }: Props) {
                         whitespace-nowrap
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-semibold
                         text-slate-700
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -968,13 +925,14 @@ export default async function StockCardPage({ params }: Props) {
                         whitespace-nowrap
                         border
                         border-slate-900
-                        px-3
-                        py-3
+                        px-2
+                        py-2.5
                         text-center
-                        text-sm
+                        text-xs
                         font-semibold
                         text-slate-700
                         sm:px-4
+                        sm:py-3
                         sm:text-base
                       "
                     >
@@ -992,7 +950,16 @@ export default async function StockCardPage({ params }: Props) {
 
       {/* Export */}
 
-      <div className="flex flex-wrap gap-3">
+      <div
+        className="
+          flex
+          w-full
+          min-w-0
+          flex-wrap
+          gap-2
+          sm:gap-3
+        "
+      >
         <ExportPdf
           material={{
             ...material,

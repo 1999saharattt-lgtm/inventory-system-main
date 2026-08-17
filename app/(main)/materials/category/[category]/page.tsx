@@ -91,31 +91,39 @@ export default async function CategoryPage({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
       {/* Header */}
 
       <div
         className="
           flex
-          items-center
-          justify-between
+          w-full
+          min-w-0
+          flex-col
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          p-4
           text-white
           shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:p-6
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1
             className="
+              break-words
               !text-white
-              text-5xl
+              text-2xl
               font-extrabold
               leading-tight
+              sm:text-5xl
             "
           >
             {categoryName[category]}
@@ -123,31 +131,42 @@ export default async function CategoryPage({
 
           <p
             className="
-              mt-3
-              text-xl
+              mt-2
+              break-words
+              text-base
               font-semibold
+              leading-tight
               text-slate-200
+              sm:mt-3
+              sm:text-xl
             "
           >
             รายการพัสดุในหมวดนี้
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3">
           <Link
             href="/materials/new"
             className="
+              flex-1
               rounded-xl
               bg-gradient-to-r
               from-emerald-600
               to-green-500
-              px-5
-              py-3
+              px-4
+              py-2.5
+              text-center
+              text-sm
               font-extrabold
               text-white
               shadow-lg
               transition
               hover:scale-105
+              sm:flex-none
+              sm:px-5
+              sm:py-3
+              sm:text-base
             "
           >
             + เพิ่มรายการ
@@ -156,17 +175,24 @@ export default async function CategoryPage({
           <Link
             href="/materials"
             className="
+              flex-1
               rounded-xl
               bg-gradient-to-r
               from-emerald-600
               to-green-500
-              px-5
-              py-3
+              px-4
+              py-2.5
+              text-center
+              text-sm
               font-extrabold
               text-white
               shadow-lg
               transition
               hover:scale-105
+              sm:flex-none
+              sm:px-5
+              sm:py-3
+              sm:text-base
             "
           >
             ← กลับ
@@ -178,22 +204,26 @@ export default async function CategoryPage({
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-900
           to-slate-800
-          p-5
+          p-4
           shadow-xl
+          sm:p-5
         "
       >
-        <form className="flex gap-3">
+        <form className="flex w-full min-w-0 flex-col gap-3 sm:flex-row">
           <input
             name="search"
             defaultValue={search ?? ""}
             placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
             className="
+              min-w-0
               flex-1
               rounded-xl
               border
@@ -207,6 +237,7 @@ export default async function CategoryPage({
           <button
             type="submit"
             className="
+              w-full
               rounded-xl
               bg-gradient-to-r
               from-emerald-600
@@ -218,6 +249,7 @@ export default async function CategoryPage({
               shadow-lg
               transition
               hover:scale-105
+              sm:w-auto
             "
           >
             ค้นหา
@@ -229,6 +261,8 @@ export default async function CategoryPage({
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           border
@@ -237,10 +271,10 @@ export default async function CategoryPage({
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div className="w-full min-w-0 overflow-x-auto">
           <table
             className="
-              min-w-full
+              min-w-[1100px]
               border
               border-slate-900
             "
@@ -261,6 +295,7 @@ export default async function CategoryPage({
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -291,6 +326,7 @@ export default async function CategoryPage({
                   >
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -304,6 +340,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -317,6 +354,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -331,6 +369,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -345,6 +384,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -365,6 +405,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -383,6 +424,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -401,6 +443,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4
@@ -411,6 +454,7 @@ export default async function CategoryPage({
                         <Link
                           href={`/materials/${material.id}/edit`}
                           className="
+                            whitespace-nowrap
                             rounded-lg
                             bg-slate-800
                             px-4
@@ -434,6 +478,7 @@ export default async function CategoryPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-4

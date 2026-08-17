@@ -10,13 +10,11 @@ export async function deleteIssue(
 ) {
   await prisma.$transaction(
     async (tx: any) => {
-
       const issue =
         await tx.issue.findUnique({
           where: {
             id,
           },
-
           include: {
             items: true,
           },
@@ -35,7 +33,6 @@ export async function deleteIssue(
       for (
         const item of issue.items
       ) {
-
         // ---------------------
         // คืน Material.balance
         // ---------------------
@@ -44,7 +41,6 @@ export async function deleteIssue(
           where: {
             id: item.materialId,
           },
-
           data: {
             balance: {
               increment: item.qty,
@@ -53,29 +49,24 @@ export async function deleteIssue(
         });
 
         // ---------------------
-        // ถ้าเป็นรายการที่ผูกล็อต
-        // ให้คืน ReceiveItem.balance
+        // คืน ReceiveItem.balance
         // กลับไปยังล็อตเดิม
         // ---------------------
 
         if (
           item.receiveItemId
         ) {
-
           await tx.receiveItem.update({
             where: {
               id: item.receiveItemId,
             },
-
             data: {
               balance: {
                 increment: item.qty,
               },
             },
           });
-
         }
-
       }
 
       // =====================
@@ -97,7 +88,6 @@ export async function deleteIssue(
           id,
         },
       });
-
     }
   );
 
@@ -111,7 +101,6 @@ export async function deleteIssue(
 export async function deleteIssuePdf(
   issueId: number
 ) {
-
   const issue =
     await prisma.issue.findUnique({
       where: {
@@ -126,7 +115,6 @@ export async function deleteIssuePdf(
   }
 
   if (issue.pdf) {
-
     const filePath =
       path.join(
         process.cwd(),
@@ -135,17 +123,13 @@ export async function deleteIssuePdf(
       );
 
     try {
-
       await fs.unlink(
         filePath
       );
-
     } catch {
-
       console.log(
         "ไม่พบไฟล์ PDF"
       );
-
     }
   }
 
@@ -153,7 +137,6 @@ export async function deleteIssuePdf(
     where: {
       id: issueId,
     },
-
     data: {
       pdf: null,
     },

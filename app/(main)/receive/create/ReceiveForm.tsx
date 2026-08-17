@@ -109,39 +109,43 @@ export default function ReceiveForm({
   return (
     <div
       className="
+        w-full
+        min-w-0
         rounded-2xl
         border
         border-slate-200
         bg-white
-        p-6
+        p-3
         shadow-xl
+        sm:p-6
       "
     >
       <form
         action={createReceive}
-        className="space-y-6"
+        className="space-y-5 sm:space-y-6"
       >
-
         {/* ข้อมูลรับเข้า */}
 
         <div
           className="
             grid
-            gap-5
+            min-w-0
+            gap-4
             md:grid-cols-2
+            sm:gap-5
           "
         >
-
           {/* วันที่รับเข้า */}
 
-          <div>
+          <div className="min-w-0">
             <label
               className="
                 mb-2
                 block
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
+                sm:text-lg
               "
             >
               วันที่รับเข้า
@@ -158,6 +162,7 @@ export default function ReceiveForm({
               required
               className="
                 w-full
+                min-w-0
                 rounded-xl
                 border
                 border-slate-300
@@ -175,14 +180,15 @@ export default function ReceiveForm({
 
           {/* เลขที่เอกสาร */}
 
-          <div>
+          <div className="min-w-0">
             <label
               className="
                 mb-2
                 block
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
+                sm:text-lg
               "
             >
               เลขที่เอกสาร
@@ -198,18 +204,20 @@ export default function ReceiveForm({
               }
               className="
                 w-full
+                min-w-0
                 rounded-xl
                 border
                 border-slate-300
                 bg-white
                 p-3
-                text-lg
+                text-base
                 font-extrabold
                 text-cyan-700
                 outline-none
                 focus:border-cyan-500
                 focus:ring-4
                 focus:ring-cyan-100
+                sm:text-lg
               "
             />
 
@@ -254,14 +262,15 @@ export default function ReceiveForm({
 
           {/* ผู้จำหน่าย */}
 
-          <div>
+          <div className="min-w-0">
             <label
               className="
                 mb-2
                 block
-                text-lg
+                text-base
                 font-extrabold
                 text-slate-900
+                sm:text-lg
               "
             >
               ผู้จำหน่าย
@@ -272,6 +281,7 @@ export default function ReceiveForm({
               required
               className="
                 w-full
+                min-w-0
                 rounded-xl
                 border
                 border-slate-300
@@ -299,13 +309,14 @@ export default function ReceiveForm({
               ))}
             </select>
           </div>
-
         </div>
 
         {/* ตารางรายการรับเข้า */}
 
         <div
           className="
+            w-full
+            min-w-0
             overflow-x-auto
             rounded-2xl
             border
@@ -317,6 +328,7 @@ export default function ReceiveForm({
           <table
             className="
               w-full
+              min-w-[1050px]
               border-collapse
               border
               border-black
@@ -338,6 +350,7 @@ export default function ReceiveForm({
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -348,7 +361,6 @@ export default function ReceiveForm({
                       text-center
                       text-lg
                       font-extrabold
-                      whitespace-nowrap
                       !text-white
                     "
                   >
@@ -381,7 +393,6 @@ export default function ReceiveForm({
                       hover:bg-emerald-50
                     "
                   >
-
                     <td
                       className="
                         border
@@ -655,7 +666,6 @@ export default function ReceiveForm({
                         "
                       />
                     </td>
-
                   </tr>
                 );
               })}
@@ -670,9 +680,10 @@ export default function ReceiveForm({
             className="
               mb-2
               block
-              text-lg
+              text-base
               font-extrabold
               text-slate-900
+              sm:text-lg
             "
           >
             หมายเหตุ
@@ -704,6 +715,7 @@ export default function ReceiveForm({
           <button
             type="submit"
             className="
+              w-full
               rounded-xl
               bg-gradient-to-r
               from-emerald-600
@@ -717,12 +729,12 @@ export default function ReceiveForm({
               shadow-lg
               transition
               hover:scale-105
+              sm:w-auto
             "
           >
             💾 บันทึก
           </button>
         </div>
-
       </form>
     </div>
   );

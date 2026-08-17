@@ -115,7 +115,6 @@ export async function createIssue(formData: FormData) {
 
   await prisma.$transaction(
     async (tx: any) => {
-
       const issue =
         await tx.issue.create({
           data: {
@@ -138,7 +137,6 @@ export async function createIssue(formData: FormData) {
       // =====================
 
       for (const item of items) {
-
         let remainingQty =
           item.qty;
 
@@ -235,7 +233,6 @@ export async function createIssue(formData: FormData) {
           const receiveItem
           of receiveItems
         ) {
-
           if (
             remainingQty <= 0
           ) {
