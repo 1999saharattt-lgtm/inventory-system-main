@@ -78,7 +78,7 @@ export async function GET() {
       "export",
       "pdf",
       "fonts",
-      "2.3.2 THSarabunNew"
+      "2.3.2 THSarabunNew.ttf"
     );
 
     const fontBytes = await fs.readFile(fontPath);
