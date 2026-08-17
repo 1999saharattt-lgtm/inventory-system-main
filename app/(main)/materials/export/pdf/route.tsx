@@ -137,7 +137,7 @@ export async function GET() {
     };
 
     // =====================================================
-    // ห่อข้อความภาษาไทย
+    // ห่อข้อความโดยพยายามตัดตามคำ
     // =====================================================
 
     const wrapText = (
@@ -145,28 +145,55 @@ export async function GET() {
       maxWidth: number,
       fontSize: number
     ): string[] => {
-      const words = text.split("");
+      const words = text.trim().split(/\s+/);
 
       const lines: string[] = [];
       let currentLine = "";
 
-      for (const char of words) {
-        const testLine = currentLine + char;
+      for (const word of words) {
+        const testLine = currentLine
+          ? `${currentLine} ${word}`
+          : word;
 
         const width = font.widthOfTextAtSize(testLine, fontSize);
 
         if (width <= maxWidth) {
           currentLine = testLine;
-        } else {
-          if (currentLine.length > 0) {
-            lines.push(currentLine);
+          continue;
+        }
+
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+
+        // กรณีคำเดียวยาวเกินช่อง ให้ตัดเฉพาะคำที่ยาวเกินจริง ๆ
+        if (font.widthOfTextAtSize(word, fontSize) > maxWidth) {
+          let currentPart = "";
+
+          for (const char of word) {
+            const testPart = currentPart + char;
+
+            if (
+              font.widthOfTextAtSize(testPart, fontSize) <=
+              maxWidth
+            ) {
+              currentPart = testPart;
+            } else {
+              if (currentPart) {
+                lines.push(currentPart);
+              }
+
+              currentPart = char;
+            }
           }
 
-          currentLine = char;
+          currentLine = currentPart;
+        } else {
+          currentLine = word;
         }
       }
 
-      if (currentLine.length > 0) {
+      if (currentLine) {
         lines.push(currentLine);
       }
 
@@ -321,12 +348,16 @@ export async function GET() {
         );
 
         const lineHeight = 17;
+
         const rowHeight = Math.max(
           28,
           nameLines.length * lineHeight + 10
         );
 
+        // -------------------------------------------------
         // ถ้าพื้นที่ไม่พอ ให้สร้างหน้าใหม่
+        // -------------------------------------------------
+
         if (y - rowHeight < marginBottom) {
           addNewPage();
 
