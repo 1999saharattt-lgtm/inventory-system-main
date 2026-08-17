@@ -82,18 +82,38 @@ export default function QRCodePdf({
         categoryOrder
           .map((category) => ({
             category,
+
             materials: materials
               .filter(
                 (material) =>
                   material.category ===
                   category
               )
-              .sort((a, b) =>
-                a.code.localeCompare(
+              .sort((a, b) => {
+                const aCode = Number(
+                  a.code
+                );
+
+                const bCode = Number(
+                  b.code
+                );
+
+                // ถ้ารหัสเป็นตัวเลข
+                // ให้เรียงตามค่าตัวเลขจริง
+                if (
+                  !Number.isNaN(aCode) &&
+                  !Number.isNaN(bCode)
+                ) {
+                  return aCode - bCode;
+                }
+
+                // ถ้าไม่ใช่ตัวเลข
+                // ให้เรียงตามรหัสเดิม
+                return a.code.localeCompare(
                   b.code,
                   "th"
-                )
-              ),
+                );
+              }),
           }))
           .filter(
             (group) =>
