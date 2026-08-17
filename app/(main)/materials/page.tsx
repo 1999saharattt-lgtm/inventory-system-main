@@ -138,7 +138,7 @@ export default function MaterialsPage() {
           {/* รวมรายการพัสดุ */}
 
           <Link
-            href="/materials/export"
+            href="/materials/export/pdf"
             className="
               rounded-xl
               bg-white
