@@ -110,16 +110,32 @@ export async function GET() {
     const tableTextSize = 14;
 
     // =====================================================
-    // สร้างหน้าแรก
+    // ฟังก์ชันจัดข้อความกึ่งกลาง
+    // =====================================================
+
+    const drawCenteredText = (
+      text: string,
+      y: number,
+      size: number
+    ) => {
+      const textWidth = font.widthOfTextAtSize(text, size);
+
+      page.drawText(text, {
+        x: (pageWidth - textWidth) / 2,
+        y,
+        size,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    };
+
+    // =====================================================
+    // ฟังก์ชันสร้างหน้าใหม่
     // =====================================================
 
     let page = pdfDoc.addPage([pageWidth, pageHeight]);
 
     let y = pageHeight - marginTop;
-
-    // =====================================================
-    // ฟังก์ชันสร้างหน้าใหม่
-    // =====================================================
 
     const addNewPage = () => {
       page = pdfDoc.addPage([pageWidth, pageHeight]);
@@ -137,7 +153,10 @@ export async function GET() {
     };
 
     // =====================================================
-    // ห่อข้อความโดยพยายามตัดตามคำ
+    // ห่อข้อความ
+    // พยายามตัดตามช่องว่างก่อน
+    // หากข้อความภาษาไทยติดกันยาวเกินช่อง
+    // จะตัดตามตัวอักษรเฉพาะส่วนที่จำเป็น
     // =====================================================
 
     const wrapText = (
@@ -145,7 +164,21 @@ export async function GET() {
       maxWidth: number,
       fontSize: number
     ): string[] => {
-      const words = text.trim().split(/\s+/);
+      const normalizedText = text.trim().replace(/\s+/g, " ");
+
+      if (!normalizedText) {
+        return [""];
+      }
+
+      // ถ้าทั้งข้อความอยู่ในบรรทัดเดียว ให้ใช้บรรทัดเดียวทันที
+      if (
+        font.widthOfTextAtSize(normalizedText, fontSize) <=
+        maxWidth
+      ) {
+        return [normalizedText];
+      }
+
+      const words = normalizedText.split(" ");
 
       const lines: string[] = [];
       let currentLine = "";
@@ -155,9 +188,10 @@ export async function GET() {
           ? `${currentLine} ${word}`
           : word;
 
-        const width = font.widthOfTextAtSize(testLine, fontSize);
-
-        if (width <= maxWidth) {
+        if (
+          font.widthOfTextAtSize(testLine, fontSize) <=
+          maxWidth
+        ) {
           currentLine = testLine;
           continue;
         }
@@ -166,8 +200,11 @@ export async function GET() {
           lines.push(currentLine);
         }
 
-        // กรณีคำเดียวยาวเกินช่อง ให้ตัดเฉพาะคำที่ยาวเกินจริง ๆ
-        if (font.widthOfTextAtSize(word, fontSize) > maxWidth) {
+        // คำเดียวเกินความกว้างจริง ๆ
+        if (
+          font.widthOfTextAtSize(word, fontSize) >
+          maxWidth
+        ) {
           let currentPart = "";
 
           for (const char of word) {
@@ -201,99 +238,20 @@ export async function GET() {
     };
 
     // =====================================================
-    // Header เอกสาร
+    // ฟังก์ชันสร้างหัวตาราง
     // =====================================================
 
-    page.drawText("รายการพัสดุ", {
-      x: marginLeft,
-      y,
-      size: titleSize,
-      font,
-      color: rgb(0, 0, 0),
-    });
-
-    y -= 28;
-
-    page.drawText("สำนักอนามัยการเจริญพันธุ์ กรมอนามัย", {
-      x: marginLeft,
-      y,
-      size: subtitleSize,
-      font,
-      color: rgb(0, 0, 0),
-    });
-
-    y -= 35;
-
-    // =====================================================
-    // เส้นคั่น
-    // =====================================================
-
-    page.drawLine({
-      start: {
-        x: marginLeft,
-        y,
-      },
-      end: {
-        x: pageWidth - marginRight,
-        y,
-      },
-      thickness: 1,
-      color: rgb(0.2, 0.2, 0.2),
-    });
-
-    y -= 25;
-
-    // =====================================================
-    // วนตามหมวด
-    // =====================================================
-
-    for (const category of categories) {
-      const categoryMaterials = materials.filter(
-        (material) => material.category === category.code
-      );
-
-      if (categoryMaterials.length === 0) {
-        continue;
-      }
-
-      // ---------------------------------------------------
-      // ตรวจพื้นที่สำหรับหัวหมวด
-      // ---------------------------------------------------
-
-      checkSpace(45);
-
-      page.drawText(category.name, {
-        x: marginLeft,
-        y,
-        size: categorySize,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      y -= 28;
-
-      // ---------------------------------------------------
-      // กำหนดความกว้างตาราง
-      // ---------------------------------------------------
-
-      const colNo = 45;
-      const colCode = 100;
-      const colName = contentWidth - colNo - colCode - 90;
-      const colUnit = 90;
-
-      const xNo = marginLeft;
-      const xCode = xNo + colNo;
-      const xName = xCode + colCode;
-      const xUnit = xName + colName;
-
-      // ---------------------------------------------------
-      // Header ตาราง
-      // ---------------------------------------------------
-
-      const headerHeight = 28;
-
-      checkSpace(headerHeight);
-
+    const drawTableHeader = (
+      xNo: number,
+      xCode: number,
+      xName: number,
+      xUnit: number,
+      colNo: number,
+      colCode: number,
+      colName: number,
+      colUnit: number,
+      headerHeight: number
+    ) => {
       page.drawRectangle({
         x: marginLeft,
         y: y - headerHeight,
@@ -302,6 +260,46 @@ export async function GET() {
         color: rgb(0.9, 0.9, 0.9),
         borderColor: rgb(0.6, 0.6, 0.6),
         borderWidth: 1,
+      });
+
+      // เส้นแบ่งหัวตาราง
+      page.drawLine({
+        start: {
+          x: xCode,
+          y,
+        },
+        end: {
+          x: xCode,
+          y: y - headerHeight,
+        },
+        thickness: 0.7,
+        color: rgb(0.6, 0.6, 0.6),
+      });
+
+      page.drawLine({
+        start: {
+          x: xName,
+          y,
+        },
+        end: {
+          x: xName,
+          y: y - headerHeight,
+        },
+        thickness: 0.7,
+        color: rgb(0.6, 0.6, 0.6),
+      });
+
+      page.drawLine({
+        start: {
+          x: xUnit,
+          y,
+        },
+        end: {
+          x: xUnit,
+          y: y - headerHeight,
+        },
+        thickness: 0.7,
+        color: rgb(0.6, 0.6, 0.6),
       });
 
       page.drawText("ลำดับ", {
@@ -333,12 +331,149 @@ export async function GET() {
       });
 
       y -= headerHeight;
+    };
 
-      // ---------------------------------------------------
+    // =====================================================
+    // ถ้าไม่มีข้อมูล
+    // =====================================================
+
+    if (materials.length === 0) {
+      drawCenteredText("บัญชีพัสดุ", y, titleSize);
+
+      y -= 28;
+
+      drawCenteredText(
+        "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย",
+        y,
+        subtitleSize
+      );
+
+      page.drawText("ไม่พบรายการพัสดุ", {
+        x: marginLeft,
+        y: y - 40,
+        size: 18,
+        font,
+      });
+    }
+
+    // =====================================================
+    // วนตามหมวด
+    // แต่ละหมวดเริ่มหน้าใหม่เสมอ
+    // =====================================================
+
+    for (const category of categories) {
+      const categoryMaterials = materials.filter(
+        (material) => material.category === category.code
+      );
+
+      if (categoryMaterials.length === 0) {
+        continue;
+      }
+
+      // ===================================================
+      // หมวดใหม่ = หน้าใหม่เสมอ
+      // ===================================================
+
+      addNewPage();
+
+      // ===================================================
+      // Header เอกสาร
+      // ===================================================
+
+      y = pageHeight - marginTop;
+
+      drawCenteredText("บัญชีพัสดุ", y, titleSize);
+
+      y -= 28;
+
+      drawCenteredText(
+        "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย",
+        y,
+        subtitleSize
+      );
+
+      y -= 32;
+
+      // ===================================================
+      // เส้นคั่น
+      // ===================================================
+
+      page.drawLine({
+        start: {
+          x: marginLeft,
+          y,
+        },
+        end: {
+          x: pageWidth - marginRight,
+          y,
+        },
+        thickness: 1,
+        color: rgb(0.2, 0.2, 0.2),
+      });
+
+      y -= 28;
+
+      // ===================================================
+      // หัวหมวด
+      // ===================================================
+
+      checkSpace(45);
+
+      page.drawText(category.name, {
+        x: marginLeft,
+        y,
+        size: categorySize,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      y -= 28;
+
+      // ===================================================
+      // กำหนดความกว้างตาราง
+      // เพิ่มพื้นที่รายการพัสดุ
+      // ===================================================
+
+      const colNo = 45;
+      const colCode = 85;
+      const colUnit = 80;
+      const colName =
+        contentWidth - colNo - colCode - colUnit;
+
+      const xNo = marginLeft;
+      const xCode = xNo + colNo;
+      const xName = xCode + colCode;
+      const xUnit = xName + colName;
+
+      // ===================================================
+      // Header ตาราง
+      // ===================================================
+
+      const headerHeight = 28;
+
+      checkSpace(headerHeight);
+
+      drawTableHeader(
+        xNo,
+        xCode,
+        xName,
+        xUnit,
+        colNo,
+        colCode,
+        colName,
+        colUnit,
+        headerHeight
+      );
+
+      // ===================================================
       // รายการพัสดุ
-      // ---------------------------------------------------
+      // ===================================================
 
-      for (let index = 0; index < categoryMaterials.length; index++) {
+      for (
+        let index = 0;
+        index < categoryMaterials.length;
+        index++
+      ) {
         const material = categoryMaterials[index];
 
         const nameLines = wrapText(
@@ -354,58 +489,70 @@ export async function GET() {
           nameLines.length * lineHeight + 10
         );
 
-        // -------------------------------------------------
-        // ถ้าพื้นที่ไม่พอ ให้สร้างหน้าใหม่
-        // -------------------------------------------------
+        // =================================================
+        // ถ้าพื้นที่ไม่พอ สร้างหน้าใหม่
+        // แต่ยังอยู่ในหมวดเดิม
+        // =================================================
 
         if (y - rowHeight < marginBottom) {
           addNewPage();
 
-          // Header ตารางต่อหน้า
-          page.drawRectangle({
+          y = pageHeight - marginTop;
+
+          // หัวเอกสารในหน้าต่อของหมวดเดิม
+          drawCenteredText("บัญชีพัสดุ", y, titleSize);
+
+          y -= 28;
+
+          drawCenteredText(
+            "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย",
+            y,
+            subtitleSize
+          );
+
+          y -= 32;
+
+          page.drawLine({
+            start: {
+              x: marginLeft,
+              y,
+            },
+            end: {
+              x: pageWidth - marginRight,
+              y,
+            },
+            thickness: 1,
+            color: rgb(0.2, 0.2, 0.2),
+          });
+
+          y -= 28;
+
+          page.drawText(category.name, {
             x: marginLeft,
-            y: y - headerHeight,
-            width: contentWidth,
-            height: headerHeight,
-            color: rgb(0.9, 0.9, 0.9),
-            borderColor: rgb(0.6, 0.6, 0.6),
-            borderWidth: 1,
-          });
-
-          page.drawText("ลำดับ", {
-            x: xNo + 8,
-            y: y - 19,
-            size: tableHeaderSize,
+            y,
+            size: categorySize,
             font,
+            color: rgb(0, 0, 0),
           });
 
-          page.drawText("รหัสพัสดุ", {
-            x: xCode + 8,
-            y: y - 19,
-            size: tableHeaderSize,
-            font,
-          });
+          y -= 28;
 
-          page.drawText("รายการพัสดุ", {
-            x: xName + 8,
-            y: y - 19,
-            size: tableHeaderSize,
-            font,
-          });
-
-          page.drawText("หน่วย", {
-            x: xUnit + 8,
-            y: y - 19,
-            size: tableHeaderSize,
-            font,
-          });
-
-          y -= headerHeight;
+          drawTableHeader(
+            xNo,
+            xCode,
+            xName,
+            xUnit,
+            colNo,
+            colCode,
+            colName,
+            colUnit,
+            headerHeight
+          );
         }
 
-        // -------------------------------------------------
+        // =================================================
         // กรอบแถว
-        // -------------------------------------------------
+        // =================================================
 
         page.drawRectangle({
           x: marginLeft,
@@ -416,9 +563,9 @@ export async function GET() {
           borderWidth: 0.7,
         });
 
-        // -------------------------------------------------
+        // =================================================
         // เส้นแบ่ง Column
-        // -------------------------------------------------
+        // =================================================
 
         page.drawLine({
           start: {
@@ -459,9 +606,9 @@ export async function GET() {
           color: rgb(0.75, 0.75, 0.75),
         });
 
-        // -------------------------------------------------
+        // =================================================
         // ลำดับ
-        // -------------------------------------------------
+        // =================================================
 
         page.drawText(String(index + 1), {
           x: xNo + 15,
@@ -470,9 +617,9 @@ export async function GET() {
           font,
         });
 
-        // -------------------------------------------------
-        // รหัส
-        // -------------------------------------------------
+        // =================================================
+        // รหัสพัสดุ
+        // =================================================
 
         page.drawText(material.code, {
           x: xCode + 8,
@@ -481,22 +628,25 @@ export async function GET() {
           font,
         });
 
-        // -------------------------------------------------
+        // =================================================
         // รายการพัสดุ
-        // -------------------------------------------------
+        // =================================================
 
         nameLines.forEach((line, lineIndex) => {
           page.drawText(line, {
             x: xName + 8,
-            y: y - 19 - lineIndex * lineHeight,
+            y:
+              y -
+              19 -
+              lineIndex * lineHeight,
             size: tableTextSize,
             font,
           });
         });
 
-        // -------------------------------------------------
+        // =================================================
         // หน่วย
-        // -------------------------------------------------
+        // =================================================
 
         page.drawText(material.unit ?? "", {
           x: xUnit + 8,
@@ -507,25 +657,6 @@ export async function GET() {
 
         y -= rowHeight;
       }
-
-      // ---------------------------------------------------
-      // เว้นระยะก่อนหมวดถัดไป
-      // ---------------------------------------------------
-
-      y -= 25;
-    }
-
-    // =====================================================
-    // ถ้าไม่มีข้อมูล
-    // =====================================================
-
-    if (materials.length === 0) {
-      page.drawText("ไม่พบรายการพัสดุ", {
-        x: marginLeft,
-        y,
-        size: 18,
-        font,
-      });
     }
 
     // =====================================================
@@ -535,12 +666,19 @@ export async function GET() {
     const pages = pdfDoc.getPages();
 
     pages.forEach((pdfPage, index) => {
-      const pageNumber = `หน้า ${index + 1} / ${pages.length}`;
+      const pageNumber =
+        `หน้า ${index + 1} / ${pages.length}`;
 
-      const textWidth = font.widthOfTextAtSize(pageNumber, 12);
+      const textWidth = font.widthOfTextAtSize(
+        pageNumber,
+        12
+      );
 
       pdfPage.drawText(pageNumber, {
-        x: pageWidth - marginRight - textWidth,
+        x:
+          pageWidth -
+          marginRight -
+          textWidth,
         y: 20,
         size: 12,
         font,
@@ -558,16 +696,23 @@ export async function GET() {
     // ส่ง PDF กลับ Browser
     // =====================================================
 
-    return new NextResponse(Buffer.from(pdfBytes), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": 'inline; filename="materials.pdf"',
-        "Cache-Control": "no-store",
-      },
-    });
+    return new NextResponse(
+      Buffer.from(pdfBytes),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition":
+            'inline; filename="materials.pdf"',
+          "Cache-Control": "no-store",
+        },
+      }
+    );
   } catch (error) {
-    console.error("PDF generation error:", error);
+    console.error(
+      "PDF generation error:",
+      error
+    );
 
     return NextResponse.json(
       {
