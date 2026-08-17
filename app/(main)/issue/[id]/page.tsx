@@ -15,6 +15,7 @@ type Props = {
 type IssueItem = {
   id: number;
   qty: number;
+
   material: {
     code: string;
     name: string;
@@ -26,45 +27,45 @@ type IssueItem = {
   };
 };
 
+const categoryName: Record<string, string> = {
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+};
+
 export default async function IssueDetailPage({
   params,
 }: Props) {
   const { id } = await params;
 
-  const issue =
-    await prisma.issue.findUnique({
-      where: {
-        id: Number(id),
-      },
+  const issue = await prisma.issue.findUnique({
+    where: {
+      id: Number(id),
+    },
 
-      include: {
-        department: true,
+    include: {
+      department: true,
 
-        items: {
-          include: {
-            material: true,
-          },
+      items: {
+        include: {
+          material: true,
         },
       },
-    });
+    },
+  });
 
   if (!issue) {
     notFound();
   }
 
-  const categoryName: Record<string, string> = {
-    OFFICE: "วัสดุสำนักงาน",
-    COMPUTER: "วัสดุคอมพิวเตอร์",
-    ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-    HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-    VEHICLE: "วัสดุยานพาหนะ",
-    PRINTING: "วัสดุสื่อสิ่งพิมพ์",
-  };
-
   return (
     <div className="space-y-6">
-
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -123,11 +124,13 @@ export default async function IssueDetailPage({
         </Link>
       </div>
 
-      {/* ข้อมูลใบเบิก */}
+      {/* =====================================================
+          ข้อมูลใบเบิก
+      ===================================================== */}
 
       <div
         className="
-          space-y-4
+          space-y-5
           rounded-2xl
           border
           border-slate-700
@@ -139,37 +142,94 @@ export default async function IssueDetailPage({
           shadow-xl
         "
       >
-        <p>
-          <span className="font-extrabold">
-            เลขที่ใบเบิก :
-          </span>{" "}
-          {issue.documentNo}
-        </p>
+        <div
+          className="
+            grid
+            gap-4
+            md:grid-cols-2
+          "
+        >
+          {/* เลขที่ใบเบิก */}
 
-        <p>
-          <span className="font-extrabold">
-            วันที่เบิก :
-          </span>{" "}
-          {new Date(
-            issue.issueDate
-          ).toLocaleDateString("th-TH")}
-        </p>
+          <div>
+            <p className="font-extrabold">
+              เลขที่ใบเบิก
+            </p>
 
-        <p>
-          <span className="font-extrabold">
-            หน่วยงาน :
-          </span>{" "}
-          {issue.department.name}
-        </p>
+            <p
+              className="
+                mt-1
+                text-lg
+                font-semibold
+                text-cyan-300
+              "
+            >
+              {issue.documentNo}
+            </p>
+          </div>
 
-        <p>
-          <span className="font-extrabold">
-            หมายเหตุ :
-          </span>{" "}
-          {issue.remark || "-"}
-        </p>
+          {/* วันที่เบิก */}
 
-        {/* ปุ่ม Export PDF */}
+          <div>
+            <p className="font-extrabold">
+              วันที่เบิก
+            </p>
+
+            <p className="mt-1 font-semibold">
+              {new Date(
+                issue.issueDate
+              ).toLocaleDateString("th-TH")}
+            </p>
+          </div>
+
+          {/* หน่วยงาน */}
+
+          <div>
+            <p className="font-extrabold">
+              หน่วยงาน / กลุ่มงาน
+            </p>
+
+            <p className="mt-1 font-semibold">
+              {issue.department.name}
+            </p>
+          </div>
+
+          {/* จำนวนรายการ */}
+
+          <div>
+            <p className="font-extrabold">
+              จำนวนรายการ
+            </p>
+
+            <p className="mt-1 font-semibold">
+              {issue.items.length} รายการ
+            </p>
+          </div>
+        </div>
+
+        {/* หมายเหตุ */}
+
+        {issue.remark && (
+          <div
+            className="
+              border-t
+              border-slate-600
+              pt-4
+            "
+          >
+            <p className="font-extrabold">
+              หมายเหตุ
+            </p>
+
+            <p className="mt-1 font-semibold">
+              {issue.remark}
+            </p>
+          </div>
+        )}
+
+        {/* =====================================================
+            PDF
+        ===================================================== */}
 
         <div
           className="
@@ -177,18 +237,17 @@ export default async function IssueDetailPage({
             flex-wrap
             items-center
             gap-3
+            border-t
+            border-slate-600
+            pt-5
           "
         >
           <IssuePdf
             issueId={issue.id}
             documentNo={issue.documentNo}
             issueDate={issue.issueDate}
-            departmentName={
-              issue.department.name
-            }
-            items={
-              issue.items as IssueItem[]
-            }
+            departmentName={issue.department.name}
+            items={issue.items as IssueItem[]}
           />
 
           {issue.pdf && (
@@ -208,6 +267,7 @@ export default async function IssueDetailPage({
                   py-2
                   font-bold
                   text-white
+                  transition
                   hover:bg-blue-700
                 "
               >
@@ -222,7 +282,10 @@ export default async function IssueDetailPage({
         </div>
       </div>
 
-      {/* ตารางรายการ */}
+      {/* =====================================================
+          ตารางรายการใบเบิก
+          ให้แสดงข้อมูลในรูปแบบเดียวกับฟอร์ม
+      ===================================================== */}
 
       <div
         className="
@@ -238,6 +301,8 @@ export default async function IssueDetailPage({
           <table
             className="
               w-full
+              min-w-[1000px]
+              border-collapse
               text-sm
             "
           >
@@ -250,30 +315,95 @@ export default async function IssueDetailPage({
                   text-white
                 "
               >
-                {[
-                  "ลำดับ",
-                  "หมวดหมู่",
-                  "รายการพัสดุ",
-                  "หน่วย",
-                  "จำนวน",
-                  "ราคาต่อหน่วย",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      border
-                      border-slate-600
-                      px-3
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                <th
+                  className="
+                    w-[8%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  ลำดับ
+                </th>
+
+                <th
+                  className="
+                    w-[20%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  หมวดหมู่
+                </th>
+
+                <th
+                  className="
+                    w-[36%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  รายการพัสดุ
+                </th>
+
+                <th
+                  className="
+                    w-[12%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  จำนวนที่ขอเบิก
+                </th>
+
+                <th
+                  className="
+                    w-[12%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  จำนวนที่เบิกจ่าย
+                </th>
+
+                <th
+                  className="
+                    w-[12%]
+                    border
+                    border-slate-600
+                    px-3
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                  "
+                >
+                  หมายเหตุ
+                </th>
               </tr>
             </thead>
 
@@ -291,11 +421,14 @@ export default async function IssueDetailPage({
                       hover:bg-emerald-50
                     "
                   >
+                    {/* ลำดับ */}
+
                     <td
                       className="
                         border
+                        border-slate-300
                         px-3
-                        py-3
+                        py-4
                         text-center
                         font-bold
                       "
@@ -303,66 +436,93 @@ export default async function IssueDetailPage({
                       {index + 1}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        px-3
-                        py-3
-                      "
-                    >
-                      {
-                        categoryName[
-                          item.material.category
-                        ]
-                      }
-                    </td>
+                    {/* หมวดหมู่ */}
 
                     <td
                       className="
                         border
+                        border-slate-300
                         px-3
-                        py-3
+                        py-4
                         font-semibold
                       "
                     >
-                      {item.material.code}
-                      {" - "}
-                      {item.material.name}
+                      {categoryName[
+                        item.material.category
+                      ] ??
+                        item.material.category}
                     </td>
+
+                    {/* รายการพัสดุ */}
 
                     <td
                       className="
                         border
+                        border-slate-300
                         px-3
-                        py-3
-                        text-center
+                        py-4
+                        font-semibold
                       "
                     >
-                      {item.material.unit}
+                      <div>
+                        {item.material.name}
+                      </div>
+
+                      <div
+                        className="
+                          mt-1
+                          text-xs
+                          text-slate-500
+                        "
+                      >
+                        รหัสพัสดุ:{" "}
+                        {item.material.code}
+                      </div>
                     </td>
+
+                    {/* จำนวนที่ขอเบิก */}
 
                     <td
                       className="
                         border
+                        border-slate-300
                         px-3
-                        py-3
+                        py-4
                         text-center
+                        font-bold
                       "
                     >
                       {item.qty}
                     </td>
 
+                    {/* จำนวนที่เบิกจ่าย */}
+
                     <td
                       className="
                         border
+                        border-slate-300
                         px-3
-                        py-3
-                        text-right
+                        py-4
+                        text-center
+                        font-bold
+                        text-emerald-700
                       "
                     >
-                      {Number(
-                        item.material.latestPrice
-                      ).toFixed(2)}
+                      {item.qty}
+                    </td>
+
+                    {/* หมายเหตุ */}
+
+                    <td
+                      className="
+                        border
+                        border-slate-300
+                        px-3
+                        py-4
+                        text-center
+                      "
+                    >
+                      -
                     </td>
                   </tr>
                 )

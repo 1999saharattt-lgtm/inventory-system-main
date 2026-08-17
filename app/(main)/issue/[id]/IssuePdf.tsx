@@ -5,6 +5,7 @@ import React, { useRef } from "react";
 type IssueItem = {
   id: number;
   qty: number;
+  remark?: string | null;
 
   material: {
     code: string;
@@ -23,6 +24,15 @@ type IssuePdfProps = {
   issueDate: Date | string;
   departmentName: string;
   items: IssueItem[];
+};
+
+const categoryLabels: Record<string, string> = {
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 function formatThaiDate(value: Date | string) {
@@ -145,6 +155,9 @@ export default function IssuePdf({
     }
   };
 
+  /*
+   * พอ.101 มีพื้นที่สำหรับ 18 รายการ
+   */
   const rows = Array.from(
     { length: 18 },
     (_, index) =>
@@ -187,7 +200,6 @@ export default function IssuePdf({
 
       {/* =====================================================
           พอ.101
-          ใช้ข้อมูลจริงของใบเบิก
       ===================================================== */}
 
       <div
@@ -209,6 +221,8 @@ export default function IssuePdf({
         ===================================================== */}
 
         <div className="relative">
+          {/* เลขที่เอกสาร */}
+
           <div
             className="
               absolute
@@ -220,6 +234,8 @@ export default function IssuePdf({
             เลขที่ {documentNo}
           </div>
 
+          {/* พอ.101 */}
+
           <div
             className="
               pt-1
@@ -230,6 +246,8 @@ export default function IssuePdf({
           >
             พอ.101
           </div>
+
+          {/* ใบเบิกพัสดุ */}
 
           <div
             className="
@@ -255,7 +273,9 @@ export default function IssuePdf({
           "
         >
           <div>
-            กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+            กลุ่มงาน {departmentName}
+            {" "}
+            สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
           </div>
 
           <div>
@@ -264,12 +284,12 @@ export default function IssuePdf({
 
           <div className="mt-5">
             ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับ
-            ใช้ในราชการดังมีรายการต่อไป
+            ใช้ในราชการดังมีรายการต่อไปนี้
           </div>
         </div>
 
         {/* =====================================================
-            ตารางรายการ
+            ตารางรายการ 18 รายการ
         ===================================================== */}
 
         <table
@@ -279,14 +299,16 @@ export default function IssuePdf({
             border-collapse
             border
             border-black
-            text-[13px]
+            text-[12px]
           "
         >
           <thead>
             <tr>
+              {/* ลำดับ */}
+
               <th
                 className="
-                  w-[10%]
+                  w-[8%]
                   border
                   border-black
                   px-2
@@ -298,9 +320,27 @@ export default function IssuePdf({
                 ลำดับ
               </th>
 
+              {/* หมวดหมู่ */}
+
               <th
                 className="
-                  w-[52%]
+                  w-[19%]
+                  border
+                  border-black
+                  px-2
+                  py-2
+                  text-center
+                  font-bold
+                "
+              >
+                หมวดหมู่
+              </th>
+
+              {/* รายการพัสดุ */}
+
+              <th
+                className="
+                  w-[34%]
                   border
                   border-black
                   px-2
@@ -312,19 +352,7 @@ export default function IssuePdf({
                 รายการพัสดุ
               </th>
 
-              <th
-                className="
-                  w-[12%]
-                  border
-                  border-black
-                  px-2
-                  py-2
-                  text-center
-                  font-bold
-                "
-              >
-                จำนวนที่เบิก
-              </th>
+              {/* จำนวนที่ขอเบิก */}
 
               <th
                 className="
@@ -337,8 +365,26 @@ export default function IssuePdf({
                   font-bold
                 "
               >
-                จำนวนที่จ่าย
+                จำนวนที่ขอเบิก
               </th>
+
+              {/* จำนวนที่เบิกจ่าย */}
+
+              <th
+                className="
+                  w-[13%]
+                  border
+                  border-black
+                  px-2
+                  py-2
+                  text-center
+                  font-bold
+                "
+              >
+                จำนวนที่เบิกจ่าย
+              </th>
+
+              {/* หมายเหตุ */}
 
               <th
                 className="
@@ -366,6 +412,8 @@ export default function IssuePdf({
                   }
                   className="h-[9mm]"
                 >
+                  {/* ลำดับ */}
+
                   <td
                     className="
                       border
@@ -378,6 +426,8 @@ export default function IssuePdf({
                     {index + 1}
                   </td>
 
+                  {/* หมวดหมู่ */}
+
                   <td
                     className="
                       border
@@ -386,12 +436,30 @@ export default function IssuePdf({
                       py-1
                     "
                   >
-                    {item ? (
-                      <div>
-                        {item.material.name}
-                      </div>
-                    ) : null}
+                    {item
+                      ? categoryLabels[
+                          item.material.category
+                        ] ??
+                        item.material.category
+                      : ""}
                   </td>
+
+                  {/* รายการพัสดุ */}
+
+                  <td
+                    className="
+                      border
+                      border-black
+                      px-2
+                      py-1
+                    "
+                  >
+                    {item
+                      ? item.material.name
+                      : ""}
+                  </td>
+
+                  {/* จำนวนที่ขอเบิก */}
 
                   <td
                     className="
@@ -404,6 +472,8 @@ export default function IssuePdf({
                   >
                     {item?.qty ?? ""}
                   </td>
+
+                  {/* จำนวนที่เบิกจ่าย */}
 
                   <td
                     className="
@@ -419,6 +489,8 @@ export default function IssuePdf({
                       : ""}
                   </td>
 
+                  {/* หมายเหตุ */}
+
                   <td
                     className="
                       border
@@ -426,7 +498,9 @@ export default function IssuePdf({
                       px-2
                       py-1
                     "
-                  />
+                  >
+                    {item?.remark ?? ""}
+                  </td>
                 </tr>
               )
             )}
@@ -455,23 +529,7 @@ export default function IssuePdf({
         </div>
 
         {/* =====================================================
-            วันที่ลงหักบัญชี
-        ===================================================== */}
-
-        <div
-          className="
-            mt-5
-            flex
-            justify-end
-            text-[14px]
-          "
-        >
-          วันที่ลงหักบัญชีพัสดุ{" "}
-          .............................................................
-        </div>
-
-        {/* =====================================================
-            ลายเซ็น
+            ลายเซ็น 2 ฝั่ง
         ===================================================== */}
 
         <div
@@ -483,18 +541,20 @@ export default function IssuePdf({
             text-[14px]
           "
         >
-          {/* ฝั่งซ้าย */}
+          {/* =================================================
+              ฝั่งซ้าย
+          ================================================= */}
 
           <div className="space-y-7">
             {/* ผู้รับของ */}
 
             <div>
-              <div className="font-bold">
+              <div>
+                ลงชื่อ
+                {" "}
+                ........................................
+                {" "}
                 ผู้รับของ
-              </div>
-
-              <div className="mt-3">
-                ลงชื่อ ........................................
               </div>
 
               <div className="ml-10">
@@ -509,12 +569,12 @@ export default function IssuePdf({
             {/* ผู้จ่าย */}
 
             <div>
-              <div className="font-bold">
+              <div>
+                ลงชื่อ
+                {" "}
+                ........................................
+                {" "}
                 ผู้จ่าย
-              </div>
-
-              <div className="mt-3">
-                ลงชื่อ ........................................
               </div>
 
               <div className="ml-10">
@@ -524,21 +584,32 @@ export default function IssuePdf({
               <div className="mt-2">
                 วันที่ ........................................
               </div>
+
+              {/* วันที่ลงหักบัญชีพัสดุ
+                  อยู่ล่างซ้าย ใต้วันที่ผู้จ่าย */}
+
+              <div className="mt-6">
+                วันที่ลงหักบัญชีพัสดุ
+                {" "}
+                ................................
+              </div>
             </div>
           </div>
 
-          {/* ฝั่งขวา */}
+          {/* =================================================
+              ฝั่งขวา
+          ================================================= */}
 
           <div className="space-y-7">
             {/* หัวหน้ากลุ่ม */}
 
             <div>
-              <div className="font-bold">
+              <div>
+                ลงชื่อ
+                {" "}
+                ........................................
+                {" "}
                 หัวหน้ากลุ่ม
-              </div>
-
-              <div className="mt-3">
-                ลงชื่อ ........................................
               </div>
 
               <div className="ml-10">
@@ -553,12 +624,12 @@ export default function IssuePdf({
             {/* ผู้อนุญาต */}
 
             <div>
-              <div className="font-bold">
+              <div>
+                ลงชื่อ
+                {" "}
+                ........................................
+                {" "}
                 ผู้อนุญาต
-              </div>
-
-              <div className="mt-3">
-                ลงชื่อ ........................................
               </div>
 
               <div className="ml-10">
