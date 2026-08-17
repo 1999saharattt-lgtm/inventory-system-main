@@ -183,12 +183,18 @@ export default async function PrintStockCard({
                 {row.documentNo}
               </td>
 
+              {/* รับเข้า */}
               <td className="border text-center">
-                {row.receiveQty || ""}
+                {row.receiveQty
+                  ? row.receiveQty
+                  : "-"}
               </td>
 
+              {/* เบิกจ่าย */}
               <td className="border text-center">
-                {row.issueQty || ""}
+                {row.issueQty
+                  ? row.issueQty
+                  : "-"}
               </td>
 
               <td className="border text-center font-bold">
