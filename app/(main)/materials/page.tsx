@@ -139,6 +139,7 @@ export default function MaterialsPage() {
 
           <Link
             href="/materials/export/pdf"
+            target="_blank"
             className="
               rounded-xl
               bg-white
