@@ -135,6 +135,34 @@ export default function IssuePdf({
 
   const totalItems = items.length;
 
+  // =====================================================
+  // Style สำหรับข้อความในช่องตาราง
+  //
+  // ใช้ position relative เพื่อแก้ปัญหา
+  // html2canvas ทำข้อความไทยชิดด้านล่าง
+  // =====================================================
+
+  const cellTextStyle: React.CSSProperties = {
+    position: "relative",
+    top: "-0.8mm",
+    display: "block",
+    width: "100%",
+    lineHeight: "1.2",
+    boxSizing: "border-box",
+  };
+
+  const cellCenterStyle: React.CSSProperties = {
+    ...cellTextStyle,
+    textAlign: "center",
+  };
+
+  const cellLeftStyle: React.CSSProperties = {
+    ...cellTextStyle,
+    textAlign: "left",
+    paddingLeft: "1mm",
+    paddingRight: "0.5mm",
+  };
+
   return (
     <div>
       {/* =====================================================
@@ -174,7 +202,7 @@ export default function IssuePdf({
           ขอบซ้าย  10mm
           ขอบขวา   10mm
 
-          พื้นที่ใช้งานแนวนอน = 190mm
+          พื้นที่ตาราง = 190mm
       ===================================================== */}
 
       <div
@@ -203,8 +231,6 @@ export default function IssuePdf({
         ===================================================== */}
 
         <div className="relative h-[25mm]">
-          {/* เลขที่เอกสาร */}
-
           <div
             className="
               absolute
@@ -219,8 +245,6 @@ export default function IssuePdf({
             เลขที่ {documentNo || "-"}
           </div>
 
-          {/* พอ.101 */}
-
           <div
             className="
               pt-[1mm]
@@ -234,8 +258,6 @@ export default function IssuePdf({
             พอ.101
           </div>
 
-          {/* ใบเบิกพัสดุ */}
-
           <div
             className="
               mt-[0.8mm]
@@ -248,8 +270,6 @@ export default function IssuePdf({
           >
             ใบเบิกพัสดุ
           </div>
-
-          {/* หน่วยงาน */}
 
           <div
             className="
@@ -266,8 +286,6 @@ export default function IssuePdf({
             กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
             กรมอนามัย
           </div>
-
-          {/* วันที่ */}
 
           <div
             className="
@@ -301,24 +319,7 @@ export default function IssuePdf({
         </div>
 
         {/* =====================================================
-            ตารางรายการ
-
-            A4 กว้าง 210mm
-            ขอบซ้าย/ขวา 10mm
-            ตารางกว้าง 190mm
-
-            หัวตาราง 8mm
-            แถวข้อมูล 8mm
-
-            ข้อความในตาราง 16px
-
-            การจัดแนว:
-            - ลำดับ       = กึ่งกลางแนวนอน
-            - หมวดหมู่    = กึ่งกลางแนวนอน
-            - รายการพัสดุ = ชิดซ้ายแนวนอน
-            - จำนวนขอเบิก = กึ่งกลางแนวนอน
-            - จำนวนเบิกจ่าย = ว่าง
-            - หมายเหตุ    = กึ่งกลางแนวนอน
+            ตาราง
         ===================================================== */}
 
         <div className="flex justify-center">
@@ -371,21 +372,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     ลำดับ
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -411,21 +400,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     หมวดหมู่
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -451,21 +428,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     รายการพัสดุ
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -491,21 +456,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     จำนวนที่ขอเบิก
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -531,21 +484,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     จำนวนที่เบิกจ่าย
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -571,21 +512,9 @@ export default function IssuePdf({
                     verticalAlign: "middle",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      height: "8mm",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.2",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <span style={cellCenterStyle}>
                     หมายเหตุ
-                  </div>
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -620,22 +549,9 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        boxSizing: "border-box",
-                      }}
-                    >
+                    <span style={cellCenterStyle}>
                       {index + 1}
-                    </div>
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -660,20 +576,14 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        textAlign: "center",
+                        ...cellCenterStyle,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "clip",
-                        padding: "0 0.5mm",
-                        boxSizing: "border-box",
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
                       }}
                     >
                       {item
@@ -681,14 +591,14 @@ export default function IssuePdf({
                             item.material.category
                           ] ?? item.material.category
                         : ""}
-                    </div>
+                    </span>
                   </td>
 
                   {/* =================================================
                       รายการพัสดุ
 
                       ชิดซ้ายแนวนอน
-                      กึ่งกลางแนวตั้ง
+                      อยู่กึ่งกลางแนวตั้ง
                   ================================================= */}
 
                   <td
@@ -709,29 +619,20 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "flex-start",
-                        lineHeight: "1.2",
-                        textAlign: "left",
+                        ...cellLeftStyle,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "clip",
-                        paddingLeft: "1mm",
-                        paddingRight: "0.5mm",
-                        boxSizing: "border-box",
                       }}
                     >
                       {item ? item.material.name : ""}
-                    </div>
+                    </span>
                   </td>
 
                   {/* =================================================
-                      จำนวนขอเบิก
+                      จำนวนที่ขอเบิก
 
                       กึ่งกลางแนวนอน
                       กึ่งกลางแนวตั้ง
@@ -755,28 +656,15 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        boxSizing: "border-box",
-                      }}
-                    >
+                    <span style={cellCenterStyle}>
                       {item?.qty ?? ""}
-                    </div>
+                    </span>
                   </td>
 
                   {/* =================================================
-                      จำนวนเบิกจ่าย
+                      จำนวนที่เบิกจ่าย
 
-                      เว้นว่างทั้งหมด
+                      เว้นว่าง
                   ================================================= */}
 
                   <td
@@ -797,19 +685,9 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      {/* เว้นว่าง */}
-                    </div>
+                    <span style={cellCenterStyle}>
+                      {" "}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -837,24 +715,18 @@ export default function IssuePdf({
                       verticalAlign: "middle",
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        width: "100%",
-                        height: "8mm",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        textAlign: "center",
+                        ...cellCenterStyle,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "clip",
-                        padding: "0 0.5mm",
-                        boxSizing: "border-box",
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
                       }}
                     >
                       {item?.remark ?? ""}
-                    </div>
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -899,8 +771,7 @@ export default function IssuePdf({
             text-black
           "
         >
-          วันที่ลงบัญชีหักพัสดุ
-          {" "}
+          วันที่ลงบัญชีหักพัสดุ{" "}
           ................................................
         </div>
 
@@ -920,20 +791,14 @@ export default function IssuePdf({
             text-black
           "
         >
-          {/* =================================================
-              ฝั่งซ้าย
-          ================================================= */}
+          {/* ฝั่งซ้าย */}
 
           <div className="text-center">
-            {/* ผู้รับของ */}
-
             <div className="mb-[6mm]">
               <div className="whitespace-nowrap">
-                ลงชื่อ
-                {" "}
+                ลงชื่อ{" "}
                 ...............................................................
-                {" "}
-                ผู้รับของ
+                {" "}ผู้รับของ
               </div>
 
               <div className="mt-[1mm] whitespace-nowrap">
@@ -945,15 +810,11 @@ export default function IssuePdf({
               </div>
             </div>
 
-            {/* ผู้จ่าย */}
-
             <div>
               <div className="whitespace-nowrap">
-                ลงชื่อ
-                {" "}
+                ลงชื่อ{" "}
                 ...............................................................
-                {" "}
-                ผู้จ่าย
+                {" "}ผู้จ่าย
               </div>
 
               <div className="mt-[1mm] whitespace-nowrap">
@@ -966,20 +827,14 @@ export default function IssuePdf({
             </div>
           </div>
 
-          {/* =================================================
-              ฝั่งขวา
-          ================================================= */}
+          {/* ฝั่งขวา */}
 
           <div className="text-center">
-            {/* หัวหน้ากลุ่ม */}
-
             <div className="mb-[6mm]">
               <div className="whitespace-nowrap">
-                ลงชื่อ
-                {" "}
+                ลงชื่อ{" "}
                 ...............................................................
-                {" "}
-                หัวหน้ากลุ่ม
+                {" "}หัวหน้ากลุ่ม
               </div>
 
               <div className="mt-[1mm] whitespace-nowrap">
@@ -991,15 +846,11 @@ export default function IssuePdf({
               </div>
             </div>
 
-            {/* ผู้อนุญาต */}
-
             <div>
               <div className="whitespace-nowrap">
-                ลงชื่อ
-                {" "}
+                ลงชื่อ{" "}
                 ...............................................................
-                {" "}
-                ผู้อนุญาต
+                {" "}ผู้อนุญาต
               </div>
 
               <div className="mt-[1mm] whitespace-nowrap">
