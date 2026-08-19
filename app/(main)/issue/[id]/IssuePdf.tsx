@@ -78,6 +78,25 @@ export default function IssuePdf({
       const jsPDF =
         (await import("jspdf")).default;
 
+      // =================================================
+      // สำคัญ:
+      // รอให้ font โหลดเสร็จก่อน html2canvas
+      // เพื่อให้ตำแหน่งข้อความใน PDF ตรงกับหน้าเว็บ
+      // =================================================
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      // รอ browser render อีก 2 รอบ
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resolve();
+          });
+        });
+      });
+
       const element = pdfRef.current;
 
       const canvas = await html2canvas(element, {
@@ -88,6 +107,7 @@ export default function IssuePdf({
         height: element.offsetHeight,
         scrollX: 0,
         scrollY: 0,
+        logging: false,
       });
 
       const imageData = canvas.toDataURL("image/png");
@@ -136,16 +156,18 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Style ของ <th> / <td>
+  // Style ของ table cell
   //
-  // สำคัญ:
-  // - ไม่ใช้ position absolute
-  // - ไม่ใช้ transform
-  // - ไม่ใช้ flex
-  // - ไม่ใช้ block wrapper
+  // ไม่ใช้:
+  // - position absolute
+  // - transform
+  // - flex
+  // - wrapper
   //
-  // ให้ browser + html2canvas จัดตำแหน่ง
-  // ข้อความภายใน table cell โดยตรง
+  // ใช้ vertical-align: top
+  // แล้วกำหนด padding-top เอง
+  //
+  // วิธีนี้เสถียรกว่าสำหรับ html2canvas
   // =====================================================
 
   const cellStyle: React.CSSProperties = {
@@ -155,35 +177,38 @@ export default function IssuePdf({
     backgroundColor: "#ffffff",
     color: "#000000",
     fontSize: "16px",
-    lineHeight: "1.2",
-    verticalAlign: "middle",
+    lineHeight: "1",
+    verticalAlign: "top",
     boxSizing: "border-box",
     overflow: "hidden",
   };
 
   // =====================================================
-  // Style สำหรับข้อความใน cell
+  // ข้อความกึ่งกลาง
   //
-  // ไม่มี display:block
-  // ไม่มี position
-  // ไม่มี transform
-  // ไม่มี width 100%
-  //
-  // ใช้กับ text โดยตรงใน <th>/<td>
+  // padding-top:
+  // ยก baseline ของ TH Sarabun ขึ้นจากเส้นด้านล่าง
+  // โดยไม่ใช้ transform
   // =====================================================
 
   const centerCellStyle: React.CSSProperties = {
     ...cellStyle,
     textAlign: "center",
+    paddingTop: "2.1mm",
     whiteSpace: "nowrap",
   };
+
+  // =====================================================
+  // ข้อความชิดซ้าย
+  // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
     ...cellStyle,
     textAlign: "left",
-    whiteSpace: "nowrap",
+    paddingTop: "2.1mm",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
+    whiteSpace: "nowrap",
   };
 
   return (
@@ -382,7 +407,9 @@ export default function IssuePdf({
                   height: "8mm",
                 }}
               >
-                {/* ลำดับ */}
+                {/* =================================================
+                    ลำดับ
+                ================================================= */}
 
                 <th
                   className="
@@ -398,7 +425,9 @@ export default function IssuePdf({
                   ลำดับ
                 </th>
 
-                {/* หมวดหมู่ */}
+                {/* =================================================
+                    หมวดหมู่
+                ================================================= */}
 
                 <th
                   className="
@@ -414,7 +443,12 @@ export default function IssuePdf({
                   หมวดหมู่
                 </th>
 
-                {/* รายการพัสดุ */}
+                {/* =================================================
+                    รายการพัสดุ
+
+                    สำคัญ:
+                    ชิดซ้ายทั้งหน้าเว็บและ PDF
+                ================================================= */}
 
                 <th
                   className="
@@ -430,7 +464,9 @@ export default function IssuePdf({
                   รายการพัสดุ
                 </th>
 
-                {/* จำนวนที่ขอเบิก */}
+                {/* =================================================
+                    จำนวนที่ขอเบิก
+                ================================================= */}
 
                 <th
                   className="
@@ -446,7 +482,9 @@ export default function IssuePdf({
                   จำนวนที่ขอเบิก
                 </th>
 
-                {/* จำนวนที่เบิกจ่าย */}
+                {/* =================================================
+                    จำนวนที่เบิกจ่าย
+                ================================================= */}
 
                 <th
                   className="
@@ -462,7 +500,9 @@ export default function IssuePdf({
                   จำนวนที่เบิกจ่าย
                 </th>
 
-                {/* หมายเหตุ */}
+                {/* =================================================
+                    หมายเหตุ
+                ================================================= */}
 
                 <th
                   className="
@@ -488,7 +528,9 @@ export default function IssuePdf({
                     height: "8mm",
                   }}
                 >
-                  {/* ลำดับ */}
+                  {/* =================================================
+                      ลำดับ
+                  ================================================= */}
 
                   <td
                     className="
@@ -503,7 +545,9 @@ export default function IssuePdf({
                     {index + 1}
                   </td>
 
-                  {/* หมวดหมู่ */}
+                  {/* =================================================
+                      หมวดหมู่
+                  ================================================= */}
 
                   <td
                     className="
@@ -526,7 +570,11 @@ export default function IssuePdf({
                       : ""}
                   </td>
 
-                  {/* รายการพัสดุ */}
+                  {/* =================================================
+                      รายการพัสดุ
+
+                      ชิดซ้าย
+                  ================================================= */}
 
                   <td
                     className="
@@ -541,7 +589,9 @@ export default function IssuePdf({
                     {item ? item.material.name : ""}
                   </td>
 
-                  {/* จำนวนที่ขอเบิก */}
+                  {/* =================================================
+                      จำนวนที่ขอเบิก
+                  ================================================= */}
 
                   <td
                     className="
@@ -556,8 +606,11 @@ export default function IssuePdf({
                     {item?.qty ?? ""}
                   </td>
 
-                  {/* จำนวนที่เบิกจ่าย
-                      เว้นว่าง */}
+                  {/* =================================================
+                      จำนวนที่เบิกจ่าย
+                      
+                      เว้นว่าง
+                  ================================================= */}
 
                   <td
                     className="
@@ -572,7 +625,9 @@ export default function IssuePdf({
                     {" "}
                   </td>
 
-                  {/* หมายเหตุ */}
+                  {/* =================================================
+                      หมายเหตุ
+                  ================================================= */}
 
                   <td
                     className="
