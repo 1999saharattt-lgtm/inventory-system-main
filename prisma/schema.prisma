@@ -29,12 +29,16 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  fullname  String
-  role      Role     @default(STAFF)
-  active    Boolean  @default(true)
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  password String
+  fullname String
+  role     Role    @default(STAFF)
+  active   Boolean @default(true)
+
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -79,6 +83,7 @@ model Department {
   issues   Issue[]
   sections Section[]
   officers Officer[]
+  users    User[]
 }
 
 model Section {
@@ -139,17 +144,17 @@ model ReceiveItem {
   id Int @id @default(autoincrement())
 
   receiveId Int
-  receive Receive @relation(fields: [receiveId], references: [id])
+  receive   Receive @relation(fields: [receiveId], references: [id])
 
   materialId Int
-  material Material @relation(fields: [materialId], references: [id])
+  material   Material @relation(fields: [materialId], references: [id])
 
-  qty Int
+  qty     Int
   balance Int @default(0)
 
-  unitPrice Float
+  unitPrice   Float
   manufacture DateTime?
-  expiry DateTime?
+  expiry      DateTime?
 
   issueItems IssueItem[]
 }
@@ -170,12 +175,10 @@ model Issue {
   remark String?
 
   departmentId Int
-
-  department Department @relation(fields: [departmentId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id])
 
   officerId Int?
-
-  officer Officer? @relation(fields: [officerId], references: [id])
+  officer   Officer? @relation(fields: [officerId], references: [id])
 
   items IssueItem[]
 
@@ -186,18 +189,18 @@ model IssueItem {
   id Int @id @default(autoincrement())
 
   issueId Int
-  issue Issue @relation(fields: [issueId], references: [id])
+  issue   Issue @relation(fields: [issueId], references: [id])
 
   materialId Int
-  material Material @relation(fields: [materialId], references: [id])
+  material   Material @relation(fields: [materialId], references: [id])
 
   receiveItemId Int?
-  receiveItem ReceiveItem? @relation(fields: [receiveItemId], references: [id])
+  receiveItem   ReceiveItem? @relation(fields: [receiveItemId], references: [id])
 
   qty Int
 
   manufacture DateTime?
-  expiry DateTime?
+  expiry      DateTime?
 }
 
 // ======================

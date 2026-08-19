@@ -18,6 +18,15 @@ export async function login(formData: FormData) {
     where: {
       username,
     },
+    select: {
+      id: true,
+      username: true,
+      password: true,
+      fullname: true,
+      role: true,
+      active: true,
+      departmentId: true,
+    },
   });
 
   if (!user) {
@@ -28,21 +37,31 @@ export async function login(formData: FormData) {
     throw new Error("บัญชีผู้ใช้งานถูกปิดการใช้งาน");
   }
 
-  const validPassword = await compare(password, user.password);
+  const validPassword = await compare(
+    password,
+    user.password
+  );
 
   if (!validPassword) {
     throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
   }
 
+  // =====================================================
   // สร้าง JWT Session
+  // =====================================================
+
   const token = await createSession({
     id: user.id,
     username: user.username,
     fullname: user.fullname,
     role: user.role,
+    departmentId: user.departmentId,
   });
 
+  // =====================================================
   // บันทึก Cookie
+  // =====================================================
+
   const cookieStore = await cookies();
 
   cookieStore.set("session", token, {
@@ -50,7 +69,7 @@ export async function login(formData: FormData) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 วัน
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   redirect("/");
