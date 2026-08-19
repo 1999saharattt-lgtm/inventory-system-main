@@ -136,66 +136,93 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Style สำหรับ <th> / <td>
+  // Style ของ <th> / <td>
   //
-  // สำคัญ:
-  // ให้ cell เป็นตัวอ้างอิงตำแหน่ง
-  // แล้ววางข้อความแบบ absolute
+  // IMPORTANT:
+  // ให้ cell เป็น position: relative
+  // แต่ไม่วางข้อความ absolute ตรงกับ <td> โดยตรง
   //
-  // วิธีนี้ไม่ขยับตัว <td> และไม่ขยับเส้นตาราง
-  // ขยับเฉพาะข้อความเท่านั้น
-  //
-  // top: 50%
-  // = เริ่มจากกึ่งกลางของ cell
-  //
-  // translateY(-62%)
-  // = ดึงข้อความขึ้นเล็กน้อยเพื่อชดเชย
-  // baseline ของ TH Sarabun / html2canvas
+  // เพราะ html2canvas + table cell อาจคำนวณ
+  // containing block ของ absolute ผิดตำแหน่ง
   // =====================================================
 
   const cellStyle: React.CSSProperties = {
     position: "relative",
     height: "8mm",
     padding: 0,
+    margin: 0,
     backgroundColor: "#ffffff",
     color: "#000000",
     fontSize: "16px",
-    lineHeight: "1.2",
+    lineHeight: "1",
     verticalAlign: "middle",
     boxSizing: "border-box",
+    overflow: "hidden",
   };
 
   // =====================================================
-  // Style สำหรับข้อความกึ่งกลาง
+  // กล่องด้านในของแต่ละ cell
+  //
+  // จุดสำคัญ:
+  // กล่องนี้อยู่ใน normal flow ของ table cell
+  // และเป็น containing block ของข้อความ absolute
+  //
+  // ไม่มี transform
+  // ไม่มี flex
+  // =====================================================
+
+  const cellInnerStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+    height: "8mm",
+    padding: 0,
+    margin: 0,
+    boxSizing: "border-box",
+    overflow: "hidden",
+  };
+
+  // =====================================================
+  // ข้อความกึ่งกลาง
+  //
+  // top: 50%
+  // = จุดกึ่งกลางของกล่องด้านใน
+  //
+  // translateY(-50%)
+  // = ดึงข้อความกลับขึ้นครึ่งหนึ่งของความสูงตัวเอง
+  //
+  // จึงได้กึ่งกลางแนว Y จริง
   // =====================================================
 
   const cellTextStyle: React.CSSProperties = {
     position: "absolute",
     top: "50%",
-    transform: "translateY(-62%)",
+    left: 0,
     width: "100%",
-    lineHeight: "1",
+    margin: 0,
+    padding: 0,
     boxSizing: "border-box",
+    transform: "translateY(-50%)",
+    lineHeight: "1",
     whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "clip",
   };
 
   // =====================================================
-  // กึ่งกลาง
+  // กึ่งกลางทั้ง X และ Y
   // =====================================================
 
   const cellCenterStyle: React.CSSProperties = {
     ...cellTextStyle,
     textAlign: "center",
-    left: 0,
   };
 
   // =====================================================
-  // ชิดซ้าย
+  // ชิดซ้ายแนวนอน + กึ่งกลางแนวตั้ง
   // =====================================================
 
   const cellLeftStyle: React.CSSProperties = {
     ...cellTextStyle,
-    left: 0,
     textAlign: "left",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
@@ -412,9 +439,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    ลำดับ
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellCenterStyle}>
+                      ลำดับ
+                    </span>
+                  </div>
                 </th>
 
                 {/* =================================================
@@ -432,9 +461,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    หมวดหมู่
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellCenterStyle}>
+                      หมวดหมู่
+                    </span>
+                  </div>
                 </th>
 
                 {/* =================================================
@@ -452,9 +483,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    รายการพัสดุ
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellLeftStyle}>
+                      รายการพัสดุ
+                    </span>
+                  </div>
                 </th>
 
                 {/* =================================================
@@ -472,9 +505,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    จำนวนที่ขอเบิก
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellCenterStyle}>
+                      จำนวนที่ขอเบิก
+                    </span>
+                  </div>
                 </th>
 
                 {/* =================================================
@@ -492,9 +527,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    จำนวนที่เบิกจ่าย
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellCenterStyle}>
+                      จำนวนที่เบิกจ่าย
+                    </span>
+                  </div>
                 </th>
 
                 {/* =================================================
@@ -512,9 +549,11 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <span style={cellCenterStyle}>
-                    หมายเหตุ
-                  </span>
+                  <div style={cellInnerStyle}>
+                    <span style={cellCenterStyle}>
+                      หมายเหตุ
+                    </span>
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -541,9 +580,11 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span style={cellCenterStyle}>
-                      {index + 1}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span style={cellCenterStyle}>
+                        {index + 1}
+                      </span>
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -560,21 +601,21 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span
-                      style={{
-                        ...cellCenterStyle,
-                        overflow: "hidden",
-                        textOverflow: "clip",
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      {item
-                        ? categoryLabels[
-                            item.material.category
-                          ] ?? item.material.category
-                        : ""}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span
+                        style={{
+                          ...cellCenterStyle,
+                          paddingLeft: "0.5mm",
+                          paddingRight: "0.5mm",
+                        }}
+                      >
+                        {item
+                          ? categoryLabels[
+                              item.material.category
+                            ] ?? item.material.category
+                          : ""}
+                      </span>
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -594,15 +635,11 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span
-                      style={{
-                        ...cellLeftStyle,
-                        overflow: "hidden",
-                        textOverflow: "clip",
-                      }}
-                    >
-                      {item ? item.material.name : ""}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span style={cellLeftStyle}>
+                        {item ? item.material.name : ""}
+                      </span>
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -619,9 +656,11 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span style={cellCenterStyle}>
-                      {item?.qty ?? ""}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span style={cellCenterStyle}>
+                        {item?.qty ?? ""}
+                      </span>
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -640,9 +679,11 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span style={cellCenterStyle}>
-                      {" "}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span style={cellCenterStyle}>
+                        {" "}
+                      </span>
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -659,17 +700,17 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <span
-                      style={{
-                        ...cellCenterStyle,
-                        overflow: "hidden",
-                        textOverflow: "clip",
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      {item?.remark ?? ""}
-                    </span>
+                    <div style={cellInnerStyle}>
+                      <span
+                        style={{
+                          ...cellCenterStyle,
+                          paddingLeft: "0.5mm",
+                          paddingRight: "0.5mm",
+                        }}
+                      >
+                        {item?.remark ?? ""}
+                      </span>
+                    </div>
                   </td>
                 </tr>
               ))}
