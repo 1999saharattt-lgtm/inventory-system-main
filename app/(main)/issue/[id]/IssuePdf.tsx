@@ -86,10 +86,7 @@ export default function IssuePdf({
         await document.fonts.ready;
       }
 
-      // =================================================
-      // รอ browser render ให้เสร็จ
-      // =================================================
-
+      // รอ browser render 2 รอบ
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -171,10 +168,12 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Base style ของ table cell
+  // Base style ของ cell
   //
-  // ไม่กำหนดตำแหน่งข้อความใน th โดยตรง
-  // เพราะเราจะใช้ headerContentStyle ด้านในแทน
+  // สำคัญ:
+  // ตัว cell ไม่เลื่อน
+  // เส้นขอบไม่เลื่อน
+  // ตารางไม่เลื่อน
   // =====================================================
 
   const cellBaseStyle: React.CSSProperties = {
@@ -193,44 +192,53 @@ export default function IssuePdf({
   };
 
   // =====================================================
-  // หัวตาราง
+  // ตัวข้อความหัวตาราง
   //
-  // สำคัญ:
+  // จุดสำคัญของการแก้ครั้งนี้
   //
-  // ไม่ใช้ padding-top
-  // ไม่ใช้ line-height สูง
-  // ไม่พึ่ง baseline ของ <th>
+  // TH Sarabun มี baseline ที่ทำให้ข้อความดูตกลงล่าง
+  // แม้ <th> จะ vertical-align: middle แล้วก็ตาม
   //
-  // ใช้ div ภายในเป็นตัวจัดตำแหน่งแทน
+  // เราจึงขยับเฉพาะ "ตัวหนังสือ"
+  // ไม่ขยับ <th>
+  // ไม่ขยับเส้นขอบ
+  // ไม่ขยับตาราง
+  //
+  // translateY ใช้เฉพาะข้อความหัวตารางเท่านั้น
+  // =====================================================
+
+  const headerTextStyle: React.CSSProperties = {
+    display: "inline-block",
+    position: "relative",
+    top: "-1.35mm",
+    margin: 0,
+    padding: 0,
+    fontFamily:
+      "TH Sarabun New, Sarabun, Arial, sans-serif",
+    fontSize: "16px",
+    fontWeight: "normal",
+    lineHeight: "1",
+    whiteSpace: "nowrap",
+    textAlign: "center",
+    verticalAlign: "middle",
+  };
+
+  // =====================================================
+  // Cell หัวตาราง
+  //
+  // ทุกหัวตาราง:
+  // - กึ่งกลางแนวนอน
+  // - ข้อความถูกยกขึ้น
   // =====================================================
 
   const headerCellStyle: React.CSSProperties = {
     ...cellBaseStyle,
     textAlign: "center",
-    verticalAlign: "middle",
-  };
-
-  const headerContentStyle: React.CSSProperties = {
-    width: "100%",
-    height: "8mm",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxSizing: "border-box",
-    margin: 0,
-    padding: 0,
-    textAlign: "center",
     whiteSpace: "nowrap",
-    lineHeight: "1",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize: "16px",
-    fontWeight: "normal",
-    color: "#000000",
   };
 
   // =====================================================
-  // ข้อมูลกึ่งกลาง
+  // ข้อมูลทั่วไป
   // =====================================================
 
   const centerCellStyle: React.CSSProperties = {
@@ -243,8 +251,11 @@ export default function IssuePdf({
   // =====================================================
   // ข้อมูลรายการพัสดุ
   //
-  // ข้อมูลด้านล่างยังชิดซ้าย
-  // แต่จัดให้อยู่กึ่งกลางแนวตั้ง
+  // ชิดซ้ายแนวนอน
+  // แนวตั้งยังคงอยู่กลาง cell
+  //
+  // จุดนี้ยังไม่แก้ตำแหน่งเพิ่มเติม
+  // เพราะกำลังแก้ทีละจุดตามที่ต้องการ
   // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
@@ -472,9 +483,9 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     ลำดับ
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -492,16 +503,16 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     หมวดหมู่
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
                     รายการพัสดุ
-                  
-                    จุดที่กำลังแก้:
-                    ต้องกึ่งกลางทั้งแนวนอนและแนวตั้ง
+
+                    กึ่งกลางแนวนอน
+                    กึ่งกลางแนวตั้ง
                 ================================================= */}
 
                 <th
@@ -515,9 +526,9 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     รายการพัสดุ
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -535,9 +546,9 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     จำนวนที่ขอเบิก
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -555,9 +566,9 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     จำนวนที่เบิกจ่าย
-                  </div>
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -575,9 +586,9 @@ export default function IssuePdf({
                   "
                   style={headerCellStyle}
                 >
-                  <div style={headerContentStyle}>
+                  <span style={headerTextStyle}>
                     หมายเหตุ
-                  </div>
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -640,7 +651,6 @@ export default function IssuePdf({
                       รายการพัสดุ
 
                       ข้อมูลชิดซ้าย
-                      ไม่เกี่ยวกับหัวตาราง
                   ================================================= */}
 
                   <td
