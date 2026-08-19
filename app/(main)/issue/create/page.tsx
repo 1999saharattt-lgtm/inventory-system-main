@@ -204,6 +204,23 @@ export default async function CreateIssuePage() {
 
   const documentNo = await generateIssueNo();
 
+  // =====================================================
+  // กลุ่มงานเริ่มต้นของ User
+  //
+  // ADMIN:
+  //   ให้ IssueForm เลือกกลุ่มงานเอง
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   กำหนดกลุ่มงานตาม session.departmentId อัตโนมัติ
+  // =====================================================
+
+  const initialDepartmentId =
+    session?.role === "ADMIN"
+      ? ""
+      : session?.departmentId
+        ? String(session.departmentId)
+        : "";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -288,6 +305,7 @@ export default async function CreateIssuePage() {
           materials={materials}
           receiveLots={receiveLots}
           documentNo={documentNo}
+          initialDepartmentId={initialDepartmentId}
         />
       </div>
     </div>

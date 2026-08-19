@@ -81,6 +81,20 @@ const categories = [
   },
 ];
 
+function getCurrentDate() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function IssueForm({
   materials,
   receiveLots,
@@ -88,8 +102,23 @@ export default function IssueForm({
   officers,
   documentNo,
 }: Props) {
+  // =====================================================
+  // กลุ่มงาน
+  //
+  // ถ้ามี department เดียว
+  // ให้เลือกให้อัตโนมัติ
+  //
+  // สำหรับผู้ใช้งานทั่วไป departments จะถูกกรอง
+  // มาจากหน้า Server ให้เหลือเฉพาะกลุ่มของตัวเอง
+  // =====================================================
+
+  const initialDepartmentId =
+    departments.length === 1
+      ? String(departments[0].id)
+      : "";
+
   const [departmentId, setDepartmentId] =
-    useState("");
+    useState(initialDepartmentId);
 
   const [officerId, setOfficerId] =
     useState("");
@@ -99,6 +128,15 @@ export default function IssueForm({
 
   const [documentValue, setDocumentValue] =
     useState(documentNo);
+
+  // =====================================================
+  // วันที่เบิก
+  //
+  // ค่าเริ่มต้นเป็นวันที่ปัจจุบัน
+  // =====================================================
+
+  const [issueDate, setIssueDate] =
+    useState(getCurrentDate());
 
   const emptyRow = (): ItemRow => ({
     category: "",
@@ -118,13 +156,22 @@ export default function IssueForm({
       )
     );
 
+  // =====================================================
+  // กรองผู้ขอเบิกตามกลุ่มงาน
+  //
+  // รองรับทั้ง:
+  // - officer.departmentId
+  // - officer.section.departmentId
+  // =====================================================
+
   const filteredOfficers =
     officers.filter(
-      (o) =>
-        String(o.departmentId) ===
-          departmentId ||
+      (officer) =>
         String(
-          o.section?.departmentId
+          officer.departmentId
+        ) === departmentId ||
+        String(
+          officer.section?.departmentId
         ) === departmentId
     );
 
@@ -334,6 +381,10 @@ export default function IssueForm({
             <input
               type="date"
               name="issueDate"
+              value={issueDate}
+              onChange={(e) =>
+                setIssueDate(e.target.value)
+              }
               required
               className="
                 w-full
@@ -372,10 +423,13 @@ export default function IssueForm({
               required
               value={departmentId}
               onChange={(e) => {
-                setDepartmentId(
-                  e.target.value
-                );
+                const value =
+                  e.target.value;
 
+                setDepartmentId(value);
+
+                // เปลี่ยนกลุ่มงาน
+                // ต้องล้างผู้ขอเบิกเดิม
                 setOfficerId("");
               }}
               className="
@@ -393,18 +447,22 @@ export default function IssueForm({
                 focus:ring-cyan-100
               "
             >
-              <option value="">
-                -- เลือกหน่วยงาน --
-              </option>
-
-              {departments.map((department) => (
-                <option
-                  key={department.id}
-                  value={department.id}
-                >
-                  {department.name}
+              {departments.length !== 1 && (
+                <option value="">
+                  -- เลือกหน่วยงาน --
                 </option>
-              ))}
+              )}
+
+              {departments.map(
+                (department) => (
+                  <option
+                    key={department.id}
+                    value={department.id}
+                  >
+                    {department.name}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
@@ -432,6 +490,7 @@ export default function IssueForm({
                 )
               }
               disabled={!departmentId}
+              required
               className="
                 w-full
                 rounded-lg
@@ -452,15 +511,17 @@ export default function IssueForm({
                 -- เลือกผู้ขอเบิก --
               </option>
 
-              {filteredOfficers.map((officer) => (
-                <option
-                  key={officer.id}
-                  value={officer.id}
-                >
-                  {officer.firstName}{" "}
-                  {officer.lastName}
-                </option>
-              ))}
+              {filteredOfficers.map(
+                (officer) => (
+                  <option
+                    key={officer.id}
+                    value={officer.id}
+                  >
+                    {officer.firstName}{" "}
+                    {officer.lastName}
+                  </option>
+                )
+              )}
             </select>
           </div>
         </div>
@@ -735,18 +796,20 @@ export default function IssueForm({
                           เลือกรายการพัสดุ
                         </option>
 
-                        {list.map((material) => (
-                          <option
-                            key={
-                              material.id
-                            }
-                            value={
-                              material.id
-                            }
-                          >
-                            {material.name}
-                          </option>
-                        ))}
+                        {list.map(
+                          (material) => (
+                            <option
+                              key={
+                                material.id
+                              }
+                              value={
+                                material.id
+                              }
+                            >
+                              {material.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </td>
 
@@ -765,9 +828,7 @@ export default function IssueForm({
                         name={`items[${index}].qty`}
                         type="number"
                         min="1"
-                        value={
-                          row.qty
-                        }
+                        value={row.qty}
                         onChange={(e) =>
                           updateRow(
                             index,
