@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { verifySession, type SessionUser } from "@/lib/session";
 import DeleteButton from "./DeleteButton";
 
 type Issue = {
@@ -32,7 +34,54 @@ type Issue = {
 };
 
 export default async function IssuePage() {
+  // =====================================================
+  // Session
+  // =====================================================
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  let session: SessionUser | null = null;
+
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
+
+  // =====================================================
+  // กรองรายการตามกลุ่มงาน
+  //
+  // ADMIN:
+  //   เห็นรายการเบิกจ่ายทั้งหมด
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   เห็นเฉพาะรายการของ department ตัวเอง
+  //
+  // ถ้ายังไม่มี departmentId:
+  //   ไม่แสดงรายการของกลุ่มอื่น
+  // =====================================================
+
+  const where =
+    session?.role === "ADMIN"
+      ? {}
+      : session?.departmentId
+        ? {
+            departmentId: session.departmentId,
+          }
+        : {
+            departmentId: -1,
+          };
+
+  // =====================================================
+  // ดึงรายการเบิกจ่าย
+  // =====================================================
+
   const issues = await prisma.issue.findMany({
+    where,
+
     orderBy: {
       issueDate: "desc",
     },
@@ -106,7 +155,7 @@ export default async function IssuePage() {
               sm:text-xl
             "
           >
-            แสดงรายการเอกสารเบิกจ่ายพัสดุทั้งหมด
+            แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน
           </p>
 
         </div>
