@@ -544,7 +544,9 @@ export default async function IssueDetailPage({
                         item.material.category}
                     </td>
 
-                    {/* รายการพัสดุ */}
+                    {/* รายการพัสดุ
+                        รหัสพัสดุ - ชื่อรายการพัสดุ
+                        อยู่บรรทัดเดียวกัน */}
 
                     <td
                       className="
@@ -556,21 +558,8 @@ export default async function IssueDetailPage({
                         whitespace-nowrap
                       "
                     >
-                      <div className="whitespace-nowrap">
-                        {item.material.name}
-                      </div>
-
-                      <div
-                        className="
-                          mt-1
-                          whitespace-nowrap
-                          text-xs
-                          text-slate-500
-                        "
-                      >
-                        รหัสพัสดุ:{" "}
-                        {item.material.code}
-                      </div>
+                      {item.material.code} -{" "}
+                      {item.material.name}
                     </td>
 
                     {/* จำนวนที่ขอเบิก */}
