@@ -105,6 +105,13 @@ export default function IssuePdf({
       const pageHeight =
         pdf.internal.pageSize.getHeight();
 
+      /*
+       * ใส่ภาพเต็มหน้า A4
+       *
+       * เนื้อหาภายในตัว element มี
+       * ขอบบน/ล่าง 5mm
+       * ขอบซ้าย/ขวา 3mm
+       */
       pdf.addImage(
         imageData,
         "PNG",
@@ -165,14 +172,16 @@ export default function IssuePdf({
       </button>
 
       {/* =====================================================
-          A4 210 x 297 mm
+          พอ.101
 
-          ขอบบน    5mm
-          ขอบล่าง  5mm
-          ขอบซ้าย  3mm
-          ขอบขวา   3mm
+          A4 = 210 x 297 mm
 
-          เผื่อพื้นที่สำหรับการพิมพ์จริง
+          ขอบบน    5mm = 0.5cm
+          ขอบล่าง  5mm = 0.5cm
+          ขอบซ้าย  3mm = 0.3cm
+          ขอบขวา   3mm = 0.3cm
+
+          เพื่อป้องกันการตกขอบเวลาพิมพ์จริง
       ===================================================== */}
 
       <div
@@ -211,6 +220,7 @@ export default function IssuePdf({
               whitespace-nowrap
               text-[16px]
               leading-none
+              text-black
             "
           >
             เลขที่ {documentNo || "-"}
@@ -225,6 +235,7 @@ export default function IssuePdf({
               text-[17px]
               font-bold
               leading-none
+              text-black
             "
           >
             พอ.101
@@ -239,6 +250,7 @@ export default function IssuePdf({
               text-[21px]
               font-bold
               leading-none
+              text-black
             "
           >
             ใบเบิกพัสดุ
@@ -255,6 +267,7 @@ export default function IssuePdf({
               whitespace-nowrap
               text-[16px]
               leading-none
+              text-black
             "
           >
             กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
@@ -271,6 +284,7 @@ export default function IssuePdf({
               whitespace-nowrap
               text-[16px]
               leading-none
+              text-black
             "
           >
             วันที่ {formatThaiDate(issueDate)}
@@ -279,13 +293,16 @@ export default function IssuePdf({
 
         {/* =====================================================
             ข้อความนำหน้าตาราง
+
+            เว้นระยะจากหัวตารางให้ชัดเจน
         ===================================================== */}
 
         <div
           className="
-            mb-[1.5mm]
+            mb-[3mm]
             text-[16px]
             leading-none
+            text-black
           "
         >
           ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
@@ -295,17 +312,17 @@ export default function IssuePdf({
         {/* =====================================================
             ตารางรายการ
 
-            กว้าง 204mm
+            A4 กว้าง 210mm
             ขอบซ้าย/ขวา 3mm
+            พื้นที่ตาราง = 204mm
 
-            หัวตาราง 4mm
-            แถวข้อมูล 3.2mm
+            หัวตาราง = 4mm
+            แถวข้อมูล = 3.5mm
 
             พื้นขาว
             ตัวอักษรดำ
             เส้นดำ
             ไม่มี rounded
-            หัวตารางไม่ตกบรรทัด
         ===================================================== */}
 
         <div className="flex justify-center">
@@ -325,6 +342,8 @@ export default function IssuePdf({
               borderSpacing: 0,
               borderRadius: 0,
               fontSize: "12px",
+              color: "#000000",
+              backgroundColor: "#ffffff",
             }}
           >
             <thead>
@@ -333,7 +352,9 @@ export default function IssuePdf({
                   height: "4mm",
                 }}
               >
-                {/* ลำดับ */}
+                {/* =================================================
+                    ลำดับ
+                ================================================= */}
 
                 <th
                   className="
@@ -350,17 +371,24 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   ลำดับ
                 </th>
 
-                {/* หมวดหมู่ */}
+                {/* =================================================
+                    หมวดหมู่
+                ================================================= */}
 
                 <th
                   className="
@@ -377,17 +405,24 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   หมวดหมู่
                 </th>
 
-                {/* รายการพัสดุ */}
+                {/* =================================================
+                    รายการพัสดุ
+                ================================================= */}
 
                 <th
                   className="
@@ -404,17 +439,24 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   รายการพัสดุ
                 </th>
 
-                {/* จำนวนที่ขอเบิก */}
+                {/* =================================================
+                    จำนวนที่ขอเบิก
+                ================================================= */}
 
                 <th
                   className="
@@ -431,17 +473,24 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   จำนวนที่ขอเบิก
                 </th>
 
-                {/* จำนวนที่เบิกจ่าย */}
+                {/* =================================================
+                    จำนวนที่เบิกจ่าย
+                ================================================= */}
 
                 <th
                   className="
@@ -458,17 +507,24 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   จำนวนที่เบิกจ่าย
                 </th>
 
-                {/* หมายเหตุ */}
+                {/* =================================================
+                    หมายเหตุ
+                ================================================= */}
 
                 <th
                   className="
@@ -485,11 +541,16 @@ export default function IssuePdf({
                   "
                   style={{
                     height: "4mm",
+                    minHeight: "4mm",
+                    maxHeight: "4mm",
                     padding: 0,
                     borderRadius: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
                     fontSize: "12px",
                     lineHeight: "0.8",
                     whiteSpace: "nowrap",
+                    verticalAlign: "middle",
                   }}
                 >
                   หมายเหตุ
@@ -502,10 +563,12 @@ export default function IssuePdf({
                 <tr
                   key={item?.id ?? `empty-${index}`}
                   style={{
-                    height: "3.2mm",
+                    height: "3.5mm",
                   }}
                 >
-                  {/* ลำดับ */}
+                  {/* =================================================
+                      ลำดับ
+                  ================================================= */}
 
                   <td
                     className="
@@ -519,19 +582,26 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      verticalAlign: "middle",
                     }}
                   >
                     {index + 1}
                   </td>
 
-                  {/* หมวดหมู่ */}
+                  {/* =================================================
+                      หมวดหมู่
+                  ================================================= */}
 
                   <td
                     className="
@@ -544,13 +614,19 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      textOverflow: "clip",
+                      verticalAlign: "middle",
                     }}
                   >
                     {item
@@ -560,7 +636,9 @@ export default function IssuePdf({
                       : ""}
                   </td>
 
-                  {/* รายการ */}
+                  {/* =================================================
+                      รายการพัสดุ
+                  ================================================= */}
 
                   <td
                     className="
@@ -573,20 +651,27 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "clip",
+                      verticalAlign: "middle",
                     }}
                   >
                     {item ? item.material.name : ""}
                   </td>
 
-                  {/* จำนวนขอเบิก */}
+                  {/* =================================================
+                      จำนวนขอเบิก
+                  ================================================= */}
 
                   <td
                     className="
@@ -600,19 +685,26 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      verticalAlign: "middle",
                     }}
                   >
                     {item?.qty ?? ""}
                   </td>
 
-                  {/* จำนวนเบิกจ่าย */}
+                  {/* =================================================
+                      จำนวนเบิกจ่าย
+                  ================================================= */}
 
                   <td
                     className="
@@ -626,19 +718,26 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      verticalAlign: "middle",
                     }}
                   >
                     {item ? item.qty : ""}
                   </td>
 
-                  {/* หมายเหตุ */}
+                  {/* =================================================
+                      หมายเหตุ
+                  ================================================= */}
 
                   <td
                     className="
@@ -651,13 +750,19 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.2mm",
+                      height: "3.5mm",
+                      minHeight: "3.5mm",
+                      maxHeight: "3.5mm",
                       padding: 0,
                       borderRadius: 0,
+                      backgroundColor: "#ffffff",
+                      color: "#000000",
                       fontSize: "12px",
-                      lineHeight: "0.75",
+                      lineHeight: "0.8",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      textOverflow: "clip",
+                      verticalAlign: "middle",
                     }}
                   >
                     {item?.remark ?? ""}
@@ -674,12 +779,13 @@ export default function IssuePdf({
 
         <div
           className="
-            mt-[1.5mm]
+            mt-[2mm]
             flex
             justify-between
             px-[2mm]
             text-[16px]
             leading-none
+            text-black
           "
         >
           <div>
@@ -697,10 +803,11 @@ export default function IssuePdf({
 
         <div
           className="
-            mt-[1.5mm]
+            mt-[2mm]
             px-[2mm]
             text-[16px]
             leading-none
+            text-black
           "
         >
           วันที่ลงบัญชีหักพัสดุ
@@ -712,21 +819,24 @@ export default function IssuePdf({
             ลายเซ็น 4 ตำแหน่ง
 
             รูปแบบราชการ:
-            ลงชื่อ ................................ ผู้รับของ
 
-            ชื่อผู้รับ/ผู้จ่ายอยู่บรรทัดถัดไป
-            วันที่อยู่กึ่งกลาง
+            ลงชื่อ ................................................ ผู้รับของ
+
+            (....................................................)
+
+            วันที่ ................................................
         ===================================================== */}
 
         <div
           className="
-            mt-[4mm]
+            mt-[5mm]
             grid
             grid-cols-2
             gap-x-[15mm]
             px-[8mm]
             text-[16px]
             leading-none
+            text-black
           "
         >
           {/* =================================================
@@ -740,7 +850,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ................................................
+                .....................................................
                 {" "}
                 ผู้รับของ
               </div>
@@ -760,7 +870,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ................................................
+                .....................................................
                 {" "}
                 ผู้จ่าย
               </div>
@@ -786,7 +896,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ................................................
+                .....................................................
                 {" "}
                 หัวหน้ากลุ่ม
               </div>
@@ -806,7 +916,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ................................................
+                .....................................................
                 {" "}
                 ผู้อนุญาต
               </div>
