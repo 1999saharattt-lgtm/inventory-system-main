@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verifySession, type SessionUser } from "@/lib/session";
+import {
+  verifySession,
+  type SessionUser,
+} from "@/lib/session";
 import DeleteButton from "./DeleteButton";
 
 type Issue = {
@@ -88,7 +91,6 @@ export default async function IssuePage() {
 
     include: {
       department: true,
-
       officer: true,
 
       items: {
@@ -100,9 +102,18 @@ export default async function IssuePage() {
   });
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -130,7 +141,6 @@ export default async function IssuePage() {
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -157,7 +167,6 @@ export default async function IssuePage() {
           >
             แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน
           </p>
-
         </div>
 
         <Link
@@ -188,7 +197,9 @@ export default async function IssuePage() {
         </Link>
       </div>
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
 
       <div
         className="
@@ -202,21 +213,17 @@ export default async function IssuePage() {
           shadow-xl
         "
       >
-
         <div className="w-full overflow-x-auto">
-
           <table
             className="
               min-w-[1200px]
+              border-collapse
               border
               border-slate-900
             "
           >
-
             <thead>
-
               <tr>
-
                 {[
                   "ลำดับ",
                   "วันที่เบิกจ่าย",
@@ -241,188 +248,137 @@ export default async function IssuePage() {
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                     "
                   >
                     {title}
                   </th>
                 ))}
-
               </tr>
-
             </thead>
 
             <tbody>
-
               {issues.length > 0 ? (
-
-                issues.map((issue, index: number) => (
-
-                  <tr
-                    key={issue.id}
-                    className="
-                      border-b
-                      border-slate-900
-                      hover:bg-blue-50
-                    "
-                  >
-
-                    <td
+                issues.map(
+                  (issue: Issue, index: number) => (
+                    <tr
+                      key={issue.id}
                       className="
-                        whitespace-nowrap
-                        border
+                        border-b
                         border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
+                        transition
+                        hover:bg-blue-50
                       "
                     >
-                      {index + 1}
-                    </td>
+                      {/* ลำดับ */}
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {issue.issueDate
-                        ? new Date(
-                            issue.issueDate
-                          ).toLocaleDateString("th-TH")
-                        : "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {issue.documentNo}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {issue.department?.name ?? "-"}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {issue.officer
-                        ? `${issue.officer.firstName} ${issue.officer.lastName}`
-                        : "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      <Link
-                        href={`/issue/${issue.id}`}
+                      <td
                         className="
-                          inline-block
-                          rounded-lg
-                          bg-slate-800
+                          whitespace-nowrap
+                          border
+                          border-slate-900
                           px-4
-                          py-2
+                          py-3
+                          text-center
                           font-extrabold
-                          text-white
-                          shadow
-                          transition
-                          hover:bg-slate-700
+                          text-slate-900
                         "
                       >
-                        ดูรายการ
-                      </Link>
-                    </td>
+                        {index + 1}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {issue.remark || (
-                        <span
-                          className="
-                            italic
-                            text-slate-400
-                          "
-                        >
-                          -
-                        </span>
-                      )}
-                    </td>
+                      {/* วันที่เบิกจ่าย */}
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      <div
+                      <td
                         className="
-                          flex
-                          justify-center
-                          gap-2
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
                         "
                       >
+                        {issue.issueDate
+                          ? new Date(
+                              issue.issueDate
+                            ).toLocaleDateString(
+                              "th-TH"
+                            )
+                          : "-"}
+                      </td>
 
+                      {/* เลขที่เอกสาร */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        {issue.documentNo}
+                      </td>
+
+                      {/* หน่วยงาน */}
+
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        {issue.department?.name ?? "-"}
+                      </td>
+
+                      {/* ผู้ขอเบิก */}
+
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        {issue.officer
+                          ? `${issue.officer.firstName} ${issue.officer.lastName}`
+                          : "-"}
+                      </td>
+
+                      {/* รายละเอียด */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
                         <Link
-                          href={`/issue/${issue.id}/edit`}
+                          href={`/issue/${issue.id}`}
                           className="
-                            whitespace-nowrap
+                            inline-block
                             rounded-lg
                             bg-slate-800
                             px-4
@@ -434,24 +390,83 @@ export default async function IssuePage() {
                             hover:bg-slate-700
                           "
                         >
-                          แก้ไข
+                          ดูรายการ
                         </Link>
+                      </td>
 
-                        <DeleteButton
-                          id={issue.id}
-                        />
+                      {/* หมายเหตุ */}
 
-                      </div>
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        {issue.remark || (
+                          <span
+                            className="
+                              italic
+                              text-slate-400
+                            "
+                          >
+                            -
+                          </span>
+                        )}
+                      </td>
 
-                  </tr>
+                      {/* จัดการ */}
 
-                ))
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            justify-center
+                            gap-2
+                          "
+                        >
+                          <Link
+                            href={`/issue/${issue.id}/edit`}
+                            className="
+                              whitespace-nowrap
+                              rounded-lg
+                              bg-slate-800
+                              px-4
+                              py-2
+                              font-extrabold
+                              text-white
+                              shadow
+                              transition
+                              hover:bg-slate-700
+                            "
+                          >
+                            แก้ไข
+                          </Link>
 
+                          <DeleteButton
+                            id={issue.id}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )
               ) : (
-
                 <tr>
-
                   <td
                     colSpan={8}
                     className="
@@ -466,19 +481,12 @@ export default async function IssuePage() {
                   >
                     ยังไม่มีรายการเบิกจ่ายพัสดุ
                   </td>
-
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
       </div>
-
     </div>
   );
 }
