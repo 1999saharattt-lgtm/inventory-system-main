@@ -136,62 +136,52 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Style สำหรับ <th> / <td>
+  // Style ของ <th> / <td>
   //
   // สำคัญ:
-  // ไม่ใช้ position absolute
-  // ไม่ใช้ transform
-  // ไม่ใช้ flex กับข้อความ
+  // - ไม่ใช้ position absolute
+  // - ไม่ใช้ transform
+  // - ไม่ใช้ flex
+  // - ไม่ใช้ block wrapper
   //
-  // ให้ table จัดกึ่งกลางแนว Y เองด้วย
-  // vertical-align: middle
+  // ให้ browser + html2canvas จัดตำแหน่ง
+  // ข้อความภายใน table cell โดยตรง
   // =====================================================
 
   const cellStyle: React.CSSProperties = {
-    position: "relative",
     height: "8mm",
     padding: 0,
     margin: 0,
     backgroundColor: "#ffffff",
     color: "#000000",
     fontSize: "16px",
-    lineHeight: "1",
+    lineHeight: "1.2",
     verticalAlign: "middle",
+    boxSizing: "border-box",
+    overflow: "hidden",
+  };
+
+  // =====================================================
+  // Style สำหรับข้อความใน cell
+  //
+  // ไม่มี display:block
+  // ไม่มี position
+  // ไม่มี transform
+  // ไม่มี width 100%
+  //
+  // ใช้กับ text โดยตรงใน <th>/<td>
+  // =====================================================
+
+  const centerCellStyle: React.CSSProperties = {
+    ...cellStyle,
     textAlign: "center",
-    boxSizing: "border-box",
-    overflow: "hidden",
-  };
-
-  // =====================================================
-  // ข้อความใน cell
-  //
-  // เป็น normal flow
-  // ไม่ absolute
-  // ไม่ transform
-  //
-  // html2canvas จะคำนวณ baseline ตาม table cell ปกติ
-  // =====================================================
-
-  const cellTextStyle: React.CSSProperties = {
-    display: "block",
-    width: "100%",
-    margin: 0,
-    padding: 0,
-    boxSizing: "border-box",
-    fontSize: "16px",
-    lineHeight: "1",
     whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "clip",
   };
 
-  // =====================================================
-  // ข้อความชิดซ้าย
-  // =====================================================
-
-  const cellLeftTextStyle: React.CSSProperties = {
-    ...cellTextStyle,
+  const leftCellStyle: React.CSSProperties = {
+    ...cellStyle,
     textAlign: "left",
+    whiteSpace: "nowrap",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
   };
@@ -392,9 +382,7 @@ export default function IssuePdf({
                   height: "8mm",
                 }}
               >
-                {/* =================================================
-                    ลำดับ
-                ================================================= */}
+                {/* ลำดับ */}
 
                 <th
                   className="
@@ -405,16 +393,12 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={centerCellStyle}
                 >
-                  <span style={cellTextStyle}>
-                    ลำดับ
-                  </span>
+                  ลำดับ
                 </th>
 
-                {/* =================================================
-                    หมวดหมู่
-                ================================================= */}
+                {/* หมวดหมู่ */}
 
                 <th
                   className="
@@ -425,16 +409,12 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={centerCellStyle}
                 >
-                  <span style={cellTextStyle}>
-                    หมวดหมู่
-                  </span>
+                  หมวดหมู่
                 </th>
 
-                {/* =================================================
-                    รายการพัสดุ
-                ================================================= */}
+                {/* รายการพัสดุ */}
 
                 <th
                   className="
@@ -445,16 +425,12 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={leftCellStyle}
                 >
-                  <span style={cellLeftTextStyle}>
-                    รายการพัสดุ
-                  </span>
+                  รายการพัสดุ
                 </th>
 
-                {/* =================================================
-                    จำนวนที่ขอเบิก
-                ================================================= */}
+                {/* จำนวนที่ขอเบิก */}
 
                 <th
                   className="
@@ -465,16 +441,12 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={centerCellStyle}
                 >
-                  <span style={cellTextStyle}>
-                    จำนวนที่ขอเบิก
-                  </span>
+                  จำนวนที่ขอเบิก
                 </th>
 
-                {/* =================================================
-                    จำนวนที่เบิกจ่าย
-                ================================================= */}
+                {/* จำนวนที่เบิกจ่าย */}
 
                 <th
                   className="
@@ -485,16 +457,12 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={centerCellStyle}
                 >
-                  <span style={cellTextStyle}>
-                    จำนวนที่เบิกจ่าย
-                  </span>
+                  จำนวนที่เบิกจ่าย
                 </th>
 
-                {/* =================================================
-                    หมายเหตุ
-                ================================================= */}
+                {/* หมายเหตุ */}
 
                 <th
                   className="
@@ -505,11 +473,9 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={cellStyle}
+                  style={centerCellStyle}
                 >
-                  <span style={cellTextStyle}>
-                    หมายเหตุ
-                  </span>
+                  หมายเหตุ
                 </th>
               </tr>
             </thead>
@@ -522,9 +488,7 @@ export default function IssuePdf({
                     height: "8mm",
                   }}
                 >
-                  {/* =================================================
-                      ลำดับ
-                  ================================================= */}
+                  {/* ลำดับ */}
 
                   <td
                     className="
@@ -534,48 +498,12 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={cellStyle}
+                    style={centerCellStyle}
                   >
-                    <span style={cellTextStyle}>
-                      {index + 1}
-                    </span>
+                    {index + 1}
                   </td>
 
-                  {/* =================================================
-                      หมวดหมู่
-                  ================================================= */}
-
-                  <td
-                    className="
-                      border
-                      border-black
-                      bg-white
-                      p-0
-                      text-black
-                    "
-                    style={cellStyle}
-                  >
-                    <span
-                      style={{
-                        ...cellTextStyle,
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      {item
-                        ? categoryLabels[
-                            item.material.category
-                          ] ?? item.material.category
-                        : ""}
-                    </span>
-                  </td>
-
-                  {/* =================================================
-                      รายการพัสดุ
-                      
-                      ชิดซ้ายแนวนอน
-                      กึ่งกลางแนวตั้ง
-                  ================================================= */}
+                  {/* หมวดหมู่ */}
 
                   <td
                     className="
@@ -586,18 +514,19 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      ...cellStyle,
-                      textAlign: "left",
+                      ...centerCellStyle,
+                      paddingLeft: "0.5mm",
+                      paddingRight: "0.5mm",
                     }}
                   >
-                    <span style={cellLeftTextStyle}>
-                      {item ? item.material.name : ""}
-                    </span>
+                    {item
+                      ? categoryLabels[
+                          item.material.category
+                        ] ?? item.material.category
+                      : ""}
                   </td>
 
-                  {/* =================================================
-                      จำนวนที่ขอเบิก
-                  ================================================= */}
+                  {/* รายการพัสดุ */}
 
                   <td
                     className="
@@ -607,18 +536,12 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={cellStyle}
+                    style={leftCellStyle}
                   >
-                    <span style={cellTextStyle}>
-                      {item?.qty ?? ""}
-                    </span>
+                    {item ? item.material.name : ""}
                   </td>
 
-                  {/* =================================================
-                      จำนวนที่เบิกจ่าย
-                      
-                      เว้นว่าง
-                  ================================================= */}
+                  {/* จำนวนที่ขอเบิก */}
 
                   <td
                     className="
@@ -628,16 +551,13 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={cellStyle}
+                    style={centerCellStyle}
                   >
-                    <span style={cellTextStyle}>
-                      {" "}
-                    </span>
+                    {item?.qty ?? ""}
                   </td>
 
-                  {/* =================================================
-                      หมายเหตุ
-                  ================================================= */}
+                  {/* จำนวนที่เบิกจ่าย
+                      เว้นว่าง */}
 
                   <td
                     className="
@@ -647,17 +567,28 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={cellStyle}
+                    style={centerCellStyle}
                   >
-                    <span
-                      style={{
-                        ...cellTextStyle,
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      {item?.remark ?? ""}
-                    </span>
+                    {" "}
+                  </td>
+
+                  {/* หมายเหตุ */}
+
+                  <td
+                    className="
+                      border
+                      border-black
+                      bg-white
+                      p-0
+                      text-black
+                    "
+                    style={{
+                      ...centerCellStyle,
+                      paddingLeft: "0.5mm",
+                      paddingRight: "0.5mm",
+                    }}
+                  >
+                    {item?.remark ?? ""}
                   </td>
                 </tr>
               ))}
