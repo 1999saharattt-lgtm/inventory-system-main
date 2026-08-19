@@ -136,14 +136,15 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Style ของ <th> / <td>
+  // Style สำหรับ <th> / <td>
   //
-  // IMPORTANT:
-  // ให้ cell เป็น position: relative
-  // แต่ไม่วางข้อความ absolute ตรงกับ <td> โดยตรง
+  // สำคัญ:
+  // ไม่ใช้ position absolute
+  // ไม่ใช้ transform
+  // ไม่ใช้ flex กับข้อความ
   //
-  // เพราะ html2canvas + table cell อาจคำนวณ
-  // containing block ของ absolute ผิดตำแหน่ง
+  // ให้ table จัดกึ่งกลางแนว Y เองด้วย
+  // vertical-align: middle
   // =====================================================
 
   const cellStyle: React.CSSProperties = {
@@ -156,52 +157,28 @@ export default function IssuePdf({
     fontSize: "16px",
     lineHeight: "1",
     verticalAlign: "middle",
+    textAlign: "center",
     boxSizing: "border-box",
     overflow: "hidden",
   };
 
   // =====================================================
-  // กล่องด้านในของแต่ละ cell
+  // ข้อความใน cell
   //
-  // จุดสำคัญ:
-  // กล่องนี้อยู่ใน normal flow ของ table cell
-  // และเป็น containing block ของข้อความ absolute
+  // เป็น normal flow
+  // ไม่ absolute
+  // ไม่ transform
   //
-  // ไม่มี transform
-  // ไม่มี flex
-  // =====================================================
-
-  const cellInnerStyle: React.CSSProperties = {
-    position: "relative",
-    width: "100%",
-    height: "8mm",
-    padding: 0,
-    margin: 0,
-    boxSizing: "border-box",
-    overflow: "hidden",
-  };
-
-  // =====================================================
-  // ข้อความกึ่งกลาง
-  //
-  // top: 50%
-  // = จุดกึ่งกลางของกล่องด้านใน
-  //
-  // translateY(-50%)
-  // = ดึงข้อความกลับขึ้นครึ่งหนึ่งของความสูงตัวเอง
-  //
-  // จึงได้กึ่งกลางแนว Y จริง
+  // html2canvas จะคำนวณ baseline ตาม table cell ปกติ
   // =====================================================
 
   const cellTextStyle: React.CSSProperties = {
-    position: "absolute",
-    top: "50%",
-    left: 0,
+    display: "block",
     width: "100%",
     margin: 0,
     padding: 0,
     boxSizing: "border-box",
-    transform: "translateY(-50%)",
+    fontSize: "16px",
     lineHeight: "1",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -209,19 +186,10 @@ export default function IssuePdf({
   };
 
   // =====================================================
-  // กึ่งกลางทั้ง X และ Y
+  // ข้อความชิดซ้าย
   // =====================================================
 
-  const cellCenterStyle: React.CSSProperties = {
-    ...cellTextStyle,
-    textAlign: "center",
-  };
-
-  // =====================================================
-  // ชิดซ้ายแนวนอน + กึ่งกลางแนวตั้ง
-  // =====================================================
-
-  const cellLeftStyle: React.CSSProperties = {
+  const cellLeftTextStyle: React.CSSProperties = {
     ...cellTextStyle,
     textAlign: "left",
     paddingLeft: "1mm",
@@ -439,11 +407,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellCenterStyle}>
-                      ลำดับ
-                    </span>
-                  </div>
+                  <span style={cellTextStyle}>
+                    ลำดับ
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -461,11 +427,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellCenterStyle}>
-                      หมวดหมู่
-                    </span>
-                  </div>
+                  <span style={cellTextStyle}>
+                    หมวดหมู่
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -483,11 +447,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellLeftStyle}>
-                      รายการพัสดุ
-                    </span>
-                  </div>
+                  <span style={cellLeftTextStyle}>
+                    รายการพัสดุ
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -505,11 +467,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellCenterStyle}>
-                      จำนวนที่ขอเบิก
-                    </span>
-                  </div>
+                  <span style={cellTextStyle}>
+                    จำนวนที่ขอเบิก
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -527,11 +487,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellCenterStyle}>
-                      จำนวนที่เบิกจ่าย
-                    </span>
-                  </div>
+                  <span style={cellTextStyle}>
+                    จำนวนที่เบิกจ่าย
+                  </span>
                 </th>
 
                 {/* =================================================
@@ -549,11 +507,9 @@ export default function IssuePdf({
                   "
                   style={cellStyle}
                 >
-                  <div style={cellInnerStyle}>
-                    <span style={cellCenterStyle}>
-                      หมายเหตุ
-                    </span>
-                  </div>
+                  <span style={cellTextStyle}>
+                    หมายเหตุ
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -580,11 +536,9 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <div style={cellInnerStyle}>
-                      <span style={cellCenterStyle}>
-                        {index + 1}
-                      </span>
-                    </div>
+                    <span style={cellTextStyle}>
+                      {index + 1}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -601,26 +555,24 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <div style={cellInnerStyle}>
-                      <span
-                        style={{
-                          ...cellCenterStyle,
-                          paddingLeft: "0.5mm",
-                          paddingRight: "0.5mm",
-                        }}
-                      >
-                        {item
-                          ? categoryLabels[
-                              item.material.category
-                            ] ?? item.material.category
-                          : ""}
-                      </span>
-                    </div>
+                    <span
+                      style={{
+                        ...cellTextStyle,
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
+                      }}
+                    >
+                      {item
+                        ? categoryLabels[
+                            item.material.category
+                          ] ?? item.material.category
+                        : ""}
+                    </span>
                   </td>
 
                   {/* =================================================
                       รายการพัสดุ
-
+                      
                       ชิดซ้ายแนวนอน
                       กึ่งกลางแนวตั้ง
                   ================================================= */}
@@ -633,13 +585,14 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={cellStyle}
+                    style={{
+                      ...cellStyle,
+                      textAlign: "left",
+                    }}
                   >
-                    <div style={cellInnerStyle}>
-                      <span style={cellLeftStyle}>
-                        {item ? item.material.name : ""}
-                      </span>
-                    </div>
+                    <span style={cellLeftTextStyle}>
+                      {item ? item.material.name : ""}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -656,16 +609,14 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <div style={cellInnerStyle}>
-                      <span style={cellCenterStyle}>
-                        {item?.qty ?? ""}
-                      </span>
-                    </div>
+                    <span style={cellTextStyle}>
+                      {item?.qty ?? ""}
+                    </span>
                   </td>
 
                   {/* =================================================
                       จำนวนที่เบิกจ่าย
-
+                      
                       เว้นว่าง
                   ================================================= */}
 
@@ -679,11 +630,9 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <div style={cellInnerStyle}>
-                      <span style={cellCenterStyle}>
-                        {" "}
-                      </span>
-                    </div>
+                    <span style={cellTextStyle}>
+                      {" "}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -700,17 +649,15 @@ export default function IssuePdf({
                     "
                     style={cellStyle}
                   >
-                    <div style={cellInnerStyle}>
-                      <span
-                        style={{
-                          ...cellCenterStyle,
-                          paddingLeft: "0.5mm",
-                          paddingRight: "0.5mm",
-                        }}
-                      >
-                        {item?.remark ?? ""}
-                      </span>
-                    </div>
+                    <span
+                      style={{
+                        ...cellTextStyle,
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
+                      }}
+                    >
+                      {item?.remark ?? ""}
+                    </span>
                   </td>
                 </tr>
               ))}
