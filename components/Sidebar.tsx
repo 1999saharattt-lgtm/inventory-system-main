@@ -55,7 +55,10 @@ export default function Sidebar({ role }: SidebarProps) {
       items: [
         {
           name: "รายการพัสดุทั้งหมด",
-          href: "/materials",
+          href:
+            role === "ADMIN"
+              ? "/materials"
+              : "/materials/summary",
           icon: Boxes,
         },
         {
@@ -106,14 +109,20 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const visibleMenus = menus
-    .filter((group) => !group.adminOnly || role === "ADMIN")
+    .filter(
+      (group) =>
+        !group.adminOnly || role === "ADMIN"
+    )
     .map((group) => ({
       ...group,
       items: group.items.filter(
-        (item) => !item.adminOnly || role === "ADMIN"
+        (item) =>
+          !item.adminOnly || role === "ADMIN"
       ),
     }))
-    .filter((group) => group.items.length > 0);
+    .filter(
+      (group) => group.items.length > 0
+    );
 
   return (
     <aside

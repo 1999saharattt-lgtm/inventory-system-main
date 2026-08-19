@@ -118,6 +118,22 @@ export default function MobileMenu({
     )
     .map((group) => ({
       ...group,
+      items: group.items.map((item) => {
+        if (item.name === "รายการพัสดุทั้งหมด") {
+          return {
+            ...item,
+            href:
+              role === "ADMIN"
+                ? "/materials"
+                : "/materials/summary",
+          };
+        }
+
+        return item;
+      }),
+    }))
+    .map((group) => ({
+      ...group,
       items: group.items.filter(
         (item) =>
           !item.adminOnly ||
