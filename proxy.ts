@@ -39,8 +39,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token =
-    req.cookies.get("session")?.value;
+  const token = req.cookies.get("session")?.value;
 
   // =====================================================
   // Login
@@ -52,10 +51,7 @@ export async function proxy(req: NextRequest) {
     }
 
     try {
-      await jwtVerify(
-        token,
-        secret
-      );
+      await jwtVerify(token, secret);
 
       return NextResponse.redirect(
         new URL("/", req.url)
@@ -75,11 +71,48 @@ export async function proxy(req: NextRequest) {
     );
   }
 
+  // =====================================================
+  // ตรวจสอบ Session
+  // =====================================================
+
   try {
-    await jwtVerify(
+    const { payload } = await jwtVerify(
       token,
       secret
     );
+
+    const role = String(payload.role ?? "");
+
+    // ===================================================
+    // ADMIN ONLY
+    //
+    // ADMIN = ผู้ดูแลระบบ
+    // ไม่ใช่กลุ่มอำนวยการ
+    // ===================================================
+
+    const adminOnlyPaths = [
+      "/receive",
+      "/vendors",
+      "/departments",
+      "/users",
+    ];
+
+    const isAdminOnlyPath =
+      adminOnlyPaths.some(
+        (path) =>
+          pathname === path ||
+          pathname.startsWith(`${path}/`)
+      );
+
+    if (isAdminOnlyPath && role !== "ADMIN") {
+      return NextResponse.redirect(
+        new URL("/", req.url)
+      );
+    }
+
+    // ===================================================
+    // อนุญาต
+    // ===================================================
 
     return NextResponse.next();
   } catch {

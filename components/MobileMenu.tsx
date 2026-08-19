@@ -18,15 +18,23 @@ import {
   X,
 } from "lucide-react";
 
+type UserRole = "ADMIN" | "STAFF" | "VIEWER";
+
 type MenuItem = {
   name: string;
   href: string;
   icon: ElementType;
+  adminOnly?: boolean;
 };
 
 type MenuGroup = {
   title: string;
   items: MenuItem[];
+  adminOnly?: boolean;
+};
+
+type MobileMenuProps = {
+  role: UserRole;
 };
 
 const menus: MenuGroup[] = [
@@ -53,6 +61,7 @@ const menus: MenuGroup[] = [
         name: "รายการรับเข้า",
         href: "/receive",
         icon: PackagePlus,
+        adminOnly: true,
       },
       {
         name: "รายการเบิกจ่าย",
@@ -74,6 +83,7 @@ const menus: MenuGroup[] = [
 
   {
     title: "ผู้ดูแลระบบ",
+    adminOnly: true,
     items: [
       {
         name: "ผู้จำหน่าย",
@@ -94,9 +104,30 @@ const menus: MenuGroup[] = [
   },
 ];
 
-export default function MobileMenu() {
+export default function MobileMenu({
+  role,
+}: MobileMenuProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  const visibleMenus = menus
+    .filter(
+      (group) =>
+        !group.adminOnly ||
+        role === "ADMIN"
+    )
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          !item.adminOnly ||
+          role === "ADMIN"
+      ),
+    }))
+    .filter(
+      (group) =>
+        group.items.length > 0
+    );
 
   return (
     <>
@@ -202,7 +233,11 @@ export default function MobileMenu() {
                   <img
                     src="/images/dohl-logo.png"
                     alt="กรมอนามัย"
-                    className="h-7 w-7 object-contain"
+                    className="
+                      h-7
+                      w-7
+                      object-contain
+                    "
                   />
                 </div>
 
@@ -262,7 +297,7 @@ export default function MobileMenu() {
                 py-4
               "
             >
-              {menus.map((group) => (
+              {visibleMenus.map((group) => (
                 <div key={group.title}>
                   <p
                     className="
@@ -280,17 +315,23 @@ export default function MobileMenu() {
                   <div className="space-y-1.5">
                     {group.items.map((item) => {
                       const active =
-                        pathname === item.href ||
+                        pathname ===
+                          item.href ||
                         (item.href !== "/" &&
-                          pathname.startsWith(item.href));
+                          pathname.startsWith(
+                            item.href
+                          ));
 
-                      const Icon = item.icon;
+                      const Icon =
+                        item.icon;
 
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
-                          onClick={() => setOpen(false)}
+                          onClick={() =>
+                            setOpen(false)
+                          }
                           className={`
                             flex
                             min-h-10
@@ -299,6 +340,7 @@ export default function MobileMenu() {
                             rounded-xl
                             px-3
                             py-2
+
                             ${
                               active
                                 ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg"
@@ -315,6 +357,7 @@ export default function MobileMenu() {
                               items-center
                               justify-center
                               rounded-lg
+
                               ${
                                 active
                                   ? "bg-white/20"

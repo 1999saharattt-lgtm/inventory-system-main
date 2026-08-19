@@ -16,18 +16,26 @@ import {
   Users,
 } from "lucide-react";
 
+type UserRole = "ADMIN" | "STAFF" | "VIEWER";
+
 type MenuItem = {
   name: string;
   href: string;
   icon: ElementType;
+  adminOnly?: boolean;
 };
 
 type MenuGroup = {
   title: string;
   items: MenuItem[];
+  adminOnly?: boolean;
 };
 
-export default function Sidebar() {
+type SidebarProps = {
+  role: UserRole;
+};
+
+export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
 
   const menus: MenuGroup[] = [
@@ -54,6 +62,7 @@ export default function Sidebar() {
           name: "รายการรับเข้า",
           href: "/receive",
           icon: PackagePlus,
+          adminOnly: true,
         },
         {
           name: "รายการเบิกจ่าย",
@@ -75,6 +84,7 @@ export default function Sidebar() {
 
     {
       title: "ผู้ดูแลระบบ",
+      adminOnly: true,
       items: [
         {
           name: "ผู้จำหน่าย",
@@ -94,6 +104,16 @@ export default function Sidebar() {
       ],
     },
   ];
+
+  const visibleMenus = menus
+    .filter((group) => !group.adminOnly || role === "ADMIN")
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.adminOnly || role === "ADMIN"
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <aside
@@ -179,16 +199,16 @@ export default function Sidebar() {
           py-6
         "
       >
-        {menus.map((group) => (
+        {visibleMenus.map((group) => (
           <div key={group.title}>
             <div className="mb-3 px-3">
               <p
                 className="
                   sidebar-title
+                  mb-3
                   text-lg
                   font-black
                   tracking-[0.15em]
-                  mb-3
                 "
               >
                 {group.title}
@@ -279,18 +299,13 @@ export default function Sidebar() {
 
                     <div className="flex flex-1 flex-col">
                       <span
-                        className={`
+                        className="
                           whitespace-nowrap
                           text-[17px]
                           font-extrabold
                           leading-tight
-
-                          ${
-                            active
-                              ? "text-white"
-                              : "text-white"
-                          }
-                        `}
+                          text-white
+                        "
                       >
                         {item.name}
                       </span>

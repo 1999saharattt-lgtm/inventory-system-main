@@ -1,14 +1,17 @@
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { requireLogin } from "@/lib/auth";
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await requireLogin();
+
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
+      <Sidebar role={user.role} />
 
       <div className="flex-1 min-w-0">
         <Header />

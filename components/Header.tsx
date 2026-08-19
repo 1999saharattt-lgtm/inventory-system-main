@@ -30,15 +30,12 @@ export default async function Header() {
       "
     >
       {/* Mobile Menu */}
-
-      <MobileMenu />
+      <MobileMenu role={user.role} />
 
       {/* Spacer */}
-
       <div className="flex-1 min-w-0" />
 
       {/* User */}
-
       <div
         className="
           flex

@@ -5,20 +5,26 @@ const secret = new TextEncoder().encode(
 );
 
 // =====================================================
+// Role
+// =====================================================
+
+export type UserRole =
+  | "ADMIN"
+  | "STAFF"
+  | "VIEWER";
+
+// =====================================================
 // Session User
 //
 // departmentId เป็น optional
-// เพื่อรองรับการกำหนดกลุ่มงานของผู้ใช้งานในขั้นถัดไป
-//
-// ไม่บังคับใช้ตอนนี้
-// จึงไม่กระทบ User / Session เดิม
+// เพื่อรองรับการกำหนดกลุ่มงานของผู้ใช้งาน
 // =====================================================
 
 export type SessionUser = {
   id: number;
   username: string;
   fullname: string;
-  role: string;
+  role: UserRole;
   departmentId?: number | null;
 };
 
@@ -26,7 +32,9 @@ export type SessionUser = {
 // สร้าง JWT Session
 // =====================================================
 
-export async function createSession(user: SessionUser) {
+export async function createSession(
+  user: SessionUser
+) {
   return await new SignJWT({
     id: user.id,
     username: user.username,
@@ -49,13 +57,31 @@ export async function createSession(user: SessionUser) {
 export async function verifySession(
   token: string
 ): Promise<SessionUser> {
-  const { payload } = await jwtVerify(token, secret);
+  const { payload } = await jwtVerify(
+    token,
+    secret
+  );
+
+  const role = String(
+    payload.role ?? ""
+  );
+
+  const validRole: UserRole =
+    role === "ADMIN" ||
+    role === "STAFF" ||
+    role === "VIEWER"
+      ? role
+      : "VIEWER";
 
   return {
     id: Number(payload.id),
-    username: String(payload.username ?? ""),
-    fullname: String(payload.fullname ?? ""),
-    role: String(payload.role ?? ""),
+    username: String(
+      payload.username ?? ""
+    ),
+    fullname: String(
+      payload.fullname ?? ""
+    ),
+    role: validRole,
     departmentId:
       payload.departmentId === null ||
       payload.departmentId === undefined
