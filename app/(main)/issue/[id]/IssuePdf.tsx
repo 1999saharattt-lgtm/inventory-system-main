@@ -36,10 +36,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 function formatThaiDate(value: Date | string) {
-  const date =
-    value instanceof Date
-      ? value
-      : new Date(value);
+  const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return "-";
@@ -61,8 +58,7 @@ export default function IssuePdf({
 }: IssuePdfProps) {
   const pdfRef = useRef<HTMLDivElement>(null);
 
-  const [loading, setLoading] =
-    React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
   // =====================================================
   // Export PDF
@@ -82,30 +78,26 @@ export default function IssuePdf({
       const jsPDF =
         (await import("jspdf")).default;
 
-      const element =
-        pdfRef.current;
+      const element = pdfRef.current;
 
-      const canvas =
-        await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          width: element.offsetWidth,
-          height: element.offsetHeight,
-          scrollX: 0,
-          scrollY: 0,
-        });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        scrollX: 0,
+        scrollY: 0,
+      });
 
-      const imageData =
-        canvas.toDataURL("image/png");
+      const imageData = canvas.toDataURL("image/png");
 
-      const pdf =
-        new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-          compress: true,
-        });
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
 
       const pageWidth =
         pdf.internal.pageSize.getWidth();
@@ -138,12 +130,10 @@ export default function IssuePdf({
 
   const rows = Array.from(
     { length: 18 },
-    (_, index) =>
-      items[index] ?? null
+    (_, index) => items[index] ?? null
   );
 
-  const totalItems =
-    items.length;
+  const totalItems = items.length;
 
   return (
     <div>
@@ -171,14 +161,17 @@ export default function IssuePdf({
           disabled:opacity-60
         "
       >
-        {loading
-          ? "กำลังสร้าง PDF..."
-          : "📄 Export PDF"}
+        {loading ? "กำลังสร้าง PDF..." : "📄 Export PDF"}
       </button>
 
       {/* =====================================================
           พอ.101
           A4 210 x 297 mm
+
+          ปรับพื้นที่ใช้งานให้สมดุล
+          - ซ้าย/ขวา 18mm
+          - บน 8mm
+          - ล่าง 7mm
       ===================================================== */}
 
       <div
@@ -192,8 +185,8 @@ export default function IssuePdf({
           w-[210mm]
           overflow-hidden
           bg-white
-          px-[14mm]
-          py-[9mm]
+          px-[18mm]
+          py-[8mm]
           text-black
         "
         style={{
@@ -206,13 +199,8 @@ export default function IssuePdf({
             ส่วนหัว
         ===================================================== */}
 
-        <div
-          className="
-            relative
-            h-[29mm]
-          "
-        >
-          {/* เลขที่เอกสาร */}
+        <div className="relative h-[27mm]">
+          {/* เลขที่เอกสาร - ดึงจาก documentNo อัตโนมัติ */}
 
           <div
             className="
@@ -220,9 +208,10 @@ export default function IssuePdf({
               right-0
               top-0
               text-[16px]
+              whitespace-nowrap
             "
           >
-            เลขที่ {documentNo}
+            เลขที่ {documentNo || "-"}
           </div>
 
           {/* พอ.101 */}
@@ -231,7 +220,7 @@ export default function IssuePdf({
             className="
               pt-[1mm]
               text-center
-              text-[18px]
+              text-[17px]
               font-bold
             "
           >
@@ -242,9 +231,9 @@ export default function IssuePdf({
 
           <div
             className="
-              mt-[1mm]
+              mt-[0.5mm]
               text-center
-              text-[22px]
+              text-[21px]
               font-bold
             "
           >
@@ -256,14 +245,15 @@ export default function IssuePdf({
           <div
             className="
               absolute
-              bottom-[5mm]
+              bottom-[3mm]
               left-0
+              max-w-[125mm]
+              whitespace-nowrap
               text-[16px]
             "
           >
-            กลุ่มงาน {departmentName}
-            {" "}
-            สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+            กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
+            กรมอนามัย
           </div>
 
           {/* วันที่ */}
@@ -271,13 +261,13 @@ export default function IssuePdf({
           <div
             className="
               absolute
-              bottom-[5mm]
+              bottom-[3mm]
               right-0
+              whitespace-nowrap
               text-[16px]
             "
           >
-            วันที่{" "}
-            {formatThaiDate(issueDate)}
+            วันที่ {formatThaiDate(issueDate)}
           </div>
         </div>
 
@@ -287,9 +277,9 @@ export default function IssuePdf({
 
         <div
           className="
-            mb-[3mm]
+            mb-[2mm]
             text-[16px]
-            leading-none
+            leading-[1.05]
           "
         >
           ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
@@ -298,117 +288,123 @@ export default function IssuePdf({
 
         {/* =====================================================
             ตารางรายการ
-            ไม่มีสีหัวตาราง
+            - ลดความกว้าง
+            - ไม่มีสีหัวตาราง
+            - 18 แถว
+            - ความสูงแต่ละแถวลดลง
         ===================================================== */}
 
-        <table
-          className="
-            w-full
-            table-fixed
-            border-collapse
-            border
-            border-black
-            text-[16px]
-            leading-none
-          "
-        >
-          <thead>
-            <tr>
-              <th
-                className="
-                  w-[7%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                ลำดับ
-              </th>
+        <div className="flex justify-center">
+          <table
+            className="
+              w-[174mm]
+              table-fixed
+              border-collapse
+              border
+              border-black
+              text-[16px]
+              leading-[0.95]
+            "
+          >
+            <thead>
+              <tr>
+                <th
+                  className="
+                    w-[9%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  ลำดับ
+                </th>
 
-              <th
-                className="
-                  w-[18%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                หมวดหมู่
-              </th>
+                <th
+                  className="
+                    w-[18%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  หมวดหมู่
+                </th>
 
-              <th
-                className="
-                  w-[38%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                รายการพัสดุ
-              </th>
+                <th
+                  className="
+                    w-[35%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  รายการพัสดุ
+                </th>
 
-              <th
-                className="
-                  w-[13%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                จำนวนที่ขอเบิก
-              </th>
+                <th
+                  className="
+                    w-[14%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  จำนวนที่ขอเบิก
+                </th>
 
-              <th
-                className="
-                  w-[13%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                จำนวนที่เบิกจ่าย
-              </th>
+                <th
+                  className="
+                    w-[14%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  จำนวนที่เบิกจ่าย
+                </th>
 
-              <th
-                className="
-                  w-[11%]
-                  border
-                  border-black
-                  px-[1mm]
-                  py-[1.5mm]
-                  text-center
-                  font-bold
-                "
-              >
-                หมายเหตุ
-              </th>
-            </tr>
-          </thead>
+                <th
+                  className="
+                    w-[10%]
+                    border
+                    border-black
+                    bg-white
+                    px-[0.8mm]
+                    py-[1mm]
+                    text-center
+                    font-bold
+                  "
+                >
+                  หมายเหตุ
+                </th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {rows.map(
-              (item, index) => (
+            <tbody>
+              {rows.map((item, index) => (
                 <tr
-                  key={
-                    item?.id ??
-                    `empty-${index}`
-                  }
-                  className="h-[8.5mm]"
+                  key={item?.id ?? `empty-${index}`}
+                  className="h-[7.2mm]"
                 >
                   {/* ลำดับ */}
 
@@ -416,8 +412,8 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       text-center
                       align-middle
                     "
@@ -431,16 +427,15 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       align-middle
                     "
                   >
                     {item
                       ? categoryLabels[
                           item.material.category
-                        ] ??
-                        item.material.category
+                        ] ?? item.material.category
                       : ""}
                   </td>
 
@@ -450,14 +445,12 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       align-middle
                     "
                   >
-                    {item
-                      ? item.material.name
-                      : ""}
+                    {item ? item.material.name : ""}
                   </td>
 
                   {/* จำนวนขอเบิก */}
@@ -466,8 +459,8 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       text-center
                       align-middle
                     "
@@ -481,15 +474,13 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       text-center
                       align-middle
                     "
                   >
-                    {item
-                      ? item.qty
-                      : ""}
+                    {item ? item.qty : ""}
                   </td>
 
                   {/* หมายเหตุ */}
@@ -498,18 +489,18 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-[1mm]
-                      py-[0.8mm]
+                      px-[0.8mm]
+                      py-[0.5mm]
                       align-middle
                     "
                   >
                     {item?.remark ?? ""}
                   </td>
                 </tr>
-              )
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {/* =====================================================
             หลังตาราง
@@ -517,10 +508,11 @@ export default function IssuePdf({
 
         <div
           className="
-            mt-[3mm]
+            mt-[2mm]
             flex
             justify-between
             text-[16px]
+            leading-none
           "
         >
           <div>
@@ -534,13 +526,13 @@ export default function IssuePdf({
 
         {/* =====================================================
             วันที่ลงบัญชีหักพัสดุ
-            ตามแบบต้นฉบับ
         ===================================================== */}
 
         <div
           className="
-            mt-[3mm]
+            mt-[2mm]
             text-[16px]
+            leading-none
           "
         >
           วันที่ลงบัญชีหักพัสดุ
@@ -549,17 +541,18 @@ export default function IssuePdf({
         </div>
 
         {/* =====================================================
-            ลายเซ็น
+            ลายเซ็นทั้ง 4 ตำแหน่ง
+            จัดให้อยู่ภายในพื้นที่ A4 หน้าเดียว
         ===================================================== */}
 
         <div
           className="
-            mt-[7mm]
+            mt-[5mm]
             grid
             grid-cols-2
-            gap-x-[18mm]
+            gap-x-[12mm]
             text-[16px]
-            leading-tight
+            leading-[1.05]
           "
         >
           {/* =================================================
@@ -569,41 +562,41 @@ export default function IssuePdf({
           <div>
             {/* ผู้รับของ */}
 
-            <div className="mb-[8mm]">
-              <div>
+            <div className="mb-[6mm]">
+              <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ........................................
+                ....................................
                 {" "}
                 ผู้รับของ
               </div>
 
-              <div className="ml-[12mm] mt-[1mm]">
-                (..............................................)
+              <div className="ml-[9mm] mt-[0.8mm] whitespace-nowrap">
+                (........................................)
               </div>
 
-              <div className="mt-[1mm]">
-                วันที่ ........................................
+              <div className="mt-[0.8mm] whitespace-nowrap">
+                วันที่ ................................
               </div>
             </div>
 
             {/* ผู้จ่าย */}
 
             <div>
-              <div>
+              <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ........................................
+                ....................................
                 {" "}
                 ผู้จ่าย
               </div>
 
-              <div className="ml-[12mm] mt-[1mm]">
-                (..............................................)
+              <div className="ml-[9mm] mt-[0.8mm] whitespace-nowrap">
+                (........................................)
               </div>
 
-              <div className="mt-[1mm]">
-                วันที่ ........................................
+              <div className="mt-[0.8mm] whitespace-nowrap">
+                วันที่ ................................
               </div>
             </div>
           </div>
@@ -615,41 +608,41 @@ export default function IssuePdf({
           <div>
             {/* หัวหน้ากลุ่ม */}
 
-            <div className="mb-[8mm]">
-              <div>
+            <div className="mb-[6mm]">
+              <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ........................................
+                ....................................
                 {" "}
                 หัวหน้ากลุ่ม
               </div>
 
-              <div className="ml-[12mm] mt-[1mm]">
-                (..............................................)
+              <div className="ml-[9mm] mt-[0.8mm] whitespace-nowrap">
+                (........................................)
               </div>
 
-              <div className="mt-[1mm]">
-                วันที่ ........................................
+              <div className="mt-[0.8mm] whitespace-nowrap">
+                วันที่ ................................
               </div>
             </div>
 
             {/* ผู้อนุญาต */}
 
             <div>
-              <div>
+              <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ........................................
+                ....................................
                 {" "}
                 ผู้อนุญาต
               </div>
 
-              <div className="ml-[12mm] mt-[1mm]">
-                (..............................................)
+              <div className="ml-[9mm] mt-[0.8mm] whitespace-nowrap">
+                (........................................)
               </div>
 
-              <div className="mt-[1mm]">
-                วันที่ ........................................
+              <div className="mt-[0.8mm] whitespace-nowrap">
+                วันที่ ................................
               </div>
             </div>
           </div>
