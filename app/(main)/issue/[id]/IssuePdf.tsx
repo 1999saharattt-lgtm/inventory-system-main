@@ -315,7 +315,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -330,7 +330,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -345,7 +345,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -360,7 +360,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -375,7 +375,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -390,7 +390,7 @@ export default function IssuePdf({
                     border-black
                     bg-white
                     px-[0.8mm]
-                    py-[1mm]
+                    py-[0.5mm]
                     text-center
                     font-bold
                   "
@@ -404,7 +404,7 @@ export default function IssuePdf({
               {rows.map((item, index) => (
                 <tr
                   key={item?.id ?? `empty-${index}`}
-                  className="h-[7.2mm]"
+                  className="h-[5mm]"
                 >
                   {/* ลำดับ */}
 
