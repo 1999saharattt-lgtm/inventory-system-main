@@ -107,16 +107,14 @@ export default async function IssueDetailPage({
 
   if (
     session.role !== "ADMIN" &&
-    (
-      !session.departmentId ||
-      issue.departmentId !== session.departmentId
-    )
+    (!session.departmentId ||
+      issue.departmentId !== session.departmentId)
   ) {
     redirect("/issue");
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
       {/* =====================================================
           Header
       ===================================================== */}
@@ -124,23 +122,35 @@ export default async function IssueDetailPage({
       <div
         className="
           flex
-          items-center
-          justify-between
+          w-full
+          min-w-0
+          flex-col
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-4
+          py-5
+          text-white
           shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:px-8
+          sm:py-6
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1
             className="
-              text-4xl
+              break-words
+              text-2xl
               font-extrabold
+              leading-tight
               text-white
+              sm:text-4xl
             "
           >
             📤 รายละเอียดใบเบิกพัสดุ
@@ -149,9 +159,12 @@ export default async function IssueDetailPage({
           <p
             className="
               mt-2
-              text-lg
+              break-words
+              text-sm
               font-semibold
+              leading-tight
               text-slate-200
+              sm:text-lg
             "
           >
             รายละเอียดรายการเบิกจ่ายพัสดุ
@@ -161,17 +174,25 @@ export default async function IssueDetailPage({
         <Link
           href="/issue"
           className="
+            w-full
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-6
-            py-3
+            px-5
+            py-2.5
+            text-center
+            text-sm
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:w-auto
+            sm:px-6
+            sm:py-3
+            sm:text-base
           "
         >
           ← กลับ
@@ -184,6 +205,8 @@ export default async function IssueDetailPage({
 
       <div
         className="
+          w-full
+          min-w-0
           space-y-5
           rounded-2xl
           border
@@ -191,21 +214,22 @@ export default async function IssueDetailPage({
           bg-gradient-to-br
           from-slate-950
           to-slate-800
-          p-6
+          p-4
           text-white
           shadow-xl
+          sm:p-6
         "
       >
         <div
           className="
             grid
             gap-4
-            md:grid-cols-2
+            sm:grid-cols-2
           "
         >
           {/* เลขที่ใบเบิก */}
 
-          <div>
+          <div className="min-w-0">
             <p className="font-extrabold">
               เลขที่ใบเบิก
             </p>
@@ -213,6 +237,7 @@ export default async function IssueDetailPage({
             <p
               className="
                 mt-1
+                break-all
                 text-lg
                 font-semibold
                 text-cyan-300
@@ -238,12 +263,18 @@ export default async function IssueDetailPage({
 
           {/* หน่วยงาน */}
 
-          <div>
+          <div className="min-w-0">
             <p className="font-extrabold">
               หน่วยงาน / กลุ่มงาน
             </p>
 
-            <p className="mt-1 font-semibold">
+            <p
+              className="
+                mt-1
+                break-words
+                font-semibold
+              "
+            >
               {issue.department.name}
             </p>
           </div>
@@ -275,7 +306,13 @@ export default async function IssueDetailPage({
               หมายเหตุ
             </p>
 
-            <p className="mt-1 font-semibold">
+            <p
+              className="
+                mt-1
+                break-words
+                font-semibold
+              "
+            >
               {issue.remark}
             </p>
           </div>
@@ -288,12 +325,15 @@ export default async function IssueDetailPage({
         <div
           className="
             flex
-            flex-wrap
-            items-center
+            flex-col
+            items-stretch
             gap-3
             border-t
             border-slate-600
             pt-5
+            sm:flex-row
+            sm:flex-wrap
+            sm:items-center
           "
         >
           <IssuePdf
@@ -315,10 +355,12 @@ export default async function IssueDetailPage({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="
+                  inline-block
                   rounded-lg
                   bg-blue-600
                   px-4
                   py-2
+                  text-center
                   font-bold
                   text-white
                   transition
@@ -328,9 +370,7 @@ export default async function IssueDetailPage({
                 เปิดไฟล์ PDF
               </a>
 
-              <DeletePdfButton
-                id={issue.id}
-              />
+              <DeletePdfButton id={issue.id} />
             </>
           )}
         </div>
@@ -342,6 +382,8 @@ export default async function IssueDetailPage({
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           border
@@ -350,7 +392,7 @@ export default async function IssueDetailPage({
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table
             className="
               w-full
@@ -474,6 +516,8 @@ export default async function IssueDetailPage({
                       hover:bg-emerald-50
                     "
                   >
+                    {/* ลำดับ */}
+
                     <td
                       className="
                         border
@@ -486,6 +530,8 @@ export default async function IssueDetailPage({
                     >
                       {index + 1}
                     </td>
+
+                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -501,6 +547,8 @@ export default async function IssueDetailPage({
                       ] ??
                         item.material.category}
                     </td>
+
+                    {/* รายการพัสดุ */}
 
                     <td
                       className="
@@ -527,6 +575,8 @@ export default async function IssueDetailPage({
                       </div>
                     </td>
 
+                    {/* จำนวนที่ขอเบิก */}
+
                     <td
                       className="
                         border
@@ -539,6 +589,8 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
+
+                    {/* จำนวนที่เบิกจ่าย */}
 
                     <td
                       className="
@@ -553,6 +605,8 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
+
+                    {/* หมายเหตุ */}
 
                     <td
                       className="
