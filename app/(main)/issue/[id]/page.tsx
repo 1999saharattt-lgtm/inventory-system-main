@@ -132,7 +132,7 @@ export default async function IssueDetailPage({
           to-slate-700
           px-4
           py-5
-          text-white
+          text-black
           shadow-xl
           sm:flex-row
           sm:items-center
@@ -148,7 +148,7 @@ export default async function IssueDetailPage({
               text-2xl
               font-extrabold
               leading-tight
-              text-white
+              text-black
               sm:text-4xl
             "
           >
@@ -162,7 +162,7 @@ export default async function IssueDetailPage({
               text-sm
               font-semibold
               leading-tight
-              text-slate-200
+              text-black
               sm:text-lg
             "
           >
@@ -209,7 +209,7 @@ export default async function IssueDetailPage({
           space-y-5
           rounded-2xl
           border
-          border-slate-700
+          border-black
           bg-gradient-to-br
           from-slate-950
           to-slate-800
@@ -297,7 +297,7 @@ export default async function IssueDetailPage({
           <div
             className="
               border-t
-              border-slate-600
+              border-black
               pt-4
             "
           >
@@ -330,7 +330,7 @@ export default async function IssueDetailPage({
               items-stretch
               gap-3
               border-t
-              border-slate-600
+              border-black
               pt-5
               sm:flex-row
               sm:flex-wrap
@@ -377,7 +377,7 @@ export default async function IssueDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-black
           bg-white
           shadow-xl
         "
@@ -404,7 +404,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[8%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -419,7 +419,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[20%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -434,7 +434,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[36%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -449,7 +449,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[12%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -464,7 +464,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[12%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -479,7 +479,7 @@ export default async function IssueDetailPage({
                   className="
                     w-[12%]
                     border
-                    border-slate-600
+                    border-black
                     px-3
                     py-4
                     text-center
@@ -511,7 +511,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         text-center
@@ -526,7 +526,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         font-semibold
@@ -543,7 +543,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         font-semibold
@@ -570,7 +570,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         text-center
@@ -585,7 +585,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         text-center
@@ -601,7 +601,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-3
                         py-4
                         text-center
