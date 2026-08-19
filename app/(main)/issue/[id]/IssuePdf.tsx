@@ -79,16 +79,14 @@ export default function IssuePdf({
         (await import("jspdf")).default;
 
       // =================================================
-      // สำคัญ:
-      // รอให้ font โหลดเสร็จก่อน html2canvas
-      // เพื่อให้ตำแหน่งข้อความใน PDF ตรงกับหน้าเว็บ
+      // รอ font ให้พร้อมก่อนสร้าง canvas
       // =================================================
 
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
-      // รอ browser render อีก 2 รอบ
+      // รอ browser render 2 รอบ
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -99,18 +97,37 @@ export default function IssuePdf({
 
       const element = pdfRef.current;
 
+      // =================================================
+      // ใช้ขนาดจริงของ element
+      //
+      // A4:
+      // 210mm x 297mm
+      //
+      // ไม่ใช้ scrollWidth / scrollHeight
+      // เพราะอาจทำให้ html2canvas คำนวณความสูงเกิน
+      // =================================================
+
+      const width = element.clientWidth;
+      const height = element.clientHeight;
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
+        allowTaint: false,
         backgroundColor: "#ffffff",
-        width: element.offsetWidth,
-        height: element.offsetHeight,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
         scrollX: 0,
         scrollY: 0,
         logging: false,
       });
 
-      const imageData = canvas.toDataURL("image/png");
+      const imageData = canvas.toDataURL(
+        "image/png",
+        1.0
+      );
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -125,6 +142,10 @@ export default function IssuePdf({
       const pageHeight =
         pdf.internal.pageSize.getHeight();
 
+      // =================================================
+      // วางภาพเต็ม A4 พอดี
+      // =================================================
+
       pdf.addImage(
         imageData,
         "PNG",
@@ -138,6 +159,11 @@ export default function IssuePdf({
 
       pdf.save(
         `ใบเบิกพัสดุ-${documentNo || issueId}.pdf`
+      );
+    } catch (error) {
+      console.error(
+        "ไม่สามารถสร้าง PDF ได้:",
+        error
       );
     } finally {
       setLoading(false);
@@ -156,59 +182,75 @@ export default function IssuePdf({
   const totalItems = items.length;
 
   // =====================================================
-  // Style ของ table cell
+  // Base style ของ cell
   //
-  // ไม่ใช้:
-  // - position absolute
-  // - transform
-  // - flex
-  // - wrapper
-  //
-  // ใช้ vertical-align: top
-  // แล้วกำหนด padding-top เอง
-  //
-  // วิธีนี้เสถียรกว่าสำหรับ html2canvas
+  // สำคัญ:
+  // ไม่ใช้ overflow:hidden
+  // เพราะ TH Sarabun อาจมี glyph ต่ำกว่าปกติ
+  // และถูกตัดที่ขอบ cell
   // =====================================================
 
-  const cellStyle: React.CSSProperties = {
+  const cellBaseStyle: React.CSSProperties = {
     height: "8mm",
     padding: 0,
     margin: 0,
     backgroundColor: "#ffffff",
     color: "#000000",
+    fontFamily:
+      "TH Sarabun New, Sarabun, Arial, sans-serif",
     fontSize: "16px",
-    lineHeight: "1",
-    verticalAlign: "top",
+    fontWeight: "normal",
+    lineHeight: "6mm",
+    verticalAlign: "middle",
     boxSizing: "border-box",
-    overflow: "hidden",
+    overflow: "visible",
   };
 
   // =====================================================
-  // ข้อความกึ่งกลาง
+  // หัวตาราง
   //
-  // padding-top:
-  // ยก baseline ของ TH Sarabun ขึ้นจากเส้นด้านล่าง
-  // โดยไม่ใช้ transform
+  // ทุกหัวตารางกึ่งกลาง X
+  // และกึ่งกลาง Y
+  //
+  // "รายการพัสดุ" ก็ใช้ style นี้
+  // ไม่ใช้ left style
+  // =====================================================
+
+  const headerCellStyle: React.CSSProperties = {
+    ...cellBaseStyle,
+    textAlign: "center",
+    fontWeight: "normal",
+    whiteSpace: "nowrap",
+    lineHeight: "6mm",
+  };
+
+  // =====================================================
+  // ข้อมูลทั่วไปกึ่งกลาง
   // =====================================================
 
   const centerCellStyle: React.CSSProperties = {
-    ...cellStyle,
+    ...cellBaseStyle,
     textAlign: "center",
-    paddingTop: "2.1mm",
     whiteSpace: "nowrap",
+    lineHeight: "6mm",
   };
 
   // =====================================================
-  // ข้อความชิดซ้าย
+  // ข้อมูลรายการพัสดุ
+  //
+  // ชิดซ้ายแนวนอน
+  // กึ่งกลางแนวตั้ง
+  //
+  // ใช้ padding ซ้ายเล็กน้อย
   // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
-    ...cellStyle,
+    ...cellBaseStyle,
     textAlign: "left",
-    paddingTop: "2.1mm",
+    whiteSpace: "nowrap",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
-    whiteSpace: "nowrap",
+    lineHeight: "6mm",
   };
 
   return (
@@ -237,20 +279,13 @@ export default function IssuePdf({
           disabled:opacity-60
         "
       >
-        {loading ? "กำลังสร้าง PDF..." : "📄 Export PDF"}
+        {loading
+          ? "กำลังสร้าง PDF..."
+          : "📄 Export PDF"}
       </button>
 
       {/* =====================================================
           พอ.101
-
-          A4 = 210 x 297 mm
-
-          ขอบบน    5mm
-          ขอบล่าง  5mm
-          ขอบซ้าย  10mm
-          ขอบขวา   10mm
-
-          ตารางกว้าง 190mm
       ===================================================== */}
 
       <div
@@ -272,6 +307,9 @@ export default function IssuePdf({
           fontFamily:
             "TH Sarabun New, Sarabun, Arial, sans-serif",
           fontSize: "16px",
+          lineHeight: "1",
+          backgroundColor: "#ffffff",
+          color: "#000000",
         }}
       >
         {/* =====================================================
@@ -420,7 +458,7 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={centerCellStyle}
+                  style={headerCellStyle}
                 >
                   ลำดับ
                 </th>
@@ -438,16 +476,16 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={centerCellStyle}
+                  style={headerCellStyle}
                 >
                   หมวดหมู่
                 </th>
 
                 {/* =================================================
                     รายการพัสดุ
-
+                   
                     สำคัญ:
-                    ชิดซ้ายทั้งหน้าเว็บและ PDF
+                    หัวตารางต้องกึ่งกลาง
                 ================================================= */}
 
                 <th
@@ -459,7 +497,7 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={leftCellStyle}
+                  style={headerCellStyle}
                 >
                   รายการพัสดุ
                 </th>
@@ -477,7 +515,7 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={centerCellStyle}
+                  style={headerCellStyle}
                 >
                   จำนวนที่ขอเบิก
                 </th>
@@ -495,7 +533,7 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={centerCellStyle}
+                  style={headerCellStyle}
                 >
                   จำนวนที่เบิกจ่าย
                 </th>
@@ -513,7 +551,7 @@ export default function IssuePdf({
                     p-0
                     text-black
                   "
-                  style={centerCellStyle}
+                  style={headerCellStyle}
                 >
                   หมายเหตุ
                 </th>
@@ -523,7 +561,10 @@ export default function IssuePdf({
             <tbody>
               {rows.map((item, index) => (
                 <tr
-                  key={item?.id ?? `empty-${index}`}
+                  key={
+                    item?.id ??
+                    `empty-${index}`
+                  }
                   style={{
                     height: "8mm",
                   }}
@@ -566,14 +607,16 @@ export default function IssuePdf({
                     {item
                       ? categoryLabels[
                           item.material.category
-                        ] ?? item.material.category
+                        ] ??
+                        item.material.category
                       : ""}
                   </td>
 
                   {/* =================================================
                       รายการพัสดุ
-
-                      ชิดซ้าย
+                      
+                      ข้อมูลชิดซ้าย
+                      แนวตั้งกึ่งกลาง
                   ================================================= */}
 
                   <td
@@ -586,7 +629,9 @@ export default function IssuePdf({
                     "
                     style={leftCellStyle}
                   >
-                    {item ? item.material.name : ""}
+                    {item
+                      ? item.material.name
+                      : ""}
                   </td>
 
                   {/* =================================================
@@ -608,8 +653,6 @@ export default function IssuePdf({
 
                   {/* =================================================
                       จำนวนที่เบิกจ่าย
-                      
-                      เว้นว่าง
                   ================================================= */}
 
                   <td
