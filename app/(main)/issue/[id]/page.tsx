@@ -320,6 +320,8 @@ export default async function IssueDetailPage({
 
         {/* =====================================================
             PDF
+            ใช้ IssuePdf ตัวเดิม
+            ไม่แสดง Preview PDF ในหน้านี้
         ===================================================== */}
 
         <div
@@ -336,13 +338,15 @@ export default async function IssueDetailPage({
             sm:items-center
           "
         >
-          <IssuePdf
-            issueId={issue.id}
-            documentNo={issue.documentNo}
-            issueDate={issue.issueDate}
-            departmentName={issue.department.name}
-            items={issue.items as IssueItem[]}
-          />
+          <div className="w-fit">
+            <IssuePdf
+              issueId={issue.id}
+              documentNo={issue.documentNo}
+              issueDate={issue.issueDate}
+              departmentName={issue.department.name}
+              items={issue.items as IssueItem[]}
+            />
+          </div>
 
           {issue.pdf && (
             <>
@@ -590,7 +594,8 @@ export default async function IssueDetailPage({
                       {item.qty}
                     </td>
 
-                    {/* จำนวนที่เบิกจ่าย */}
+                    {/* จำนวนที่เบิกจ่าย
+                        รอ Admin ลงข้อมูล */}
 
                     <td
                       className="
@@ -600,10 +605,10 @@ export default async function IssueDetailPage({
                         py-4
                         text-center
                         font-bold
-                        text-emerald-700
+                        text-slate-400
                       "
                     >
-                      {item.qty}
+                      -
                     </td>
 
                     {/* หมายเหตุ */}

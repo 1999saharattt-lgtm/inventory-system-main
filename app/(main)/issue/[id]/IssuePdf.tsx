@@ -296,8 +296,8 @@ export default function IssuePdf({
         className="
           rounded-xl
           bg-gradient-to-r
-          from-red-600
-          to-rose-500
+          from-emerald-600
+          to-green-500
           px-6
           py-3
           font-extrabold
