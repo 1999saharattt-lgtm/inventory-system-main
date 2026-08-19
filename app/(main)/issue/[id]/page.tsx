@@ -4,7 +4,6 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySession, type SessionUser } from "@/lib/session";
 import DeletePdfButton from "./DeletePdfButton";
-import IssuePdf from "./IssuePdf";
 
 export const dynamic = "force-dynamic";
 
@@ -319,65 +318,52 @@ export default async function IssueDetailPage({
         )}
 
         {/* =====================================================
-            PDF
-            ใช้ IssuePdf ตัวเดิม
-            ไม่แสดง Preview PDF ในหน้านี้
+            เอกสาร PDF ที่แนบ
+            ไม่มี PDF Preview ในหน้านี้
         ===================================================== */}
 
-        <div
-          className="
-            flex
-            flex-col
-            items-stretch
-            gap-3
-            border-t
-            border-slate-600
-            pt-5
-            sm:flex-row
-            sm:flex-wrap
-            sm:items-center
-          "
-        >
-          <div className="w-fit">
-            <IssuePdf
-              issueId={issue.id}
-              documentNo={issue.documentNo}
-              issueDate={issue.issueDate}
-              departmentName={issue.department.name}
-              items={issue.items as IssueItem[]}
-            />
+        {issue.pdf && (
+          <div
+            className="
+              flex
+              flex-col
+              items-stretch
+              gap-3
+              border-t
+              border-slate-600
+              pt-5
+              sm:flex-row
+              sm:flex-wrap
+              sm:items-center
+            "
+          >
+            <span className="font-extrabold">
+              เอกสารแนบ :
+            </span>
+
+            <a
+              href={issue.pdf}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                inline-block
+                rounded-lg
+                bg-blue-600
+                px-4
+                py-2
+                text-center
+                font-bold
+                text-white
+                transition
+                hover:bg-blue-700
+              "
+            >
+              เปิดไฟล์ PDF
+            </a>
+
+            <DeletePdfButton id={issue.id} />
           </div>
-
-          {issue.pdf && (
-            <>
-              <span className="font-extrabold">
-                เอกสารแนบ :
-              </span>
-
-              <a
-                href={issue.pdf}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  inline-block
-                  rounded-lg
-                  bg-blue-600
-                  px-4
-                  py-2
-                  text-center
-                  font-bold
-                  text-white
-                  transition
-                  hover:bg-blue-700
-                "
-              >
-                เปิดไฟล์ PDF
-              </a>
-
-              <DeletePdfButton id={issue.id} />
-            </>
-          )}
-        </div>
+        )}
       </div>
 
       {/* =====================================================
@@ -594,8 +580,7 @@ export default async function IssueDetailPage({
                       {item.qty}
                     </td>
 
-                    {/* จำนวนที่เบิกจ่าย
-                        รอ Admin ลงข้อมูล */}
+                    {/* จำนวนที่เบิกจ่าย */}
 
                     <td
                       className="
