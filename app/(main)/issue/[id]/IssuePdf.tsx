@@ -106,11 +106,13 @@ export default function IssuePdf({
         pdf.internal.pageSize.getHeight();
 
       /*
-       * ใส่ภาพเต็มหน้า A4
+       * วางภาพเต็ม A4
        *
-       * เนื้อหาภายในตัว element มี
+       * เนื้อหาภายใน element มีการกำหนด
        * ขอบบน/ล่าง 5mm
-       * ขอบซ้าย/ขวา 3mm
+       * ขอบซ้าย/ขวา 10mm
+       *
+       * เพื่อเผื่อขอบกระดาษสำหรับการพิมพ์จริง
        */
       pdf.addImage(
         imageData,
@@ -176,12 +178,12 @@ export default function IssuePdf({
 
           A4 = 210 x 297 mm
 
-          ขอบบน    5mm = 0.5cm
-          ขอบล่าง  5mm = 0.5cm
-          ขอบซ้าย  3mm = 0.3cm
-          ขอบขวา   3mm = 0.3cm
+          ขอบบน    5mm
+          ขอบล่าง  5mm
+          ขอบซ้าย  10mm
+          ขอบขวา   10mm
 
-          เพื่อป้องกันการตกขอบเวลาพิมพ์จริง
+          พื้นที่ใช้งานแนวนอน = 190mm
       ===================================================== */}
 
       <div
@@ -195,7 +197,7 @@ export default function IssuePdf({
           w-[210mm]
           overflow-hidden
           bg-white
-          px-[3mm]
+          px-[10mm]
           py-[5mm]
           text-black
         "
@@ -263,7 +265,7 @@ export default function IssuePdf({
               absolute
               bottom-[2mm]
               left-0
-              max-w-[145mm]
+              max-w-[135mm]
               whitespace-nowrap
               text-[16px]
               leading-none
@@ -294,12 +296,12 @@ export default function IssuePdf({
         {/* =====================================================
             ข้อความนำหน้าตาราง
 
-            เว้นระยะจากหัวตารางให้ชัดเจน
+            เว้นระยะให้ชัดเจนก่อนถึงตาราง
         ===================================================== */}
 
         <div
           className="
-            mb-[3mm]
+            mb-[4mm]
             text-[16px]
             leading-none
             text-black
@@ -313,22 +315,22 @@ export default function IssuePdf({
             ตารางรายการ
 
             A4 กว้าง 210mm
-            ขอบซ้าย/ขวา 3mm
-            พื้นที่ตาราง = 204mm
+            ขอบซ้าย/ขวา 10mm
+            พื้นที่ตาราง 190mm
 
-            หัวตาราง = 4mm
-            แถวข้อมูล = 3.5mm
+            หัวตาราง 5mm
+            แถวข้อมูล 5mm
 
+            รูปแบบตารางเอกสารราชการ
             พื้นขาว
             ตัวอักษรดำ
             เส้นดำ
-            ไม่มี rounded
         ===================================================== */}
 
         <div className="flex justify-center">
           <table
             className="
-              w-[204mm]
+              w-[190mm]
               table-fixed
               border-collapse
               border
@@ -337,11 +339,11 @@ export default function IssuePdf({
               text-black
             "
             style={{
-              width: "204mm",
+              width: "190mm",
               tableLayout: "fixed",
               borderSpacing: 0,
               borderRadius: 0,
-              fontSize: "12px",
+              fontSize: "13px",
               color: "#000000",
               backgroundColor: "#ffffff",
             }}
@@ -349,7 +351,7 @@ export default function IssuePdf({
             <thead>
               <tr
                 style={{
-                  height: "4mm",
+                  height: "5mm",
                 }}
               >
                 {/* =================================================
@@ -370,15 +372,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -404,15 +406,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -438,15 +440,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -472,15 +474,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -506,15 +508,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -540,15 +542,15 @@ export default function IssuePdf({
                     text-black
                   "
                   style={{
-                    height: "4mm",
-                    minHeight: "4mm",
-                    maxHeight: "4mm",
+                    height: "5mm",
+                    minHeight: "5mm",
+                    maxHeight: "5mm",
                     padding: 0,
                     borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
-                    fontSize: "12px",
-                    lineHeight: "0.8",
+                    fontSize: "13px",
+                    lineHeight: "1",
                     whiteSpace: "nowrap",
                     verticalAlign: "middle",
                   }}
@@ -563,7 +565,7 @@ export default function IssuePdf({
                 <tr
                   key={item?.id ?? `empty-${index}`}
                   style={{
-                    height: "3.5mm",
+                    height: "5mm",
                   }}
                 >
                   {/* =================================================
@@ -582,15 +584,15 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
                       padding: 0,
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       verticalAlign: "middle",
@@ -608,21 +610,21 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
+                      px-[0.5mm]
                       py-0
                       align-middle
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
-                      padding: 0,
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
+                      padding: "0 0.5mm",
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "clip",
@@ -645,21 +647,21 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
+                      px-[0.5mm]
                       py-0
                       align-middle
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
-                      padding: 0,
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
+                      padding: "0 0.5mm",
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "clip",
@@ -685,15 +687,15 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
                       padding: 0,
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       verticalAlign: "middle",
@@ -718,15 +720,15 @@ export default function IssuePdf({
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
                       padding: 0,
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       verticalAlign: "middle",
@@ -744,21 +746,21 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
+                      px-[0.5mm]
                       py-0
                       align-middle
                       text-black
                     "
                     style={{
-                      height: "3.5mm",
-                      minHeight: "3.5mm",
-                      maxHeight: "3.5mm",
-                      padding: 0,
+                      height: "5mm",
+                      minHeight: "5mm",
+                      maxHeight: "5mm",
+                      padding: "0 0.5mm",
                       borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
-                      fontSize: "12px",
-                      lineHeight: "0.8",
+                      fontSize: "13px",
+                      lineHeight: "1",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "clip",
@@ -779,7 +781,7 @@ export default function IssuePdf({
 
         <div
           className="
-            mt-[2mm]
+            mt-[3mm]
             flex
             justify-between
             px-[2mm]
@@ -803,7 +805,7 @@ export default function IssuePdf({
 
         <div
           className="
-            mt-[2mm]
+            mt-[2.5mm]
             px-[2mm]
             text-[16px]
             leading-none
@@ -818,18 +820,16 @@ export default function IssuePdf({
         {/* =====================================================
             ลายเซ็น 4 ตำแหน่ง
 
-            รูปแบบราชการ:
+            รูปแบบราชการ
+            ลงชื่อ ................................ ผู้รับของ
 
-            ลงชื่อ ................................................ ผู้รับของ
-
-            (....................................................)
-
-            วันที่ ................................................
+            ชื่ออยู่บรรทัดถัดไป
+            วันที่อยู่กึ่งกลาง
         ===================================================== */}
 
         <div
           className="
-            mt-[5mm]
+            mt-[6mm]
             grid
             grid-cols-2
             gap-x-[15mm]
@@ -846,7 +846,7 @@ export default function IssuePdf({
           <div className="text-center">
             {/* ผู้รับของ */}
 
-            <div className="mb-[5mm]">
+            <div className="mb-[6mm]">
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
@@ -855,11 +855,11 @@ export default function IssuePdf({
                 ผู้รับของ
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 (....................................................)
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 วันที่ ................................................
               </div>
             </div>
@@ -875,11 +875,11 @@ export default function IssuePdf({
                 ผู้จ่าย
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 (....................................................)
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 วันที่ ................................................
               </div>
             </div>
@@ -892,7 +892,7 @@ export default function IssuePdf({
           <div className="text-center">
             {/* หัวหน้ากลุ่ม */}
 
-            <div className="mb-[5mm]">
+            <div className="mb-[6mm]">
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
@@ -901,11 +901,11 @@ export default function IssuePdf({
                 หัวหน้ากลุ่ม
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 (....................................................)
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 วันที่ ................................................
               </div>
             </div>
@@ -921,11 +921,11 @@ export default function IssuePdf({
                 ผู้อนุญาต
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 (....................................................)
               </div>
 
-              <div className="mt-[0.8mm] whitespace-nowrap">
+              <div className="mt-[1mm] whitespace-nowrap">
                 วันที่ ................................................
               </div>
             </div>
