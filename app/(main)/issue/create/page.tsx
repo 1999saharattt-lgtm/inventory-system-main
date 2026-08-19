@@ -1,230 +1,212 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { verifySession, type SessionUser } from "@/lib/session";
 import IssueForm from "./IssueForm";
 
-
-
 function getThaiYear() {
-
-  return (
-    new Date().getFullYear() + 543
-  )
-    .toString()
-    .slice(-2);
-
+  return (new Date().getFullYear() + 543).toString().slice(-2);
 }
 
-
-
 async function generateIssueNo() {
-
   const year = getThaiYear();
-
-
 
   // ดึงเลขที่เอกสารของปีปัจจุบันทั้งหมด
   const issues = await prisma.issue.findMany({
-
     where: {
-
       documentNo: {
         startsWith: "จ.",
       },
-
     },
 
     select: {
       documentNo: true,
     },
-
   });
-
-
 
   let maxNumber = 0;
 
-
-
   for (const issue of issues) {
-
-    const match =
-      issue.documentNo.match(
-        /^จ\.(\d+)\/(\d+)$/
-      );
-
-
+    const match = issue.documentNo.match(/^จ\.(\d+)\/(\d+)$/);
 
     if (!match) {
       continue;
     }
 
-
-
-    const number =
-      Number(match[1]);
-
-
-
-    const documentYear =
-      match[2];
-
-
+    const number = Number(match[1]);
+    const documentYear = match[2];
 
     // เอาเฉพาะเอกสารของปีปัจจุบัน
     if (documentYear === year) {
-
       if (number > maxNumber) {
-
         maxNumber = number;
-
       }
-
     }
-
   }
 
+  const running = maxNumber + 1;
 
-
-  const running =
-    maxNumber + 1;
-
-
-
-  return (
-    `จ.${running
-      .toString()
-      .padStart(2, "0")}/${year}`
-  );
-
+  return `จ.${running.toString().padStart(2, "0")}/${year}`;
 }
 
-
-
 export default async function CreateIssuePage() {
+  // =====================================================
+  // Session
+  // =====================================================
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
 
+  let session: SessionUser | null = null;
 
-  const materials =
-    await prisma.material.findMany({
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
 
-      orderBy: [
+  // =====================================================
+  // วัสดุ
+  //
+  // ไม่เปลี่ยน logic เดิม
+  // =====================================================
 
-        {
-          category: "asc",
-        },
+  const materials = await prisma.material.findMany({
+    orderBy: [
+      {
+        category: "asc",
+      },
+      {
+        code: "asc",
+      },
+    ],
+  });
 
-        {
-          code: "asc",
-        },
-
-      ],
-
-    });
-
-
-
-  // =====================
+  // =====================================================
   // ล็อตพัสดุที่ยังเหลือ
-  // =====================
+  //
+  // ไม่เปลี่ยน FEFO / balance เดิม
+  // =====================================================
 
-  const receiveLots =
-    await prisma.receiveItem.findMany({
-
-      where: {
-
-        balance: {
-          gt: 0,
-        },
-
+  const receiveLots = await prisma.receiveItem.findMany({
+    where: {
+      balance: {
+        gt: 0,
       },
+    },
 
-      select: {
+    select: {
+      id: true,
+      materialId: true,
+      balance: true,
+      manufacture: true,
+      expiry: true,
+    },
 
-        id: true,
-
-        materialId: true,
-
-        balance: true,
-
-        manufacture: true,
-
-        expiry: true,
-
+    orderBy: [
+      {
+        expiry: "asc",
       },
-
-      orderBy: [
-
-        {
-          expiry: "asc",
-        },
-
-        {
-          manufacture: "asc",
-        },
-
-        {
-          id: "asc",
-        },
-
-      ],
-
-    });
-
-
-
-  const departments =
-    await prisma.department.findMany({
-
-      orderBy: {
-
-        name: "asc",
-
+      {
+        manufacture: "asc",
       },
-
-    });
-
-
-
-  const officers =
-    await prisma.officer.findMany({
-
-      include: {
-
-        section: true,
-
-        department: true,
-
+      {
+        id: "asc",
       },
+    ],
+  });
 
-      orderBy: [
+  // =====================================================
+  // Departments
+  //
+  // ADMIN:
+  //   เห็นทุกหน่วยงาน
+  //
+  // ผู้ใช้งานที่มี departmentId:
+  //   เห็นเฉพาะหน่วยงานตัวเอง
+  //
+  // ผู้ใช้งานที่ไม่มี departmentId:
+  //   ไม่แสดงหน่วยงานอื่น
+  // =====================================================
 
-        {
-          firstName: "asc",
-        },
+  const departments = await prisma.department.findMany({
+    where:
+      session?.role === "ADMIN"
+        ? undefined
+        : session?.departmentId
+          ? {
+              id: session.departmentId,
+            }
+          : {
+              id: -1,
+            },
 
-        {
-          lastName: "asc",
-        },
+    orderBy: {
+      name: "asc",
+    },
+  });
 
-      ],
+  // =====================================================
+  // Officers
+  //
+  // ADMIN:
+  //   เห็นเจ้าหน้าที่ทั้งหมด
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   เห็นเฉพาะเจ้าหน้าที่ของ department ตัวเอง
+  //
+  // ไม่เปลี่ยนข้อมูล Officer ใน DB
+  // =====================================================
 
-    });
+  const officers = await prisma.officer.findMany({
+    where:
+      session?.role === "ADMIN"
+        ? undefined
+        : session?.departmentId
+          ? {
+              OR: [
+                {
+                  departmentId: session.departmentId,
+                },
+                {
+                  section: {
+                    departmentId: session.departmentId,
+                  },
+                },
+              ],
+            }
+          : {
+              id: -1,
+            },
 
+    include: {
+      section: true,
+      department: true,
+    },
 
+    orderBy: [
+      {
+        firstName: "asc",
+      },
+      {
+        lastName: "asc",
+      },
+    ],
+  });
 
-  const documentNo =
-    await generateIssueNo();
+  // =====================================================
+  // เลขที่เอกสาร
+  //
+  // ไม่เปลี่ยน logic เดิม
+  // =====================================================
 
-
+  const documentNo = await generateIssueNo();
 
   return (
-
     <div className="space-y-6">
-
-
-
       {/* Header */}
-
 
       <div
         className="
@@ -240,12 +222,7 @@ export default async function CreateIssuePage() {
           shadow-xl
         "
       >
-
-
-
         <div>
-
-
           <h1
             className="
               text-5xl
@@ -257,8 +234,6 @@ export default async function CreateIssuePage() {
             📤 บันทึกการเบิกจ่ายพัสดุ
           </h1>
 
-
-
           <p
             className="
               mt-3
@@ -269,12 +244,7 @@ export default async function CreateIssuePage() {
           >
             เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
           </p>
-
-
-
         </div>
-
-
 
         <Link
           href="/issue"
@@ -293,19 +263,11 @@ export default async function CreateIssuePage() {
             hover:shadow-xl
           "
         >
-
           ← กลับ
-
         </Link>
-
-
-
       </div>
 
-
-
       {/* Form */}
-
 
       <div
         className="
@@ -320,29 +282,14 @@ export default async function CreateIssuePage() {
           shadow-xl
         "
       >
-
-
         <IssueForm
-
           departments={departments}
-
           officers={officers}
-
           materials={materials}
-
           receiveLots={receiveLots}
-
           documentNo={documentNo}
-
         />
-
-
       </div>
-
-
-
     </div>
-
   );
-
 }
