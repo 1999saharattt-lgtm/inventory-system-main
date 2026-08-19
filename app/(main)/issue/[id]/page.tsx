@@ -132,7 +132,7 @@ export default async function IssueDetailPage({
           to-slate-700
           px-4
           py-5
-          text-black
+          text-white
           shadow-xl
           sm:flex-row
           sm:items-center
@@ -148,7 +148,7 @@ export default async function IssueDetailPage({
               text-2xl
               font-extrabold
               leading-tight
-              text-black
+              text-white
               sm:text-4xl
             "
           >
@@ -162,7 +162,7 @@ export default async function IssueDetailPage({
               text-sm
               font-semibold
               leading-tight
-              text-black
+              text-white
               sm:text-lg
             "
           >
@@ -410,6 +410,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   ลำดับ
@@ -425,6 +426,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   หมวดหมู่
@@ -440,6 +442,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   รายการพัสดุ
@@ -455,6 +458,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   จำนวนที่ขอเบิก
@@ -470,6 +474,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   จำนวนที่เบิกจ่าย
@@ -485,6 +490,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-lg
                     font-extrabold
+                    text-white
                   "
                 >
                   หมายเหตุ
@@ -547,15 +553,17 @@ export default async function IssueDetailPage({
                         px-3
                         py-4
                         font-semibold
+                        whitespace-nowrap
                       "
                     >
-                      <div>
+                      <div className="whitespace-nowrap">
                         {item.material.name}
                       </div>
 
                       <div
                         className="
                           mt-1
+                          whitespace-nowrap
                           text-xs
                           text-slate-500
                         "
