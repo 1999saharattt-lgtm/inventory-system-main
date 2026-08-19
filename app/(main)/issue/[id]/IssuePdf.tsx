@@ -64,6 +64,10 @@ export default function IssuePdf({
   const [loading, setLoading] =
     React.useState(false);
 
+  // =====================================================
+  // Export PDF
+  // =====================================================
+
   const handleExport = async () => {
     if (!pdfRef.current) {
       return;
@@ -86,16 +90,25 @@ export default function IssuePdf({
           scale: 2,
           useCORS: true,
           backgroundColor: "#ffffff",
+          width: element.offsetWidth,
+          height: element.offsetHeight,
+          scrollX: 0,
+          scrollY: 0,
         });
 
       const imageData =
         canvas.toDataURL("image/png");
+
+      // =================================================
+      // A4 ขนาด 210 x 297 mm
+      // =================================================
 
       const pdf =
         new jsPDF({
           orientation: "portrait",
           unit: "mm",
           format: "a4",
+          compress: true,
         });
 
       const pageWidth =
@@ -104,48 +117,21 @@ export default function IssuePdf({
       const pageHeight =
         pdf.internal.pageSize.getHeight();
 
-      const imageWidth =
-        pageWidth;
-
-      const imageHeight =
-        (canvas.height * imageWidth) /
-        canvas.width;
-
-      let heightLeft =
-        imageHeight;
-
-      let position = 0;
-
+      // เต็มหน้า A4 พอดี
       pdf.addImage(
         imageData,
         "PNG",
         0,
-        position,
-        imageWidth,
-        imageHeight
+        0,
+        pageWidth,
+        pageHeight,
+        undefined,
+        "FAST"
       );
 
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position =
-          heightLeft -
-          imageHeight;
-
-        pdf.addPage();
-
-        pdf.addImage(
-          imageData,
-          "PNG",
-          0,
-          position,
-          imageWidth,
-          imageHeight
-        );
-
-        heightLeft -=
-          pageHeight;
-      }
+      // =================================================
+      // บันทึก PDF
+      // =================================================
 
       pdf.save(
         `ใบเบิกพัสดุ-${documentNo || issueId}.pdf`
@@ -155,9 +141,10 @@ export default function IssuePdf({
     }
   };
 
-  /*
-   * พอ.101 มีพื้นที่สำหรับ 18 รายการ
-   */
+  // =====================================================
+  // พอ.101 มี 18 รายการ
+  // =====================================================
+
   const rows = Array.from(
     { length: 18 },
     (_, index) =>
@@ -200,6 +187,7 @@ export default function IssuePdf({
 
       {/* =====================================================
           พอ.101
+          ขนาด A4 ตายตัว 210 x 297 mm
       ===================================================== */}
 
       <div
@@ -208,37 +196,48 @@ export default function IssuePdf({
         className="
           mx-auto
           mt-6
+          box-border
+          h-[297mm]
           w-[210mm]
-          min-h-[297mm]
+          overflow-hidden
           bg-white
-          px-[15mm]
-          py-[12mm]
+          px-[13mm]
+          py-[9mm]
           text-black
         "
+        style={{
+          fontFamily:
+            "TH Sarabun New, Sarabun, Arial, sans-serif",
+        }}
       >
         {/* =====================================================
             ส่วนหัว
         ===================================================== */}
 
-        <div className="relative">
-          {/* เลขที่เอกสาร */}
+        <div
+          className="
+            relative
+            h-[25mm]
+          "
+        >
+          {/* เลขที่ */}
 
           <div
             className="
               absolute
-              right-0
+              right-[1mm]
               top-0
               text-[14px]
             "
           >
-            เลขที่ {documentNo}
+            เลขที่ ........../..........
           </div>
 
           {/* พอ.101 */}
 
           <div
             className="
-              pt-1
+              pt-0
               text-center
               text-[18px]
               font-bold
@@ -251,7 +250,7 @@ export default function IssuePdf({
 
           <div
             className="
-              mt-1
+              mt-[1mm]
               text-center
               text-[20px]
               font-bold
@@ -259,47 +258,65 @@ export default function IssuePdf({
           >
             ใบเบิกพัสดุ
           </div>
-        </div>
 
-        {/* =====================================================
-            ข้อมูลหน่วยงาน / วันที่
-        ===================================================== */}
+          {/* ข้อมูลหน่วยงาน */}
 
-        <div
-          className="
-            mt-7
-            space-y-2
-            text-[15px]
-          "
-        >
-          <div>
+          <div
+            className="
+              absolute
+              bottom-0
+              left-0
+              text-[14px]
+            "
+          >
             กลุ่มงาน {departmentName}
             {" "}
             สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
           </div>
 
-          <div>
-            วันที่ {formatThaiDate(issueDate)}
-          </div>
+          {/* วันที่ */}
 
-          <div className="mt-5">
-            ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับ
-            ใช้ในราชการดังมีรายการต่อไปนี้
+          <div
+            className="
+              absolute
+              bottom-0
+              right-0
+              text-[14px]
+            "
+          >
+            วันที่{" "}
+            {formatThaiDate(issueDate)}
           </div>
         </div>
 
         {/* =====================================================
-            ตารางรายการ 18 รายการ
+            ข้อความนำหน้าตาราง
+        ===================================================== */}
+
+        <div
+          className="
+            mb-[2mm]
+            text-[14px]
+            leading-none
+          "
+        >
+          ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
+          ดังมีรายการต่อไปนี้
+        </div>
+
+        {/* =====================================================
+            ตารางรายการ
         ===================================================== */}
 
         <table
           className="
-            mt-4
             w-full
+            table-fixed
             border-collapse
             border
             border-black
             text-[12px]
+            leading-none
           "
         >
           <thead>
@@ -308,11 +325,11 @@ export default function IssuePdf({
 
               <th
                 className="
-                  w-[8%]
+                  w-[7%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -324,11 +341,11 @@ export default function IssuePdf({
 
               <th
                 className="
-                  w-[19%]
+                  w-[18%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -336,15 +353,15 @@ export default function IssuePdf({
                 หมวดหมู่
               </th>
 
-              {/* รายการพัสดุ */}
+              {/* รายการ */}
 
               <th
                 className="
-                  w-[34%]
+                  w-[38%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -352,15 +369,15 @@ export default function IssuePdf({
                 รายการพัสดุ
               </th>
 
-              {/* จำนวนที่ขอเบิก */}
+              {/* จำนวนขอเบิก */}
 
               <th
                 className="
                   w-[13%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -368,15 +385,15 @@ export default function IssuePdf({
                 จำนวนที่ขอเบิก
               </th>
 
-              {/* จำนวนที่เบิกจ่าย */}
+              {/* จำนวนเบิกจ่าย */}
 
               <th
                 className="
                   w-[13%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -388,11 +405,11 @@ export default function IssuePdf({
 
               <th
                 className="
-                  w-[13%]
+                  w-[11%]
                   border
                   border-black
-                  px-2
-                  py-2
+                  px-[1mm]
+                  py-[1.5mm]
                   text-center
                   font-bold
                 "
@@ -418,8 +435,8 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
                       text-center
                     "
                   >
@@ -432,8 +449,9 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
+                      align-middle
                     "
                   >
                     {item
@@ -450,8 +468,9 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
+                      align-middle
                     "
                   >
                     {item
@@ -465,9 +484,10 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
                       text-center
+                      align-middle
                     "
                   >
                     {item?.qty ?? ""}
@@ -479,9 +499,10 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
                       text-center
+                      align-middle
                     "
                   >
                     {item
@@ -495,8 +516,9 @@ export default function IssuePdf({
                     className="
                       border
                       border-black
-                      px-2
-                      py-1
+                      px-[1mm]
+                      py-[1mm]
+                      align-middle
                     "
                   >
                     {item?.remark ?? ""}
@@ -508,15 +530,16 @@ export default function IssuePdf({
         </table>
 
         {/* =====================================================
-            หลังตาราง
+            ข้อความหลังตาราง
         ===================================================== */}
 
         <div
           className="
-            mt-4
+            mt-[3mm]
             flex
+            items-center
             justify-between
-            text-[14px]
+            text-[13px]
           "
         >
           <div>
@@ -524,31 +547,33 @@ export default function IssuePdf({
           </div>
 
           <div>
-            รวมทั้งสิ้น {totalItems} รายการ
+            รวมทั้งสิ้น{" "}
+            {totalItems} รายการ
           </div>
         </div>
 
         {/* =====================================================
-            ลายเซ็น 2 ฝั่ง
+            ส่วนลายเซ็น
         ===================================================== */}
 
         <div
           className="
-            mt-8
+            mt-[7mm]
             grid
             grid-cols-2
-            gap-16
-            text-[14px]
+            gap-x-[16mm]
+            text-[13px]
+            leading-tight
           "
         >
           {/* =================================================
               ฝั่งซ้าย
           ================================================= */}
 
-          <div className="space-y-7">
+          <div>
             {/* ผู้รับของ */}
 
-            <div>
+            <div className="mb-[7mm]">
               <div>
                 ลงชื่อ
                 {" "}
@@ -557,11 +582,11 @@ export default function IssuePdf({
                 ผู้รับของ
               </div>
 
-              <div className="ml-10">
+              <div className="ml-[10mm] mt-[1mm]">
                 (..............................................)
               </div>
 
-              <div className="mt-2">
+              <div className="mt-[1mm]">
                 วันที่ ........................................
               </div>
             </div>
@@ -577,21 +602,20 @@ export default function IssuePdf({
                 ผู้จ่าย
               </div>
 
-              <div className="ml-10">
+              <div className="ml-[10mm] mt-[1mm]">
                 (..............................................)
               </div>
 
-              <div className="mt-2">
+              <div className="mt-[1mm]">
                 วันที่ ........................................
               </div>
 
-              {/* วันที่ลงหักบัญชีพัสดุ
-                  อยู่ล่างซ้าย ใต้วันที่ผู้จ่าย */}
+              {/* วันที่ลงหักบัญชี */}
 
-              <div className="mt-6">
+              <div className="mt-[7mm]">
                 วันที่ลงหักบัญชีพัสดุ
                 {" "}
-                ................................
+                ...............................
               </div>
             </div>
           </div>
@@ -600,10 +624,10 @@ export default function IssuePdf({
               ฝั่งขวา
           ================================================= */}
 
-          <div className="space-y-7">
+          <div>
             {/* หัวหน้ากลุ่ม */}
 
-            <div>
+            <div className="mb-[7mm]">
               <div>
                 ลงชื่อ
                 {" "}
@@ -612,11 +636,11 @@ export default function IssuePdf({
                 หัวหน้ากลุ่ม
               </div>
 
-              <div className="ml-10">
+              <div className="ml-[10mm] mt-[1mm]">
                 (..............................................)
               </div>
 
-              <div className="mt-2">
+              <div className="mt-[1mm]">
                 วันที่ ........................................
               </div>
             </div>
@@ -632,15 +656,30 @@ export default function IssuePdf({
                 ผู้อนุญาต
               </div>
 
-              <div className="ml-10">
+              <div className="ml-[10mm] mt-[1mm]">
                 (..............................................)
               </div>
 
-              <div className="mt-2">
+              <div className="mt-[1mm]">
                 วันที่ ........................................
               </div>
             </div>
           </div>
+        </div>
+
+        {/* =====================================================
+            พื้นที่ด้านล่างสำหรับแบบฟอร์ม
+        ===================================================== */}
+
+        <div
+          className="
+            mt-[6mm]
+            text-[12px]
+          "
+        >
+          ลงวันที่ในบัญชีพัสดุแล้ว
+          {" "}
+          ..............................................................
         </div>
       </div>
     </div>
