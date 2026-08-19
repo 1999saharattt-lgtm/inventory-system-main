@@ -167,11 +167,6 @@ export default function IssuePdf({
       {/* =====================================================
           พอ.101
           A4 210 x 297 mm
-
-          ปรับพื้นที่ใช้งานให้สมดุล
-          - ซ้าย/ขวา 18mm
-          - บน 8mm
-          - ล่าง 7mm
       ===================================================== */}
 
       <div
@@ -200,15 +195,15 @@ export default function IssuePdf({
         ===================================================== */}
 
         <div className="relative h-[27mm]">
-          {/* เลขที่เอกสาร - ดึงจาก documentNo อัตโนมัติ */}
+          {/* เลขที่เอกสาร */}
 
           <div
             className="
               absolute
               right-0
               top-0
-              text-[16px]
               whitespace-nowrap
+              text-[16px]
             "
           >
             เลขที่ {documentNo || "-"}
@@ -279,7 +274,7 @@ export default function IssuePdf({
           className="
             mb-[2mm]
             text-[16px]
-            leading-[1.05]
+            leading-none
           "
         >
           ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
@@ -288,10 +283,13 @@ export default function IssuePdf({
 
         {/* =====================================================
             ตารางรายการ
-            - ลดความกว้าง
-            - ไม่มีสีหัวตาราง
-            - 18 แถว
-            - ความสูงแต่ละแถวลดลง
+
+            หัวตาราง 7mm
+            แถวข้อมูล 4.5mm
+
+            ใช้ py-0 เพื่อลดความสูงจริง
+            ไม่มี rounded
+            ไม่มีสีพื้นหัวตาราง
         ===================================================== */}
 
         <div className="flex justify-center">
@@ -303,21 +301,24 @@ export default function IssuePdf({
               border
               border-black
               text-[16px]
-              leading-[0.95]
+              leading-none
             "
           >
             <thead>
               <tr>
                 <th
                   className="
+                    h-[7mm]
                     w-[9%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   ลำดับ
@@ -325,14 +326,17 @@ export default function IssuePdf({
 
                 <th
                   className="
+                    h-[7mm]
                     w-[18%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   หมวดหมู่
@@ -340,14 +344,17 @@ export default function IssuePdf({
 
                 <th
                   className="
+                    h-[7mm]
                     w-[35%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   รายการพัสดุ
@@ -355,14 +362,17 @@ export default function IssuePdf({
 
                 <th
                   className="
+                    h-[7mm]
                     w-[14%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   จำนวนที่ขอเบิก
@@ -370,14 +380,17 @@ export default function IssuePdf({
 
                 <th
                   className="
+                    h-[7mm]
                     w-[14%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   จำนวนที่เบิกจ่าย
@@ -385,14 +398,17 @@ export default function IssuePdf({
 
                 <th
                   className="
+                    h-[7mm]
                     w-[10%]
                     border
                     border-black
                     bg-white
-                    px-[0.8mm]
-                    py-[0.5mm]
+                    px-[0.5mm]
+                    py-0
                     text-center
+                    align-middle
                     font-bold
+                    leading-none
                   "
                 >
                   หมายเหตุ
@@ -404,18 +420,20 @@ export default function IssuePdf({
               {rows.map((item, index) => (
                 <tr
                   key={item?.id ?? `empty-${index}`}
-                  className="h-[5mm]"
+                  className="h-[4.5mm]"
                 >
                   {/* ลำดับ */}
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       text-center
                       align-middle
+                      leading-none
                     "
                   >
                     {index + 1}
@@ -425,11 +443,13 @@ export default function IssuePdf({
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       align-middle
+                      leading-none
                     "
                   >
                     {item
@@ -443,11 +463,13 @@ export default function IssuePdf({
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       align-middle
+                      leading-none
                     "
                   >
                     {item ? item.material.name : ""}
@@ -457,12 +479,14 @@ export default function IssuePdf({
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       text-center
                       align-middle
+                      leading-none
                     "
                   >
                     {item?.qty ?? ""}
@@ -472,12 +496,14 @@ export default function IssuePdf({
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       text-center
                       align-middle
+                      leading-none
                     "
                   >
                     {item ? item.qty : ""}
@@ -487,11 +513,13 @@ export default function IssuePdf({
 
                   <td
                     className="
+                      h-[4.5mm]
                       border
                       border-black
-                      px-[0.8mm]
-                      py-[0.5mm]
+                      px-[0.5mm]
+                      py-0
                       align-middle
+                      leading-none
                     "
                   >
                     {item?.remark ?? ""}
@@ -542,7 +570,6 @@ export default function IssuePdf({
 
         {/* =====================================================
             ลายเซ็นทั้ง 4 ตำแหน่ง
-            จัดให้อยู่ภายในพื้นที่ A4 หน้าเดียว
         ===================================================== */}
 
         <div
