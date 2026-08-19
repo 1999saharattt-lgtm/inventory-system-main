@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import { verifySession, type SessionUser } from "@/lib/session";
 import EditIssueForm from "./EditIssueForm";
 
 type Props = {
@@ -13,10 +16,61 @@ export default async function EditIssuePage({
 }: Props) {
   const { id } = await params;
 
-  const issue = await prisma.issue.findUnique({
-    where: {
-      id: Number(id),
-    },
+  // =====================================================
+  // Session
+  // =====================================================
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  let session: SessionUser | null = null;
+
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
+
+  // =====================================================
+  // ตรวจสอบสิทธิ์ของใบเบิก
+  //
+  // ADMIN:
+  //   แก้ไขใบเบิกได้ทั้งหมด
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   แก้ไขได้เฉพาะใบเบิกของ department ตัวเอง
+  //
+  // ไม่มี departmentId:
+  //   ไม่อนุญาตให้เข้าถึงใบเบิก
+  // =====================================================
+
+  const issueWhere =
+    session?.role === "ADMIN"
+      ? {
+          id: Number(id),
+        }
+      : session?.departmentId
+        ? {
+            id: Number(id),
+            departmentId: session.departmentId,
+          }
+        : {
+            id: Number(id),
+            departmentId: -1,
+          };
+
+  // =====================================================
+  // ดึงข้อมูลใบเบิก
+  //
+  // สำคัญ:
+  // ตรวจ department ตั้งแต่ query
+  // ไม่ใช่ดึงข้อมูลทั้งหมดแล้วค่อยซ่อนหน้า
+  // =====================================================
+
+  const issue = await prisma.issue.findFirst({
+    where: issueWhere,
 
     include: {
       items: {
@@ -28,52 +82,77 @@ export default async function EditIssuePage({
   });
 
   if (!issue) {
-    return (
-      <div className="p-6 text-white">
-        ไม่พบรายการเบิกจ่าย
-      </div>
-    );
+    notFound();
   }
 
-  const departments =
-    await prisma.department.findMany({
-      orderBy: {
-        name: "asc",
+  // =====================================================
+  // Departments
+  //
+  // ADMIN:
+  //   เห็นทุกหน่วยงาน
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   เห็นเฉพาะหน่วยงานตัวเอง
+  // =====================================================
+
+  const departments = await prisma.department.findMany({
+    where:
+      session?.role === "ADMIN"
+        ? undefined
+        : session?.departmentId
+          ? {
+              id: session.departmentId,
+            }
+          : {
+              id: -1,
+            },
+
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  // =====================================================
+  // Materials
+  //
+  // ไม่เปลี่ยน logic เดิม
+  // =====================================================
+
+  const materials = await prisma.material.findMany({
+    orderBy: [
+      {
+        category: "asc",
       },
-    });
-
-  const materials =
-    await prisma.material.findMany({
-      orderBy: [
-        {
-          category: "asc",
-        },
-        {
-          code: "asc",
-        },
-      ],
-    });
-
-  // ดึงเฉพาะล็อตที่ยังมีจำนวนคงเหลือจริง
-  // ใช้ balance ไม่ใช่ qty
-  const receiveItems =
-    await prisma.receiveItem.findMany({
-      where: {
-        balance: {
-          gt: 0,
-        },
+      {
+        code: "asc",
       },
+    ],
+  });
 
-      include: {
-        material: true,
+  // =====================================================
+  // ล็อตที่ยังมีจำนวนคงเหลือจริง
+  //
+  // ใช้ balance เหมือนเดิม
+  // ไม่แตะ FEFO / stock logic
+  // =====================================================
+
+  const receiveItems = await prisma.receiveItem.findMany({
+    where: {
+      balance: {
+        gt: 0,
       },
+    },
 
-      orderBy: [
-        {
-          expiry: "asc",
-        },
-      ],
-    });
+    include: {
+      material: true,
+    },
+
+    orderBy: [
+      {
+        expiry: "asc",
+      },
+    ],
+  });
 
   return (
     <div className="space-y-6">
@@ -120,7 +199,7 @@ export default async function EditIssuePage({
             bg-emerald-500
             px-6
             py-3
-            font-extrab-bold
+            font-extrabold
             text-white
             shadow-lg
             transition

@@ -140,11 +140,15 @@ export default function IssueForm({
       [key]: value,
     };
 
+    // เปลี่ยนหมวดหมู่
+    // ต้องล้างพัสดุและจำนวนเดิม
     if (key === "category") {
       copy[index].materialId = "";
       copy[index].qty = "";
     }
 
+    // เปลี่ยนพัสดุ
+    // ต้องล้างจำนวนเดิม
     if (key === "materialId") {
       copy[index].qty = "";
     }
@@ -393,12 +397,12 @@ export default function IssueForm({
                 -- เลือกหน่วยงาน --
               </option>
 
-              {departments.map((d) => (
+              {departments.map((department) => (
                 <option
-                  key={d.id}
-                  value={d.id}
+                  key={department.id}
+                  value={department.id}
                 >
-                  {d.name}
+                  {department.name}
                 </option>
               ))}
             </select>
@@ -448,13 +452,13 @@ export default function IssueForm({
                 -- เลือกผู้ขอเบิก --
               </option>
 
-              {filteredOfficers.map((o) => (
+              {filteredOfficers.map((officer) => (
                 <option
-                  key={o.id}
-                  value={o.id}
+                  key={officer.id}
+                  value={officer.id}
                 >
-                  {o.firstName}{" "}
-                  {o.lastName}
+                  {officer.firstName}{" "}
+                  {officer.lastName}
                 </option>
               ))}
             </select>
@@ -559,7 +563,7 @@ export default function IssueForm({
                     px-2
                     py-3
                     text-center
-                    font-extrabbold
+                    font-extrabold
                     text-white
                   "
                 >
@@ -601,271 +605,269 @@ export default function IssueForm({
             </thead>
 
             <tbody>
-              {rows.map(
-                (row, index) => {
-                  const list =
-                    materials.filter(
-                      (m) =>
-                        m.category ===
-                        row.category
-                    );
+              {rows.map((row, index) => {
+                const list =
+                  materials.filter(
+                    (material) =>
+                      material.category ===
+                      row.category
+                  );
 
-                  return (
-                    <tr
-                      key={index}
+                return (
+                  <tr
+                    key={index}
+                    className="
+                      transition
+                      hover:bg-emerald-50
+                    "
+                  >
+                    {/* ลำดับ */}
+
+                    <td
                       className="
-                        transition
-                        hover:bg-emerald-50
+                        border
+                        border-black
+                        px-2
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-900
                       "
                     >
-                      {/* ลำดับ */}
+                      {index + 1}
+                    </td>
 
-                      <td
+                    {/* หมวดหมู่ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-2
+                        py-2
+                      "
+                    >
+                      <select
+                        value={
+                          row.category
+                        }
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "category",
+                            e.target.value
+                          )
+                        }
                         className="
+                          w-full
+                          rounded-lg
                           border
-                          border-black
-                          px-2
-                          py-2
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                        "
+                      >
+                        <option value="">
+                          เลือกหมวดหมู่
+                        </option>
+
+                        {categories.map(
+                          (category) => (
+                            <option
+                              key={
+                                category.value
+                              }
+                              value={
+                                category.value
+                              }
+                            >
+                              {category.label}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </td>
+
+                    {/* รายการพัสดุ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-2
+                        py-2
+                      "
+                    >
+                      <select
+                        name={`items[${index}].materialId`}
+                        value={
+                          row.materialId
+                        }
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "materialId",
+                            e.target.value
+                          )
+                        }
+                        className="
+                          w-full
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                        "
+                      >
+                        <option value="">
+                          เลือกรายการพัสดุ
+                        </option>
+
+                        {list.map((material) => (
+                          <option
+                            key={
+                              material.id
+                            }
+                            value={
+                              material.id
+                            }
+                          >
+                            {material.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* จำนวนที่ขอเบิก */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-2
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        name={`items[${index}].qty`}
+                        type="number"
+                        min="1"
+                        value={
+                          row.qty
+                        }
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "qty",
+                            e.target.value
+                          )
+                        }
+                        className="
+                          w-full
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-white
+                          p-2
+                          text-center
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                        "
+                      />
+                    </td>
+
+                    {/* จำนวนที่เบิกจ่าย */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-2
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="text"
+                        readOnly
+                        value={
+                          row.qty
+                            ? row.qty
+                            : ""
+                        }
+                        className="
+                          w-full
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-slate-100
+                          p-2
                           text-center
                           font-bold
                           text-slate-900
                         "
-                      >
-                        {index + 1}
-                      </td>
+                      />
+                    </td>
 
-                      {/* หมวดหมู่ */}
+                    {/* หมายเหตุ */}
 
-                      <td
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-2
+                        py-2
+                      "
+                    >
+                      <input
+                        type="text"
+                        name={`items[${index}].remark`}
+                        value={
+                          row.remark
+                        }
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "remark",
+                            e.target.value
+                          )
+                        }
                         className="
+                          w-full
+                          rounded-lg
                           border
-                          border-black
-                          px-2
-                          py-2
+                          border-slate-300
+                          bg-white
+                          p-2
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
                         "
-                      >
-                        <select
-                          value={
-                            row.category
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "category",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        >
-                          <option value="">
-                            เลือกหมวดหมู่
-                          </option>
-
-                          {categories.map(
-                            (c) => (
-                              <option
-                                key={
-                                  c.value
-                                }
-                                value={
-                                  c.value
-                                }
-                              >
-                                {c.label}
-                              </option>
-                            )
-                          )}
-                        </select>
-                      </td>
-
-                      {/* รายการพัสดุ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                        "
-                      >
-                        <select
-                          name={`items[${index}].materialId`}
-                          value={
-                            row.materialId
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "materialId",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        >
-                          <option value="">
-                            เลือกรายการพัสดุ
-                          </option>
-
-                          {list.map(
-                            (m) => (
-                              <option
-                                key={m.id}
-                                value={
-                                  m.id
-                                }
-                              >
-                                {m.name}
-                              </option>
-                            )
-                          )}
-                        </select>
-                      </td>
-
-                      {/* จำนวนที่ขอเบิก */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          name={`items[${index}].qty`}
-                          type="number"
-                          min="1"
-                          value={
-                            row.qty
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "qty",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        />
-                      </td>
-
-                      {/* จำนวนที่เบิกจ่าย */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="text"
-                          readOnly
-                          value={
-                            row.qty
-                              ? row.qty
-                              : ""
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-slate-100
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                          "
-                        />
-                      </td>
-
-                      {/* หมายเหตุ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                        "
-                      >
-                        <input
-                          type="text"
-                          name={`items[${index}].remark`}
-                          value={
-                            row.remark
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "remark",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        />
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

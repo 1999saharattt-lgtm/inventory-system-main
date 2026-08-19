@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { verifySession } from "@/lib/session";
 
 type IssueRow = {
   materialId: number;
@@ -92,9 +94,46 @@ function sortFEFO(a: any, b: any) {
 export async function updateIssue(
   formData: FormData
 ) {
+  // =====================================================
+  // ตรวจสอบ Session
+  // =====================================================
+
+  const cookieStore =
+    await cookies();
+
+  const token =
+    cookieStore.get(
+      "session"
+    )?.value;
+
+  if (!token) {
+    throw new Error(
+      "กรุณาเข้าสู่ระบบ"
+    );
+  }
+
+  let session;
+
+  try {
+    session =
+      await verifySession(
+        token
+      );
+  } catch {
+    throw new Error(
+      "Session ไม่ถูกต้องหรือหมดอายุ"
+    );
+  }
+
+  // =====================================================
+  // รับค่าจาก Form
+  // =====================================================
+
   const issueId =
     Number(
-      formData.get("issueId")
+      formData.get(
+        "issueId"
+      )
     );
 
   const issueDate =
@@ -169,7 +208,16 @@ export async function updateIssue(
     {
       issueId,
       documentNo,
+      departmentId,
       newItems,
+      session: {
+        id: session.id,
+        username:
+          session.username,
+        role: session.role,
+        departmentId:
+          session.departmentId,
+      },
     }
   );
 
@@ -181,9 +229,49 @@ export async function updateIssue(
     );
   }
 
+  // =====================================================
+  // ตรวจสอบค่าพื้นฐาน
+  // =====================================================
+
+  if (
+    !Number.isInteger(
+      issueId
+    ) ||
+    issueId <= 0
+  ) {
+    throw new Error(
+      "เลขที่รายการเบิกไม่ถูกต้อง"
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      departmentId
+    ) ||
+    departmentId <= 0
+  ) {
+    throw new Error(
+      "กรุณาเลือกหน่วยงาน"
+    );
+  }
+
+  if (
+    Number.isNaN(
+      issueDate.getTime()
+    )
+  ) {
+    throw new Error(
+      "วันที่เบิกจ่ายไม่ถูกต้อง"
+    );
+  }
+
   try {
     await prisma.$transaction(
       async (tx: any) => {
+        // =====================================================
+        // ดึง Issue เดิม
+        // =====================================================
+
         const oldIssue =
           await tx.issue.findUnique({
             where: {
@@ -198,6 +286,39 @@ export async function updateIssue(
         if (!oldIssue) {
           throw new Error(
             "ไม่พบใบเบิก"
+          );
+        }
+
+        // =====================================================
+        // ตรวจสิทธิ์การแก้ไข
+        //
+        // ADMIN:
+        //   แก้ได้ทุกหน่วยงาน
+        //
+        // USER:
+        //   ต้องเป็น department เดียวกับ Issue เดิม
+        //   และห้ามเปลี่ยน Issue ไปยัง department อื่น
+        // =====================================================
+
+        if (
+          session.role !==
+            "ADMIN" &&
+          session.departmentId !==
+            oldIssue.departmentId
+        ) {
+          throw new Error(
+            "คุณไม่มีสิทธิ์แก้ไขรายการเบิกของหน่วยงานนี้"
+          );
+        }
+
+        if (
+          session.role !==
+            "ADMIN" &&
+          session.departmentId !==
+            departmentId
+        ) {
+          throw new Error(
+            "คุณไม่มีสิทธิ์เปลี่ยนหน่วยงานของรายการเบิกนี้"
           );
         }
 
@@ -217,6 +338,10 @@ export async function updateIssue(
           )
         );
 
+        // =====================================================
+        // Material ที่ได้รับผลกระทบ
+        // =====================================================
+
         const affectedMaterialIds =
           [
             ...new Set([
@@ -230,6 +355,14 @@ export async function updateIssue(
               ),
             ]),
           ];
+
+        // =====================================================
+        // คืนจำนวนล็อตเดิมกลับเข้า Stock
+        //
+        // สำคัญ:
+        // คืนตาม receiveItemId เดิม
+        // ไม่ใช่หาใหม่จาก materialId
+        // =====================================================
 
         for (
           const oldItem
@@ -254,11 +387,19 @@ export async function updateIssue(
           }
         }
 
+        // =====================================================
+        // ลบ IssueItem เดิม
+        // =====================================================
+
         await tx.issueItem.deleteMany({
           where: {
             issueId,
           },
         });
+
+        // =====================================================
+        // อัปเดตหัวเอกสาร
+        // =====================================================
 
         await tx.issue.update({
           where: {
@@ -272,6 +413,10 @@ export async function updateIssue(
             remark,
           },
         });
+
+        // =====================================================
+        // สร้างรายการใหม่ + ตัด Stock แบบ FEFO
+        // =====================================================
 
         for (
           const item of newItems
@@ -290,6 +435,10 @@ export async function updateIssue(
             );
           }
 
+          // -------------------------------------------------
+          // ดึงเฉพาะล็อตที่ยังมี Stock
+          // -------------------------------------------------
+
           const receiveItems =
             await tx.receiveItem.findMany({
               where: {
@@ -302,9 +451,17 @@ export async function updateIssue(
               },
             });
 
+          // -------------------------------------------------
+          // เรียงล็อตตาม FEFO
+          // -------------------------------------------------
+
           receiveItems.sort(
             sortFEFO
           );
+
+          // -------------------------------------------------
+          // ตรวจยอดรวมก่อนตัด
+          // -------------------------------------------------
 
           const totalReceiveBalance =
             receiveItems.reduce(
@@ -360,6 +517,10 @@ export async function updateIssue(
             );
           }
 
+          // -------------------------------------------------
+          // ตัดล็อตตาม FEFO
+          // -------------------------------------------------
+
           let remainingQty =
             item.qty;
 
@@ -390,6 +551,10 @@ export async function updateIssue(
               continue;
             }
 
+            // -----------------------------------------------
+            // หักยอดจากล็อต
+            // -----------------------------------------------
+
             await tx.receiveItem.update({
               where: {
                 id:
@@ -403,6 +568,10 @@ export async function updateIssue(
                 },
               },
             });
+
+            // -----------------------------------------------
+            // บันทึก IssueItem พร้อมล็อตที่ใช้จริง
+            // -----------------------------------------------
 
             await tx.issueItem.create({
               data: {
@@ -437,6 +606,11 @@ export async function updateIssue(
             );
           }
         }
+
+        // =====================================================
+        // อัปเดต Material.balance
+        // ให้ตรงกับยอดรวม ReceiveItem.balance
+        // =====================================================
 
         for (
           const materialId
@@ -486,9 +660,15 @@ export async function updateIssue(
     throw error;
   }
 
+  // =====================================================
   // บังคับให้หน้า Issue และหน้ารายละเอียด
   // ดึงข้อมูลใหม่จากฐานข้อมูล
-  revalidatePath("/issue");
+  // =====================================================
+
+  revalidatePath(
+    "/issue"
+  );
+
   revalidatePath(
     `/issue/${issueId}`
   );
