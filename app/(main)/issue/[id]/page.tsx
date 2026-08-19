@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifySession, type SessionUser } from "@/lib/session";
 import DeletePdfButton from "./DeletePdfButton";
 import IssuePdf from "./IssuePdf";
 
@@ -41,6 +43,35 @@ export default async function IssueDetailPage({
 }: Props) {
   const { id } = await params;
 
+  // =====================================================
+  // Session
+  // =====================================================
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  let session: SessionUser | null = null;
+
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
+
+  // =====================================================
+  // ถ้าไม่มี Session ให้กลับหน้า Login
+  // =====================================================
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  // =====================================================
+  // ดึงข้อมูลใบเบิก
+  // =====================================================
+
   const issue = await prisma.issue.findUnique({
     where: {
       id: Number(id),
@@ -59,6 +90,29 @@ export default async function IssueDetailPage({
 
   if (!issue) {
     notFound();
+  }
+
+  // =====================================================
+  // สิทธิ์การเข้าดู
+  //
+  // ADMIN:
+  //   ดูได้ทุกกลุ่มงาน
+  //
+  // ผู้ใช้งานทั่วไป:
+  //   ดูได้เฉพาะรายการของ department ตัวเอง
+  //
+  // ไม่มี departmentId:
+  //   ห้ามเข้าดูรายการ
+  // =====================================================
+
+  if (
+    session.role !== "ADMIN" &&
+    (
+      !session.departmentId ||
+      issue.departmentId !== session.departmentId
+    )
+  ) {
+    redirect("/issue");
   }
 
   return (
@@ -284,7 +338,6 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ตารางรายการใบเบิก
-          ให้แสดงข้อมูลในรูปแบบเดียวกับฟอร์ม
       ===================================================== */}
 
       <div
@@ -421,8 +474,6 @@ export default async function IssueDetailPage({
                       hover:bg-emerald-50
                     "
                   >
-                    {/* ลำดับ */}
-
                     <td
                       className="
                         border
@@ -435,8 +486,6 @@ export default async function IssueDetailPage({
                     >
                       {index + 1}
                     </td>
-
-                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -452,8 +501,6 @@ export default async function IssueDetailPage({
                       ] ??
                         item.material.category}
                     </td>
-
-                    {/* รายการพัสดุ */}
 
                     <td
                       className="
@@ -480,8 +527,6 @@ export default async function IssueDetailPage({
                       </div>
                     </td>
 
-                    {/* จำนวนที่ขอเบิก */}
-
                     <td
                       className="
                         border
@@ -494,8 +539,6 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
-
-                    {/* จำนวนที่เบิกจ่าย */}
 
                     <td
                       className="
@@ -510,8 +553,6 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
-
-                    {/* หมายเหตุ */}
 
                     <td
                       className="
