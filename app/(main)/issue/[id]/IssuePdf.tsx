@@ -105,13 +105,6 @@ export default function IssuePdf({
       const pageHeight =
         pdf.internal.pageSize.getHeight();
 
-      /*
-       * วางภาพเต็ม A4
-       *
-       * เนื้อหาภายใน element มี
-       * ขอบบน/ล่าง 5mm
-       * ขอบซ้าย/ขวา 10mm
-       */
       pdf.addImage(
         imageData,
         "PNG",
@@ -293,8 +286,6 @@ export default function IssuePdf({
 
         {/* =====================================================
             ข้อความนำหน้าตาราง
-
-            เว้น 4mm เพื่อไม่ให้ชนกับหัวตาราง
         ===================================================== */}
 
         <div
@@ -314,20 +305,16 @@ export default function IssuePdf({
 
             A4 กว้าง 210mm
             ขอบซ้าย/ขวา 10mm
-            พื้นที่ตาราง 190mm
+            ตารางกว้าง 190mm
 
-            หัวตาราง = 8mm
-            แถวข้อมูล = 8mm
+            หัวตาราง 8mm
+            แถวข้อมูล 8mm
 
-            เพิ่มความสูงจากเดิม 5mm อีก 3mm
-            เพื่อให้เหมือนขนาดตารางปกติและ
-            ป้องกันข้อความตกหายตอน Export PDF
+            ข้อความ 16px
 
-            ข้อความในตาราง = 16px
-            หัวตาราง = 16px
-            ตัวอักษรดำ
-            พื้นหลังขาว
-            เส้นขอบดำ
+            ใช้ wrapper ภายในแต่ละ cell
+            เพื่อบังคับการจัดกึ่งกลางแนวตั้ง
+            ให้ html2canvas แสดงผลตรงกับ PDF
         ===================================================== */}
 
         <div className="flex justify-center">
@@ -357,9 +344,7 @@ export default function IssuePdf({
                   height: "8mm",
                 }}
               >
-                {/* =================================================
-                    ลำดับ
-                ================================================= */}
+                {/* ลำดับ */}
 
                 <th
                   className="
@@ -367,32 +352,34 @@ export default function IssuePdf({
                     border
                     border-black
                     bg-white
-                    px-0
-                    py-0
+                    p-0
                     text-center
-                    align-middle
-                    font-bold
                     text-black
                   "
                   style={{
                     height: "8mm",
-                    minHeight: "8mm",
                     padding: 0,
-                    borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                     verticalAlign: "middle",
                   }}
                 >
-                  ลำดับ
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    ลำดับ
+                  </div>
                 </th>
 
-                {/* =================================================
-                    หมวดหมู่
-                ================================================= */}
+                {/* หมวดหมู่ */}
 
                 <th
                   className="
@@ -400,32 +387,35 @@ export default function IssuePdf({
                     border
                     border-black
                     bg-white
-                    px-0
-                    py-0
+                    p-0
                     text-center
-                    align-middle
-                    font-bold
                     text-black
                   "
                   style={{
                     height: "8mm",
-                    minHeight: "8mm",
                     padding: 0,
-                    borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                     verticalAlign: "middle",
                   }}
                 >
-                  หมวดหมู่
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    หมวดหมู่
+                  </div>
                 </th>
 
-                {/* =================================================
-                    รายการพัสดุ
-                ================================================= */}
+                {/* รายการพัสดุ */}
 
                 <th
                   className="
@@ -433,32 +423,71 @@ export default function IssuePdf({
                     border
                     border-black
                     bg-white
-                    px-0
-                    py-0
+                    p-0
                     text-center
-                    align-middle
-                    font-bold
                     text-black
                   "
                   style={{
                     height: "8mm",
-                    minHeight: "8mm",
                     padding: 0,
-                    borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                     verticalAlign: "middle",
                   }}
                 >
-                  รายการพัสดุ
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    รายการพัสดุ
+                  </div>
                 </th>
 
-                {/* =================================================
+                {/* จำนวนที่ขอเบิก */}
+
+                <th
+                  className="
+                    w-[14%]
+                    border
+                    border-black
+                    bg-white
+                    p-0
+                    text-center
+                    text-black
+                  "
+                  style={{
+                    height: "8mm",
+                    padding: 0,
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
+                    fontSize: "16px",
+                    lineHeight: "1.2",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     จำนวนที่ขอเบิก
-                ================================================= */}
+                  </div>
+                </th>
+
+                {/* จำนวนที่เบิกจ่าย */}
 
                 <th
                   className="
@@ -466,65 +495,35 @@ export default function IssuePdf({
                     border
                     border-black
                     bg-white
-                    px-0
-                    py-0
+                    p-0
                     text-center
-                    align-middle
-                    font-bold
                     text-black
                   "
                   style={{
                     height: "8mm",
-                    minHeight: "8mm",
                     padding: 0,
-                    borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                     verticalAlign: "middle",
                   }}
                 >
-                  จำนวนที่ขอเบิก
-                </th>
-
-                {/* =================================================
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     จำนวนที่เบิกจ่าย
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[14%]
-                    border
-                    border-black
-                    bg-white
-                    px-0
-                    py-0
-                    text-center
-                    align-middle
-                    font-bold
-                    text-black
-                  "
-                  style={{
-                    height: "8mm",
-                    minHeight: "8mm",
-                    padding: 0,
-                    borderRadius: 0,
-                    backgroundColor: "#ffffff",
-                    color: "#000000",
-                    fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  จำนวนที่เบิกจ่าย
+                  </div>
                 </th>
 
-                {/* =================================================
-                    หมายเหตุ
-                ================================================= */}
+                {/* หมายเหตุ */}
 
                 <th
                   className="
@@ -532,27 +531,32 @@ export default function IssuePdf({
                     border
                     border-black
                     bg-white
-                    px-0
-                    py-0
+                    p-0
                     text-center
-                    align-middle
-                    font-bold
                     text-black
                   "
                   style={{
                     height: "8mm",
-                    minHeight: "8mm",
                     padding: 0,
-                    borderRadius: 0,
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     fontSize: "16px",
-                    lineHeight: "1",
-                    whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                     verticalAlign: "middle",
                   }}
                 >
-                  หมายเหตุ
+                  <div
+                    style={{
+                      display: "flex",
+                      height: "8mm",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.2",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    หมายเหตุ
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -574,27 +578,33 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
-                      py-0
+                      p-0
                       text-center
-                      align-middle
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
                       padding: 0,
-                      borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {index + 1}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {index + 1}
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -606,31 +616,39 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-[0.5mm]
-                      py-0
-                      align-middle
+                      p-0
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
-                      padding: "0 0.5mm",
-                      borderRadius: 0,
+                      padding: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "clip",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {item
-                      ? categoryLabels[
-                          item.material.category
-                        ] ?? item.material.category
-                      : ""}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "clip",
+                        padding: "0 0.5mm",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      {item
+                        ? categoryLabels[
+                            item.material.category
+                          ] ?? item.material.category
+                        : ""}
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -642,27 +660,35 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-[0.5mm]
-                      py-0
-                      align-middle
+                      p-0
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
-                      padding: "0 0.5mm",
-                      borderRadius: 0,
+                      padding: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "clip",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {item ? item.material.name : ""}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "clip",
+                        padding: "0 0.5mm",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      {item ? item.material.name : ""}
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -674,31 +700,39 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
-                      py-0
+                      p-0
                       text-center
-                      align-middle
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
                       padding: 0,
-                      borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {item?.qty ?? ""}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {item?.qty ?? ""}
+                    </div>
                   </td>
 
                   {/* =================================================
                       จำนวนเบิกจ่าย
+
+                      เว้นว่างตามที่ต้องการ
                   ================================================= */}
 
                   <td
@@ -706,27 +740,33 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-0
-                      py-0
+                      p-0
                       text-center
-                      align-middle
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
                       padding: 0,
-                      borderRadius: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {item ? item.qty : ""}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* เว้นว่าง */}
+                    </div>
                   </td>
 
                   {/* =================================================
@@ -738,27 +778,35 @@ export default function IssuePdf({
                       border
                       border-black
                       bg-white
-                      px-[0.5mm]
-                      py-0
-                      align-middle
+                      p-0
                       text-black
                     "
                     style={{
                       height: "8mm",
-                      minHeight: "8mm",
-                      padding: "0 0.5mm",
-                      borderRadius: 0,
+                      padding: 0,
                       backgroundColor: "#ffffff",
                       color: "#000000",
                       fontSize: "16px",
-                      lineHeight: "1",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "clip",
+                      lineHeight: "1.2",
                       verticalAlign: "middle",
                     }}
                   >
-                    {item?.remark ?? ""}
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "8mm",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "clip",
+                        padding: "0 0.5mm",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      {item?.remark ?? ""}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -824,9 +872,7 @@ export default function IssuePdf({
             text-black
           "
         >
-          {/* =================================================
-              ฝั่งซ้าย
-          ================================================= */}
+          {/* ฝั่งซ้าย */}
 
           <div className="text-center">
             {/* ผู้รับของ */}
@@ -835,7 +881,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ..........................................................
+                ...............................................................
                 {" "}
                 ผู้รับของ
               </div>
@@ -855,7 +901,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ..........................................................
+                ...............................................................
                 {" "}
                 ผู้จ่าย
               </div>
@@ -870,9 +916,7 @@ export default function IssuePdf({
             </div>
           </div>
 
-          {/* =================================================
-              ฝั่งขวา
-          ================================================= */}
+          {/* ฝั่งขวา */}
 
           <div className="text-center">
             {/* หัวหน้ากลุ่ม */}
@@ -881,7 +925,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ..........................................................
+                ...............................................................
                 {" "}
                 หัวหน้ากลุ่ม
               </div>
@@ -901,7 +945,7 @@ export default function IssuePdf({
               <div className="whitespace-nowrap">
                 ลงชื่อ
                 {" "}
-                ..........................................................
+                ...............................................................
                 {" "}
                 ผู้อนุญาต
               </div>
