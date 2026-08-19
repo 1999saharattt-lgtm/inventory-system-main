@@ -194,17 +194,8 @@ export default function IssuePdf({
   // =====================================================
   // ตัวข้อความหัวตาราง
   //
-  // จุดสำคัญของการแก้ครั้งนี้
-  //
-  // TH Sarabun มี baseline ที่ทำให้ข้อความดูตกลงล่าง
-  // แม้ <th> จะ vertical-align: middle แล้วก็ตาม
-  //
-  // เราจึงขยับเฉพาะ "ตัวหนังสือ"
-  // ไม่ขยับ <th>
-  // ไม่ขยับเส้นขอบ
-  // ไม่ขยับตาราง
-  //
-  // translateY ใช้เฉพาะข้อความหัวตารางเท่านั้น
+  // ใช้วิธีนี้แล้วหัวตารางถูกต้อง
+  // รอบนี้จะคงไว้เหมือนเดิม
   // =====================================================
 
   const headerTextStyle: React.CSSProperties = {
@@ -225,10 +216,6 @@ export default function IssuePdf({
 
   // =====================================================
   // Cell หัวตาราง
-  //
-  // ทุกหัวตาราง:
-  // - กึ่งกลางแนวนอน
-  // - ข้อความถูกยกขึ้น
   // =====================================================
 
   const headerCellStyle: React.CSSProperties = {
@@ -238,24 +225,54 @@ export default function IssuePdf({
   };
 
   // =====================================================
-  // ข้อมูลทั่วไป
+  // ตัวข้อความข้อมูลทั่วไป
+  //
+  // ใช้วิธีเดียวกับหัวตาราง
+  // ขยับเฉพาะตัวอักษรขึ้น
+  //
+  // ไม่ขยับ <td>
+  // ไม่ขยับเส้นขอบ
+  // =====================================================
+
+  const dataTextStyle: React.CSSProperties = {
+    display: "inline-block",
+    position: "relative",
+    top: "-1.35mm",
+    margin: 0,
+    padding: 0,
+    fontFamily:
+      "TH Sarabun New, Sarabun, Arial, sans-serif",
+    fontSize: "16px",
+    fontWeight: "normal",
+    lineHeight: "1",
+    whiteSpace: "nowrap",
+    verticalAlign: "middle",
+  };
+
+  // =====================================================
+  // ตัวข้อความรายการพัสดุ
+  //
+  // ชิดซ้ายเหมือนเดิม
+  // แต่ยกข้อความขึ้นเหมือนหัวตาราง
+  // =====================================================
+
+  const leftDataTextStyle: React.CSSProperties = {
+    ...dataTextStyle,
+    textAlign: "left",
+  };
+
+  // =====================================================
+  // Cell ข้อมูลทั่วไป
   // =====================================================
 
   const centerCellStyle: React.CSSProperties = {
     ...cellBaseStyle,
     textAlign: "center",
     whiteSpace: "nowrap",
-    lineHeight: "6mm",
   };
 
   // =====================================================
-  // ข้อมูลรายการพัสดุ
-  //
-  // ชิดซ้ายแนวนอน
-  // แนวตั้งยังคงอยู่กลาง cell
-  //
-  // จุดนี้ยังไม่แก้ตำแหน่งเพิ่มเติม
-  // เพราะกำลังแก้ทีละจุดตามที่ต้องการ
+  // Cell ข้อมูลรายการพัสดุ
   // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
@@ -264,7 +281,6 @@ export default function IssuePdf({
     whiteSpace: "nowrap",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
-    lineHeight: "6mm",
   };
 
   return (
@@ -510,9 +526,6 @@ export default function IssuePdf({
 
                 {/* =================================================
                     รายการพัสดุ
-
-                    กึ่งกลางแนวนอน
-                    กึ่งกลางแนวตั้ง
                 ================================================= */}
 
                 <th
@@ -618,7 +631,9 @@ export default function IssuePdf({
                     "
                     style={centerCellStyle}
                   >
-                    {index + 1}
+                    <span style={dataTextStyle}>
+                      {index + 1}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -639,18 +654,21 @@ export default function IssuePdf({
                       paddingRight: "0.5mm",
                     }}
                   >
-                    {item
-                      ? categoryLabels[
+                    <span style={dataTextStyle}>
+                      {item
+                        ? categoryLabels[
+                            item.material.category
+                          ] ??
                           item.material.category
-                        ] ??
-                        item.material.category
-                      : ""}
+                        : ""}
+                    </span>
                   </td>
 
                   {/* =================================================
                       รายการพัสดุ
 
                       ข้อมูลชิดซ้าย
+                      แต่ยกขึ้นเหมือนหัวตาราง
                   ================================================= */}
 
                   <td
@@ -663,9 +681,11 @@ export default function IssuePdf({
                     "
                     style={leftCellStyle}
                   >
-                    {item
-                      ? item.material.name
-                      : ""}
+                    <span style={leftDataTextStyle}>
+                      {item
+                        ? item.material.name
+                        : ""}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -682,7 +702,9 @@ export default function IssuePdf({
                     "
                     style={centerCellStyle}
                   >
-                    {item?.qty ?? ""}
+                    <span style={dataTextStyle}>
+                      {item?.qty ?? ""}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -699,7 +721,9 @@ export default function IssuePdf({
                     "
                     style={centerCellStyle}
                   >
-                    {" "}
+                    <span style={dataTextStyle}>
+                      {" "}
+                    </span>
                   </td>
 
                   {/* =================================================
@@ -720,7 +744,9 @@ export default function IssuePdf({
                       paddingRight: "0.5mm",
                     }}
                   >
-                    {item?.remark ?? ""}
+                    <span style={dataTextStyle}>
+                      {item?.remark ?? ""}
+                    </span>
                   </td>
                 </tr>
               ))}
