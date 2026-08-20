@@ -63,8 +63,7 @@ export default async function NotificationsPage() {
         <div
           className="
             rounded-2xl
-            border
-            border-slate-700
+            border border-slate-700
             bg-slate-800
             p-5
             shadow-lg
@@ -75,12 +74,8 @@ export default async function NotificationsPage() {
             <div className="flex items-center gap-3">
               <div
                 className="
-                  flex
-                  h-12
-                  w-12
-                  shrink-0
-                  items-center
-                  justify-center
+                  flex h-12 w-12 shrink-0
+                  items-center justify-center
                   rounded-2xl
                   bg-blue-500/15
                   text-blue-400
@@ -103,16 +98,11 @@ export default async function NotificationsPage() {
             {/* Summary */}
             <div
               className="
-                flex
-                items-center
-                justify-between
-                gap-5
+                flex items-center justify-between gap-5
                 rounded-2xl
-                border
-                border-orange-500/30
+                border border-orange-500/30
                 bg-slate-700/60
-                px-5
-                py-4
+                px-5 py-4
                 sm:min-w-[230px]
               "
             >
@@ -128,12 +118,8 @@ export default async function NotificationsPage() {
 
               <div
                 className="
-                  flex
-                  h-14
-                  w-14
-                  shrink-0
-                  items-center
-                  justify-center
+                  flex h-14 w-14 shrink-0
+                  items-center justify-center
                   rounded-2xl
                   bg-orange-500/15
                   text-orange-400
@@ -151,23 +137,17 @@ export default async function NotificationsPage() {
             <div
               className="
                 rounded-2xl
-                border
-                border-slate-700
+                border border-slate-700
                 bg-slate-800
-                px-6
-                py-12
+                px-6 py-12
                 text-center
                 shadow-lg
               "
             >
               <div
                 className="
-                  mx-auto
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
+                  mx-auto flex h-16 w-16
+                  items-center justify-center
                   rounded-full
                   bg-slate-700
                   text-white
@@ -190,16 +170,12 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group
-                  block
-                  rounded-2xl
-                  border
-                  border-orange-500/30
+                  group block rounded-2xl
+                  border border-orange-500/30
                   bg-slate-800
                   p-5
                   shadow-lg
-                  transition-all
-                  duration-200
+                  transition-all duration-200
                   hover:-translate-y-0.5
                   hover:border-orange-400/70
                   hover:bg-slate-700
@@ -210,12 +186,8 @@ export default async function NotificationsPage() {
                   {/* Icon */}
                   <div
                     className="
-                      flex
-                      h-12
-                      w-12
-                      shrink-0
-                      items-center
-                      justify-center
+                      flex h-12 w-12 shrink-0
+                      items-center justify-center
                       rounded-xl
                       bg-orange-500/15
                       text-orange-400
@@ -235,10 +207,8 @@ export default async function NotificationsPage() {
                         className="
                           rounded-full
                           bg-orange-500/15
-                          px-3
-                          py-1
-                          text-xs
-                          font-extrabold
+                          px-3 py-1
+                          text-xs font-extrabold
                           text-white
                         "
                       >
@@ -292,8 +262,7 @@ export default async function NotificationsPage() {
                   {/* Arrow */}
                   <div
                     className="
-                      hidden
-                      shrink-0
+                      hidden shrink-0
                       text-white
                       transition-transform
                       group-hover:translate-x-1
@@ -326,8 +295,7 @@ export default async function NotificationsPage() {
         <div
           className="
             rounded-2xl
-            border
-            border-slate-700
+            border border-slate-700
             bg-slate-800
             p-5
             shadow-lg
@@ -336,12 +304,8 @@ export default async function NotificationsPage() {
           <div className="flex items-center gap-3">
             <div
               className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
+                flex h-12 w-12 shrink-0
+                items-center justify-center
                 rounded-2xl
                 bg-blue-500/15
                 text-blue-400
@@ -365,23 +329,17 @@ export default async function NotificationsPage() {
         <div
           className="
             rounded-2xl
-            border
-            border-slate-700
+            border border-slate-700
             bg-slate-800
-            px-6
-            py-12
+            px-6 py-12
             text-center
             shadow-lg
           "
         >
           <div
             className="
-              mx-auto
-              flex
-              h-16
-              w-16
-              items-center
-              justify-center
+              mx-auto flex h-16 w-16
+              items-center justify-center
               rounded-full
               bg-slate-700
               text-white
@@ -451,8 +409,7 @@ export default async function NotificationsPage() {
       <div
         className="
           rounded-2xl
-          border
-          border-slate-700
+          border border-slate-700
           bg-slate-800
           p-5
           shadow-lg
@@ -463,12 +420,8 @@ export default async function NotificationsPage() {
           <div className="flex items-center gap-3">
             <div
               className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
+                flex h-12 w-12 shrink-0
+                items-center justify-center
                 rounded-2xl
                 bg-emerald-500/15
                 text-emerald-400
@@ -491,16 +444,11 @@ export default async function NotificationsPage() {
           {/* Summary */}
           <div
             className="
-              flex
-              items-center
-              justify-between
-              gap-5
+              flex items-center justify-between gap-5
               rounded-2xl
-              border
-              border-emerald-500/30
+              border border-emerald-500/30
               bg-slate-700/60
-              px-5
-              py-4
+              px-5 py-4
               sm:min-w-[230px]
             "
           >
@@ -520,12 +468,8 @@ export default async function NotificationsPage() {
 
             <div
               className="
-                flex
-                h-14
-                w-14
-                shrink-0
-                items-center
-                justify-center
+                flex h-14 w-14 shrink-0
+                items-center justify-center
                 rounded-2xl
                 bg-emerald-500/15
                 text-emerald-400
@@ -543,23 +487,17 @@ export default async function NotificationsPage() {
           <div
             className="
               rounded-2xl
-              border
-              border-slate-700
+              border border-slate-700
               bg-slate-800
-              px-6
-              py-12
+              px-6 py-12
               text-center
               shadow-lg
             "
           >
             <div
               className="
-                mx-auto
-                flex
-                h-16
-                w-16
-                items-center
-                justify-center
+                mx-auto flex h-16 w-16
+                items-center justify-center
                 rounded-full
                 bg-slate-700
                 text-white
@@ -594,16 +532,12 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group
-                  block
-                  rounded-2xl
-                  border
-                  border-emerald-500/30
+                  group block rounded-2xl
+                  border border-emerald-500/30
                   bg-slate-800
                   p-5
                   shadow-lg
-                  transition-all
-                  duration-200
+                  transition-all duration-200
                   hover:-translate-y-0.5
                   hover:border-emerald-400/70
                   hover:bg-slate-700
@@ -614,12 +548,8 @@ export default async function NotificationsPage() {
                   {/* Icon */}
                   <div
                     className="
-                      flex
-                      h-12
-                      w-12
-                      shrink-0
-                      items-center
-                      justify-center
+                      flex h-12 w-12 shrink-0
+                      items-center justify-center
                       rounded-xl
                       bg-emerald-500/15
                       text-emerald-400
@@ -639,10 +569,8 @@ export default async function NotificationsPage() {
                         className="
                           rounded-full
                           bg-emerald-500/15
-                          px-3
-                          py-1
-                          text-xs
-                          font-extrabold
+                          px-3 py-1
+                          text-xs font-extrabold
                           text-white
                         "
                       >
@@ -718,8 +646,7 @@ export default async function NotificationsPage() {
                   {/* Arrow */}
                   <div
                     className="
-                      hidden
-                      shrink-0
+                      hidden shrink-0
                       text-white
                       transition-transform
                       group-hover:translate-x-1
