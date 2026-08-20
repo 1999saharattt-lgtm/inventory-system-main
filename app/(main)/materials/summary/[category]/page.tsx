@@ -18,30 +18,60 @@ const categories = [
   "HOUSEHOLD",
   "VEHICLE",
   "PRINTING",
-] as const;
-
-type Category = (typeof categories)[number];
+];
 
 type PageProps = {
   params: Promise<{
     category: string;
   }>;
+  searchParams: Promise<{
+    search?: string;
+  }>;
 };
 
 export default async function MaterialsSummaryCategoryPage({
   params,
+  searchParams,
 }: PageProps) {
   const { category } = await params;
+  const { search } = await searchParams;
 
   const categoryCode = category.toUpperCase();
 
-  if (!categories.includes(categoryCode as Category)) {
+  if (!categories.includes(categoryCode)) {
     notFound();
   }
 
+  const keyword = search?.trim() ?? "";
+
   const materials = await prisma.material.findMany({
     where: {
-      category: categoryCode as Category,
+      category: categoryCode as
+        | "OFFICE"
+        | "COMPUTER"
+        | "ELECTRIC"
+        | "HOUSEHOLD"
+        | "VEHICLE"
+        | "PRINTING",
+
+      ...(keyword
+        ? {
+            OR: [
+              {
+                code: {
+                  contains: keyword,
+                  mode: "insensitive",
+                },
+              },
+              {
+                name: {
+                  contains: keyword,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          }
+        : {}),
     },
 
     orderBy: {
@@ -98,12 +128,10 @@ export default async function MaterialsSummaryCategoryPage({
       balance,
       unit: material.unit,
 
-      // ราคาจากรายการรับเข้าล่าสุด
       latestPrice: latestReceive
         ? Number(latestReceive.unitPrice)
         : null,
 
-      // ผู้จำหน่ายจากรายการรับเข้าล่าสุด
       latestVendor:
         latestReceive?.receive.vendor?.name ?? "-",
     };
@@ -188,6 +216,69 @@ export default async function MaterialsSummaryCategoryPage({
           </Link>
         </div>
       </div>
+
+      {/* Search */}
+      <form
+        method="GET"
+        className="
+          flex
+          gap-4
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-5
+          shadow-xl
+        "
+      >
+        <input
+          name="search"
+          defaultValue={keyword}
+          placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
+          className="
+            flex-1
+            rounded-xl
+            border
+            border-slate-600
+            bg-slate-800
+            px-4
+            py-3
+            text-base
+            font-semibold
+            text-white
+            placeholder:text-slate-400
+            outline-none
+            transition
+            focus:border-cyan-400
+            focus:ring-4
+            focus:ring-cyan-500/20
+          "
+        />
+
+        <button
+          type="submit"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:shadow-xl
+            active:scale-95
+          "
+        >
+          ค้นหา
+        </button>
+      </form>
 
       {/* Summary */}
 
@@ -309,7 +400,9 @@ export default async function MaterialsSummaryCategoryPage({
                       text-slate-500
                     "
                   >
-                    ยังไม่มีพัสดุในหมวดนี้
+                    {keyword
+                      ? "ไม่พบข้อมูลที่ค้นหา"
+                      : "ยังไม่มีพัสดุในหมวดนี้"}
                   </td>
                 </tr>
               ) : (
@@ -400,10 +493,13 @@ export default async function MaterialsSummaryCategoryPage({
                     >
                       {material.latestPrice === null
                         ? "-"
-                        : material.latestPrice.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                        : material.latestPrice.toLocaleString(
+                            "th-TH",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}
                     </td>
 
                     <td

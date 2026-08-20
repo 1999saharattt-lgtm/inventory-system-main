@@ -30,15 +30,6 @@ const categoryIcons: Record<string, string> = {
   PRINTING: "📰",
 };
 
-const categoryColors: Record<string, string> = {
-  OFFICE: "from-blue-500 to-blue-700",
-  COMPUTER: "from-violet-500 to-violet-700",
-  ELECTRIC: "from-amber-400 to-amber-600",
-  HOUSEHOLD: "from-emerald-500 to-emerald-700",
-  VEHICLE: "from-red-500 to-red-700",
-  PRINTING: "from-cyan-500 to-cyan-700",
-};
-
 export default async function MaterialsSummaryPage() {
   // =====================================================
   // ตรวจสอบ Session
@@ -50,7 +41,7 @@ export default async function MaterialsSummaryPage() {
   // =====================================================
   // ADMIN
   //
-  // คงหน้าตาเดิมทั้งหมด
+  // คงหน้าตาเดิมของตาราง
   // =====================================================
 
   if (role === "ADMIN") {
@@ -83,12 +74,6 @@ export default async function MaterialsSummaryPage() {
     const data = materials.map((material) => {
       const latestReceive = material.receiveItems[0];
 
-      // =====================================================
-      // คำนวณยอดคงเหลือแบบเดียวกับ Stock Card
-      //
-      // ยอดคงเหลือ = รับเข้าทั้งหมด - เบิกจ่ายทั้งหมด
-      // =====================================================
-
       const totalReceive = material.receiveItems.reduce(
         (sum, item) => sum + item.qty,
         0
@@ -109,12 +94,10 @@ export default async function MaterialsSummaryPage() {
         balance,
         unit: material.unit,
 
-        // ราคาจากรายการรับเข้าล่าสุด
         latestPrice: latestReceive
           ? Number(latestReceive.unitPrice)
           : null,
 
-        // ผู้จำหน่ายจากรายการรับเข้าล่าสุด
         latestVendor:
           latestReceive?.receive.vendor?.name ?? "-",
       };
@@ -181,8 +164,6 @@ export default async function MaterialsSummaryPage() {
             ← กลับ
           </Link>
         </div>
-
-        {/* Search + Categories + Tables */}
 
         <MaterialsSummaryClient
           materials={data}
@@ -287,13 +268,16 @@ export default async function MaterialsSummaryPage() {
               hover:shadow-2xl
             "
           >
+            {/* เหมือน Stock Card */}
+
             <div
-              className={`
+              className="
                 h-1.5
                 bg-gradient-to-r
-                ${categoryColors[category]}
+                from-slate-700
+                to-slate-900
                 sm:h-2
-              `}
+              "
             />
 
             <div
