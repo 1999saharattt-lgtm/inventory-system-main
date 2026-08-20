@@ -51,7 +51,7 @@ const statusClass: Record<string, string> = {
   PENDING:
     "bg-amber-100 text-amber-800 border-amber-300",
   APPROVED:
-    "bg-slate-800 text-white border-slate-900",
+    "bg-gradient-to-r from-emerald-600 to-green-500 text-white border-emerald-700",
   REJECTED:
     "bg-red-100 text-red-800 border-red-300",
 };
@@ -250,9 +250,12 @@ export default async function IssueDetailPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-900
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-4
+          text-white
           shadow-xl
           sm:p-6
         "
@@ -268,7 +271,7 @@ export default async function IssueDetailPage({
           "
         >
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold text-slate-300">
               สถานะใบเบิก
             </p>
 
@@ -283,9 +286,10 @@ export default async function IssueDetailPage({
                 py-2
                 text-base
                 font-extrabold
+                shadow-md
                 ${
                   statusClass[issue.status] ??
-                  "border-slate-300 bg-slate-100 text-slate-700"
+                  "border-slate-600 bg-slate-700 text-white"
                 }
               `}
             >
@@ -337,18 +341,18 @@ export default async function IssueDetailPage({
                   sm:text-right
                 "
               >
-                <p className="text-sm font-bold text-slate-500">
+                <p className="text-sm font-bold text-slate-300">
                   วันที่ยืนยันการเบิกจ่าย
                 </p>
 
-                <p className="mt-1 font-extrabold text-slate-800">
+                <p className="mt-1 font-extrabold text-white">
                   {new Date(
                     issue.approvedAt
                   ).toLocaleDateString("th-TH")}
                 </p>
 
                 {issue.approvedBy && (
-                  <p className="mt-1 text-sm font-semibold text-slate-600">
+                  <p className="mt-1 text-sm font-semibold text-slate-300">
                     เจ้าหน้าที่พัสดุ:{" "}
                     {issue.approvedBy.fullname}
                   </p>

@@ -237,16 +237,52 @@ export default function IssuePdf({
   };
 
   // =====================================================
-  // ตัวข้อความรายการพัสดุ
+  // ปรับขนาดตัวอักษรชื่อพัสดุตามความยาว
   //
-  // ห้ามตกบรรทัด
+  // จุดสำคัญ:
+  // ชื่อพัสดุห้ามตกบรรทัด
+  // และไม่ให้ html2canvas ตัดข้อความทิ้ง
   // =====================================================
 
-  const leftDataTextStyle: React.CSSProperties = {
-    ...dataTextStyle,
-    textAlign: "left",
-    whiteSpace: "nowrap",
-  };
+  function getMaterialNameStyle(
+    name: string
+  ): React.CSSProperties {
+    const length = name.length;
+
+    let fontSize = 16;
+
+    if (length > 55) {
+      fontSize = 10.5;
+    } else if (length > 48) {
+      fontSize = 11;
+    } else if (length > 42) {
+      fontSize = 11.5;
+    } else if (length > 36) {
+      fontSize = 12;
+    } else if (length > 30) {
+      fontSize = 13;
+    } else if (length > 25) {
+      fontSize = 14;
+    } else if (length > 20) {
+      fontSize = 15;
+    }
+
+    return {
+      display: "inline-block",
+      position: "relative",
+      top: "-1.35mm",
+      margin: 0,
+      padding: 0,
+      fontFamily:
+        "TH Sarabun New, Sarabun, Arial, sans-serif",
+      fontSize: `${fontSize}px`,
+      fontWeight: "normal",
+      lineHeight: "1",
+      whiteSpace: "nowrap",
+      verticalAlign: "middle",
+      maxWidth: "100%",
+    };
+  }
 
   // =====================================================
   // Cell ข้อมูลทั่วไป
@@ -256,17 +292,22 @@ export default function IssuePdf({
     ...cellBaseStyle,
     textAlign: "center",
     whiteSpace: "nowrap",
+    overflow: "visible",
   };
 
   // =====================================================
   // Cell ข้อมูลรายการพัสดุ
+  //
+  // สำคัญ:
+  // ไม่ใช้ overflow:hidden
+  // เพราะจะทำให้ชื่อยาวถูกตัดตอน html2canvas
   // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
     ...cellBaseStyle,
     textAlign: "left",
     whiteSpace: "nowrap",
-    overflow: "hidden",
+    overflow: "visible",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
   };
@@ -472,9 +513,7 @@ export default function IssuePdf({
                   height: "8mm",
                 }}
               >
-                {/* =================================================
-                    ลำดับ
-                ================================================= */}
+                {/* ลำดับ */}
 
                 <th
                   className="
@@ -492,9 +531,7 @@ export default function IssuePdf({
                   </span>
                 </th>
 
-                {/* =================================================
-                    หมวดหมู่
-                ================================================= */}
+                {/* หมวดหมู่ */}
 
                 <th
                   className="
@@ -512,9 +549,7 @@ export default function IssuePdf({
                   </span>
                 </th>
 
-                {/* =================================================
-                    รายการพัสดุ
-                ================================================= */}
+                {/* รายการพัสดุ */}
 
                 <th
                   className="
@@ -532,9 +567,7 @@ export default function IssuePdf({
                   </span>
                 </th>
 
-                {/* =================================================
-                    จำนวนที่ขอเบิก
-                ================================================= */}
+                {/* จำนวนที่ขอเบิก */}
 
                 <th
                   className="
@@ -552,9 +585,7 @@ export default function IssuePdf({
                   </span>
                 </th>
 
-                {/* =================================================
-                    จำนวนที่เบิกจ่าย
-                ================================================= */}
+                {/* จำนวนที่เบิกจ่าย */}
 
                 <th
                   className="
@@ -572,9 +603,7 @@ export default function IssuePdf({
                   </span>
                 </th>
 
-                {/* =================================================
-                    หน่วย
-                ================================================= */}
+                {/* หน่วย */}
 
                 <th
                   className="
@@ -654,8 +683,10 @@ export default function IssuePdf({
 
                   {/* =================================================
                       รายการพัสดุ
-                      - แสดงชื่อพัสดุ
-                      - ไม่ให้ตกบรรทัด
+
+                      แสดงชื่อเต็ม
+                      ไม่ตกบรรทัด
+                      ปรับ font อัตโนมัติเมื่อชื่อยาว
                   ================================================= */}
 
                   <td
@@ -668,11 +699,15 @@ export default function IssuePdf({
                     "
                     style={leftCellStyle}
                   >
-                    <span style={leftDataTextStyle}>
-                      {item
-                        ? item.material.name
-                        : ""}
-                    </span>
+                    {item ? (
+                      <span
+                        style={getMaterialNameStyle(
+                          item.material.name
+                        )}
+                      >
+                        {item.material.name}
+                      </span>
+                    ) : null}
                   </td>
 
                   {/* =================================================
