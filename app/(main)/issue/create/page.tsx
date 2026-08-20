@@ -1,24 +1,32 @@
 import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
+
 import { cookies } from "next/headers";
-import { verifySession, type SessionUser } from "@/lib/session";
+
+import {
+  verifySession,
+  type SessionUser,
+} from "@/lib/session";
+
 import IssueForm from "./IssueForm";
 
 function getThaiYear() {
-  return (new Date().getFullYear() + 543).toString().slice(-2);
+  return (new Date().getFullYear() + 543)
+    .toString()
+    .slice(-2);
 }
 
 async function generateIssueNo() {
   const year = getThaiYear();
 
-  // ดึงเลขที่เอกสารของปีปัจจุบันทั้งหมด
+  // ดึงเลขที่เอกสารทั้งหมดที่ขึ้นต้นด้วย จ.
   const issues = await prisma.issue.findMany({
     where: {
       documentNo: {
         startsWith: "จ.",
       },
     },
-
     select: {
       documentNo: true,
     },
@@ -27,7 +35,9 @@ async function generateIssueNo() {
   let maxNumber = 0;
 
   for (const issue of issues) {
-    const match = issue.documentNo.match(/^จ\.(\d+)\/(\d+)$/);
+    const match = issue.documentNo.match(
+      /^จ\.(\d+)\/(\d+)$/
+    );
 
     if (!match) {
       continue;
@@ -46,7 +56,9 @@ async function generateIssueNo() {
 
   const running = maxNumber + 1;
 
-  return `จ.${running.toString().padStart(2, "0")}/${year}`;
+  return `จ.${running
+    .toString()
+    .padStart(2, "0")}/${year}`;
 }
 
 export default async function CreateIssuePage() {
@@ -55,7 +67,9 @@ export default async function CreateIssuePage() {
   // =====================================================
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+
+  const token =
+    cookieStore.get("session")?.value;
 
   let session: SessionUser | null = null;
 
@@ -73,16 +87,17 @@ export default async function CreateIssuePage() {
   // ไม่เปลี่ยน logic เดิม
   // =====================================================
 
-  const materials = await prisma.material.findMany({
-    orderBy: [
-      {
-        category: "asc",
-      },
-      {
-        code: "asc",
-      },
-    ],
-  });
+  const materials =
+    await prisma.material.findMany({
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
+    });
 
   // =====================================================
   // ล็อตพัสดุที่ยังเหลือ
@@ -90,33 +105,41 @@ export default async function CreateIssuePage() {
   // ไม่เปลี่ยน FEFO / balance เดิม
   // =====================================================
 
-  const receiveLots = await prisma.receiveItem.findMany({
-    where: {
-      balance: {
-        gt: 0,
+  const receiveLots =
+    await prisma.receiveItem.findMany({
+      where: {
+        balance: {
+          gt: 0,
+        },
       },
-    },
+      select: {
+        id: true,
+        materialId: true,
+        balance: true,
+        manufacture: true,
+        expiry: true,
+      },
+      orderBy: [
+        {
+          expiry: "asc",
+        },
+        {
+          manufacture: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+    });
 
-    select: {
-      id: true,
-      materialId: true,
-      balance: true,
-      manufacture: true,
-      expiry: true,
-    },
+  // =====================================================
+  // Department ของ User
+  //
+  // ใช้ departmentId จาก session เป็นหลัก
+  // =====================================================
 
-    orderBy: [
-      {
-        expiry: "asc",
-      },
-      {
-        manufacture: "asc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-  });
+  const userDepartmentId =
+    session?.departmentId ?? null;
 
   // =====================================================
   // Departments
@@ -124,29 +147,29 @@ export default async function CreateIssuePage() {
   // ADMIN:
   //   เห็นทุกหน่วยงาน
   //
-  // ผู้ใช้งานที่มี departmentId:
-  //   เห็นเฉพาะหน่วยงานตัวเอง
+  // ผู้ใช้งานทั่วไป:
+  //   เห็นเฉพาะหน่วยงานของตัวเอง
   //
-  // ผู้ใช้งานที่ไม่มี departmentId:
+  // ผู้ใช้งานที่ไม่มี department:
   //   ไม่แสดงหน่วยงานอื่น
   // =====================================================
 
-  const departments = await prisma.department.findMany({
-    where:
-      session?.role === "ADMIN"
-        ? undefined
-        : session?.departmentId
-          ? {
-              id: session.departmentId,
-            }
-          : {
-              id: -1,
-            },
-
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const departments =
+    await prisma.department.findMany({
+      where:
+        session?.role === "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                id: userDepartmentId,
+              }
+            : {
+                id: -1,
+              },
+      orderBy: {
+        name: "asc",
+      },
+    });
 
   // =====================================================
   // Officers
@@ -160,41 +183,42 @@ export default async function CreateIssuePage() {
   // ไม่เปลี่ยนข้อมูล Officer ใน DB
   // =====================================================
 
-  const officers = await prisma.officer.findMany({
-    where:
-      session?.role === "ADMIN"
-        ? undefined
-        : session?.departmentId
-          ? {
-              OR: [
-                {
-                  departmentId: session.departmentId,
-                },
-                {
-                  section: {
-                    departmentId: session.departmentId,
+  const officers =
+    await prisma.officer.findMany({
+      where:
+        session?.role === "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                OR: [
+                  {
+                    departmentId:
+                      userDepartmentId,
                   },
-                },
-              ],
-            }
-          : {
-              id: -1,
-            },
-
-    include: {
-      section: true,
-      department: true,
-    },
-
-    orderBy: [
-      {
-        firstName: "asc",
+                  {
+                    section: {
+                      departmentId:
+                        userDepartmentId,
+                    },
+                  },
+                ],
+              }
+            : {
+                id: -1,
+              },
+      include: {
+        section: true,
+        department: true,
       },
-      {
-        lastName: "asc",
-      },
-    ],
-  });
+      orderBy: [
+        {
+          firstName: "asc",
+        },
+        {
+          lastName: "asc",
+        },
+      ],
+    });
 
   // =====================================================
   // เลขที่เอกสาร
@@ -202,23 +226,24 @@ export default async function CreateIssuePage() {
   // ไม่เปลี่ยน logic เดิม
   // =====================================================
 
-  const documentNo = await generateIssueNo();
+  const documentNo =
+    await generateIssueNo();
 
   // =====================================================
   // กลุ่มงานเริ่มต้นของ User
   //
   // ADMIN:
-  //   ให้ IssueForm เลือกกลุ่มงานเอง
+  //   ให้เลือกกลุ่มงานเอง
   //
   // ผู้ใช้งานทั่วไป:
-  //   กำหนดกลุ่มงานตาม session.departmentId อัตโนมัติ
+  //   กำหนดกลุ่มงานตาม session.departmentId
   // =====================================================
 
   const initialDepartmentId =
     session?.role === "ADMIN"
       ? ""
-      : session?.departmentId
-        ? String(session.departmentId)
+      : userDepartmentId
+        ? String(userDepartmentId)
         : "";
 
   return (
@@ -305,7 +330,9 @@ export default async function CreateIssuePage() {
           materials={materials}
           receiveLots={receiveLots}
           documentNo={documentNo}
-          initialDepartmentId={initialDepartmentId}
+          initialDepartmentId={
+            initialDepartmentId
+          }
         />
       </div>
     </div>
