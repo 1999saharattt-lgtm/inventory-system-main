@@ -28,6 +28,16 @@ enum Role {
   VIEWER
 }
 
+// ======================
+// สถานะใบเบิก
+// ======================
+
+enum IssueStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id       Int     @id @default(autoincrement())
   username String  @unique
@@ -38,6 +48,8 @@ model User {
 
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  approvedIssues Issue[] @relation("IssueApprovedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,6 +192,20 @@ model Issue {
   officerId Int?
   officer   Officer? @relation(fields: [officerId], references: [id])
 
+  // สถานะใบเบิก
+  //
+  // PENDING  = รอ Admin ตรวจสอบและลงจำนวนเบิกจ่าย
+  // APPROVED = Admin ยืนยันการเบิกจ่ายแล้ว
+  // REJECTED = Admin ไม่อนุมัติ
+  status IssueStatus @default(PENDING)
+
+  // วันที่ Admin ยืนยันการเบิกจ่าย
+  approvedAt DateTime?
+
+  // Admin ผู้ยืนยันการเบิกจ่าย
+  approvedById Int?
+  approvedBy   User? @relation("IssueApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
   items IssueItem[]
 
   createdAt DateTime @default(now())
@@ -197,7 +223,13 @@ model IssueItem {
   receiveItemId Int?
   receiveItem   ReceiveItem? @relation(fields: [receiveItemId], references: [id])
 
+  // จำนวนที่กลุ่มงานขอเบิก
   qty Int
+
+  // จำนวนที่ Admin เบิกจ่ายจริง
+  // ตอนสร้างใบเบิกจะเป็น 0
+  // จะเปลี่ยนเมื่อ Admin ยืนยันการเบิกจ่าย
+  issuedQty Int @default(0)
 
   manufacture DateTime?
   expiry      DateTime?
