@@ -133,13 +133,43 @@ export default async function CreateIssuePage() {
     });
 
   // =====================================================
-  // Department ของ User
+  // หา Department ของ User ที่ Login อยู่
   //
-  // ใช้ departmentId จาก session เป็นหลัก
+  // ใช้ Session.departmentId ก่อน
+  //
+  // ถ้า Session ไม่มี departmentId
+  // ให้ใช้ session.id ไปอ่านจาก User ใน DB โดยตรง
+  //
+  // เพื่อรองรับ JWT เก่าที่สร้างก่อนมี departmentId
   // =====================================================
 
-  const userDepartmentId =
+  let userDepartmentId =
     session?.departmentId ?? null;
+
+  if (
+    session &&
+    session.role !== "ADMIN"
+  ) {
+    // ---------------------------------------------------
+    // ถ้าใน Session ไม่มี departmentId
+    // ให้อ่านจาก User table โดยใช้ id ของ Session
+    // ---------------------------------------------------
+
+    if (!userDepartmentId) {
+      const currentUser =
+        await prisma.user.findUnique({
+          where: {
+            id: session.id,
+          },
+          select: {
+            departmentId: true,
+          },
+        });
+
+      userDepartmentId =
+        currentUser?.departmentId ?? null;
+    }
+  }
 
   // =====================================================
   // Departments
@@ -179,6 +209,10 @@ export default async function CreateIssuePage() {
   //
   // ผู้ใช้งานทั่วไป:
   //   เห็นเฉพาะเจ้าหน้าที่ของ department ตัวเอง
+  //
+  // รองรับทั้ง:
+  //   officer.departmentId
+  //   officer.section.departmentId
   //
   // ไม่เปลี่ยนข้อมูล Officer ใน DB
   // =====================================================
@@ -236,7 +270,10 @@ export default async function CreateIssuePage() {
   //   ให้เลือกกลุ่มงานเอง
   //
   // ผู้ใช้งานทั่วไป:
-  //   กำหนดกลุ่มงานตาม session.departmentId
+  //   ใช้ department ของบัญชีที่ Login อยู่
+  //
+  // ถ้า Session ไม่มี departmentId
+  // จะใช้ค่าที่อ่านจาก User table ด้านบน
   // =====================================================
 
   const initialDepartmentId =
