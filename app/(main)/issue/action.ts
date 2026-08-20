@@ -8,6 +8,15 @@ import path from "path";
 
 // =====================================================
 // สร้างใบเบิกพัสดุ
+//
+// สำคัญ:
+// - สร้างใบเบิกเป็น PENDING
+// - ยังไม่ตัด Material.balance
+// - ยังไม่ตัด ReceiveItem.balance
+// - ยังไม่ตัด Stock Card
+// - issuedQty เริ่มต้นเป็น 0
+//
+// การตัด Stock จะเกิดตอน ADMIN กดยืนยันเบิกจ่าย
 // =====================================================
 
 export async function createIssue(
@@ -126,6 +135,7 @@ export async function createIssue(
     (item) =>
       item.materialId &&
       Number.isFinite(item.qty) &&
+      Number.isInteger(item.qty) &&
       item.qty > 0
   );
 
@@ -157,35 +167,55 @@ export async function createIssue(
   }
 
   // =====================================================
+  // ตรวจว่าพัสดุมีอยู่จริง
+  //
+  // ไม่ตรวจ balance เพราะตอนนี้ยังไม่ใช่ขั้นตอนตัด Stock
+  // =====================================================
+
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        id: {
+          in: materialIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  const materialMap =
+    new Map(
+      materials.map(
+        (material) => [
+          material.id,
+          material,
+        ]
+      )
+    );
+
+  for (const item of items) {
+    const materialId =
+      Number(item.materialId);
+
+    if (!materialMap.has(materialId)) {
+      throw new Error(
+        `ไม่พบพัสดุ ID ${materialId}`
+      );
+    }
+  }
+
+  // =====================================================
   // Transaction
+  //
+  // ขั้นตอนนี้สร้าง "คำขอเบิก" เท่านั้น
+  // ยังไม่ตัด Stock
   // =====================================================
 
   const issueId =
     await prisma.$transaction(
       async (tx: any) => {
-        // =================================================
-        // ดึงข้อมูล Material
-        // =================================================
-
-        const materials: any[] =
-          await tx.material.findMany({
-            where: {
-              id: {
-                in: materialIds,
-              },
-            },
-          });
-
-        const materialMap =
-          new Map<number, any>(
-            materials.map(
-              (material: any) => [
-                material.id,
-                material,
-              ]
-            )
-          );
-
         // =================================================
         // สร้างใบเบิก
         // =================================================
@@ -199,170 +229,56 @@ export async function createIssue(
               officerId,
               remark:
                 remark || null,
+
+              // -------------------------------------------
+              // ใบเบิกใหม่ = รอ Admin ตรวจสอบ
+              // -------------------------------------------
+
+              status: "PENDING",
+
+              approvedAt: null,
+              approvedById: null,
             },
           });
 
         // =================================================
-        // ตัดสต็อกแต่ละรายการด้วย FEFO
+        // สร้าง IssueItem
+        //
+        // qty       = จำนวนที่กลุ่มงานขอ
+        // issuedQty = จำนวนที่ Admin เบิกจ่ายจริง
+        //
+        // ตอนนี้ยังไม่มีล็อต
+        // เพราะยังไม่มีการตัด Stock
         // =================================================
 
         for (const item of items) {
           const materialId =
-            Number(
-              item.materialId
-            );
+            Number(item.materialId);
 
           const qty =
             Number(item.qty);
 
-          const material =
-            materialMap.get(
-              materialId
-            );
-
-          if (!material) {
-            throw new Error(
-              `ไม่พบพัสดุ ID ${materialId}`
-            );
-          }
-
-          // -----------------------------------------------
-          // ตรวจยอด Material.balance
-          // -----------------------------------------------
-
-          if (
-            Number(material.balance) <
-            qty
-          ) {
-            throw new Error(
-              `พัสดุ "${material.name}" มีจำนวนไม่เพียงพอ (คงเหลือ ${material.balance} แต่ต้องการเบิก ${qty})`
-            );
-          }
-
-          // -----------------------------------------------
-          // ดึงล็อตที่มีของเหลือ
-          // เรียงตาม FEFO
-          // -----------------------------------------------
-
-          const lots =
-            await tx.receiveItem.findMany({
-              where: {
-                materialId,
-                balance: {
-                  gt: 0,
-                },
-              },
-              orderBy: [
-                {
-                  expiry: "asc",
-                },
-                {
-                  manufacture: "asc",
-                },
-                {
-                  id: "asc",
-                },
-              ],
-            });
-
-          let remainingQty =
-            qty;
-
-          // -----------------------------------------------
-          // ตัดจากล็อตตาม FEFO
-          // -----------------------------------------------
-
-          for (const lot of lots) {
-            if (
-              remainingQty <= 0
-            ) {
-              break;
-            }
-
-            const lotBalance =
-              Number(
-                lot.balance
-              );
-
-            if (
-              lotBalance <= 0
-            ) {
-              continue;
-            }
-
-            const deductQty =
-              Math.min(
-                lotBalance,
-                remainingQty
-              );
-
-            // ---------------------------------------------
-            // ลดจำนวนในล็อต
-            // ---------------------------------------------
-
-            await tx.receiveItem.update({
-              where: {
-                id: lot.id,
-              },
-              data: {
-                balance: {
-                  decrement:
-                    deductQty,
-                },
-              },
-            });
-
-            // ---------------------------------------------
-            // บันทึก IssueItem
-            // พร้อมผูกล็อตจริง
-            // ---------------------------------------------
-
-            await tx.issueItem.create({
-              data: {
-                issueId:
-                  issue.id,
-                materialId,
-                qty: deductQty,
-                receiveItemId:
-                  lot.id,
-              },
-            });
-
-            remainingQty -=
-              deductQty;
-          }
-
-          // -----------------------------------------------
-          // ตรวจว่าล็อตมีของพอหรือไม่
-          // -----------------------------------------------
-
-          if (
-            remainingQty > 0
-          ) {
-            throw new Error(
-              `พัสดุ "${material.name}" มีจำนวนในล็อตไม่เพียงพอ (ขาดอีก ${remainingQty})`
-            );
-          }
-
-          // -----------------------------------------------
-          // ลด Material.balance
-          // -----------------------------------------------
-
-          await tx.material.update({
-            where: {
-              id: materialId,
-            },
+          await tx.issueItem.create({
             data: {
-              balance: {
-                decrement: qty,
-              },
+              issueId:
+                issue.id,
+
+              materialId,
+
+              // จำนวนที่ขอ
+              qty,
+
+              // ยังไม่ได้เบิกจ่ายจริง
+              issuedQty: 0,
+
+              // ยังไม่มีล็อตที่ถูกตัด
+              receiveItemId: null,
+
+              manufacture: null,
+              expiry: null,
             },
           });
         }
-
-        // =================================================
-        // คืน ID ใบเบิกที่สร้างสำเร็จ
-        // =================================================
 
         return issue.id;
       }
@@ -378,15 +294,8 @@ export async function createIssue(
     `/issue/${issueId}`
   );
 
-  revalidatePath(
-    "/stock-card"
-  );
-
   // =====================================================
   // เปิดหน้าใบเบิกที่สร้างใหม่
-  //
-  // หน้า /issue/[id] จะมี IssuePdf
-  // สำหรับสร้างและพิมพ์แบบ พอ.101
   // =====================================================
 
   redirect(
@@ -396,6 +305,14 @@ export async function createIssue(
 
 // =====================================================
 // ลบใบเบิก
+//
+// PENDING:
+//   ยังไม่เคยตัด Stock
+//   → ลบได้เลย
+//
+// APPROVED:
+//   เคยตัด Stock แล้ว
+//   → คืนจำนวนที่เบิกจ่ายจริงกลับล็อตเดิม
 // =====================================================
 
 export async function deleteIssue(
@@ -408,6 +325,7 @@ export async function deleteIssue(
           where: {
             id,
           },
+
           include: {
             items: true,
           },
@@ -420,43 +338,79 @@ export async function deleteIssue(
       }
 
       // =================================================
-      // คืนจำนวนกลับ Material
+      // ถ้า APPROVED
+      //
+      // ต้องคืน Stock เฉพาะจำนวนที่เบิกจ่ายจริง
       // =================================================
 
-      for (
-        const item of issue.items
+      if (
+        issue.status ===
+        "APPROVED"
       ) {
-        await tx.material.update({
-          where: {
-            id: item.materialId,
-          },
-          data: {
-            balance: {
-              increment: item.qty,
-            },
-          },
-        });
-
-        // =================================================
-        // คืนจำนวนกลับ ReceiveItem
-        // ล็อตเดิมที่เคยถูกตัด
-        // =================================================
-
-        if (
-          item.receiveItemId
+        for (
+          const item of issue.items
         ) {
-          await tx.receiveItem.update({
+          const issuedQty =
+            Number(
+              item.issuedQty
+            );
+
+          // ไม่มีการเบิกจ่ายจริง
+          if (
+            issuedQty <= 0
+          ) {
+            continue;
+          }
+
+          // ---------------------------------------------
+          // คืน Material.balance
+          // ---------------------------------------------
+
+          await tx.material.update({
             where: {
-              id: item.receiveItemId,
+              id:
+                item.materialId,
             },
+
             data: {
               balance: {
-                increment: item.qty,
+                increment:
+                  issuedQty,
               },
             },
           });
+
+          // ---------------------------------------------
+          // คืน ReceiveItem
+          //
+          // ใช้ล็อตเดิมที่ถูกตัดตอน Admin อนุมัติ
+          // ---------------------------------------------
+
+          if (
+            item.receiveItemId
+          ) {
+            await tx.receiveItem.update({
+              where: {
+                id:
+                  item.receiveItemId,
+              },
+
+              data: {
+                balance: {
+                  increment:
+                    issuedQty,
+                },
+              },
+            });
+          }
         }
       }
+
+      // =================================================
+      // PENDING
+      //
+      // ไม่ต้องคืน Stock เพราะยังไม่เคยตัด
+      // =================================================
 
       // =================================================
       // ลบรายการใบเบิก
@@ -480,7 +434,17 @@ export async function deleteIssue(
     }
   );
 
-  revalidatePath("/issue");
+  // =====================================================
+  // Refresh
+  // =====================================================
+
+  revalidatePath(
+    "/issue"
+  );
+
+  revalidatePath(
+    "/stock-card"
+  );
 }
 
 // =====================================================
@@ -534,6 +498,7 @@ export async function deleteIssuePdf(
     where: {
       id: issueId,
     },
+
     data: {
       pdf: null,
     },

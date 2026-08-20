@@ -2,7 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { verifySession, type SessionUser } from "@/lib/session";
+import {
+  verifySession,
+  type SessionUser,
+} from "@/lib/session";
 import DeletePdfButton from "./DeletePdfButton";
 import IssuePdf from "./IssuePdf";
 
@@ -17,6 +20,7 @@ type Props = {
 type IssueItem = {
   id: number;
   qty: number;
+  issuedQty: number;
   remark?: string | null;
 
   material: {
@@ -37,6 +41,21 @@ const categoryName: Record<string, string> = {
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+};
+
+const statusName: Record<string, string> = {
+  PENDING: "รอ Admin ตรวจสอบ",
+  APPROVED: "เบิกจ่ายแล้ว",
+  REJECTED: "ไม่อนุมัติ",
+};
+
+const statusClass: Record<string, string> = {
+  PENDING:
+    "bg-amber-100 text-amber-800 border-amber-300",
+  APPROVED:
+    "bg-emerald-100 text-emerald-800 border-emerald-300",
+  REJECTED:
+    "bg-red-100 text-red-800 border-red-300",
 };
 
 export default async function IssueDetailPage({
@@ -81,6 +100,13 @@ export default async function IssueDetailPage({
     include: {
       department: true,
 
+      approvedBy: {
+        select: {
+          id: true,
+          fullname: true,
+        },
+      },
+
       items: {
         include: {
           material: true,
@@ -113,6 +139,22 @@ export default async function IssueDetailPage({
   ) {
     redirect("/issue");
   }
+
+  // =====================================================
+  // สรุปจำนวน
+  // =====================================================
+
+  const totalRequested = issue.items.reduce(
+    (total, item) =>
+      total + Number(item.qty),
+    0
+  );
+
+  const totalIssued = issue.items.reduce(
+    (total, item) =>
+      total + Number(item.issuedQty),
+    0
+  );
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
@@ -198,6 +240,152 @@ export default async function IssueDetailPage({
         >
           ← กลับ
         </Link>
+      </div>
+
+      {/* =====================================================
+          สถานะใบเบิก
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-xl
+          sm:p-6
+        "
+      >
+        <div
+          className="
+            flex
+            flex-col
+            gap-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <div>
+            <p className="text-sm font-bold text-slate-500">
+              สถานะใบเบิก
+            </p>
+
+            <div
+              className={`
+                mt-2
+                inline-flex
+                items-center
+                rounded-full
+                border
+                px-5
+                py-2
+                text-base
+                font-extrabold
+                ${
+                  statusClass[issue.status] ??
+                  "border-slate-300 bg-slate-100 text-slate-700"
+                }
+              `}
+            >
+              {statusName[issue.status] ??
+                issue.status}
+            </div>
+          </div>
+
+          {/* =================================================
+              Admin ดำเนินการ
+          ================================================= */}
+
+          {session.role === "ADMIN" &&
+            issue.status === "PENDING" && (
+              <div className="w-full sm:w-auto">
+                <Link
+                  href={`/issue/${issue.id}/approve`}
+                  className="
+                    block
+                    w-full
+                    rounded-xl
+                    bg-gradient-to-r
+                    from-blue-600
+                    to-indigo-600
+                    px-6
+                    py-3
+                    text-center
+                    text-base
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    transition
+                    hover:scale-[1.02]
+                    hover:from-blue-700
+                    hover:to-indigo-700
+                    sm:w-auto
+                  "
+                >
+                  📝 ลงจำนวนเบิกจ่ายจริง
+                </Link>
+              </div>
+            )}
+
+          {issue.status === "APPROVED" &&
+            issue.approvedAt && (
+              <div
+                className="
+                  text-left
+                  sm:text-right
+                "
+              >
+                <p className="text-sm font-bold text-slate-500">
+                  วันที่ยืนยันการเบิกจ่าย
+                </p>
+
+                <p className="mt-1 font-extrabold text-slate-800">
+                  {new Date(
+                    issue.approvedAt
+                  ).toLocaleDateString("th-TH")}
+                </p>
+
+                {issue.approvedBy && (
+                  <p className="mt-1 text-sm font-semibold text-slate-600">
+                    ผู้ยืนยัน:{" "}
+                    {issue.approvedBy.fullname}
+                  </p>
+                )}
+              </div>
+            )}
+        </div>
+
+        {/* =================================================
+            คำอธิบายสำหรับ Admin
+        ================================================= */}
+
+        {session.role === "ADMIN" &&
+          issue.status === "PENDING" && (
+            <div
+              className="
+                mt-5
+                rounded-xl
+                border
+                border-amber-300
+                bg-amber-50
+                px-4
+                py-3
+              "
+            >
+              <p className="font-extrabold text-amber-800">
+                ⚠️ ใบเบิกนี้ยังไม่ได้ตัดสต็อก
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-amber-700">
+                กรุณาตรวจสอบรายการและลงจำนวนที่เบิกจ่ายจริงก่อน
+                ระบบจึงจะตัดสต็อกและบันทึกลง Stock Card
+              </p>
+            </div>
+          )}
       </div>
 
       {/* =====================================================
@@ -291,6 +479,42 @@ export default async function IssueDetailPage({
               {issue.items.length} รายการ
             </p>
           </div>
+
+          {/* จำนวนรวมที่ขอ */}
+
+          <div>
+            <p className="font-extrabold">
+              จำนวนรวมที่ขอเบิก
+            </p>
+
+            <p className="mt-1 font-semibold">
+              {totalRequested} หน่วย
+            </p>
+          </div>
+
+          {/* จำนวนรวมที่จ่าย */}
+
+          <div>
+            <p className="font-extrabold">
+              จำนวนรวมที่เบิกจ่ายจริง
+            </p>
+
+            <p
+              className={`
+                mt-1
+                font-extrabold
+                ${
+                  issue.status === "APPROVED"
+                    ? "text-emerald-300"
+                    : "text-slate-300"
+                }
+              `}
+            >
+              {issue.status === "APPROVED"
+                ? `${totalIssued} หน่วย`
+                : "-"}
+            </p>
+          </div>
         </div>
 
         {/* หมายเหตุ */}
@@ -321,7 +545,6 @@ export default async function IssueDetailPage({
 
         {/* =====================================================
             เอกสาร PDF ที่แนบ
-            ไม่มี PDF Preview ในหน้านี้
         ===================================================== */}
 
         {issue.pdf && (
@@ -388,7 +611,7 @@ export default async function IssueDetailPage({
           <table
             className="
               w-full
-              min-w-[1000px]
+              min-w-[1100px]
               border-collapse
               text-sm
             "
@@ -402,99 +625,27 @@ export default async function IssueDetailPage({
                   text-white
                 "
               >
-                <th
-                  className="
-                    w-[8%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[7%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   ลำดับ
                 </th>
 
-                <th
-                  className="
-                    w-[20%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[18%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   หมวดหมู่
                 </th>
 
-                <th
-                  className="
-                    w-[36%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[31%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   รายการพัสดุ
                 </th>
 
-                <th
-                  className="
-                    w-[12%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[12%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   จำนวนที่ขอเบิก
                 </th>
 
-                <th
-                  className="
-                    w-[12%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[14%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   จำนวนที่เบิกจ่าย
                 </th>
 
-                <th
-                  className="
-                    w-[12%]
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="w-[18%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
                   หมายเหตุ
                 </th>
               </tr>
@@ -514,8 +665,6 @@ export default async function IssueDetailPage({
                       hover:bg-emerald-50
                     "
                   >
-                    {/* ลำดับ */}
-
                     <td
                       className="
                         border
@@ -528,8 +677,6 @@ export default async function IssueDetailPage({
                     >
                       {index + 1}
                     </td>
-
-                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -546,25 +693,19 @@ export default async function IssueDetailPage({
                         item.material.category}
                     </td>
 
-                    {/* รายการพัสดุ
-                        รหัสพัสดุ - ชื่อรายการพัสดุ
-                        อยู่บรรทัดเดียวกัน */}
-
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
                         py-4
                         font-semibold
-                        whitespace-nowrap
                       "
                     >
                       {item.material.code} -{" "}
                       {item.material.name}
                     </td>
-
-                    {/* จำนวนที่ขอเบิก */}
 
                     <td
                       className="
@@ -579,8 +720,6 @@ export default async function IssueDetailPage({
                       {item.qty}
                     </td>
 
-                    {/* จำนวนที่เบิกจ่าย */}
-
                     <td
                       className="
                         border
@@ -589,13 +728,22 @@ export default async function IssueDetailPage({
                         py-4
                         text-center
                         font-bold
-                        text-slate-400
                       "
                     >
-                      -
+                      {issue.status === "PENDING" ? (
+                        <span className="text-amber-600">
+                          รอ Admin
+                        </span>
+                      ) : issue.status === "REJECTED" ? (
+                        <span className="text-red-600">
+                          ไม่อนุมัติ
+                        </span>
+                      ) : (
+                        <span className="text-emerald-700">
+                          {item.issuedQty}
+                        </span>
+                      )}
                     </td>
-
-                    {/* หมายเหตุ */}
 
                     <td
                       className="
@@ -615,6 +763,86 @@ export default async function IssueDetailPage({
           </table>
         </div>
       </div>
+
+      {/* =====================================================
+          สรุปเมื่ออนุมัติแล้ว
+      ===================================================== */}
+
+      {issue.status === "APPROVED" && (
+        <div
+          className="
+            w-full
+            min-w-0
+            rounded-2xl
+            border
+            border-emerald-300
+            bg-emerald-50
+            p-4
+            shadow-xl
+            sm:p-6
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              gap-2
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div>
+              <p className="text-lg font-extrabold text-emerald-800">
+                ✅ ยืนยันการเบิกจ่ายแล้ว
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-emerald-700">
+                รายการเบิกจ่ายได้รับการยืนยันจาก Admin แล้ว
+                และถูกตัดออกจากบัญชีพัสดุแล้ว
+              </p>
+            </div>
+
+            <div className="text-left sm:text-right">
+              <p className="text-sm font-bold text-slate-600">
+                จำนวนรวมที่เบิกจ่ายจริง
+              </p>
+
+              <p className="text-2xl font-extrabold text-emerald-700">
+                {totalIssued} หน่วย
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          สถานะไม่อนุมัติ
+      ===================================================== */}
+
+      {issue.status === "REJECTED" && (
+        <div
+          className="
+            w-full
+            min-w-0
+            rounded-2xl
+            border
+            border-red-300
+            bg-red-50
+            p-4
+            shadow-xl
+            sm:p-6
+          "
+        >
+          <p className="text-lg font-extrabold text-red-800">
+            ❌ รายการเบิกนี้ไม่ได้รับการอนุมัติ
+          </p>
+
+          <p className="mt-1 text-sm font-semibold text-red-700">
+            รายการนี้ไม่มีการตัดออกจากบัญชีพัสดุ
+          </p>
+        </div>
+      )}
 
       {/* =====================================================
           Export PDF พอ.101

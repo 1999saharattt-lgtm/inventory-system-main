@@ -69,75 +69,95 @@ type IssueRow = {
   receiveItemId: string;
 };
 
+const statusName: Record<string, string> = {
+  PENDING: "รอ Admin ตรวจสอบ",
+  APPROVED: "เบิกจ่ายแล้ว",
+  REJECTED: "ไม่อนุมัติ",
+};
+
+const statusClass: Record<string, string> = {
+  PENDING:
+    "border-amber-300 bg-amber-50 text-amber-800",
+  APPROVED:
+    "border-emerald-300 bg-emerald-50 text-emerald-800",
+  REJECTED:
+    "border-red-300 bg-red-50 text-red-800",
+};
+
 export default function EditIssueForm({
   issue,
   departments,
   materials,
   receiveItems,
 }: Props) {
+  const isPending =
+    issue.status === "PENDING";
+
   const [items, setItems] = useState<IssueRow[]>(() => {
-    const rows = issue.items.map((item: any) => {
-      // ใช้ receiveItemId ที่ผูกกับ IssueItem จริง
-      // ไม่หา lot จาก materialId อย่างเดียว
-      const receiveItemId =
-        item.receiveItemId != null
-          ? String(item.receiveItemId)
-          : "";
+    const rows = issue.items.map(
+      (item: any) => {
+        // ใช้ receiveItemId ที่ผูกกับ IssueItem จริง
+        // ไม่หา lot จาก materialId อย่างเดียว
+        const receiveItemId =
+          item.receiveItemId != null
+            ? String(item.receiveItemId)
+            : "";
 
-      const lot =
-        receiveItemId !== ""
-          ? receiveItems.find(
-              (r) =>
-                r.id ===
-                Number(receiveItemId)
-            )
-          : null;
-
-      return {
-        category:
-          item.material.category,
-
-        materialId:
-          String(item.materialId),
-
-        qty:
-          String(item.qty),
-
-        receiveItemId,
-
-        // ใช้ข้อมูลล็อตจริงก่อน
-        // ถ้าหา ReceiveItem ไม่พบ ให้ใช้ค่าที่อยู่ใน IssueItem เดิม
-        manufacture:
-          lot?.manufacture
-            ? new Date(
-                lot.manufacture
+        const lot =
+          receiveItemId !== ""
+            ? receiveItems.find(
+                (r) =>
+                  r.id ===
+                  Number(receiveItemId)
               )
-                .toISOString()
-                .split("T")[0]
-            : item.manufacture
+            : null;
+
+        return {
+          category:
+            item.material.category,
+
+          materialId:
+            String(item.materialId),
+
+          qty:
+            String(item.qty),
+
+          receiveItemId,
+
+          // ใช้ข้อมูลล็อตจริงก่อน
+          // ถ้าหา ReceiveItem ไม่พบ ให้ใช้ค่าที่อยู่ใน IssueItem เดิม
+          manufacture:
+            lot?.manufacture
               ? new Date(
-                  item.manufacture
+                  lot.manufacture
                 )
                   .toISOString()
                   .split("T")[0]
-              : "",
+              : item.manufacture
+                ? new Date(
+                    item.manufacture
+                  )
+                    .toISOString()
+                    .split("T")[0]
+                : "",
 
-        expiry:
-          lot?.expiry
-            ? new Date(
-                lot.expiry
-              )
-                .toISOString()
-                .split("T")[0]
-            : item.expiry
+          expiry:
+            lot?.expiry
               ? new Date(
-                  item.expiry
+                  lot.expiry
                 )
                   .toISOString()
                   .split("T")[0]
-              : "",
-      };
-    });
+              : item.expiry
+                ? new Date(
+                    item.expiry
+                  )
+                    .toISOString()
+                    .split("T")[0]
+                : "",
+        };
+      }
+    );
 
     while (rows.length < 15) {
       rows.push({
@@ -158,6 +178,11 @@ export default function EditIssueForm({
     key: keyof IssueRow,
     value: string
   ) {
+    // ไม่อนุญาตให้แก้ไขใบเบิกที่ไม่ใช่ PENDING
+    if (!isPending) {
+      return;
+    }
+
     const copy = [...items];
 
     copy[index][key] = value;
@@ -193,8 +218,44 @@ export default function EditIssueForm({
         shadow-xl
       "
     >
+      {/* =====================================================
+          สถานะใบเบิก
+      ===================================================== */}
+
+      <div
+        className={`
+          mb-6
+          rounded-xl
+          border
+          p-4
+          ${
+            statusClass[issue.status] ??
+            "border-slate-300 bg-slate-50 text-slate-700"
+          }
+        `}
+      >
+        <p className="text-sm font-bold">
+          สถานะใบเบิก
+        </p>
+
+        <p className="mt-1 text-lg font-extrabold">
+          {statusName[issue.status] ??
+            issue.status}
+        </p>
+
+        {!isPending && (
+          <p className="mt-2 text-sm font-semibold">
+            ใบเบิกนี้ไม่สามารถแก้ไขได้ เนื่องจากมีการตรวจสอบสถานะแล้ว
+          </p>
+        )}
+      </div>
+
       <form
-        action={updateIssue}
+        action={
+          isPending
+            ? updateIssue
+            : undefined
+        }
         className="space-y-6"
       >
         <input
@@ -203,7 +264,9 @@ export default function EditIssueForm({
           value={issue.id}
         />
 
-        {/* ข้อมูลเอกสาร */}
+        {/* =====================================================
+            ข้อมูลเอกสาร
+        ===================================================== */}
 
         <div
           className="
@@ -212,6 +275,8 @@ export default function EditIssueForm({
             md:grid-cols-3
           "
         >
+          {/* วันที่เบิกจ่าย */}
+
           <div>
             <label
               className="
@@ -233,6 +298,7 @@ export default function EditIssueForm({
                   .toISOString()
                   .split("T")[0]
               }
+              disabled={!isPending}
               className="
                 w-full
                 rounded-xl
@@ -242,9 +308,14 @@ export default function EditIssueForm({
                 p-3
                 font-bold
                 text-black
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:text-slate-500
               "
             />
           </div>
+
+          {/* เลขที่ใบเบิก */}
 
           <div>
             <label
@@ -265,6 +336,7 @@ export default function EditIssueForm({
               defaultValue={
                 issue.documentNo
               }
+              disabled={!isPending}
               className="
                 w-full
                 rounded-xl
@@ -274,9 +346,14 @@ export default function EditIssueForm({
                 p-3
                 font-bold
                 text-black
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:text-slate-500
               "
             />
           </div>
+
+          {/* หน่วยงาน */}
 
           <div>
             <label
@@ -296,6 +373,7 @@ export default function EditIssueForm({
               defaultValue={
                 issue.departmentId
               }
+              disabled={!isPending}
               className="
                 w-full
                 rounded-xl
@@ -305,6 +383,9 @@ export default function EditIssueForm({
                 p-3
                 font-bold
                 text-black
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:text-slate-500
               "
             >
               {departments.map(
@@ -321,13 +402,11 @@ export default function EditIssueForm({
           </div>
         </div>
 
-        {/* ตารางรายการ */}
+        {/* =====================================================
+            ตารางรายการ
+        ===================================================== */}
 
-        <div
-          className="
-            overflow-x-auto
-          "
-        >
+        <div className="overflow-x-auto">
           <table
             className="
               w-full
@@ -405,6 +484,8 @@ export default function EditIssueForm({
                         hover:bg-emerald-50
                       "
                     >
+                      {/* ลำดับ */}
+
                       <td
                         className="
                           border
@@ -418,6 +499,8 @@ export default function EditIssueForm({
                         {index + 1}
                       </td>
 
+                      {/* หมวดหมู่ */}
+
                       <td
                         className="
                           border
@@ -430,6 +513,7 @@ export default function EditIssueForm({
                           value={
                             row.category
                           }
+                          disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
                               index,
@@ -446,6 +530,9 @@ export default function EditIssueForm({
                             p-2
                             font-bold
                             text-black
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:text-slate-500
                           "
                         >
                           <option value="">
@@ -469,6 +556,8 @@ export default function EditIssueForm({
                         </select>
                       </td>
 
+                      {/* รายการพัสดุ */}
+
                       <td
                         className="
                           border
@@ -482,6 +571,7 @@ export default function EditIssueForm({
                           value={
                             row.materialId
                           }
+                          disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
                               index,
@@ -498,6 +588,9 @@ export default function EditIssueForm({
                             p-2
                             font-bold
                             text-black
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:text-slate-500
                           "
                         >
                           <option value="">
@@ -523,6 +616,7 @@ export default function EditIssueForm({
                         </select>
 
                         {/* เก็บล็อตเดิมไว้ด้วย */}
+
                         <input
                           type="hidden"
                           name={`items[${index}].receiveItemId`}
@@ -531,6 +625,8 @@ export default function EditIssueForm({
                           }
                         />
                       </td>
+
+                      {/* หน่วย */}
 
                       <td
                         className="
@@ -561,6 +657,8 @@ export default function EditIssueForm({
                         />
                       </td>
 
+                      {/* จำนวน */}
+
                       <td
                         className="
                           border
@@ -575,6 +673,7 @@ export default function EditIssueForm({
                           value={
                             row.qty
                           }
+                          disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
                               index,
@@ -593,9 +692,14 @@ export default function EditIssueForm({
                             text-center
                             font-bold
                             text-black
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:text-slate-500
                           "
                         />
                       </td>
+
+                      {/* ราคาต่อหน่วย */}
 
                       <td
                         className="
@@ -629,6 +733,8 @@ export default function EditIssueForm({
                         />
                       </td>
 
+                      {/* วันผลิต */}
+
                       <td
                         className="
                           border
@@ -656,6 +762,8 @@ export default function EditIssueForm({
                           "
                         />
                       </td>
+
+                      {/* วันหมดอายุ */}
 
                       <td
                         className="
@@ -692,7 +800,9 @@ export default function EditIssueForm({
           </table>
         </div>
 
-        {/* หมายเหตุ */}
+        {/* =====================================================
+            หมายเหตุ
+        ===================================================== */}
 
         <div>
           <label
@@ -713,6 +823,7 @@ export default function EditIssueForm({
             defaultValue={
               issue.remark ?? ""
             }
+            disabled={!isPending}
             className="
               w-full
               rounded-xl
@@ -722,39 +833,64 @@ export default function EditIssueForm({
               p-3
               font-bold
               text-black
+              disabled:cursor-not-allowed
+              disabled:bg-slate-100
+              disabled:text-slate-500
             "
           />
         </div>
 
-        {/* ปุ่มบันทึก */}
+        {/* =====================================================
+            ปุ่มบันทึก
+        ===================================================== */}
 
-        <div
-          className="
-            flex
-            justify-end
-          "
-        >
-          <button
-            type="submit"
+        {isPending ? (
+          <div
             className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              via-green-500
-              to-emerald-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
+              flex
+              justify-end
             "
           >
-            💾 บันทึกการแก้ไข
-          </button>
-        </div>
+            <button
+              type="submit"
+              className="
+                rounded-xl
+                bg-gradient-to-r
+                from-emerald-600
+                via-green-500
+                to-emerald-500
+                px-8
+                py-3
+                text-lg
+                font-extrabold
+                text-white
+                shadow-lg
+                transition
+                hover:scale-105
+              "
+            >
+              💾 บันทึกการแก้ไข
+            </button>
+          </div>
+        ) : (
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-slate-100
+              p-4
+              text-center
+              font-bold
+              text-slate-600
+            "
+          >
+            ใบเบิกสถานะ{" "}
+            {statusName[issue.status] ??
+              issue.status}{" "}
+            ไม่สามารถแก้ไขได้
+          </div>
+        )}
       </form>
     </div>
   );
