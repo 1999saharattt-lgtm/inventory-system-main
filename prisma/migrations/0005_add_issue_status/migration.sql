@@ -1,0 +1,21 @@
+CREATE TYPE "IssueStatus" AS ENUM (
+  'PENDING',
+  'APPROVED',
+  'REJECTED'
+);
+
+ALTER TABLE "Issue"
+ADD COLUMN "status" "IssueStatus" NOT NULL DEFAULT 'PENDING';
+
+ALTER TABLE "Issue"
+ADD COLUMN "approvedAt" TIMESTAMP(3);
+
+ALTER TABLE "Issue"
+ADD COLUMN "approvedById" INTEGER;
+
+ALTER TABLE "Issue"
+ADD CONSTRAINT "Issue_approvedById_fkey"
+FOREIGN KEY ("approvedById")
+REFERENCES "User"("id")
+ON DELETE SET NULL
+ON UPDATE CASCADE;
