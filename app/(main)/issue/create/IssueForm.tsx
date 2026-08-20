@@ -874,11 +874,7 @@ export default function IssueForm({
                       <input
                         type="text"
                         readOnly
-                        value={
-                          row.qty
-                            ? row.qty
-                            : ""
-                        }
+                        value=""
                         className="
                           w-full
                           rounded-lg
