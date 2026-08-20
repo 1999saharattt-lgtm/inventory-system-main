@@ -45,6 +45,7 @@ type Props = {
   departments: Department[];
   officers: Officer[];
   documentNo: string;
+  initialDepartmentId: string;
 };
 
 type ItemRow = {
@@ -101,24 +102,25 @@ export default function IssueForm({
   departments,
   officers,
   documentNo,
+  initialDepartmentId,
 }: Props) {
   // =====================================================
   // กลุ่มงาน
   //
-  // ถ้ามี department เดียว
-  // ให้เลือกให้อัตโนมัติ
+  // ใช้กลุ่มงานจาก User ที่ส่งมาจาก Server เป็นค่าเริ่มต้น
   //
-  // สำหรับผู้ใช้งานทั่วไป departments จะถูกกรอง
-  // มาจากหน้า Server ให้เหลือเฉพาะกลุ่มของตัวเอง
+  // ถ้าไม่มี initialDepartmentId
+  // และมี department เดียว ให้เลือกให้อัตโนมัติ
   // =====================================================
 
-  const initialDepartmentId =
-    departments.length === 1
+  const defaultDepartmentId =
+    initialDepartmentId ||
+    (departments.length === 1
       ? String(departments[0].id)
-      : "";
+      : "");
 
   const [departmentId, setDepartmentId] =
-    useState(initialDepartmentId);
+    useState(defaultDepartmentId);
 
   const [officerId, setOfficerId] =
     useState("");
@@ -447,11 +449,12 @@ export default function IssueForm({
                 focus:ring-cyan-100
               "
             >
-              {departments.length !== 1 && (
-                <option value="">
-                  -- เลือกหน่วยงาน --
-                </option>
-              )}
+              {departments.length !== 1 &&
+                !initialDepartmentId && (
+                  <option value="">
+                    -- เลือกหน่วยงาน --
+                  </option>
+                )}
 
               {departments.map(
                 (department) => (
