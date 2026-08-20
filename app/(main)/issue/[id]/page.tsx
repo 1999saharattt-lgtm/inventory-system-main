@@ -6,7 +6,6 @@ import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
-import DeletePdfButton from "./DeletePdfButton";
 import IssuePdf from "./IssuePdf";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +20,6 @@ type IssueItem = {
   id: number;
   qty: number;
   issuedQty: number;
-  remark?: string | null;
 
   material: {
     code: string;
@@ -53,7 +51,7 @@ const statusClass: Record<string, string> = {
   PENDING:
     "bg-amber-100 text-amber-800 border-amber-300",
   APPROVED:
-    "bg-emerald-100 text-emerald-800 border-emerald-300",
+    "bg-slate-800 text-white border-slate-900",
   REJECTED:
     "bg-red-100 text-red-800 border-red-300",
 };
@@ -516,79 +514,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
         </div>
-
-        {/* หมายเหตุ */}
-
-        {issue.remark && (
-          <div
-            className="
-              border-t
-              border-black
-              pt-4
-            "
-          >
-            <p className="font-extrabold">
-              หมายเหตุ
-            </p>
-
-            <p
-              className="
-                mt-1
-                break-words
-                font-semibold
-              "
-            >
-              {issue.remark}
-            </p>
-          </div>
-        )}
-
-        {/* =====================================================
-            เอกสาร PDF ที่แนบ
-        ===================================================== */}
-
-        {issue.pdf && (
-          <div
-            className="
-              flex
-              flex-col
-              items-stretch
-              gap-3
-              border-t
-              border-black
-              pt-5
-              sm:flex-row
-              sm:flex-wrap
-              sm:items-center
-            "
-          >
-            <span className="font-extrabold">
-              เอกสารแนบ :
-            </span>
-
-            <a
-              href={issue.pdf}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                inline-block
-                rounded-lg
-                bg-blue-600
-                px-4
-                py-2
-                text-center
-                font-bold
-                text-white
-                transition
-                hover:bg-blue-700
-              "
-            >
-              เปิดไฟล์ PDF
-            </a>
-
-            <DeletePdfButton id={issue.id} />
-          </div>
-        )}
       </div>
 
       {/* =====================================================
@@ -646,7 +571,7 @@ export default async function IssueDetailPage({
                 </th>
 
                 <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
-                  หมายเหตุ
+                  หน่วย
                 </th>
               </tr>
             </thead>
@@ -673,6 +598,7 @@ export default async function IssueDetailPage({
                         py-4
                         text-center
                         font-bold
+                        whitespace-nowrap
                       "
                     >
                       {index + 1}
@@ -680,12 +606,12 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        break-words
                         border
                         border-black
                         px-2
                         py-4
                         font-semibold
+                        whitespace-nowrap
                       "
                     >
                       {categoryName[
@@ -696,12 +622,12 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        break-words
                         border
                         border-black
                         px-2
                         py-4
                         font-semibold
+                        whitespace-nowrap
                       "
                     >
                       <span className="font-extrabold">
@@ -718,6 +644,7 @@ export default async function IssueDetailPage({
                         py-4
                         text-center
                         font-bold
+                        whitespace-nowrap
                       "
                     >
                       {item.qty}
@@ -731,6 +658,7 @@ export default async function IssueDetailPage({
                         py-4
                         text-center
                         font-bold
+                        whitespace-nowrap
                       "
                     >
                       {issue.status === "PENDING" ? (
@@ -750,15 +678,16 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        break-words
                         border
                         border-black
                         px-2
                         py-4
                         text-center
+                        font-bold
+                        whitespace-nowrap
                       "
                     >
-                      {item.remark || "-"}
+                      {item.material.unit}
                     </td>
                   </tr>
                 )
@@ -779,9 +708,12 @@ export default async function IssueDetailPage({
             min-w-0
             rounded-2xl
             border
-            border-emerald-300
-            bg-emerald-50
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-950
+            to-slate-800
             p-4
+            text-white
             shadow-xl
             sm:p-6
           "
@@ -797,22 +729,22 @@ export default async function IssueDetailPage({
             "
           >
             <div>
-              <p className="text-lg font-extrabold text-emerald-800">
+              <p className="text-lg font-extrabold text-white">
                 ✅ ดำเนินการเบิกจ่ายเสร็จสิ้นแล้ว
               </p>
 
-              <p className="mt-1 text-sm font-semibold text-emerald-700">
+              <p className="mt-1 text-sm font-semibold text-slate-200">
                 รายการเบิกจ่ายได้รับการยืนยันจากเจ้าหน้าที่พัสดุแล้ว
                 และถูกตัดออกจากบัญชีพัสดุแล้ว
               </p>
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-sm font-bold text-slate-600">
+              <p className="text-sm font-bold text-slate-300">
                 จำนวนรวมที่เบิกจ่ายจริง
               </p>
 
-              <p className="text-2xl font-extrabold text-emerald-700">
+              <p className="text-2xl font-extrabold text-emerald-300">
                 {totalIssued} หน่วย
               </p>
             </div>

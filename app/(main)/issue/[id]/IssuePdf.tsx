@@ -5,6 +5,7 @@ import React, { useRef } from "react";
 type IssueItem = {
   id: number;
   qty: number;
+  issuedQty: number;
   remark?: string | null;
 
   material: {
@@ -169,11 +170,6 @@ export default function IssuePdf({
 
   // =====================================================
   // Base style ของ cell
-  //
-  // สำคัญ:
-  // ตัว cell ไม่เลื่อน
-  // เส้นขอบไม่เลื่อน
-  // ตารางไม่เลื่อน
   // =====================================================
 
   const cellBaseStyle: React.CSSProperties = {
@@ -193,9 +189,6 @@ export default function IssuePdf({
 
   // =====================================================
   // ตัวข้อความหัวตาราง
-  //
-  // ใช้วิธีนี้แล้วหัวตารางถูกต้อง
-  // รอบนี้จะคงไว้เหมือนเดิม
   // =====================================================
 
   const headerTextStyle: React.CSSProperties = {
@@ -226,12 +219,6 @@ export default function IssuePdf({
 
   // =====================================================
   // ตัวข้อความข้อมูลทั่วไป
-  //
-  // ใช้วิธีเดียวกับหัวตาราง
-  // ขยับเฉพาะตัวอักษรขึ้น
-  //
-  // ไม่ขยับ <td>
-  // ไม่ขยับเส้นขอบ
   // =====================================================
 
   const dataTextStyle: React.CSSProperties = {
@@ -252,13 +239,13 @@ export default function IssuePdf({
   // =====================================================
   // ตัวข้อความรายการพัสดุ
   //
-  // ชิดซ้ายเหมือนเดิม
-  // แต่ยกข้อความขึ้นเหมือนหัวตาราง
+  // ห้ามตกบรรทัด
   // =====================================================
 
   const leftDataTextStyle: React.CSSProperties = {
     ...dataTextStyle,
     textAlign: "left",
+    whiteSpace: "nowrap",
   };
 
   // =====================================================
@@ -279,6 +266,7 @@ export default function IssuePdf({
     ...cellBaseStyle,
     textAlign: "left",
     whiteSpace: "nowrap",
+    overflow: "hidden",
     paddingLeft: "1mm",
     paddingRight: "0.5mm",
   };
@@ -315,7 +303,7 @@ export default function IssuePdf({
       </button>
 
       {/* =====================================================
-          พอ.101
+          ตัวอย่าง พอ.101
 
           A4 = 210 x 297 mm
 
@@ -510,7 +498,7 @@ export default function IssuePdf({
 
                 <th
                   className="
-                    w-[18%]
+                    w-[17%]
                     border
                     border-black
                     bg-white
@@ -530,7 +518,7 @@ export default function IssuePdf({
 
                 <th
                   className="
-                    w-[38%]
+                    w-[37%]
                     border
                     border-black
                     bg-white
@@ -550,7 +538,7 @@ export default function IssuePdf({
 
                 <th
                   className="
-                    w-[14%]
+                    w-[13%]
                     border
                     border-black
                     bg-white
@@ -570,7 +558,7 @@ export default function IssuePdf({
 
                 <th
                   className="
-                    w-[14%]
+                    w-[13%]
                     border
                     border-black
                     bg-white
@@ -585,12 +573,12 @@ export default function IssuePdf({
                 </th>
 
                 {/* =================================================
-                    หมายเหตุ
+                    หน่วย
                 ================================================= */}
 
                 <th
                   className="
-                    w-[9%]
+                    w-[13%]
                     border
                     border-black
                     bg-white
@@ -600,7 +588,7 @@ export default function IssuePdf({
                   style={headerCellStyle}
                 >
                   <span style={headerTextStyle}>
-                    หมายเหตุ
+                    หน่วย
                   </span>
                 </th>
               </tr>
@@ -666,9 +654,8 @@ export default function IssuePdf({
 
                   {/* =================================================
                       รายการพัสดุ
-
-                      ข้อมูลชิดซ้าย
-                      แต่ยกขึ้นเหมือนหัวตาราง
+                      - แสดงชื่อพัสดุ
+                      - ไม่ให้ตกบรรทัด
                   ================================================= */}
 
                   <td
@@ -708,7 +695,7 @@ export default function IssuePdf({
                   </td>
 
                   {/* =================================================
-                      จำนวนที่เบิกจ่าย
+                      จำนวนที่เบิกจ่ายจริง
                   ================================================= */}
 
                   <td
@@ -722,12 +709,16 @@ export default function IssuePdf({
                     style={centerCellStyle}
                   >
                     <span style={dataTextStyle}>
-                      {" "}
+                      {item
+                        ? item.issuedQty > 0
+                          ? item.issuedQty
+                          : ""
+                        : ""}
                     </span>
                   </td>
 
                   {/* =================================================
-                      หมายเหตุ
+                      หน่วย
                   ================================================= */}
 
                   <td
@@ -745,7 +736,7 @@ export default function IssuePdf({
                     }}
                   >
                     <span style={dataTextStyle}>
-                      {item?.remark ?? ""}
+                      {item?.material.unit ?? ""}
                     </span>
                   </td>
                 </tr>
