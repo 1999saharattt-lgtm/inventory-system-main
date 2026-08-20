@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySession, type SessionUser } from "@/lib/session";
 import DeletePdfButton from "./DeletePdfButton";
+import IssuePdf from "./IssuePdf";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ type Props = {
 type IssueItem = {
   id: number;
   qty: number;
+  remark?: string | null;
 
   material: {
     code: string;
@@ -604,7 +606,7 @@ export default async function IssueDetailPage({
                         text-center
                       "
                     >
-                      -
+                      {item.remark || "-"}
                     </td>
                   </tr>
                 )
@@ -612,6 +614,32 @@ export default async function IssueDetailPage({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* =====================================================
+          Export PDF พอ.101
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-xl
+          sm:p-6
+        "
+      >
+        <IssuePdf
+          issueId={issue.id}
+          documentNo={issue.documentNo}
+          issueDate={issue.issueDate}
+          departmentName={issue.department.name}
+          items={issue.items}
+        />
       </div>
     </div>
   );
