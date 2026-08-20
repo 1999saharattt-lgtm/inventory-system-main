@@ -45,7 +45,7 @@ type Props = {
   departments: Department[];
   officers: Officer[];
   documentNo: string;
-  initialDepartmentId: string;
+  initialDepartmentId?: string;
 };
 
 type ItemRow = {
@@ -86,12 +86,8 @@ function getCurrentDate() {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(
-    now.getMonth() + 1
-  ).padStart(2, "0");
-  const day = String(
-    now.getDate()
-  ).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -107,10 +103,8 @@ export default function IssueForm({
   // =====================================================
   // กลุ่มงาน
   //
-  // ใช้กลุ่มงานจาก User ที่ส่งมาจาก Server เป็นค่าเริ่มต้น
-  //
-  // ถ้าไม่มี initialDepartmentId
-  // และมี department เดียว ให้เลือกให้อัตโนมัติ
+  // 1. ใช้ initialDepartmentId จาก User ก่อน
+  // 2. ถ้าไม่มี ให้เลือกอัตโนมัติเมื่อมี department เดียว
   // =====================================================
 
   const defaultDepartmentId =
@@ -122,8 +116,7 @@ export default function IssueForm({
   const [departmentId, setDepartmentId] =
     useState(defaultDepartmentId);
 
-  const [officerId, setOfficerId] =
-    useState("");
+  const [officerId, setOfficerId] = useState("");
 
   const [editDocumentNo, setEditDocumentNo] =
     useState(false);
@@ -133,8 +126,6 @@ export default function IssueForm({
 
   // =====================================================
   // วันที่เบิก
-  //
-  // ค่าเริ่มต้นเป็นวันที่ปัจจุบัน
   // =====================================================
 
   const [issueDate, setIssueDate] =
@@ -148,15 +139,14 @@ export default function IssueForm({
   });
 
   // พอ.101 มี 18 รายการ
-  const [rows, setRows] =
-    useState<ItemRow[]>(
-      Array.from(
-        {
-          length: 18,
-        },
-        emptyRow
-      )
-    );
+  const [rows, setRows] = useState<ItemRow[]>(
+    Array.from(
+      {
+        length: 18,
+      },
+      emptyRow
+    )
+  );
 
   // =====================================================
   // กรองผู้ขอเบิกตามกลุ่มงาน
@@ -166,16 +156,14 @@ export default function IssueForm({
   // - officer.section.departmentId
   // =====================================================
 
-  const filteredOfficers =
-    officers.filter(
-      (officer) =>
-        String(
-          officer.departmentId
-        ) === departmentId ||
-        String(
-          officer.section?.departmentId
-        ) === departmentId
-    );
+  const filteredOfficers = officers.filter(
+    (officer) =>
+      String(officer.departmentId) ===
+        departmentId ||
+      String(
+        officer.section?.departmentId
+      ) === departmentId
+  );
 
   function updateRow(
     index: number,
@@ -292,6 +280,7 @@ export default function IssueForm({
                   cursor-pointer
                   items-center
                   gap-2
+                  whitespace-nowrap
                   text-sm
                   font-semibold
                   text-slate-700
@@ -317,11 +306,14 @@ export default function IssueForm({
                   className="
                     h-4
                     w-4
+                    shrink-0
                     cursor-pointer
                   "
                 />
 
-                แก้ไขเลขที่เอกสาร
+                <span>
+                  แก้ไขเลขที่เอกสาร
+                </span>
               </label>
             </div>
           </div>
@@ -449,12 +441,11 @@ export default function IssueForm({
                 focus:ring-cyan-100
               "
             >
-              {departments.length !== 1 &&
-                !initialDepartmentId && (
-                  <option value="">
-                    -- เลือกหน่วยงาน --
-                  </option>
-                )}
+              {!defaultDepartmentId && (
+                <option value="">
+                  -- เลือกหน่วยงาน --
+                </option>
+              )}
 
               {departments.map(
                 (department) => (
@@ -575,7 +566,9 @@ export default function IssueForm({
                     w-[7%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
@@ -591,7 +584,9 @@ export default function IssueForm({
                     w-[18%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
@@ -607,7 +602,9 @@ export default function IssueForm({
                     w-[35%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
@@ -623,7 +620,9 @@ export default function IssueForm({
                     w-[13%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
@@ -639,7 +638,9 @@ export default function IssueForm({
                     w-[13%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
@@ -655,7 +656,9 @@ export default function IssueForm({
                     w-[14%]
                     border
                     border-black
-                    bg-slate-800
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-2
                     py-3
                     text-center
