@@ -2,11 +2,44 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { verifySession } from "@/lib/session";
 
 export async function approveIssue(
   issueId: number,
   issuedQty: Record<number, number>
 ) {
+  // =====================================================
+  // ตรวจสอบ Session
+  // =====================================================
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  if (!token) {
+    throw new Error("กรุณาเข้าสู่ระบบ");
+  }
+
+  let session;
+
+  try {
+    session = await verifySession(token);
+  } catch {
+    throw new Error("Session ไม่ถูกต้องหรือหมดอายุ");
+  }
+
+  // =====================================================
+  // ADMIN เท่านั้นที่สามารถดำเนินการเบิกจ่าย
+  // =====================================================
+
+  if (session.role !== "ADMIN") {
+    throw new Error("คุณไม่มีสิทธิ์ดำเนินการใบเบิก");
+  }
+
+  // =====================================================
+  // ตรวจสอบ Issue ID
+  // =====================================================
+
   if (!Number.isInteger(issueId) || issueId <= 0) {
     throw new Error("เลขที่ใบเบิกไม่ถูกต้อง");
   }
@@ -285,6 +318,8 @@ export async function approveIssue(
 
     // =====================================================
     // เปลี่ยนสถานะใบเบิก
+    //
+    // บันทึก Admin ผู้ดำเนินการด้วย
     // =====================================================
 
     await tx.issue.update({
@@ -294,6 +329,7 @@ export async function approveIssue(
       data: {
         status: "APPROVED",
         approvedAt: new Date(),
+        approvedById: session.id,
       },
     });
   });
@@ -309,6 +345,7 @@ export async function approveIssue(
   );
   revalidatePath("/stock-card");
   revalidatePath("/materials");
+  revalidatePath("/notifications");
 
   return {
     success: true,

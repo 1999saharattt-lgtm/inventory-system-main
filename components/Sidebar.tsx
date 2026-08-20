@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { ElementType } from "react";
 
 import {
@@ -14,6 +15,7 @@ import {
   Truck,
   Building2,
   Users,
+  Bell,
 } from "lucide-react";
 
 type UserRole = "ADMIN" | "STAFF" | "VIEWER";
@@ -38,6 +40,58 @@ type SidebarProps = {
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
 
+  const [notificationCount, setNotificationCount] =
+    useState(0);
+
+  // =====================================================
+  // โหลดจำนวนแจ้งเตือน
+  // =====================================================
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch(
+          "/api/notifications",
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (mounted) {
+          setNotificationCount(
+            Number(data.count ?? 0)
+          );
+        }
+      } catch (error) {
+        console.error(
+          "ไม่สามารถโหลดจำนวนการแจ้งเตือนได้:",
+          error
+        );
+      }
+    };
+
+    loadNotifications();
+
+    // ตรวจสอบใหม่ทุก 30 วินาที
+    const interval = window.setInterval(
+      loadNotifications,
+      30000
+    );
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
   const menus: MenuGroup[] = [
     {
       title: "หน้าแรก",
@@ -46,6 +100,11 @@ export default function Sidebar({ role }: SidebarProps) {
           name: "ภาพรวมระบบ",
           href: "/",
           icon: LayoutDashboard,
+        },
+        {
+          name: "การแจ้งเตือน",
+          href: "/notifications",
+          icon: Bell,
         },
       ],
     },
@@ -233,6 +292,9 @@ export default function Sidebar({ role }: SidebarProps) {
 
                 const Icon = item.icon;
 
+                const isNotification =
+                  item.href === "/notifications";
+
                 return (
                   <Link
                     key={item.href}
@@ -306,7 +368,7 @@ export default function Sidebar({ role }: SidebarProps) {
                       />
                     </div>
 
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                       <span
                         className="
                           whitespace-nowrap
@@ -319,6 +381,32 @@ export default function Sidebar({ role }: SidebarProps) {
                         {item.name}
                       </span>
                     </div>
+
+                    {/* จำนวนแจ้งเตือน */}
+                    {isNotification &&
+                      notificationCount > 0 && (
+                        <span
+                          className="
+                            flex
+                            min-w-7
+                            h-7
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-red-500
+                            px-2
+                            text-sm
+                            font-extrabold
+                            text-white
+                            shadow-lg
+                            shadow-red-900/30
+                          "
+                        >
+                          {notificationCount > 99
+                            ? "99+"
+                            : notificationCount}
+                        </span>
+                      )}
 
                     <div
                       className={`
