@@ -354,584 +354,585 @@ export default function IssuePdf({
       </button>
 
       {/* =====================================================
-          ตัวอย่าง พอ.101
+          พื้นที่สร้าง PDF
 
-          A4 = 210 x 297 mm
+          ไม่แสดงบนหน้าเว็บ
+          แต่ยังคง render DOM ไว้เพื่อให้ html2canvas
+          สามารถนำไปสร้าง PDF ได้
 
-          ขอบบน    5mm
-          ขอบล่าง  5mm
-          ขอบซ้าย  10mm
-          ขอบขวา   10mm
+          ห้ามใช้ display:none
+          เพราะ html2canvas จะไม่สามารถจับภาพได้
 
-          ตารางกว้าง 190mm
+          จึงย้ายเอกสารออกไปนอกพื้นที่มองเห็นแทน
       ===================================================== */}
 
       <div
-        ref={pdfRef}
-        id="issue-pdf"
-        className="
-          mx-auto
-          mt-6
-          box-border
-          h-[297mm]
-          w-[210mm]
-          overflow-hidden
-          bg-white
-          px-[10mm]
-          py-[5mm]
-          text-black
-        "
         style={{
-          fontFamily:
-            "TH Sarabun New, Sarabun, Arial, sans-serif",
-          fontSize: "16px",
-          lineHeight: "1",
-          backgroundColor: "#ffffff",
-          color: "#000000",
+          position: "fixed",
+          left: "-10000px",
+          top: "0",
+          width: "210mm",
+          height: "297mm",
+          overflow: "hidden",
+          pointerEvents: "none",
+          opacity: 1,
+          zIndex: -1,
         }}
+        aria-hidden="true"
       >
-        {/* =====================================================
-            ส่วนหัวเอกสาร
-        ===================================================== */}
-
-        <div className="relative h-[25mm]">
-          {/* เลขที่เอกสาร */}
-
-          <div
-            className="
-              absolute
-              right-0
-              top-0
-              whitespace-nowrap
-              text-[16px]
-              leading-none
-              text-black
-            "
-          >
-            เลขที่ {documentNo || "-"}
-          </div>
-
-          {/* พอ.101 */}
-
-          <div
-            className="
-              pt-[1mm]
-              text-center
-              text-[17px]
-              font-bold
-              leading-none
-              text-black
-            "
-          >
-            พอ.101
-          </div>
-
-          {/* ใบเบิกพัสดุ */}
-
-          <div
-            className="
-              mt-[0.8mm]
-              text-center
-              text-[21px]
-              font-bold
-              leading-none
-              text-black
-            "
-          >
-            ใบเบิกพัสดุ
-          </div>
-
-          {/* หน่วยงาน */}
-
-          <div
-            className="
-              absolute
-              bottom-[2mm]
-              left-0
-              max-w-[135mm]
-              whitespace-nowrap
-              text-[16px]
-              leading-none
-              text-black
-            "
-          >
-            กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
-            กรมอนามัย
-          </div>
-
-          {/* วันที่ */}
-
-          <div
-            className="
-              absolute
-              bottom-[2mm]
-              right-0
-              whitespace-nowrap
-              text-[16px]
-              leading-none
-              text-black
-            "
-          >
-            วันที่ {formatThaiDate(issueDate)}
-          </div>
-        </div>
-
-        {/* =====================================================
-            ข้อความนำหน้าตาราง
-        ===================================================== */}
-
         <div
+          ref={pdfRef}
+          id="issue-pdf"
           className="
-            mb-[4mm]
-            text-[16px]
-            leading-none
+            box-border
+            h-[297mm]
+            w-[210mm]
+            overflow-hidden
+            bg-white
+            px-[10mm]
+            py-[5mm]
             text-black
           "
+          style={{
+            fontFamily:
+              "TH Sarabun New, Sarabun, Arial, sans-serif",
+            fontSize: "16px",
+            lineHeight: "1",
+            backgroundColor: "#ffffff",
+            color: "#000000",
+          }}
         >
-          ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
-          ดังมีรายการต่อไปนี้
-        </div>
+          {/* =====================================================
+              ส่วนหัวเอกสาร
+          ===================================================== */}
 
-        {/* =====================================================
-            ตารางรายการ
-        ===================================================== */}
+          <div className="relative h-[25mm]">
+            {/* เลขที่เอกสาร */}
 
-        <div className="flex justify-center">
-          <table
+            <div
+              className="
+                absolute
+                right-0
+                top-0
+                whitespace-nowrap
+                text-[16px]
+                leading-none
+                text-black
+              "
+            >
+              เลขที่ {documentNo || "-"}
+            </div>
+
+            {/* พอ.101 */}
+
+            <div
+              className="
+                pt-[1mm]
+                text-center
+                text-[17px]
+                font-bold
+                leading-none
+                text-black
+              "
+            >
+              พอ.101
+            </div>
+
+            {/* ใบเบิกพัสดุ */}
+
+            <div
+              className="
+                mt-[0.8mm]
+                text-center
+                text-[21px]
+                font-bold
+                leading-none
+                text-black
+              "
+            >
+              ใบเบิกพัสดุ
+            </div>
+
+            {/* หน่วยงาน */}
+
+            <div
+              className="
+                absolute
+                bottom-[2mm]
+                left-0
+                max-w-[135mm]
+                whitespace-nowrap
+                text-[16px]
+                leading-none
+                text-black
+              "
+            >
+              กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
+              กรมอนามัย
+            </div>
+
+            {/* วันที่ */}
+
+            <div
+              className="
+                absolute
+                bottom-[2mm]
+                right-0
+                whitespace-nowrap
+                text-[16px]
+                leading-none
+                text-black
+              "
+            >
+              วันที่ {formatThaiDate(issueDate)}
+            </div>
+          </div>
+
+          {/* =====================================================
+              ข้อความนำหน้าตาราง
+          ===================================================== */}
+
+          <div
             className="
-              w-[190mm]
-              table-fixed
-              border-collapse
-              border
-              border-black
-              bg-white
+              mb-[4mm]
+              text-[16px]
+              leading-none
               text-black
             "
-            style={{
-              width: "190mm",
-              tableLayout: "fixed",
-              borderSpacing: 0,
-              borderRadius: 0,
-              fontSize: "16px",
-              color: "#000000",
-              backgroundColor: "#ffffff",
-            }}
           >
-            <thead>
-              <tr
-                style={{
-                  height: "8mm",
-                }}
-              >
-                {/* =================================================
-                    ลำดับ
-                ================================================= */}
+            ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
+            ดังมีรายการต่อไปนี้
+          </div>
 
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    ลำดับ
-                  </span>
-                </th>
+          {/* =====================================================
+              ตารางรายการ
+          ===================================================== */}
 
-                {/* =================================================
-                    หมวดหมู่
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[17%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    หมวดหมู่
-                  </span>
-                </th>
-
-                {/* =================================================
-                    รายการพัสดุ
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[37%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    รายการพัสดุ
-                  </span>
-                </th>
-
-                {/* =================================================
-                    จำนวนที่ขอเบิก
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    จำนวนที่ขอเบิก
-                  </span>
-                </th>
-
-                {/* =================================================
-                    จำนวนที่เบิกจ่าย
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    จำนวนที่เบิกจ่าย
-                  </span>
-                </th>
-
-                {/* =================================================
-                    หน่วย
-                ================================================= */}
-
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-white
-                    p-0
-                    text-black
-                  "
-                  style={headerCellStyle}
-                >
-                  <span style={headerTextStyle}>
-                    หน่วย
-                  </span>
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((item, index) => (
+          <div className="flex justify-center">
+            <table
+              className="
+                w-[190mm]
+                table-fixed
+                border-collapse
+                border
+                border-black
+                bg-white
+                text-black
+              "
+              style={{
+                width: "190mm",
+                tableLayout: "fixed",
+                borderSpacing: 0,
+                borderRadius: 0,
+                fontSize: "16px",
+                color: "#000000",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <thead>
                 <tr
-                  key={
-                    item?.id ??
-                    `empty-${index}`
-                  }
-                  style={getRowStyle(item)}
+                  style={{
+                    height: "8mm",
+                  }}
                 >
-                  {/* =================================================
+                  {/* ลำดับ */}
+
+                  <th
+                    className="
+                      w-[7%]
+                      border
+                      border-black
+                      bg-white
+                      p-0
+                      text-black
+                    "
+                    style={headerCellStyle}
+                  >
+                    <span style={headerTextStyle}>
                       ลำดับ
-                  ================================================= */}
+                    </span>
+                  </th>
 
-                  <td
+                  {/* หมวดหมู่ */}
+
+                  <th
                     className="
+                      w-[17%]
                       border
                       border-black
                       bg-white
                       p-0
                       text-black
                     "
-                    style={centerCellStyle}
+                    style={headerCellStyle}
                   >
-                    <span style={dataTextStyle}>
-                      {index + 1}
-                    </span>
-                  </td>
-
-                  {/* =================================================
+                    <span style={headerTextStyle}>
                       หมวดหมู่
-                  ================================================= */}
+                    </span>
+                  </th>
 
-                  <td
+                  {/* รายการพัสดุ */}
+
+                  <th
                     className="
+                      w-[37%]
                       border
                       border-black
                       bg-white
                       p-0
                       text-black
                     "
-                    style={{
-                      ...centerCellStyle,
-                      paddingLeft: "0.5mm",
-                      paddingRight: "0.5mm",
-                    }}
+                    style={headerCellStyle}
                   >
-                    <span style={dataTextStyle}>
-                      {item
-                        ? categoryLabels[
-                            item.material.category
-                          ] ??
-                          item.material.category
-                        : ""}
-                    </span>
-                  </td>
-
-                  {/* =================================================
+                    <span style={headerTextStyle}>
                       รายการพัสดุ
-                      
-                      ใช้ font 16px มาตรฐาน
-                      ชื่อยาวสามารถขึ้น 2 บรรทัด
-                  ================================================= */}
+                    </span>
+                  </th>
 
-                  <td
+                  {/* จำนวนที่ขอเบิก */}
+
+                  <th
                     className="
+                      w-[13%]
                       border
                       border-black
                       bg-white
                       p-0
                       text-black
                     "
-                    style={leftCellStyle}
+                    style={headerCellStyle}
                   >
-                    {item ? (
-                      <span
-                        style={
-                          materialNameTextStyle
-                        }
-                      >
-                        {item.material.name}
-                      </span>
-                    ) : null}
-                  </td>
-
-                  {/* =================================================
+                    <span style={headerTextStyle}>
                       จำนวนที่ขอเบิก
-                  ================================================= */}
+                    </span>
+                  </th>
 
-                  <td
+                  {/* จำนวนที่เบิกจ่าย */}
+
+                  <th
                     className="
+                      w-[13%]
                       border
                       border-black
                       bg-white
                       p-0
                       text-black
                     "
-                    style={centerCellStyle}
+                    style={headerCellStyle}
                   >
-                    <span style={dataTextStyle}>
-                      {item?.qty ?? ""}
+                    <span style={headerTextStyle}>
+                      จำนวนที่เบิกจ่าย
                     </span>
-                  </td>
+                  </th>
 
-                  {/* =================================================
-                      จำนวนที่เบิกจ่ายจริง
-                  ================================================= */}
+                  {/* หน่วย */}
 
-                  <td
+                  <th
                     className="
+                      w-[13%]
                       border
                       border-black
                       bg-white
                       p-0
                       text-black
                     "
-                    style={centerCellStyle}
+                    style={headerCellStyle}
                   >
-                    <span style={dataTextStyle}>
-                      {item
-                        ? item.issuedQty > 0
-                          ? item.issuedQty
-                          : ""
-                        : ""}
-                    </span>
-                  </td>
-
-                  {/* =================================================
+                    <span style={headerTextStyle}>
                       หน่วย
-                  ================================================= */}
-
-                  <td
-                    className="
-                      border
-                      border-black
-                      bg-white
-                      p-0
-                      text-black
-                    "
-                    style={{
-                      ...centerCellStyle,
-                      paddingLeft: "0.5mm",
-                      paddingRight: "0.5mm",
-                    }}
-                  >
-                    <span style={dataTextStyle}>
-                      {item?.material.unit ?? ""}
                     </span>
-                  </td>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
 
-        {/* =====================================================
-            หลังตาราง
-        ===================================================== */}
+              <tbody>
+                {rows.map((item, index) => (
+                  <tr
+                    key={
+                      item?.id ??
+                      `empty-${index}`
+                    }
+                    style={getRowStyle(item)}
+                  >
+                    {/* =================================================
+                        ลำดับ
+                    ================================================= */}
 
-        <div
-          className="
-            mt-[3mm]
-            flex
-            justify-between
-            px-[2mm]
-            text-[16px]
-            leading-none
-            text-black
-          "
-        >
-          <div>
-            ได้รับของจากงานพัสดุเรียบร้อยแล้ว
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={centerCellStyle}
+                    >
+                      <span style={dataTextStyle}>
+                        {index + 1}
+                      </span>
+                    </td>
+
+                    {/* =================================================
+                        หมวดหมู่
+                    ================================================= */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={{
+                        ...centerCellStyle,
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
+                      }}
+                    >
+                      <span style={dataTextStyle}>
+                        {item
+                          ? categoryLabels[
+                              item.material.category
+                            ] ??
+                            item.material.category
+                          : ""}
+                      </span>
+                    </td>
+
+                    {/* =================================================
+                        รายการพัสดุ
+
+                        ใช้ font 16px มาตรฐาน
+                        ชื่อยาวสามารถขึ้น 2 บรรทัด
+                    ================================================= */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={leftCellStyle}
+                    >
+                      {item ? (
+                        <span
+                          style={
+                            materialNameTextStyle
+                          }
+                        >
+                          {item.material.name}
+                        </span>
+                      ) : null}
+                    </td>
+
+                    {/* =================================================
+                        จำนวนที่ขอเบิก
+                    ================================================= */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={centerCellStyle}
+                    >
+                      <span style={dataTextStyle}>
+                        {item?.qty ?? ""}
+                      </span>
+                    </td>
+
+                    {/* =================================================
+                        จำนวนที่เบิกจ่ายจริง
+                    ================================================= */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={centerCellStyle}
+                    >
+                      <span style={dataTextStyle}>
+                        {item
+                          ? item.issuedQty > 0
+                            ? item.issuedQty
+                            : ""
+                          : ""}
+                      </span>
+                    </td>
+
+                    {/* =================================================
+                        หน่วย
+                    ================================================= */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        p-0
+                        text-black
+                      "
+                      style={{
+                        ...centerCellStyle,
+                        paddingLeft: "0.5mm",
+                        paddingRight: "0.5mm",
+                      }}
+                    >
+                      <span style={dataTextStyle}>
+                        {item?.material.unit ?? ""}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div>
-            รวมทั้งสิ้น {totalItems} รายการ
-          </div>
-        </div>
+          {/* =====================================================
+              หลังตาราง
+          ===================================================== */}
 
-        {/* =====================================================
-            วันที่ลงบัญชีหักพัสดุ
-        ===================================================== */}
-
-        <div
-          className="
-            mt-[2.5mm]
-            px-[2mm]
-            text-[16px]
-            leading-none
-            text-black
-          "
-        >
-          วันที่ลงบัญชีหักพัสดุ{" "}
-          ................................................
-        </div>
-
-        {/* =====================================================
-            ลายเซ็น 4 ตำแหน่ง
-        ===================================================== */}
-
-        <div
-          className="
-            mt-[6mm]
-            grid
-            grid-cols-2
-            gap-x-[15mm]
-            px-[8mm]
-            text-[16px]
-            leading-none
-            text-black
-          "
-        >
-          {/* ฝั่งซ้าย */}
-
-          <div className="text-center">
-            {/* ผู้รับของ */}
-
-            <div className="mb-[6mm]">
-              <div className="whitespace-nowrap">
-                ลงชื่อ{" "}
-                ...............................................................
-                {" "}ผู้รับของ
-              </div>
-
-              <div className="mt-[1mm] whitespace-nowrap">
-                (.........................................................)
-              </div>
-
-              <div className="mt-[1mm] whitespace-nowrap">
-                วันที่ ................................................
-              </div>
+          <div
+            className="
+              mt-[3mm]
+              flex
+              justify-between
+              px-[2mm]
+              text-[16px]
+              leading-none
+              text-black
+            "
+          >
+            <div>
+              ได้รับของจากงานพัสดุเรียบร้อยแล้ว
             </div>
-
-            {/* ผู้จ่าย */}
 
             <div>
-              <div className="whitespace-nowrap">
-                ลงชื่อ{" "}
-                ...............................................................
-                {" "}ผู้จ่าย
-              </div>
-
-              <div className="mt-[1mm] whitespace-nowrap">
-                (.........................................................)
-              </div>
-
-              <div className="mt-[1mm] whitespace-nowrap">
-                วันที่ ................................................
-              </div>
+              รวมทั้งสิ้น {totalItems} รายการ
             </div>
           </div>
 
-          {/* ฝั่งขวา */}
+          {/* =====================================================
+              วันที่ลงบัญชีหักพัสดุ
+          ===================================================== */}
 
-          <div className="text-center">
-            {/* หัวหน้ากลุ่ม */}
+          <div
+            className="
+              mt-[2.5mm]
+              px-[2mm]
+              text-[16px]
+              leading-none
+              text-black
+            "
+          >
+            วันที่ลงบัญชีหักพัสดุ{" "}
+            ................................................
+          </div>
 
-            <div className="mb-[6mm]">
-              <div className="whitespace-nowrap">
-                ลงชื่อ{" "}
-                ...............................................................
-                {" "}หัวหน้ากลุ่ม
+          {/* =====================================================
+              ลายเซ็น 4 ตำแหน่ง
+          ===================================================== */}
+
+          <div
+            className="
+              mt-[6mm]
+              grid
+              grid-cols-2
+              gap-x-[15mm]
+              px-[8mm]
+              text-[16px]
+              leading-none
+              text-black
+            "
+          >
+            {/* ฝั่งซ้าย */}
+
+            <div className="text-center">
+              {/* ผู้รับของ */}
+
+              <div className="mb-[6mm]">
+                <div className="whitespace-nowrap">
+                  ลงชื่อ{" "}
+                  ...............................................................
+                  {" "}ผู้รับของ
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  (.........................................................)
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  วันที่ ................................................
+                </div>
               </div>
 
-              <div className="mt-[1mm] whitespace-nowrap">
-                (.........................................................)
-              </div>
+              {/* ผู้จ่าย */}
 
-              <div className="mt-[1mm] whitespace-nowrap">
-                วันที่ ................................................
+              <div>
+                <div className="whitespace-nowrap">
+                  ลงชื่อ{" "}
+                  ...............................................................
+                  {" "}ผู้จ่าย
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  (.........................................................)
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  วันที่ ................................................
+                </div>
               </div>
             </div>
 
-            {/* ผู้อนุญาต */}
+            {/* ฝั่งขวา */}
 
-            <div>
-              <div className="whitespace-nowrap">
-                ลงชื่อ{" "}
-                ...............................................................
-                {" "}ผู้อนุญาต
+            <div className="text-center">
+              {/* หัวหน้ากลุ่ม */}
+
+              <div className="mb-[6mm]">
+                <div className="whitespace-nowrap">
+                  ลงชื่อ{" "}
+                  ...............................................................
+                  {" "}หัวหน้ากลุ่ม
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  (.........................................................)
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  วันที่ ................................................
+                </div>
               </div>
 
-              <div className="mt-[1mm] whitespace-nowrap">
-                (.........................................................)
-              </div>
+              {/* ผู้อนุญาต */}
 
-              <div className="mt-[1mm] whitespace-nowrap">
-                วันที่ ................................................
+              <div>
+                <div className="whitespace-nowrap">
+                  ลงชื่อ{" "}
+                  ...............................................................
+                  {" "}ผู้อนุญาต
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  (.........................................................)
+                </div>
+
+                <div className="mt-[1mm] whitespace-nowrap">
+                  วันที่ ................................................
+                </div>
               </div>
             </div>
           </div>
