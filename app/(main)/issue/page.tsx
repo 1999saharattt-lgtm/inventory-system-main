@@ -12,6 +12,7 @@ type Issue = {
   issueDate: Date;
   documentNo: string;
   remark: string | null;
+  status: string;
 
   department: {
     name: string;
@@ -35,6 +36,22 @@ type Issue = {
     };
   }[];
 };
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case "PENDING":
+      return "รอเบิกจ่าย";
+
+    case "APPROVED":
+      return "เบิกจ่ายแล้ว";
+
+    case "REJECTED":
+      return "ไม่อนุมัติ";
+
+    default:
+      return status || "-";
+  }
+}
 
 export default async function IssuePage() {
   // =====================================================
@@ -100,6 +117,13 @@ export default async function IssuePage() {
       },
     },
   });
+
+  const pendingCount =
+    session?.role === "ADMIN"
+      ? issues.filter(
+          (issue) => issue.status === "PENDING"
+        ).length
+      : 0;
 
   return (
     <div
@@ -198,6 +222,73 @@ export default async function IssuePage() {
       </div>
 
       {/* =====================================================
+          แจ้งเตือนสำหรับ ADMIN
+      ===================================================== */}
+
+      {session?.role === "ADMIN" &&
+        pendingCount > 0 && (
+          <div
+            className="
+              flex
+              flex-col
+              gap-3
+              rounded-2xl
+              border
+              border-amber-300
+              bg-gradient-to-r
+              from-amber-50
+              to-yellow-50
+              p-4
+              shadow-lg
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+              sm:p-5
+            "
+          >
+            <div>
+              <p
+                className="
+                  text-lg
+                  font-extrabold
+                  text-amber-900
+                  sm:text-xl
+                "
+              >
+                🔔 มีรายการเบิกรอการเบิกจ่าย
+              </p>
+
+              <p
+                className="
+                  mt-1
+                  font-semibold
+                  text-amber-800
+                "
+              >
+                มีใบเบิกจำนวน {pendingCount} รายการ
+                รอแอดมินตรวจสอบและลงจำนวนเบิกจ่ายจริง
+              </p>
+            </div>
+
+            <div
+              className="
+                shrink-0
+                rounded-xl
+                bg-amber-500
+                px-5
+                py-2.5
+                text-center
+                font-extrabold
+                text-white
+                shadow
+              "
+            >
+              รอ {pendingCount} รายการ
+            </div>
+          </div>
+        )}
+
+      {/* =====================================================
           Table
       ===================================================== */}
 
@@ -216,7 +307,7 @@ export default async function IssuePage() {
         <div className="w-full overflow-x-auto">
           <table
             className="
-              min-w-[1200px]
+              min-w-[1300px]
               border-collapse
               border
               border-slate-900
@@ -230,6 +321,7 @@ export default async function IssuePage() {
                   "เลขที่เอกสาร",
                   "หน่วยงาน / กลุ่มงาน",
                   "ผู้ขอเบิก",
+                  "สถานะ",
                   "รายละเอียด",
                   "หมายเหตุ",
                   "จัดการ",
@@ -361,6 +453,97 @@ export default async function IssuePage() {
                           : "-"}
                       </td>
 
+                      {/* =================================================
+                          สถานะ
+                      ================================================= */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-4
+                          py-3
+                          text-center
+                          font-extrabold
+                        "
+                      >
+                        {issue.status ===
+                        "PENDING" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              rounded-full
+                              bg-amber-100
+                              px-4
+                              py-2
+                              text-amber-800
+                              shadow-sm
+                            "
+                          >
+                            🔔{" "}
+                            {getStatusLabel(
+                              issue.status
+                            )}
+                          </span>
+                        ) : issue.status ===
+                          "APPROVED" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              rounded-full
+                              bg-emerald-100
+                              px-4
+                              py-2
+                              text-emerald-800
+                              shadow-sm
+                            "
+                          >
+                            ✓{" "}
+                            {getStatusLabel(
+                              issue.status
+                            )}
+                          </span>
+                        ) : issue.status ===
+                          "REJECTED" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              rounded-full
+                              bg-red-100
+                              px-4
+                              py-2
+                              text-red-800
+                              shadow-sm
+                            "
+                          >
+                            ✕{" "}
+                            {getStatusLabel(
+                              issue.status
+                            )}
+                          </span>
+                        ) : (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              rounded-full
+                              bg-slate-100
+                              px-4
+                              py-2
+                              text-slate-700
+                            "
+                          >
+                            {getStatusLabel(
+                              issue.status
+                            )}
+                          </span>
+                        )}
+                      </td>
+
                       {/* รายละเอียด */}
 
                       <td
@@ -390,7 +573,12 @@ export default async function IssuePage() {
                             hover:bg-slate-700
                           "
                         >
-                          ดูรายการ
+                          {session?.role ===
+                            "ADMIN" &&
+                          issue.status ===
+                            "PENDING"
+                            ? "ตรวจสอบ / เบิกจ่าย"
+                            : "ดูรายการ"}
                         </Link>
                       </td>
 
@@ -468,7 +656,7 @@ export default async function IssuePage() {
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="
                       border
                       border-slate-900
