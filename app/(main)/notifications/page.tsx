@@ -59,55 +59,88 @@ export default async function NotificationsPage() {
 
     return (
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex h-12 w-12 items-center justify-center
-                rounded-2xl bg-blue-500/15 text-blue-400
-              "
-            >
-              <Bell size={26} strokeWidth={2.2} />
-            </div>
-
-            <div>
-              <h1 className="text-3xl font-extrabold text-white">
-                การแจ้งเตือน
-              </h1>
-
-              <p className="mt-1 text-base text-slate-300">
-                ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Summary */}
+        {/* Header + Summary */}
         <div
           className="
-            rounded-2xl border border-slate-700
-            bg-slate-800 p-5 shadow-lg
+            rounded-2xl
+            border
+            border-slate-700
+            bg-slate-800
+            p-5
+            shadow-lg
           "
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-300">
-                ใบเบิกที่รอดำเนินการ
-              </p>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div
+                className="
+                  flex
+                  h-12
+                  w-12
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-blue-500/15
+                  text-blue-400
+                "
+              >
+                <Bell size={26} strokeWidth={2.2} />
+              </div>
 
-              <p className="mt-1 text-3xl font-extrabold text-orange-400">
-                {pendingIssues.length}
-              </p>
+              <div>
+                <h1 className="text-3xl font-extrabold text-white">
+                  การแจ้งเตือน
+                </h1>
+
+                <p className="mt-1 text-base font-semibold text-white">
+                  ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
+                </p>
+              </div>
             </div>
 
+            {/* Summary */}
             <div
               className="
-                flex h-14 w-14 items-center justify-center
-                rounded-2xl bg-orange-500/15 text-orange-400
+                flex
+                items-center
+                justify-between
+                gap-5
+                rounded-2xl
+                border
+                border-orange-500/30
+                bg-slate-700/60
+                px-5
+                py-4
+                sm:min-w-[230px]
               "
             >
-              <PackageMinus size={28} />
+              <div>
+                <p className="text-sm font-bold text-white">
+                  ใบเบิกที่รอดำเนินการ
+                </p>
+
+                <p className="mt-1 text-3xl font-extrabold text-white">
+                  {pendingIssues.length}
+                </p>
+              </div>
+
+              <div
+                className="
+                  flex
+                  h-14
+                  w-14
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-orange-500/15
+                  text-orange-400
+                "
+              >
+                <PackageMinus size={28} />
+              </div>
             </div>
           </div>
         </div>
@@ -117,14 +150,27 @@ export default async function NotificationsPage() {
           {pendingIssues.length === 0 ? (
             <div
               className="
-                rounded-2xl border border-slate-700
-                bg-slate-800 px-6 py-12 text-center shadow-lg
+                rounded-2xl
+                border
+                border-slate-700
+                bg-slate-800
+                px-6
+                py-12
+                text-center
+                shadow-lg
               "
             >
               <div
                 className="
-                  mx-auto flex h-16 w-16 items-center justify-center
-                  rounded-full bg-slate-700 text-slate-300
+                  mx-auto
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-slate-700
+                  text-white
                 "
               >
                 <Bell size={30} />
@@ -134,7 +180,7 @@ export default async function NotificationsPage() {
                 ไม่มีการแจ้งเตือน
               </h2>
 
-              <p className="mt-1 text-slate-300">
+              <p className="mt-1 font-semibold text-white">
                 ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
               </p>
             </div>
@@ -144,10 +190,16 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group block rounded-2xl
-                  border border-orange-500/30
-                  bg-slate-800 p-5 shadow-lg
-                  transition-all duration-200
+                  group
+                  block
+                  rounded-2xl
+                  border
+                  border-orange-500/30
+                  bg-slate-800
+                  p-5
+                  shadow-lg
+                  transition-all
+                  duration-200
                   hover:-translate-y-0.5
                   hover:border-orange-400/70
                   hover:bg-slate-700
@@ -158,8 +210,15 @@ export default async function NotificationsPage() {
                   {/* Icon */}
                   <div
                     className="
-                      flex h-12 w-12 shrink-0 items-center justify-center
-                      rounded-xl bg-orange-500/15 text-orange-400
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-orange-500/15
+                      text-orange-400
                     "
                   >
                     <PackageMinus size={24} strokeWidth={2.2} />
@@ -174,24 +233,29 @@ export default async function NotificationsPage() {
 
                       <span
                         className="
-                          rounded-full bg-orange-500/15
-                          px-3 py-1 text-xs font-extrabold text-orange-400
+                          rounded-full
+                          bg-orange-500/15
+                          px-3
+                          py-1
+                          text-xs
+                          font-extrabold
+                          text-white
                         "
                       >
                         รอดำเนินการ
                       </span>
                     </div>
 
-                    <div className="mt-2 grid gap-1 text-sm text-slate-300">
+                    <div className="mt-3 grid gap-1 text-sm font-semibold text-white">
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           เลขที่ใบเบิก:
                         </span>{" "}
                         {issue.documentNo}
                       </p>
 
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           กลุ่มงาน:
                         </span>{" "}
                         {issue.department.name}
@@ -199,7 +263,7 @@ export default async function NotificationsPage() {
 
                       {issue.officer && (
                         <p>
-                          <span className="font-bold text-white">
+                          <span className="font-extrabold text-white">
                             ผู้ขอเบิก:
                           </span>{" "}
                           {issue.officer.firstName}{" "}
@@ -208,14 +272,14 @@ export default async function NotificationsPage() {
                       )}
 
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           จำนวนรายการ:
                         </span>{" "}
                         {issue.items.length} รายการ
                       </p>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
+                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-white">
                       <Clock size={16} />
 
                       <span>
@@ -228,7 +292,9 @@ export default async function NotificationsPage() {
                   {/* Arrow */}
                   <div
                     className="
-                      hidden shrink-0 text-slate-400
+                      hidden
+                      shrink-0
+                      text-white
                       transition-transform
                       group-hover:translate-x-1
                       group-hover:text-orange-400
@@ -256,13 +322,29 @@ export default async function NotificationsPage() {
   if (!session.departmentId) {
     return (
       <div className="space-y-6">
-        {/* Header */}
-        <div>
+        {/* Header + Message */}
+        <div
+          className="
+            rounded-2xl
+            border
+            border-slate-700
+            bg-slate-800
+            p-5
+            shadow-lg
+          "
+        >
           <div className="flex items-center gap-3">
             <div
               className="
-                flex h-12 w-12 items-center justify-center
-                rounded-2xl bg-blue-500/15 text-blue-400
+                flex
+                h-12
+                w-12
+                shrink-0
+                items-center
+                justify-center
+                rounded-2xl
+                bg-blue-500/15
+                text-blue-400
               "
             >
               <Bell size={26} strokeWidth={2.2} />
@@ -273,7 +355,7 @@ export default async function NotificationsPage() {
                 การแจ้งเตือน
               </h1>
 
-              <p className="mt-1 text-base text-slate-300">
+              <p className="mt-1 text-base font-semibold text-white">
                 ไม่พบข้อมูลกลุ่มงานของผู้ใช้งาน
               </p>
             </div>
@@ -282,14 +364,27 @@ export default async function NotificationsPage() {
 
         <div
           className="
-            rounded-2xl border border-slate-700
-            bg-slate-800 px-6 py-12 text-center shadow-lg
+            rounded-2xl
+            border
+            border-slate-700
+            bg-slate-800
+            px-6
+            py-12
+            text-center
+            shadow-lg
           "
         >
           <div
             className="
-              mx-auto flex h-16 w-16 items-center justify-center
-              rounded-full bg-slate-700 text-slate-300
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-full
+              bg-slate-700
+              text-white
             "
           >
             <Bell size={30} />
@@ -299,7 +394,7 @@ export default async function NotificationsPage() {
             ไม่สามารถแสดงการแจ้งเตือนได้
           </h2>
 
-          <p className="mt-1 text-slate-300">
+          <p className="mt-1 font-semibold text-white">
             บัญชีผู้ใช้งานยังไม่ได้กำหนดกลุ่มงาน
           </p>
         </div>
@@ -352,59 +447,92 @@ export default async function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <div
-            className="
-              flex h-12 w-12 items-center justify-center
-              rounded-2xl bg-emerald-500/15 text-emerald-400
-            "
-          >
-            <Bell size={26} strokeWidth={2.2} />
-          </div>
-
-          <div>
-            <h1 className="text-3xl font-extrabold text-white">
-              การแจ้งเตือน
-            </h1>
-
-            <p className="mt-1 text-base text-slate-300">
-              ผลการดำเนินการใบเบิกของกลุ่มงาน
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Summary */}
+      {/* Header + Summary */}
       <div
         className="
-          rounded-2xl border border-slate-700
-          bg-slate-800 p-5 shadow-lg
+          rounded-2xl
+          border
+          border-slate-700
+          bg-slate-800
+          p-5
+          shadow-lg
         "
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-300">
-              ใบเบิกที่ดำเนินการแล้ว
-            </p>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <div
+              className="
+                flex
+                h-12
+                w-12
+                shrink-0
+                items-center
+                justify-center
+                rounded-2xl
+                bg-emerald-500/15
+                text-emerald-400
+              "
+            >
+              <Bell size={26} strokeWidth={2.2} />
+            </div>
 
-            <p className="mt-1 text-3xl font-extrabold text-emerald-400">
-              {completedIssues.length}
-            </p>
+            <div>
+              <h1 className="text-3xl font-extrabold text-white">
+                การแจ้งเตือน
+              </h1>
 
-            <p className="mt-1 text-sm text-slate-300">
-              เบิกจ่ายรวม {totalIssuedItems} หน่วย
-            </p>
+              <p className="mt-1 text-base font-semibold text-white">
+                ผลการดำเนินการใบเบิกของกลุ่มงาน
+              </p>
+            </div>
           </div>
 
+          {/* Summary */}
           <div
             className="
-              flex h-14 w-14 items-center justify-center
-              rounded-2xl bg-emerald-500/15 text-emerald-400
+              flex
+              items-center
+              justify-between
+              gap-5
+              rounded-2xl
+              border
+              border-emerald-500/30
+              bg-slate-700/60
+              px-5
+              py-4
+              sm:min-w-[230px]
             "
           >
-            <CheckCircle2 size={28} />
+            <div>
+              <p className="text-sm font-bold text-white">
+                ใบเบิกที่ดำเนินการแล้ว
+              </p>
+
+              <p className="mt-1 text-3xl font-extrabold text-white">
+                {completedIssues.length}
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-white">
+                เบิกจ่ายรวม {totalIssuedItems} หน่วย
+              </p>
+            </div>
+
+            <div
+              className="
+                flex
+                h-14
+                w-14
+                shrink-0
+                items-center
+                justify-center
+                rounded-2xl
+                bg-emerald-500/15
+                text-emerald-400
+              "
+            >
+              <CheckCircle2 size={28} />
+            </div>
           </div>
         </div>
       </div>
@@ -414,14 +542,27 @@ export default async function NotificationsPage() {
         {completedIssues.length === 0 ? (
           <div
             className="
-              rounded-2xl border border-slate-700
-              bg-slate-800 px-6 py-12 text-center shadow-lg
+              rounded-2xl
+              border
+              border-slate-700
+              bg-slate-800
+              px-6
+              py-12
+              text-center
+              shadow-lg
             "
           >
             <div
               className="
-                mx-auto flex h-16 w-16 items-center justify-center
-                rounded-full bg-slate-700 text-slate-300
+                mx-auto
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
+                rounded-full
+                bg-slate-700
+                text-white
               "
             >
               <Bell size={30} />
@@ -431,7 +572,7 @@ export default async function NotificationsPage() {
               ยังไม่มีการแจ้งเตือน
             </h2>
 
-            <p className="mt-1 text-slate-300">
+            <p className="mt-1 font-semibold text-white">
               เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
               จะแสดงผลที่หน้านี้
             </p>
@@ -453,10 +594,16 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group block rounded-2xl
-                  border border-emerald-500/30
-                  bg-slate-800 p-5 shadow-lg
-                  transition-all duration-200
+                  group
+                  block
+                  rounded-2xl
+                  border
+                  border-emerald-500/30
+                  bg-slate-800
+                  p-5
+                  shadow-lg
+                  transition-all
+                  duration-200
                   hover:-translate-y-0.5
                   hover:border-emerald-400/70
                   hover:bg-slate-700
@@ -467,8 +614,15 @@ export default async function NotificationsPage() {
                   {/* Icon */}
                   <div
                     className="
-                      flex h-12 w-12 shrink-0 items-center justify-center
-                      rounded-xl bg-emerald-500/15 text-emerald-400
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-emerald-500/15
+                      text-emerald-400
                     "
                   >
                     <CheckCircle2 size={24} strokeWidth={2.2} />
@@ -483,24 +637,29 @@ export default async function NotificationsPage() {
 
                       <span
                         className="
-                          rounded-full bg-emerald-500/15
-                          px-3 py-1 text-xs font-extrabold text-emerald-400
+                          rounded-full
+                          bg-emerald-500/15
+                          px-3
+                          py-1
+                          text-xs
+                          font-extrabold
+                          text-white
                         "
                       >
                         ดำเนินการแล้ว
                       </span>
                     </div>
 
-                    <div className="mt-2 grid gap-1 text-sm text-slate-300">
+                    <div className="mt-3 grid gap-1 text-sm font-semibold text-white">
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           เลขที่ใบเบิก:
                         </span>{" "}
                         {issue.documentNo}
                       </p>
 
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           กลุ่มงาน:
                         </span>{" "}
                         {issue.department.name}
@@ -508,7 +667,7 @@ export default async function NotificationsPage() {
 
                       {issue.officer && (
                         <p>
-                          <span className="font-bold text-white">
+                          <span className="font-extrabold text-white">
                             ผู้ขอเบิก:
                           </span>{" "}
                           {issue.officer.firstName}{" "}
@@ -517,24 +676,24 @@ export default async function NotificationsPage() {
                       )}
 
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           จำนวนที่ขอเบิก:
                         </span>{" "}
                         {requestedTotal} หน่วย
                       </p>
 
                       <p>
-                        <span className="font-bold text-white">
+                        <span className="font-extrabold text-white">
                           จำนวนที่เบิกจ่ายจริง:
                         </span>{" "}
-                        <span className="font-extrabold text-emerald-400">
+                        <span className="font-extrabold text-white">
                           {issuedTotal} หน่วย
                         </span>
                       </p>
 
                       {issue.approvedBy && (
                         <p>
-                          <span className="font-bold text-white">
+                          <span className="font-extrabold text-white">
                             ดำเนินการโดย:
                           </span>{" "}
                           {issue.approvedBy.fullname}
@@ -542,15 +701,15 @@ export default async function NotificationsPage() {
                       )}
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
+                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-white">
                       <Clock size={16} />
 
                       <span>
                         ดำเนินการเมื่อ{" "}
                         {issue.approvedAt
-                          ? new Date(issue.approvedAt).toLocaleString(
-                              "th-TH"
-                            )
+                          ? new Date(
+                              issue.approvedAt
+                            ).toLocaleString("th-TH")
                           : "-"}
                       </span>
                     </div>
@@ -559,7 +718,9 @@ export default async function NotificationsPage() {
                   {/* Arrow */}
                   <div
                     className="
-                      hidden shrink-0 text-slate-400
+                      hidden
+                      shrink-0
+                      text-white
                       transition-transform
                       group-hover:translate-x-1
                       group-hover:text-emerald-400
