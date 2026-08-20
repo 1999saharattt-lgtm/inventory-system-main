@@ -44,8 +44,8 @@ const categoryName: Record<string, string> = {
 };
 
 const statusName: Record<string, string> = {
-  PENDING: "รอ Admin ตรวจสอบ",
-  APPROVED: "เบิกจ่ายแล้ว",
+  PENDING: "รอเบิกจ่าย",
+  APPROVED: "เสร็จสิ้นแล้ว",
   REJECTED: "ไม่อนุมัติ",
 };
 
@@ -297,7 +297,7 @@ export default async function IssueDetailPage({
           </div>
 
           {/* =================================================
-              Admin ดำเนินการ
+              เจ้าหน้าที่พัสดุดำเนินการ
           ================================================= */}
 
           {session.role === "ADMIN" &&
@@ -351,7 +351,7 @@ export default async function IssueDetailPage({
 
                 {issue.approvedBy && (
                   <p className="mt-1 text-sm font-semibold text-slate-600">
-                    ผู้ยืนยัน:{" "}
+                    เจ้าหน้าที่พัสดุ:{" "}
                     {issue.approvedBy.fullname}
                   </p>
                 )}
@@ -360,7 +360,7 @@ export default async function IssueDetailPage({
         </div>
 
         {/* =================================================
-            คำอธิบายสำหรับ Admin
+            คำอธิบายสำหรับรายการรอเบิกจ่าย
         ================================================= */}
 
         {session.role === "ADMIN" &&
@@ -625,27 +625,27 @@ export default async function IssueDetailPage({
                   text-white
                 "
               >
-                <th className="w-[7%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
+                <th className="w-[7%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
                   ลำดับ
                 </th>
 
-                <th className="w-[18%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
+                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
                   หมวดหมู่
                 </th>
 
-                <th className="w-[31%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
+                <th className="w-[31%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
                   รายการพัสดุ
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
+                <th className="w-[12%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
                   จำนวนที่ขอเบิก
                 </th>
 
-                <th className="w-[14%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
-                  จำนวนที่เบิกจ่าย
+                <th className="w-[14%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                  จำนวนที่เบิกจ่ายจริง
                 </th>
 
-                <th className="w-[18%] border border-black px-3 py-4 text-center text-lg font-extrabold text-white">
+                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
                   หมายเหตุ
                 </th>
               </tr>
@@ -669,7 +669,7 @@ export default async function IssueDetailPage({
                       className="
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         text-center
                         font-bold
@@ -680,9 +680,10 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
+                        break-words
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         font-semibold
                       "
@@ -695,23 +696,25 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
+                        break-words
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         font-semibold
                       "
                     >
-                      {item.material.code} -{" "}
-                      {item.material.name}
+                      <span className="font-extrabold">
+                        {item.material.code}
+                      </span>{" "}
+                      - {item.material.name}
                     </td>
 
                     <td
                       className="
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         text-center
                         font-bold
@@ -724,7 +727,7 @@ export default async function IssueDetailPage({
                       className="
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         text-center
                         font-bold
@@ -732,7 +735,7 @@ export default async function IssueDetailPage({
                     >
                       {issue.status === "PENDING" ? (
                         <span className="text-amber-600">
-                          รอ Admin
+                          รอเจ้าหน้าที่พัสดุ
                         </span>
                       ) : issue.status === "REJECTED" ? (
                         <span className="text-red-600">
@@ -747,9 +750,10 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
+                        break-words
                         border
                         border-black
-                        px-3
+                        px-2
                         py-4
                         text-center
                       "
@@ -765,7 +769,7 @@ export default async function IssueDetailPage({
       </div>
 
       {/* =====================================================
-          สรุปเมื่ออนุมัติแล้ว
+          สรุปเมื่อเสร็จสิ้นแล้ว
       ===================================================== */}
 
       {issue.status === "APPROVED" && (
@@ -794,11 +798,11 @@ export default async function IssueDetailPage({
           >
             <div>
               <p className="text-lg font-extrabold text-emerald-800">
-                ✅ ยืนยันการเบิกจ่ายแล้ว
+                ✅ ดำเนินการเบิกจ่ายเสร็จสิ้นแล้ว
               </p>
 
               <p className="mt-1 text-sm font-semibold text-emerald-700">
-                รายการเบิกจ่ายได้รับการยืนยันจาก Admin แล้ว
+                รายการเบิกจ่ายได้รับการยืนยันจากเจ้าหน้าที่พัสดุแล้ว
                 และถูกตัดออกจากบัญชีพัสดุแล้ว
               </p>
             </div>
