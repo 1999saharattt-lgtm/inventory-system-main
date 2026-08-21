@@ -363,8 +363,8 @@ export default async function LowStockPage({
             shrink-0
             rounded-xl
             bg-gradient-to-r
-            from-red-600
-            to-red-500
+            from-emerald-600
+            to-green-500
             px-5
             py-2
             text-xl
@@ -405,7 +405,9 @@ export default async function LowStockPage({
                 shadow-xl
               "
             >
-              {/* Category Header */}
+              {/* =====================================================
+                  Category Header
+              ===================================================== */}
 
               <div
                 className="
@@ -465,7 +467,10 @@ export default async function LowStockPage({
                 </span>
               </div>
 
-              {/* Table */}
+              {/* =====================================================
+                  Table
+                  รูปแบบเดียวกับ Materials Summary
+              ===================================================== */}
 
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[900px] border-collapse">
@@ -528,23 +533,22 @@ export default async function LowStockPage({
                           text-slate-900
                         "
                       >
-                        หน่วย
+                        จำนวน
                       </th>
 
                       <th
                         className="
                           border
                           border-slate-300
-                          bg-red-100
                           px-3
                           py-3
                           text-center
                           text-base
                           font-extrabold
-                          text-red-800
+                          text-slate-900
                         "
                       >
-                        คงเหลือ
+                        หน่วย
                       </th>
 
                       <th
@@ -559,7 +563,7 @@ export default async function LowStockPage({
                           text-slate-900
                         "
                       >
-                        ราคาล่าสุด
+                        ราคา
                       </th>
 
                       <th
@@ -634,25 +638,24 @@ export default async function LowStockPage({
                             px-3
                             py-3
                             text-center
+                            text-lg
+                            font-extrabold
+                            text-slate-900
                           "
                         >
-                          {material.unit}
+                          {material.balance}
                         </td>
 
                         <td
                           className="
                             border
                             border-slate-300
-                            bg-red-50
                             px-3
                             py-3
                             text-center
-                            text-lg
-                            font-extrabold
-                            text-red-700
                           "
                         >
-                          {material.balance}
+                          {material.unit}
                         </td>
 
                         <td
