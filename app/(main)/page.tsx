@@ -288,6 +288,8 @@ export default async function Home() {
           hover:shadow-2xl
         "
       >
+        {/* Header */}
+
         <div
           className="
             border-b
@@ -297,22 +299,38 @@ export default async function Home() {
             via-slate-900
             to-slate-800
             px-3
-            py-3
+            py-4
             sm:px-5
-            sm:py-4
+            sm:py-5
           "
         >
           <h2
             className="
-              text-lg
+              text-2xl
               font-extrabold
+              leading-tight
               !text-white
-              sm:text-xl
+              sm:text-3xl
             "
           >
             ข้อมูลระบบ
           </h2>
+
+          <div
+            className="
+              mt-2
+              h-1
+              w-16
+              rounded-full
+              bg-gradient-to-r
+              from-blue-500
+              to-cyan-400
+              sm:w-20
+            "
+          />
         </div>
+
+        {/* Information Items */}
 
         <div
           className="
@@ -326,15 +344,18 @@ export default async function Home() {
             className="
               rounded-xl
               border
-              border-slate-700
-              bg-slate-900/70
+              border-slate-200
+              bg-white
               px-4
               py-3
               text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-slate-800
+              font-bold
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
               sm:text-base
             "
           >
@@ -345,15 +366,18 @@ export default async function Home() {
             className="
               rounded-xl
               border
-              border-slate-700
-              bg-slate-900/70
+              border-slate-200
+              bg-white
               px-4
               py-3
               text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-slate-800
+              font-bold
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
               sm:text-base
             "
           >
@@ -364,15 +388,18 @@ export default async function Home() {
             className="
               rounded-xl
               border
-              border-slate-700
-              bg-slate-900/70
+              border-slate-200
+              bg-white
               px-4
               py-3
               text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-slate-800
+              font-bold
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
               sm:text-base
             "
           >
@@ -383,15 +410,18 @@ export default async function Home() {
             className="
               rounded-xl
               border
-              border-slate-700
-              bg-slate-900/70
+              border-slate-200
+              bg-white
               px-4
               py-3
               text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-slate-800
+              font-bold
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
               sm:text-base
             "
           >
@@ -402,15 +432,18 @@ export default async function Home() {
             className="
               rounded-xl
               border
-              border-slate-700
-              bg-slate-900/70
+              border-slate-200
+              bg-white
               px-4
               py-3
               text-sm
-              font-semibold
-              text-white
-              transition
-              hover:bg-slate-800
+              font-bold
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
               sm:text-base
             "
           >
