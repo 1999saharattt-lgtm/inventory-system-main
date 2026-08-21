@@ -6,6 +6,7 @@ import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
+import { approveIssue } from "./action";
 
 export const dynamic = "force-dynamic";
 
@@ -96,13 +97,69 @@ export default async function ApproveIssuePage({
   }
 
   // =====================================================
-  // สรุปจำนวน
+  // สรุปจำนวนที่ขอ
   // =====================================================
 
   const totalRequested = issue.items.reduce(
     (total, item) => total + Number(item.qty),
     0
   );
+
+  // =====================================================
+  // Server Action สำหรับยืนยันเบิกจ่าย
+  //
+  // รับค่าจาก input:
+  // issuedQty_1
+  // issuedQty_2
+  // issuedQty_3
+  // ...
+  //
+  // แล้วส่งเข้า approveIssue()
+  // =====================================================
+
+  const submitApprove = async (formData: FormData) => {
+    "use server";
+
+    const issuedQty: Record<number, number> = {};
+
+    for (const item of issue.items) {
+      const fieldName = `issuedQty_${item.id}`;
+      const rawValue = formData.get(fieldName);
+
+      if (
+        rawValue === null ||
+        String(rawValue).trim() === ""
+      ) {
+        throw new Error(
+          `กรุณาระบุจำนวนเบิกจ่ายจริงสำหรับ "${item.material.name}"`
+        );
+      }
+
+      const value = Number(rawValue);
+
+      if (
+        !Number.isFinite(value) ||
+        !Number.isInteger(value) ||
+        value < 0
+      ) {
+        throw new Error(
+          `จำนวนเบิกจ่ายของ "${item.material.name}" ไม่ถูกต้อง`
+        );
+      }
+
+      if (value > Number(item.qty)) {
+        throw new Error(
+          `จำนวนเบิกจ่ายของ "${item.material.name}" มากกว่าจำนวนที่ขอเบิก`
+        );
+      }
+
+      issuedQty[item.id] = value;
+    }
+
+    await approveIssue(issue.id, issuedQty);
+
+    redirect(`/issue/${issue.id}`);
+  };
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
@@ -140,7 +197,7 @@ export default async function ApproveIssuePage({
               text-2xl
               font-extrabold
               leading-tight
-              text-white
+              !text-white
               sm:text-4xl
             "
           >
@@ -154,7 +211,7 @@ export default async function ApproveIssuePage({
               text-sm
               font-semibold
               leading-tight
-              text-slate-200
+              !text-white
               sm:text-lg
             "
           >
@@ -168,16 +225,20 @@ export default async function ApproveIssuePage({
             w-full
             shrink-0
             rounded-xl
-            bg-slate-600
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
-            hover:bg-slate-500
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
             sm:px-6
             sm:py-3
@@ -198,9 +259,12 @@ export default async function ApproveIssuePage({
           min-w-0
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-900
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-4
+          text-white
           shadow-xl
           sm:p-6
         "
@@ -216,45 +280,57 @@ export default async function ApproveIssuePage({
           {/* เลขที่ใบเบิก */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               เลขที่ใบเบิก
             </p>
 
-            <p
+            <div
               className="
-                mt-1
-                break-all
-                text-lg
-                font-extrabold
-                text-slate-900
+                mt-2
+                rounded-xl
+                border
+                border-slate-600
+                bg-slate-800
+                px-4
+                py-3
+                shadow-inner
               "
             >
-              {issue.documentNo}
-            </p>
+              <p
+                className="
+                  break-all
+                  text-lg
+                  font-extrabold
+                  !text-white
+                "
+              >
+                {issue.documentNo}
+              </p>
+            </div>
           </div>
 
           {/* วันที่เบิก */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               วันที่เบิก
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
-              {new Date(issue.issueDate).toLocaleDateString(
-                "th-TH"
-              )}
+            <p className="mt-2 font-extrabold !text-white">
+              {new Date(
+                issue.issueDate
+              ).toLocaleDateString("th-TH")}
             </p>
           </div>
 
           {/* หน่วยงาน */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               หน่วยงาน / กลุ่มงาน
             </p>
 
-            <p className="mt-1 break-words font-extrabold text-slate-900">
+            <p className="mt-2 break-words font-extrabold !text-white">
               {issue.department?.name ?? "-"}
             </p>
           </div>
@@ -262,11 +338,11 @@ export default async function ApproveIssuePage({
           {/* ผู้ขอเบิก */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               ผู้ขอเบิก
             </p>
 
-            <p className="mt-1 break-words font-extrabold text-slate-900">
+            <p className="mt-2 break-words font-extrabold !text-white">
               {issue.officer
                 ? `${issue.officer.firstName} ${issue.officer.lastName}`
                 : "-"}
@@ -276,11 +352,11 @@ export default async function ApproveIssuePage({
           {/* จำนวนรายการ */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               จำนวนรายการ
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
+            <p className="mt-2 font-extrabold !text-white">
               {issue.items.length} รายการ
             </p>
           </div>
@@ -288,11 +364,11 @@ export default async function ApproveIssuePage({
           {/* จำนวนรวม */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               จำนวนรวมที่ขอเบิก
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
+            <p className="mt-2 font-extrabold !text-white">
               {totalRequested} หน่วย
             </p>
           </div>
@@ -305,15 +381,15 @@ export default async function ApproveIssuePage({
             className="
               mt-5
               border-t
-              border-slate-200
+              border-slate-700
               pt-4
             "
           >
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               หมายเหตุ
             </p>
 
-            <p className="mt-1 break-words font-semibold text-slate-800">
+            <p className="mt-1 break-words font-semibold !text-white">
               {issue.remark}
             </p>
           </div>
@@ -352,287 +428,321 @@ export default async function ApproveIssuePage({
           ตารางรายการ
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          overflow-hidden
-          rounded-2xl
-          border
-          border-black
-          bg-white
-          shadow-xl
-        "
-      >
-        <div className="w-full overflow-x-auto">
-          <table
-            className="
-              w-full
-              min-w-[900px]
-              border-collapse
-              text-sm
-            "
-          >
-            <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
-                "
-              >
-                <th className="w-[7%] border border-black px-3 py-4 text-center font-extrabold">
-                  ลำดับ
-                </th>
-
-                <th className="w-[18%] border border-black px-3 py-4 text-center font-extrabold">
-                  หมวดหมู่
-                </th>
-
-                <th className="w-[35%] border border-black px-3 py-4 text-center font-extrabold">
-                  รายการพัสดุ
-                </th>
-
-                <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold">
-                  จำนวนที่ขอ
-                </th>
-
-                <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold">
-                  จำนวนเบิกจ่ายจริง
-                </th>
-
-                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold">
-                  หน่วย
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {issue.items.map((item, index) => (
+      <form action={submitApprove}>
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-black
+            bg-white
+            shadow-xl
+          "
+        >
+          <div className="w-full overflow-x-auto">
+            <table
+              className="
+                w-full
+                min-w-[900px]
+                border-collapse
+                text-sm
+              "
+            >
+              <thead>
                 <tr
-                  key={item.id}
                   className="
-                    text-slate-900
-                    transition
-                    hover:bg-blue-50
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    !text-white
                   "
                 >
-                  {/* ลำดับ */}
+                  <th className="w-[7%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    ลำดับ
+                  </th>
 
-                  <td
+                  <th className="w-[18%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    หมวดหมู่
+                  </th>
+
+                  <th className="w-[35%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    รายการพัสดุ
+                  </th>
+
+                  <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    จำนวนที่ขอ
+                  </th>
+
+                  <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    จำนวนเบิกจ่ายจริง
+                  </th>
+
+                  <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                    หน่วย
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {issue.items.map((item, index) => (
+                  <tr
+                    key={item.id}
                     className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-bold
+                      text-slate-900
+                      transition
+                      hover:bg-blue-50
                     "
                   >
-                    {index + 1}
-                  </td>
+                    {/* ลำดับ */}
 
-                  {/* หมวดหมู่ */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    {categoryName[item.material.category] ??
-                      item.material.category}
-                  </td>
-
-                  {/* รายการ */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    <span className="font-extrabold">
-                      {item.material.code}
-                    </span>{" "}
-                    - {item.material.name}
-                  </td>
-
-                  {/* จำนวนที่ขอ */}
-
-                  <td
-                    className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-extrabold
-                    "
-                  >
-                    {item.qty}
-                  </td>
-
-                  {/* จำนวนที่เบิกจ่ายจริง */}
-
-                  <td
-                    className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                    "
-                  >
-                    <div
+                    <td
                       className="
-                        rounded-lg
                         border
-                        border-blue-300
-                        bg-blue-50
+                        border-black
                         px-3
-                        py-2
+                        py-4
+                        text-center
+                        font-bold
+                      "
+                    >
+                      {index + 1}
+                    </td>
+
+                    {/* หมวดหมู่ */}
+
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        font-semibold
+                      "
+                    >
+                      {categoryName[
+                        item.material.category
+                      ] ??
+                        item.material.category}
+                    </td>
+
+                    {/* รายการ */}
+
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        font-semibold
+                      "
+                    >
+                      <span className="font-extrabold">
+                        {item.material.code}
+                      </span>{" "}
+                      - {item.material.name}
+                    </td>
+
+                    {/* จำนวนที่ขอ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
                         font-extrabold
-                        text-blue-700
                       "
                     >
                       {item.qty}
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* หน่วย */}
+                    {/* จำนวนที่เบิกจ่ายจริง */}
 
-                  <td
-                    className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-bold
-                    "
-                  >
-                    {item.material.unit}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                      "
+                    >
+                      <input
+                        type="number"
+                        name={`issuedQty_${item.id}`}
+                        min="0"
+                        max={Number(item.qty)}
+                        step="1"
+                        placeholder="กรอกจำนวน"
+                        className="
+                          w-full
+                          rounded-lg
+                          border
+                          border-slate-400
+                          bg-white
+                          px-3
+                          py-2
+                          text-center
+                          font-extrabold
+                          text-slate-900
+                          outline-none
+                          transition
+                          focus:border-emerald-600
+                          focus:ring-2
+                          focus:ring-emerald-200
+                        "
+                      />
+
+                      <p className="mt-1 text-xs font-semibold text-slate-500">
+                        สูงสุด {item.qty} หน่วย
+                      </p>
+                    </td>
+
+                    {/* หน่วย */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                        font-bold
+                      "
+                    >
+                      {item.material.unit}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* =====================================================
-          สรุปก่อนยืนยัน
-      ===================================================== */}
+        {/* =====================================================
+            สรุปก่อนยืนยัน
+        ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-blue-300
-          bg-blue-50
-          p-4
-          shadow-lg
-          sm:p-6
-        "
-      >
         <div
           className="
+            mt-4
+            w-full
+            min-w-0
+            rounded-2xl
+            border
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-950
+            to-slate-800
+            p-4
+            text-white
+            shadow-xl
+            sm:p-6
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              gap-3
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div>
+              <p className="text-lg font-extrabold !text-white">
+                📦 จำนวนที่กำลังจะเบิกจ่าย
+              </p>
+
+              <p className="mt-1 text-sm font-semibold !text-slate-300">
+                กรุณากรอกจำนวนเบิกจ่ายจริงในแต่ละรายการ
+              </p>
+            </div>
+
+            <div className="text-left sm:text-right">
+              <p className="text-3xl font-extrabold !text-white">
+                {totalRequested}
+              </p>
+
+              <p className="text-sm font-bold !text-slate-300">
+                หน่วยที่ขอสูงสุด
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            ปุ่มดำเนินการ
+        ===================================================== */}
+
+        <div
+          className="
+            mt-4
             flex
+            w-full
             flex-col
             gap-3
             sm:flex-row
-            sm:items-center
-            sm:justify-between
+            sm:justify-end
           "
         >
-          <div>
-            <p className="text-lg font-extrabold text-blue-900">
-              📦 จำนวนที่กำลังจะเบิกจ่าย
-            </p>
+          <Link
+            href={`/issue/${issue.id}`}
+            className="
+              w-full
+              rounded-xl
+              border
+              border-emerald-700
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-6
+              py-3
+              text-center
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:from-emerald-700
+              hover:to-green-600
+              sm:w-auto
+            "
+          >
+            ยกเลิก
+          </Link>
 
-            <p className="mt-1 text-sm font-semibold text-blue-700">
-              จำนวนตามรายการที่ผู้ขอเบิกระบุ
-            </p>
-          </div>
-
-          <div className="text-left sm:text-right">
-            <p className="text-3xl font-extrabold text-blue-700">
-              {totalRequested}
-            </p>
-
-            <p className="text-sm font-bold text-blue-600">
-              หน่วย
-            </p>
-          </div>
+          <button
+            type="submit"
+            className="
+              w-full
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-6
+              py-3
+              text-center
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              hover:from-emerald-700
+              hover:to-green-600
+              active:scale-[0.98]
+              sm:w-auto
+            "
+          >
+            ✅ ยืนยันการเบิกจ่ายและตัดสต็อก
+          </button>
         </div>
-      </div>
-
-      {/* =====================================================
-          ปุ่มดำเนินการ
-          ตอนนี้รอเชื่อม action.ts
-      ===================================================== */}
-
-      <div
-        className="
-          flex
-          w-full
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:justify-end
-        "
-      >
-        <Link
-          href={`/issue/${issue.id}`}
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            text-slate-700
-            shadow
-            transition
-            hover:bg-slate-50
-            sm:w-auto
-          "
-        >
-          ยกเลิก
-        </Link>
-
-        <div
-          className="
-            w-full
-            cursor-not-allowed
-            rounded-xl
-            bg-slate-300
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            text-slate-500
-            sm:w-auto
-          "
-        >
-          รอเชื่อมระบบยืนยัน
-        </div>
-      </div>
+      </form>
     </div>
   );
 }

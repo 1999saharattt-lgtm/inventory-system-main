@@ -183,14 +183,14 @@ export default async function IssueDetailPage({
           sm:py-6
         "
       >
-        <div className="min-w-0">
+        <div className="min-w-0 text-white">
           <h1
             className="
               break-words
               text-2xl
               font-extrabold
               leading-tight
-              text-white
+              !text-white
               sm:text-4xl
             "
           >
@@ -204,7 +204,7 @@ export default async function IssueDetailPage({
               text-sm
               font-semibold
               leading-tight
-              text-white
+              !text-white
               sm:text-lg
             "
           >
@@ -226,7 +226,7 @@ export default async function IssueDetailPage({
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -255,7 +255,7 @@ export default async function IssueDetailPage({
           from-slate-950
           to-slate-800
           p-4
-          text-white
+          !text-white
           shadow-xl
           sm:p-6
         "
@@ -271,7 +271,7 @@ export default async function IssueDetailPage({
           "
         >
           <div>
-            <p className="text-sm font-bold text-slate-300">
+            <p className="text-sm font-bold !text-slate-300">
               สถานะใบเบิก
             </p>
 
@@ -319,7 +319,7 @@ export default async function IssueDetailPage({
                     text-center
                     text-base
                     font-extrabold
-                    text-white
+                    !text-white
                     shadow-lg
                     transition
                     hover:scale-[1.02]
@@ -341,18 +341,18 @@ export default async function IssueDetailPage({
                   sm:text-right
                 "
               >
-                <p className="text-sm font-bold text-slate-300">
+                <p className="text-sm font-bold !text-slate-300">
                   วันที่ยืนยันการเบิกจ่าย
                 </p>
 
-                <p className="mt-1 font-extrabold text-white">
+                <p className="mt-1 font-extrabold !text-white">
                   {new Date(
                     issue.approvedAt
                   ).toLocaleDateString("th-TH")}
                 </p>
 
                 {issue.approvedBy && (
-                  <p className="mt-1 text-sm font-semibold text-slate-300">
+                  <p className="mt-1 text-sm font-semibold !text-slate-300">
                     เจ้าหน้าที่พัสดุ:{" "}
                     {issue.approvedBy.fullname}
                   </p>
@@ -376,13 +376,14 @@ export default async function IssueDetailPage({
                 bg-amber-50
                 px-4
                 py-3
+                text-black
               "
             >
-              <p className="font-extrabold text-amber-800">
+              <p className="font-extrabold !text-black">
                 ⚠️ ใบเบิกนี้ยังไม่ได้ตัดสต็อก
               </p>
 
-              <p className="mt-1 text-sm font-semibold text-amber-700">
+              <p className="mt-1 text-sm font-semibold !text-black">
                 กรุณาตรวจสอบรายการและลงจำนวนที่เบิกจ่ายจริงก่อน
                 ระบบจึงจะตัดสต็อกและบันทึกลง Stock Card
               </p>
@@ -406,7 +407,7 @@ export default async function IssueDetailPage({
           from-slate-950
           to-slate-800
           p-4
-          text-white
+          !text-white
           shadow-xl
           sm:p-6
         "
@@ -418,10 +419,8 @@ export default async function IssueDetailPage({
             sm:grid-cols-2
           "
         >
-          {/* เลขที่ใบเบิก */}
-
           <div className="min-w-0">
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               เลขที่ใบเบิก
             </p>
 
@@ -438,24 +437,20 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* วันที่เบิก */}
-
           <div>
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               วันที่เบิก
             </p>
 
-            <p className="mt-1 font-semibold">
+            <p className="mt-1 font-semibold !text-white">
               {new Date(
                 issue.issueDate
               ).toLocaleDateString("th-TH")}
             </p>
           </div>
 
-          {/* หน่วยงาน */}
-
           <div className="min-w-0">
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               หน่วยงาน / กลุ่มงาน
             </p>
 
@@ -464,40 +459,35 @@ export default async function IssueDetailPage({
                 mt-1
                 break-words
                 font-semibold
+                !text-white
               "
             >
               {issue.department.name}
             </p>
           </div>
 
-          {/* จำนวนรายการ */}
-
           <div>
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               จำนวนรายการ
             </p>
 
-            <p className="mt-1 font-semibold">
+            <p className="mt-1 font-semibold !text-white">
               {issue.items.length} รายการ
             </p>
           </div>
 
-          {/* จำนวนรวมที่ขอ */}
-
           <div>
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               จำนวนรวมที่ขอเบิก
             </p>
 
-            <p className="mt-1 font-semibold">
+            <p className="mt-1 font-semibold !text-white">
               {totalRequested} หน่วย
             </p>
           </div>
 
-          {/* จำนวนรวมที่จ่าย */}
-
           <div>
-            <p className="font-extrabold">
+            <p className="font-extrabold !text-white">
               จำนวนรวมที่เบิกจ่ายจริง
             </p>
 
@@ -554,27 +544,27 @@ export default async function IssueDetailPage({
                   text-white
                 "
               >
-                <th className="w-[7%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[7%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   ลำดับ
                 </th>
 
-                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   หมวดหมู่
                 </th>
 
-                <th className="w-[31%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[31%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   รายการพัสดุ
                 </th>
 
-                <th className="w-[12%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[12%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   จำนวนที่ขอเบิก
                 </th>
 
-                <th className="w-[14%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[14%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   จำนวนที่เบิกจ่ายจริง
                 </th>
 
-                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold text-white sm:text-lg">
+                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
                   หน่วย
                 </th>
               </tr>
@@ -717,7 +707,7 @@ export default async function IssueDetailPage({
             from-slate-950
             to-slate-800
             p-4
-            text-white
+            !text-white
             shadow-xl
             sm:p-6
           "
@@ -733,18 +723,18 @@ export default async function IssueDetailPage({
             "
           >
             <div>
-              <p className="text-lg font-extrabold text-white">
+              <p className="text-lg font-extrabold !text-white">
                 ✅ ดำเนินการเบิกจ่ายเสร็จสิ้นแล้ว
               </p>
 
-              <p className="mt-1 text-sm font-semibold text-slate-200">
+              <p className="mt-1 text-sm font-semibold !text-slate-200">
                 รายการเบิกจ่ายได้รับการยืนยันจากเจ้าหน้าที่พัสดุแล้ว
                 และถูกตัดออกจากบัญชีพัสดุแล้ว
               </p>
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-sm font-bold text-slate-300">
+              <p className="text-sm font-bold !text-slate-300">
                 จำนวนรวมที่เบิกจ่ายจริง
               </p>
 
