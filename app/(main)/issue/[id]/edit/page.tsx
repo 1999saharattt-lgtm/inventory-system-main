@@ -177,23 +177,24 @@ export default async function EditIssuePage({
           py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
           sm:flex-row
           sm:items-center
           sm:justify-between
-          sm:px-6
-          sm:py-5
+          sm:gap-4
+          sm:px-8
+          sm:py-6
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
+              !text-white
               text-2xl
               font-extrabold
               leading-tight
-              !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             🖊️ แก้ไขรายการเบิกพัสดุ
@@ -203,16 +204,16 @@ export default async function EditIssuePage({
             className="
               mt-2
               break-words
-              text-sm
+              !text-slate-200
+              text-base
               font-semibold
               leading-tight
-              !text-slate-200
-              sm:text-base
+              sm:mt-3
+              sm:text-xl
             "
           >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
           </p>
-
         </div>
 
         <Link
@@ -229,14 +230,14 @@ export default async function EditIssuePage({
             text-center
             text-sm
             font-extrabold
-            !text-white
+            text-white
             shadow-lg
             transition
             hover:scale-105
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
