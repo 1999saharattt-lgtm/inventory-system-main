@@ -77,11 +77,11 @@ const statusName: Record<string, string> = {
 
 const statusClass: Record<string, string> = {
   PENDING:
-    "border-amber-300 bg-amber-50 text-amber-800",
+    "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800",
   APPROVED:
-    "border-emerald-300 bg-emerald-50 text-emerald-800",
+    "border-emerald-300 bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-800",
   REJECTED:
-    "border-red-300 bg-red-50 text-red-800",
+    "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
 };
 
 export default function EditIssueForm({
@@ -230,7 +230,7 @@ export default function EditIssueForm({
           p-4
           ${
             statusClass[issue.status] ??
-            "border-slate-300 bg-slate-50 text-slate-700"
+            "border-slate-300 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700"
           }
         `}
       >
@@ -242,12 +242,6 @@ export default function EditIssueForm({
           {statusName[issue.status] ??
             issue.status}
         </p>
-
-        {!isPending && (
-          <p className="mt-2 text-sm font-semibold">
-            ใบเบิกนี้ไม่สามารถแก้ไขได้ เนื่องจากมีการตรวจสอบสถานะแล้ว
-          </p>
-        )}
       </div>
 
       <form
@@ -801,46 +795,6 @@ export default function EditIssueForm({
         </div>
 
         {/* =====================================================
-            หมายเหตุ
-        ===================================================== */}
-
-        <div>
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-slate-900
-            "
-          >
-            หมายเหตุ
-          </label>
-
-          <textarea
-            name="remark"
-            rows={4}
-            defaultValue={
-              issue.remark ?? ""
-            }
-            disabled={!isPending}
-            className="
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-3
-              font-bold
-              text-black
-              disabled:cursor-not-allowed
-              disabled:bg-slate-100
-              disabled:text-slate-500
-            "
-          />
-        </div>
-
-        {/* =====================================================
             ปุ่มบันทึก
         ===================================================== */}
 
@@ -872,25 +826,7 @@ export default function EditIssueForm({
               💾 บันทึกการแก้ไข
             </button>
           </div>
-        ) : (
-          <div
-            className="
-              rounded-xl
-              border
-              border-slate-300
-              bg-slate-100
-              p-4
-              text-center
-              font-bold
-              text-slate-600
-            "
-          >
-            ใบเบิกสถานะ{" "}
-            {statusName[issue.status] ??
-              issue.status}{" "}
-            ไม่สามารถแก้ไขได้
-          </div>
-        )}
+        ) : null}
       </form>
     </div>
   );
