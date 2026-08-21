@@ -77,6 +77,7 @@ export default async function Home() {
       bg: "bg-red-100",
       border: "border-red-200",
       hover: "hover:border-red-300",
+      href: "/materials/low-stock",
     },
   ];
 
