@@ -454,7 +454,7 @@ export default async function IssueDetailPage({
         >
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
-              เลขที่ใบเบิก
+              เลขที่เอกสาร
             </p>
 
             <p
