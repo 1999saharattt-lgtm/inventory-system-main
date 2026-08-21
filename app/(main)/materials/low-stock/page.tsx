@@ -215,10 +215,13 @@ export default async function LowStockPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-200
-          bg-white
+          border-slate-700
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-900
+          to-slate-800
           p-4
-          shadow-md
+          shadow-xl
           sm:p-5
         "
       >
@@ -230,6 +233,7 @@ export default async function LowStockPage({
             flex-col
             gap-3
             sm:flex-row
+            sm:items-center
           "
         >
           <div className="relative min-w-0 flex-1">
@@ -250,13 +254,13 @@ export default async function LowStockPage({
               type="text"
               name="q"
               defaultValue={params.q ?? ""}
-              placeholder="ค้นหารหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่าย..."
+              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
               className="
                 w-full
                 rounded-xl
                 border
                 border-slate-300
-                bg-slate-50
+                bg-white
                 py-3
                 pl-12
                 pr-4
@@ -265,10 +269,11 @@ export default async function LowStockPage({
                 text-slate-900
                 outline-none
                 transition
-                focus:border-slate-600
+                placeholder:text-slate-400
+                focus:border-slate-500
                 focus:bg-white
                 focus:ring-2
-                focus:ring-slate-200
+                focus:ring-slate-300
               "
             />
           </div>
@@ -279,8 +284,8 @@ export default async function LowStockPage({
               shrink-0
               rounded-xl
               bg-gradient-to-r
-              from-slate-800
-              to-slate-950
+              from-emerald-600
+              to-green-500
               px-6
               py-3
               text-base
@@ -292,7 +297,7 @@ export default async function LowStockPage({
               sm:px-8
             "
           >
-            🔍 ค้นหา
+            ค้นหา
           </button>
 
           {search && (
@@ -301,9 +306,9 @@ export default async function LowStockPage({
               className="
                 shrink-0
                 rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
+                border
+                border-slate-600
+                bg-slate-800
                 px-6
                 py-3
                 text-center
@@ -313,12 +318,33 @@ export default async function LowStockPage({
                 shadow-lg
                 transition
                 hover:scale-105
+                hover:bg-slate-700
                 sm:px-8
               "
             >
               ล้างค้นหา
             </Link>
           )}
+
+          <div
+            className="
+              shrink-0
+              rounded-xl
+              border
+              border-slate-600
+              bg-slate-800
+              px-5
+              py-3
+              text-center
+              text-sm
+              font-extrabold
+              text-slate-200
+              shadow
+              sm:text-base
+            "
+          >
+            พบ {totalLowStock} รายการ
+          </div>
         </div>
       </form>
 
@@ -335,10 +361,14 @@ export default async function LowStockPage({
           gap-3
           rounded-2xl
           border
-          border-slate-200
-          bg-white
+          border-slate-700
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-900
+          to-slate-800
           p-4
-          shadow-md
+          text-white
+          shadow-xl
           sm:flex-row
           sm:items-center
           sm:justify-between
@@ -346,11 +376,11 @@ export default async function LowStockPage({
         "
       >
         <div className="min-w-0">
-          <p className="text-lg font-extrabold text-slate-900 sm:text-xl">
+          <p className="text-lg font-extrabold text-white sm:text-xl">
             รายการพัสดุใกล้หมด
           </p>
 
-          <p className="mt-1 text-sm font-semibold text-slate-600 sm:text-base">
+          <p className="mt-1 text-sm font-semibold text-slate-300 sm:text-base">
             {search
               ? `ผลการค้นหาสำหรับ "${params.q}"`
               : "แสดงรายการพัสดุที่มีจำนวนคงเหลือถึงจุดขั้นต่ำหรือต่ำกว่า"}
@@ -362,9 +392,9 @@ export default async function LowStockPage({
             w-fit
             shrink-0
             rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
+            border
+            border-slate-500
+            bg-slate-700
             px-5
             py-2
             text-xl
@@ -400,14 +430,14 @@ export default async function LowStockPage({
                 overflow-hidden
                 rounded-2xl
                 border
-                border-slate-200
+                border-slate-300
                 bg-white
                 shadow-xl
               "
             >
-              {/* =====================================================
+              {/* =================================================
                   Category Header
-              ===================================================== */}
+              ================================================= */}
 
               <div
                 className="
@@ -451,9 +481,9 @@ export default async function LowStockPage({
                     w-fit
                     shrink-0
                     rounded-xl
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
+                    border
+                    border-slate-500
+                    bg-slate-700
                     px-4
                     py-2
                     text-sm
@@ -467,25 +497,30 @@ export default async function LowStockPage({
                 </span>
               </div>
 
-              {/* =====================================================
+              {/* =================================================
                   Table
-                  รูปแบบเดียวกับ Materials Summary
-              ===================================================== */}
+              ================================================= */}
 
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[900px] border-collapse">
                   <thead>
-                    <tr className="bg-slate-100">
+                    <tr
+                      className="
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+                      "
+                    >
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-center
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         ลำดับ
@@ -494,13 +529,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-center
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         รหัสพัสดุ
@@ -509,13 +544,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-left
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         รายการพัสดุ
@@ -524,13 +559,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-center
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         จำนวน
@@ -539,13 +574,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-center
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         หน่วย
@@ -554,13 +589,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-right
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         ราคา
@@ -569,13 +604,13 @@ export default async function LowStockPage({
                       <th
                         className="
                           border
-                          border-slate-300
+                          border-slate-600
                           px-3
                           py-3
                           text-left
                           text-base
                           font-extrabold
-                          text-slate-900
+                          text-white
                         "
                       >
                         ผู้จำหน่ายล่าสุด
@@ -583,12 +618,13 @@ export default async function LowStockPage({
                     </tr>
                   </thead>
 
-                  <tbody>
+                  <tbody className="bg-white">
                     {categoryMaterials.map((material, index) => (
                       <tr
                         key={material.id}
                         className="
-                          text-slate-900
+                          bg-white
+                          text-slate-700
                           transition
                           hover:bg-slate-50
                         "
@@ -626,6 +662,7 @@ export default async function LowStockPage({
                             px-3
                             py-3
                             font-semibold
+                            text-slate-700
                           "
                         >
                           {material.name}
@@ -635,12 +672,13 @@ export default async function LowStockPage({
                           className="
                             border
                             border-slate-300
+                            bg-red-50
                             px-3
                             py-3
                             text-center
                             text-lg
                             font-extrabold
-                            text-slate-900
+                            text-red-700
                           "
                         >
                           {material.balance}
