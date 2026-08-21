@@ -131,7 +131,7 @@ export default async function Home() {
         <h1
           className="
             break-words
-            text-2xl
+            text-base
             font-extrabold
             leading-tight
             !text-white
@@ -306,7 +306,7 @@ export default async function Home() {
         >
           <h2
             className="
-              text-2xl
+              text-base
               font-extrabold
               leading-tight
               !text-white
