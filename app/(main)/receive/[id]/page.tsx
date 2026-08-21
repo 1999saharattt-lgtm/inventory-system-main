@@ -116,24 +116,27 @@ export default async function ReceiveDetailPage({
 
         </div>
 
+        {/* ปุ่มกลับ - รูปแบบเดียวกับ /materials/summary */}
+
         <Link
           href="/receive"
           className="
+            w-full
             shrink-0
             rounded-xl
-            bg-white
-            px-3
-            py-2
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
             text-center
-            text-sm
+            text-base
             font-extrabold
-            text-slate-900
+            text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:bg-slate-100
-            sm:px-5
-            sm:py-3
+            sm:w-auto
             sm:text-lg
           "
         >
@@ -146,6 +149,7 @@ export default async function ReceiveDetailPage({
 
       <div
         className="
+          space-y-4
           rounded-2xl
           border
           border-slate-700
@@ -153,9 +157,8 @@ export default async function ReceiveDetailPage({
           from-slate-950
           to-slate-800
           p-6
-          shadow-xl
           text-white
-          space-y-4
+          shadow-xl
         "
       >
         <p>
@@ -254,45 +257,46 @@ export default async function ReceiveDetailPage({
                     key={item.id}
                     className="
                       text-slate-900
+                      transition
                       hover:bg-emerald-50
                     "
                   >
 
-                    <td className="border px-3 py-3 text-center font-bold">
+                    <td className="border border-slate-300 px-3 py-3 text-center font-bold">
                       {index + 1}
                     </td>
 
-                    <td className="border px-3 py-3">
+                    <td className="border border-slate-300 px-3 py-3">
                       {categoryLabel[item.material.category]}
                     </td>
 
-                    <td className="border px-3 py-3">
+                    <td className="border border-slate-300 px-3 py-3">
                       {item.material.code}
                     </td>
 
-                    <td className="border px-3 py-3 font-semibold">
+                    <td className="border border-slate-300 px-3 py-3 font-semibold">
                       {item.material.name}
                     </td>
 
-                    <td className="border px-3 py-3 text-center">
+                    <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.material.unit}
                     </td>
 
-                    <td className="border px-3 py-3 text-center">
+                    <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.qty}
                     </td>
 
-                    <td className="border px-3 py-3 text-right">
+                    <td className="border border-slate-300 px-3 py-3 text-right">
                       {Number(item.unitPrice).toFixed(2)}
                     </td>
 
-                    <td className="border px-3 py-3 text-center">
+                    <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.manufacture
                         ? new Date(item.manufacture).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
 
-                    <td className="border px-3 py-3 text-center">
+                    <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.expiry
                         ? new Date(item.expiry).toLocaleDateString("th-TH")
                         : "-"}
