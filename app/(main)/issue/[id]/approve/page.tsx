@@ -107,14 +107,6 @@ export default async function ApproveIssuePage({
 
   // =====================================================
   // Server Action สำหรับยืนยันเบิกจ่าย
-  //
-  // รับค่าจาก input:
-  // issuedQty_1
-  // issuedQty_2
-  // issuedQty_3
-  // ...
-  //
-  // แล้วส่งเข้า approveIssue()
   // =====================================================
 
   const submitApprove = async (formData: FormData) => {
@@ -284,29 +276,17 @@ export default async function ApproveIssuePage({
               เลขที่ใบเบิก
             </p>
 
-            <div
+            <p
               className="
                 mt-2
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-3
-                shadow-inner
+                break-all
+                text-lg
+                font-extrabold
+                !text-white
               "
             >
-              <p
-                className="
-                  break-all
-                  text-lg
-                  font-extrabold
-                  !text-white
-                "
-              >
-                {issue.documentNo}
-              </p>
-            </div>
+              {issue.documentNo}
+            </p>
           </div>
 
           {/* วันที่เบิก */}
@@ -597,10 +577,6 @@ export default async function ApproveIssuePage({
                           focus:ring-emerald-200
                         "
                       />
-
-                      <p className="mt-1 text-xs font-semibold text-slate-500">
-                        สูงสุด {item.qty} หน่วย
-                      </p>
                     </td>
 
                     {/* หน่วย */}
@@ -714,7 +690,7 @@ export default async function ApproveIssuePage({
               sm:w-auto
             "
           >
-            ยกเลิก
+            ← กลับรายละเอียด
           </Link>
 
           <button
