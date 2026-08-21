@@ -23,10 +23,10 @@ function sameDate(
     return false;
   }
 
-  return (
-    new Date(a).getTime() ===
-    new Date(b).getTime()
-  );
+  const aTime = new Date(a).getTime();
+  const bTime = new Date(b).getTime();
+
+  return aTime === bTime;
 }
 
 export async function updateReceive(
@@ -36,8 +36,11 @@ export async function updateReceive(
     formData.get("receiveId")
   );
 
+  const receiveDateValue =
+    formData.get("receiveDate") as string;
+
   const receiveDate = new Date(
-    formData.get("receiveDate") as string
+    receiveDateValue
   );
 
   const documentNo =
@@ -76,20 +79,18 @@ export async function updateReceive(
     );
 
     const manufactureValue =
-      formData.get(
+      (formData.get(
         `items[${i}].manufacture`
-      ) as string;
+      ) as string) || "";
 
     const expiryValue =
-      formData.get(
+      (formData.get(
         `items[${i}].expiry`
-      ) as string;
+      ) as string) || "";
 
     const manufacture =
       manufactureValue
-        ? new Date(
-            manufactureValue
-          )
+        ? new Date(manufactureValue)
         : null;
 
     const expiry =
@@ -175,6 +176,9 @@ export async function updateReceive(
 
       // =================================================
       // ตรวจว่า ReceiveItem เดิมตัวไหนถูกเบิกไปแล้ว
+      //
+      // ใช้ issuedQty เป็นจำนวนที่ถูกเบิกจริง
+      // ถ้าไม่มี issuedQty ให้ใช้ qty
       // =================================================
 
       const oldItemUsage =
@@ -199,24 +203,35 @@ export async function updateReceive(
             select: {
               id: true,
               qty: true,
+              issuedQty: true,
             },
           });
+
+        const issueQty =
+          issueItems.reduce(
+            (
+              sum: number,
+              issueItem: any
+            ) => {
+              const actualIssuedQty =
+                issueItem.issuedQty ??
+                issueItem.qty ??
+                0;
+
+              return (
+                sum +
+                Number(
+                  actualIssuedQty
+                )
+              );
+            },
+            0
+          );
 
         oldItemUsage.set(
           oldItem.id,
           {
-            issueQty:
-              issueItems.reduce(
-                (
-                  sum: number,
-                  issueItem: any
-                ) =>
-                  sum +
-                  Number(
-                    issueItem.qty
-                  ),
-                0
-              ),
+            issueQty,
 
             issueItemIds:
               issueItems.map(
@@ -230,13 +245,13 @@ export async function updateReceive(
       }
 
       // =================================================
-      // แบ่งล็อตเดิมออกเป็น:
+      // แบ่ง ReceiveItem เดิม
       //
-      // 1. ล็อตที่ถูกเบิกแล้ว
-      //    ห้ามลบ / ห้ามสร้างทับ
+      // protectedOldItems
+      // = มีการเบิกแล้ว ห้ามลบ
       //
-      // 2. ล็อตที่ยังไม่เคยเบิก
-      //    สามารถลบและสร้างใหม่ตามฟอร์มได้
+      // editableOldItems
+      // = ยังไม่เคยเบิก สามารถลบและสร้างใหม่ได้
       // =================================================
 
       const protectedOldItems =
@@ -268,19 +283,17 @@ export async function updateReceive(
         editableOldItems.length >
         0
       ) {
-        await tx.receiveItem.deleteMany(
-          {
-            where: {
-              id: {
-                in:
-                  editableOldItems.map(
-                    (item: any) =>
-                      item.id
-                  ),
-              },
+        await tx.receiveItem.deleteMany({
+          where: {
+            id: {
+              in:
+                editableOldItems.map(
+                  (item: any) =>
+                    item.id
+                ),
             },
-          }
-        );
+          },
+        });
       }
 
       // =================================================
@@ -301,11 +314,24 @@ export async function updateReceive(
       });
 
       // =================================================
-      // จัดรายการจากฟอร์มกับล็อตเดิมที่มีการเบิกแล้ว
+      // รายการจากฟอร์มที่ยังไม่ได้จับคู่
       // =================================================
 
       const remainingFormItems =
         [...items];
+
+      // =================================================
+      // อัปเดตล็อตเดิมที่ถูกเบิกแล้ว
+      //
+      // ลำดับการจับคู่:
+      //
+      // 1. materialId + manufacture + expiry
+      // 2. ถ้าไม่เจอ ให้จับคู่ด้วย materialId
+      //
+      // วิธีนี้ทำให้แก้วันผลิต / วันหมดอายุ
+      // ของล็อตที่เคยถูกเบิกแล้วได้
+      // โดยยังรักษา ReceiveItem.id เดิม
+      // =================================================
 
       for (
         const oldItem of
@@ -319,8 +345,11 @@ export async function updateReceive(
         const oldIssueQty =
           usage?.issueQty ?? 0;
 
-        // หาแถวในฟอร์มที่ตรงกับล็อตเดิม
-        const formIndex =
+        // -------------------------------------------------
+        // พยายามจับคู่แบบละเอียดก่อน
+        // -------------------------------------------------
+
+        let formIndex =
           remainingFormItems.findIndex(
             (item) =>
               item.materialId ===
@@ -336,14 +365,28 @@ export async function updateReceive(
           );
 
         // -------------------------------------------------
-        // ถ้าไม่พบในฟอร์ม
-        // แปลว่าผู้ใช้พยายามลบล็อตที่เคยถูกเบิก
-        // ห้ามลบเพื่อรักษาประวัติ
+        // ถ้าหาไม่เจอ
+        // ให้จับคู่จาก materialId
+        //
+        // รองรับกรณีผู้ใช้แก้วันผลิต / วันหมดอายุ
         // -------------------------------------------------
 
-        if (
-          formIndex === -1
-        ) {
+        if (formIndex === -1) {
+          formIndex =
+            remainingFormItems.findIndex(
+              (item) =>
+                item.materialId ===
+                oldItem.materialId
+            );
+        }
+
+        // -------------------------------------------------
+        // ถ้าไม่พบรายการในฟอร์ม
+        //
+        // ห้ามลบ ReceiveItem ที่มีประวัติการเบิก
+        // -------------------------------------------------
+
+        if (formIndex === -1) {
           continue;
         }
 
@@ -353,8 +396,8 @@ export async function updateReceive(
           ];
 
         // -------------------------------------------------
-        // ถ้าจำนวนใหม่ต่ำกว่าจำนวนที่ถูกเบิกไปแล้ว
-        // ไม่สามารถทำให้ล็อตต่ำกว่ายอดที่ถูกใช้ไปแล้วได้
+        // จำนวนใหม่ต้องไม่น้อยกว่าจำนวน
+        // ที่ถูกเบิกจริงไปแล้ว
         // -------------------------------------------------
 
         if (
@@ -367,16 +410,23 @@ export async function updateReceive(
         }
 
         // -------------------------------------------------
-        // รักษา ReceiveItem เดิม
-        // ไม่เปลี่ยน ID และไม่เปลี่ยนยอดที่ถูกเบิก
+        // คำนวณยอดคงเหลือใหม่
         //
-        // balance ที่ถูกต้อง =
-        // qty ใหม่ - qty ที่เบิกไป
+        // qty ใหม่ - จำนวนที่เบิกจริง
         // -------------------------------------------------
 
         const newBalance =
           formItem.qty -
           oldIssueQty;
+
+        // -------------------------------------------------
+        // อัปเดต ReceiveItem เดิม
+        //
+        // สำคัญ:
+        // ไม่สร้าง ReceiveItem ใหม่
+        // เพื่อรักษา receiveItemId
+        // ที่ IssueItem อ้างอิงอยู่
+        // -------------------------------------------------
 
         await tx.receiveItem.update({
           where: {
@@ -401,6 +451,7 @@ export async function updateReceive(
           },
         });
 
+        // เอารายการนี้ออกจากรายการที่ยังเหลือ
         remainingFormItems.splice(
           formIndex,
           1
@@ -410,8 +461,8 @@ export async function updateReceive(
       // =================================================
       // สร้าง ReceiveItem ใหม่
       //
-      // ล็อตที่ยังไม่มี IssueItem
-      // หรือรายการใหม่จากฟอร์ม
+      // เหลือเฉพาะรายการที่ไม่มี ReceiveItem เดิม
+      // ที่ต้องรักษาไว้
       // =================================================
 
       for (
@@ -428,7 +479,6 @@ export async function updateReceive(
             qty:
               item.qty,
 
-            // ล็อตใหม่ต้องเริ่มต้นเต็มจำนวน
             balance:
               item.qty,
 
@@ -445,7 +495,8 @@ export async function updateReceive(
       }
 
       // =================================================
-      // คำนวณ Material.balance ใหม่จาก ReceiveItem จริง
+      // คำนวณ Material.balance ใหม่
+      // จาก ReceiveItem จริงทั้งหมด
       // =================================================
 
       for (
@@ -453,17 +504,15 @@ export async function updateReceive(
         affectedMaterialIds
       ) {
         const totalBalance =
-          await tx.receiveItem.aggregate(
-            {
-              where: {
-                materialId,
-              },
+          await tx.receiveItem.aggregate({
+            where: {
+              materialId,
+            },
 
-              _sum: {
-                balance: true,
-              },
-            }
-          );
+            _sum: {
+              balance: true,
+            },
+          });
 
         const newMaterialBalance =
           Number(
@@ -484,7 +533,9 @@ export async function updateReceive(
       }
 
       // =================================================
-      // อัปเดต latestPrice ตามรายการล่าสุดในฟอร์ม
+      // อัปเดต latestPrice
+      //
+      // ใช้ราคาจากรายการล่าสุดในฟอร์ม
       // =================================================
 
       for (
@@ -508,6 +559,10 @@ export async function updateReceive(
       timeout: 60000,
     }
   );
+
+  // =====================================================
+  // กลับหน้ารายการรับเข้า
+  // =====================================================
 
   redirect("/receive");
 }
