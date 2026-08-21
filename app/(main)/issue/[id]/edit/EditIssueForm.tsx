@@ -78,8 +78,10 @@ const statusName: Record<string, string> = {
 const statusClass: Record<string, string> = {
   PENDING:
     "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800",
+
   APPROVED:
-    "border-emerald-300 bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-800",
+    "border-emerald-600 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-500 text-white",
+
   REJECTED:
     "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
 };
@@ -252,12 +254,13 @@ export default function EditIssueForm({
               inline-flex
               items-center
               justify-center
-              rounded-full
+              rounded-xl
+              border
               px-4
               py-2
               text-base
               font-extrabold
-              shadow-sm
+              shadow-lg
               ${
                 statusClass[issue.status] ??
                 "border border-slate-300 bg-slate-100 text-slate-700"
@@ -335,7 +338,7 @@ export default function EditIssueForm({
             />
           </div>
 
-          {/* เลขที่ใบเบิก */}
+          {/* เลขที่เอกสาร */}
 
           <div>
             <label
@@ -347,7 +350,7 @@ export default function EditIssueForm({
                 text-slate-900
               "
             >
-              เลขที่ใบเบิก
+              เลขที่เอกสาร
             </label>
 
             <input
