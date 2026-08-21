@@ -80,7 +80,7 @@ const statusClass: Record<string, string> = {
     "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800",
 
   APPROVED:
-    "border-emerald-600 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-500 text-white",
+    "border-emerald-600 bg-gradient-to-r from-emerald-600 to-green-500 text-white",
 
   REJECTED:
     "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
@@ -839,8 +839,7 @@ export default function EditIssueForm({
                 rounded-xl
                 bg-gradient-to-r
                 from-emerald-600
-                via-green-500
-                to-emerald-500
+                to-green-500
                 px-8
                 py-3
                 text-lg
