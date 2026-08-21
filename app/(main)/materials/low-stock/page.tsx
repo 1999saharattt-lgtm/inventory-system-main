@@ -28,7 +28,18 @@ const categoryIcons: Record<string, string> = {
   PRINTING: "📰",
 };
 
-export default async function LowStockPage() {
+type LowStockPageProps = {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+};
+
+export default async function LowStockPage({
+  searchParams,
+}: LowStockPageProps) {
+  const params = await searchParams;
+  const search = (params.q ?? "").trim().toLowerCase();
+
   const materials = await prisma.material.findMany({
     where: {
       balance: {
@@ -69,26 +80,38 @@ export default async function LowStockPage() {
     },
   });
 
-  const data = materials.map((material) => {
-    const latestReceive = material.receiveItems[0];
+  const data = materials
+    .map((material) => {
+      const latestReceive = material.receiveItems[0];
 
-    return {
-      id: material.id,
-      category: material.category,
-      code: material.code,
-      name: material.name,
-      balance: Number(material.balance),
-      minimumStock: Number(material.minimumStock),
-      unit: material.unit,
+      return {
+        id: material.id,
+        category: material.category,
+        code: material.code,
+        name: material.name,
+        balance: Number(material.balance),
+        unit: material.unit,
 
-      latestPrice: latestReceive
-        ? Number(latestReceive.unitPrice)
-        : null,
+        latestPrice: latestReceive
+          ? Number(latestReceive.unitPrice)
+          : null,
 
-      latestVendor:
-        latestReceive?.receive.vendor?.name ?? "-",
-    };
-  });
+        latestVendor:
+          latestReceive?.receive.vendor?.name ?? "-",
+      };
+    })
+    .filter((material) => {
+      if (!search) {
+        return true;
+      }
+
+      return (
+        material.code.toLowerCase().includes(search) ||
+        material.name.toLowerCase().includes(search) ||
+        material.unit.toLowerCase().includes(search) ||
+        material.latestVendor.toLowerCase().includes(search)
+      );
+    });
 
   const totalLowStock = data.length;
 
@@ -115,9 +138,9 @@ export default async function LowStockPage() {
           gap-4
           rounded-3xl
           bg-gradient-to-r
-          from-red-950
-          via-red-900
-          to-slate-800
+          from-slate-950
+          via-slate-800
+          to-slate-700
           p-5
           text-white
           shadow-xl
@@ -147,7 +170,7 @@ export default async function LowStockPage() {
               break-words
               text-base
               font-bold
-              !text-red-100
+              !text-slate-200
               sm:text-xl
             "
           >
@@ -161,35 +184,39 @@ export default async function LowStockPage() {
             w-full
             shrink-0
             rounded-xl
-            bg-white
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-3
             text-center
             text-base
             font-extrabold
-            text-slate-900
+            text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:bg-slate-100
             sm:w-auto
             sm:text-lg
           "
         >
-          ← กลับหน้าหลัก
+          ← กลับ
         </Link>
       </div>
 
       {/* =====================================================
-          Summary
+          Search
       ===================================================== */}
 
-      <div
+      <form
+        method="GET"
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
-          border-red-200
-          bg-red-50
+          border-slate-200
+          bg-white
           p-4
           shadow-md
           sm:p-5
@@ -198,38 +225,155 @@ export default async function LowStockPage() {
         <div
           className="
             flex
+            w-full
+            min-w-0
             flex-col
-            gap-2
+            gap-3
             sm:flex-row
-            sm:items-center
-            sm:justify-between
           "
         >
-          <div>
-            <p className="text-lg font-extrabold text-red-800">
-              รายการที่ต้องติดตาม
-            </p>
+          <div className="relative min-w-0 flex-1">
+            <span
+              className="
+                pointer-events-none
+                absolute
+                left-4
+                top-1/2
+                -translate-y-1/2
+                text-xl
+              "
+            >
+              🔎
+            </span>
 
-            <p className="mt-1 text-sm font-semibold text-red-700 sm:text-base">
-              พัสดุที่มีจำนวนคงเหลือถึงจุดขั้นต่ำหรือต่ำกว่า
-            </p>
+            <input
+              type="text"
+              name="q"
+              defaultValue={params.q ?? ""}
+              placeholder="ค้นหารหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่าย..."
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-slate-50
+                py-3
+                pl-12
+                pr-4
+                text-base
+                font-semibold
+                text-slate-900
+                outline-none
+                transition
+                focus:border-slate-600
+                focus:bg-white
+                focus:ring-2
+                focus:ring-slate-200
+              "
+            />
           </div>
 
-          <div
+          <button
+            type="submit"
             className="
-              w-fit
+              shrink-0
               rounded-xl
-              bg-red-600
-              px-5
-              py-2
-              text-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-950
+              px-6
+              py-3
+              text-base
               font-extrabold
               text-white
-              shadow
+              shadow-lg
+              transition
+              hover:scale-105
+              sm:px-8
             "
           >
-            {totalLowStock} รายการ
-          </div>
+            🔍 ค้นหา
+          </button>
+
+          {search && (
+            <Link
+              href="/materials/low-stock"
+              className="
+                shrink-0
+                rounded-xl
+                bg-gradient-to-r
+                from-emerald-600
+                to-green-500
+                px-6
+                py-3
+                text-center
+                text-base
+                font-extrabold
+                text-white
+                shadow-lg
+                transition
+                hover:scale-105
+                sm:px-8
+              "
+            >
+              ล้างค้นหา
+            </Link>
+          )}
+        </div>
+      </form>
+
+      {/* =====================================================
+          Summary
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          w-full
+          min-w-0
+          flex-col
+          gap-3
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-4
+          shadow-md
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:p-5
+        "
+      >
+        <div className="min-w-0">
+          <p className="text-lg font-extrabold text-slate-900 sm:text-xl">
+            รายการพัสดุใกล้หมด
+          </p>
+
+          <p className="mt-1 text-sm font-semibold text-slate-600 sm:text-base">
+            {search
+              ? `ผลการค้นหาสำหรับ "${params.q}"`
+              : "แสดงรายการพัสดุที่มีจำนวนคงเหลือถึงจุดขั้นต่ำหรือต่ำกว่า"}
+          </p>
+        </div>
+
+        <div
+          className="
+            w-fit
+            shrink-0
+            rounded-xl
+            bg-gradient-to-r
+            from-red-600
+            to-red-500
+            px-5
+            py-2
+            text-xl
+            font-extrabold
+            text-white
+            shadow
+          "
+        >
+          {totalLowStock} รายการ
         </div>
       </div>
 
@@ -251,6 +395,8 @@ export default async function LowStockPage() {
             <div
               key={category}
               className="
+                w-full
+                min-w-0
                 overflow-hidden
                 rounded-2xl
                 border
@@ -264,6 +410,7 @@ export default async function LowStockPage() {
               <div
                 className="
                   flex
+                  min-w-0
                   flex-col
                   gap-2
                   bg-gradient-to-r
@@ -280,7 +427,7 @@ export default async function LowStockPage() {
                 "
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="text-2xl">
+                  <span className="shrink-0 text-2xl">
                     {categoryIcons[category]}
                   </span>
 
@@ -300,8 +447,11 @@ export default async function LowStockPage() {
                 <span
                   className="
                     w-fit
+                    shrink-0
                     rounded-xl
-                    bg-red-600
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-green-500
                     px-4
                     py-2
                     text-sm
@@ -401,22 +551,6 @@ export default async function LowStockPage() {
                         className="
                           border
                           border-slate-300
-                          bg-amber-100
-                          px-3
-                          py-3
-                          text-center
-                          text-base
-                          font-extrabold
-                          text-amber-800
-                        "
-                      >
-                        ขั้นต่ำ
-                      </th>
-
-                      <th
-                        className="
-                          border
-                          border-slate-300
                           px-3
                           py-3
                           text-right
@@ -452,7 +586,7 @@ export default async function LowStockPage() {
                         className="
                           text-slate-900
                           transition
-                          hover:bg-red-50
+                          hover:bg-slate-50
                         "
                       >
                         <td
@@ -525,21 +659,6 @@ export default async function LowStockPage() {
                           className="
                             border
                             border-slate-300
-                            bg-amber-50
-                            px-3
-                            py-3
-                            text-center
-                            font-extrabold
-                            text-amber-700
-                          "
-                        >
-                          {material.minimumStock}
-                        </td>
-
-                        <td
-                          className="
-                            border
-                            border-slate-300
                             px-3
                             py-3
                             text-right
@@ -597,7 +716,9 @@ export default async function LowStockPage() {
               text-emerald-800
             "
           >
-            ไม่มีพัสดุใกล้หมด
+            {search
+              ? "ไม่พบพัสดุที่ค้นหา"
+              : "ไม่มีพัสดุใกล้หมด"}
           </h2>
 
           <p
@@ -607,7 +728,9 @@ export default async function LowStockPage() {
               text-emerald-700
             "
           >
-            ขณะนี้พัสดุทุกรายการมีจำนวนมากกว่าจุดขั้นต่ำ
+            {search
+              ? "ลองค้นหาด้วยรหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่ายอื่น"
+              : "ขณะนี้พัสดุทุกรายการมีจำนวนมากกว่าจุดขั้นต่ำ"}
           </p>
         </div>
       )}
