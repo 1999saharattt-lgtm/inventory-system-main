@@ -145,15 +145,20 @@ export default function Sidebar({ role }: SidebarProps) {
     },
 
     // =====================================================
-    // กลุ่มงาน
+    // หน่วยงาน
     //
-    // ให้ STAFF / VIEWER เห็นเมนูนี้โดยตรง
-    // ไม่ต้องอยู่ใต้ "ผู้ดูแลระบบ"
+    // กลุ่มงาน + ผู้จำหน่าย อยู่ในหัวข้อเดียวกัน
     // =====================================================
 
     {
       title: "หน่วยงาน",
       items: [
+        {
+          name: "ผู้จำหน่าย",
+          href: "/vendors",
+          icon: Truck,
+          adminOnly: true,
+        },
         {
           name: "กลุ่มงาน",
           href: "/departments",
@@ -172,11 +177,6 @@ export default function Sidebar({ role }: SidebarProps) {
       title: "ผู้ดูแลระบบ",
       adminOnly: true,
       items: [
-        {
-          name: "ผู้จำหน่าย",
-          href: "/vendors",
-          icon: Truck,
-        },
         {
           name: "ผู้ใช้งานระบบ",
           href: "/users",

@@ -24,6 +24,7 @@ type IssuePdfProps = {
   documentNo: string;
   issueDate: Date | string;
   departmentName: string;
+  requesterName?: string | null;
   items: IssueItem[];
 };
 
@@ -55,6 +56,7 @@ export default function IssuePdf({
   documentNo,
   issueDate,
   departmentName,
+  requesterName,
   items,
 }: IssuePdfProps) {
   const pdfRef = useRef<HTMLDivElement>(null);
@@ -171,8 +173,7 @@ export default function IssuePdf({
   // =====================================================
   // Base style ของ cell
   //
-  // ใช้ขนาดมาตรฐาน 16px
-  // ไม่ลดขนาดตามความยาวข้อความ
+  // ตารางคงขนาด 16px
   // =====================================================
 
   const cellBaseStyle: React.CSSProperties = {
@@ -242,10 +243,6 @@ export default function IssuePdf({
 
   // =====================================================
   // ตัวข้อความรายการพัสดุ
-  //
-  // ใช้ขนาดมาตรฐาน 16px เสมอ
-  //
-  // ชื่อที่ยาวสามารถขึ้น 2 บรรทัดได้
   // =====================================================
 
   const materialNameTextStyle: React.CSSProperties = {
@@ -278,9 +275,6 @@ export default function IssuePdf({
 
   // =====================================================
   // Cell ข้อมูลรายการพัสดุ
-  //
-  // อนุญาตให้ข้อความขึ้น 2 บรรทัด
-  // ไม่ตัดข้อความด้วย overflow:hidden
   // =====================================================
 
   const leftCellStyle: React.CSSProperties = {
@@ -295,11 +289,6 @@ export default function IssuePdf({
 
   // =====================================================
   // กำหนดความสูงของแถว
-  //
-  // ชื่อพัสดุสั้น  = 8mm
-  // ชื่อพัสดุยาว   = 10mm
-  //
-  // ไม่ลด font
   // =====================================================
 
   function getRowStyle(
@@ -397,8 +386,10 @@ export default function IssuePdf({
               ส่วนหัวเอกสาร
           ===================================================== */}
 
-          <div className="relative h-[25mm]">
-            {/* เลขที่เอกสาร */}
+          <div className="relative h-[34mm]">
+            {/* =================================================
+                เลขที่เอกสาร
+            ================================================= */}
 
             <div
               className="
@@ -414,7 +405,9 @@ export default function IssuePdf({
               เลขที่ {documentNo || "-"}
             </div>
 
-            {/* พอ.101 */}
+            {/* =================================================
+                พอ.101
+            ================================================= */}
 
             <div
               className="
@@ -429,7 +422,9 @@ export default function IssuePdf({
               พอ.101
             </div>
 
-            {/* ใบเบิกพัสดุ */}
+            {/* =================================================
+                ใบเบิกพัสดุ
+            ================================================= */}
 
             <div
               className="
@@ -444,38 +439,87 @@ export default function IssuePdf({
               ใบเบิกพัสดุ
             </div>
 
-            {/* หน่วยงาน */}
+            {/* =================================================
+                วันที่
+                ชิดซ้าย และจุดยาวเต็มบรรทัด
+            ================================================= */}
 
             <div
               className="
                 absolute
-                bottom-[2mm]
                 left-0
-                max-w-[135mm]
+                right-0
+                top-[17mm]
                 whitespace-nowrap
                 text-[21px]
                 leading-none
                 text-black
               "
             >
-              กลุ่มงาน {departmentName} สำนักอนามัยการเจริญพันธุ์
-              กรมอนามัย
+              วันที่
+              <span className="ml-[2mm]">
+                ............................................................................................................................
+              </span>
             </div>
 
-            {/* วันที่ */}
+            {/* =================================================
+                กลุ่มงาน
+            ================================================= */}
 
             <div
               className="
                 absolute
-                bottom-[2mm]
+                left-0
                 right-0
+                top-[22mm]
                 whitespace-nowrap
                 text-[21px]
                 leading-none
                 text-black
               "
             >
-              วันที่ {formatThaiDate(issueDate)}
+              กลุ่มงาน
+              <span className="ml-[2mm]">
+                ................................
+              </span>
+
+              <span className="ml-[1mm]">
+                {departmentName || "-"}
+              </span>
+
+              <span className="ml-[2mm]">
+                สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+              </span>
+
+              <span className="ml-[1mm]">
+                ....................................................
+              </span>
+            </div>
+
+            {/* =================================================
+                ชื่อผู้ขอเบิก
+            ================================================= */}
+
+            <div
+              className="
+                absolute
+                left-0
+                right-0
+                top-[27mm]
+                whitespace-nowrap
+                text-[21px]
+                leading-none
+                text-black
+              "
+            >
+              ชื่อผู้ขอเบิก
+              <span className="ml-[2mm]">
+                {requesterName || "-"}
+              </span>
+
+              <span className="ml-[2mm]">
+                ................................................................................................
+              </span>
             </div>
           </div>
 
@@ -497,6 +541,7 @@ export default function IssuePdf({
 
           {/* =====================================================
               ตารางรายการ
+              คงฟอนต์ 16px
           ===================================================== */}
 
           <div className="flex justify-center">
@@ -526,6 +571,8 @@ export default function IssuePdf({
                     height: "8mm",
                   }}
                 >
+                  {/* ลำดับ */}
+
                   <th
                     className="
                       w-[7%]
@@ -541,6 +588,8 @@ export default function IssuePdf({
                       ลำดับ
                     </span>
                   </th>
+
+                  {/* หมวดหมู่ */}
 
                   <th
                     className="
@@ -558,6 +607,8 @@ export default function IssuePdf({
                     </span>
                   </th>
 
+                  {/* รายการพัสดุ */}
+
                   <th
                     className="
                       w-[37%]
@@ -573,6 +624,8 @@ export default function IssuePdf({
                       รายการพัสดุ
                     </span>
                   </th>
+
+                  {/* จำนวนที่ขอเบิก */}
 
                   <th
                     className="
@@ -590,6 +643,8 @@ export default function IssuePdf({
                     </span>
                   </th>
 
+                  {/* จำนวนที่เบิกจ่าย */}
+
                   <th
                     className="
                       w-[13%]
@@ -605,6 +660,8 @@ export default function IssuePdf({
                       จำนวนที่เบิกจ่าย
                     </span>
                   </th>
+
+                  {/* หน่วย */}
 
                   <th
                     className="
@@ -633,6 +690,8 @@ export default function IssuePdf({
                     }
                     style={getRowStyle(item)}
                   >
+                    {/* ลำดับ */}
+
                     <td
                       className="
                         border
@@ -647,6 +706,8 @@ export default function IssuePdf({
                         {index + 1}
                       </span>
                     </td>
+
+                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -672,6 +733,8 @@ export default function IssuePdf({
                       </span>
                     </td>
 
+                    {/* รายการพัสดุ */}
+
                     <td
                       className="
                         border
@@ -693,6 +756,8 @@ export default function IssuePdf({
                       ) : null}
                     </td>
 
+                    {/* จำนวนที่ขอเบิก */}
+
                     <td
                       className="
                         border
@@ -708,8 +773,13 @@ export default function IssuePdf({
                       </span>
                     </td>
 
-                    {/* จำนวนที่เบิกจ่ายจริง
-                        ตั้งใจเว้นว่างเสมอใน PDF */}
+                    {/* =================================================
+                        จำนวนที่เบิกจ่ายจริง
+
+                        PDF ต้องเว้นว่างเสมอ
+                        ไม่ว่าจะเบิกจ่ายจริงไปแล้วหรือไม่
+                    ================================================= */}
+
                     <td
                       className="
                         border
@@ -724,6 +794,8 @@ export default function IssuePdf({
                         {""}
                       </span>
                     </td>
+
+                    {/* หน่วย */}
 
                     <td
                       className="
@@ -751,7 +823,6 @@ export default function IssuePdf({
 
           {/* =====================================================
               หลังตาราง
-              ใช้ 21px เท่ากับ "ใบเบิกพัสดุ"
           ===================================================== */}
 
           <div

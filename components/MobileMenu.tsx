@@ -82,10 +82,10 @@ const menus: MenuGroup[] = [
   },
 
   // =====================================================
-  // กลุ่มงาน
+  // หน่วยงาน
   //
-  // ให้ STAFF / VIEWER เห็นโดยตรง
-  // ไม่ซ้อนอยู่ใต้ผู้ดูแลระบบ
+  // กลุ่มงาน และผู้จำหน่ายอยู่ในหัวข้อเดียวกัน
+  // ผู้จำหน่ายยังคงให้เฉพาะ ADMIN เท่านั้น
   // =====================================================
 
   {
@@ -95,6 +95,12 @@ const menus: MenuGroup[] = [
         name: "กลุ่มงาน",
         href: "/departments",
         icon: Building2,
+      },
+      {
+        name: "ผู้จำหน่าย",
+        href: "/vendors",
+        icon: Truck,
+        adminOnly: true,
       },
     ],
   },
@@ -109,11 +115,6 @@ const menus: MenuGroup[] = [
     title: "ผู้ดูแลระบบ",
     adminOnly: true,
     items: [
-      {
-        name: "ผู้จำหน่าย",
-        href: "/vendors",
-        icon: Truck,
-      },
       {
         name: "ผู้ใช้งานระบบ",
         href: "/users",
@@ -138,7 +139,10 @@ export default function MobileMenu({
     .map((group) => ({
       ...group,
       items: group.items.map((item) => {
-        if (item.name === "รายการพัสดุทั้งหมด") {
+        if (
+          item.name ===
+          "รายการพัสดุทั้งหมด"
+        ) {
           return {
             ...item,
             href:

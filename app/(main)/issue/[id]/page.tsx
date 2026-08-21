@@ -98,6 +98,25 @@ export default async function IssueDetailPage({
     include: {
       department: true,
 
+      // =================================================
+      // ผู้ขอเบิก
+      //
+      // Issue.officer คือเจ้าหน้าที่/ผู้ขอเบิก
+      // ตาม schema.prisma
+      // =================================================
+
+      officer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+
+      // =================================================
+      // เจ้าหน้าที่พัสดุผู้อนุมัติ
+      // =================================================
+
       approvedBy: {
         select: {
           id: true,
@@ -153,6 +172,20 @@ export default async function IssueDetailPage({
       total + Number(item.issuedQty),
     0
   );
+
+  // =====================================================
+  // ชื่อผู้ขอเบิก
+  //
+  // ถ้ามี officer:
+  //   firstName + lastName
+  //
+  // ถ้าไม่มี officer:
+  //   ใช้ "-"
+  // =====================================================
+
+  const requesterName = issue.officer
+    ? `${issue.officer.firstName} ${issue.officer.lastName}`.trim()
+    : "-";
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
@@ -463,6 +496,27 @@ export default async function IssueDetailPage({
               "
             >
               {issue.department.name}
+            </p>
+          </div>
+
+          {/* =================================================
+              ผู้ขอเบิก
+          ================================================= */}
+
+          <div className="min-w-0">
+            <p className="font-extrabold !text-white">
+              ผู้ขอเบิก
+            </p>
+
+            <p
+              className="
+                mt-1
+                break-words
+                font-semibold
+                !text-white
+              "
+            >
+              {requesterName}
             </p>
           </div>
 
@@ -796,6 +850,7 @@ export default async function IssueDetailPage({
           documentNo={issue.documentNo}
           issueDate={issue.issueDate}
           departmentName={issue.department.name}
+          requesterName={requesterName}
           items={issue.items}
         />
       </div>
