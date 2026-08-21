@@ -131,11 +131,11 @@ export default async function Home() {
         <h1
           className="
             break-words
-            text-3xl
+            text-2xl
             font-extrabold
             leading-tight
             !text-white
-            sm:text-5xl
+            sm:text-2xl
           "
         >
           👋 ยินดีต้อนรับ
@@ -310,7 +310,7 @@ export default async function Home() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-3xl
+              sm:text-2xl
             "
           >
             ข้อมูลระบบ
