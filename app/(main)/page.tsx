@@ -89,18 +89,37 @@ export default async function Home() {
         className="
           w-full
           min-w-0
+          overflow-hidden
           rounded-2xl
           border
-          border-slate-200
-          bg-slate-50
+          border-blue-200
+          bg-gradient-to-br
+          from-blue-50
+          via-white
+          to-cyan-50
           px-3
-          py-4
+          py-5
           text-center
           shadow-md
           sm:px-6
-          sm:py-6
+          sm:py-7
         "
       >
+        <div
+          className="
+            mx-auto
+            mb-3
+            h-1
+            w-20
+            rounded-full
+            bg-gradient-to-r
+            from-blue-500
+            to-cyan-400
+            sm:mb-4
+            sm:w-28
+          "
+        />
+
         <h1
           className="
             break-words
@@ -122,6 +141,7 @@ export default async function Home() {
             font-extrabold
             leading-tight
             text-blue-700
+            sm:mt-3
             sm:text-2xl
           "
         >
@@ -240,28 +260,34 @@ export default async function Home() {
           w-full
           min-w-0
           overflow-hidden
-          rounded-xl
+          rounded-2xl
           border
-          border-slate-200
-          bg-slate-50
-          shadow-sm
+          border-emerald-200
+          bg-gradient-to-br
+          from-emerald-50
+          via-white
+          to-cyan-50
+          shadow-md
         "
       >
         <div
           className="
             border-b
-            border-slate-200
-            bg-slate-100
+            border-emerald-200
+            bg-gradient-to-r
+            from-emerald-100
+            to-cyan-100
             px-3
             py-3
             sm:px-5
+            sm:py-4
           "
         >
           <h2
             className="
               text-lg
               font-extrabold
-              text-slate-800
+              text-emerald-900
               sm:text-xl
             "
           >
@@ -271,11 +297,12 @@ export default async function Home() {
 
         <div
           className="
-            space-y-1
+            space-y-2
             p-3
             text-sm
             font-semibold
             text-slate-700
+            sm:space-y-2.5
             sm:p-5
             sm:text-base
           "
