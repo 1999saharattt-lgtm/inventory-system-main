@@ -128,29 +128,31 @@ export default async function Home() {
           "
         />
 
+        {/* ยินดีต้อนรับ */}
+
         <h1
           className="
             break-words
-            text-base
+            text-2xl
             font-extrabold
             leading-tight
             !text-white
-            sm:text-2xl
           "
         >
           👋 ยินดีต้อนรับ
         </h1>
 
+        {/* ชื่อหน่วยงาน */}
+
         <p
           className="
             mt-2
             break-words
-            text-base
+            text-2xl
             font-extrabold
             leading-tight
             !text-cyan-400
             sm:mt-3
-            sm:text-2xl
           "
         >
           สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
@@ -304,13 +306,14 @@ export default async function Home() {
             sm:py-5
           "
         >
+          {/* ข้อมูลระบบ */}
+
           <h2
             className="
-              text-base
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-2xl
             "
           >
             ข้อมูลระบบ
