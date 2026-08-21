@@ -83,24 +83,32 @@ export default async function Home() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Hero */}
+      {/* =====================================================
+          Hero
+      ===================================================== */}
 
       <div
         className="
+          group
           w-full
           min-w-0
           overflow-hidden
           rounded-2xl
           border
-          border-blue-200
+          border-slate-700
           bg-gradient-to-br
-          from-blue-50
-          via-white
-          to-cyan-50
+          from-slate-950
+          via-slate-800
+          to-slate-700
           px-3
           py-5
           text-center
-          shadow-md
+          text-white
+          shadow-xl
+          transition-all
+          duration-300
+          hover:-translate-y-1
+          hover:shadow-2xl
           sm:px-6
           sm:py-7
         "
@@ -126,7 +134,7 @@ export default async function Home() {
             text-3xl
             font-extrabold
             leading-tight
-            text-slate-800
+            !text-white
             sm:text-5xl
           "
         >
@@ -140,7 +148,7 @@ export default async function Home() {
             text-base
             font-extrabold
             leading-tight
-            text-blue-700
+            !text-cyan-400
             sm:mt-3
             sm:text-2xl
           "
@@ -149,7 +157,9 @@ export default async function Home() {
         </p>
       </div>
 
-      {/* Summary */}
+      {/* =====================================================
+          Summary
+      ===================================================== */}
 
       <div
         className="
@@ -253,30 +263,39 @@ export default async function Home() {
         })}
       </div>
 
-      {/* Information */}
+      {/* =====================================================
+          Information
+      ===================================================== */}
 
       <div
         className="
+          group
           w-full
           min-w-0
           overflow-hidden
           rounded-2xl
           border
-          border-emerald-200
+          border-slate-700
           bg-gradient-to-br
-          from-emerald-50
-          via-white
-          to-cyan-50
-          shadow-md
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          text-white
+          shadow-xl
+          transition-all
+          duration-300
+          hover:-translate-y-1
+          hover:shadow-2xl
         "
       >
         <div
           className="
             border-b
-            border-emerald-200
+            border-slate-700
             bg-gradient-to-r
-            from-emerald-100
-            to-cyan-100
+            from-slate-950
+            via-slate-900
+            to-slate-800
             px-3
             py-3
             sm:px-5
@@ -287,7 +306,7 @@ export default async function Home() {
             className="
               text-lg
               font-extrabold
-              text-emerald-900
+              !text-white
               sm:text-xl
             "
           >
@@ -299,19 +318,104 @@ export default async function Home() {
           className="
             space-y-2
             p-3
-            text-sm
-            font-semibold
-            text-slate-700
             sm:space-y-2.5
             sm:p-5
-            sm:text-base
           "
         >
-          <div>✅ รองรับการรับเข้าพัสดุ</div>
-          <div>✅ รองรับการเบิกจ่ายพัสดุ</div>
-          <div>✅ ตรวจสอบจำนวนคงเหลืออัตโนมัติ</div>
-          <div>✅ รองรับบัญชีพัสดุ (Stock Card)</div>
-          <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              px-4
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:text-base
+            "
+          >
+            ✅ รองรับการรับเข้าพัสดุ
+          </div>
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              px-4
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:text-base
+            "
+          >
+            ✅ รองรับการเบิกจ่ายพัสดุ
+          </div>
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              px-4
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:text-base
+            "
+          >
+            ✅ ตรวจสอบจำนวนคงเหลืออัตโนมัติ
+          </div>
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              px-4
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:text-base
+            "
+          >
+            ✅ รองรับบัญชีพัสดุ (Stock Card)
+          </div>
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              px-4
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition
+              hover:bg-slate-800
+              sm:text-base
+            "
+          >
+            ✅ ตรวจสอบข้อมูลย้อนหลังได้
+          </div>
         </div>
       </div>
     </div>
