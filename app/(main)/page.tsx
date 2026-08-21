@@ -8,7 +8,7 @@ export default async function Home() {
     .count({
       where: {
         balance: {
-          lte: prisma.material.fields.minimumStock,
+          lt: 10,
         },
       },
     })
@@ -83,7 +83,6 @@ export default async function Home() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* Hero */}
 
       <div
@@ -93,7 +92,7 @@ export default async function Home() {
           rounded-2xl
           border
           border-slate-200
-          bg-white
+          bg-slate-50
           px-3
           py-4
           text-center
@@ -150,11 +149,8 @@ export default async function Home() {
               <div className={`h-1 ${card.color}`} />
 
               <div className="p-3 sm:p-5">
-
                 <div className="flex min-w-0 items-center justify-between gap-3">
-
                   <div className="min-w-0">
-
                     <p className="break-words text-sm font-bold text-white sm:text-base">
                       {card.title}
                     </p>
@@ -166,7 +162,6 @@ export default async function Home() {
                     <p className="text-xs font-semibold text-slate-200 sm:text-sm">
                       {card.unit}
                     </p>
-
                   </div>
 
                   <div
@@ -190,9 +185,7 @@ export default async function Home() {
                   >
                     {card.icon}
                   </div>
-
                 </div>
-
               </div>
             </>
           );
@@ -250,16 +243,15 @@ export default async function Home() {
           rounded-xl
           border
           border-slate-200
-          bg-white
+          bg-slate-50
           shadow-sm
         "
       >
-
         <div
           className="
             border-b
             border-slate-200
-            bg-slate-50
+            bg-slate-100
             px-3
             py-3
             sm:px-5
@@ -294,9 +286,7 @@ export default async function Home() {
           <div>✅ รองรับบัญชีพัสดุ (Stock Card)</div>
           <div>✅ ตรวจสอบข้อมูลย้อนหลังได้</div>
         </div>
-
       </div>
-
     </div>
   );
 }
