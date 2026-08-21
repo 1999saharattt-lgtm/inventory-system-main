@@ -33,7 +33,9 @@ export default async function EditMaterialPage({
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -89,22 +91,29 @@ export default async function EditMaterialPage({
 
         </div>
 
+        {/* =====================================================
+            ปุ่มกลับ
+        ===================================================== */}
+
         <Link
           href={`/materials/category/${material.category}`}
           className="
             shrink-0
             rounded-xl
-            bg-white
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-3
             py-2
             text-center
             text-sm
             font-extrabold
-            text-slate-900
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:bg-slate-100
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-5
             sm:py-3
             sm:text-lg
@@ -114,6 +123,10 @@ export default async function EditMaterialPage({
         </Link>
 
       </div>
+
+      {/* =====================================================
+          Edit Material Form
+      ===================================================== */}
 
       <EditMaterialForm
         material={material}
