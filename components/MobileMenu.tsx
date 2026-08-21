@@ -14,6 +14,7 @@ import {
   Truck,
   Building2,
   Users,
+  AlertTriangle,
   Menu,
   X,
 } from "lucide-react";
@@ -37,9 +38,14 @@ type MobileMenuProps = {
   role: UserRole;
 };
 
+/* =========================================================
+   Menu Configuration
+   ========================================================= */
+
 const menus: MenuGroup[] = [
   {
     title: "หน้าแรก",
+
     items: [
       {
         name: "ภาพรวมระบบ",
@@ -51,28 +57,39 @@ const menus: MenuGroup[] = [
 
   {
     title: "รายงานพัสดุ",
+
     items: [
       {
         name: "รายการพัสดุทั้งหมด",
         href: "/materials",
         icon: Boxes,
       },
+
+      {
+        name: "จำนวนพัสดุใกล้หมด",
+        href: "/materials/low-stock",
+        icon: AlertTriangle,
+      },
+
       {
         name: "รายการรับเข้า",
         href: "/receive",
         icon: PackagePlus,
         adminOnly: true,
       },
+
       {
         name: "รายการเบิกจ่าย",
         href: "/issue",
         icon: PackageMinus,
       },
+
       {
         name: "บัญชีคุมพัสดุ",
         href: "/stock-card",
         icon: ClipboardList,
       },
+
       {
         name: "ทะเบียนคุมครุภัณฑ์",
         href: "/assets",
@@ -81,21 +98,16 @@ const menus: MenuGroup[] = [
     ],
   },
 
-  // =====================================================
-  // หน่วยงาน
-  //
-  // กลุ่มงาน และผู้จำหน่ายอยู่ในหัวข้อเดียวกัน
-  // ผู้จำหน่ายยังคงให้เฉพาะ ADMIN เท่านั้น
-  // =====================================================
-
   {
     title: "หน่วยงาน",
+
     items: [
       {
         name: "กลุ่มงาน",
         href: "/departments",
         icon: Building2,
       },
+
       {
         name: "ผู้จำหน่าย",
         href: "/vendors",
@@ -105,15 +117,11 @@ const menus: MenuGroup[] = [
     ],
   },
 
-  // =====================================================
-  // ผู้ดูแลระบบ
-  //
-  // เฉพาะ ADMIN
-  // =====================================================
-
   {
     title: "ผู้ดูแลระบบ",
+
     adminOnly: true,
+
     items: [
       {
         name: "ผู้ใช้งานระบบ",
@@ -128,7 +136,12 @@ export default function MobileMenu({
   role,
 }: MobileMenuProps) {
   const pathname = usePathname();
+
   const [open, setOpen] = useState(false);
+
+  /* =========================================================
+     Filter Menu ตาม Role
+     ========================================================= */
 
   const visibleMenus = menus
     .filter(
@@ -136,15 +149,26 @@ export default function MobileMenu({
         !group.adminOnly ||
         role === "ADMIN"
     )
+
     .map((group) => ({
       ...group,
+
       items: group.items.map((item) => {
+        /*
+         * ADMIN
+         *   /materials
+         *
+         * STAFF / VIEWER
+         *   /materials/summary
+         */
+
         if (
           item.name ===
           "รายการพัสดุทั้งหมด"
         ) {
           return {
             ...item,
+
             href:
               role === "ADMIN"
                 ? "/materials"
@@ -155,23 +179,41 @@ export default function MobileMenu({
         return item;
       }),
     }))
+
     .map((group) => ({
       ...group,
+
       items: group.items.filter(
         (item) =>
           !item.adminOnly ||
           role === "ADMIN"
       ),
     }))
+
     .filter(
       (group) =>
         group.items.length > 0
     );
 
+  /* =========================================================
+     Active Menu
+     ========================================================= */
+
+  function isActive(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
+  }
+
   return (
     <>
       {/* =====================================================
-          Menu Button
+          Mobile Menu Button
           ===================================================== */}
 
       <button
@@ -185,17 +227,27 @@ export default function MobileMenu({
           items-center
           justify-center
           rounded-xl
-          bg-slate-900
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
           text-white
-          shadow-md
-          transition
-          hover:bg-slate-800
+          shadow-lg
+          transition-all
+          duration-200
+          hover:-translate-y-0.5
+          hover:shadow-xl
           active:scale-95
           md:hidden
         "
         aria-label="เปิดเมนู"
       >
-        <Menu size={22} />
+        <Menu
+          size={22}
+          strokeWidth={2.4}
+        />
       </button>
 
       {/* =====================================================
@@ -211,7 +263,9 @@ export default function MobileMenu({
             md:hidden
           "
         >
-          {/* Overlay */}
+          {/* =================================================
+              Overlay
+              ================================================= */}
 
           <div
             className="
@@ -220,10 +274,14 @@ export default function MobileMenu({
               bg-black/50
               backdrop-blur-[1px]
             "
-            onClick={() => setOpen(false)}
+            onClick={() =>
+              setOpen(false)
+            }
           />
 
-          {/* Drawer */}
+          {/* =================================================
+              Drawer
+              ================================================= */}
 
           <aside
             className="
@@ -233,14 +291,16 @@ export default function MobileMenu({
               z-[10000]
               flex
               h-[100dvh]
-              w-[250px]
-              max-w-[80vw]
+              w-[256px]
+              max-w-[82vw]
               flex-col
               overflow-hidden
+              border-r
+              border-slate-800
               bg-gradient-to-b
               from-slate-950
               via-slate-900
-              to-slate-900
+              to-slate-800
               shadow-2xl
             "
           >
@@ -255,8 +315,8 @@ export default function MobileMenu({
                 border-slate-800
                 bg-gradient-to-r
                 from-slate-950
-                via-slate-900
-                to-slate-800
+                via-slate-800
+                to-slate-700
                 px-3
                 py-3
               "
@@ -269,7 +329,9 @@ export default function MobileMenu({
                   gap-2
                 "
               >
-                {/* Logo + System Name */}
+                {/* =============================================
+                    Logo + System Name
+                    ============================================= */}
 
                 <div
                   className="
@@ -288,6 +350,8 @@ export default function MobileMenu({
                       items-center
                       justify-center
                       rounded-xl
+                      border
+                      border-slate-200
                       bg-white
                       shadow-md
                     "
@@ -330,11 +394,15 @@ export default function MobileMenu({
                   </div>
                 </div>
 
-                {/* Close Button */}
+                {/* =============================================
+                    Close Button
+                    ============================================= */}
 
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     flex
                     h-9
@@ -347,14 +415,19 @@ export default function MobileMenu({
                     border-slate-700
                     bg-slate-800
                     !text-white
-                    shadow-sm
-                    transition
+                    shadow-md
+                    transition-all
+                    duration-200
                     hover:bg-slate-700
+                    hover:shadow-lg
                     active:scale-95
                   "
                   aria-label="ปิดเมนู"
                 >
-                  <X size={19} />
+                  <X
+                    size={19}
+                    strokeWidth={2.4}
+                  />
                 </button>
               </div>
             </div>
@@ -372,108 +445,175 @@ export default function MobileMenu({
                 py-4
               "
             >
-              {visibleMenus.map((group) => (
-                <div key={group.title}>
-                  {/* Group Title */}
-
-                  <p
-                    className="
-                      mb-2
-                      px-2
-                      text-base
-                      font-black
-                      tracking-[0.08em]
-                      !text-white
-                    "
+              {visibleMenus.map(
+                (group) => (
+                  <div
+                    key={group.title}
                   >
-                    {group.title}
-                  </p>
+                    {/* =========================================
+                        Group Title
+                        ========================================= */}
 
-                  {/* Group Items */}
+                    <p
+                      className="
+                        mb-2
+                        px-2
+                        text-base
+                        font-black
+                        tracking-[0.08em]
+                        !text-slate-200
+                      "
+                    >
+                      {group.title}
+                    </p>
 
-                  <div className="space-y-1.5">
-                    {group.items.map((item) => {
-                      const active =
-                        pathname ===
-                          item.href ||
-                        (item.href !== "/" &&
-                          pathname.startsWith(
-                            item.href
-                          ));
+                    {/* =========================================
+                        Group Items
+                        ========================================= */}
 
-                      const Icon =
-                        item.icon;
+                    <div className="space-y-1.5">
+                      {group.items.map(
+                        (item) => {
+                          const active =
+                            isActive(
+                              item.href
+                            );
 
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() =>
-                            setOpen(false)
-                          }
-                          className={`
-                            flex
-                            min-h-10
-                            items-center
-                            gap-2.5
-                            rounded-xl
-                            px-3
-                            py-2
-                            transition-all
-                            duration-150
+                          const Icon =
+                            item.icon;
 
-                            ${
-                              active
-                                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg"
-                                : "text-white hover:bg-slate-800"
-                            }
-                          `}
-                        >
-                          {/* Icon */}
-
-                          <div
-                            className={`
-                              flex
-                              h-8
-                              w-8
-                              shrink-0
-                              items-center
-                              justify-center
-                              rounded-lg
-                              transition
-
-                              ${
-                                active
-                                  ? "bg-white/20"
-                                  : "bg-slate-800"
+                          return (
+                            <Link
+                              key={
+                                item.href
                               }
-                            `}
-                          >
-                            <Icon
-                              size={18}
-                              strokeWidth={2.2}
-                            />
-                          </div>
+                              href={
+                                item.href
+                              }
+                              onClick={() =>
+                                setOpen(
+                                  false
+                                )
+                              }
+                              className={`
+                                group
+                                flex
+                                min-h-10
+                                items-center
+                                gap-2.5
+                                rounded-xl
+                                border
+                                px-3
+                                py-2
+                                transition-all
+                                duration-200
 
-                          {/* Text */}
+                                ${
+                                  active
+                                    ? "border-blue-400/30 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-950/30"
+                                    : "border-transparent text-white hover:border-slate-700 hover:bg-gradient-to-r hover:from-slate-800 hover:to-slate-700"
+                                }
+                              `}
+                            >
+                              {/* =================================
+                                  Icon
+                                  ================================= */}
 
-                          <span
-                            className="
-                              whitespace-nowrap
-                              text-[15px]
-                              font-extrabold
-                              !text-white
-                            "
-                          >
-                            {item.name}
-                          </span>
-                        </Link>
-                      );
-                    })}
+                              <div
+                                className={`
+                                  flex
+                                  h-8
+                                  w-8
+                                  shrink-0
+                                  items-center
+                                  justify-center
+                                  rounded-lg
+                                  transition-all
+                                  duration-200
+
+                                  ${
+                                    active
+                                      ? "bg-white/20 shadow-sm"
+                                      : "bg-slate-800 group-hover:bg-slate-700"
+                                  }
+                                `}
+                              >
+                                <Icon
+                                  size={
+                                    18
+                                  }
+                                  strokeWidth={
+                                    2.2
+                                  }
+                                />
+                              </div>
+
+                              {/* =================================
+                                  Text
+                                  ================================= */}
+
+                              <span
+                                className="
+                                  whitespace-nowrap
+                                  text-[15px]
+                                  font-extrabold
+                                  !text-white
+                                "
+                              >
+                                {
+                                  item.name
+                                }
+                              </span>
+                            </Link>
+                          );
+                        }
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </nav>
+
+            {/* =================================================
+                Bottom Decoration
+                ================================================= */}
+
+            <div
+              className="
+                shrink-0
+                border-t
+                border-slate-800
+                bg-gradient-to-r
+                from-slate-950
+                via-slate-900
+                to-slate-800
+                px-4
+                py-3
+              "
+            >
+              <div
+                className="
+                  text-center
+                  text-[11px]
+                  font-bold
+                  !text-slate-400
+                "
+              >
+                ระบบบริหารคลังพัสดุ
+              </div>
+
+              <div
+                className="
+                  mt-0.5
+                  text-center
+                  text-[10px]
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                สำนักอนามัยการเจริญพันธุ์
+              </div>
+            </div>
           </aside>
         </div>
       )}

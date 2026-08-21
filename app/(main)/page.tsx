@@ -104,11 +104,11 @@ export default async function Home() {
         <h1
           className="
             break-words
-            text-2xl
+            text-3xl
             font-extrabold
             leading-tight
             text-slate-800
-            sm:text-4xl
+            sm:text-5xl
           "
         >
           👋 ยินดีต้อนรับ
