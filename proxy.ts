@@ -32,9 +32,13 @@ export async function proxy(req: NextRequest) {
   // Static
   // =====================================================
 
+  // Static assets ต้องเปิดได้โดยไม่ต้อง Login
+  // เพื่อให้ Logo / รูปภาพ / favicon โหลดได้ทันที
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico")
+    pathname.startsWith("/images/") ||
+    pathname.startsWith("/icons/") ||
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
