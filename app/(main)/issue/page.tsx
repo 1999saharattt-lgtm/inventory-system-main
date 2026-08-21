@@ -308,12 +308,16 @@ export default async function IssuePage() {
         >
           <thead>
             <tr>
+              {/* ลำดับ */}
+
               <th
                 className="
                   w-[5%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -325,12 +329,16 @@ export default async function IssuePage() {
                 ลำดับ
               </th>
 
+              {/* วันที่ */}
+
               <th
                 className="
                   w-[9%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -342,12 +350,16 @@ export default async function IssuePage() {
                 วันที่
               </th>
 
+              {/* เลขที่เอกสาร */}
+
               <th
                 className="
                   w-[11%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -359,12 +371,16 @@ export default async function IssuePage() {
                 เลขที่เอกสาร
               </th>
 
+              {/* หน่วยงาน / กลุ่มงาน */}
+
               <th
                 className="
                   w-[17%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -376,12 +392,16 @@ export default async function IssuePage() {
                 หน่วยงาน / กลุ่มงาน
               </th>
 
+              {/* ผู้ขอเบิก */}
+
               <th
                 className="
                   w-[13%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -393,12 +413,16 @@ export default async function IssuePage() {
                 ผู้ขอเบิก
               </th>
 
+              {/* สถานะ */}
+
               <th
                 className="
                   w-[12%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -410,12 +434,16 @@ export default async function IssuePage() {
                 สถานะ
               </th>
 
+              {/* รายละเอียด */}
+
               <th
                 className="
-                  w-[12%]
+                  w-[15%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -427,29 +455,16 @@ export default async function IssuePage() {
                 รายละเอียด
               </th>
 
-              <th
-                className="
-                  w-[9%]
-                  border
-                  border-slate-900
-                  bg-slate-800
-                  px-1
-                  py-3
-                  text-center
-                  text-sm
-                  font-extrabold
-                  !text-white
-                "
-              >
-                หมายเหตุ
-              </th>
+              {/* จัดการ */}
 
               <th
                 className="
-                  w-[12%]
+                  w-[18%]
                   border
                   border-slate-900
-                  bg-slate-800
+                  bg-gradient-to-b
+                  from-slate-800
+                  to-slate-700
                   px-1
                   py-3
                   text-center
@@ -689,15 +704,16 @@ export default async function IssuePage() {
                         href={`/issue/${issue.id}`}
                         className="
                           inline-flex
-                          max-w-full
                           items-center
                           justify-center
+                          whitespace-nowrap
                           rounded-lg
                           bg-slate-800
-                          px-2
+                          px-3
                           py-2
-                          text-xs
+                          text-sm
                           font-extrabold
+                          leading-none
                           text-white
                           shadow
                           transition
@@ -711,30 +727,6 @@ export default async function IssuePage() {
                           ? "ตรวจสอบ / เบิกจ่าย"
                           : "ดูรายการ"}
                       </Link>
-                    </td>
-
-                    {/* =================================================
-                        หมายเหตุ
-                    ================================================= */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-slate-900
-                        px-1
-                        py-3
-                        text-center
-                        text-sm
-                        font-bold
-                        text-slate-900
-                      "
-                    >
-                      {issue.remark || (
-                        <span className="italic text-slate-400">
-                          -
-                        </span>
-                      )}
                     </td>
 
                     {/* =================================================
@@ -761,12 +753,17 @@ export default async function IssuePage() {
                         <Link
                           href={`/issue/${issue.id}/edit`}
                           className="
+                            inline-flex
+                            items-center
+                            justify-center
+                            whitespace-nowrap
                             rounded-lg
                             bg-slate-800
-                            px-2
+                            px-3
                             py-2
-                            text-xs
+                            text-sm
                             font-extrabold
+                            leading-none
                             text-white
                             shadow
                             transition
@@ -787,7 +784,7 @@ export default async function IssuePage() {
             ) : (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={8}
                   className="
                     border
                     border-slate-900
