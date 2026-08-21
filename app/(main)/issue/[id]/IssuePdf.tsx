@@ -750,6 +750,11 @@ export default function IssuePdf({
 
                     {/* =================================================
                         จำนวนที่เบิกจ่ายจริง
+
+                        PDF ใบเบิกจะแสดงช่องนี้ว่างเสมอ
+                        ไม่ว่ารายการจะลงเบิกจ่ายจริงแล้วหรือไม่
+                        
+                        ไม่กระทบข้อมูล issuedQty ในระบบ
                     ================================================= */}
 
                     <td
@@ -763,11 +768,7 @@ export default function IssuePdf({
                       style={centerCellStyle}
                     >
                       <span style={dataTextStyle}>
-                        {item
-                          ? item.issuedQty > 0
-                            ? item.issuedQty
-                            : ""
-                          : ""}
+                        {""}
                       </span>
                     </td>
 
