@@ -315,7 +315,7 @@ export default async function IssuePage() {
                   w-[5%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -336,7 +336,7 @@ export default async function IssuePage() {
                   w-[9%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -357,7 +357,7 @@ export default async function IssuePage() {
                   w-[11%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -378,7 +378,7 @@ export default async function IssuePage() {
                   w-[17%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -399,7 +399,7 @@ export default async function IssuePage() {
                   w-[13%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -420,7 +420,7 @@ export default async function IssuePage() {
                   w-[12%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -441,7 +441,7 @@ export default async function IssuePage() {
                   w-[15%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
@@ -462,7 +462,7 @@ export default async function IssuePage() {
                   w-[18%]
                   border
                   border-slate-900
-                  bg-gradient-to-b
+                  bg-gradient-to-r
                   from-slate-800
                   to-slate-700
                   px-1
