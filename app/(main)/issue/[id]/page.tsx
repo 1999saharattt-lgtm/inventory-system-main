@@ -100,9 +100,6 @@ export default async function IssueDetailPage({
 
       // =================================================
       // ผู้ขอเบิก
-      //
-      // Issue.officer คือเจ้าหน้าที่/ผู้ขอเบิก
-      // ตาม schema.prisma
       // =================================================
 
       officer: {
@@ -175,12 +172,6 @@ export default async function IssueDetailPage({
 
   // =====================================================
   // ชื่อผู้ขอเบิก
-  //
-  // ถ้ามี officer:
-  //   firstName + lastName
-  //
-  // ถ้าไม่มี officer:
-  //   ใช้ "-"
   // =====================================================
 
   const requesterName = issue.officer
@@ -188,8 +179,15 @@ export default async function IssueDetailPage({
     : "-";
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -218,7 +216,6 @@ export default async function IssueDetailPage({
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -245,7 +242,6 @@ export default async function IssueDetailPage({
           >
             รายละเอียดรายการเบิกจ่ายพัสดุ
           </p>
-
         </div>
 
         <Link
@@ -429,13 +425,15 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ข้อมูลใบเบิก
+          
+          Export PDF อยู่ในกรอบเดียวกัน
+          และอยู่มุมขวาบน
       ===================================================== */}
 
       <div
         className="
           w-full
           min-w-0
-          space-y-5
           rounded-2xl
           border
           border-black
@@ -448,6 +446,77 @@ export default async function IssueDetailPage({
           sm:p-6
         "
       >
+        {/* =================================================
+            Header ของกรอบข้อมูลใบเบิก
+        ================================================= */}
+
+        <div
+          className="
+            mb-5
+            flex
+            flex-col
+            gap-3
+            border-b
+            border-slate-700
+            pb-4
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <h2
+              className="
+                text-xl
+                font-extrabold
+                !text-white
+                sm:text-2xl
+              "
+            >
+              📋 ข้อมูลใบเบิก
+            </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-300
+                sm:text-base
+              "
+            >
+              รายละเอียดเอกสารและข้อมูลการเบิกจ่าย
+            </p>
+          </div>
+
+          {/* =================================================
+              Export PDF
+              
+              อยู่มุมขวาบนของกรอบข้อมูลใบเบิก
+          ================================================= */}
+
+          <div
+            className="
+              w-full
+              shrink-0
+              sm:w-auto
+            "
+          >
+            <IssuePdf
+              issueId={issue.id}
+              documentNo={issue.documentNo}
+              issueDate={issue.issueDate}
+              departmentName={issue.department.name}
+              requesterName={requesterName}
+              items={issue.items}
+            />
+          </div>
+        </div>
+
+        {/* =================================================
+            ข้อมูลใบเบิก
+        ================================================= */}
+
         <div
           className="
             grid
@@ -455,6 +524,8 @@ export default async function IssueDetailPage({
             sm:grid-cols-2
           "
         >
+          {/* เลขที่เอกสาร */}
+
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
               เลขที่เอกสาร
@@ -473,6 +544,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* วันที่เบิก */}
+
           <div>
             <p className="font-extrabold !text-white">
               วันที่เบิก
@@ -484,6 +557,8 @@ export default async function IssueDetailPage({
               ).toLocaleDateString("th-TH")}
             </p>
           </div>
+
+          {/* หน่วยงาน / กลุ่มงาน */}
 
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
@@ -502,9 +577,7 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              ผู้ขอเบิก
-          ================================================= */}
+          {/* ผู้ขอเบิก */}
 
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
@@ -523,6 +596,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* จำนวนรายการ */}
+
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรายการ
@@ -533,6 +608,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* จำนวนรวมที่ขอเบิก */}
+
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรวมที่ขอเบิก
@@ -542,6 +619,8 @@ export default async function IssueDetailPage({
               {totalRequested} หน่วย
             </p>
           </div>
+
+          {/* จำนวนรวมที่เบิกจ่ายจริง */}
 
           <div>
             <p className="font-extrabold !text-white">
@@ -830,33 +909,6 @@ export default async function IssueDetailPage({
           </p>
         </div>
       )}
-
-      {/* =====================================================
-          Export PDF พอ.101
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-xl
-          sm:p-6
-        "
-      >
-        <IssuePdf
-          issueId={issue.id}
-          documentNo={issue.documentNo}
-          issueDate={issue.issueDate}
-          departmentName={issue.department.name}
-          requesterName={requesterName}
-          items={issue.items}
-        />
-      </div>
     </div>
   );
 }
