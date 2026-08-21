@@ -223,25 +223,51 @@ export default function EditIssueForm({
       ===================================================== */}
 
       <div
-        className={`
+        className="
           mb-6
           rounded-xl
           border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-4
-          ${
-            statusClass[issue.status] ??
-            "border-slate-300 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700"
-          }
-        `}
+          text-white
+          shadow-lg
+        "
       >
-        <p className="text-sm font-bold">
+        <p
+          className="
+            text-sm
+            font-bold
+            !text-white
+          "
+        >
           สถานะใบเบิก
         </p>
 
-        <p className="mt-1 text-lg font-extrabold">
-          {statusName[issue.status] ??
-            issue.status}
-        </p>
+        <div className="mt-2">
+          <span
+            className={`
+              inline-flex
+              items-center
+              justify-center
+              rounded-full
+              px-4
+              py-2
+              text-base
+              font-extrabold
+              shadow-sm
+              ${
+                statusClass[issue.status] ??
+                "border border-slate-300 bg-slate-100 text-slate-700"
+              }
+            `}
+          >
+            {statusName[issue.status] ??
+              issue.status}
+          </span>
+        </div>
       </div>
 
       <form
@@ -609,8 +635,6 @@ export default function EditIssueForm({
                           )}
                         </select>
 
-                        {/* เก็บล็อตเดิมไว้ด้วย */}
-
                         <input
                           type="hidden"
                           name={`items[${index}].receiveItemId`}
@@ -701,6 +725,7 @@ export default function EditIssueForm({
                           border-slate-900
                           px-3
                           py-3
+                          text-center
                         "
                       >
                         <input
