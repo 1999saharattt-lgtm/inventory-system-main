@@ -104,30 +104,49 @@ export default async function MaterialsSummaryPage() {
     });
 
     return (
-      <div className="space-y-5">
-        {/* Header */}
+      <div
+        className="
+          w-full
+          min-w-0
+          space-y-4
+          overflow-x-hidden
+          sm:space-y-6
+        "
+      >
+        {/* =====================================================
+            Header
+        ===================================================== */}
 
         <div
           className="
             flex
-            items-center
-            justify-between
-            rounded-2xl
+            w-full
+            min-w-0
+            flex-col
+            gap-4
+            rounded-3xl
             bg-gradient-to-r
             from-slate-950
             via-slate-800
             to-slate-700
-            p-6
+            p-5
             text-white
             shadow-xl
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            sm:p-7
           "
         >
-          <div>
+          <div className="min-w-0">
             <h1
               className="
-                text-4xl
+                break-words
+                text-3xl
                 font-extrabold
+                leading-tight
                 !text-white
+                sm:text-5xl
               "
             >
               📦 รายการพัสดุทั้งหมด
@@ -136,9 +155,11 @@ export default async function MaterialsSummaryPage() {
             <p
               className="
                 mt-2
-                text-xl
-                font-semibold
-                text-slate-200
+                break-words
+                text-base
+                font-bold
+                !text-slate-200
+                sm:text-xl
               "
             >
               แสดงข้อมูลล่าสุดจากบัญชี Stock Card
@@ -148,17 +169,23 @@ export default async function MaterialsSummaryPage() {
           <Link
             href="/"
             className="
+              w-full
+              shrink-0
               rounded-xl
               bg-gradient-to-r
               from-emerald-600
               to-green-500
               px-5
               py-3
+              text-center
+              text-base
               font-extrabold
               text-white
               shadow-lg
               transition
               hover:scale-105
+              sm:w-auto
+              sm:text-lg
             "
           >
             ← กลับ
@@ -182,8 +209,18 @@ export default async function MaterialsSummaryPage() {
   // =====================================================
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -191,25 +228,22 @@ export default async function MaterialsSummaryPage() {
           w-full
           min-w-0
           flex-col
-          rounded-2xl
+          rounded-3xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-3
-          py-4
+          p-5
           text-white
           shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
+          sm:p-7
         "
       >
         <div className="min-w-0">
           <h1
             className="
               break-words
-              text-2xl
+              text-3xl
               font-extrabold
               leading-tight
               !text-white
@@ -223,9 +257,8 @@ export default async function MaterialsSummaryPage() {
             className="
               mt-2
               break-words
-              text-sm
-              font-semibold
-              leading-tight
+              text-base
+              font-bold
               !text-slate-200
               sm:text-xl
             "
@@ -235,7 +268,9 @@ export default async function MaterialsSummaryPage() {
         </div>
       </div>
 
-      {/* Category Cards */}
+      {/* =====================================================
+          Category Cards
+      ===================================================== */}
 
       <div
         className="

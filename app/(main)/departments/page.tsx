@@ -16,53 +16,57 @@ export default async function DepartmentsPage() {
       <div
         className="
           flex
+          min-h-[110px]
+          w-full
+          min-w-0
           items-center
           justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-8
-          py-6
-          min-h-[140px]
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
         "
       >
-
-        <div>
+        <div className="min-w-0">
 
           <h1
             className="
-              text-5xl
+              break-words
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
+              sm:text-5xl
             "
           >
             🏢 หน่วยงาน
           </h1>
 
-
           <p
             className="
               mt-2
-              text-xl
+              break-words
+              text-base
               font-semibold
+              leading-tight
               !text-slate-200
+              sm:text-xl
             "
           >
             เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
           </p>
 
         </div>
-
-
       </div>
-
-
-
 
       {/* Department Cards */}
 
@@ -96,7 +100,6 @@ export default async function DepartmentsPage() {
             "
           >
 
-
             {/* Top Bar */}
 
             <div
@@ -107,8 +110,6 @@ export default async function DepartmentsPage() {
                 to-slate-900
               "
             />
-
-
 
             <div
               className="
@@ -121,7 +122,6 @@ export default async function DepartmentsPage() {
                 text-center
               "
             >
-
 
               {/* Icon */}
 
@@ -147,9 +147,6 @@ export default async function DepartmentsPage() {
                 🏢
               </div>
 
-
-
-
               {/* Name */}
 
               <div>
@@ -165,7 +162,6 @@ export default async function DepartmentsPage() {
                   {department.name}
                 </h2>
 
-
                 <p
                   className="
                     mt-2
@@ -177,12 +173,7 @@ export default async function DepartmentsPage() {
                   คลิกเพื่อดูรายชื่อเจ้าหน้าที่
                 </p>
 
-
               </div>
-
-
-
-
 
               {/* Button */}
 
@@ -206,15 +197,11 @@ export default async function DepartmentsPage() {
                 เปิด
               </span>
 
-
             </div>
-
 
           </Link>
 
         ))}
-
-
 
         {departments.length === 0 && (
 
@@ -238,9 +225,7 @@ export default async function DepartmentsPage() {
 
         )}
 
-
       </div>
-
 
     </div>
   );

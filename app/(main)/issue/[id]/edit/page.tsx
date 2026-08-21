@@ -155,60 +155,97 @@ export default async function EditIssuePage({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
       <div
         className="
           flex
-          items-center
-          justify-between
+          w-full
+          min-w-0
+          flex-col
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-3
+          py-4
+          text-white
           shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:px-6
+          sm:py-5
         "
       >
-        <div>
-          <div
+        <div className="min-w-0">
+
+          <h1
             className="
-              text-lg
+              break-words
+              text-2xl
               font-extrabold
+              leading-tight
               !text-white
+              sm:text-4xl
             "
           >
             🖊️ แก้ไขรายการเบิกพัสดุ
-          </div>
+          </h1>
 
-          <div
+          <p
             className="
               mt-2
-              font-bold
-              text-white
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:text-base
             "
           >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
-          </div>
+          </p>
+
         </div>
 
         <Link
           href="/issue"
           className="
+            w-full
+            shrink-0
             rounded-xl
-            bg-emerald-500
-            px-6
-            py-3
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-4
+            py-2.5
+            text-center
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:w-auto
+            sm:px-5
+            sm:py-3
+            sm:text-base
           "
         >
           ← กลับ
         </Link>
       </div>
+
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
@@ -229,6 +266,7 @@ export default async function EditIssuePage({
           receiveItems={receiveItems}
         />
       </div>
+
     </div>
   );
 }

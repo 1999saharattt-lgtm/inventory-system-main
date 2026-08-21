@@ -48,16 +48,28 @@ const categories: Category[] = [
 
 export default function StockCardHome() {
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
-          flex-col
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -73,7 +85,6 @@ export default function StockCardHome() {
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -91,7 +102,7 @@ export default function StockCardHome() {
             className="
               mt-2
               break-words
-              text-sm
+              text-base
               font-semibold
               leading-tight
               !text-slate-200
@@ -100,11 +111,12 @@ export default function StockCardHome() {
           >
             เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ
           </p>
-
         </div>
       </div>
 
-      {/* Category Cards */}
+      {/* =====================================================
+          Category Cards
+      ===================================================== */}
 
       <div
         className="
@@ -118,9 +130,7 @@ export default function StockCardHome() {
           xl:grid-cols-3
         "
       >
-
         {categories.map((cat) => (
-
           <Link
             key={cat.code}
             href={`/stock-card/${cat.code}`}
@@ -139,6 +149,7 @@ export default function StockCardHome() {
               hover:shadow-2xl
             "
           >
+            {/* แถบด้านบน */}
 
             <div
               className="
@@ -149,6 +160,8 @@ export default function StockCardHome() {
                 sm:h-2
               "
             />
+
+            {/* เนื้อหาการ์ด */}
 
             <div
               className="
@@ -165,6 +178,7 @@ export default function StockCardHome() {
                 sm:p-6
               "
             >
+              {/* Icon */}
 
               <div
                 className="
@@ -191,8 +205,9 @@ export default function StockCardHome() {
                 {cat.icon}
               </div>
 
-              <div className="min-w-0 max-w-full">
+              {/* ข้อความ */}
 
+              <div className="min-w-0 max-w-full">
                 <h2
                   className="
                     mt-1
@@ -222,8 +237,9 @@ export default function StockCardHome() {
                 >
                   คลิกเพื่อดูรายการบัญชีพัสดุ
                 </p>
-
               </div>
+
+              {/* ปุ่มเปิด */}
 
               <span
                 className="
@@ -248,15 +264,10 @@ export default function StockCardHome() {
               >
                 เปิด
               </span>
-
             </div>
-
           </Link>
-
         ))}
-
       </div>
-
     </div>
   );
 }

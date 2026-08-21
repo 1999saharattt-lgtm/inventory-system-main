@@ -35,36 +35,43 @@ export default async function CreateUserPage() {
   await requireRole("ADMIN");
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Header */}
 
       <div
         className="
           flex
-          items-center
-          justify-between
+          w-full
+          min-w-0
+          flex-col
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-8
-          py-6
-          min-h-[140px]
+          p-4
           text-white
           shadow-xl
+          sm:gap-4
+          sm:p-6
+          md:flex-row
+          md:items-center
+          md:justify-between
         "
       >
-
-        <div>
+        <div className="min-w-0 flex-1">
 
           <h1
             className="
-              text-5xl
+              break-words
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
+              sm:text-4xl
+              md:text-5xl
             "
           >
             👤 เพิ่มผู้ใช้งานระบบ
@@ -73,9 +80,13 @@ export default async function CreateUserPage() {
           <p
             className="
               mt-2
-              text-xl
+              break-words
+              text-sm
               font-semibold
+              leading-tight
               !text-slate-200
+              sm:mt-3
+              sm:text-xl
             "
           >
             สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
@@ -86,31 +97,35 @@ export default async function CreateUserPage() {
         <Link
           href="/users"
           className="
+            w-fit
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-3
-            text-lg
+            px-4
+            py-2.5
+            text-sm
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:px-5
+            sm:py-3
+            sm:text-lg
           "
         >
           ← กลับ
         </Link>
-
       </div>
-
 
       {/* Form */}
 
       <div
         className="
           w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-700
@@ -118,8 +133,9 @@ export default async function CreateUserPage() {
           from-slate-950
           via-slate-900
           to-slate-800
-          p-8
+          p-4
           shadow-xl
+          sm:p-8
         "
       >
 
@@ -169,7 +185,6 @@ export default async function CreateUserPage() {
 
           </div>
 
-
           {/* ชื่อ-นามสกุล */}
 
           <div>
@@ -211,7 +226,6 @@ export default async function CreateUserPage() {
 
           </div>
 
-
           {/* Password */}
 
           <div>
@@ -252,7 +266,6 @@ export default async function CreateUserPage() {
             />
 
           </div>
-
 
           {/* สิทธิ์การใช้งาน */}
 
@@ -307,7 +320,6 @@ export default async function CreateUserPage() {
 
           </div>
 
-
           {/* ปุ่ม */}
 
           <div className="pt-4">
@@ -319,14 +331,16 @@ export default async function CreateUserPage() {
                 bg-gradient-to-r
                 from-emerald-600
                 to-green-500
-                px-8
+                px-6
                 py-3
-                text-lg
+                text-base
                 font-extrabold
                 text-white
                 shadow-lg
                 transition
                 hover:scale-105
+                sm:px-8
+                sm:text-lg
               "
             >
               💾 บันทึก

@@ -170,7 +170,9 @@ export default function MobileMenu({
 
   return (
     <>
-      {/* Menu Button */}
+      {/* =====================================================
+          Menu Button
+          ===================================================== */}
 
       <button
         type="button"
@@ -186,6 +188,9 @@ export default function MobileMenu({
           bg-slate-900
           text-white
           shadow-md
+          transition
+          hover:bg-slate-800
+          active:scale-95
           md:hidden
         "
         aria-label="เปิดเมนู"
@@ -193,7 +198,9 @@ export default function MobileMenu({
         <Menu size={22} />
       </button>
 
-      {/* Mobile Drawer */}
+      {/* =====================================================
+          Mobile Drawer
+          ===================================================== */}
 
       {open && (
         <div
@@ -211,6 +218,7 @@ export default function MobileMenu({
               absolute
               inset-0
               bg-black/50
+              backdrop-blur-[1px]
             "
             onClick={() => setOpen(false)}
           />
@@ -236,28 +244,97 @@ export default function MobileMenu({
               shadow-2xl
             "
           >
-            {/* Header */}
+            {/* =================================================
+                Header
+                ================================================= */}
 
             <div
               className="
-                flex
                 shrink-0
-                items-center
-                justify-between
                 border-b
                 border-slate-800
-                p-3
+                bg-gradient-to-r
+                from-slate-950
+                via-slate-900
+                to-slate-800
+                px-3
+                py-3
               "
             >
               <div
                 className="
                   flex
-                  min-w-0
                   items-center
+                  justify-between
                   gap-2
                 "
               >
+                {/* Logo + System Name */}
+
                 <div
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-2.5
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      h-10
+                      w-10
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-white
+                      shadow-md
+                    "
+                  >
+                    <img
+                      src="/images/dohl-logo.png"
+                      alt="กรมอนามัย"
+                      className="
+                        h-8
+                        w-8
+                        object-contain
+                      "
+                    />
+                  </div>
+
+                  <div className="min-w-0">
+                    <div
+                      className="
+                        truncate
+                        text-sm
+                        font-extrabold
+                        leading-tight
+                        !text-white
+                      "
+                    >
+                      ระบบบริหารคลังพัสดุ
+                    </div>
+
+                    <div
+                      className="
+                        mt-0.5
+                        truncate
+                        text-[11px]
+                        font-bold
+                        !text-cyan-400
+                      "
+                    >
+                      สำนักอนามัยการเจริญพันธุ์
+                    </div>
+                  </div>
+                </div>
+
+                {/* Close Button */}
+
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
                   className="
                     flex
                     h-9
@@ -266,66 +343,25 @@ export default function MobileMenu({
                     items-center
                     justify-center
                     rounded-xl
-                    bg-white
+                    border
+                    border-slate-700
+                    bg-slate-800
+                    !text-white
+                    shadow-sm
+                    transition
+                    hover:bg-slate-700
+                    active:scale-95
                   "
+                  aria-label="ปิดเมนู"
                 >
-                  <img
-                    src="/images/dohl-logo.png"
-                    alt="กรมอนามัย"
-                    className="
-                      h-7
-                      w-7
-                      object-contain
-                    "
-                  />
-                </div>
-
-                <div className="min-w-0">
-                  <div
-                    className="
-                      truncate
-                      text-xs
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    ระบบบริหารคลังพัสดุ
-                  </div>
-
-                  <div
-                    className="
-                      truncate
-                      text-[11px]
-                      font-semibold
-                      text-blue-400
-                    "
-                  >
-                    สำนักอนามัยการเจริญพันธุ์
-                  </div>
-                </div>
+                  <X size={19} />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="
-                  flex
-                  h-8
-                  w-8
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-lg
-                  bg-slate-800
-                  text-white
-                "
-                aria-label="ปิดเมนู"
-              >
-                <X size={18} />
-              </button>
             </div>
 
-            {/* Menu */}
+            {/* =================================================
+                Menu
+                ================================================= */}
 
             <nav
               className="
@@ -338,18 +374,22 @@ export default function MobileMenu({
             >
               {visibleMenus.map((group) => (
                 <div key={group.title}>
+                  {/* Group Title */}
+
                   <p
                     className="
                       mb-2
                       px-2
                       text-base
                       font-black
-                      tracking-[0.12em]
+                      tracking-[0.08em]
                       !text-white
                     "
                   >
                     {group.title}
                   </p>
+
+                  {/* Group Items */}
 
                   <div className="space-y-1.5">
                     {group.items.map((item) => {
@@ -379,6 +419,8 @@ export default function MobileMenu({
                             rounded-xl
                             px-3
                             py-2
+                            transition-all
+                            duration-150
 
                             ${
                               active
@@ -387,6 +429,8 @@ export default function MobileMenu({
                             }
                           `}
                         >
+                          {/* Icon */}
+
                           <div
                             className={`
                               flex
@@ -396,6 +440,7 @@ export default function MobileMenu({
                               items-center
                               justify-center
                               rounded-lg
+                              transition
 
                               ${
                                 active
@@ -410,12 +455,14 @@ export default function MobileMenu({
                             />
                           </div>
 
+                          {/* Text */}
+
                           <span
                             className="
                               whitespace-nowrap
                               text-[15px]
                               font-extrabold
-                              text-white
+                              !text-white
                             "
                           >
                             {item.name}

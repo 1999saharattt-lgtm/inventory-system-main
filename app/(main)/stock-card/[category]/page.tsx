@@ -75,38 +75,51 @@ export default async function CategoryPage({
   });
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
+          w-full
+          min-w-0
           flex-col
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-4
+          px-3
+          py-4
           text-white
           shadow-xl
           sm:flex-row
           sm:items-center
           sm:justify-between
-          sm:p-6
+          sm:px-6
+          sm:py-5
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
-              !text-white
+              break-words
               text-2xl
               font-extrabold
               leading-tight
-              sm:text-5xl
+              !text-white
+              sm:text-4xl
             "
           >
             {categoryNames[category]}
@@ -115,22 +128,23 @@ export default async function CategoryPage({
           <p
             className="
               mt-2
-              text-base
+              break-words
+              text-sm
               font-semibold
-              text-slate-200
-              sm:mt-3
-              sm:text-xl
+              leading-tight
+              !text-slate-200
+              sm:text-base
             "
           >
             รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
           </p>
-
         </div>
 
         <Link
           href="/stock-card"
           className="
             w-full
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
@@ -138,32 +152,36 @@ export default async function CategoryPage({
             px-5
             py-2.5
             text-center
-            text-base
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
             sm:w-auto
+            sm:px-6
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ
         </Link>
       </div>
 
-      {/* Search */}
+      {/* =====================================================
+          Search
+      ===================================================== */}
 
       <SearchStockCard
         category={category}
         defaultSearch={search}
       />
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
 
-      <div className="overflow-x-auto">
-
+      <div className="w-full min-w-0 overflow-x-auto">
         <table
           className="
             min-w-[900px]
@@ -172,11 +190,8 @@ export default async function CategoryPage({
             border-collapse
           "
         >
-
           <thead>
-
             <tr>
-
               {[
                 "ลำดับ",
                 "รหัสพัสดุ",
@@ -188,6 +203,7 @@ export default async function CategoryPage({
                 <th
                   key={title}
                   className="
+                    whitespace-nowrap
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -204,17 +220,12 @@ export default async function CategoryPage({
                   {title}
                 </th>
               ))}
-
             </tr>
-
           </thead>
 
           <tbody>
-
             {materials.length === 0 ? (
-
               <tr>
-
                 <td
                   colSpan={6}
                   className="
@@ -229,25 +240,19 @@ export default async function CategoryPage({
                 >
                   ไม่พบข้อมูล
                 </td>
-
               </tr>
-
             ) : (
-
               materials.map((material, index) => {
-
                 const latestReceive = material.receiveItems[0];
 
                 const latestVendor =
                   latestReceive?.receive.vendor?.name ?? "-";
 
                 return (
-
                   <tr
                     key={material.id}
                     className="hover:bg-blue-50"
                   >
-
                     <td
                       className="
                         border
@@ -345,20 +350,13 @@ export default async function CategoryPage({
                         เปิด
                       </Link>
                     </td>
-
                   </tr>
-
                 );
               })
-
             )}
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }

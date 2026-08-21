@@ -2,48 +2,33 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import EditReceiveForm from "./EditReceiveForm";
 
-
 interface Props {
   params: Promise<{
     id: string;
   }>;
 }
 
-
-
 export default async function EditReceivePage({
   params,
 }: Props) {
-
-
   const { id } = await params;
 
-
-
   const receive = await prisma.receive.findUnique({
-
-    where:{
-      id:Number(id),
+    where: {
+      id: Number(id),
     },
 
-    include:{
-
-      items:{
-        include:{
-          material:true,
+    include: {
+      items: {
+        include: {
+          material: true,
         },
       },
-
     },
-
   });
 
-
-
-  if(!receive){
-
+  if (!receive) {
     return (
-
       <div
         className="
           rounded-2xl
@@ -56,148 +41,114 @@ export default async function EditReceivePage({
           text-white
         "
       >
-
         ไม่พบรายการรับเข้าพัสดุ
-
       </div>
-
     );
-
   }
 
-
-
-
   const materials = await prisma.material.findMany({
-
-    orderBy:[
-
+    orderBy: [
       {
-        category:"asc",
+        category: "asc",
       },
-
       {
-        code:"asc",
+        code: "asc",
       },
-
     ],
-
   });
-
-
-
-
 
   const vendors = await prisma.vendor.findMany({
-
-    orderBy:{
-      name:"asc",
+    orderBy: {
+      name: "asc",
     },
-
   });
 
-
-
-
-
-
   return (
-
-    <div className="space-y-6">
-
-
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
 
       {/* Header */}
 
       <div
         className="
           flex
+          min-h-[110px]
+          w-full
+          min-w-0
           items-center
           justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-6
+          px-3
+          py-4
+          text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
         "
       >
-
-
-        <div>
-
+        <div className="min-w-0">
 
           <h1
-  className="
-    text-4xl
-    font-extrabold
-    !text-white
-  "
->
-
+            className="
+              break-words
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-5xl
+            "
+          >
             ✏️ แก้ไขรายการรับเข้าพัสดุ
-
           </h1>
 
-
-
           <p
-  className="
-    mt-2
-    text-lg
-    font-semibold
-    !text-slate-200
-  "
->
-
+            className="
+              mt-2
+              break-words
+              text-base
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:text-xl
+            "
+          >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
-
           </p>
-
-
 
         </div>
 
-
-
-
-
         <Link
-
           href="/receive"
-
           className="
+            shrink-0
             rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-6
-            py-3
+            bg-white
+            px-3
+            py-2
+            text-center
+            text-sm
             font-extrabold
-            text-white
+            text-slate-900
             shadow-lg
             transition
             hover:scale-105
+            hover:bg-slate-100
+            sm:px-5
+            sm:py-3
+            sm:text-lg
           "
-
         >
-
           ← กลับ
-
         </Link>
-
-
 
       </div>
 
-
-
-
-
-
       {/* Form */}
-
 
       <div
         className="
@@ -211,26 +162,13 @@ export default async function EditReceivePage({
           shadow-xl
         "
       >
-
-
         <EditReceiveForm
-
           receive={receive}
-
           vendors={vendors}
-
           materials={materials}
-
         />
-
-
       </div>
 
-
-
-
     </div>
-
   );
-
 }

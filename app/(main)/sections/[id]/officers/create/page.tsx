@@ -60,31 +60,45 @@ export default async function CreateOfficerPage({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
-          items-center
-          justify-between
-          rounded-3xl
+          w-full
+          min-w-0
+          flex-col
+          gap-4
+          rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-7
+          px-4
+          py-5
           text-white
           shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:px-8
+          sm:py-6
         "
       >
-        <div>
+        <div className="min-w-0 flex-1">
+
           <h1
             className="
-              text-5xl
+              break-words
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
+              sm:text-4xl
             "
           >
             👤 เพิ่มรายชื่อเจ้าหน้าที่
@@ -93,51 +107,66 @@ export default async function CreateOfficerPage({
           <p
             className="
               mt-2
-              text-xl
-              font-bold
-              text-slate-200
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:text-lg
             "
           >
             {section.department.name}
             {" / "}
             {section.name}
           </p>
+
         </div>
 
         <Link
           href={`/departments/${departmentId}`}
           className="
+            w-full
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-6
-            py-3
+            px-5
+            py-2.5
+            text-center
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:w-auto
+            sm:px-6
+            sm:py-3
+            sm:text-base
           "
         >
           ← กลับ
         </Link>
       </div>
 
-      {/* Form */}
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
           w-full
-          rounded-3xl
+          rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-950
           via-slate-900
           to-slate-800
-          p-7
+          p-4
           shadow-xl
+          sm:p-7
         "
       >
         <form
@@ -160,9 +189,10 @@ export default async function CreateOfficerPage({
                 className="
                   mb-2
                   block
-                  text-lg
+                  text-base
                   font-extrabold
                   text-white
+                  sm:text-lg
                 "
               >
                 ชื่อ
@@ -179,7 +209,7 @@ export default async function CreateOfficerPage({
                   bg-white
                   px-4
                   py-3
-                  text-lg
+                  text-base
                   font-medium
                   text-slate-900
                   outline-none
@@ -188,6 +218,7 @@ export default async function CreateOfficerPage({
                   focus:outline-none
                   focus:ring-2
                   focus:ring-cyan-400/30
+                  sm:text-lg
                 "
               />
             </div>
@@ -199,9 +230,10 @@ export default async function CreateOfficerPage({
                 className="
                   mb-2
                   block
-                  text-lg
+                  text-base
                   font-extrabold
                   text-white
+                  sm:text-lg
                 "
               >
                 นามสกุล
@@ -218,7 +250,7 @@ export default async function CreateOfficerPage({
                   bg-white
                   px-4
                   py-3
-                  text-lg
+                  text-base
                   font-medium
                   text-slate-900
                   outline-none
@@ -227,6 +259,7 @@ export default async function CreateOfficerPage({
                   focus:outline-none
                   focus:ring-2
                   focus:ring-cyan-400/30
+                  sm:text-lg
                 "
               />
             </div>
@@ -239,9 +272,10 @@ export default async function CreateOfficerPage({
               className="
                 mb-2
                 block
-                text-lg
+                text-base
                 font-extrabold
                 text-white
+                sm:text-lg
               "
             >
               ตำแหน่ง
@@ -258,7 +292,7 @@ export default async function CreateOfficerPage({
                 bg-white
                 px-4
                 py-3
-                text-lg
+                text-base
                 font-medium
                 text-slate-900
                 outline-none
@@ -267,6 +301,7 @@ export default async function CreateOfficerPage({
                 focus:outline-none
                 focus:ring-2
                 focus:ring-cyan-400/30
+                sm:text-lg
               "
             />
           </div>
@@ -278,9 +313,10 @@ export default async function CreateOfficerPage({
               className="
                 mb-2
                 block
-                text-lg
+                text-base
                 font-extrabold
                 text-white
+                sm:text-lg
               "
             >
               ประเภทบุคลากร
@@ -296,7 +332,7 @@ export default async function CreateOfficerPage({
                 bg-white
                 px-4
                 py-3
-                text-lg
+                text-base
                 font-medium
                 text-slate-900
                 outline-none
@@ -305,6 +341,7 @@ export default async function CreateOfficerPage({
                 focus:outline-none
                 focus:ring-2
                 focus:ring-cyan-400/30
+                sm:text-lg
               "
             >
               <option value="CIVIL_SERVANT">
@@ -331,18 +368,21 @@ export default async function CreateOfficerPage({
             <button
               type="submit"
               className="
+                w-full
                 rounded-xl
                 bg-gradient-to-r
                 from-emerald-600
                 to-green-500
                 px-8
                 py-3
-                text-lg
+                text-base
                 font-extrabold
                 text-white
                 shadow-lg
                 transition
-                hover:scale-105
+                hover:scale-[1.02]
+                sm:w-auto
+                sm:text-lg
               "
             >
               💾 บันทึก

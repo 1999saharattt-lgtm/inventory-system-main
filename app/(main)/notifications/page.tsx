@@ -60,94 +60,141 @@ export default async function NotificationsPage() {
     return (
       <div className="space-y-6">
         {/* Header + Summary */}
+
         <div
           className="
-            rounded-2xl
-            border border-slate-700
-            bg-slate-800
-            p-5
-            shadow-lg
+            flex
+            flex-col
+            gap-5
+            rounded-3xl
+            bg-gradient-to-r
+            from-slate-950
+            via-slate-800
+            to-slate-700
+            px-7
+            py-6
+            text-white
+            shadow-xl
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <div
-                className="
-                  flex h-12 w-12 shrink-0
-                  items-center justify-center
-                  rounded-2xl
-                  bg-blue-500/15
-                  !text-blue-400
-                "
-              >
-                <Bell size={26} strokeWidth={2.2} />
-              </div>
+          {/* Header */}
 
-              <div>
-                <h1 className="text-3xl font-extrabold !text-white">
-                  การแจ้งเตือน
-                </h1>
-
-                <p className="mt-1 text-base font-semibold !text-white">
-                  ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
-                </p>
-              </div>
-            </div>
-
-            {/* Summary */}
+          <div className="flex items-center gap-4">
             <div
               className="
-                flex items-center justify-between gap-5
+                flex
+                h-14
+                w-14
+                shrink-0
+                items-center
+                justify-center
                 rounded-2xl
-                border border-orange-500/30
-                bg-slate-700/60
-                px-5 py-4
-                sm:min-w-[230px]
+                bg-blue-500/15
+                !text-blue-400
               "
             >
-              <div>
-                <p className="text-sm font-bold !text-white">
-                  ใบเบิกที่รอดำเนินการ
-                </p>
+              <Bell size={30} strokeWidth={2.2} />
+            </div>
 
-                <p className="mt-1 text-3xl font-extrabold !text-white">
-                  {pendingIssues.length}
-                </p>
-              </div>
-
-              <div
+            <div>
+              <h1
                 className="
-                  flex h-14 w-14 shrink-0
-                  items-center justify-center
-                  rounded-2xl
-                  bg-orange-500/15
-                  !text-orange-400
+                  text-4xl
+                  font-extrabold
+                  leading-tight
+                  !text-white
+                  sm:text-5xl
                 "
               >
-                <PackageMinus size={28} />
-              </div>
+                🔔 การแจ้งเตือน
+              </h1>
+
+              <p
+                className="
+                  mt-2
+                  text-lg
+                  font-bold
+                  !text-slate-200
+                  sm:text-xl
+                "
+              >
+                ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
+              </p>
+            </div>
+          </div>
+
+          {/* Summary */}
+
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-5
+              rounded-2xl
+              border
+              border-orange-500/30
+              bg-slate-700/60
+              px-5
+              py-4
+              sm:min-w-[230px]
+            "
+          >
+            <div>
+              <p className="text-sm font-bold !text-white">
+                ใบเบิกที่รอดำเนินการ
+              </p>
+
+              <p className="mt-1 text-3xl font-extrabold !text-white">
+                {pendingIssues.length}
+              </p>
+            </div>
+
+            <div
+              className="
+                flex
+                h-14
+                w-14
+                shrink-0
+                items-center
+                justify-center
+                rounded-2xl
+                bg-orange-500/15
+                !text-orange-400
+              "
+            >
+              <PackageMinus size={28} />
             </div>
           </div>
         </div>
 
         {/* Notifications */}
+
         <div className="space-y-4">
           {pendingIssues.length === 0 ? (
             <div
               className="
                 rounded-2xl
-                border border-slate-700
+                border
+                border-slate-700
                 bg-slate-800
-                px-6 py-12
+                px-6
+                py-12
                 text-center
                 shadow-lg
               "
             >
               <div
                 className="
-                  mx-auto flex h-16 w-16
-                  items-center justify-center
+                  mx-auto
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
                   rounded-full
                   bg-slate-700
                   !text-white
@@ -170,12 +217,16 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group block rounded-2xl
-                  border border-orange-500/30
+                  group
+                  block
+                  rounded-2xl
+                  border
+                  border-orange-500/30
                   bg-slate-800
                   p-5
                   shadow-lg
-                  transition-all duration-200
+                  transition-all
+                  duration-200
                   hover:-translate-y-0.5
                   hover:border-orange-400/70
                   hover:bg-slate-700
@@ -184,10 +235,15 @@ export default async function NotificationsPage() {
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
+
                   <div
                     className="
-                      flex h-12 w-12 shrink-0
-                      items-center justify-center
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
                       rounded-xl
                       bg-orange-500/15
                       !text-orange-400
@@ -197,6 +253,7 @@ export default async function NotificationsPage() {
                   </div>
 
                   {/* Content */}
+
                   <div className="min-w-0 flex-1 !text-white">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-extrabold !text-white">
@@ -207,8 +264,10 @@ export default async function NotificationsPage() {
                         className="
                           rounded-full
                           bg-orange-500/15
-                          px-3 py-1
-                          text-xs font-extrabold
+                          px-3
+                          py-1
+                          text-xs
+                          font-extrabold
                           !text-white
                         "
                       >
@@ -260,9 +319,11 @@ export default async function NotificationsPage() {
                   </div>
 
                   {/* Arrow */}
+
                   <div
                     className="
-                      hidden shrink-0
+                      hidden
+                      shrink-0
                       !text-white
                       transition-transform
                       group-hover:translate-x-1
@@ -289,34 +350,59 @@ export default async function NotificationsPage() {
     return (
       <div className="space-y-6">
         {/* Header + Message */}
+
         <div
           className="
-            rounded-2xl
-            border border-slate-700
-            bg-slate-800
-            p-5
-            shadow-lg
+            rounded-3xl
+            bg-gradient-to-r
+            from-slate-950
+            via-slate-800
+            to-slate-700
+            px-7
+            py-6
+            text-white
+            shadow-xl
           "
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div
               className="
-                flex h-12 w-12 shrink-0
-                items-center justify-center
+                flex
+                h-14
+                w-14
+                shrink-0
+                items-center
+                justify-center
                 rounded-2xl
                 bg-blue-500/15
                 !text-blue-400
               "
             >
-              <Bell size={26} strokeWidth={2.2} />
+              <Bell size={30} strokeWidth={2.2} />
             </div>
 
             <div>
-              <h1 className="text-3xl font-extrabold !text-white">
-                การแจ้งเตือน
+              <h1
+                className="
+                  text-4xl
+                  font-extrabold
+                  leading-tight
+                  !text-white
+                  sm:text-5xl
+                "
+              >
+                🔔 การแจ้งเตือน
               </h1>
 
-              <p className="mt-1 text-base font-semibold !text-white">
+              <p
+                className="
+                  mt-2
+                  text-lg
+                  font-bold
+                  !text-slate-200
+                  sm:text-xl
+                "
+              >
                 ไม่พบข้อมูลกลุ่มงานของผู้ใช้งาน
               </p>
             </div>
@@ -326,17 +412,23 @@ export default async function NotificationsPage() {
         <div
           className="
             rounded-2xl
-            border border-slate-700
+            border
+            border-slate-700
             bg-slate-800
-            px-6 py-12
+            px-6
+            py-12
             text-center
             shadow-lg
           "
         >
           <div
             className="
-              mx-auto flex h-16 w-16
-              items-center justify-center
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
               rounded-full
               bg-slate-700
               !text-white
@@ -401,98 +493,145 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-6">
       {/* Header + Summary */}
+
       <div
         className="
-          rounded-2xl
-          border border-slate-700
-          bg-slate-800
-          p-5
-          shadow-lg
+          flex
+          flex-col
+          gap-5
+          rounded-3xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-7
+          py-6
+          text-white
+          shadow-xl
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
         "
       >
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          {/* Header */}
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex h-12 w-12 shrink-0
-                items-center justify-center
-                rounded-2xl
-                bg-emerald-500/15
-                !text-emerald-400
-              "
-            >
-              <Bell size={26} strokeWidth={2.2} />
-            </div>
+        {/* Header */}
 
-            <div>
-              <h1 className="text-3xl font-extrabold !text-white">
-                การแจ้งเตือน
-              </h1>
-
-              <p className="mt-1 text-base font-semibold !text-white">
-                ผลการดำเนินการใบเบิกของกลุ่มงาน
-              </p>
-            </div>
-          </div>
-
-          {/* Summary */}
+        <div className="flex items-center gap-4">
           <div
             className="
-              flex items-center justify-between gap-5
+              flex
+              h-14
+              w-14
+              shrink-0
+              items-center
+              justify-center
               rounded-2xl
-              border border-emerald-500/30
-              bg-slate-700/60
-              px-5 py-4
-              sm:min-w-[230px]
+              bg-emerald-500/15
+              !text-emerald-400
             "
           >
-            <div>
-              <p className="text-sm font-bold !text-white">
-                ใบเบิกที่ดำเนินการแล้ว
-              </p>
+            <Bell size={30} strokeWidth={2.2} />
+          </div>
 
-              <p className="mt-1 text-3xl font-extrabold !text-white">
-                {completedIssues.length}
-              </p>
-
-              <p className="mt-1 text-sm font-semibold !text-white">
-                เบิกจ่ายรวม {totalIssuedItems} หน่วย
-              </p>
-            </div>
-
-            <div
+          <div>
+            <h1
               className="
-                flex h-14 w-14 shrink-0
-                items-center justify-center
-                rounded-2xl
-                bg-emerald-500/15
-                !text-emerald-400
+                text-4xl
+                font-extrabold
+                leading-tight
+                !text-white
+                sm:text-5xl
               "
             >
-              <CheckCircle2 size={28} />
-            </div>
+              🔔 การแจ้งเตือน
+            </h1>
+
+            <p
+              className="
+                mt-2
+                text-lg
+                font-bold
+                !text-slate-200
+                sm:text-xl
+              "
+            >
+              ผลการดำเนินการใบเบิกของกลุ่มงาน
+            </p>
+          </div>
+        </div>
+
+        {/* Summary */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-5
+            rounded-2xl
+            border
+            border-emerald-500/30
+            bg-slate-700/60
+            px-5
+            py-4
+            sm:min-w-[230px]
+          "
+        >
+          <div>
+            <p className="text-sm font-bold !text-white">
+              ใบเบิกที่ดำเนินการแล้ว
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold !text-white">
+              {completedIssues.length}
+            </p>
+
+            <p className="mt-1 text-sm font-semibold !text-white">
+              เบิกจ่ายรวม {totalIssuedItems} หน่วย
+            </p>
+          </div>
+
+          <div
+            className="
+              flex
+              h-14
+              w-14
+              shrink-0
+              items-center
+              justify-center
+              rounded-2xl
+              bg-emerald-500/15
+              !text-emerald-400
+            "
+          >
+            <CheckCircle2 size={28} />
           </div>
         </div>
       </div>
 
       {/* Notifications */}
+
       <div className="space-y-4">
         {completedIssues.length === 0 ? (
           <div
             className="
               rounded-2xl
-              border border-slate-700
+              border
+              border-slate-700
               bg-slate-800
-              px-6 py-12
+              px-6
+              py-12
               text-center
               shadow-lg
             "
           >
             <div
               className="
-                mx-auto flex h-16 w-16
-                items-center justify-center
+                mx-auto
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
                 rounded-full
                 bg-slate-700
                 !text-white
@@ -527,12 +666,16 @@ export default async function NotificationsPage() {
                 key={issue.id}
                 href={`/issue/${issue.id}`}
                 className="
-                  group block rounded-2xl
-                  border border-emerald-500/30
+                  group
+                  block
+                  rounded-2xl
+                  border
+                  border-emerald-500/30
                   bg-slate-800
                   p-5
                   shadow-lg
-                  transition-all duration-200
+                  transition-all
+                  duration-200
                   hover:-translate-y-0.5
                   hover:border-emerald-400/70
                   hover:bg-slate-700
@@ -541,10 +684,15 @@ export default async function NotificationsPage() {
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
+
                   <div
                     className="
-                      flex h-12 w-12 shrink-0
-                      items-center justify-center
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
                       rounded-xl
                       bg-emerald-500/15
                       !text-emerald-400
@@ -554,6 +702,7 @@ export default async function NotificationsPage() {
                   </div>
 
                   {/* Content */}
+
                   <div className="min-w-0 flex-1 !text-white">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-extrabold !text-white">
@@ -564,8 +713,10 @@ export default async function NotificationsPage() {
                         className="
                           rounded-full
                           bg-emerald-500/15
-                          px-3 py-1
-                          text-xs font-extrabold
+                          px-3
+                          py-1
+                          text-xs
+                          font-extrabold
                           !text-white
                         "
                       >
@@ -639,9 +790,11 @@ export default async function NotificationsPage() {
                   </div>
 
                   {/* Arrow */}
+
                   <div
                     className="
-                      hidden shrink-0
+                      hidden
+                      shrink-0
                       !text-white
                       transition-transform
                       group-hover:translate-x-1

@@ -189,6 +189,7 @@ export default async function IssueDetailPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+
       {/* =====================================================
           Header
       ===================================================== */}
@@ -199,24 +200,25 @@ export default async function IssueDetailPage({
           w-full
           min-w-0
           flex-col
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-4
-          py-5
+          px-3
+          py-4
           text-white
           shadow-xl
           sm:flex-row
           sm:items-center
           sm:justify-between
-          sm:px-8
-          sm:py-6
+          sm:px-6
+          sm:py-5
         "
       >
-        <div className="min-w-0 text-white">
+        <div className="min-w-0">
+
           <h1
             className="
               break-words
@@ -237,12 +239,13 @@ export default async function IssueDetailPage({
               text-sm
               font-semibold
               leading-tight
-              !text-white
-              sm:text-lg
+              !text-slate-200
+              sm:text-base
             "
           >
             รายละเอียดรายการเบิกจ่ายพัสดุ
           </p>
+
         </div>
 
         <Link
@@ -254,7 +257,7 @@ export default async function IssueDetailPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
+            px-4
             py-2.5
             text-center
             text-sm
@@ -264,7 +267,7 @@ export default async function IssueDetailPage({
             transition
             hover:scale-105
             sm:w-auto
-            sm:px-6
+            sm:px-5
             sm:py-3
             sm:text-base
           "
