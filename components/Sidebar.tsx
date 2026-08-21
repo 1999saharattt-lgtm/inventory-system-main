@@ -144,6 +144,30 @@ export default function Sidebar({ role }: SidebarProps) {
       ],
     },
 
+    // =====================================================
+    // กลุ่มงาน
+    //
+    // ให้ STAFF / VIEWER เห็นเมนูนี้โดยตรง
+    // ไม่ต้องอยู่ใต้ "ผู้ดูแลระบบ"
+    // =====================================================
+
+    {
+      title: "หน่วยงาน",
+      items: [
+        {
+          name: "กลุ่มงาน",
+          href: "/departments",
+          icon: Building2,
+        },
+      ],
+    },
+
+    // =====================================================
+    // ผู้ดูแลระบบ
+    //
+    // เฉพาะ ADMIN
+    // =====================================================
+
     {
       title: "ผู้ดูแลระบบ",
       adminOnly: true,
@@ -152,11 +176,6 @@ export default function Sidebar({ role }: SidebarProps) {
           name: "ผู้จำหน่าย",
           href: "/vendors",
           icon: Truck,
-        },
-        {
-          name: "กลุ่มงาน",
-          href: "/departments",
-          icon: Building2,
         },
         {
           name: "ผู้ใช้งานระบบ",
@@ -383,6 +402,7 @@ export default function Sidebar({ role }: SidebarProps) {
                     </div>
 
                     {/* จำนวนแจ้งเตือน */}
+
                     {isNotification &&
                       notificationCount > 0 && (
                         <span
