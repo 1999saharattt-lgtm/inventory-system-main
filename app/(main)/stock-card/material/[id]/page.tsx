@@ -88,10 +88,9 @@ export default async function StockCardPage({ params }: Props) {
   const latestVendor =
     latestReceiveItem?.receive.vendor?.name ?? "-";
 
-  const latestPrice =
-    latestReceiveItem
-      ? Number(latestReceiveItem.unitPrice)
-      : 0;
+  const latestPrice = latestReceiveItem
+    ? Number(latestReceiveItem.unitPrice)
+    : 0;
 
   // ==========================================
   // สร้างข้อมูลล็อตสำหรับจำลอง FEFO
@@ -108,7 +107,13 @@ export default async function StockCardPage({ params }: Props) {
 
   // ==========================================
   // รวมรายการรับเข้าและรายการเบิกจ่าย
-  // แล้วเรียงตามวันที่
+  //
+  // สำคัญ:
+  // Stock Card ต้องนำเฉพาะ Issue ที่ APPROVED
+  // มาคำนวณและแสดงเป็นรายการเบิกจ่าย
+  //
+  // PENDING = ยังไม่อนุมัติ
+  // APPROVED = อนุมัติและตัดสต็อกแล้ว
   // ==========================================
 
   const events = [
@@ -118,11 +123,16 @@ export default async function StockCardPage({ params }: Props) {
       item,
     })),
 
-    ...material.issueItems.map((item) => ({
-      type: "issue" as const,
-      date: item.issue.issueDate,
-      item,
-    })),
+    ...material.issueItems
+      .filter(
+        (item) =>
+          item.issue.status === "APPROVED"
+      )
+      .map((item) => ({
+        type: "issue" as const,
+        date: item.issue.issueDate,
+        item,
+      })),
   ].sort((a, b) => {
     const dateDiff =
       new Date(a.date).getTime() -
@@ -165,6 +175,8 @@ export default async function StockCardPage({ params }: Props) {
   // ==========================================
   // จำลองการเคลื่อนไหวของสต็อก
   // ตามลำดับเวลาจริง
+  //
+  // เฉพาะ APPROVED เท่านั้นที่จะตัดล็อต
   // ==========================================
 
   for (const event of events) {
@@ -183,8 +195,9 @@ export default async function StockCardPage({ params }: Props) {
 
     const issueItem = event.item;
 
-    let remainingQty =
-      Number(issueItem.qty);
+    let remainingQty = Number(
+      issueItem.issuedQty ?? issueItem.qty
+    );
 
     const availableLots = lots
       .filter(
@@ -221,19 +234,17 @@ export default async function StockCardPage({ params }: Props) {
           return a.id - b.id;
         }
 
-        const aExpiry =
-          a.expiry
-            ? new Date(
-                a.expiry
-              ).getTime()
-            : Number.MAX_SAFE_INTEGER;
+        const aExpiry = a.expiry
+          ? new Date(
+              a.expiry
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
 
-        const bExpiry =
-          b.expiry
-            ? new Date(
-                b.expiry
-              ).getTime()
-            : Number.MAX_SAFE_INTEGER;
+        const bExpiry = b.expiry
+          ? new Date(
+              b.expiry
+            ).getTime()
+          : Number.MAX_SAFE_INTEGER;
 
         if (
           aExpiry !== bExpiry
@@ -274,35 +285,27 @@ export default async function StockCardPage({ params }: Props) {
     let selectedLot: Lot | null =
       null;
 
-    for (
-      const lot of availableLots
-    ) {
+    for (const lot of availableLots) {
       if (
         remainingQty <= 0
       ) {
         break;
       }
 
-      const issueQty =
-        Math.min(
-          remainingQty,
-          lot.qty
-        );
+      const issueQty = Math.min(
+        remainingQty,
+        lot.qty
+      );
 
-      if (
-        !selectedLot
-      ) {
+      if (!selectedLot) {
         selectedLot = lot;
       }
 
       lot.qty -= issueQty;
-
       remainingQty -= issueQty;
     }
 
-    if (
-      selectedLot
-    ) {
+    if (selectedLot) {
       issueLotMap.set(
         issueItem.id,
         {
@@ -318,57 +321,85 @@ export default async function StockCardPage({ params }: Props) {
 
   // ==========================================
   // สร้างข้อมูล Stock Card
+  //
+  // รับเข้า = แสดงทั้งหมด
+  // เบิกจ่าย = แสดงเฉพาะ APPROVED
   // ==========================================
 
   const rows = [
     ...material.receiveItems.map((item) => ({
       date: item.receive.receiveDate,
 
-      documentNo: item.receive.documentNo,
+      documentNo:
+        item.receive.documentNo,
 
       owner:
-        item.receive.vendor?.name ?? "-",
+        item.receive.vendor?.name ??
+        "-",
 
-      unitPrice: Number(item.unitPrice),
+      unitPrice: Number(
+        item.unitPrice
+      ),
 
       receiveQty: item.qty,
 
       issueQty: 0,
 
-      manufacture: item.manufacture,
+      manufacture:
+        item.manufacture,
 
       expiry: item.expiry,
     })),
 
-    ...material.issueItems.map((item) => {
-      const lot =
-        issueLotMap.get(item.id);
+    ...material.issueItems
+      .filter(
+        (item) =>
+          item.issue.status ===
+          "APPROVED"
+      )
+      .map((item) => {
+        const lot =
+          issueLotMap.get(
+            item.id
+          );
 
-      return {
-        date: item.issue.issueDate,
+        return {
+          date:
+            item.issue.issueDate,
 
-        documentNo: item.issue.documentNo,
+          documentNo:
+            item.issue.documentNo,
 
-        owner:
-          item.issue.department?.name ?? "-",
+          owner:
+            item.issue.department
+              ?.name ?? "-",
 
-        unitPrice: latestPrice,
+          unitPrice:
+            latestPrice,
 
-        receiveQty: 0,
+          receiveQty: 0,
 
-        issueQty: item.qty,
+          issueQty: Number(
+            item.issuedQty ??
+              item.qty
+          ),
 
-        manufacture:
-          lot?.manufacture ?? null,
+          manufacture:
+            lot?.manufacture ??
+            null,
 
-        expiry:
-          lot?.expiry ?? null,
-      };
-    }),
+          expiry:
+            lot?.expiry ?? null,
+        };
+      }),
   ].sort(
     (a, b) =>
-      new Date(a.date).getTime() -
-      new Date(b.date).getTime()
+      new Date(
+        a.date
+      ).getTime() -
+      new Date(
+        b.date
+      ).getTime()
   );
 
   // ==========================================
@@ -377,16 +408,18 @@ export default async function StockCardPage({ params }: Props) {
 
   let balance = 0;
 
-  const stockRows = rows.map((row) => {
-    balance += row.receiveQty;
+  const stockRows = rows.map(
+    (row) => {
+      balance += row.receiveQty;
 
-    balance -= row.issueQty;
+      balance -= row.issueQty;
 
-    return {
-      ...row,
-      balance,
-    };
-  });
+      return {
+        ...row,
+        balance,
+      };
+    }
+  );
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
@@ -574,7 +607,9 @@ export default async function StockCardPage({ params }: Props) {
                 sm:text-xl
               "
             >
-              {categoryName[material.category] ??
+              {categoryName[
+                material.category
+              ] ??
                 material.category ??
                 "-"}
             </p>
@@ -654,10 +689,13 @@ export default async function StockCardPage({ params }: Props) {
               "
             >
               {latestReceiveItem
-                ? latestPrice.toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
+                ? latestPrice.toLocaleString(
+                    "th-TH",
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )
                 : "-"}{" "}
               บาท
             </p>
@@ -755,193 +793,209 @@ export default async function StockCardPage({ params }: Props) {
                   </td>
                 </tr>
               ) : (
-                stockRows.map((row, index) => (
-                  <tr
-                    key={index}
-                    className="
-                      border
-                      border-slate-900
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td
+                stockRows.map(
+                  (row, index) => (
+                    <tr
+                      key={index}
                       className="
-                        whitespace-nowrap
                         border
                         border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
+                        hover:bg-blue-50
                       "
                     >
-                      {formatDateAD(row.date)}
-                    </td>
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {formatDateAD(
+                          row.date
+                        )}
+                      </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.documentNo}
-                    </td>
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.documentNo}
+                      </td>
 
-                    <td
-                      className="
-                        max-w-[180px]
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:max-w-none
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.owner}
-                    </td>
+                      <td
+                        className="
+                          max-w-[180px]
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:max-w-none
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.owner}
+                      </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-right
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {Number(row.unitPrice).toLocaleString(
-                        "th-TH",
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }
-                      )}
-                    </td>
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-right
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {Number(
+                          row.unitPrice
+                        ).toLocaleString(
+                          "th-TH",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.receiveQty > 0 ? row.receiveQty : "-"}
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-extrabold
+                          text-slate-900
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.receiveQty >
+                        0
+                          ? row.receiveQty
+                          : "-"}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.issueQty > 0 ? row.issueQty : "-"}
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-extrabold
+                          text-slate-900
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.issueQty >
+                        0
+                          ? row.issueQty
+                          : "-"}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.balance}
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-extrabold
+                          text-slate-900
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.balance}
+                      </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.manufacture
-                        ? formatDateAD(row.manufacture)
-                        : "-"}
-                    </td>
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.manufacture
+                          ? formatDateAD(
+                              row.manufacture
+                            )
+                          : "-"}
+                      </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.expiry
-                        ? formatDateAD(row.expiry)
-                        : "-"}
-                    </td>
-                  </tr>
-                ))
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-slate-900
+                          px-2
+                          py-2.5
+                          text-center
+                          text-xs
+                          font-semibold
+                          text-slate-700
+                          sm:px-4
+                          sm:py-3
+                          sm:text-base
+                        "
+                      >
+                        {row.expiry
+                          ? formatDateAD(
+                              row.expiry
+                            )
+                          : "-"}
+                      </td>
+                    </tr>
+                  )
+                )
               )}
             </tbody>
           </table>
@@ -964,7 +1018,8 @@ export default async function StockCardPage({ params }: Props) {
           material={{
             ...material,
             vendor:
-              latestReceiveItem?.receive.vendor ?? null,
+              latestReceiveItem?.receive.vendor ??
+              null,
             latestPrice,
           }}
           rows={stockRows}
@@ -974,7 +1029,8 @@ export default async function StockCardPage({ params }: Props) {
           material={{
             ...material,
             vendor:
-              latestReceiveItem?.receive.vendor ?? null,
+              latestReceiveItem?.receive.vendor ??
+              null,
             latestPrice,
           }}
           rows={stockRows}
