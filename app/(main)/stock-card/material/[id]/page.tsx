@@ -429,26 +429,27 @@ export default async function StockCardPage({ params }: Props) {
       <div 
         className=" 
           flex 
+          min-h-[110px] 
           w-full 
           min-w-0 
-          flex-col 
+          items-center 
+          justify-between 
           gap-3 
           rounded-2xl 
           bg-gradient-to-r 
           from-slate-950 
           via-slate-800 
           to-slate-700 
-          p-4 
+          px-3 
+          py-4 
           text-white 
           shadow-xl 
-          sm:gap-4 
-          sm:p-6 
-          md:flex-row 
-          md:items-center 
-          md:justify-between 
+          sm:min-h-[140px] 
+          sm:px-8 
+          sm:py-6 
         " 
       > 
-        <div className="min-w-0 flex-1"> 
+        <div className="min-w-0"> 
           <h1 
             className=" 
               break-words 
@@ -456,8 +457,7 @@ export default async function StockCardPage({ params }: Props) {
               font-extrabold 
               leading-tight 
               !text-white 
-              sm:text-4xl 
-              md:text-5xl 
+              sm:text-5xl 
             " 
           > 
             📒 บัญชีพัสดุ 
@@ -467,11 +467,10 @@ export default async function StockCardPage({ params }: Props) {
             className=" 
               mt-2 
               break-words 
-              text-sm 
+              text-base 
               font-semibold 
               leading-tight 
-              text-slate-200 
-              sm:mt-3 
+              !text-slate-200 
               sm:text-xl 
             " 
           > 
@@ -482,14 +481,14 @@ export default async function StockCardPage({ params }: Props) {
         <Link 
           href={`/stock-card/${material.category}`} 
           className=" 
-            w-fit 
             shrink-0 
             rounded-xl 
             bg-gradient-to-r 
             from-emerald-600 
             to-green-500 
-            px-4 
-            py-2.5 
+            px-3 
+            py-2 
+            text-center 
             text-sm 
             font-extrabold 
             text-white 
