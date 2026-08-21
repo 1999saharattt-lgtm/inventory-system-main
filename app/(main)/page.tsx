@@ -69,7 +69,7 @@ export default async function Home() {
     },
 
     {
-      title: "พัสดุใกล้หมด",
+      title: "จำนวนพัสดุใกล้หมด",
       value: lowStock,
       unit: "รายการ",
       icon: "⚠️",

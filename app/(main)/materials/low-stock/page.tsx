@@ -40,10 +40,15 @@ export default async function LowStockPage({
   const params = await searchParams;
   const search = (params.q ?? "").trim().toLowerCase();
 
+  // =====================================================
+  // ดึงเฉพาะพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10
+  // แสดงตั้งแต่ 0 - 9
+  // =====================================================
+
   const materials = await prisma.material.findMany({
     where: {
       balance: {
-        lte: prisma.material.fields.minimumStock,
+        lt: 10,
       },
     },
 
@@ -161,8 +166,21 @@ export default async function LowStockPage({
               sm:text-5xl
             "
           >
-            ⚠️ พัสดุใกล้หมด
+            ⚠️ รายการพัสดุใกล้หมด
           </h1>
+
+          <p
+            className="
+              mt-2
+              break-words
+              text-base
+              font-bold
+              !text-slate-200
+              sm:text-xl
+            "
+          >
+            แสดงรายการพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10
+          </p>
         </div>
 
         <Link
@@ -273,8 +291,8 @@ export default async function LowStockPage({
                   text-white
                   shadow
                   transition
-                  hover:bg-slate-700
                   hover:scale-105
+                  hover:bg-slate-700
                   active:scale-95
                 "
               >
@@ -577,6 +595,7 @@ export default async function LowStockPage({
                           px-4
                           py-3
                           text-center
+                          text-lg
                           font-extrabold
                           text-red-700
                         "
@@ -675,7 +694,7 @@ export default async function LowStockPage({
           >
             {search
               ? "ลองค้นหาด้วยรหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่ายอื่น"
-              : "ขณะนี้พัสดุทุกรายการมีจำนวนมากกว่าจุดขั้นต่ำ"}
+              : "ขณะนี้พัสดุทุกรายการมีจำนวนคงเหลือตั้งแต่ 10 รายการขึ้นไป"}
           </p>
         </div>
       )}
