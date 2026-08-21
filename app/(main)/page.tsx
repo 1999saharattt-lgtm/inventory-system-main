@@ -40,42 +40,31 @@ export default async function Home() {
       unit: "รายการ",
       icon: "📦",
       color: "bg-blue-600",
-      bg: "bg-blue-100",
-      border: "border-blue-200",
       hover: "hover:border-blue-300",
       href: "/materials/summary",
     },
-
     {
       title: "รับเข้าวันนี้",
       value: receiveToday,
       unit: "ใบรับเข้า",
       icon: "📥",
       color: "bg-emerald-600",
-      bg: "bg-emerald-100",
-      border: "border-emerald-200",
       hover: "hover:border-emerald-300",
     },
-
     {
       title: "เบิกจ่ายวันนี้",
       value: issueToday,
       unit: "ใบเบิกจ่าย",
       icon: "📤",
       color: "bg-amber-600",
-      bg: "bg-amber-100",
-      border: "border-amber-200",
       hover: "hover:border-amber-300",
     },
-
     {
       title: "จำนวนพัสดุใกล้หมด",
       value: lowStock,
       unit: "รายการ",
       icon: "⚠️",
       color: "bg-red-600",
-      bg: "bg-red-100",
-      border: "border-red-200",
       hover: "hover:border-red-300",
       href: "/materials/low-stock",
     },
@@ -128,8 +117,7 @@ export default async function Home() {
           "
         />
 
-        {/* ยินดีต้อนรับ */}
-
+        {/* ขนาดเท่ากับชื่อหน่วยงาน */}
         <h1
           className="
             break-words
@@ -142,8 +130,7 @@ export default async function Home() {
           👋 ยินดีต้อนรับ
         </h1>
 
-        {/* ชื่อหน่วยงาน */}
-
+        {/* ขนาดเดียวกับ ยินดีต้อนรับ */}
         <p
           className="
             mt-2
@@ -306,8 +293,7 @@ export default async function Home() {
             sm:py-5
           "
         >
-          {/* ข้อมูลระบบ */}
-
+          {/* ขนาดเท่ากับ ยินดีต้อนรับ และชื่อหน่วยงาน */}
           <h2
             className="
               text-2xl
