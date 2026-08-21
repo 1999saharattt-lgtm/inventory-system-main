@@ -355,15 +355,6 @@ export default function IssuePdf({
 
       {/* =====================================================
           พื้นที่สร้าง PDF
-
-          ไม่แสดงบนหน้าเว็บ
-          แต่ยังคง render DOM ไว้เพื่อให้ html2canvas
-          สามารถนำไปสร้าง PDF ได้
-
-          ห้ามใช้ display:none
-          เพราะ html2canvas จะไม่สามารถจับภาพได้
-
-          จึงย้ายเอกสารออกไปนอกพื้นที่มองเห็นแทน
       ===================================================== */}
 
       <div
@@ -415,7 +406,7 @@ export default function IssuePdf({
                 right-0
                 top-0
                 whitespace-nowrap
-                text-[16px]
+                text-[21px]
                 leading-none
                 text-black
               "
@@ -429,7 +420,7 @@ export default function IssuePdf({
               className="
                 pt-[1mm]
                 text-center
-                text-[17px]
+                text-[21px]
                 font-bold
                 leading-none
                 text-black
@@ -462,7 +453,7 @@ export default function IssuePdf({
                 left-0
                 max-w-[135mm]
                 whitespace-nowrap
-                text-[16px]
+                text-[21px]
                 leading-none
                 text-black
               "
@@ -479,7 +470,7 @@ export default function IssuePdf({
                 bottom-[2mm]
                 right-0
                 whitespace-nowrap
-                text-[16px]
+                text-[21px]
                 leading-none
                 text-black
               "
@@ -495,7 +486,7 @@ export default function IssuePdf({
           <div
             className="
               mb-[4mm]
-              text-[16px]
+              text-[21px]
               leading-none
               text-black
             "
@@ -535,8 +526,6 @@ export default function IssuePdf({
                     height: "8mm",
                   }}
                 >
-                  {/* ลำดับ */}
-
                   <th
                     className="
                       w-[7%]
@@ -552,8 +541,6 @@ export default function IssuePdf({
                       ลำดับ
                     </span>
                   </th>
-
-                  {/* หมวดหมู่ */}
 
                   <th
                     className="
@@ -571,8 +558,6 @@ export default function IssuePdf({
                     </span>
                   </th>
 
-                  {/* รายการพัสดุ */}
-
                   <th
                     className="
                       w-[37%]
@@ -588,8 +573,6 @@ export default function IssuePdf({
                       รายการพัสดุ
                     </span>
                   </th>
-
-                  {/* จำนวนที่ขอเบิก */}
 
                   <th
                     className="
@@ -607,8 +590,6 @@ export default function IssuePdf({
                     </span>
                   </th>
 
-                  {/* จำนวนที่เบิกจ่าย */}
-
                   <th
                     className="
                       w-[13%]
@@ -624,8 +605,6 @@ export default function IssuePdf({
                       จำนวนที่เบิกจ่าย
                     </span>
                   </th>
-
-                  {/* หน่วย */}
 
                   <th
                     className="
@@ -654,10 +633,6 @@ export default function IssuePdf({
                     }
                     style={getRowStyle(item)}
                   >
-                    {/* =================================================
-                        ลำดับ
-                    ================================================= */}
-
                     <td
                       className="
                         border
@@ -672,10 +647,6 @@ export default function IssuePdf({
                         {index + 1}
                       </span>
                     </td>
-
-                    {/* =================================================
-                        หมวดหมู่
-                    ================================================= */}
 
                     <td
                       className="
@@ -701,13 +672,6 @@ export default function IssuePdf({
                       </span>
                     </td>
 
-                    {/* =================================================
-                        รายการพัสดุ
-
-                        ใช้ font 16px มาตรฐาน
-                        ชื่อยาวสามารถขึ้น 2 บรรทัด
-                    ================================================= */}
-
                     <td
                       className="
                         border
@@ -729,10 +693,6 @@ export default function IssuePdf({
                       ) : null}
                     </td>
 
-                    {/* =================================================
-                        จำนวนที่ขอเบิก
-                    ================================================= */}
-
                     <td
                       className="
                         border
@@ -748,15 +708,8 @@ export default function IssuePdf({
                       </span>
                     </td>
 
-                    {/* =================================================
-                        จำนวนที่เบิกจ่ายจริง
-
-                        PDF ใบเบิกจะแสดงช่องนี้ว่างเสมอ
-                        ไม่ว่ารายการจะลงเบิกจ่ายจริงแล้วหรือไม่
-                        
-                        ไม่กระทบข้อมูล issuedQty ในระบบ
-                    ================================================= */}
-
+                    {/* จำนวนที่เบิกจ่ายจริง
+                        ตั้งใจเว้นว่างเสมอใน PDF */}
                     <td
                       className="
                         border
@@ -771,10 +724,6 @@ export default function IssuePdf({
                         {""}
                       </span>
                     </td>
-
-                    {/* =================================================
-                        หน่วย
-                    ================================================= */}
 
                     <td
                       className="
@@ -802,6 +751,7 @@ export default function IssuePdf({
 
           {/* =====================================================
               หลังตาราง
+              ใช้ 21px เท่ากับ "ใบเบิกพัสดุ"
           ===================================================== */}
 
           <div
@@ -810,7 +760,7 @@ export default function IssuePdf({
               flex
               justify-between
               px-[2mm]
-              text-[16px]
+              text-[21px]
               leading-none
               text-black
             "
@@ -832,7 +782,7 @@ export default function IssuePdf({
             className="
               mt-[2.5mm]
               px-[2mm]
-              text-[16px]
+              text-[21px]
               leading-none
               text-black
             "
@@ -852,7 +802,7 @@ export default function IssuePdf({
               grid-cols-2
               gap-x-[15mm]
               px-[8mm]
-              text-[16px]
+              text-[21px]
               leading-none
               text-black
             "
