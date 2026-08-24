@@ -62,19 +62,6 @@ export default async function IssueDetailPage({
   const { id } = await params;
 
   // =====================================================
-  // ตรวจสอบ ID จาก URL
-  //
-  // ใช้ Number() เพื่อให้ค่าที่ส่งเข้า Prisma
-  // เป็นตัวเลขจริง และป้องกัน undefined / NaN
-  // =====================================================
-
-  const issueId = Number(id);
-
-  if (!Number.isInteger(issueId) || issueId <= 0) {
-    notFound();
-  }
-
-  // =====================================================
   // Session
   // =====================================================
 
@@ -105,7 +92,7 @@ export default async function IssueDetailPage({
 
   const issue = await prisma.issue.findUnique({
     where: {
-      id: issueId,
+      id: Number(id),
     },
 
     include: {
@@ -441,6 +428,9 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ข้อมูลใบเบิก
+          
+          Export PDF อยู่ในกรอบเดียวกัน
+          และอยู่มุมขวาบน
       ===================================================== */}
 
       <div
@@ -459,6 +449,10 @@ export default async function IssueDetailPage({
           sm:p-6
         "
       >
+        {/* =================================================
+            Header ของกรอบข้อมูลใบเบิก
+        ================================================= */}
+
         <div
           className="
             mb-5
@@ -498,6 +492,12 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* =================================================
+              Export PDF
+              
+              อยู่มุมขวาบนของกรอบข้อมูลใบเบิก
+          ================================================= */}
+
           <div
             className="
               w-full
@@ -516,6 +516,10 @@ export default async function IssueDetailPage({
           </div>
         </div>
 
+        {/* =================================================
+            ข้อมูลใบเบิก
+        ================================================= */}
+
         <div
           className="
             grid
@@ -523,6 +527,8 @@ export default async function IssueDetailPage({
             sm:grid-cols-2
           "
         >
+          {/* เลขที่เอกสาร */}
+
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
               เลขที่เอกสาร
@@ -541,6 +547,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* วันที่เบิก */}
+
           <div>
             <p className="font-extrabold !text-white">
               วันที่เบิก
@@ -552,6 +560,8 @@ export default async function IssueDetailPage({
               ).toLocaleDateString("th-TH")}
             </p>
           </div>
+
+          {/* หน่วยงาน / กลุ่มงาน */}
 
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
@@ -570,6 +580,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* ผู้ขอเบิก */}
+
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
               ผู้ขอเบิก
@@ -587,6 +599,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* จำนวนรายการ */}
+
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรายการ
@@ -597,6 +611,8 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
+          {/* จำนวนรวมที่ขอเบิก */}
+
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรวมที่ขอเบิก
@@ -606,6 +622,8 @@ export default async function IssueDetailPage({
               {totalRequested} หน่วย
             </p>
           </div>
+
+          {/* จำนวนรวมที่เบิกจ่ายจริง */}
 
           <div>
             <p className="font-extrabold !text-white">
