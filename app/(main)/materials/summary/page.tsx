@@ -194,17 +194,14 @@ export default async function MaterialsSummaryPage() {
 
         {/* =====================================================
             Materials Summary
-            ไม่ครอบด้วยกรอบซ้ำ
         ===================================================== */}
 
-        <div className="w-full min-w-0">
-          <MaterialsSummaryClient
-            materials={data}
-            categories={categories}
-            categoryName={categoryName}
-            role={role}
-          />
-        </div>
+        <MaterialsSummaryClient
+          materials={data}
+          categories={categories}
+          categoryName={categoryName}
+          role={role}
+        />
       </div>
     );
   }

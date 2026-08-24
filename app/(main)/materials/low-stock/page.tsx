@@ -402,8 +402,6 @@ export default async function LowStockPage({
 
             {/* =================================================
                 Table
-                ไม่มีกรอบ wrapper ซ้ำ
-                table เป็นเจ้าของกรอบเพียงตัวเดียว
             ================================================= */}
 
             <div
@@ -420,8 +418,6 @@ export default async function LowStockPage({
                   w-full
                   min-w-[900px]
                   border-collapse
-                  border-2
-                  border-black
                   bg-white
                 "
               >
@@ -674,26 +670,6 @@ export default async function LowStockPage({
                     </tr>
                   ))}
                 </tbody>
-
-                {/* =================================================
-                    เส้นปิดท้ายตารางสีดำ
-                ================================================= */}
-
-                <tfoot>
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="
-                        h-0
-                        border-0
-                        border-b-2
-                        border-black
-                        bg-white
-                        p-0
-                      "
-                    />
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </section>
