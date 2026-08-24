@@ -177,8 +177,9 @@ export default async function CategoryPage({
 
       {/* =====================================================
           Table
-          table เป็นเจ้าของกรอบเอง
-          ไม่มี wrapper ที่สร้างกรอบซ้ำ
+          ไม่มีกรอบ wrapper ซ้ำ
+          ไม่มีเส้น div แยกออกจาก table
+          เส้นล่างใช้ border ของ td แถวสุดท้าย
       ===================================================== */}
 
       <div
@@ -195,8 +196,6 @@ export default async function CategoryPage({
             w-full
             min-w-[900px]
             border-collapse
-            border-b-2
-            border-black
             bg-white
           "
         >
@@ -259,6 +258,12 @@ export default async function CategoryPage({
                 const latestVendor =
                   latestReceive?.receive.vendor?.name ?? "-";
 
+                const isLastRow = index === materials.length - 1;
+
+                const bottomBorder = isLastRow
+                  ? "border-b-2 border-b-black"
+                  : "";
+
                 return (
                   <tr
                     key={material.id}
@@ -269,7 +274,7 @@ export default async function CategoryPage({
                     "
                   >
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
@@ -277,13 +282,14 @@ export default async function CategoryPage({
                         py-3
                         text-center
                         font-bold
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       {index + 1}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
@@ -291,56 +297,61 @@ export default async function CategoryPage({
                         py-3
                         text-center
                         font-bold
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       {material.code}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         border
                         border-black
                         px-3
                         py-3
                         font-semibold
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       {material.name}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
                         px-3
                         py-3
                         text-center
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       {material.unit}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         border
                         border-black
                         px-3
                         py-3
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       {latestVendor}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
                         px-3
                         py-3
                         text-center
-                      "
+                        ${bottomBorder}
+                      `}
                     >
                       <Link
                         href={`/stock-card/material/${material.id}`}
@@ -372,28 +383,3 @@ export default async function CategoryPage({
     </div>
   );
 }
-
-**จุดที่เปลี่ยนจริง ๆ อยู่ตรงนี้เท่านั้น:**
-
-<table
-  className="
-    w-full
-    min-w-[900px]
-    border-collapse
-    border-b-2
-    border-black
-    bg-white
-  "
->
-
-และ **ลบอันนี้ออกทั้งหมด**:
-
-```tsx
-<div
-  className="
-    h-[2px]
-    w-full
-    min-w-[900px]
-    bg-black
-  "
-/>
