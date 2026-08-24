@@ -177,7 +177,8 @@ export default async function CategoryPage({
 
       {/* =====================================================
           Table
-          ไม่มีกรอบ wrapper ซ้ำ
+          ไม่มีกรอบ wrapper
+          ไม่มี border รอบนอกของ table
       ===================================================== */}
 
       <div
@@ -194,8 +195,6 @@ export default async function CategoryPage({
             w-full
             min-w-[900px]
             border-collapse
-            border
-            border-black
             bg-white
           "
         >
@@ -368,29 +367,21 @@ export default async function CategoryPage({
               })
             )}
           </tbody>
-
-          {/* =================================================
-              เส้นปิดท้ายตารางสีดำ
-          ================================================= */}
-
-          <tfoot>
-            <tr>
-              <td
-                colSpan={6}
-                className="
-                  border-0
-                  border-b-2
-                  border-b-black
-                  bg-white
-                  p-0
-                "
-                style={{
-                  height: "2px",
-                }}
-              />
-            </tr>
-          </tfoot>
         </table>
+
+        {/* =====================================================
+            เส้นปิดท้ายตารางสีดำ
+            แยกออกจาก table เพื่อไม่ให้ border-collapse กลืนเส้น
+        ===================================================== */}
+
+        <div
+          className="
+            h-[2px]
+            w-full
+            min-w-[900px]
+            bg-black
+          "
+        />
       </div>
     </div>
   );
