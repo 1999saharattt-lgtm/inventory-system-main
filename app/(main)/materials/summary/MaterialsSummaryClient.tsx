@@ -190,8 +190,6 @@ export default function MaterialsSummaryClient({
               className="
                 overflow-hidden
                 rounded-2xl
-                border
-                border-slate-300
                 bg-white
                 shadow-lg
               "
@@ -408,24 +406,6 @@ export default function MaterialsSummaryClient({
                       ))
                     )}
                   </tbody>
-
-                  {/* =====================================================
-                      ปิดเส้นล่างของตารางให้เป็นสีดำ
-                  ===================================================== */}
-
-                  <tfoot>
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="
-                          h-0
-                          border
-                          border-slate-900
-                          p-0
-                        "
-                      />
-                    </tr>
-                  </tfoot>
                 </table>
               </div>
             </div>

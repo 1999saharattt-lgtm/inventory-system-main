@@ -201,7 +201,7 @@ export default async function IssuePage() {
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -302,8 +302,6 @@ export default async function IssuePage() {
             w-full
             min-w-[1100px]
             border-collapse
-            border
-            border-slate-900
           "
         >
           <thead>
@@ -714,7 +712,7 @@ export default async function IssuePage() {
                           text-sm
                           font-extrabold
                           leading-none
-                          text-white
+                          !text-white
                           shadow
                           transition
                           hover:bg-slate-700
@@ -764,7 +762,7 @@ export default async function IssuePage() {
                             text-sm
                             font-extrabold
                             leading-none
-                            text-white
+                            !text-white
                             shadow
                             transition
                             hover:bg-slate-700
@@ -788,8 +786,6 @@ export default async function IssuePage() {
                   className="
                     border
                     border-slate-900
-                    border-b-2
-                    border-b-slate-900
                     py-12
                     text-center
                     text-lg
@@ -802,26 +798,6 @@ export default async function IssuePage() {
               </tr>
             )}
           </tbody>
-
-          {/* =====================================================
-              เส้นปิดท้ายตารางสีดำ
-          ===================================================== */}
-
-          <tfoot>
-            <tr>
-              <td
-                colSpan={8}
-                className="
-                  h-[2px]
-                  border
-                  border-slate-900
-                  border-t-0
-                  bg-white
-                  p-0
-                "
-              />
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>

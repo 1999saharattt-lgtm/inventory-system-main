@@ -2,7 +2,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { verifySession, type SessionUser } from "@/lib/session";
+import {
+  verifySession,
+  type SessionUser,
+} from "@/lib/session";
 import EditIssueForm from "./EditIssueForm";
 
 type Props = {
@@ -64,9 +67,7 @@ export default async function EditIssuePage({
   // =====================================================
   // ดึงข้อมูลใบเบิก
   //
-  // สำคัญ:
   // ตรวจ department ตั้งแต่ query
-  // ไม่ใช่ดึงข้อมูลทั้งหมดแล้วค่อยซ่อนหน้า
   // =====================================================
 
   const issue = await prisma.issue.findFirst({
@@ -155,8 +156,15 @@ export default async function EditIssuePage({
   });
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -164,10 +172,12 @@ export default async function EditIssuePage({
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
           flex-col
-          gap-3
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -190,10 +200,10 @@ export default async function EditIssuePage({
           <h1
             className="
               break-words
-              !text-white
               text-2xl
               font-extrabold
               leading-tight
+              !text-white
               sm:text-5xl
             "
           >
@@ -204,10 +214,10 @@ export default async function EditIssuePage({
             className="
               mt-2
               break-words
-              !text-slate-200
               text-base
               font-semibold
               leading-tight
+              !text-slate-200
               sm:mt-3
               sm:text-xl
             "
@@ -230,7 +240,7 @@ export default async function EditIssuePage({
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -250,24 +260,30 @@ export default async function EditIssuePage({
 
       <div
         className="
+          w-full
+          min-w-0
+          overflow-hidden
           rounded-2xl
           border
-          border-slate-700
-          bg-gradient-to-br
+          border-slate-900
+          bg-gradient-to-r
           from-slate-950
-          to-slate-800
-          p-6
+          via-slate-800
+          to-slate-700
+          p-4
           shadow-xl
+          sm:p-6
         "
       >
-        <EditIssueForm
-          issue={issue}
-          departments={departments}
-          materials={materials}
-          receiveItems={receiveItems}
-        />
+        <div className="w-full min-w-0">
+          <EditIssueForm
+            issue={issue}
+            departments={departments}
+            materials={materials}
+            receiveItems={receiveItems}
+          />
+        </div>
       </div>
-
     </div>
   );
 }

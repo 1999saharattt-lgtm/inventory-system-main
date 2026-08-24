@@ -674,8 +674,6 @@ export default async function StockCardPage({ params }: Props) {
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-900
           bg-white
           shadow-lg
         "
@@ -744,8 +742,6 @@ export default async function StockCardPage({ params }: Props) {
                     className="
                       border
                       border-slate-900
-                      border-b-2
-                      border-b-slate-900
                       py-10
                       text-center
                       text-sm
@@ -765,8 +761,6 @@ export default async function StockCardPage({ params }: Props) {
                     className="
                       border
                       border-slate-900
-                      border-b
-                      border-b-slate-900
                       hover:bg-blue-50
                     "
                   >
@@ -960,22 +954,6 @@ export default async function StockCardPage({ params }: Props) {
                 ))
               )}
             </tbody>
-
-            {/* เส้นปิดท้ายตารางสีดำ */}
-            <tfoot>
-              <tr>
-                <td
-                  colSpan={9}
-                  className="
-                    h-0
-                    border-0
-                    border-b-2
-                    border-b-slate-900
-                    p-0
-                  "
-                />
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

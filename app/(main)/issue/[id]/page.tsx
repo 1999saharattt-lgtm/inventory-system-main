@@ -98,10 +98,6 @@ export default async function IssueDetailPage({
     include: {
       department: true,
 
-      // =================================================
-      // ผู้ขอเบิก
-      // =================================================
-
       officer: {
         select: {
           id: true,
@@ -109,10 +105,6 @@ export default async function IssueDetailPage({
           lastName: true,
         },
       },
-
-      // =================================================
-      // เจ้าหน้าที่พัสดุผู้อนุมัติ
-      // =================================================
 
       approvedBy: {
         select: {
@@ -135,15 +127,6 @@ export default async function IssueDetailPage({
 
   // =====================================================
   // สิทธิ์การเข้าดู
-  //
-  // ADMIN:
-  //   ดูได้ทุกกลุ่มงาน
-  //
-  // ผู้ใช้งานทั่วไป:
-  //   ดูได้เฉพาะรายการของ department ตัวเอง
-  //
-  // ไม่มี departmentId:
-  //   ห้ามเข้าดูรายการ
   // =====================================================
 
   if (
@@ -195,10 +178,12 @@ export default async function IssueDetailPage({
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
           flex-col
-          gap-3
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -221,10 +206,10 @@ export default async function IssueDetailPage({
           <h1
             className="
               break-words
-              !text-white
               text-2xl
               font-extrabold
               leading-tight
+              !text-white
               sm:text-5xl
             "
           >
@@ -235,10 +220,10 @@ export default async function IssueDetailPage({
             className="
               mt-2
               break-words
-              !text-slate-200
               text-base
               font-semibold
               leading-tight
+              !text-slate-200
               sm:mt-3
               sm:text-xl
             "
@@ -261,7 +246,7 @@ export default async function IssueDetailPage({
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -286,9 +271,10 @@ export default async function IssueDetailPage({
           rounded-2xl
           border
           border-slate-900
-          bg-gradient-to-br
+          bg-gradient-to-r
           from-slate-950
-          to-slate-800
+          via-slate-800
+          to-slate-700
           p-4
           !text-white
           shadow-xl
@@ -305,8 +291,14 @@ export default async function IssueDetailPage({
             sm:justify-between
           "
         >
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               สถานะใบเบิก
             </p>
 
@@ -314,11 +306,14 @@ export default async function IssueDetailPage({
               className={`
                 mt-2
                 inline-flex
+                max-w-full
                 items-center
+                justify-center
                 rounded-full
                 border
                 px-5
                 py-2
+                text-center
                 text-base
                 font-extrabold
                 shadow-md
@@ -333,13 +328,11 @@ export default async function IssueDetailPage({
             </div>
           </div>
 
-          {/* =================================================
-              เจ้าหน้าที่พัสดุดำเนินการ
-          ================================================= */}
+          {/* เจ้าหน้าที่พัสดุดำเนินการ */}
 
           {session.role === "ADMIN" &&
             issue.status === "PENDING" && (
-              <div className="w-full sm:w-auto">
+              <div className="w-full shrink-0 sm:w-auto">
                 <Link
                   href={`/issue/${issue.id}/approve`}
                   className="
@@ -372,22 +365,43 @@ export default async function IssueDetailPage({
             issue.approvedAt && (
               <div
                 className="
+                  min-w-0
                   text-left
                   sm:text-right
                 "
               >
-                <p className="text-sm font-bold !text-slate-300">
+                <p
+                  className="
+                    text-sm
+                    font-bold
+                    !text-slate-300
+                  "
+                >
                   วันที่ยืนยันการเบิกจ่าย
                 </p>
 
-                <p className="mt-1 font-extrabold !text-white">
+                <p
+                  className="
+                    mt-1
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   {new Date(
                     issue.approvedAt
                   ).toLocaleDateString("th-TH")}
                 </p>
 
                 {issue.approvedBy && (
-                  <p className="mt-1 text-sm font-semibold !text-slate-300">
+                  <p
+                    className="
+                      mt-1
+                      break-words
+                      text-sm
+                      font-semibold
+                      !text-slate-300
+                    "
+                  >
                     เจ้าหน้าที่พัสดุ:{" "}
                     {issue.approvedBy.fullname}
                   </p>
@@ -396,9 +410,7 @@ export default async function IssueDetailPage({
             )}
         </div>
 
-        {/* =================================================
-            คำอธิบายสำหรับรายการรอเบิกจ่าย
-        ================================================= */}
+        {/* คำอธิบายสำหรับรายการรอเบิกจ่าย */}
 
         {session.role === "ADMIN" &&
           issue.status === "PENDING" && (
@@ -418,7 +430,14 @@ export default async function IssueDetailPage({
                 ⚠️ ใบเบิกนี้ยังไม่ได้ตัดสต็อก
               </p>
 
-              <p className="mt-1 text-sm font-semibold !text-black">
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-semibold
+                  !text-black
+                "
+              >
                 กรุณาตรวจสอบรายการและลงจำนวนที่เบิกจ่ายจริงก่อน
                 ระบบจึงจะตัดสต็อกและบันทึกลง Stock Card
               </p>
@@ -428,9 +447,6 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ข้อมูลใบเบิก
-          
-          Export PDF อยู่ในกรอบเดียวกัน
-          และอยู่มุมขวาบน
       ===================================================== */}
 
       <div
@@ -439,19 +455,18 @@ export default async function IssueDetailPage({
           min-w-0
           rounded-2xl
           border
-          border-black
-          bg-gradient-to-br
+          border-slate-900
+          bg-gradient-to-r
           from-slate-950
-          to-slate-800
+          via-slate-800
+          to-slate-700
           p-4
           !text-white
           shadow-xl
           sm:p-6
         "
       >
-        {/* =================================================
-            Header ของกรอบข้อมูลใบเบิก
-        ================================================= */}
+        {/* Header ของข้อมูลใบเบิก */}
 
         <div
           className="
@@ -492,12 +507,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              Export PDF
-              
-              อยู่มุมขวาบนของกรอบข้อมูลใบเบิก
-          ================================================= */}
-
           <div
             className="
               w-full
@@ -516,9 +525,7 @@ export default async function IssueDetailPage({
           </div>
         </div>
 
-        {/* =================================================
-            ข้อมูลใบเบิก
-        ================================================= */}
+        {/* ข้อมูลใบเบิก */}
 
         <div
           className="
@@ -527,8 +534,6 @@ export default async function IssueDetailPage({
             sm:grid-cols-2
           "
         >
-          {/* เลขที่เอกสาร */}
-
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
               เลขที่เอกสาร
@@ -547,8 +552,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* วันที่เบิก */}
-
           <div>
             <p className="font-extrabold !text-white">
               วันที่เบิก
@@ -560,8 +563,6 @@ export default async function IssueDetailPage({
               ).toLocaleDateString("th-TH")}
             </p>
           </div>
-
-          {/* หน่วยงาน / กลุ่มงาน */}
 
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
@@ -580,8 +581,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* ผู้ขอเบิก */}
-
           <div className="min-w-0">
             <p className="font-extrabold !text-white">
               ผู้ขอเบิก
@@ -599,8 +598,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* จำนวนรายการ */}
-
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรายการ
@@ -611,8 +608,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* จำนวนรวมที่ขอเบิก */}
-
           <div>
             <p className="font-extrabold !text-white">
               จำนวนรวมที่ขอเบิก
@@ -622,8 +617,6 @@ export default async function IssueDetailPage({
               {totalRequested} หน่วย
             </p>
           </div>
-
-          {/* จำนวนรวมที่เบิกจ่ายจริง */}
 
           <div>
             <p className="font-extrabold !text-white">
@@ -660,50 +653,159 @@ export default async function IssueDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-black
+          border-slate-900
           bg-white
           shadow-xl
         "
       >
-        <div className="w-full overflow-x-auto">
+        <div
+          className="
+            w-full
+            max-w-full
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
               w-full
               min-w-[1100px]
               border-collapse
-              text-sm
+              border
+              border-slate-900
             "
           >
             <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
-                "
-              >
-                <th className="w-[7%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+              <tr>
+                <th
+                  className="
+                    w-[7%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   ลำดับ
                 </th>
 
-                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+                <th
+                  className="
+                    w-[18%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   หมวดหมู่
                 </th>
 
-                <th className="w-[31%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+                <th
+                  className="
+                    w-[31%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   รายการพัสดุ
                 </th>
 
-                <th className="w-[12%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+                <th
+                  className="
+                    w-[12%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   จำนวนที่ขอเบิก
                 </th>
 
-                <th className="w-[14%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+                <th
+                  className="
+                    w-[14%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   จำนวนที่เบิกจ่ายจริง
                 </th>
 
-                <th className="w-[18%] border border-black px-2 py-4 text-center text-sm font-extrabold !text-white sm:text-lg">
+                <th
+                  className="
+                    w-[18%]
+                    whitespace-nowrap
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    sm:py-4
+                    sm:text-lg
+                  "
+                >
                   หน่วย
                 </th>
               </tr>
@@ -725,13 +827,14 @@ export default async function IssueDetailPage({
                   >
                     <td
                       className="
+                        whitespace-nowrap
                         border
-                        border-black
+                        border-slate-900
                         px-2
-                        py-4
+                        py-3
                         text-center
                         font-bold
-                        whitespace-nowrap
+                        sm:py-4
                       "
                     >
                       {index + 1}
@@ -739,12 +842,13 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        border
-                        border-black
-                        px-2
-                        py-4
-                        font-semibold
                         whitespace-nowrap
+                        border
+                        border-slate-900
+                        px-2
+                        py-3
+                        font-semibold
+                        sm:py-4
                       "
                     >
                       {categoryName[
@@ -755,12 +859,13 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        border
-                        border-black
-                        px-2
-                        py-4
-                        font-semibold
                         whitespace-nowrap
+                        border
+                        border-slate-900
+                        px-2
+                        py-3
+                        font-semibold
+                        sm:py-4
                       "
                     >
                       <span className="font-extrabold">
@@ -771,13 +876,14 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
-                        border-black
+                        border-slate-900
                         px-2
-                        py-4
+                        py-3
                         text-center
                         font-bold
-                        whitespace-nowrap
+                        sm:py-4
                       "
                     >
                       {item.qty}
@@ -785,13 +891,14 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
-                        border-black
+                        border-slate-900
                         px-2
-                        py-4
+                        py-3
                         text-center
                         font-bold
-                        whitespace-nowrap
+                        sm:py-4
                       "
                     >
                       {issue.status === "PENDING" ? (
@@ -811,13 +918,14 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
-                        border-black
+                        border-slate-900
                         px-2
-                        py-4
+                        py-3
                         text-center
                         font-bold
-                        whitespace-nowrap
+                        sm:py-4
                       "
                     >
                       {item.material.unit}
@@ -826,6 +934,23 @@ export default async function IssueDetailPage({
                 )
               )}
             </tbody>
+
+            {/* เส้นปิดท้ายตารางพอดีกับตาราง */}
+
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={6}
+                  className="
+                    h-0
+                    border-0
+                    border-b-2
+                    border-b-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -842,9 +967,10 @@ export default async function IssueDetailPage({
             rounded-2xl
             border
             border-slate-900
-            bg-gradient-to-br
+            bg-gradient-to-r
             from-slate-950
-            to-slate-800
+            via-slate-800
+            to-slate-700
             p-4
             !text-white
             shadow-xl
@@ -861,19 +987,33 @@ export default async function IssueDetailPage({
               sm:justify-between
             "
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-lg font-extrabold !text-white">
                 ✅ ดำเนินการเบิกจ่ายเสร็จสิ้นแล้ว
               </p>
 
-              <p className="mt-1 text-sm font-semibold !text-slate-200">
+              <p
+                className="
+                  mt-1
+                  break-words
+                  text-sm
+                  font-semibold
+                  !text-slate-200
+                "
+              >
                 รายการเบิกจ่ายได้รับการยืนยันจากเจ้าหน้าที่พัสดุแล้ว
                 และถูกตัดออกจากบัญชีพัสดุแล้ว
               </p>
             </div>
 
-            <div className="text-left sm:text-right">
-              <p className="text-sm font-bold !text-slate-300">
+            <div className="shrink-0 text-left sm:text-right">
+              <p
+                className="
+                  text-sm
+                  font-bold
+                  !text-slate-300
+                "
+              >
                 จำนวนรวมที่เบิกจ่ายจริง
               </p>
 
