@@ -266,22 +266,21 @@ export default async function CategoryPage({
 
       <div
         className="
-          w-full
-          min-w-0
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-black
           bg-white
           shadow-xl
         "
       >
-        <div className="w-full min-w-0 overflow-x-auto">
+        <div className="overflow-x-auto">
           <table
             className="
-              min-w-[1100px]
+              w-full
+              border-collapse
               border
-              border-slate-900
+              border-black
             "
           >
             <thead>
@@ -302,7 +301,7 @@ export default async function CategoryPage({
                     className="
                       whitespace-nowrap
                       border
-                      border-slate-900
+                      border-black
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
@@ -311,7 +310,7 @@ export default async function CategoryPage({
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                     "
                   >
                     {title}
@@ -320,20 +319,22 @@ export default async function CategoryPage({
               </tr>
             </thead>
 
-            <tbody className="border-b border-slate-900">
+            <tbody className="text-slate-900">
               {materials.length > 0 ? (
                 materials.map((material: Material) => (
                   <tr
                     key={material.id}
                     className="
-                      hover:bg-blue-50
+                      text-slate-900
+                      transition
+                      hover:bg-emerald-50
                     "
                   >
                     <td
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         font-extrabold
@@ -347,7 +348,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         font-extrabold
@@ -361,7 +362,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -376,7 +377,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -391,7 +392,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-right
@@ -412,7 +413,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -431,7 +432,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -450,7 +451,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                       "
@@ -484,7 +485,7 @@ export default async function CategoryPage({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -506,7 +507,7 @@ export default async function CategoryPage({
                     colSpan={9}
                     className="
                       border
-                      border-slate-900
+                      border-black
                       py-12
                       text-center
                       text-lg

@@ -436,20 +436,18 @@ export default function EditIssueForm({
             overflow-hidden
             rounded-2xl
             border
-            border-slate-900
+            border-black
             bg-white
-            shadow-lg
+            shadow-xl
           "
         >
           <div className="w-full overflow-x-auto">
             <table
               className="
-                w-full
-                min-w-[1200px]
-                border-collapse
+                min-w-[1100px]
                 border
-                border-slate-900
-                text-sm
+                border-collapse
+                border-black
               "
             >
               <thead>
@@ -469,19 +467,16 @@ export default function EditIssueForm({
                       className="
                         whitespace-nowrap
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
                         px-3
                         py-3
                         text-center
-                        text-sm
+                        text-lg
                         font-extrabold
                         !text-white
-                        sm:px-4
-                        sm:py-4
-                        sm:text-lg
                       "
                     >
                       {header}
@@ -511,11 +506,9 @@ export default function EditIssueForm({
                       <tr
                         key={index}
                         className="
-                          border
-                          border-slate-900
                           text-slate-900
                           transition
-                          hover:bg-blue-50
+                          hover:bg-emerald-50
                         "
                       >
                         {/* ลำดับ */}
@@ -524,14 +517,11 @@ export default function EditIssueForm({
                           className="
                             whitespace-nowrap
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
                             text-center
-                            text-sm
-                            font-extrabold
-                            sm:px-3
-                            sm:py-4
+                            font-bold
                           "
                         >
                           {index + 1}
@@ -542,11 +532,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <select
@@ -587,11 +575,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <select
@@ -636,11 +622,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <input
@@ -663,11 +647,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <input
@@ -695,12 +677,10 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
                             text-center
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <input
@@ -726,11 +706,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <input
@@ -750,11 +728,9 @@ export default function EditIssueForm({
                         <td
                           className="
                             border
-                            border-slate-900
-                            px-2
+                            border-black
+                            px-3
                             py-3
-                            sm:px-3
-                            sm:py-4
                           "
                         >
                           <input
@@ -774,7 +750,7 @@ export default function EditIssueForm({
                 )}
               </tbody>
 
-              {/* เส้นปิดท้ายตารางสีดำ */}
+              {/* เส้นปิดท้ายตารางให้พอดีกับตาราง */}
 
               <tfoot>
                 <tr>
@@ -782,9 +758,8 @@ export default function EditIssueForm({
                     colSpan={8}
                     className="
                       h-0
-                      border-0
-                      border-b-2
-                      border-b-slate-900
+                      border
+                      border-black
                       p-0
                     "
                   />

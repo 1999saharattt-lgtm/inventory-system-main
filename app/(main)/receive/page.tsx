@@ -38,9 +38,11 @@ export default async function ReceivePage() {
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
-          flex-col
+          items-center
+          justify-between
           gap-3
           rounded-2xl
           bg-gradient-to-r
@@ -52,10 +54,6 @@ export default async function ReceivePage() {
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -64,10 +62,10 @@ export default async function ReceivePage() {
           <h1
             className="
               break-words
-              !text-white
               text-2xl
               font-extrabold
               leading-tight
+              !text-white
               sm:text-5xl
             "
           >
@@ -78,11 +76,10 @@ export default async function ReceivePage() {
             className="
               mt-2
               break-words
-              !text-slate-200
               text-base
               font-semibold
               leading-tight
-              sm:mt-3
+              !text-slate-200
               sm:text-xl
             "
           >
@@ -99,18 +96,16 @@ export default async function ReceivePage() {
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-5
+            py-3
             text-center
-            text-sm
+            text-base
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
             sm:w-auto
-            sm:px-5
-            sm:py-3
             sm:text-lg
           "
         >
@@ -124,27 +119,31 @@ export default async function ReceivePage() {
 
       <div
         className="
-          w-full
-          min-w-0
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-black
           bg-white
           shadow-xl
         "
       >
-        <div className="w-full min-w-0 overflow-x-auto">
+        <div className="overflow-x-auto">
           <table
             className="
-              min-w-[1100px]
-              border
+              w-full
               border-collapse
-              border-slate-900
+              border
+              border-black
             "
           >
             <thead>
-              <tr>
+              <tr
+                className="
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                "
+              >
                 {[
                   "ลำดับ",
                   "วันที่รับเข้า",
@@ -157,14 +156,13 @@ export default async function ReceivePage() {
                   <th
                     key={title}
                     className="
-                      whitespace-nowrap
                       border
-                      border-slate-900
+                      border-black
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-                      px-4
-                      py-4
+                      px-3
+                      py-3
                       text-center
                       text-lg
                       font-extrabold
@@ -177,43 +175,42 @@ export default async function ReceivePage() {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="text-slate-900">
               {receives.length > 0 ? (
                 receives.map(
                   (receive: Receive, index: number) => (
                     <tr
                       key={receive.id}
                       className="
-                        border
-                        border-slate-900
-                        hover:bg-blue-50
+                        text-slate-900
+                        transition
+                        hover:bg-emerald-50
                       "
                     >
+                      {/* ลำดับ */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
+                          font-bold
                         "
                       >
                         {index + 1}
                       </td>
 
+                      {/* วันที่รับเข้า */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {new Date(
@@ -221,53 +218,48 @@ export default async function ReceivePage() {
                         ).toLocaleDateString("th-TH")}
                       </td>
 
+                      {/* เลขที่เอกสาร */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {receive.documentNo}
                       </td>
 
+                      {/* ผู้จำหน่าย */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
-                          text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {receive.vendor.name}
                       </td>
 
+                      {/* รายละเอียด */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         <Link
                           href={`/receive/${receive.id}`}
                           className="
                             inline-block
-                            whitespace-nowrap
                             rounded-lg
                             bg-slate-800
                             px-4
@@ -283,27 +275,26 @@ export default async function ReceivePage() {
                         </Link>
                       </td>
 
+                      {/* หมายเหตุ */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
-                          text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {receive.remark ?? "-"}
                       </td>
 
+                      {/* จัดการ */}
+
                       <td
                         className="
-                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                         "
                       >
@@ -317,7 +308,6 @@ export default async function ReceivePage() {
                           <Link
                             href={`/receive/${receive.id}/edit`}
                             className="
-                              whitespace-nowrap
                               rounded-lg
                               bg-slate-800
                               px-4
@@ -346,7 +336,7 @@ export default async function ReceivePage() {
                     colSpan={7}
                     className="
                       border
-                      border-slate-900
+                      border-black
                       py-12
                       text-center
                       text-lg
@@ -359,24 +349,6 @@ export default async function ReceivePage() {
                 </tr>
               )}
             </tbody>
-
-            {/* =====================================================
-                ปิดกรอบด้านล่างสุดให้เป็นสีดำ
-            ===================================================== */}
-
-            <tfoot>
-              <tr>
-                <td
-                  colSpan={7}
-                  className="
-                    h-0
-                    border
-                    border-slate-900
-                    p-0
-                  "
-                />
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

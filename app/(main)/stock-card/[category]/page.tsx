@@ -186,7 +186,7 @@ export default async function CategoryPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-black
           bg-white
           shadow-xl
         "
@@ -198,7 +198,7 @@ export default async function CategoryPage({
               w-full
               border-collapse
               border
-              border-slate-900
+              border-black
             "
           >
             <thead>
@@ -216,12 +216,12 @@ export default async function CategoryPage({
                     className="
                       whitespace-nowrap
                       border
-                      border-slate-900
+                      border-black
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-                      px-4
-                      py-4
+                      px-3
+                      py-3
                       text-center
                       text-lg
                       font-extrabold
@@ -234,16 +234,14 @@ export default async function CategoryPage({
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="text-slate-900">
               {materials.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
                     className="
                       border
-                      border-slate-900
-                      border-b-2
-                      border-b-slate-900
+                      border-black
                       py-12
                       text-center
                       text-lg
@@ -267,20 +265,20 @@ export default async function CategoryPage({
                     <tr
                       key={material.id}
                       className="
-                        border-b
-                        border-slate-900
-                        hover:bg-blue-50
+                        text-slate-900
+                        transition
+                        hover:bg-emerald-50
                       "
                     >
                       <td
                         className="
+                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
+                          font-bold
                         "
                       >
                         {index + 1}
@@ -288,13 +286,13 @@ export default async function CategoryPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
+                          font-bold
                         "
                       >
                         {material.code}
@@ -303,11 +301,10 @@ export default async function CategoryPage({
                       <td
                         className="
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
-                          font-extrabold
-                          text-slate-900
+                          font-semibold
                         "
                       >
                         {material.name}
@@ -315,13 +312,12 @@ export default async function CategoryPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {material.unit}
@@ -330,11 +326,9 @@ export default async function CategoryPage({
                       <td
                         className="
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
-                          font-extrabold
-                          text-slate-900
                         "
                       >
                         {latestVendor}
@@ -342,9 +336,10 @@ export default async function CategoryPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
-                          border-slate-900
-                          px-4
+                          border-black
+                          px-3
                           py-3
                           text-center
                         "
@@ -353,17 +348,15 @@ export default async function CategoryPage({
                           href={`/stock-card/material/${material.id}`}
                           className="
                             inline-block
-                            rounded-xl
-                            bg-gradient-to-r
-                            from-emerald-600
-                            to-green-500
-                            px-5
+                            rounded-lg
+                            bg-slate-800
+                            px-4
                             py-2
                             font-extrabold
                             text-white
-                            shadow-lg
+                            shadow
                             transition
-                            hover:scale-105
+                            hover:bg-slate-700
                           "
                         >
                           เปิด
@@ -375,16 +368,14 @@ export default async function CategoryPage({
               )}
             </tbody>
 
-            {/* เส้นปิดท้ายตารางสีดำ */}
             <tfoot>
               <tr>
                 <td
                   colSpan={6}
                   className="
                     h-0
-                    border-0
-                    border-b-2
-                    border-b-slate-900
+                    border
+                    border-black
                     p-0
                   "
                 />

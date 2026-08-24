@@ -653,47 +653,35 @@ export default async function IssueDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-black
           bg-white
           shadow-xl
         "
       >
-        <div
-          className="
-            w-full
-            max-w-full
-            overflow-x-auto
-            overscroll-x-contain
-          "
-        >
+        <div className="overflow-x-auto">
           <table
             className="
               w-full
-              min-w-[1100px]
               border-collapse
               border
-              border-slate-900
+              border-black
             "
           >
             <thead>
               <tr>
                 <th
                   className="
-                    w-[7%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   ลำดับ
@@ -701,21 +689,17 @@ export default async function IssueDetailPage({
 
                 <th
                   className="
-                    w-[18%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   หมวดหมู่
@@ -723,21 +707,17 @@ export default async function IssueDetailPage({
 
                 <th
                   className="
-                    w-[31%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   รายการพัสดุ
@@ -745,21 +725,17 @@ export default async function IssueDetailPage({
 
                 <th
                   className="
-                    w-[12%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   จำนวนที่ขอเบิก
@@ -767,21 +743,17 @@ export default async function IssueDetailPage({
 
                 <th
                   className="
-                    w-[14%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   จำนวนที่เบิกจ่ายจริง
@@ -789,21 +761,17 @@ export default async function IssueDetailPage({
 
                 <th
                   className="
-                    w-[18%]
-                    whitespace-nowrap
                     border
-                    border-slate-900
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-2
+                    px-3
                     py-3
                     text-center
-                    text-sm
+                    text-lg
                     font-extrabold
                     !text-white
-                    sm:py-4
-                    sm:text-lg
                   "
                 >
                   หน่วย
@@ -811,7 +779,7 @@ export default async function IssueDetailPage({
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="text-slate-900">
               {issue.items.map(
                 (
                   item: IssueItem,
@@ -827,14 +795,12 @@ export default async function IssueDetailPage({
                   >
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
                         text-center
                         font-bold
-                        sm:py-4
                       "
                     >
                       {index + 1}
@@ -842,13 +808,10 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
-                        font-semibold
-                        sm:py-4
                       "
                     >
                       {categoryName[
@@ -859,13 +822,11 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
                         font-semibold
-                        sm:py-4
                       "
                     >
                       <span className="font-extrabold">
@@ -876,14 +837,12 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
                         text-center
                         font-bold
-                        sm:py-4
                       "
                     >
                       {item.qty}
@@ -891,14 +850,12 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
                         text-center
                         font-bold
-                        sm:py-4
                       "
                     >
                       {issue.status === "PENDING" ? (
@@ -918,14 +875,12 @@ export default async function IssueDetailPage({
 
                     <td
                       className="
-                        whitespace-nowrap
                         border
-                        border-slate-900
-                        px-2
+                        border-black
+                        px-3
                         py-3
                         text-center
                         font-bold
-                        sm:py-4
                       "
                     >
                       {item.material.unit}
@@ -934,23 +889,6 @@ export default async function IssueDetailPage({
                 )
               )}
             </tbody>
-
-            {/* เส้นปิดท้ายตารางพอดีกับตาราง */}
-
-            <tfoot>
-              <tr>
-                <td
-                  colSpan={6}
-                  className="
-                    h-0
-                    border-0
-                    border-b-2
-                    border-b-slate-900
-                    p-0
-                  "
-                />
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

@@ -173,11 +173,20 @@ export default function VendorsPage() {
           min-w-0
           overflow-hidden
           rounded-2xl
+          border
+          border-slate-900
           bg-white
           shadow-xl
         "
       >
-        <div className="w-full min-w-0 overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
               min-w-full
@@ -216,7 +225,8 @@ export default function VendorsPage() {
                           : ""
                       }
                       ${
-                        title === "เลขประจำตัวผู้เสียภาษี"
+                        title ===
+                        "เลขประจำตัวผู้เสียภาษี"
                           ? "min-w-[160px]"
                           : ""
                       }
@@ -268,9 +278,8 @@ export default function VendorsPage() {
                   <tr
                     key={vendor.id}
                     className="
-                      border
-                      border-slate-900
                       text-slate-900
+                      transition
                       hover:bg-blue-50
                     "
                   >
@@ -384,6 +393,25 @@ export default function VendorsPage() {
                 ))
               )}
             </tbody>
+
+            {/* =====================================================
+                เส้นปิดท้ายตารางพอดีกับตาราง
+            ===================================================== */}
+
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={5}
+                  className="
+                    h-0
+                    border-0
+                    border-b-2
+                    border-b-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
