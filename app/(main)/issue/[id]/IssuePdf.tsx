@@ -290,22 +290,25 @@ export default function IssuePdf({
   // =====================================================
 
   function getRowStyle(
-    item: IssueItem | null
+    item: IssueItem | null,
+    index: number
   ): React.CSSProperties {
-    if (!item) {
+    const baseHeight = !item
+      ? "8mm"
+      : item.material.name.length > 32
+        ? "10mm"
+        : "8mm";
+
+    // บังคับเส้นปิดด้านล่างของแถวที่ 18
+    if (index === 17) {
       return {
-        height: "8mm",
+        height: baseHeight,
+        borderBottom: "2px solid #000000",
       };
     }
 
-    const nameLength =
-      item.material.name.length;
-
     return {
-      height:
-        nameLength > 32
-          ? "10mm"
-          : "8mm",
+      height: baseHeight,
     };
   }
 
@@ -313,9 +316,6 @@ export default function IssuePdf({
     <div>
       {/* =====================================================
           ปุ่ม Export PDF
-
-          ปุ่มนี้ไม่มีกรอบครอบของตัวเอง
-          เพื่อให้สามารถวางไว้ภายในกรอบข้อมูลใบเบิก
       ===================================================== */}
 
       <button
@@ -451,7 +451,7 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[30mm]">
+              <span className="inline-block w-[22mm]">
                 วันที่ :
               </span>
               {formatThaiDate(issueDate)}
@@ -471,11 +471,17 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[30mm]">
+              <span className="inline-block w-[22mm]">
                 กลุ่มงาน :
               </span>
-              {departmentName || "-"}{" "}
-              สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+
+              <span>
+                {departmentName || "-"}
+              </span>
+
+              <span className="ml-[3mm]">
+                สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+              </span>
             </div>
 
             {/* ผู้ขอ */}
@@ -492,7 +498,7 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[30mm]">
+              <span className="inline-block w-[22mm]">
                 ผู้ขอ :
               </span>
               {requesterName || "-"}
@@ -535,6 +541,7 @@ export default function IssuePdf({
                 tableLayout: "fixed",
                 borderSpacing: 0,
                 borderRadius: 0,
+                border: "1px solid #000000",
                 fontSize: "16px",
                 color: "#000000",
                 backgroundColor: "#ffffff",
@@ -657,136 +664,166 @@ export default function IssuePdf({
               </thead>
 
               <tbody>
-                {rows.map((item, index) => (
-                  <tr
-                    key={
-                      item?.id ??
-                      `empty-${index}`
-                    }
-                    style={getRowStyle(item)}
-                  >
-                    {/* ลำดับ */}
+                {rows.map((item, index) => {
+                  const isLastRow = index === 17;
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={centerCellStyle}
+                  const lastRowBorderStyle =
+                    isLastRow
+                      ? {
+                          borderBottom:
+                            "2px solid #000000",
+                        }
+                      : {};
+
+                  return (
+                    <tr
+                      key={
+                        item?.id ??
+                        `empty-${index}`
+                      }
+                      style={getRowStyle(
+                        item,
+                        index
+                      )}
                     >
-                      <span style={dataTextStyle}>
-                        {index + 1}
-                      </span>
-                    </td>
+                      {/* ลำดับ */}
 
-                    {/* หมวดหมู่ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={{
-                        ...centerCellStyle,
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      <span style={dataTextStyle}>
-                        {item
-                          ? categoryLabels[
-                              item.material.category
-                            ] ??
-                            item.material.category
-                          : ""}
-                      </span>
-                    </td>
-
-                    {/* รายการพัสดุ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={leftCellStyle}
-                    >
-                      {item ? (
-                        <span
-                          style={
-                            materialNameTextStyle
-                          }
-                        >
-                          {item.material.name}
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...centerCellStyle,
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        <span style={dataTextStyle}>
+                          {index + 1}
                         </span>
-                      ) : null}
-                    </td>
+                      </td>
 
-                    {/* จำนวนที่ขอเบิก */}
+                      {/* หมวดหมู่ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={centerCellStyle}
-                    >
-                      <span style={dataTextStyle}>
-                        {item?.qty ?? ""}
-                      </span>
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...centerCellStyle,
+                          paddingLeft: "0.5mm",
+                          paddingRight: "0.5mm",
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        <span style={dataTextStyle}>
+                          {item
+                            ? categoryLabels[
+                                item.material.category
+                              ] ??
+                              item.material
+                                .category
+                            : ""}
+                        </span>
+                      </td>
 
-                    {/* จำนวนที่เบิกจ่ายจริง */}
+                      {/* รายการพัสดุ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={centerCellStyle}
-                    >
-                      <span style={dataTextStyle}>
-                        {""}
-                      </span>
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...leftCellStyle,
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        {item ? (
+                          <span
+                            style={
+                              materialNameTextStyle
+                            }
+                          >
+                            {item.material.name}
+                          </span>
+                        ) : null}
+                      </td>
 
-                    {/* หน่วย */}
+                      {/* จำนวนที่ขอเบิก */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        p-0
-                        text-black
-                      "
-                      style={{
-                        ...centerCellStyle,
-                        paddingLeft: "0.5mm",
-                        paddingRight: "0.5mm",
-                      }}
-                    >
-                      <span style={dataTextStyle}>
-                        {item?.material.unit ?? ""}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...centerCellStyle,
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        <span style={dataTextStyle}>
+                          {item?.qty ?? ""}
+                        </span>
+                      </td>
+
+                      {/* จำนวนที่เบิกจ่ายจริง */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...centerCellStyle,
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        <span style={dataTextStyle}>
+                          {""}
+                        </span>
+                      </td>
+
+                      {/* หน่วย */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-white
+                          p-0
+                          text-black
+                        "
+                        style={{
+                          ...centerCellStyle,
+                          paddingLeft: "0.5mm",
+                          paddingRight: "0.5mm",
+                          ...lastRowBorderStyle,
+                        }}
+                      >
+                        <span style={dataTextStyle}>
+                          {item?.material.unit ?? ""}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
