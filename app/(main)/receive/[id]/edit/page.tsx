@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
 import EditReceiveForm from "./EditReceiveForm";
 
 interface Props {
@@ -13,9 +14,19 @@ export default async function EditReceivePage({
 }: Props) {
   const { id } = await params;
 
+  // =====================================================
+  // ตรวจสอบ ID จาก URL
+  // =====================================================
+
+  const receiveId = Number.parseInt(id, 10);
+
+  if (!Number.isInteger(receiveId) || receiveId <= 0) {
+    notFound();
+  }
+
   const receive = await prisma.receive.findUnique({
     where: {
-      id: Number(id),
+      id: receiveId,
     },
 
     include: {
