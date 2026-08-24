@@ -119,10 +119,10 @@ export default async function ReceivePage() {
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
@@ -322,9 +322,7 @@ export default async function ReceivePage() {
                             แก้ไข
                           </Link>
 
-                          <DeleteButton
-                            id={receive.id}
-                          />
+                          <DeleteButton id={receive.id} />
                         </div>
                       </td>
                     </tr>
