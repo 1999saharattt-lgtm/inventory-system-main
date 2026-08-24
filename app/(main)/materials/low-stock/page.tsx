@@ -332,7 +332,7 @@ export default async function LowStockPage({
         }
 
         return (
-          <div
+          <section
             key={category}
             className="
               w-full
@@ -352,13 +352,15 @@ export default async function LowStockPage({
                 flex
                 items-center
                 justify-between
+                gap-3
                 bg-gradient-to-r
                 from-slate-950
                 via-slate-800
                 to-slate-700
-                px-6
+                px-4
                 py-4
                 text-white
+                sm:px-6
               "
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -368,10 +370,12 @@ export default async function LowStockPage({
 
                 <h2
                   className="
+                    min-w-0
                     break-words
-                    text-2xl
+                    text-xl
                     font-extrabold
                     !text-white
+                    sm:text-2xl
                   "
                 >
                   {categoryName[category] ?? category}
@@ -383,10 +387,13 @@ export default async function LowStockPage({
                   shrink-0
                   rounded-lg
                   bg-white/10
-                  px-4
+                  px-3
                   py-2
+                  text-sm
                   font-bold
                   !text-white
+                  sm:px-4
+                  sm:text-base
                 "
               >
                 {categoryMaterials.length} รายการ
@@ -395,7 +402,8 @@ export default async function LowStockPage({
 
             {/* =================================================
                 Table
-                ให้ table เป็นเจ้าของกรอบเพียงตัวเดียว
+                ไม่มีกรอบ wrapper ซ้ำ
+                table เป็นเจ้าของกรอบเพียงตัวเดียว
             ================================================= */}
 
             <div
@@ -412,7 +420,7 @@ export default async function LowStockPage({
                   w-full
                   min-w-[900px]
                   border-collapse
-                  border
+                  border-2
                   border-black
                   bg-white
                 "
@@ -666,9 +674,29 @@ export default async function LowStockPage({
                     </tr>
                   ))}
                 </tbody>
+
+                {/* =================================================
+                    เส้นปิดท้ายตารางสีดำ
+                ================================================= */}
+
+                <tfoot>
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="
+                        h-0
+                        border-0
+                        border-b-2
+                        border-black
+                        bg-white
+                        p-0
+                      "
+                    />
+                  </tr>
+                </tfoot>
               </table>
             </div>
-          </div>
+          </section>
         );
       })}
 

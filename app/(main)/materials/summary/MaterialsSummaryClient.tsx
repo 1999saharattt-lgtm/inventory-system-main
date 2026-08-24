@@ -174,7 +174,6 @@ export default function MaterialsSummaryClient({
 
         {/* =====================================================
             Categories
-            แต่ละหมวดแยกออกจากกันเหมือน low-stock
         ===================================================== */}
 
         <div className="w-full min-w-0 space-y-5 sm:space-y-6">
@@ -191,8 +190,6 @@ export default function MaterialsSummaryClient({
                   min-w-0
                   overflow-hidden
                   rounded-2xl
-                  border
-                  border-slate-300
                   bg-white
                   shadow-lg
                 "
@@ -250,8 +247,6 @@ export default function MaterialsSummaryClient({
 
                 {/* =====================================================
                     Table
-                    ไม่มี wrapper border ซ้ำ
-                    ไม่มี tfoot ซ้ำเส้น
                 ===================================================== */}
 
                 <div
@@ -434,6 +429,28 @@ export default function MaterialsSummaryClient({
                         ))
                       )}
                     </tbody>
+
+                    {/* =================================================
+                        เส้นปิดท้ายตาราง
+                    ================================================= */}
+
+                    <tfoot>
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="
+                            border-0
+                            border-b-2
+                            border-b-black
+                            bg-white
+                            p-0
+                          "
+                          style={{
+                            height: "2px",
+                          }}
+                        />
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </section>

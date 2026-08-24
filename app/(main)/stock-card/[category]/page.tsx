@@ -383,20 +383,22 @@ export default async function CategoryPage({
 
             {/* =================================================
                 เส้นปิดท้ายตาราง
-                ================================================= */}
+            ================================================= */}
 
             <tfoot>
               <tr>
                 <td
                   colSpan={6}
                   className="
-                    h-0
                     border-0
                     border-b-2
-                    border-black
+                    border-b-black
                     bg-white
                     p-0
                   "
+                  style={{
+                    height: "2px",
+                  }}
                 />
               </tr>
             </tfoot>
