@@ -2,10 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import {
-  verifySession,
-  type SessionUser,
-} from "@/lib/session";
+import { verifySession, type SessionUser } from "@/lib/session";
 import EditIssueForm from "./EditIssueForm";
 
 type Props = {
@@ -18,16 +15,6 @@ export default async function EditIssuePage({
   params,
 }: Props) {
   const { id } = await params;
-
-  // =====================================================
-  // ตรวจสอบ ID จาก URL
-  // =====================================================
-
-  const issueId = Number.parseInt(id, 10);
-
-  if (!Number.isInteger(issueId) || issueId <= 0) {
-    notFound();
-  }
 
   // =====================================================
   // Session
@@ -62,23 +49,24 @@ export default async function EditIssuePage({
   const issueWhere =
     session?.role === "ADMIN"
       ? {
-          id: issueId,
+          id: Number(id),
         }
       : session?.departmentId
         ? {
-            id: issueId,
+            id: Number(id),
             departmentId: session.departmentId,
           }
         : {
-            id: issueId,
+            id: Number(id),
             departmentId: -1,
           };
 
   // =====================================================
   // ดึงข้อมูลใบเบิก
   //
-  // ใช้ findFirst เพราะต้องตรวจสอบ department
-  // ไปพร้อมกับการค้นหาใบเบิก
+  // สำคัญ:
+  // ตรวจ department ตั้งแต่ query
+  // ไม่ใช่ดึงข้อมูลทั้งหมดแล้วค่อยซ่อนหน้า
   // =====================================================
 
   const issue = await prisma.issue.findFirst({

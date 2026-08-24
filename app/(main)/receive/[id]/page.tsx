@@ -37,23 +37,9 @@ export default async function ReceiveDetailPage({
 }: Props) {
   const { id } = await params;
 
-  // =====================================================
-  // ตรวจสอบ ID จาก URL
-  // =====================================================
-
-  const receiveId = Number.parseInt(id, 10);
-
-  if (!Number.isInteger(receiveId) || receiveId <= 0) {
-    notFound();
-  }
-
-  // =====================================================
-  // ดึงข้อมูลเอกสารรับเข้า
-  // =====================================================
-
   const receive = await prisma.receive.findUnique({
     where: {
-      id: receiveId,
+      id: Number(id),
     },
 
     include: {
@@ -179,9 +165,7 @@ export default async function ReceiveDetailPage({
           <span className="font-extrabold">
             วันที่รับเข้า :
           </span>{" "}
-          {new Date(
-            receive.receiveDate
-          ).toLocaleDateString("th-TH")}
+          {new Date(receive.receiveDate).toLocaleDateString("th-TH")}
         </p>
 
         <p>
@@ -308,17 +292,13 @@ export default async function ReceiveDetailPage({
 
                     <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.manufacture
-                        ? new Date(
-                            item.manufacture
-                          ).toLocaleDateString("th-TH")
+                        ? new Date(item.manufacture).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
 
                     <td className="border border-slate-300 px-3 py-3 text-center">
                       {item.expiry
-                        ? new Date(
-                            item.expiry
-                          ).toLocaleDateString("th-TH")
+                        ? new Date(item.expiry).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
 
