@@ -335,8 +335,12 @@ export default async function LowStockPage({
           <div
             key={category}
             className="
+              w-full
+              min-w-0
               overflow-hidden
               rounded-2xl
+              border
+              border-slate-900
               bg-white
               shadow-lg
             "
@@ -395,13 +399,22 @@ export default async function LowStockPage({
                 Table
             ================================================= */}
 
-            <div className="overflow-x-auto">
+            <div
+              className="
+                w-full
+                min-w-0
+                overflow-x-auto
+                border-b-2
+                border-b-black
+              "
+            >
               <table
                 className="
                   min-w-full
                   border-collapse
                   border
-                  border-slate-900
+                  border-black
+                  bg-white
                 "
               >
                 <thead>
@@ -409,7 +422,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -418,7 +431,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       ลำดับ
@@ -427,7 +440,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -436,7 +449,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       รหัสพัสดุ
@@ -445,7 +458,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -454,7 +467,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       รายการพัสดุ
@@ -463,7 +476,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -472,7 +485,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       จำนวน
@@ -481,7 +494,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -490,7 +503,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       หน่วย
@@ -499,7 +512,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -508,7 +521,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       ราคา
@@ -517,7 +530,7 @@ export default async function LowStockPage({
                     <th
                       className="
                         border
-                        border-slate-900
+                        border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
@@ -526,7 +539,7 @@ export default async function LowStockPage({
                         text-center
                         text-lg
                         font-extrabold
-                        text-white
+                        !text-white
                       "
                     >
                       ผู้จำหน่ายล่าสุด
@@ -540,7 +553,7 @@ export default async function LowStockPage({
                       key={material.id}
                       className="
                         border
-                        border-slate-900
+                        border-black
                         text-slate-900
                         transition
                         hover:bg-blue-50
@@ -549,7 +562,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           text-center
@@ -562,7 +575,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           text-center
@@ -575,7 +588,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           font-bold
@@ -587,7 +600,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           bg-red-50
                           px-4
                           py-3
@@ -603,7 +616,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           text-center
@@ -616,7 +629,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           text-right
@@ -634,7 +647,7 @@ export default async function LowStockPage({
                       <td
                         className="
                           border
-                          border-slate-900
+                          border-black
                           px-4
                           py-3
                           font-semibold
@@ -645,6 +658,27 @@ export default async function LowStockPage({
                     </tr>
                   ))}
                 </tbody>
+
+                {/* =================================================
+                    เส้นปิดท้ายตาราง
+                    บังคับเส้นด้านล่างเป็นสีดำ
+                ================================================= */}
+
+                <tfoot>
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="
+                        h-0
+                        border-0
+                        border-b-2
+                        border-b-black
+                        bg-white
+                        p-0
+                      "
+                    />
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>

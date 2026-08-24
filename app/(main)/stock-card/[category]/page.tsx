@@ -183,22 +183,32 @@ export default async function CategoryPage({
         className="
           w-full
           min-w-0
+          max-w-full
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-300
+          border-2
+          border-black
           bg-white
           shadow-lg
         "
       >
-        <div className="w-full min-w-0 overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            max-w-full
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
-              min-w-[900px]
               w-full
+              min-w-[900px]
               border-collapse
               border
               border-black
+              bg-white
             "
           >
             <thead>
@@ -242,6 +252,7 @@ export default async function CategoryPage({
                     className="
                       border
                       border-black
+                      px-3
                       py-12
                       text-center
                       text-lg
@@ -265,6 +276,8 @@ export default async function CategoryPage({
                     <tr
                       key={material.id}
                       className="
+                        border
+                        border-black
                         text-slate-900
                         transition
                         hover:bg-emerald-50
@@ -355,7 +368,7 @@ export default async function CategoryPage({
                             px-5
                             py-2
                             font-extrabold
-                            text-white
+                            !text-white
                             shadow-lg
                             transition
                             hover:scale-105
@@ -379,12 +392,15 @@ export default async function CategoryPage({
                 <td
                   colSpan={6}
                   className="
-                    h-0
-                    border-0
-                    border-b-2
-                    border-b-black
+                    border
+                    border-black
+                    border-t-0
+                    bg-white
                     p-0
                   "
+                  style={{
+                    height: "2px",
+                  }}
                 />
               </tr>
             </tfoot>

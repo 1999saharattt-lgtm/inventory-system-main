@@ -180,7 +180,7 @@ export default async function MaterialsSummaryPage() {
               text-center
               text-base
               font-extrabold
-              text-white
+              !text-white
               shadow-lg
               transition
               hover:scale-105
@@ -194,23 +194,38 @@ export default async function MaterialsSummaryPage() {
 
         {/* =====================================================
             ตาราง
-            เพิ่มเส้นปิดด้านล่างเป็นสีดำ
+            กรอบและเส้นปิดเป็นสีดำ
         ===================================================== */}
 
         <div
           className="
             w-full
             min-w-0
-            border-b
-            border-slate-900
+            max-w-full
+            overflow-hidden
+            rounded-2xl
+            border-2
+            border-black
+            bg-white
+            shadow-lg
           "
         >
-          <MaterialsSummaryClient
-            materials={data}
-            categories={categories}
-            categoryName={categoryName}
-            role={role}
-          />
+          <div
+            className="
+              w-full
+              min-w-0
+              max-w-full
+              overflow-x-auto
+              overscroll-x-contain
+            "
+          >
+            <MaterialsSummaryClient
+              materials={data}
+              categories={categories}
+              categoryName={categoryName}
+              role={role}
+            />
+          </div>
         </div>
       </div>
     );

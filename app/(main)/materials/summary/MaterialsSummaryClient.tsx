@@ -238,16 +238,26 @@ export default function MaterialsSummaryClient({
 
               {/* =====================================================
                   Table
+                  เส้นตารางสีดำ ปิดครบทุกด้าน
               ===================================================== */}
 
-              <div className="overflow-x-auto">
+              <div
+                className="
+                  overflow-x-auto
+                  border-b-2
+                  border-black
+                "
+              >
                 <table
                   className="
                     min-w-full
                     border-collapse
                     border
-                    border-slate-900
+                    border-black
                   "
+                  style={{
+                    borderColor: "#000000",
+                  }}
                 >
                   <thead>
                     <tr>
@@ -264,7 +274,7 @@ export default function MaterialsSummaryClient({
                           key={title}
                           className="
                             border
-                            border-slate-900
+                            border-black
                             bg-gradient-to-r
                             from-slate-800
                             to-slate-700
@@ -289,7 +299,7 @@ export default function MaterialsSummaryClient({
                           colSpan={7}
                           className="
                             border
-                            border-slate-900
+                            border-black
                             py-10
                             text-center
                             text-lg
@@ -308,7 +318,7 @@ export default function MaterialsSummaryClient({
                           key={material.id}
                           className="
                             border
-                            border-slate-900
+                            border-black
                             text-slate-900
                             transition
                             hover:bg-blue-50
@@ -317,7 +327,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               text-center
@@ -330,7 +340,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               text-center
@@ -343,7 +353,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               font-bold
@@ -355,7 +365,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               text-center
@@ -368,7 +378,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               text-center
@@ -381,7 +391,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               text-right
@@ -394,7 +404,7 @@ export default function MaterialsSummaryClient({
                           <td
                             className="
                               border
-                              border-slate-900
+                              border-black
                               px-4
                               py-3
                               font-semibold
@@ -406,6 +416,25 @@ export default function MaterialsSummaryClient({
                       ))
                     )}
                   </tbody>
+
+                  {/* =================================================
+                      เส้นปิดท้ายตารางสีดำ
+                      ================================================= */}
+
+                  <tfoot>
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="
+                          h-0
+                          border-0
+                          border-b-2
+                          border-b-black
+                          p-0
+                        "
+                      />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>
