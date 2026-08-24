@@ -142,11 +142,11 @@ export default async function MaterialsSummaryPage() {
             <h1
               className="
                 break-words
-                text-3xl
+                text-2xl
                 font-extrabold
                 leading-tight
                 !text-white
-                sm:text-5xl
+                sm:text-3xl
               "
             >
               📦 รายการพัสดุทั้งหมด
@@ -159,7 +159,7 @@ export default async function MaterialsSummaryPage() {
                 text-base
                 font-bold
                 !text-slate-200
-                sm:text-xl
+                sm:text-lg
               "
             >
               แสดงข้อมูลล่าสุดจากบัญชี Stock Card
@@ -247,11 +247,11 @@ export default async function MaterialsSummaryPage() {
           <h1
             className="
               break-words
-              text-3xl
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📦 รายการพัสดุทั้งหมด
@@ -264,7 +264,7 @@ export default async function MaterialsSummaryPage() {
               text-base
               font-bold
               !text-slate-200
-              sm:text-xl
+              sm:text-lg
             "
           >
             เลือกหมวดหมู่เพื่อดูรายการพัสดุ
