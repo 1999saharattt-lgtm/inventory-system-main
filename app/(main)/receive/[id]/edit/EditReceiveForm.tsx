@@ -260,8 +260,6 @@ export default function EditReceiveForm({
             w-full
             overflow-x-auto
             rounded-xl
-            border
-            border-slate-900
           "
         >
           <table
@@ -269,8 +267,6 @@ export default function EditReceiveForm({
               w-full
               min-w-[1100px]
               border-collapse
-              border
-              border-slate-900
               text-sm
             "
           >
@@ -329,8 +325,6 @@ export default function EditReceiveForm({
                   <tr
                     key={index}
                     className="
-                      border
-                      border-slate-900
                       text-slate-900
                       hover:bg-emerald-50
                     "

@@ -56,9 +56,7 @@ export default async function UsersPage() {
           shadow-xl
         "
       >
-
         <div>
-
           <h1
             className="
               text-5xl
@@ -80,7 +78,6 @@ export default async function UsersPage() {
           >
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
           </p>
-
         </div>
 
         <Link
@@ -102,7 +99,6 @@ export default async function UsersPage() {
         >
           + เพิ่มผู้ใช้งาน
         </Link>
-
       </div>
 
       {/* Table */}
@@ -111,28 +107,19 @@ export default async function UsersPage() {
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-900
           bg-white
           shadow-xl
         "
       >
-
         <div className="overflow-x-auto">
-
           <table
             className="
               min-w-full
               border-collapse
-              border
-              border-slate-900
             "
           >
-
             <thead>
-
               <tr>
-
                 {[
                   "ลำดับ",
                   "Username",
@@ -141,7 +128,6 @@ export default async function UsersPage() {
                   "สถานะ",
                   "จัดการ",
                 ].map((title) => (
-
                   <th
                     key={title}
                     className="
@@ -160,29 +146,20 @@ export default async function UsersPage() {
                   >
                     {title}
                   </th>
-
                 ))}
-
               </tr>
-
             </thead>
 
             <tbody>
-
               {users.length > 0 ? (
-
                 users.map((user, index) => (
-
                   <tr
                     key={user.id}
                     className="
-                      border
-                      border-slate-900
                       text-slate-900
                       hover:bg-blue-50
                     "
                   >
-
                     <td
                       className="
                         border
@@ -233,7 +210,6 @@ export default async function UsersPage() {
                         text-center
                       "
                     >
-
                       <span
                         className="
                           rounded-lg
@@ -246,7 +222,6 @@ export default async function UsersPage() {
                       >
                         {roleName[user.role] ?? user.role}
                       </span>
-
                     </td>
 
                     <td
@@ -258,9 +233,7 @@ export default async function UsersPage() {
                         text-center
                       "
                     >
-
                       {user.active ? (
-
                         <span
                           className="
                             rounded-lg
@@ -273,9 +246,7 @@ export default async function UsersPage() {
                         >
                           Active
                         </span>
-
                       ) : (
-
                         <span
                           className="
                             rounded-lg
@@ -288,9 +259,7 @@ export default async function UsersPage() {
                         >
                           Inactive
                         </span>
-
                       )}
-
                     </td>
 
                     <td
@@ -301,7 +270,6 @@ export default async function UsersPage() {
                         py-3
                       "
                     >
-
                       <div
                         className="
                           flex
@@ -309,7 +277,6 @@ export default async function UsersPage() {
                           gap-2
                         "
                       >
-
                         <Link
                           href={`/users/${user.id}/edit`}
                           className="
@@ -328,7 +295,6 @@ export default async function UsersPage() {
                         </Link>
 
                         <form action={deleteUser}>
-
                           <input
                             type="hidden"
                             name="id"
@@ -350,21 +316,13 @@ export default async function UsersPage() {
                           >
                             ลบ
                           </button>
-
                         </form>
-
                       </div>
-
                     </td>
-
                   </tr>
-
                 ))
-
               ) : (
-
                 <tr>
-
                   <td
                     colSpan={6}
                     className="
@@ -379,19 +337,12 @@ export default async function UsersPage() {
                   >
                     ยังไม่มีผู้ใช้งาน
                   </td>
-
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
       </div>
-
     </div>
   );
 }

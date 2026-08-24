@@ -260,9 +260,6 @@ export default function MaterialsSummaryClient({
                       w-full
                       min-w-[900px]
                       border-collapse
-                      border-x
-                      border-t
-                      border-black
                       bg-white
                     "
                   >
@@ -282,7 +279,7 @@ export default function MaterialsSummaryClient({
                             className="
                               whitespace-nowrap
                               border
-                              border-black
+                              border-slate-300
                               bg-gradient-to-r
                               from-slate-800
                               to-slate-700
@@ -307,7 +304,7 @@ export default function MaterialsSummaryClient({
                             colSpan={7}
                             className="
                               border
-                              border-black
+                              border-slate-300
                               px-4
                               py-10
                               text-center
@@ -335,7 +332,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 text-center
@@ -349,7 +346,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 text-center
@@ -362,7 +359,7 @@ export default function MaterialsSummaryClient({
                             <td
                               className="
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 font-bold
@@ -375,7 +372,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 text-center
@@ -389,7 +386,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 text-center
@@ -403,7 +400,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 text-right
@@ -416,7 +413,7 @@ export default function MaterialsSummaryClient({
                             <td
                               className="
                                 border
-                                border-black
+                                border-slate-300
                                 px-4
                                 py-3
                                 font-semibold
@@ -428,30 +425,6 @@ export default function MaterialsSummaryClient({
                         ))
                       )}
                     </tbody>
-
-                    {/* =================================================
-                        เส้นปิดท้ายตารางสีดำ
-                    ================================================= */}
-
-                    <tfoot>
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="
-                            h-0
-                            border-x-0
-                            border-b-2
-                            border-t-0
-                            border-black
-                            bg-white
-                            p-0
-                          "
-                          style={{
-                            height: "2px",
-                          }}
-                        />
-                      </tr>
-                    </tfoot>
                   </table>
                 </div>
               </section>

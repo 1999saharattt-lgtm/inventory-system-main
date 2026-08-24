@@ -173,8 +173,6 @@ export default function VendorsPage() {
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-900
           bg-white
           shadow-xl
         "
@@ -191,8 +189,6 @@ export default function VendorsPage() {
             className="
               min-w-full
               border-collapse
-              border
-              border-slate-900
               bg-white
             "
           >
@@ -284,8 +280,6 @@ export default function VendorsPage() {
                       text-slate-900
                       transition
                       hover:bg-blue-50
-                      last:[&>td]:border-b-2
-                      last:[&>td]:border-b-slate-900
                     "
                   >
                     <td

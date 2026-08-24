@@ -652,8 +652,6 @@ export default async function IssueDetailPage({
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
@@ -663,8 +661,6 @@ export default async function IssueDetailPage({
             className="
               w-full
               border-collapse
-              border
-              border-black
             "
           >
             <thead>
@@ -672,7 +668,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -690,7 +686,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -708,7 +704,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -726,7 +722,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -744,7 +740,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -762,7 +758,7 @@ export default async function IssueDetailPage({
                 <th
                   className="
                     border
-                    border-black
+                    border-slate-900
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -796,7 +792,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                         text-center
@@ -809,7 +805,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                       "
@@ -823,7 +819,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                         font-semibold
@@ -838,7 +834,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                         text-center
@@ -851,7 +847,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                         text-center
@@ -876,7 +872,7 @@ export default async function IssueDetailPage({
                     <td
                       className="
                         border
-                        border-black
+                        border-slate-900
                         px-3
                         py-3
                         text-center

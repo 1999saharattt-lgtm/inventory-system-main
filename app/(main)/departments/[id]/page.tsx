@@ -85,8 +85,6 @@ export default async function DepartmentDetailPage({
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-900
           bg-white
           shadow-xl
         "
@@ -95,8 +93,6 @@ export default async function DepartmentDetailPage({
           <table
             className="
               min-w-full
-              border
-              border-slate-900
               border-collapse
             "
           >
@@ -282,7 +278,6 @@ export default async function DepartmentDetailPage({
         "
       >
         <div className="min-w-0 text-white">
-
           <h1
             className="
               break-words
@@ -309,7 +304,6 @@ export default async function DepartmentDetailPage({
           >
             รายละเอียดหน่วยงานและรายชื่อเจ้าหน้าที่
           </p>
-
         </div>
 
         <Link

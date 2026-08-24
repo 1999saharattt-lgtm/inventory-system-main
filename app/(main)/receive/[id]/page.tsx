@@ -59,7 +59,6 @@ export default async function ReceiveDetailPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* Header */}
 
       <div
@@ -86,7 +85,6 @@ export default async function ReceiveDetailPage({
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -113,7 +111,6 @@ export default async function ReceiveDetailPage({
           >
             รายละเอียดรายการรับเข้าพัสดุ
           </p>
-
         </div>
 
         {/* ปุ่มกลับ - รูปแบบเดียวกับ /materials/summary */}
@@ -142,7 +139,6 @@ export default async function ReceiveDetailPage({
         >
           ← กลับ
         </Link>
-
       </div>
 
       {/* ข้อมูลเอกสาร */}
@@ -196,25 +192,20 @@ export default async function ReceiveDetailPage({
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
       >
         <div className="overflow-x-auto">
-
           <table
             className="
               w-full
               border-collapse
               border
               border-black
-          "
+            "
           >
-
             <thead>
-
               <tr
                 className="
                   bg-gradient-to-r
@@ -233,7 +224,6 @@ export default async function ReceiveDetailPage({
                   "วันผลิต",
                   "วันหมดอายุ",
                 ].map((title) => (
-
                   <th
                     key={title}
                     className="
@@ -252,17 +242,13 @@ export default async function ReceiveDetailPage({
                   >
                     {title}
                   </th>
-
                 ))}
               </tr>
-
             </thead>
 
             <tbody className="text-slate-900">
-
               {receive.items.map(
                 (item: ReceiveItem, index: number) => (
-
                   <tr
                     key={item.id}
                     className="
@@ -271,7 +257,6 @@ export default async function ReceiveDetailPage({
                       hover:bg-emerald-50
                     "
                   >
-
                     <td
                       className="
                         border
@@ -386,19 +371,13 @@ export default async function ReceiveDetailPage({
                           ).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
-
                   </tr>
-
                 )
               )}
-
             </tbody>
-
           </table>
-
         </div>
       </div>
-
     </div>
   );
 }

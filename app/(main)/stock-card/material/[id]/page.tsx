@@ -674,8 +674,6 @@ export default async function StockCardPage({ params }: Props) {
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-900
           bg-white
           shadow-lg
         "
@@ -693,8 +691,6 @@ export default async function StockCardPage({ params }: Props) {
               w-max
               min-w-[1000px]
               border-collapse
-              border
-              border-slate-900
             "
           >
             <thead>
@@ -761,8 +757,6 @@ export default async function StockCardPage({ params }: Props) {
                   <tr
                     key={index}
                     className="
-                      border
-                      border-slate-900
                       hover:bg-blue-50
                     "
                   >

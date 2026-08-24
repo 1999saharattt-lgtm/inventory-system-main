@@ -337,10 +337,6 @@ export default async function LowStockPage({
             className="
               w-full
               min-w-0
-              overflow-hidden
-              rounded-2xl
-              bg-white
-              shadow-lg
             "
           >
             {/* =================================================
@@ -353,6 +349,7 @@ export default async function LowStockPage({
                 items-center
                 justify-between
                 gap-3
+                rounded-t-2xl
                 bg-gradient-to-r
                 from-slate-950
                 via-slate-800
@@ -402,6 +399,7 @@ export default async function LowStockPage({
 
             {/* =================================================
                 Table
+                ไม่มีกรอบ wrapper ซ้ำ
             ================================================= */}
 
             <div
@@ -418,6 +416,9 @@ export default async function LowStockPage({
                   w-full
                   min-w-[900px]
                   border-collapse
+                  border-x
+                  border-b
+                  border-black
                   bg-white
                 "
               >
@@ -649,10 +650,13 @@ export default async function LowStockPage({
                         "
                       >
                         {material.latestPrice !== null
-                          ? material.latestPrice.toLocaleString("th-TH", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })
+                          ? material.latestPrice.toLocaleString(
+                              "th-TH",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )
                           : "-"}
                       </td>
 
