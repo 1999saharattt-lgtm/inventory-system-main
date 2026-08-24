@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 import ReceiveForm from "./ReceiveForm";
 
 function getThaiYear() {
-  return String(
-    new Date().getFullYear() + 543
-  ).slice(-2);
+  return String(new Date().getFullYear() + 543).slice(-2);
 }
 
 async function generateReceiveNo() {
@@ -25,18 +23,14 @@ async function generateReceiveNo() {
   let running = 1;
 
   for (const receive of receives) {
-    const match = receive.documentNo.match(
-      /ร\.(\d+)\/(\d+)/
-    );
+    const match = receive.documentNo.match(/ร\.(\d+)\/(\d+)/);
 
     if (match) {
       const lastNumber = Number(match[1]);
       const lastYear = match[2];
 
-      if (lastYear === year) {
-        if (lastNumber >= running) {
-          running = lastNumber + 1;
-        }
+      if (lastYear === year && lastNumber >= running) {
+        running = lastNumber + 1;
       }
     }
   }
@@ -45,11 +39,7 @@ async function generateReceiveNo() {
 }
 
 export default async function CreateReceivePage() {
-  const [
-    materials,
-    vendors,
-    documentNo,
-  ] = await Promise.all([
+  const [materials, vendors, documentNo] = await Promise.all([
     prisma.material.findMany({
       orderBy: [
         {
@@ -72,26 +62,31 @@ export default async function CreateReceivePage() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
-          to-cyan-700
-          p-4
+          to-slate-700
+          px-3
+          py-4
+          text-white
           shadow-xl
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:p-6
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
         "
       >
         <div className="min-w-0">
@@ -101,7 +96,6 @@ export default async function CreateReceivePage() {
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
               sm:text-5xl
             "
@@ -117,7 +111,6 @@ export default async function CreateReceivePage() {
               font-semibold
               leading-tight
               !text-slate-200
-              sm:mt-3
               sm:text-xl
             "
           >
@@ -128,33 +121,34 @@ export default async function CreateReceivePage() {
         <Link
           href="/receive"
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:shadow-xl
-            sm:w-auto
-            sm:px-6
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
         </Link>
       </div>
 
-      {/* Form */}
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="

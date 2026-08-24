@@ -159,11 +159,11 @@ export default async function LowStockPage({
           <h1
             className="
               break-words
-              text-3xl
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             ⚠️ รายการพัสดุใกล้หมด
@@ -173,10 +173,10 @@ export default async function LowStockPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-bold
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             แสดงรายการพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10

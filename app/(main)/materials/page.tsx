@@ -84,7 +84,7 @@ export default function MaterialsPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📦 รายการพัสดุทั้งหมด
@@ -94,11 +94,11 @@ export default function MaterialsPage() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             เลือกหมวดหมู่เพื่อดูรายการพัสดุ

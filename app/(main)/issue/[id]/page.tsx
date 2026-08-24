@@ -210,7 +210,7 @@ export default async function IssueDetailPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             📤 รายละเอียดใบเบิกพัสดุ
@@ -220,12 +220,12 @@ export default async function IssueDetailPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-lg
             "
           >
             รายละเอียดรายการเบิกจ่ายพัสดุ

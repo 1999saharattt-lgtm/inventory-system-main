@@ -90,22 +90,22 @@ export default async function ReceivePage() {
         <Link
           href="/receive/create"
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-3
+            px-3
+            py-2
             text-center
-            text-base
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            sm:w-auto
+            sm:px-5
+            sm:py-3
             sm:text-lg
           "
         >
@@ -127,10 +127,11 @@ export default async function ReceivePage() {
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div className="w-full min-w-0 overflow-x-auto">
           <table
             className="
               w-full
+              min-w-[900px]
               border-collapse
               border
               border-black
@@ -156,6 +157,7 @@ export default async function ReceivePage() {
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-black
                       bg-gradient-to-r
@@ -164,9 +166,12 @@ export default async function ReceivePage() {
                       px-3
                       py-3
                       text-center
-                      text-lg
+                      text-base
                       font-extrabold
                       !text-white
+                      sm:px-4
+                      sm:py-4
+                      sm:text-lg
                     "
                   >
                     {title}
@@ -191,12 +196,14 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-3
                           py-3
                           text-center
                           font-bold
+                          sm:px-4
                         "
                       >
                         {index + 1}
@@ -206,11 +213,13 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-3
                           py-3
                           text-center
+                          sm:px-4
                         "
                       >
                         {new Date(
@@ -222,11 +231,13 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-3
                           py-3
                           text-center
+                          sm:px-4
                         "
                       >
                         {receive.documentNo}
@@ -240,6 +251,7 @@ export default async function ReceivePage() {
                           border-black
                           px-3
                           py-3
+                          sm:px-4
                         "
                       >
                         {receive.vendor.name}
@@ -249,11 +261,13 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-3
                           py-3
                           text-center
+                          sm:px-4
                         "
                       >
                         <Link
@@ -262,13 +276,16 @@ export default async function ReceivePage() {
                             inline-block
                             rounded-lg
                             bg-slate-800
-                            px-4
+                            px-3
                             py-2
+                            text-sm
                             font-extrabold
                             text-white
                             shadow
                             transition
                             hover:bg-slate-700
+                            sm:px-4
+                            sm:text-base
                           "
                         >
                           ดูรายการ
@@ -279,10 +296,12 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          min-w-[180px]
                           border
                           border-black
                           px-3
                           py-3
+                          sm:px-4
                         "
                       >
                         {receive.remark ?? "-"}
@@ -292,10 +311,12 @@ export default async function ReceivePage() {
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-3
                           py-3
+                          sm:px-4
                         "
                       >
                         <div
@@ -310,13 +331,16 @@ export default async function ReceivePage() {
                             className="
                               rounded-lg
                               bg-slate-800
-                              px-4
+                              px-3
                               py-2
+                              text-sm
                               font-extrabold
                               text-white
                               shadow
                               transition
                               hover:bg-slate-700
+                              sm:px-4
+                              sm:text-base
                             "
                           >
                             แก้ไข

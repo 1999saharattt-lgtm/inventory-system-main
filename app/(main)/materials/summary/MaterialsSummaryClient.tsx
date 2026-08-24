@@ -245,6 +245,7 @@ export default function MaterialsSummaryClient({
                 {/* =====================================================
                     Table
                     ไม่มีกรอบ wrapper ซ้ำ
+                    เส้นตารางสีดำ
                 ===================================================== */}
 
                 <div
@@ -279,7 +280,7 @@ export default function MaterialsSummaryClient({
                             className="
                               whitespace-nowrap
                               border
-                              border-slate-300
+                              border-black
                               bg-gradient-to-r
                               from-slate-800
                               to-slate-700
@@ -304,7 +305,7 @@ export default function MaterialsSummaryClient({
                             colSpan={7}
                             className="
                               border
-                              border-slate-300
+                              border-black
                               px-4
                               py-10
                               text-center
@@ -332,7 +333,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 text-center
@@ -346,7 +347,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 text-center
@@ -359,7 +360,7 @@ export default function MaterialsSummaryClient({
                             <td
                               className="
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 font-bold
@@ -372,7 +373,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 text-center
@@ -386,7 +387,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 text-center
@@ -400,7 +401,7 @@ export default function MaterialsSummaryClient({
                               className="
                                 whitespace-nowrap
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 text-right
@@ -413,7 +414,7 @@ export default function MaterialsSummaryClient({
                             <td
                               className="
                                 border
-                                border-slate-300
+                                border-black
                                 px-4
                                 py-3
                                 font-semibold

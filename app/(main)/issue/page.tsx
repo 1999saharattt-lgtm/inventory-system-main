@@ -111,8 +111,6 @@ export default async function IssuePage() {
 
   // =====================================================
   // จำนวนรายการที่รอเบิกจ่าย
-  //
-  // แสดงเฉพาะ Admin
   // =====================================================
 
   const pendingCount =
@@ -205,6 +203,8 @@ export default async function IssuePage() {
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-5
             sm:py-3
             sm:text-lg
@@ -218,68 +218,67 @@ export default async function IssuePage() {
           แจ้งเตือนรายการรอเบิกจ่าย
       ===================================================== */}
 
-      {session?.role === "ADMIN" &&
-        pendingCount > 0 && (
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              rounded-2xl
-              border
-              border-amber-300
-              bg-gradient-to-r
-              from-amber-50
-              to-yellow-50
-              p-4
-              shadow-lg
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
-            <div className="min-w-0">
-              <p
-                className="
-                  text-lg
-                  font-extrabold
-                  text-amber-900
-                "
-              >
-                🔔 มีรายการรอเบิกจ่าย
-              </p>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  text-amber-800
-                  sm:text-base
-                "
-              >
-                มีใบเบิกจำนวน {pendingCount} รายการ
-                รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
-              </p>
-            </div>
-
-            <div
+      {session?.role === "ADMIN" && pendingCount > 0 && (
+        <div
+          className="
+            flex
+            flex-col
+            gap-3
+            rounded-2xl
+            border
+            border-amber-300
+            bg-gradient-to-r
+            from-amber-50
+            to-yellow-50
+            p-4
+            shadow-lg
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <p
               className="
-                shrink-0
-                rounded-xl
-                bg-amber-500
-                px-5
-                py-2.5
-                text-center
+                text-lg
                 font-extrabold
-                text-white
-                shadow
+                text-amber-900
               "
             >
-              รอ {pendingCount} รายการ
-            </div>
+              🔔 มีรายการรอเบิกจ่าย
+            </p>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                text-amber-800
+                sm:text-base
+              "
+            >
+              มีใบเบิกจำนวน {pendingCount} รายการ
+              รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
+            </p>
           </div>
-        )}
+
+          <div
+            className="
+              shrink-0
+              rounded-xl
+              bg-amber-500
+              px-5
+              py-2.5
+              text-center
+              font-extrabold
+              text-white
+              shadow
+            "
+          >
+            รอ {pendingCount} รายการ
+          </div>
+        </div>
+      )}
 
       {/* =====================================================
           Table
@@ -304,20 +303,19 @@ export default async function IssuePage() {
         >
           <thead>
             <tr>
-              {/* ลำดับ */}
-
               <th
                 className="
                   w-[5%]
+                  whitespace-nowrap
                   border
                   border-slate-900
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
@@ -325,20 +323,19 @@ export default async function IssuePage() {
                 ลำดับ
               </th>
 
-              {/* วันที่ */}
-
               <th
                 className="
                   w-[9%]
+                  whitespace-nowrap
                   border
                   border-slate-900
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
@@ -346,28 +343,25 @@ export default async function IssuePage() {
                 วันที่
               </th>
 
-              {/* เลขที่เอกสาร */}
-
               <th
                 className="
                   w-[11%]
+                  whitespace-nowrap
                   border
                   border-slate-900
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
               >
                 เลขที่เอกสาร
               </th>
-
-              {/* หน่วยงาน / กลุ่มงาน */}
 
               <th
                 className="
@@ -377,18 +371,16 @@ export default async function IssuePage() {
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
               >
                 หน่วยงาน / กลุ่มงาน
               </th>
-
-              {/* ผู้ขอเบิก */}
 
               <th
                 className="
@@ -398,18 +390,16 @@ export default async function IssuePage() {
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
               >
                 ผู้ขอเบิก
               </th>
-
-              {/* สถานะ */}
 
               <th
                 className="
@@ -419,18 +409,16 @@ export default async function IssuePage() {
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
               >
                 สถานะ
               </th>
-
-              {/* รายละเอียด */}
 
               <th
                 className="
@@ -440,18 +428,16 @@ export default async function IssuePage() {
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
               >
                 รายละเอียด
               </th>
-
-              {/* จัดการ */}
 
               <th
                 className="
@@ -461,10 +447,10 @@ export default async function IssuePage() {
                   bg-gradient-to-r
                   from-slate-800
                   to-slate-700
-                  px-1
+                  px-2
                   py-3
                   text-center
-                  text-sm
+                  text-base
                   font-extrabold
                   !text-white
                 "
@@ -483,19 +469,17 @@ export default async function IssuePage() {
                     className="
                       border-b
                       border-slate-900
+                      text-slate-900
                       transition
                       hover:bg-blue-50
                     "
                   >
-                    {/* =================================================
-                        ลำดับ
-                    ================================================= */}
-
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-sm
@@ -506,15 +490,12 @@ export default async function IssuePage() {
                       {index + 1}
                     </td>
 
-                    {/* =================================================
-                        วันที่
-                    ================================================= */}
-
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-sm
@@ -525,22 +506,16 @@ export default async function IssuePage() {
                       {issue.issueDate
                         ? new Date(
                             issue.issueDate
-                          ).toLocaleDateString(
-                            "th-TH"
-                          )
+                          ).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
-
-                    {/* =================================================
-                        เลขที่เอกสาร
-                    ================================================= */}
 
                     <td
                       className="
                         break-words
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-sm
@@ -551,16 +526,12 @@ export default async function IssuePage() {
                       {issue.documentNo}
                     </td>
 
-                    {/* =================================================
-                        หน่วยงาน
-                    ================================================= */}
-
                     <td
                       className="
                         break-words
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-sm
@@ -571,16 +542,12 @@ export default async function IssuePage() {
                       {issue.department?.name ?? "-"}
                     </td>
 
-                    {/* =================================================
-                        ผู้ขอเบิก
-                    ================================================= */}
-
                     <td
                       className="
                         break-words
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-sm
@@ -593,23 +560,18 @@ export default async function IssuePage() {
                         : "-"}
                     </td>
 
-                    {/* =================================================
-                        สถานะ
-                    ================================================= */}
-
                     <td
                       className="
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                         text-xs
                         font-extrabold
                       "
                     >
-                      {issue.status ===
-                      "PENDING" ? (
+                      {issue.status === "PENDING" ? (
                         <span
                           className="
                             inline-flex
@@ -626,8 +588,7 @@ export default async function IssuePage() {
                         >
                           🔔 รอเบิกจ่าย
                         </span>
-                      ) : issue.status ===
-                        "APPROVED" ? (
+                      ) : issue.status === "APPROVED" ? (
                         <span
                           className="
                             inline-flex
@@ -644,8 +605,7 @@ export default async function IssuePage() {
                         >
                           ✓ เสร็จสิ้นแล้ว
                         </span>
-                      ) : issue.status ===
-                        "REJECTED" ? (
+                      ) : issue.status === "REJECTED" ? (
                         <span
                           className="
                             inline-flex
@@ -676,22 +636,16 @@ export default async function IssuePage() {
                             text-slate-700
                           "
                         >
-                          {getStatusLabel(
-                            issue.status
-                          )}
+                          {getStatusLabel(issue.status)}
                         </span>
                       )}
                     </td>
-
-                    {/* =================================================
-                        รายละเอียด
-                    ================================================= */}
 
                     <td
                       className="
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                       "
@@ -716,24 +670,18 @@ export default async function IssuePage() {
                           hover:bg-slate-700
                         "
                       >
-                        {session?.role ===
-                          "ADMIN" &&
-                        issue.status ===
-                          "PENDING"
+                        {session?.role === "ADMIN" &&
+                        issue.status === "PENDING"
                           ? "ตรวจสอบ / เบิกจ่าย"
                           : "ดูรายการ"}
                       </Link>
                     </td>
 
-                    {/* =================================================
-                        จัดการ
-                    ================================================= */}
-
                     <td
                       className="
                         border
                         border-slate-900
-                        px-1
+                        px-2
                         py-3
                         text-center
                       "
@@ -769,9 +717,7 @@ export default async function IssuePage() {
                           แก้ไข
                         </Link>
 
-                        <DeleteButton
-                          id={issue.id}
-                        />
+                        <DeleteButton id={issue.id} />
                       </div>
                     </td>
                   </tr>

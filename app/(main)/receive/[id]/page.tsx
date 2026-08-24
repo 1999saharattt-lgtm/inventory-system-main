@@ -59,7 +59,9 @@ export default async function ReceiveDetailPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -113,27 +115,27 @@ export default async function ReceiveDetailPage({
           </p>
         </div>
 
-        {/* ปุ่มกลับ - รูปแบบเดียวกับ /materials/summary */}
-
         <Link
           href="/receive"
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-3
+            px-3
+            py-2
             text-center
-            text-base
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            sm:w-auto
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
+            sm:py-3
             sm:text-lg
           "
         >
@@ -141,27 +143,37 @@ export default async function ReceiveDetailPage({
         </Link>
       </div>
 
-      {/* ข้อมูลเอกสาร */}
+      {/* =====================================================
+          ข้อมูลเอกสาร
+      ===================================================== */}
 
       <div
         className="
-          space-y-4
+          w-full
+          min-w-0
+          space-y-3
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-950
           to-slate-800
-          p-6
+          p-4
+          text-sm
           text-white
           shadow-xl
+          sm:space-y-4
+          sm:p-6
+          sm:text-base
         "
       >
         <p>
           <span className="font-extrabold">
             วันที่รับเข้า :
           </span>{" "}
-          {new Date(receive.receiveDate).toLocaleDateString("th-TH")}
+          {new Date(
+            receive.receiveDate
+          ).toLocaleDateString("th-TH")}
         </p>
 
         <p>
@@ -178,7 +190,7 @@ export default async function ReceiveDetailPage({
           {receive.vendor.name}
         </p>
 
-        <p>
+        <p className="break-words">
           <span className="font-extrabold">
             หมายเหตุ :
           </span>{" "}
@@ -186,33 +198,40 @@ export default async function ReceiveDetailPage({
         </p>
       </div>
 
-      {/* ตารางรายการ */}
+      {/* =====================================================
+          ตารางรายการ
+      ===================================================== */}
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           bg-white
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
               w-full
+              min-w-[1000px]
               border-collapse
               border
               border-black
+              bg-white
             "
           >
             <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                "
-              >
+              <tr>
                 {[
                   "ลำดับ",
                   "หมวดหมู่",
@@ -227,6 +246,7 @@ export default async function ReceiveDetailPage({
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-black
                       bg-gradient-to-r
@@ -235,9 +255,12 @@ export default async function ReceiveDetailPage({
                       px-3
                       py-3
                       text-center
-                      text-lg
+                      text-base
                       font-extrabold
                       !text-white
+                      sm:px-4
+                      sm:py-4
+                      sm:text-lg
                     "
                   >
                     {title}
@@ -259,12 +282,17 @@ export default async function ReceiveDetailPage({
                   >
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-center
+                        text-sm
                         font-bold
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {index + 1}
@@ -275,18 +303,28 @@ export default async function ReceiveDetailPage({
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
-                      {categoryLabel[item.material.category]}
+                      {categoryLabel[item.material.category] ??
+                        item.material.category}
                     </td>
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.material.code}
@@ -297,8 +335,12 @@ export default async function ReceiveDetailPage({
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
+                        text-sm
                         font-semibold
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.material.name}
@@ -306,11 +348,16 @@ export default async function ReceiveDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-center
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.material.unit}
@@ -318,11 +365,16 @@ export default async function ReceiveDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-center
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.qty}
@@ -330,23 +382,39 @@ export default async function ReceiveDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-right
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
-                      {Number(item.unitPrice).toFixed(2)}
+                      {Number(item.unitPrice).toLocaleString(
+                        "th-TH",
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }
+                      )}
                     </td>
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-center
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.manufacture
@@ -358,11 +426,16 @@ export default async function ReceiveDetailPage({
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         px-3
-                        py-3
+                        py-2.5
                         text-center
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
                       "
                     >
                       {item.expiry

@@ -200,11 +200,11 @@ export default async function EditIssuePage({
           <h1
             className="
               break-words
-              text-2xl
+              text-3xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             🖊️ แก้ไขรายการเบิกพัสดุ
@@ -219,7 +219,7 @@ export default async function EditIssuePage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-lg
             "
           >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
@@ -247,7 +247,7 @@ export default async function EditIssuePage({
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ

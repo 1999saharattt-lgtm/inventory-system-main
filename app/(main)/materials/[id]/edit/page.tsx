@@ -32,7 +32,6 @@ export default async function EditMaterialPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* =====================================================
           Header
       ===================================================== */}
@@ -61,7 +60,6 @@ export default async function EditMaterialPage({
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -69,7 +67,7 @@ export default async function EditMaterialPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             ✏️ แก้ไขข้อมูลพัสดุ
@@ -79,16 +77,15 @@ export default async function EditMaterialPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             แก้ไขรายละเอียดรายการพัสดุ
           </p>
-
         </div>
 
         {/* =====================================================
@@ -121,7 +118,6 @@ export default async function EditMaterialPage({
         >
           ← กลับ
         </Link>
-
       </div>
 
       {/* =====================================================
@@ -132,7 +128,6 @@ export default async function EditMaterialPage({
         material={material}
         vendors={vendors}
       />
-
     </div>
   );
 }

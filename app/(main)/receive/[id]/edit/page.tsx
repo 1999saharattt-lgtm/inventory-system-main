@@ -149,14 +149,17 @@ export default async function EditReceivePage({
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-950
           to-slate-800
-          p-6
+          p-4
           shadow-xl
+          sm:p-6
         "
       >
         <EditReceiveForm
