@@ -31,7 +31,9 @@ export default async function ReceivePage() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -116,7 +118,9 @@ export default async function ReceivePage() {
         </Link>
       </div>
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
 
       <div
         className="
@@ -125,7 +129,7 @@ export default async function ReceivePage() {
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-slate-900
           bg-white
           shadow-xl
         "
@@ -135,6 +139,7 @@ export default async function ReceivePage() {
             className="
               min-w-[1100px]
               border
+              border-collapse
               border-slate-900
             "
           >
@@ -163,7 +168,7 @@ export default async function ReceivePage() {
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                     "
                   >
                     {title}
@@ -179,7 +184,7 @@ export default async function ReceivePage() {
                     <tr
                       key={receive.id}
                       className="
-                        border-b-2
+                        border
                         border-slate-900
                         hover:bg-blue-50
                       "
@@ -340,7 +345,7 @@ export default async function ReceivePage() {
                   <td
                     colSpan={7}
                     className="
-                      border-b-2
+                      border
                       border-slate-900
                       py-12
                       text-center
@@ -354,6 +359,24 @@ export default async function ReceivePage() {
                 </tr>
               )}
             </tbody>
+
+            {/* =====================================================
+                ปิดกรอบด้านล่างสุดให้เป็นสีดำ
+            ===================================================== */}
+
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={7}
+                  className="
+                    h-0
+                    border
+                    border-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

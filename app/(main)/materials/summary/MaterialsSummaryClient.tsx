@@ -90,7 +90,9 @@ export default function MaterialsSummaryClient({
   if (role === "ADMIN") {
     return (
       <>
-        {/* Search Box */}
+        {/* =====================================================
+            Search Box
+        ===================================================== */}
 
         <form onSubmit={handleSubmit}>
           <div
@@ -173,7 +175,9 @@ export default function MaterialsSummaryClient({
           </div>
         </form>
 
-        {/* Categories */}
+        {/* =====================================================
+            Categories
+        ===================================================== */}
 
         {categories.map((category) => {
           const categoryMaterials = filteredMaterials.filter(
@@ -192,7 +196,9 @@ export default function MaterialsSummaryClient({
                 shadow-lg
               "
             >
-              {/* Category Header */}
+              {/* =====================================================
+                  Category Header
+              ===================================================== */}
 
               <div
                 className="
@@ -232,7 +238,9 @@ export default function MaterialsSummaryClient({
                 </span>
               </div>
 
-              {/* Table */}
+              {/* =====================================================
+                  Table
+              ===================================================== */}
 
               <div className="overflow-x-auto">
                 <table
@@ -267,7 +275,7 @@ export default function MaterialsSummaryClient({
                             text-center
                             text-lg
                             font-extrabold
-                            text-white
+                            !text-white
                           "
                         >
                           {title}
@@ -400,6 +408,24 @@ export default function MaterialsSummaryClient({
                       ))
                     )}
                   </tbody>
+
+                  {/* =====================================================
+                      ปิดเส้นล่างของตารางให้เป็นสีดำ
+                  ===================================================== */}
+
+                  <tfoot>
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="
+                          h-0
+                          border
+                          border-slate-900
+                          p-0
+                        "
+                      />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>
@@ -420,7 +446,9 @@ export default function MaterialsSummaryClient({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Search */}
+      {/* =====================================================
+          Search
+      ===================================================== */}
 
       <form onSubmit={handleSubmit}>
         <div
@@ -503,7 +531,9 @@ export default function MaterialsSummaryClient({
         </div>
       </form>
 
-      {/* Category Cards */}
+      {/* =====================================================
+          Category Cards
+      ===================================================== */}
 
       <div
         className="
@@ -541,13 +571,18 @@ export default function MaterialsSummaryClient({
                 hover:shadow-2xl
               "
             >
-              {/* Top Color */}
+              {/* =====================================================
+                  Top Color
+              ===================================================== */}
 
               <div
                 className={`
                   h-1.5
                   bg-gradient-to-r
-                  ${categoryColor[category] ?? "from-slate-700 to-slate-900"}
+                  ${
+                    categoryColor[category] ??
+                    "from-slate-700 to-slate-900"
+                  }
                   sm:h-2
                 `}
               />
@@ -567,7 +602,9 @@ export default function MaterialsSummaryClient({
                   sm:p-6
                 "
               >
-                {/* Icon */}
+                {/* =====================================================
+                    Icon
+                ===================================================== */}
 
                 <div
                   className="
@@ -594,7 +631,9 @@ export default function MaterialsSummaryClient({
                   {categoryIcon[category] ?? "📦"}
                 </div>
 
-                {/* Name */}
+                {/* =====================================================
+                    Name
+                ===================================================== */}
 
                 <div className="min-w-0 max-w-full">
                   <h2
@@ -625,7 +664,9 @@ export default function MaterialsSummaryClient({
                   </p>
                 </div>
 
-                {/* Count */}
+                {/* =====================================================
+                    Count
+                ===================================================== */}
 
                 <div
                   className="
@@ -645,7 +686,9 @@ export default function MaterialsSummaryClient({
                   {categoryMaterials.length} รายการ
                 </div>
 
-                {/* Open */}
+                {/* =====================================================
+                    Open
+                ===================================================== */}
 
                 <span
                   className="

@@ -402,6 +402,8 @@ export default function EditIssueForm({
               w-full
               min-w-[1200px]
               border-collapse
+              border
+              border-slate-900
               text-sm
             "
           >
@@ -753,6 +755,23 @@ export default function EditIssueForm({
                 }
               )}
             </tbody>
+
+            {/* เส้นปิดท้ายตารางสีดำ */}
+
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={8}
+                  className="
+                    h-0
+                    border-0
+                    border-b-2
+                    border-b-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
 

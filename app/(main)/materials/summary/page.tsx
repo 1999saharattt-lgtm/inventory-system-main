@@ -192,12 +192,26 @@ export default async function MaterialsSummaryPage() {
           </Link>
         </div>
 
-        <MaterialsSummaryClient
-          materials={data}
-          categories={categories}
-          categoryName={categoryName}
-          role={role}
-        />
+        {/* =====================================================
+            ตาราง
+            เพิ่มเส้นปิดด้านล่างเป็นสีดำ
+        ===================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            border-b
+            border-slate-900
+          "
+        >
+          <MaterialsSummaryClient
+            materials={data}
+            categories={categories}
+            categoryName={categoryName}
+            role={role}
+          />
+        </div>
       </div>
     );
   }

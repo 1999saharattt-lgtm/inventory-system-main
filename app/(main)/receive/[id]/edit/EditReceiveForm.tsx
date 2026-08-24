@@ -64,28 +64,27 @@ export default function EditReceiveForm({
   materials,
 }: Props) {
   const [items, setItems] = useState<ReceiveRow[]>(() => {
-    const rows =
-      receive.items.map((item: any) => ({
-        category: item.material.category,
+    const rows = receive.items.map((item: any) => ({
+      category: item.material.category,
 
-        materialId: String(item.materialId),
+      materialId: String(item.materialId),
 
-        qty: String(item.qty),
+      qty: String(item.qty),
 
-        unitPrice: Number(item.unitPrice).toFixed(2),
+      unitPrice: Number(item.unitPrice).toFixed(2),
 
-        manufacture: item.manufacture
-          ? new Date(item.manufacture)
-              .toISOString()
-              .split("T")[0]
-          : "",
+      manufacture: item.manufacture
+        ? new Date(item.manufacture)
+            .toISOString()
+            .split("T")[0]
+        : "",
 
-        expiry: item.expiry
-          ? new Date(item.expiry)
-              .toISOString()
-              .split("T")[0]
-          : "",
-      }));
+      expiry: item.expiry
+        ? new Date(item.expiry)
+            .toISOString()
+            .split("T")[0]
+        : "",
+    }));
 
     while (rows.length < 15) {
       rows.push({
@@ -138,7 +137,9 @@ export default function EditReceiveForm({
           value={receive.id}
         />
 
-        {/* ข้อมูลเอกสาร */}
+        {/* =====================================================
+            ข้อมูลเอกสาร
+        ===================================================== */}
 
         <div
           className="
@@ -250,21 +251,26 @@ export default function EditReceiveForm({
           </div>
         </div>
 
-        {/* ตารางรายการ */}
+        {/* =====================================================
+            ตารางรายการ
+        ===================================================== */}
 
         <div
           className="
+            w-full
             overflow-x-auto
+            rounded-xl
+            border
+            border-slate-900
           "
         >
           <table
             className="
               w-full
+              min-w-[1100px]
               border-collapse
               border
               border-slate-900
-              border-b-2
-              border-b-slate-900
               text-sm
             "
           >
@@ -283,6 +289,7 @@ export default function EditReceiveForm({
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -307,7 +314,8 @@ export default function EditReceiveForm({
                 const filteredMaterials =
                   materials.filter(
                     (material) =>
-                      material.category === row.category
+                      material.category ===
+                      row.category
                   );
 
                 const selectedMaterial =
@@ -323,8 +331,6 @@ export default function EditReceiveForm({
                     className="
                       border
                       border-slate-900
-                      border-b-2
-                      border-b-slate-900
                       text-slate-900
                       hover:bg-emerald-50
                     "
@@ -378,8 +384,12 @@ export default function EditReceiveForm({
                         {categories.map(
                           (category) => (
                             <option
-                              key={category.value}
-                              value={category.value}
+                              key={
+                                category.value
+                              }
+                              value={
+                                category.value
+                              }
                             >
                               {category.label}
                             </option>
@@ -448,7 +458,8 @@ export default function EditReceiveForm({
                         type="text"
                         readOnly
                         value={
-                          selectedMaterial?.unit ?? ""
+                          selectedMaterial?.unit ??
+                          ""
                         }
                         className="
                           w-full
@@ -542,7 +553,9 @@ export default function EditReceiveForm({
                       <input
                         type="date"
                         name={`items[${index}].manufacture`}
-                        value={row.manufacture}
+                        value={
+                          row.manufacture
+                        }
                         onChange={(e) =>
                           updateRow(
                             index,
@@ -603,7 +616,9 @@ export default function EditReceiveForm({
           </table>
         </div>
 
-        {/* หมายเหตุ */}
+        {/* =====================================================
+            หมายเหตุ
+        ===================================================== */}
 
         <div>
           <label
@@ -635,7 +650,9 @@ export default function EditReceiveForm({
           />
         </div>
 
-        {/* ปุ่มบันทึก */}
+        {/* =====================================================
+            ปุ่มบันทึก
+        ===================================================== */}
 
         <div
           className="

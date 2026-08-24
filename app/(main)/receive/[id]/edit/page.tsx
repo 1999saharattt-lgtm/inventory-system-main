@@ -65,7 +65,6 @@ export default async function EditReceivePage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* Header */}
 
       <div
@@ -92,7 +91,6 @@ export default async function EditReceivePage({
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -119,7 +117,6 @@ export default async function EditReceivePage({
           >
             แก้ไขรายละเอียดเอกสารและรายการพัสดุ
           </p>
-
         </div>
 
         <Link
@@ -127,17 +124,18 @@ export default async function EditReceivePage({
           className="
             shrink-0
             rounded-xl
-            bg-white
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-3
             py-2
             text-center
             text-sm
             font-extrabold
-            text-slate-900
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:bg-slate-100
             sm:px-5
             sm:py-3
             sm:text-lg
@@ -145,7 +143,6 @@ export default async function EditReceivePage({
         >
           ← กลับ
         </Link>
-
       </div>
 
       {/* Form */}
@@ -168,7 +165,6 @@ export default async function EditReceivePage({
           materials={materials}
         />
       </div>
-
     </div>
   );
 }

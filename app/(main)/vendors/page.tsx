@@ -150,7 +150,7 @@ export default function VendorsPage() {
             text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -169,20 +169,22 @@ export default function VendorsPage() {
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-slate-900
           bg-white
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div className="w-full min-w-0 overflow-x-auto">
           <table
             className="
               min-w-full
-              border
               border-collapse
+              border
               border-slate-900
             "
           >
@@ -198,6 +200,7 @@ export default function VendorsPage() {
                   <th
                     key={title}
                     className={`
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -209,7 +212,6 @@ export default function VendorsPage() {
                       text-lg
                       font-extrabold
                       !text-white
-                      whitespace-nowrap
                       ${
                         title === "ที่อยู่"
                           ? "min-w-[320px]"
@@ -288,14 +290,14 @@ export default function VendorsPage() {
 
                     <td
                       className="
+                        max-w-[320px]
+                        break-words
+                        whitespace-normal
                         border
                         border-slate-900
                         px-4
                         py-3
                         font-semibold
-                        whitespace-normal
-                        break-words
-                        max-w-[320px]
                       "
                     >
                       {vendor.address ?? "-"}
@@ -316,13 +318,13 @@ export default function VendorsPage() {
 
                     <td
                       className="
+                        whitespace-nowrap
                         border
                         border-slate-900
                         px-3
                         py-3
                         text-center
                         font-semibold
-                        whitespace-nowrap
                       "
                     >
                       {vendor.taxId ?? "-"}
@@ -385,15 +387,19 @@ export default function VendorsPage() {
               )}
             </tbody>
 
-            {/* ปิดเส้นล่างของตารางให้เป็นสีดำ */}
+            {/* =====================================================
+                เส้นปิดท้ายตารางสีดำ
+            ===================================================== */}
+
             <tfoot>
               <tr>
                 <td
                   colSpan={5}
                   className="
                     h-0
-                    border
-                    border-slate-900
+                    border-0
+                    border-b-2
+                    border-b-slate-900
                     p-0
                   "
                 />

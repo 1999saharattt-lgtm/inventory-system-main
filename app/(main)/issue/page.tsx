@@ -803,16 +803,20 @@ export default async function IssuePage() {
             )}
           </tbody>
 
-          {/* เส้นปิดท้ายตารางสีดำ */}
+          {/* =====================================================
+              เส้นปิดท้ายตารางสีดำ
+          ===================================================== */}
+
           <tfoot>
             <tr>
               <td
                 colSpan={8}
                 className="
-                  h-0
-                  border-0
-                  border-b-2
-                  border-b-slate-900
+                  h-[2px]
+                  border
+                  border-slate-900
+                  border-t-0
+                  bg-white
                   p-0
                 "
               />

@@ -85,7 +85,9 @@ export default async function StockCardPage({ params }: Props) {
 
   const latestReceiveItem =
     material.receiveItems.length > 0
-      ? material.receiveItems[material.receiveItems.length - 1]
+      ? material.receiveItems[
+          material.receiveItems.length - 1
+        ]
       : null;
 
   const latestVendor =
@@ -121,7 +123,9 @@ export default async function StockCardPage({ params }: Props) {
     })),
 
     ...material.issueItems
-      .filter((item) => item.issue.status === "APPROVED")
+      .filter(
+        (item) => item.issue.status === "APPROVED"
+      )
       .map((item) => ({
         type: "issue" as const,
         date: item.issue.issueDate,
@@ -233,11 +237,15 @@ export default async function StockCardPage({ params }: Props) {
         }
 
         const aManufacture = a.manufacture
-          ? new Date(a.manufacture).getTime()
+          ? new Date(
+              a.manufacture
+            ).getTime()
           : Number.MAX_SAFE_INTEGER;
 
         const bManufacture = b.manufacture
-          ? new Date(b.manufacture).getTime()
+          ? new Date(
+              b.manufacture
+            ).getTime()
           : Number.MAX_SAFE_INTEGER;
 
         if (
@@ -277,7 +285,8 @@ export default async function StockCardPage({ params }: Props) {
       issueLotMap.set(issueItem.id, {
         manufacture:
           selectedLot.manufacture,
-        expiry: selectedLot.expiry,
+        expiry:
+          selectedLot.expiry,
       });
     }
   }
@@ -666,7 +675,7 @@ export default async function StockCardPage({ params }: Props) {
           overflow-hidden
           rounded-2xl
           border
-          border-slate-300
+          border-slate-900
           bg-white
           shadow-lg
         "
@@ -684,6 +693,8 @@ export default async function StockCardPage({ params }: Props) {
               w-max
               min-w-[1000px]
               border-collapse
+              border
+              border-slate-900
             "
           >
             <thead>
@@ -733,6 +744,8 @@ export default async function StockCardPage({ params }: Props) {
                     className="
                       border
                       border-slate-900
+                      border-b-2
+                      border-b-slate-900
                       py-10
                       text-center
                       text-sm
@@ -752,6 +765,8 @@ export default async function StockCardPage({ params }: Props) {
                     className="
                       border
                       border-slate-900
+                      border-b
+                      border-b-slate-900
                       hover:bg-blue-50
                     "
                   >
@@ -945,6 +960,22 @@ export default async function StockCardPage({ params }: Props) {
                 ))
               )}
             </tbody>
+
+            {/* เส้นปิดท้ายตารางสีดำ */}
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={9}
+                  className="
+                    h-0
+                    border-0
+                    border-b-2
+                    border-b-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
