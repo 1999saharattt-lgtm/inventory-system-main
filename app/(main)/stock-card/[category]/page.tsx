@@ -177,9 +177,9 @@ export default async function CategoryPage({
 
       {/* =====================================================
           Table
-          ไม่มี wrapper ที่มีกรอบ
-          ไม่มี border รอบ table เพิ่ม
-          ใช้ border ของ cell เป็นกรอบตาราง
+          ไม่มีกรอบ wrapper
+          ไม่มี border รอบ table
+          เส้นทั้งหมดเกิดจาก border ของ th / td
       ===================================================== */}
 
       <div
@@ -258,6 +258,9 @@ export default async function CategoryPage({
                 const latestVendor =
                   latestReceive?.receive.vendor?.name ?? "-";
 
+                const isLastRow =
+                  index === materials.length - 1;
+
                 return (
                   <tr
                     key={material.id}
@@ -268,7 +271,7 @@ export default async function CategoryPage({
                     "
                   >
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
@@ -276,13 +279,14 @@ export default async function CategoryPage({
                         py-3
                         text-center
                         font-bold
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       {index + 1}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
@@ -290,56 +294,61 @@ export default async function CategoryPage({
                         py-3
                         text-center
                         font-bold
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       {material.code}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         border
                         border-black
                         px-3
                         py-3
                         font-semibold
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       {material.name}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
                         px-3
                         py-3
                         text-center
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       {material.unit}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         border
                         border-black
                         px-3
                         py-3
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       {latestVendor}
                     </td>
 
                     <td
-                      className="
+                      className={`
                         whitespace-nowrap
                         border
                         border-black
                         px-3
                         py-3
                         text-center
-                      "
+                        ${isLastRow ? "border-b-black" : ""}
+                      `}
                     >
                       <Link
                         href={`/stock-card/material/${material.id}`}
