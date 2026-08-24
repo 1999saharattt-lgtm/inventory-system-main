@@ -750,7 +750,10 @@ export default function EditIssueForm({
                 )}
               </tbody>
 
-              {/* เส้นปิดท้ายตารางให้พอดีกับตาราง */}
+              {/* =====================================================
+                  เส้นปิดท้ายตาราง
+                  ใช้เฉพาะเส้นด้านล่าง ไม่สร้างกรอบซ้ำ
+              ===================================================== */}
 
               <tfoot>
                 <tr>
@@ -758,8 +761,9 @@ export default function EditIssueForm({
                     colSpan={8}
                     className="
                       h-0
-                      border
-                      border-black
+                      border-0
+                      border-b-2
+                      border-b-black
                       p-0
                     "
                   />

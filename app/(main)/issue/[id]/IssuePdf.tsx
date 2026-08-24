@@ -391,7 +391,7 @@ export default function IssuePdf({
               ส่วนหัวเอกสาร
           ===================================================== */}
 
-          <div className="relative h-[32.5mm]">
+          <div className="relative h-[38mm]">
             {/* เลขที่เอกสาร */}
 
             <div
@@ -451,7 +451,10 @@ export default function IssuePdf({
                 text-black
               "
             >
-              วันที่ {formatThaiDate(issueDate)}
+              <span className="inline-block w-[30mm]">
+                วันที่ :
+              </span>
+              {formatThaiDate(issueDate)}
             </div>
 
             {/* กลุ่มงาน */}
@@ -468,11 +471,14 @@ export default function IssuePdf({
                 text-black
               "
             >
-              กลุ่มงาน {departmentName || "-"}{" "}
+              <span className="inline-block w-[30mm]">
+                กลุ่มงาน :
+              </span>
+              {departmentName || "-"}{" "}
               สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
             </div>
 
-            {/* ชื่อผู้ขอเบิก */}
+            {/* ผู้ขอ */}
 
             <div
               className="
@@ -486,7 +492,10 @@ export default function IssuePdf({
                 text-black
               "
             >
-              ชื่อผู้ขอเบิก {requesterName || "-"}
+              <span className="inline-block w-[30mm]">
+                ผู้ขอ :
+              </span>
+              {requesterName || "-"}
             </div>
           </div>
 

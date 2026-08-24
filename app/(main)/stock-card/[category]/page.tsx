@@ -186,9 +186,9 @@ export default async function CategoryPage({
           overflow-hidden
           rounded-2xl
           border
-          border-black
+          border-slate-300
           bg-white
-          shadow-xl
+          shadow-lg
         "
       >
         <div className="w-full min-w-0 overflow-x-auto">
@@ -348,15 +348,17 @@ export default async function CategoryPage({
                           href={`/stock-card/material/${material.id}`}
                           className="
                             inline-block
-                            rounded-lg
-                            bg-slate-800
-                            px-4
+                            rounded-xl
+                            bg-gradient-to-r
+                            from-emerald-600
+                            to-green-500
+                            px-5
                             py-2
                             font-extrabold
                             text-white
-                            shadow
+                            shadow-lg
                             transition
-                            hover:bg-slate-700
+                            hover:scale-105
                           "
                         >
                           เปิด
@@ -368,14 +370,19 @@ export default async function CategoryPage({
               )}
             </tbody>
 
+            {/* =================================================
+                เส้นปิดท้ายตาราง
+                ================================================= */}
+
             <tfoot>
               <tr>
                 <td
                   colSpan={6}
                   className="
                     h-0
-                    border
-                    border-black
+                    border-0
+                    border-b-2
+                    border-b-black
                     p-0
                   "
                 />

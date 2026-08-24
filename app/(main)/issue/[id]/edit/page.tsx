@@ -265,14 +265,11 @@ export default async function EditIssuePage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-4
-          shadow-xl
-          sm:p-6
+          border-slate-300
+          bg-white
+          p-0
+          shadow-lg
+          sm:p-0
         "
       >
         <div className="w-full min-w-0">
