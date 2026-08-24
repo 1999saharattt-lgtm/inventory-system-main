@@ -88,11 +88,11 @@ export default function StockCardHome() {
           <h1
             className="
               break-words
-              text-2xl
+              text-3xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             📚 รายการบัญชีพัสดุ
@@ -106,7 +106,8 @@ export default function StockCardHome() {
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-lg
             "
           >
             เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ

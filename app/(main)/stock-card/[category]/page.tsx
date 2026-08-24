@@ -115,11 +115,11 @@ export default async function CategoryPage({
           <h1
             className="
               break-words
-              text-2xl
+              text-3xl
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             {categoryNames[category]}
@@ -133,7 +133,8 @@ export default async function CategoryPage({
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-lg
             "
           >
             รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
@@ -159,7 +160,7 @@ export default async function CategoryPage({
             hover:scale-105
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ
@@ -258,7 +259,8 @@ export default async function CategoryPage({
                 const latestVendor =
                   latestReceive?.receive.vendor?.name ?? "-";
 
-                const isLastRow = index === materials.length - 1;
+                const isLastRow =
+                  index === materials.length - 1;
 
                 const bottomBorder = isLastRow
                   ? "border-b-2 border-b-black"

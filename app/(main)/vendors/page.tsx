@@ -116,7 +116,7 @@ export default function VendorsPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             🏢 ผู้จำหน่าย
@@ -130,7 +130,7 @@ export default function VendorsPage() {
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-lg
             "
           >
             ทั้งหมด {vendors.length} รายการ
