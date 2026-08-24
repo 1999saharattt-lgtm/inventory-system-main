@@ -17,34 +17,8 @@ type Receive = {
   }[];
 };
 
-type ReceivePageProps = {
-  searchParams: Promise<{
-    date?: string;
-  }>;
-};
-
-export default async function ReceivePage({
-  searchParams,
-}: ReceivePageProps) {
-  const params = await searchParams;
-  const isToday = params.date === "today";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
+export default async function ReceivePage() {
   const receives = await prisma.receive.findMany({
-    where: isToday
-      ? {
-          receiveDate: {
-            gte: today,
-            lt: tomorrow,
-          },
-        }
-      : undefined,
-
     include: {
       vendor: true,
       items: true,
@@ -110,9 +84,7 @@ export default async function ReceivePage({
               sm:text-xl
             "
           >
-            {isToday
-              ? "แสดงรายการเอกสารรับเข้าพัสดุของวันนี้"
-              : "แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด"}
+            แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
           </p>
         </div>
 
@@ -355,7 +327,9 @@ export default async function ReceivePage({
                             แก้ไข
                           </Link>
 
-                          <DeleteButton id={receive.id} />
+                          <DeleteButton
+                            id={receive.id}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -373,9 +347,7 @@ export default async function ReceivePage({
                       text-slate-500
                     "
                   >
-                    {isToday
-                      ? "วันนี้ยังไม่มีรายการรับเข้าพัสดุ"
-                      : "ยังไม่มีข้อมูลรับเข้าพัสดุ"}
+                    ยังไม่มีข้อมูลรับเข้าพัสดุ
                   </td>
                 </tr>
               )}

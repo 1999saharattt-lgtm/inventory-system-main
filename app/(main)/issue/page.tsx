@@ -37,12 +37,6 @@ type Issue = {
   }[];
 };
 
-type IssuePageProps = {
-  searchParams: Promise<{
-    date?: string;
-  }>;
-};
-
 function getStatusLabel(status: string) {
   switch (status) {
     case "PENDING":
@@ -59,26 +53,7 @@ function getStatusLabel(status: string) {
   }
 }
 
-export default async function IssuePage({
-  searchParams,
-}: IssuePageProps) {
-  // =====================================================
-  // Search Params
-  // =====================================================
-
-  const params = await searchParams;
-  const isToday = params.date === "today";
-
-  // =====================================================
-  // วันที่วันนี้
-  // =====================================================
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
+export default async function IssuePage() {
   // =====================================================
   // Session
   // =====================================================
@@ -100,7 +75,7 @@ export default async function IssuePage({
   // กรองรายการตามกลุ่มงาน
   // =====================================================
 
-  const departmentWhere =
+  const where =
     session?.role === "ADMIN"
       ? {}
       : session?.departmentId
@@ -110,24 +85,6 @@ export default async function IssuePage({
         : {
             departmentId: -1,
           };
-
-  // =====================================================
-  // กรองวันที่
-  //
-  // ถ้า date=today:
-  // issueDate >= วันนี้ 00:00
-  // issueDate < พรุ่งนี้ 00:00
-  // =====================================================
-
-  const where = isToday
-    ? {
-        ...departmentWhere,
-        issueDate: {
-          gte: today,
-          lt: tomorrow,
-        },
-      }
-    : departmentWhere;
 
   // =====================================================
   // ดึงรายการเบิก
@@ -227,9 +184,7 @@ export default async function IssuePage({
               sm:text-xl
             "
           >
-            {isToday
-              ? "แสดงรายการเอกสารเบิกจ่ายพัสดุของวันนี้"
-              : "แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน"}
+            แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน
           </p>
         </div>
 
@@ -840,9 +795,7 @@ export default async function IssuePage({
                     text-slate-500
                   "
                 >
-                  {isToday
-                    ? "วันนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
-                    : "ยังไม่มีรายการเบิกจ่ายพัสดุ"}
+                  ยังไม่มีรายการเบิกจ่ายพัสดุ
                 </td>
               </tr>
             )}
