@@ -50,6 +50,7 @@ export default async function Home() {
       icon: "📥",
       color: "bg-emerald-600",
       hover: "hover:border-emerald-300",
+      href: "/receive/today",
     },
     {
       title: "เบิกจ่ายวันนี้",
@@ -58,6 +59,7 @@ export default async function Home() {
       icon: "📤",
       color: "bg-amber-600",
       hover: "hover:border-amber-300",
+      href: "/issue/today",
     },
     {
       title: "จำนวนพัสดุใกล้หมด",
@@ -229,25 +231,14 @@ export default async function Home() {
             ${card.hover}
           `;
 
-          if (card.href) {
-            return (
-              <Link
-                key={card.title}
-                href={card.href}
-                className={className}
-              >
-                {content}
-              </Link>
-            );
-          }
-
           return (
-            <div
+            <Link
               key={card.title}
+              href={card.href}
               className={className}
             >
               {content}
-            </div>
+            </Link>
           );
         })}
       </div>
