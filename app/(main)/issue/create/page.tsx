@@ -1,508 +1,290 @@
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import DeleteButton from "./DeleteButton";
-import QRCodeButton from "./QRCodeButton";
 
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
-};
+import { prisma } from "@/lib/prisma";
 
-type Category =
-  | "OFFICE"
-  | "COMPUTER"
-  | "ELECTRIC"
-  | "HOUSEHOLD"
-  | "VEHICLE"
-  | "PRINTING";
+import { cookies } from "next/headers";
 
-type Material = {
-  id: number;
-  code: string;
-  name: string;
-  balance: number;
-  unit: string;
-  latestPrice: {
-    toLocaleString(
-      locale?: string,
-      options?: Intl.NumberFormatOptions
-    ): string;
-  };
-  receiveItems: {
-    manufacture: Date | null;
-    expiry: Date | null;
-  }[];
-};
+import {
+  verifySession,
+  type SessionUser,
+} from "@/lib/session";
 
-type Props = {
-  params: Promise<{
-    category: string;
-  }>;
-  searchParams: Promise<{
-    search?: string;
-  }>;
-};
+import IssueForm from "./IssueForm";
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: Props) {
-  const { category } = await params;
-  const { search } = await searchParams;
+function getThaiYear() {
+  return (new Date().getFullYear() + 543)
+    .toString()
+    .slice(-2);
+}
 
-  const materials = await prisma.material.findMany({
+async function generateIssueNo() {
+  const year = getThaiYear();
+
+  const issues = await prisma.issue.findMany({
     where: {
-      category: category as Category,
-
-      ...(search
-        ? {
-            OR: [
-              {
-                code: {
-                  contains: search,
-                },
-              },
-              {
-                name: {
-                  contains: search,
-                },
-              },
-            ],
-          }
-        : {}),
-    },
-
-    include: {
-      receiveItems: {
-        orderBy: {
-          id: "desc",
-        },
-        take: 1,
+      documentNo: {
+        startsWith: "จ.",
       },
     },
-
-    orderBy: {
-      code: "asc",
+    select: {
+      documentNo: true,
     },
   });
 
+  let maxNumber = 0;
+
+  for (const issue of issues) {
+    const match = issue.documentNo.match(
+      /^จ\.(\d+)\/(\d+)$/
+    );
+
+    if (!match) {
+      continue;
+    }
+
+    const number = Number(match[1]);
+    const documentYear = match[2];
+
+    if (documentYear === year) {
+      if (number > maxNumber) {
+        maxNumber = number;
+      }
+    }
+  }
+
+  const running = maxNumber + 1;
+
+  return `จ.${running
+    .toString()
+    .padStart(2, "0")}/${year}`;
+}
+
+export default async function CreateIssuePage() {
+  const cookieStore = await cookies();
+
+  const token =
+    cookieStore.get("session")?.value;
+
+  let session: SessionUser | null = null;
+
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
+
+  const materials =
+    await prisma.material.findMany({
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
+    });
+
+  const receiveLots =
+    await prisma.receiveItem.findMany({
+      where: {
+        balance: {
+          gt: 0,
+        },
+      },
+      select: {
+        id: true,
+        materialId: true,
+        balance: true,
+        manufacture: true,
+        expiry: true,
+      },
+      orderBy: [
+        {
+          expiry: "asc",
+        },
+        {
+          manufacture: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+    });
+
+  let userDepartmentId =
+    session?.departmentId ?? null;
+
+  if (
+    session &&
+    session.role !== "ADMIN"
+  ) {
+    if (!userDepartmentId) {
+      const currentUser =
+        await prisma.user.findUnique({
+          where: {
+            id: session.id,
+          },
+          select: {
+            departmentId: true,
+          },
+        });
+
+      userDepartmentId =
+        currentUser?.departmentId ?? null;
+    }
+  }
+
+  const departments =
+    await prisma.department.findMany({
+      where:
+        session?.role === "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                id: userDepartmentId,
+              }
+            : {
+                id: -1,
+              },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+  const officers =
+    await prisma.officer.findMany({
+      where:
+        session?.role === "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                OR: [
+                  {
+                    departmentId:
+                      userDepartmentId,
+                  },
+                  {
+                    section: {
+                      departmentId:
+                        userDepartmentId,
+                    },
+                  },
+                ],
+              }
+            : {
+                id: -1,
+              },
+      include: {
+        section: true,
+        department: true,
+      },
+      orderBy: [
+        {
+          firstName: "asc",
+        },
+        {
+          lastName: "asc",
+        },
+      ],
+    });
+
+  const documentNo =
+    await generateIssueNo();
+
+  const initialDepartmentId =
+    session?.role === "ADMIN"
+      ? ""
+      : userDepartmentId
+        ? String(userDepartmentId)
+        : "";
+
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div className="space-y-6">
       <div
         className="
           flex
-          min-h-[110px]
-          w-full
-          min-w-0
           items-center
           justify-between
-          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
+          to-cyan-700
+          p-6
           shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
         "
       >
-        <div className="min-w-0">
+        <div>
           <h1
             className="
-              break-words
-              text-2xl
+              text-5xl
               font-extrabold
-              leading-tight
+              tracking-wide
               !text-white
-              sm:text-5xl
             "
           >
-            {categoryName[category]}
+            📤 บันทึกการเบิกจ่ายพัสดุ
           </h1>
 
           <p
             className="
-              mt-2
-              break-words
-              text-base
+              mt-3
+              text-xl
               font-semibold
-              leading-tight
               !text-slate-200
-              sm:text-xl
             "
           >
-            รายการพัสดุในหมวดนี้
+            เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <Link
-            href="/materials/new"
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-3
-              py-2
-              text-center
-              text-sm
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            + เพิ่มรายการ
-          </Link>
-
-          <Link
-            href="/materials"
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-3
-              py-2
-              text-center
-              text-sm
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            ← กลับ
-          </Link>
-        </div>
+        <Link
+          href="/issue"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:shadow-xl
+          "
+        >
+          ← กลับ
+        </Link>
       </div>
 
       <div
         className="
-          w-full
-          min-w-0
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
-          from-slate-900
+          from-slate-950
+          via-slate-900
           to-slate-800
-          p-4
-          shadow-xl
-          sm:p-5
-        "
-      >
-        <form className="flex w-full min-w-0 flex-col gap-3 sm:flex-row">
-          <input
-            name="search"
-            defaultValue={search ?? ""}
-            placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-            className="
-              min-w-0
-              flex-1
-              rounded-xl
-              border
-              border-slate-300
-              px-4
-              py-3
-              text-black
-              outline-none
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
-            "
-          />
-
-          <button
-            type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-3
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:w-auto
-            "
-          >
-            ค้นหา
-          </button>
-        </form>
-      </div>
-
-      <div
-        className="
-          w-full
-          min-w-0
-          overflow-hidden
-          rounded-2xl
-          bg-white
+          p-6
           shadow-xl
         "
       >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {[
-                  "รหัสพัสดุ",
-                  "รายการพัสดุ",
-                  "จำนวน",
-                  "หน่วย",
-                  "ราคาล่าสุด",
-                  "วันผลิต",
-                  "วันหมดอายุ",
-                  "จัดการ",
-                  "QR Code",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-slate-900
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="text-slate-900">
-              {materials.length > 0 ? (
-                materials.map((material: Material) => (
-                  <tr
-                    key={material.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-emerald-50
-                    "
-                  >
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.code}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.name}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.balance}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.unit}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-right
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.latestPrice.toLocaleString(
-                        "th-TH",
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }
-                      )}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.receiveItems[0]?.manufacture
-                        ? new Date(
-                            material.receiveItems[0].manufacture
-                          ).toLocaleDateString("th-TH")
-                        : "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
-                      {material.receiveItems[0]?.expiry
-                        ? new Date(
-                            material.receiveItems[0].expiry
-                          ).toLocaleDateString("th-TH")
-                        : "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                      "
-                    >
-                      <div className="flex justify-center gap-2">
-                        <Link
-                          href={`/materials/${material.id}/edit`}
-                          className="
-                            whitespace-nowrap
-                            rounded-lg
-                            bg-slate-800
-                            px-4
-                            py-2
-                            font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
-                          "
-                        >
-                          แก้ไข
-                        </Link>
-
-                        <DeleteButton id={material.id} />
-                      </div>
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                      "
-                    >
-                      <div className="flex justify-center">
-                        <QRCodeButton
-                          materialId={material.id}
-                          materialCode={material.code}
-                          materialName={material.name}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="
-                      border
-                      border-slate-900
-                      py-12
-                      text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
-                    "
-                  >
-                    ยังไม่มีพัสดุในหมวดนี้
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <IssueForm
+          departments={departments}
+          officers={officers}
+          materials={materials}
+          receiveLots={receiveLots}
+          documentNo={documentNo}
+          initialDepartmentId={
+            initialDepartmentId
+          }
+        />
       </div>
     </div>
   );
