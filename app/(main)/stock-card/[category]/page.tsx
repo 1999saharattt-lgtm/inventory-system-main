@@ -178,7 +178,7 @@ export default async function CategoryPage({
       {/* =====================================================
           Table
           ไม่มีกรอบ wrapper
-          ไม่มี border รอบนอกของ table
+          table เป็นเจ้าของกรอบเพียงตัวเดียว
       ===================================================== */}
 
       <div
@@ -195,6 +195,8 @@ export default async function CategoryPage({
             w-full
             min-w-[900px]
             border-collapse
+            border
+            border-black
             bg-white
           "
         >
@@ -252,12 +254,10 @@ export default async function CategoryPage({
               </tr>
             ) : (
               materials.map((material, index) => {
-                const latestReceive =
-                  material.receiveItems[0];
+                const latestReceive = material.receiveItems[0];
 
                 const latestVendor =
-                  latestReceive?.receive.vendor?.name ??
-                  "-";
+                  latestReceive?.receive.vendor?.name ?? "-";
 
                 return (
                   <tr
@@ -368,20 +368,6 @@ export default async function CategoryPage({
             )}
           </tbody>
         </table>
-
-        {/* =====================================================
-            เส้นปิดท้ายตารางสีดำ
-            แยกออกจาก table เพื่อไม่ให้ border-collapse กลืนเส้น
-        ===================================================== */}
-
-        <div
-          className="
-            h-[2px]
-            w-full
-            min-w-[900px]
-            bg-black
-          "
-        />
       </div>
     </div>
   );

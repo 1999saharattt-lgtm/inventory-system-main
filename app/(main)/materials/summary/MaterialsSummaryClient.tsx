@@ -188,10 +188,6 @@ export default function MaterialsSummaryClient({
                 className="
                   w-full
                   min-w-0
-                  overflow-hidden
-                  rounded-2xl
-                  bg-white
-                  shadow-lg
                 "
               >
                 {/* =====================================================
@@ -204,6 +200,7 @@ export default function MaterialsSummaryClient({
                     items-center
                     justify-between
                     gap-3
+                    rounded-t-2xl
                     bg-gradient-to-r
                     from-slate-950
                     via-slate-800
@@ -247,6 +244,7 @@ export default function MaterialsSummaryClient({
 
                 {/* =====================================================
                     Table
+                    ไม่มีกรอบ wrapper ซ้ำ
                 ===================================================== */}
 
                 <div
@@ -262,7 +260,8 @@ export default function MaterialsSummaryClient({
                       w-full
                       min-w-[900px]
                       border-collapse
-                      border
+                      border-x
+                      border-t
                       border-black
                       bg-white
                     "
@@ -431,7 +430,7 @@ export default function MaterialsSummaryClient({
                     </tbody>
 
                     {/* =================================================
-                        เส้นปิดท้ายตาราง
+                        เส้นปิดท้ายตารางสีดำ
                     ================================================= */}
 
                     <tfoot>
@@ -439,9 +438,11 @@ export default function MaterialsSummaryClient({
                         <td
                           colSpan={7}
                           className="
-                            border-0
+                            h-0
+                            border-x-0
                             border-b-2
-                            border-b-black
+                            border-t-0
+                            border-black
                             bg-white
                             p-0
                           "
