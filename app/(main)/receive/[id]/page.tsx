@@ -197,14 +197,21 @@ export default async function ReceiveDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
+          border-black
           bg-white
           shadow-xl
         "
       >
         <div className="overflow-x-auto">
 
-          <table className="w-full border-collapse">
+          <table
+            className="
+              w-full
+              border-collapse
+              border
+              border-black
+          "
+          >
 
             <thead>
 
@@ -231,13 +238,16 @@ export default async function ReceiveDetailPage({
                     key={title}
                     className="
                       border
-                      border-slate-600
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-3
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                     "
                   >
                     {title}
@@ -262,43 +272,118 @@ export default async function ReceiveDetailPage({
                     "
                   >
 
-                    <td className="border border-slate-300 px-3 py-3 text-center font-bold">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-bold
+                      "
+                    >
                       {index + 1}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                      "
+                    >
                       {categoryLabel[item.material.category]}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                      "
+                    >
                       {item.material.code}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 font-semibold">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        font-semibold
+                      "
+                    >
                       {item.material.name}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
                       {item.material.unit}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
                       {item.qty}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 text-right">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-right
+                      "
+                    >
                       {Number(item.unitPrice).toFixed(2)}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
                       {item.manufacture
-                        ? new Date(item.manufacture).toLocaleDateString("th-TH")
+                        ? new Date(
+                            item.manufacture
+                          ).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
 
-                    <td className="border border-slate-300 px-3 py-3 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
                       {item.expiry
-                        ? new Date(item.expiry).toLocaleDateString("th-TH")
+                        ? new Date(
+                            item.expiry
+                          ).toLocaleDateString("th-TH")
                         : "-"}
                     </td>
 
