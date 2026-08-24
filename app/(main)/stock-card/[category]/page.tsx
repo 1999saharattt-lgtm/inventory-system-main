@@ -177,8 +177,9 @@ export default async function CategoryPage({
 
       {/* =====================================================
           Table
-          ไม่มีกรอบ wrapper
-          table เป็นเจ้าของกรอบเพียงตัวเดียว
+          ไม่มี wrapper ที่มีกรอบ
+          ไม่มี border รอบ table เพิ่ม
+          ใช้ border ของ cell เป็นกรอบตาราง
       ===================================================== */}
 
       <div
@@ -195,8 +196,6 @@ export default async function CategoryPage({
             w-full
             min-w-[900px]
             border-collapse
-            border
-            border-black
             bg-white
           "
         >
