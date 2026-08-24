@@ -320,7 +320,7 @@ export default async function CategoryPage({
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="border-b border-slate-900">
               {materials.length > 0 ? (
                 materials.map((material: Material) => (
                   <tr
@@ -505,6 +505,8 @@ export default async function CategoryPage({
                   <td
                     colSpan={9}
                     className="
+                      border
+                      border-slate-900
                       py-12
                       text-center
                       text-lg

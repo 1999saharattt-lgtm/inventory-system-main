@@ -179,7 +179,7 @@ export default async function ReceivePage() {
                     <tr
                       key={receive.id}
                       className="
-                        border-b
+                        border-b-2
                         border-slate-900
                         hover:bg-blue-50
                       "
@@ -340,6 +340,8 @@ export default async function ReceivePage() {
                   <td
                     colSpan={7}
                     className="
+                      border-b-2
+                      border-slate-900
                       py-12
                       text-center
                       text-lg

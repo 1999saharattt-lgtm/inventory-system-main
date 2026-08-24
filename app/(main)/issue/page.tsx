@@ -292,7 +292,7 @@ export default async function IssuePage() {
           overflow-x-auto
           rounded-2xl
           border
-          border-slate-200
+          border-slate-900
           bg-white
           shadow-xl
         "
@@ -788,6 +788,8 @@ export default async function IssuePage() {
                   className="
                     border
                     border-slate-900
+                    border-b-2
+                    border-b-slate-900
                     py-12
                     text-center
                     text-lg
@@ -800,6 +802,22 @@ export default async function IssuePage() {
               </tr>
             )}
           </tbody>
+
+          {/* เส้นปิดท้ายตารางสีดำ */}
+          <tfoot>
+            <tr>
+              <td
+                colSpan={8}
+                className="
+                  h-0
+                  border-0
+                  border-b-2
+                  border-b-slate-900
+                  p-0
+                "
+              />
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

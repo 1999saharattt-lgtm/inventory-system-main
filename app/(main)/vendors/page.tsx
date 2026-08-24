@@ -163,7 +163,9 @@ export default function VendorsPage() {
         </Link>
       </div>
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
 
       <div
         className="
@@ -180,6 +182,7 @@ export default function VendorsPage() {
             className="
               min-w-full
               border
+              border-collapse
               border-slate-900
             "
           >
@@ -205,10 +208,18 @@ export default function VendorsPage() {
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                       whitespace-nowrap
-                      ${title === "ที่อยู่" ? "min-w-[320px]" : ""}
-                      ${title === "เลขประจำตัวผู้เสียภาษี" ? "min-w-[160px]" : ""}
+                      ${
+                        title === "ที่อยู่"
+                          ? "min-w-[320px]"
+                          : ""
+                      }
+                      ${
+                        title === "เลขประจำตัวผู้เสียภาษี"
+                          ? "min-w-[160px]"
+                          : ""
+                      }
                     `}
                   >
                     {title}
@@ -223,6 +234,8 @@ export default function VendorsPage() {
                   <td
                     colSpan={5}
                     className="
+                      border
+                      border-slate-900
                       py-12
                       text-center
                       text-lg
@@ -238,6 +251,8 @@ export default function VendorsPage() {
                   <td
                     colSpan={5}
                     className="
+                      border
+                      border-slate-900
                       py-12
                       text-center
                       text-lg
@@ -369,6 +384,21 @@ export default function VendorsPage() {
                 ))
               )}
             </tbody>
+
+            {/* ปิดเส้นล่างของตารางให้เป็นสีดำ */}
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={5}
+                  className="
+                    h-0
+                    border
+                    border-slate-900
+                    p-0
+                  "
+                />
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

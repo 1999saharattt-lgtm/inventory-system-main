@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { updateIssue } from "./action";
 
 type Department = {
@@ -78,10 +79,8 @@ const statusName: Record<string, string> = {
 const statusClass: Record<string, string> = {
   PENDING:
     "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800",
-
   APPROVED:
     "border-emerald-600 bg-gradient-to-r from-emerald-600 to-green-500 text-white",
-
   REJECTED:
     "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
 };
@@ -92,74 +91,53 @@ export default function EditIssueForm({
   materials,
   receiveItems,
 }: Props) {
-  const isPending =
-    issue.status === "PENDING";
+  const isPending = issue.status === "PENDING";
 
   const [items, setItems] = useState<IssueRow[]>(() => {
-    const rows = issue.items.map(
-      (item: any) => {
-        // ใช้ receiveItemId ที่ผูกกับ IssueItem จริง
-        // ไม่หา lot จาก materialId อย่างเดียว
-        const receiveItemId =
-          item.receiveItemId != null
-            ? String(item.receiveItemId)
-            : "";
+    const rows = issue.items.map((item: any) => {
+      // ใช้ receiveItemId ที่ผูกกับ IssueItem จริง
+      // ไม่หา lot จาก materialId อย่างเดียว
+      const receiveItemId =
+        item.receiveItemId != null
+          ? String(item.receiveItemId)
+          : "";
 
-        const lot =
-          receiveItemId !== ""
-            ? receiveItems.find(
-                (r) =>
-                  r.id ===
-                  Number(receiveItemId)
-              )
-            : null;
+      const lot =
+        receiveItemId !== ""
+          ? receiveItems.find(
+              (r) => r.id === Number(receiveItemId)
+            )
+          : null;
 
-        return {
-          category:
-            item.material.category,
+      return {
+        category: item.material.category,
+        materialId: String(item.materialId),
+        qty: String(item.qty),
+        receiveItemId,
 
-          materialId:
-            String(item.materialId),
+        // ใช้ข้อมูลล็อตจริงก่อน
+        // ถ้าหา ReceiveItem ไม่พบ ให้ใช้ค่าที่อยู่ใน IssueItem เดิม
+        manufacture: lot?.manufacture
+          ? new Date(lot.manufacture)
+              .toISOString()
+              .split("T")[0]
+          : item.manufacture
+            ? new Date(item.manufacture)
+                .toISOString()
+                .split("T")[0]
+            : "",
 
-          qty:
-            String(item.qty),
-
-          receiveItemId,
-
-          // ใช้ข้อมูลล็อตจริงก่อน
-          // ถ้าหา ReceiveItem ไม่พบ ให้ใช้ค่าที่อยู่ใน IssueItem เดิม
-          manufacture:
-            lot?.manufacture
-              ? new Date(
-                  lot.manufacture
-                )
-                  .toISOString()
-                  .split("T")[0]
-              : item.manufacture
-                ? new Date(
-                    item.manufacture
-                  )
-                    .toISOString()
-                    .split("T")[0]
-                : "",
-
-          expiry:
-            lot?.expiry
-              ? new Date(
-                  lot.expiry
-                )
-                  .toISOString()
-                  .split("T")[0]
-              : item.expiry
-                ? new Date(
-                    item.expiry
-                  )
-                    .toISOString()
-                    .split("T")[0]
-                : "",
-        };
-      }
-    );
+        expiry: lot?.expiry
+          ? new Date(lot.expiry)
+              .toISOString()
+              .split("T")[0]
+          : item.expiry
+            ? new Date(item.expiry)
+                .toISOString()
+                .split("T")[0]
+            : "",
+      };
+    });
 
     while (rows.length < 15) {
       rows.push({
@@ -186,7 +164,6 @@ export default function EditIssueForm({
     }
 
     const copy = [...items];
-
     copy[index][key] = value;
 
     // เปลี่ยนหมวดหมู่
@@ -263,22 +240,17 @@ export default function EditIssueForm({
               shadow-lg
               ${
                 statusClass[issue.status] ??
-                "border border-slate-300 bg-slate-100 text-slate-700"
+                "border-slate-300 bg-slate-100 text-slate-700"
               }
             `}
           >
-            {statusName[issue.status] ??
-              issue.status}
+            {statusName[issue.status] ?? issue.status}
           </span>
         </div>
       </div>
 
       <form
-        action={
-          isPending
-            ? updateIssue
-            : undefined
-        }
+        action={isPending ? updateIssue : undefined}
         className="space-y-6"
       >
         <input
@@ -291,13 +263,7 @@ export default function EditIssueForm({
             ข้อมูลเอกสาร
         ===================================================== */}
 
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-3
-          "
-        >
+        <div className="grid gap-5 md:grid-cols-3">
           {/* วันที่เบิกจ่าย */}
 
           <div>
@@ -316,11 +282,9 @@ export default function EditIssueForm({
             <input
               type="date"
               name="issueDate"
-              defaultValue={
-                issue.issueDate
-                  .toISOString()
-                  .split("T")[0]
-              }
+              defaultValue={issue.issueDate
+                .toISOString()
+                .split("T")[0]}
               disabled={!isPending}
               className="
                 w-full
@@ -356,9 +320,7 @@ export default function EditIssueForm({
             <input
               type="text"
               name="documentNo"
-              defaultValue={
-                issue.documentNo
-              }
+              defaultValue={issue.documentNo}
               disabled={!isPending}
               className="
                 w-full
@@ -393,9 +355,7 @@ export default function EditIssueForm({
 
             <select
               name="departmentId"
-              defaultValue={
-                issue.departmentId
-              }
+              defaultValue={issue.departmentId}
               disabled={!isPending}
               className="
                 w-full
@@ -411,16 +371,14 @@ export default function EditIssueForm({
                 disabled:text-slate-500
               "
             >
-              {departments.map(
-                (department) => (
-                  <option
-                    key={department.id}
-                    value={department.id}
-                  >
-                    {department.name}
-                  </option>
-                )
-              )}
+              {departments.map((department) => (
+                <option
+                  key={department.id}
+                  value={department.id}
+                >
+                  {department.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -429,13 +387,21 @@ export default function EditIssueForm({
             ตารางรายการ
         ===================================================== */}
 
-        <div className="overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            rounded-xl
+            border
+            border-slate-900
+          "
+        >
           <table
             className="
               w-full
+              min-w-[1200px]
               border-collapse
-              border
-              border-slate-900
               text-sm
             "
           >
@@ -450,51 +416,43 @@ export default function EditIssueForm({
                   "ราคาต่อหน่วย",
                   "วันผลิต",
                   "วันหมดอายุ",
-                ].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      className="
-                        border
-                        border-slate-900
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-3
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      {header}
-                    </th>
-                  )
-                )}
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="
+                      border
+                      border-slate-900
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-lg
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
 
             <tbody>
               {items.map(
-                (
-                  row: IssueRow,
-                  index: number
-                ) => {
+                (row: IssueRow, index: number) => {
                   const filteredMaterials =
                     materials.filter(
                       (material) =>
-                        material.category ===
-                        row.category
+                        material.category === row.category
                     );
 
                   const selectedMaterial =
                     materials.find(
                       (material) =>
                         material.id ===
-                        Number(
-                          row.materialId
-                        )
+                        Number(row.materialId)
                     );
 
                   return (
@@ -533,9 +491,7 @@ export default function EditIssueForm({
                         "
                       >
                         <select
-                          value={
-                            row.category
-                          }
+                          value={row.category}
                           disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
@@ -562,20 +518,14 @@ export default function EditIssueForm({
                             เลือกหมวดหมู่
                           </option>
 
-                          {categories.map(
-                            (category) => (
-                              <option
-                                key={
-                                  category.value
-                                }
-                                value={
-                                  category.value
-                                }
-                              >
-                                {category.label}
-                              </option>
-                            )
-                          )}
+                          {categories.map((category) => (
+                            <option
+                              key={category.value}
+                              value={category.value}
+                            >
+                              {category.label}
+                            </option>
+                          ))}
                         </select>
                       </td>
 
@@ -591,9 +541,7 @@ export default function EditIssueForm({
                       >
                         <select
                           name={`items[${index}].materialId`}
-                          value={
-                            row.materialId
-                          }
+                          value={row.materialId}
                           disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
@@ -623,15 +571,10 @@ export default function EditIssueForm({
                           {filteredMaterials.map(
                             (material) => (
                               <option
-                                key={
-                                  material.id
-                                }
-                                value={
-                                  material.id
-                                }
+                                key={material.id}
+                                value={material.id}
                               >
-                                {material.code}
-                                {" - "}
+                                {material.code} -{" "}
                                 {material.name}
                               </option>
                             )
@@ -641,9 +584,7 @@ export default function EditIssueForm({
                         <input
                           type="hidden"
                           name={`items[${index}].receiveItemId`}
-                          value={
-                            row.receiveItemId
-                          }
+                          value={row.receiveItemId}
                         />
                       </td>
 
@@ -661,8 +602,7 @@ export default function EditIssueForm({
                           type="text"
                           readOnly
                           value={
-                            selectedMaterial?.unit ??
-                            ""
+                            selectedMaterial?.unit ?? ""
                           }
                           className="
                             w-full
@@ -691,9 +631,7 @@ export default function EditIssueForm({
                         <input
                           type="number"
                           name={`items[${index}].qty`}
-                          value={
-                            row.qty
-                          }
+                          value={row.qty}
                           disabled={!isPending}
                           onChange={(e) =>
                             updateRow(
@@ -767,9 +705,7 @@ export default function EditIssueForm({
                       >
                         <input
                           type="date"
-                          value={
-                            row.manufacture
-                          }
+                          value={row.manufacture}
                           readOnly
                           className="
                             w-full
@@ -797,9 +733,7 @@ export default function EditIssueForm({
                       >
                         <input
                           type="date"
-                          value={
-                            row.expiry
-                          }
+                          value={row.expiry}
                           readOnly
                           className="
                             w-full
@@ -827,12 +761,7 @@ export default function EditIssueForm({
         ===================================================== */}
 
         {isPending ? (
-          <div
-            className="
-              flex
-              justify-end
-            "
-          >
+          <div className="flex justify-end">
             <button
               type="submit"
               className="
