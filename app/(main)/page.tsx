@@ -102,22 +102,23 @@ export default async function Home() {
           sm:py-7
         "
       >
+        {/* เส้นสีฟ้าเต็มกรอบ */}
+
         <div
           className="
-            mx-auto
-            mb-3
+            mb-4
             h-1
-            w-20
+            w-full
             rounded-full
             bg-gradient-to-r
             from-blue-500
-            to-cyan-400
-            sm:mb-4
-            sm:w-28
+            via-cyan-400
+            to-blue-500
+            shadow-sm
+            sm:mb-5
           "
         />
 
-        {/* ขนาดเท่ากับชื่อหน่วยงาน */}
         <h1
           className="
             break-words
@@ -130,7 +131,6 @@ export default async function Home() {
           👋 ยินดีต้อนรับ
         </h1>
 
-        {/* ขนาดเดียวกับ ยินดีต้อนรับ */}
         <p
           className="
             mt-2
@@ -293,9 +293,9 @@ export default async function Home() {
             sm:py-5
           "
         >
-          {/* ขนาดเท่ากับ ยินดีต้อนรับ และชื่อหน่วยงาน */}
           <h2
             className="
+              break-words
               text-2xl
               font-extrabold
               leading-tight
@@ -305,16 +305,19 @@ export default async function Home() {
             ข้อมูลระบบ
           </h2>
 
+          {/* เส้นสีฟ้าเต็มกรอบ */}
+
           <div
             className="
-              mt-2
+              mt-3
               h-1
-              w-16
+              w-full
               rounded-full
               bg-gradient-to-r
               from-blue-500
-              to-cyan-400
-              sm:w-20
+              via-cyan-400
+              to-blue-500
+              shadow-sm
             "
           />
         </div>
