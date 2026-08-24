@@ -186,8 +186,6 @@ export default async function CategoryPage({
           max-w-full
           overflow-hidden
           rounded-2xl
-          border-2
-          border-black
           bg-white
           shadow-lg
         "
@@ -392,15 +390,13 @@ export default async function CategoryPage({
                 <td
                   colSpan={6}
                   className="
-                    border
+                    h-0
+                    border-0
+                    border-b-2
                     border-black
-                    border-t-0
                     bg-white
                     p-0
                   "
-                  style={{
-                    height: "2px",
-                  }}
                 />
               </tr>
             </tfoot>

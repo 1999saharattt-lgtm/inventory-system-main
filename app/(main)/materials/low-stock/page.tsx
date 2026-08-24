@@ -197,7 +197,7 @@ export default async function LowStockPage({
             text-center
             text-base
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
@@ -264,7 +264,7 @@ export default async function LowStockPage({
                 px-6
                 py-3
                 font-extrabold
-                text-white
+                !text-white
                 shadow-lg
                 transition
                 hover:scale-105
@@ -287,7 +287,7 @@ export default async function LowStockPage({
                   py-3
                   text-center
                   font-extrabold
-                  text-white
+                  !text-white
                   shadow
                   transition
                   hover:scale-105
@@ -309,7 +309,7 @@ export default async function LowStockPage({
                 py-3
                 text-center
                 font-extrabold
-                text-white
+                !text-white
               "
             >
               พบ {totalLowStock} รายการ
@@ -339,8 +339,6 @@ export default async function LowStockPage({
               min-w-0
               overflow-hidden
               rounded-2xl
-              border
-              border-slate-900
               bg-white
               shadow-lg
             "
@@ -388,7 +386,7 @@ export default async function LowStockPage({
                   px-4
                   py-2
                   font-bold
-                  text-white
+                  !text-white
                 "
               >
                 {categoryMaterials.length} รายการ
@@ -397,20 +395,22 @@ export default async function LowStockPage({
 
             {/* =================================================
                 Table
+                ให้ table เป็นเจ้าของกรอบเพียงตัวเดียว
             ================================================= */}
 
             <div
               className="
                 w-full
                 min-w-0
+                max-w-full
                 overflow-x-auto
-                border-b-2
-                border-b-black
+                overscroll-x-contain
               "
             >
               <table
                 className="
-                  min-w-full
+                  w-full
+                  min-w-[900px]
                   border-collapse
                   border
                   border-black
@@ -421,6 +421,7 @@ export default async function LowStockPage({
                   <tr>
                     <th
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         bg-gradient-to-r
@@ -439,6 +440,7 @@ export default async function LowStockPage({
 
                     <th
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         bg-gradient-to-r
@@ -475,6 +477,7 @@ export default async function LowStockPage({
 
                     <th
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         bg-gradient-to-r
@@ -493,6 +496,7 @@ export default async function LowStockPage({
 
                     <th
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         bg-gradient-to-r
@@ -511,6 +515,7 @@ export default async function LowStockPage({
 
                     <th
                       className="
+                        whitespace-nowrap
                         border
                         border-black
                         bg-gradient-to-r
@@ -552,8 +557,6 @@ export default async function LowStockPage({
                     <tr
                       key={material.id}
                       className="
-                        border
-                        border-black
                         text-slate-900
                         transition
                         hover:bg-blue-50
@@ -561,6 +564,7 @@ export default async function LowStockPage({
                     >
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-4
@@ -574,6 +578,7 @@ export default async function LowStockPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-4
@@ -599,6 +604,7 @@ export default async function LowStockPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           bg-red-50
@@ -615,6 +621,7 @@ export default async function LowStockPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-4
@@ -628,6 +635,7 @@ export default async function LowStockPage({
 
                       <td
                         className="
+                          whitespace-nowrap
                           border
                           border-black
                           px-4
@@ -658,27 +666,6 @@ export default async function LowStockPage({
                     </tr>
                   ))}
                 </tbody>
-
-                {/* =================================================
-                    เส้นปิดท้ายตาราง
-                    บังคับเส้นด้านล่างเป็นสีดำ
-                ================================================= */}
-
-                <tfoot>
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="
-                        h-0
-                        border-0
-                        border-b-2
-                        border-b-black
-                        bg-white
-                        p-0
-                      "
-                    />
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>

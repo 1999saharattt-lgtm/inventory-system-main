@@ -81,15 +81,12 @@ export default function MaterialsSummaryClient({
   /*
    * =====================================================
    * ADMIN
-   *
-   * ADMIN ใช้หน้าตาเดิม
-   * ไม่เปลี่ยนรูปแบบตาราง / Search / การแสดงหมวด
    * =====================================================
    */
 
   if (role === "ADMIN") {
     return (
-      <>
+      <div className="w-full min-w-0 space-y-4 sm:space-y-6">
         {/* =====================================================
             Search Box
         ===================================================== */}
@@ -177,279 +174,279 @@ export default function MaterialsSummaryClient({
 
         {/* =====================================================
             Categories
+            แต่ละหมวดแยกออกจากกันเหมือน low-stock
         ===================================================== */}
 
-        {categories.map((category) => {
-          const categoryMaterials = filteredMaterials.filter(
-            (material) => material.category === category
-          );
+        <div className="w-full min-w-0 space-y-5 sm:space-y-6">
+          {categories.map((category) => {
+            const categoryMaterials = filteredMaterials.filter(
+              (material) => material.category === category
+            );
 
-          return (
-            <div
-              key={category}
-              className="
-                overflow-hidden
-                rounded-2xl
-                bg-white
-                shadow-lg
-              "
-            >
-              {/* =====================================================
-                  Category Header
-              ===================================================== */}
-
-              <div
+            return (
+              <section
+                key={category}
                 className="
-                  flex
-                  items-center
-                  justify-between
-                  bg-gradient-to-r
-                  from-slate-950
-                  via-slate-800
-                  to-slate-700
-                  px-6
-                  py-4
-                  text-white
+                  w-full
+                  min-w-0
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-slate-300
+                  bg-white
+                  shadow-lg
                 "
               >
-                <h2
-                  className="
-                    text-2xl
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  {categoryName[category] ?? category}
-                </h2>
+                {/* =====================================================
+                    Category Header
+                ===================================================== */}
 
-                <span
+                <div
                   className="
-                    rounded-lg
-                    bg-white/10
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                    bg-gradient-to-r
+                    from-slate-950
+                    via-slate-800
+                    to-slate-700
                     px-4
-                    py-2
-                    font-bold
+                    py-4
                     text-white
+                    sm:px-6
                   "
                 >
-                  {categoryMaterials.length} รายการ
-                </span>
-              </div>
+                  <h2
+                    className="
+                      min-w-0
+                      break-words
+                      text-xl
+                      font-extrabold
+                      !text-white
+                      sm:text-2xl
+                    "
+                  >
+                    {categoryName[category] ?? category}
+                  </h2>
 
-              {/* =====================================================
-                  Table
-                  เส้นตารางสีดำ ปิดครบทุกด้าน
-              ===================================================== */}
+                  <span
+                    className="
+                      shrink-0
+                      rounded-lg
+                      bg-white/10
+                      px-3
+                      py-2
+                      text-sm
+                      font-bold
+                      text-white
+                      sm:px-4
+                      sm:text-base
+                    "
+                  >
+                    {categoryMaterials.length} รายการ
+                  </span>
+                </div>
 
-              <div
-                className="
-                  overflow-x-auto
-                  border-b-2
-                  border-black
-                "
-              >
-                <table
+                {/* =====================================================
+                    Table
+                    ไม่มี wrapper border ซ้ำ
+                    ไม่มี tfoot ซ้ำเส้น
+                ===================================================== */}
+
+                <div
                   className="
-                    min-w-full
-                    border-collapse
-                    border
-                    border-black
+                    w-full
+                    min-w-0
+                    overflow-x-auto
+                    overscroll-x-contain
                   "
-                  style={{
-                    borderColor: "#000000",
-                  }}
                 >
-                  <thead>
-                    <tr>
-                      {[
-                        "ลำดับ",
-                        "รหัสพัสดุ",
-                        "รายการพัสดุ",
-                        "จำนวน",
-                        "หน่วย",
-                        "ราคา",
-                        "ผู้จำหน่ายล่าสุด",
-                      ].map((title) => (
-                        <th
-                          key={title}
-                          className="
-                            border
-                            border-black
-                            bg-gradient-to-r
-                            from-slate-800
-                            to-slate-700
-                            px-4
-                            py-4
-                            text-center
-                            text-lg
-                            font-extrabold
-                            !text-white
-                          "
-                        >
-                          {title}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {categoryMaterials.length === 0 ? (
+                  <table
+                    className="
+                      w-full
+                      min-w-[900px]
+                      border-collapse
+                      border
+                      border-black
+                      bg-white
+                    "
+                  >
+                    <thead>
                       <tr>
-                        <td
-                          colSpan={7}
-                          className="
-                            border
-                            border-black
-                            py-10
-                            text-center
-                            text-lg
-                            font-bold
-                            text-slate-500
-                          "
-                        >
-                          {keyword
-                            ? "ไม่พบข้อมูลที่ค้นหา"
-                            : "ยังไม่มีพัสดุในหมวดนี้"}
-                        </td>
-                      </tr>
-                    ) : (
-                      categoryMaterials.map((material, index) => (
-                        <tr
-                          key={material.id}
-                          className="
-                            border
-                            border-black
-                            text-slate-900
-                            transition
-                            hover:bg-blue-50
-                          "
-                        >
-                          <td
+                        {[
+                          "ลำดับ",
+                          "รหัสพัสดุ",
+                          "รายการพัสดุ",
+                          "จำนวน",
+                          "หน่วย",
+                          "ราคา",
+                          "ผู้จำหน่ายล่าสุด",
+                        ].map((title) => (
+                          <th
+                            key={title}
                             className="
+                              whitespace-nowrap
                               border
                               border-black
+                              bg-gradient-to-r
+                              from-slate-800
+                              to-slate-700
                               px-4
-                              py-3
+                              py-4
                               text-center
-                              font-bold
-                            "
-                          >
-                            {index + 1}
-                          </td>
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-4
-                              py-3
-                              text-center
-                              font-bold
-                            "
-                          >
-                            {material.code || "-"}
-                          </td>
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-4
-                              py-3
-                              font-bold
-                            "
-                          >
-                            {material.name || "-"}
-                          </td>
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-4
-                              py-3
-                              text-center
+                              text-lg
                               font-extrabold
+                              !text-white
                             "
                           >
-                            {material.balance ?? 0}
-                          </td>
+                            {title}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
 
+                    <tbody className="text-slate-900">
+                      {categoryMaterials.length === 0 ? (
+                        <tr>
                           <td
+                            colSpan={7}
                             className="
                               border
                               border-black
                               px-4
-                              py-3
+                              py-10
                               text-center
-                              font-semibold
+                              text-lg
+                              font-bold
+                              text-slate-500
                             "
                           >
-                            {material.unit || "-"}
-                          </td>
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-4
-                              py-3
-                              text-right
-                              font-semibold
-                            "
-                          >
-                            {formatMoney(material.latestPrice)}
-                          </td>
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-4
-                              py-3
-                              font-semibold
-                            "
-                          >
-                            {material.latestVendor || "-"}
+                            {keyword
+                              ? "ไม่พบข้อมูลที่ค้นหา"
+                              : "ยังไม่มีพัสดุในหมวดนี้"}
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
+                      ) : (
+                        categoryMaterials.map((material, index) => (
+                          <tr
+                            key={material.id}
+                            className="
+                              text-slate-900
+                              transition
+                              hover:bg-blue-50
+                            "
+                          >
+                            <td
+                              className="
+                                whitespace-nowrap
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                text-center
+                                font-bold
+                              "
+                            >
+                              {index + 1}
+                            </td>
 
-                  {/* =================================================
-                      เส้นปิดท้ายตารางสีดำ
-                      ================================================= */}
+                            <td
+                              className="
+                                whitespace-nowrap
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                text-center
+                                font-bold
+                              "
+                            >
+                              {material.code || "-"}
+                            </td>
 
-                  <tfoot>
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="
-                          h-0
-                          border-0
-                          border-b-2
-                          border-b-black
-                          p-0
-                        "
-                      />
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          );
-        })}
-      </>
+                            <td
+                              className="
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                font-bold
+                              "
+                            >
+                              {material.name || "-"}
+                            </td>
+
+                            <td
+                              className="
+                                whitespace-nowrap
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                text-center
+                                font-extrabold
+                              "
+                            >
+                              {material.balance ?? 0}
+                            </td>
+
+                            <td
+                              className="
+                                whitespace-nowrap
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                text-center
+                                font-semibold
+                              "
+                            >
+                              {material.unit || "-"}
+                            </td>
+
+                            <td
+                              className="
+                                whitespace-nowrap
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                text-right
+                                font-semibold
+                              "
+                            >
+                              {formatMoney(material.latestPrice)}
+                            </td>
+
+                            <td
+                              className="
+                                border
+                                border-black
+                                px-4
+                                py-3
+                                font-semibold
+                              "
+                            >
+                              {material.latestVendor || "-"}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
     );
   }
 
   /*
    * =====================================================
    * STAFF / VIEWER
-   *
-   * แสดงหมวดหมู่เหมือนหน้า /stock-card
-   * แล้วกดเข้าไปดู Summary เฉพาะหมวดนั้น
    * =====================================================
    */
 
@@ -580,10 +577,6 @@ export default function MaterialsSummaryClient({
                 hover:shadow-2xl
               "
             >
-              {/* =====================================================
-                  Top Color
-              ===================================================== */}
-
               <div
                 className={`
                   h-1.5
@@ -611,10 +604,6 @@ export default function MaterialsSummaryClient({
                   sm:p-6
                 "
               >
-                {/* =====================================================
-                    Icon
-                ===================================================== */}
-
                 <div
                   className="
                     flex
@@ -639,10 +628,6 @@ export default function MaterialsSummaryClient({
                 >
                   {categoryIcon[category] ?? "📦"}
                 </div>
-
-                {/* =====================================================
-                    Name
-                ===================================================== */}
 
                 <div className="min-w-0 max-w-full">
                   <h2
@@ -673,10 +658,6 @@ export default function MaterialsSummaryClient({
                   </p>
                 </div>
 
-                {/* =====================================================
-                    Count
-                ===================================================== */}
-
                 <div
                   className="
                     rounded-xl
@@ -694,10 +675,6 @@ export default function MaterialsSummaryClient({
                 >
                   {categoryMaterials.length} รายการ
                 </div>
-
-                {/* =====================================================
-                    Open
-                ===================================================== */}
 
                 <span
                   className="

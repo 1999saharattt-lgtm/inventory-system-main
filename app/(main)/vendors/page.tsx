@@ -193,6 +193,7 @@ export default function VendorsPage() {
               border-collapse
               border
               border-slate-900
+              bg-white
             "
           >
             <thead>
@@ -238,7 +239,7 @@ export default function VendorsPage() {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="text-slate-900">
               {loading ? (
                 <tr>
                   <td
@@ -246,6 +247,7 @@ export default function VendorsPage() {
                     className="
                       border
                       border-slate-900
+                      px-4
                       py-12
                       text-center
                       text-lg
@@ -263,6 +265,7 @@ export default function VendorsPage() {
                     className="
                       border
                       border-slate-900
+                      px-4
                       py-12
                       text-center
                       text-lg
@@ -281,6 +284,8 @@ export default function VendorsPage() {
                       text-slate-900
                       transition
                       hover:bg-blue-50
+                      last:[&>td]:border-b-2
+                      last:[&>td]:border-b-slate-900
                     "
                   >
                     <td
@@ -370,6 +375,7 @@ export default function VendorsPage() {
                         </Link>
 
                         <button
+                          type="button"
                           onClick={() =>
                             handleDelete(vendor.id)
                           }
@@ -393,25 +399,6 @@ export default function VendorsPage() {
                 ))
               )}
             </tbody>
-
-            {/* =====================================================
-                เส้นปิดท้ายตารางพอดีกับตาราง
-            ===================================================== */}
-
-            <tfoot>
-              <tr>
-                <td
-                  colSpan={5}
-                  className="
-                    h-0
-                    border-0
-                    border-b-2
-                    border-b-slate-900
-                    p-0
-                  "
-                />
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

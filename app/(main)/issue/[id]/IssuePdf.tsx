@@ -451,7 +451,7 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[22mm]">
+              <span className="inline-block w-[18mm]">
                 วันที่ :
               </span>
               {formatThaiDate(issueDate)}
@@ -471,7 +471,7 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[22mm]">
+              <span className="inline-block w-[18mm]">
                 กลุ่มงาน :
               </span>
 
@@ -498,7 +498,7 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[22mm]">
+              <span className="inline-block w-[18mm]">
                 ผู้ขอ :
               </span>
               {requesterName || "-"}

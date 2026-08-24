@@ -41,7 +41,7 @@ export default async function MaterialsSummaryPage() {
   // =====================================================
   // ADMIN
   //
-  // คงหน้าตาเดิมของตาราง
+  // แสดงข้อมูลพัสดุทั้งหมด
   // =====================================================
 
   if (role === "ADMIN") {
@@ -193,39 +193,17 @@ export default async function MaterialsSummaryPage() {
         </div>
 
         {/* =====================================================
-            ตาราง
-            กรอบและเส้นปิดเป็นสีดำ
+            Materials Summary
+            ไม่ครอบด้วยกรอบซ้ำ
         ===================================================== */}
 
-        <div
-          className="
-            w-full
-            min-w-0
-            max-w-full
-            overflow-hidden
-            rounded-2xl
-            border-2
-            border-black
-            bg-white
-            shadow-lg
-          "
-        >
-          <div
-            className="
-              w-full
-              min-w-0
-              max-w-full
-              overflow-x-auto
-              overscroll-x-contain
-            "
-          >
-            <MaterialsSummaryClient
-              materials={data}
-              categories={categories}
-              categoryName={categoryName}
-              role={role}
-            />
-          </div>
+        <div className="w-full min-w-0">
+          <MaterialsSummaryClient
+            materials={data}
+            categories={categories}
+            categoryName={categoryName}
+            role={role}
+          />
         </div>
       </div>
     );
@@ -234,7 +212,7 @@ export default async function MaterialsSummaryPage() {
   // =====================================================
   // STAFF / VIEWER
   //
-  // แสดงหน้าเลือกหมวดแบบ Stock Card
+  // แสดงหน้าเลือกหมวด
   // =====================================================
 
   return (
@@ -332,7 +310,9 @@ export default async function MaterialsSummaryPage() {
               hover:shadow-2xl
             "
           >
-            {/* เหมือน Stock Card */}
+            {/* =====================================================
+                Top Color
+            ===================================================== */}
 
             <div
               className="
@@ -359,6 +339,10 @@ export default async function MaterialsSummaryPage() {
                 sm:p-6
               "
             >
+              {/* =====================================================
+                  Icon
+              ===================================================== */}
+
               <div
                 className="
                   flex
@@ -383,6 +367,10 @@ export default async function MaterialsSummaryPage() {
               >
                 {categoryIcons[category]}
               </div>
+
+              {/* =====================================================
+                  Name
+              ===================================================== */}
 
               <div className="min-w-0 max-w-full">
                 <h2
@@ -415,6 +403,10 @@ export default async function MaterialsSummaryPage() {
                   คลิกเพื่อดูรายการพัสดุในหมวดนี้
                 </p>
               </div>
+
+              {/* =====================================================
+                  Open
+              ===================================================== */}
 
               <span
                 className="
