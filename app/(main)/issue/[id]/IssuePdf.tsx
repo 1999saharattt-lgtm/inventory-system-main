@@ -391,7 +391,7 @@ export default function IssuePdf({
               ส่วนหัวเอกสาร
           ===================================================== */}
 
-          <div className="relative h-[38mm]">
+          <div className="relative h-[35mm]">
             {/* เลขที่เอกสาร */}
 
             <div
@@ -464,7 +464,7 @@ export default function IssuePdf({
                 absolute
                 left-0
                 right-0
-                top-[22.5mm]
+                top-[23mm]
                 whitespace-nowrap
                 text-[21px]
                 leading-none
@@ -491,7 +491,7 @@ export default function IssuePdf({
                 absolute
                 left-0
                 right-0
-                top-[28mm]
+                top-[29mm]
                 whitespace-nowrap
                 text-[21px]
                 leading-none
@@ -511,7 +511,7 @@ export default function IssuePdf({
 
           <div
             className="
-              mb-[4mm]
+              mb-[6mm]
               text-[21px]
               leading-none
               text-black
