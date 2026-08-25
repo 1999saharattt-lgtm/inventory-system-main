@@ -340,7 +340,7 @@ export default async function DepartmentAssetsPage({
                     group-hover:scale-105
                   "
                 >
-                  เปิดรายการ
+                  เปิด
                 </span>
               </div>
             </Link>
