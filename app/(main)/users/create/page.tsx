@@ -54,9 +54,9 @@ export default async function CreateUserPage() {
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -67,10 +67,6 @@ export default async function CreateUserPage() {
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -83,7 +79,7 @@ export default async function CreateUserPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             👤 เพิ่มผู้ใช้งานระบบ
@@ -98,7 +94,7 @@ export default async function CreateUserPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-base
             "
           >
             สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
@@ -108,7 +104,7 @@ export default async function CreateUserPage() {
         <Link
           href="/users"
           className="
-            w-full
+            w-auto
             shrink-0
             rounded-xl
             bg-gradient-to-r
@@ -124,7 +120,6 @@ export default async function CreateUserPage() {
             transition
             hover:scale-105
             hover:shadow-xl
-            sm:w-auto
             sm:px-6
             sm:py-3
             sm:text-lg
