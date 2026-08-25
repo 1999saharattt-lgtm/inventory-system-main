@@ -152,7 +152,15 @@ export default async function ApproveIssuePage({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -160,22 +168,22 @@ export default async function ApproveIssuePage({
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-4
-          py-5
+          px-3
+          py-4
           text-white
           shadow-xl
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
+          sm:min-h-[140px]
           sm:px-8
           sm:py-6
         "
@@ -188,7 +196,7 @@ export default async function ApproveIssuePage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-3xl
             "
           >
             📝 ตรวจสอบและลงจำนวนเบิกจ่าย
@@ -201,8 +209,8 @@ export default async function ApproveIssuePage({
               text-sm
               font-semibold
               leading-tight
-              !text-white
-              sm:text-lg
+              !text-slate-200
+              sm:text-base
             "
           >
             ตรวจสอบรายการและระบุจำนวนที่เบิกจ่ายจริง
@@ -212,25 +220,25 @@ export default async function ApproveIssuePage({
         <Link
           href={`/issue/${issue.id}`}
           className="
-            w-full
             shrink-0
+            whitespace-nowrap
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
+            leading-tight
             !text-white
             shadow-lg
             transition
-            hover:scale-[1.02]
+            hover:scale-105
             hover:from-emerald-700
             hover:to-green-600
-            sm:w-auto
-            sm:px-6
+            sm:px-5
             sm:py-3
             sm:text-base
           "
