@@ -31,7 +31,15 @@ export default async function NewMaterialPage() {
   });
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -71,7 +79,7 @@ export default async function NewMaterialPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             ➕ เพิ่มรายการพัสดุ
@@ -86,7 +94,7 @@ export default async function NewMaterialPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ
@@ -114,7 +122,7 @@ export default async function NewMaterialPage() {
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
