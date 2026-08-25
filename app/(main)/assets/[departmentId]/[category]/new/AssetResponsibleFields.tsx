@@ -16,12 +16,19 @@ type Section = {
 
 type Props = {
   sections: Section[];
+  defaultSectionId?: number | null;
+  locked?: boolean;
 };
 
 export default function AssetResponsibleFields({
   sections,
+  defaultSectionId,
+  locked = false,
 }: Props) {
-  const [sectionId, setSectionId] = useState("");
+  // ตั้งค่าเริ่มต้นจาก defaultSectionId (ถ้ามี)
+  const [sectionId, setSectionId] = useState(
+    defaultSectionId ? String(defaultSectionId) : ""
+  );
   const [officerId, setOfficerId] = useState("");
 
   const selectedSection = sections.find(
@@ -71,6 +78,7 @@ export default function AssetResponsibleFields({
           name="sectionId"
           value={sectionId}
           onChange={handleSectionChange}
+          disabled={locked}
           className="
             mt-2
             w-full
@@ -84,6 +92,8 @@ export default function AssetResponsibleFields({
             text-slate-900
             outline-none
             transition
+            disabled:cursor-not-allowed
+            disabled:bg-slate-200
             focus:border-emerald-600
             focus:ring-2
             focus:ring-emerald-200
@@ -126,7 +136,7 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={handleOfficerChange}
-          disabled={!sectionId}
+          disabled={locked || !sectionId}
           className="
             mt-2
             w-full
