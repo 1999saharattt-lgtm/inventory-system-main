@@ -66,10 +66,6 @@ export default async function NewAssetPage({
 
   const assetCategory = category as AssetCategoryValue;
 
-  // =====================================================
-  // ดึงข้อมูลหน่วยงาน
-  // =====================================================
-
   const department = await prisma.department.findUnique({
     where: {
       id: departmentIdNumber,
@@ -96,10 +92,6 @@ export default async function NewAssetPage({
   if (!department) {
     notFound();
   }
-
-  // =====================================================
-  // บันทึกครุภัณฑ์
-  // =====================================================
 
   async function createAsset(formData: FormData) {
     "use server";
@@ -169,10 +161,6 @@ export default async function NewAssetPage({
       throw new Error("ผู้ครอบครองไม่ถูกต้อง");
     }
 
-    // ===================================================
-    // ตรวจสอบ Section ต้องอยู่ใน Department นี้
-    // ===================================================
-
     if (sectionId !== null) {
       const section = await prisma.section.findFirst({
         where: {
@@ -188,10 +176,6 @@ export default async function NewAssetPage({
       }
     }
 
-    // ===================================================
-    // ตรวจสอบ Officer ต้องอยู่ใน Department นี้
-    // ===================================================
-
     if (officerId !== null) {
       const officer = await prisma.officer.findFirst({
         where: {
@@ -206,10 +190,6 @@ export default async function NewAssetPage({
         );
       }
     }
-
-    // ===================================================
-    // ตรวจสอบเลขทะเบียนซ้ำ
-    // ===================================================
 
     if (governmentAssetNo) {
       const existingGovernment =
@@ -241,10 +221,6 @@ export default async function NewAssetPage({
       }
     }
 
-    // ===================================================
-    // ตรวจสอบราคา
-    // ===================================================
-
     let price: number | null = null;
 
     if (priceRaw) {
@@ -254,10 +230,6 @@ export default async function NewAssetPage({
         throw new Error("ราคาครุภัณฑ์ไม่ถูกต้อง");
       }
     }
-
-    // ===================================================
-    // ตรวจสอบวันที่
-    // ===================================================
 
     let purchaseDate: Date | null = null;
 
@@ -272,10 +244,6 @@ export default async function NewAssetPage({
 
       purchaseDate = parsedDate;
     }
-
-    // ===================================================
-    // สร้างครุภัณฑ์
-    // ===================================================
 
     const asset = await prisma.asset.create({
       data: {
@@ -332,8 +300,8 @@ export default async function NewAssetPage({
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
+          items-center
+          justify-between
           gap-3
           rounded-2xl
           bg-gradient-to-r
@@ -345,9 +313,6 @@ export default async function NewAssetPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
           sm:px-8
           sm:py-6
         "
@@ -385,13 +350,12 @@ export default async function NewAssetPage({
         <Link
           href={`/assets/${department.id}/${category}`}
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
-            from-slate-700
-            to-slate-900
-            px-5
+            from-emerald-600
+            to-green-500
+            px-4
             py-2.5
             text-center
             text-sm
@@ -399,14 +363,15 @@ export default async function NewAssetPage({
             !text-white
             shadow-lg
             transition
-            hover:scale-[1.02]
-            sm:w-auto
-            sm:px-6
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
-          ← กลับรายการ
+          ← กลับ
         </Link>
       </div>
 
@@ -421,11 +386,14 @@ export default async function NewAssetPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
             p-4
             shadow-xl
-            sm:p-6
+            sm:p-8
           "
         >
           {/* =================================================
@@ -443,7 +411,7 @@ export default async function NewAssetPage({
                 py-3
                 text-lg
                 font-extrabold
-                text-white
+                !text-white
               "
             >
               📋 ข้อมูลครุภัณฑ์
@@ -457,14 +425,12 @@ export default async function NewAssetPage({
                 sm:grid-cols-2
               "
             >
-              {/* ชื่อ */}
-
               <div className="sm:col-span-2">
                 <label
                   htmlFor="name"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
-                  ชื่อครุภัณฑ์ <span className="text-red-600">*</span>
+                  ชื่อครุภัณฑ์ <span className="text-red-400">*</span>
                 </label>
 
                 <input
@@ -493,12 +459,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* ยี่ห้อ */}
-
               <div>
                 <label
                   htmlFor="brand"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   ยี่ห้อ
                 </label>
@@ -513,6 +477,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -525,12 +490,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* รุ่น */}
-
               <div>
                 <label
                   htmlFor="model"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   รุ่น
                 </label>
@@ -545,6 +508,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -557,12 +521,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* Serial */}
-
               <div className="sm:col-span-2">
                 <label
                   htmlFor="serialNumber"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   Serial Number
                 </label>
@@ -577,6 +539,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -606,7 +569,7 @@ export default async function NewAssetPage({
                 py-3
                 text-lg
                 font-extrabold
-                text-white
+                !text-white
               "
             >
               🔖 เลขทะเบียนครุภัณฑ์
@@ -623,7 +586,7 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="governmentAssetNo"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   เลขครุภัณฑ์กรม
                 </label>
@@ -638,6 +601,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -653,7 +617,7 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="officeAssetNo"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   เลขครุภัณฑ์ประจำสำนัก
                 </label>
@@ -668,6 +632,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -697,7 +662,7 @@ export default async function NewAssetPage({
                 py-3
                 text-lg
                 font-extrabold
-                text-white
+                !text-white
               "
             >
               👤 ผู้รับผิดชอบและสถานที่
@@ -711,12 +676,10 @@ export default async function NewAssetPage({
                 sm:grid-cols-2
               "
             >
-              {/* กลุ่มงาน */}
-
               <div>
                 <label
                   htmlFor="sectionId"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   กลุ่มงาน
                 </label>
@@ -754,12 +717,10 @@ export default async function NewAssetPage({
                 </select>
               </div>
 
-              {/* ผู้ครอบครอง */}
-
               <div>
                 <label
                   htmlFor="officerId"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   ผู้ครอบครอง
                 </label>
@@ -796,17 +757,15 @@ export default async function NewAssetPage({
                   ))}
                 </select>
 
-                <p className="mt-2 text-xs font-semibold text-slate-500">
+                <p className="mt-2 text-xs font-semibold !text-slate-400">
                   แสดงเฉพาะบุคลากรของหน่วยงานนี้
                 </p>
               </div>
 
-              {/* สถานที่ */}
-
               <div>
                 <label
                   htmlFor="location"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   สถานที่ตั้ง
                 </label>
@@ -822,6 +781,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -834,12 +794,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* วันที่ได้มา */}
-
               <div>
                 <label
                   htmlFor="purchaseDate"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   วันที่ได้มา
                 </label>
@@ -854,6 +812,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -866,12 +825,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* ราคา */}
-
               <div>
                 <label
                   htmlFor="price"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   ราคาครุภัณฑ์
                 </label>
@@ -889,6 +846,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -901,12 +859,10 @@ export default async function NewAssetPage({
                 />
               </div>
 
-              {/* หมายเหตุ */}
-
               <div className="sm:col-span-2">
                 <label
                   htmlFor="remark"
-                  className="block text-sm font-extrabold text-slate-800"
+                  className="block text-sm font-extrabold !text-slate-200"
                 >
                   หมายเหตุ
                 </label>
@@ -922,6 +878,7 @@ export default async function NewAssetPage({
                     rounded-xl
                     border
                     border-slate-300
+                    bg-white
                     px-4
                     py-3
                     font-semibold
@@ -986,14 +943,14 @@ export default async function NewAssetPage({
                 !text-white
                 shadow-lg
                 transition
-                hover:scale-[1.02]
+                hover:scale-105
                 hover:from-emerald-700
                 hover:to-green-600
                 active:scale-[0.98]
                 sm:w-auto
               "
             >
-              💾 บันทึกครุภัณฑ์
+              💾 บันทึก
             </button>
           </div>
         </div>
