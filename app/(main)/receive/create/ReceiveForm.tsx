@@ -319,8 +319,6 @@ export default function ReceiveForm({
             min-w-0
             overflow-x-auto
             rounded-2xl
-            border
-            border-slate-900
             bg-white
             shadow-xl
           "
