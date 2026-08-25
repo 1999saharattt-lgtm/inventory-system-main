@@ -26,6 +26,7 @@ async function generateIssueNo() {
         startsWith: "จ.",
       },
     },
+
     select: {
       documentNo: true,
     },
@@ -94,6 +95,7 @@ export default async function CreateIssuePage() {
           gt: 0,
         },
       },
+
       select: {
         id: true,
         materialId: true,
@@ -101,6 +103,7 @@ export default async function CreateIssuePage() {
         manufacture: true,
         expiry: true,
       },
+
       orderBy: [
         {
           expiry: "asc",
@@ -127,6 +130,7 @@ export default async function CreateIssuePage() {
           where: {
             id: session.id,
           },
+
           select: {
             departmentId: true,
           },
@@ -149,6 +153,7 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
+
       orderBy: {
         name: "asc",
       },
@@ -177,10 +182,12 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
+
       include: {
         section: true,
         department: true,
       },
+
       orderBy: [
         {
           firstName: "asc",
@@ -202,28 +209,51 @@ export default async function CreateIssuePage() {
         : "";
 
   return (
-    <div className="space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
       <div
         className="
           flex
+          min-h-[110px]
+          w-full
+          min-w-0
           items-center
           justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
-          to-cyan-700
-          p-6
+          to-slate-700
+          px-3
+          py-4
+          text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1
             className="
-              text-5xl
+              break-words
+              text-2xl
               font-extrabold
-              tracking-wide
+              leading-tight
               !text-white
+              sm:text-5xl
             "
           >
             📤 บันทึกการเบิกจ่ายพัสดุ
@@ -231,10 +261,13 @@ export default async function CreateIssuePage() {
 
           <p
             className="
-              mt-3
-              text-xl
+              mt-2
+              break-words
+              text-base
               font-semibold
+              leading-tight
               !text-slate-200
+              sm:text-xl
             "
           >
             เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
@@ -244,18 +277,27 @@ export default async function CreateIssuePage() {
         <Link
           href="/issue"
           className="
+            shrink-0
+            whitespace-nowrap
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-6
-            py-3
+            px-3
+            py-2
+            text-center
+            text-sm
             font-extrabold
-            text-white
+            leading-tight
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            hover:shadow-xl
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
+            sm:py-3
+            sm:text-lg
           "
         >
           ← กลับ
@@ -264,6 +306,8 @@ export default async function CreateIssuePage() {
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-700

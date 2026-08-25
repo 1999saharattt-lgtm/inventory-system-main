@@ -330,8 +330,6 @@ export default function ReceiveForm({
               w-full
               min-w-[1050px]
               border-collapse
-              border
-              border-black
               text-sm
             "
           >

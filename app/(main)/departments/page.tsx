@@ -9,9 +9,18 @@ export default async function DepartmentsPage() {
   });
 
   return (
-    <div className="space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -37,7 +46,6 @@ export default async function DepartmentsPage() {
         "
       >
         <div className="min-w-0">
-
           <h1
             className="
               break-words
@@ -45,7 +53,7 @@ export default async function DepartmentsPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             🏢 หน่วยงาน
@@ -55,20 +63,22 @@ export default async function DepartmentsPage() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-lg
             "
           >
             เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
           </p>
-
         </div>
       </div>
 
-      {/* Department Cards */}
+      {/* =====================================================
+          Department Cards
+      ===================================================== */}
 
       <div
         className="
@@ -78,13 +88,10 @@ export default async function DepartmentsPage() {
           xl:grid-cols-3
         "
       >
-
         {departments.map((department: any) => (
-
           <Link
             key={department.id}
             href={`/departments/${department.id}`}
-
             className="
               group
               overflow-hidden
@@ -99,7 +106,6 @@ export default async function DepartmentsPage() {
               hover:shadow-2xl
             "
           >
-
             {/* Top Bar */}
 
             <div
@@ -122,7 +128,6 @@ export default async function DepartmentsPage() {
                 text-center
               "
             >
-
               {/* Icon */}
 
               <div
@@ -150,7 +155,6 @@ export default async function DepartmentsPage() {
               {/* Name */}
 
               <div>
-
                 <h2
                   className="
                     mt-3
@@ -172,7 +176,6 @@ export default async function DepartmentsPage() {
                 >
                   คลิกเพื่อดูรายชื่อเจ้าหน้าที่
                 </p>
-
               </div>
 
               {/* Button */}
@@ -196,15 +199,11 @@ export default async function DepartmentsPage() {
               >
                 เปิด
               </span>
-
             </div>
-
           </Link>
-
         ))}
 
         {departments.length === 0 && (
-
           <div
             className="
               col-span-full
@@ -222,11 +221,8 @@ export default async function DepartmentsPage() {
           >
             ยังไม่มีข้อมูลหน่วยงาน
           </div>
-
         )}
-
       </div>
-
     </div>
   );
 }

@@ -88,7 +88,7 @@ export default function StockCardHome() {
           <h1
             className="
               break-words
-              text-3xl
+              text-2xl
               font-extrabold
               leading-tight
               !text-white

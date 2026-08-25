@@ -392,9 +392,9 @@ export default async function StockCardPage({ params }: Props) {
           min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -405,6 +405,10 @@ export default async function StockCardPage({ params }: Props) {
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -416,8 +420,9 @@ export default async function StockCardPage({ params }: Props) {
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             📒 บัญชีพัสดุ
@@ -427,11 +432,12 @@ export default async function StockCardPage({ params }: Props) {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-lg
+              sm:mt-3
+              sm:text-xl
             "
           >
             {material.name}
@@ -441,13 +447,14 @@ export default async function StockCardPage({ params }: Props) {
         <Link
           href={`/stock-card/${material.category}`}
           className="
+            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-3
-            py-2
+            px-4
+            py-2.5
             text-center
             text-sm
             font-extrabold
@@ -455,7 +462,9 @@ export default async function StockCardPage({ params }: Props) {
             shadow-lg
             transition
             hover:scale-105
-            sm:px-5
+            hover:shadow-xl
+            sm:w-auto
+            sm:px-6
             sm:py-3
             sm:text-lg
           "

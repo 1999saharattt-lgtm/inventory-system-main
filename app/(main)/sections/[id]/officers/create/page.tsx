@@ -60,8 +60,15 @@ export default async function CreateOfficerPage({
   }
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -69,28 +76,31 @@ export default async function CreateOfficerPage({
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
           flex-col
+          justify-center
           gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-4
-          py-5
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
           sm:flex-row
           sm:items-center
           sm:justify-between
+          sm:gap-4
           sm:px-8
           sm:py-6
         "
       >
         <div className="min-w-0 flex-1">
-
           <h1
             className="
               break-words
@@ -112,6 +122,7 @@ export default async function CreateOfficerPage({
               font-semibold
               leading-tight
               !text-slate-200
+              sm:mt-3
               sm:text-lg
             "
           >
@@ -119,7 +130,6 @@ export default async function CreateOfficerPage({
             {" / "}
             {section.name}
           </p>
-
         </div>
 
         <Link
@@ -131,7 +141,7 @@ export default async function CreateOfficerPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
+            px-4
             py-2.5
             text-center
             text-sm
@@ -141,7 +151,7 @@ export default async function CreateOfficerPage({
             transition
             hover:scale-105
             sm:w-auto
-            sm:px-6
+            sm:px-5
             sm:py-3
             sm:text-base
           "

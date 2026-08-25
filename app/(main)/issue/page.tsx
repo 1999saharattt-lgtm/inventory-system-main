@@ -190,6 +190,7 @@ export default async function IssuePage() {
           href="/issue/create"
           className="
             shrink-0
+            whitespace-nowrap
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
@@ -199,6 +200,7 @@ export default async function IssuePage() {
             text-center
             text-sm
             font-extrabold
+            leading-tight
             !text-white
             shadow-lg
             transition

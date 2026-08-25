@@ -72,8 +72,9 @@ export default async function EditVendorPage({
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             ✏️ แก้ไขข้อมูลผู้จำหน่าย
@@ -88,7 +89,7 @@ export default async function EditVendorPage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             แก้ไขรายละเอียดข้อมูลผู้จำหน่ายในระบบพัสดุ
@@ -113,10 +114,11 @@ export default async function EditVendorPage({
             shadow-lg
             transition
             hover:scale-105
+            hover:shadow-xl
             sm:w-auto
-            sm:px-5
+            sm:px-6
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ

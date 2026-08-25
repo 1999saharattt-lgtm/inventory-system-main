@@ -1,5 +1,7 @@
 import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
+
 import ReceiveForm from "./ReceiveForm";
 
 function getThaiYear() {
@@ -23,7 +25,7 @@ async function generateReceiveNo() {
   let running = 1;
 
   for (const receive of receives) {
-    const match = receive.documentNo.match(/ร\.(\d+)\/(\d+)/);
+    const match = receive.documentNo.match(/^ร\.(\d+)\/(\d+)$/);
 
     if (match) {
       const lastNumber = Number(match[1]);
@@ -97,7 +99,7 @@ export default async function CreateReceivePage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📥 บันทึกการรับเข้าพัสดุ
@@ -107,11 +109,11 @@ export default async function CreateReceivePage() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
@@ -135,8 +137,7 @@ export default async function CreateReceivePage() {
             shadow-lg
             transition
             hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
+            hover:shadow-xl
             sm:px-5
             sm:py-3
             sm:text-lg

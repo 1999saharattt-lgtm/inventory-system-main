@@ -50,8 +50,9 @@ export default function NewVendorPage() {
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             🏢 เพิ่มผู้จำหน่าย
@@ -66,7 +67,7 @@ export default function NewVendorPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ
@@ -91,10 +92,11 @@ export default function NewVendorPage() {
             shadow-lg
             transition
             hover:scale-105
+            hover:shadow-xl
             sm:w-auto
-            sm:px-5
+            sm:px-6
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ

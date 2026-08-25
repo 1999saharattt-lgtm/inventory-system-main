@@ -200,7 +200,7 @@ export default async function EditIssuePage({
           <h1
             className="
               break-words
-              text-3xl
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
@@ -244,10 +244,12 @@ export default async function EditIssuePage({
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
@@ -269,7 +271,6 @@ export default async function EditIssuePage({
           bg-white
           p-0
           shadow-lg
-          sm:p-0
         "
       >
         <div className="w-full min-w-0">

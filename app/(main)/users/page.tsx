@@ -35,34 +35,55 @@ export default async function UsersPage() {
   });
 
   return (
-    <div className="space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
-          items-center
-          justify-between
+          min-h-[110px]
+          w-full
+          min-w-0
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-8
-          py-6
-          min-h-[140px]
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:gap-4
+          sm:px-8
+          sm:py-6
         "
       >
-        <div>
+        <div className="min-w-0">
           <h1
             className="
-              text-5xl
+              break-words
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
+              sm:text-4xl
             "
           >
             👤 ผู้ใช้งานระบบ
@@ -71,9 +92,13 @@ export default async function UsersPage() {
           <p
             className="
               mt-2
-              text-xl
+              break-words
+              text-sm
               font-semibold
+              leading-tight
               !text-slate-200
+              sm:mt-3
+              sm:text-lg
             "
           >
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
@@ -83,35 +108,53 @@ export default async function UsersPage() {
         <Link
           href="/users/create"
           className="
+            w-full
+            shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-6
-            py-3
-            text-lg
+            px-4
+            py-2.5
+            text-center
+            text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
+            sm:w-auto
+            sm:px-5
+            sm:py-3
+            sm:text-base
           "
         >
           + เพิ่มผู้ใช้งาน
         </Link>
       </div>
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
 
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
           bg-white
           shadow-xl
         "
       >
-        <div className="overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
               min-w-full
@@ -131,6 +174,7 @@ export default async function UsersPage() {
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
                       border
                       border-slate-900
                       bg-gradient-to-r
@@ -141,7 +185,7 @@ export default async function UsersPage() {
                       text-center
                       text-lg
                       font-extrabold
-                      text-white
+                      !text-white
                     "
                   >
                     {title}
@@ -157,6 +201,7 @@ export default async function UsersPage() {
                     key={user.id}
                     className="
                       text-slate-900
+                      transition
                       hover:bg-blue-50
                     "
                   >
@@ -302,6 +347,7 @@ export default async function UsersPage() {
                           />
 
                           <button
+                            type="submit"
                             className="
                               rounded-lg
                               bg-red-600

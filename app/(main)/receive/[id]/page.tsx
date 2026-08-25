@@ -94,7 +94,7 @@ export default async function ReceiveDetailPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📄 รายละเอียดเอกสารรับเข้า
@@ -104,11 +104,11 @@ export default async function ReceiveDetailPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             รายละเอียดรายการรับเข้าพัสดุ
@@ -132,8 +132,6 @@ export default async function ReceiveDetailPage({
             shadow-lg
             transition
             hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
             sm:px-5
             sm:py-3
             sm:text-lg

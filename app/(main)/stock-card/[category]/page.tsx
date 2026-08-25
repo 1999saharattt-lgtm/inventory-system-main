@@ -94,9 +94,9 @@ export default async function CategoryPage({
           min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -107,6 +107,10 @@ export default async function CategoryPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -115,7 +119,7 @@ export default async function CategoryPage({
           <h1
             className="
               break-words
-              text-3xl
+              text-2xl
               font-extrabold
               leading-tight
               !text-white
@@ -144,13 +148,14 @@ export default async function CategoryPage({
         <Link
           href="/stock-card"
           className="
+            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-3
-            py-2
+            px-4
+            py-2.5
             text-center
             text-sm
             font-extrabold
@@ -158,9 +163,12 @@ export default async function CategoryPage({
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
@@ -254,10 +262,12 @@ export default async function CategoryPage({
               </tr>
             ) : (
               materials.map((material, index) => {
-                const latestReceive = material.receiveItems[0];
+                const latestReceive =
+                  material.receiveItems[0];
 
                 const latestVendor =
-                  latestReceive?.receive.vendor?.name ?? "-";
+                  latestReceive?.receive.vendor?.name ??
+                  "-";
 
                 const isLastRow =
                   index === materials.length - 1;
