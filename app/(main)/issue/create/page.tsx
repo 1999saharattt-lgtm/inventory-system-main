@@ -1,14 +1,10 @@
 import Link from "next/link";
-
 import { prisma } from "@/lib/prisma";
-
 import { cookies } from "next/headers";
-
 import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
-
 import IssueForm from "./IssueForm";
 
 function getThaiYear() {
@@ -26,7 +22,6 @@ async function generateIssueNo() {
         startsWith: "จ.",
       },
     },
-
     select: {
       documentNo: true,
     },
@@ -95,7 +90,6 @@ export default async function CreateIssuePage() {
           gt: 0,
         },
       },
-
       select: {
         id: true,
         materialId: true,
@@ -103,7 +97,6 @@ export default async function CreateIssuePage() {
         manufacture: true,
         expiry: true,
       },
-
       orderBy: [
         {
           expiry: "asc",
@@ -130,7 +123,6 @@ export default async function CreateIssuePage() {
           where: {
             id: session.id,
           },
-
           select: {
             departmentId: true,
           },
@@ -153,7 +145,6 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
-
       orderBy: {
         name: "asc",
       },
@@ -182,12 +173,10 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
-
       include: {
         section: true,
         department: true,
       },
-
       orderBy: [
         {
           firstName: "asc",
@@ -253,7 +242,7 @@ export default async function CreateIssuePage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📤 บันทึกการเบิกจ่ายพัสดุ
@@ -263,11 +252,11 @@ export default async function CreateIssuePage() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
@@ -297,12 +286,16 @@ export default async function CreateIssuePage() {
             hover:to-green-600
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ
         </Link>
       </div>
+
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
@@ -315,8 +308,10 @@ export default async function CreateIssuePage() {
           from-slate-950
           via-slate-900
           to-slate-800
-          p-6
+          p-4
           shadow-xl
+          sm:rounded-3xl
+          sm:p-8
         "
       >
         <IssueForm

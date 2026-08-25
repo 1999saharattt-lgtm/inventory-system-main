@@ -210,7 +210,7 @@ export default async function IssueDetailPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             📤 รายละเอียดใบเบิกพัสดุ
@@ -220,11 +220,12 @@ export default async function IssueDetailPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-lg
             "
           >
             รายละเอียดรายการเบิกจ่ายพัสดุ
@@ -240,8 +241,8 @@ export default async function IssueDetailPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-3
-            py-2
+            px-4
+            py-2.5
             text-center
             text-sm
             font-extrabold
@@ -254,7 +255,7 @@ export default async function IssueDetailPage({
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ

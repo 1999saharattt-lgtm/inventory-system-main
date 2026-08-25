@@ -165,7 +165,7 @@ export default async function IssuePage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📤 รายการเบิกจ่ายพัสดุ
@@ -175,11 +175,11 @@ export default async function IssuePage() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:text-base
             "
           >
             แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน
@@ -209,7 +209,7 @@ export default async function IssuePage() {
             hover:to-green-600
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           + เพิ่มรายการเบิก
