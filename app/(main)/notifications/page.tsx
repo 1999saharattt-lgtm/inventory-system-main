@@ -9,6 +9,23 @@ import {
   PackageMinus,
 } from "lucide-react";
 
+function formatThaiDateTime(date: Date | string | null | undefined) {
+  if (!date) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("th-TH", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(date));
+}
+
 export default async function NotificationsPage() {
   // =====================================================
   // Session
@@ -99,8 +116,8 @@ export default async function NotificationsPage() {
                 items-center
                 justify-center
                 rounded-2xl
-                bg-blue-500/15
-                !text-blue-400
+                bg-yellow-500/15
+                !text-yellow-400
                 sm:h-14
                 sm:w-14
               "
@@ -119,7 +136,7 @@ export default async function NotificationsPage() {
                   sm:text-3xl
                 "
               >
-                🔔 การแจ้งเตือน
+                การแจ้งเตือน
               </h1>
 
               <p
@@ -272,7 +289,7 @@ export default async function NotificationsPage() {
                   <div className="min-w-0 flex-1 !text-white">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-extrabold !text-white">
-                        มีใบเบิกใหม่รอดำเนินการ
+                        มีใบเบิกใหม่
                       </h2>
 
                       <span
@@ -328,7 +345,7 @@ export default async function NotificationsPage() {
 
                       <span className="!text-white">
                         ส่งใบเบิกเมื่อ{" "}
-                        {new Date(issue.createdAt).toLocaleString("th-TH")}
+                        {formatThaiDateTime(issue.createdAt)}
                       </span>
                     </div>
                   </div>
@@ -397,8 +414,8 @@ export default async function NotificationsPage() {
                 items-center
                 justify-center
                 rounded-2xl
-                bg-blue-500/15
-                !text-blue-400
+                bg-yellow-500/15
+                !text-yellow-400
                 sm:h-14
                 sm:w-14
               "
@@ -417,7 +434,7 @@ export default async function NotificationsPage() {
                   sm:text-3xl
                 "
               >
-                🔔 การแจ้งเตือน
+                การแจ้งเตือน
               </h1>
 
               <p
@@ -560,8 +577,8 @@ export default async function NotificationsPage() {
               items-center
               justify-center
               rounded-2xl
-              bg-emerald-500/15
-              !text-emerald-400
+              bg-yellow-500/15
+              !text-yellow-400
               sm:h-14
               sm:w-14
             "
@@ -580,7 +597,7 @@ export default async function NotificationsPage() {
                 sm:text-3xl
               "
             >
-              🔔 การแจ้งเตือน
+              การแจ้งเตือน
             </h1>
 
             <p
@@ -823,11 +840,7 @@ export default async function NotificationsPage() {
 
                       <span className="!text-white">
                         ดำเนินการเมื่อ{" "}
-                        {issue.approvedAt
-                          ? new Date(
-                              issue.approvedAt
-                            ).toLocaleString("th-TH")
-                          : "-"}
+                        {formatThaiDateTime(issue.approvedAt)}
                       </span>
                     </div>
                   </div>
