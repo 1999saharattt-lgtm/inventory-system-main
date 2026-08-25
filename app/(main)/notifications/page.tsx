@@ -64,49 +64,59 @@ export default async function NotificationsPage() {
         <div
           className="
             flex
+            min-h-[110px]
+            w-full
+            min-w-0
             flex-col
-            gap-5
-            rounded-3xl
+            items-center
+            justify-between
+            gap-4
+            rounded-2xl
             bg-gradient-to-r
             from-slate-950
             via-slate-800
             to-slate-700
-            px-7
-            py-6
+            px-3
+            py-4
             text-white
             shadow-xl
+            sm:min-h-[140px]
             sm:flex-row
-            sm:items-center
-            sm:justify-between
+            sm:gap-5
+            sm:px-8
+            sm:py-6
           "
         >
           {/* Header */}
 
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <div
               className="
                 flex
-                h-14
-                w-14
+                h-12
+                w-12
                 shrink-0
                 items-center
                 justify-center
                 rounded-2xl
                 bg-blue-500/15
                 !text-blue-400
+                sm:h-14
+                sm:w-14
               "
             >
               <Bell size={30} strokeWidth={2.2} />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h1
                 className="
-                  text-4xl
+                  break-words
+                  text-2xl
                   font-extrabold
                   leading-tight
                   !text-white
-                  sm:text-5xl
+                  sm:text-3xl
                 "
               >
                 🔔 การแจ้งเตือน
@@ -115,10 +125,12 @@ export default async function NotificationsPage() {
               <p
                 className="
                   mt-2
-                  text-lg
-                  font-bold
+                  break-words
+                  text-sm
+                  font-semibold
+                  leading-tight
                   !text-slate-200
-                  sm:text-xl
+                  sm:text-base
                 "
               >
                 ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
@@ -131,6 +143,8 @@ export default async function NotificationsPage() {
           <div
             className="
               flex
+              w-full
+              shrink-0
               items-center
               justify-between
               gap-5
@@ -140,6 +154,7 @@ export default async function NotificationsPage() {
               bg-slate-700/60
               px-5
               py-4
+              sm:w-auto
               sm:min-w-[230px]
             "
           >
@@ -353,42 +368,53 @@ export default async function NotificationsPage() {
 
         <div
           className="
-            rounded-3xl
+            flex
+            min-h-[110px]
+            w-full
+            min-w-0
+            items-center
+            rounded-2xl
             bg-gradient-to-r
             from-slate-950
             via-slate-800
             to-slate-700
-            px-7
-            py-6
+            px-3
+            py-4
             text-white
             shadow-xl
+            sm:min-h-[140px]
+            sm:px-8
+            sm:py-6
           "
         >
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <div
               className="
                 flex
-                h-14
-                w-14
+                h-12
+                w-12
                 shrink-0
                 items-center
                 justify-center
                 rounded-2xl
                 bg-blue-500/15
                 !text-blue-400
+                sm:h-14
+                sm:w-14
               "
             >
               <Bell size={30} strokeWidth={2.2} />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <h1
                 className="
-                  text-4xl
+                  break-words
+                  text-2xl
                   font-extrabold
                   leading-tight
                   !text-white
-                  sm:text-5xl
+                  sm:text-3xl
                 "
               >
                 🔔 การแจ้งเตือน
@@ -397,10 +423,12 @@ export default async function NotificationsPage() {
               <p
                 className="
                   mt-2
-                  text-lg
-                  font-bold
+                  break-words
+                  text-sm
+                  font-semibold
+                  leading-tight
                   !text-slate-200
-                  sm:text-xl
+                  sm:text-base
                 "
               >
                 ไม่พบข้อมูลกลุ่มงานของผู้ใช้งาน
@@ -497,49 +525,59 @@ export default async function NotificationsPage() {
       <div
         className="
           flex
+          min-h-[110px]
+          w-full
+          min-w-0
           flex-col
-          gap-5
-          rounded-3xl
+          items-center
+          justify-between
+          gap-4
+          rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          px-7
-          py-6
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
           sm:flex-row
-          sm:items-center
-          sm:justify-between
+          sm:gap-5
+          sm:px-8
+          sm:py-6
         "
       >
         {/* Header */}
 
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div
             className="
               flex
-              h-14
-              w-14
+              h-12
+              w-12
               shrink-0
               items-center
               justify-center
               rounded-2xl
               bg-emerald-500/15
               !text-emerald-400
+              sm:h-14
+              sm:w-14
             "
           >
             <Bell size={30} strokeWidth={2.2} />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <h1
               className="
-                text-4xl
+                break-words
+                text-2xl
                 font-extrabold
                 leading-tight
                 !text-white
-                sm:text-5xl
+                sm:text-3xl
               "
             >
               🔔 การแจ้งเตือน
@@ -548,10 +586,12 @@ export default async function NotificationsPage() {
             <p
               className="
                 mt-2
-                text-lg
-                font-bold
+                break-words
+                text-sm
+                font-semibold
+                leading-tight
                 !text-slate-200
-                sm:text-xl
+                sm:text-base
               "
             >
               ผลการดำเนินการใบเบิกของกลุ่มงาน
@@ -564,6 +604,8 @@ export default async function NotificationsPage() {
         <div
           className="
             flex
+            w-full
+            shrink-0
             items-center
             justify-between
             gap-5
@@ -573,6 +615,7 @@ export default async function NotificationsPage() {
             bg-slate-700/60
             px-5
             py-4
+            sm:w-auto
             sm:min-w-[230px]
           "
         >
