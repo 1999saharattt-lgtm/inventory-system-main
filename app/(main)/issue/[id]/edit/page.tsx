@@ -257,7 +257,7 @@ export default async function EditIssuePage({
       </div>
 
       {/* =====================================================
-          Form
+          Form / การ์ดข้อมูลเอกสาร
       ===================================================== */}
 
       <div
@@ -265,22 +265,23 @@ export default async function EditIssuePage({
           w-full
           min-w-0
           rounded-2xl
-          border
-          border-slate-700
           bg-gradient-to-br
           from-slate-950
           to-slate-800
           p-4
+          !text-white
           shadow-xl
           sm:p-6
         "
       >
-        <EditIssueForm
-          issue={issue}
-          departments={departments}
-          materials={materials}
-          receiveItems={receiveItems}
-        />
+        <div className="w-full min-w-0 !text-white">
+          <EditIssueForm
+            issue={issue}
+            departments={departments}
+            materials={materials}
+            receiveItems={receiveItems}
+          />
+        </div>
       </div>
     </div>
   );
