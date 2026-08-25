@@ -390,9 +390,9 @@ export default async function StockCardPage({ params }: Props) {
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -403,10 +403,6 @@ export default async function StockCardPage({ params }: Props) {
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -419,7 +415,7 @@ export default async function StockCardPage({ params }: Props) {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             📒 บัญชีพัสดุ
@@ -429,11 +425,12 @@ export default async function StockCardPage({ params }: Props) {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-base
             "
           >
             {material.name}
