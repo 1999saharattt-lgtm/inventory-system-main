@@ -419,7 +419,7 @@ export default async function StockCardPage({ params }: Props) {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             📒 บัญชีพัสดุ
@@ -433,8 +433,7 @@ export default async function StockCardPage({ params }: Props) {
               font-semibold
               leading-tight
               !text-slate-200
-              sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             {material.name}
@@ -450,8 +449,8 @@ export default async function StockCardPage({ params }: Props) {
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
