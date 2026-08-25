@@ -575,7 +575,7 @@ export default function IssuePdf({
 
                   <th
                     className="
-                      w-[17%]
+                      w-[15%]
                       border
                       border-black
                       bg-white
@@ -593,7 +593,7 @@ export default function IssuePdf({
 
                   <th
                     className="
-                      w-[37%]
+                      w-[42%]
                       border
                       border-black
                       bg-white
@@ -647,7 +647,7 @@ export default function IssuePdf({
 
                   <th
                     className="
-                      w-[13%]
+                      w-[10%]
                       border
                       border-black
                       bg-white
