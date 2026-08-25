@@ -82,7 +82,6 @@ export default async function CreateUserPage() {
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
               sm:text-5xl
             "

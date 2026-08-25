@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
@@ -116,9 +116,9 @@ export default async function EditUserPage({
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -129,10 +129,6 @@ export default async function EditUserPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -144,9 +140,8 @@ export default async function EditUserPage({
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             👤 แก้ไขผู้ใช้งานระบบ
@@ -161,40 +156,12 @@ export default async function EditUserPage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-base
             "
           >
             แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
           </p>
         </div>
-
-        <Link
-          href="/users"
-          className="
-            w-full
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:shadow-xl
-            sm:w-auto
-            sm:px-6
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
       </div>
 
       {/* =====================================================
