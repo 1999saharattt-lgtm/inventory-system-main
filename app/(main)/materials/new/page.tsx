@@ -32,7 +32,9 @@ export default async function NewMaterialPage() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -40,9 +42,9 @@ export default async function NewMaterialPage() {
           min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -53,6 +55,10 @@ export default async function NewMaterialPage() {
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -65,7 +71,7 @@ export default async function NewMaterialPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             ➕ เพิ่มรายการพัสดุ
@@ -79,7 +85,8 @@ export default async function NewMaterialPage() {
               font-semibold
               leading-tight
               !text-slate-200
-              sm:text-xl
+              sm:mt-3
+              sm:text-lg
             "
           >
             เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ
@@ -89,13 +96,14 @@ export default async function NewMaterialPage() {
         <Link
           href="/materials"
           className="
+            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-3
-            py-2
+            px-4
+            py-2.5
             text-center
             text-sm
             font-extrabold
@@ -103,16 +111,19 @@ export default async function NewMaterialPage() {
             shadow-lg
             transition
             hover:scale-105
+            sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ
         </Link>
       </div>
 
-      {/* Form */}
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
