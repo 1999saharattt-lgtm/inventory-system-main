@@ -1,0 +1,987 @@
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { updateAsset } from "../../action";
+
+export const dynamic = "force-dynamic";
+
+type Props = {
+  params: Promise<{
+    departmentId: string;
+    category: string;
+    assetId: string;
+  }>;
+};
+
+const categoryName: Record<string, string> = {
+  DESK: "โต๊ะ",
+  CHAIR: "เก้าอี้",
+  CABINET: "ตู้",
+  COMPUTER: "คอมพิวเตอร์",
+  MONITOR: "จอคอมพิวเตอร์",
+  PRINTER: "เครื่องพิมพ์",
+  TELEPHONE: "โทรศัพท์",
+  SHELF: "ชั้นวาง/ชั้นใส่แฟ้ม",
+  OTHER: "อื่น ๆ",
+};
+
+const statusName: Record<string, string> = {
+  IN_USE: "ยังใช้งาน",
+  WAITING_DISPOSAL: "รอจำหน่าย",
+  DISPOSED: "จำหน่ายแล้ว",
+};
+
+export default async function EditAssetPage({
+  params,
+}: Props) {
+  const {
+    departmentId,
+    category,
+    assetId,
+  } = await params;
+
+  const departmentIdNumber = Number(departmentId);
+  const assetIdNumber = Number(assetId);
+
+  if (
+    !Number.isInteger(departmentIdNumber) ||
+    !Number.isInteger(assetIdNumber)
+  ) {
+    notFound();
+  }
+
+  const asset = await prisma.asset.findFirst({
+    where: {
+      id: assetIdNumber,
+      departmentId: departmentIdNumber,
+      category: category as any,
+    },
+    include: {
+      department: true,
+      section: true,
+      officer: true,
+    },
+  });
+
+  if (!asset) {
+    notFound();
+  }
+
+  const assetIdForUpdate = asset.id;
+
+  const sections = await prisma.section.findMany({
+    where: {
+      departmentId: departmentIdNumber,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  const officers = await prisma.officer.findMany({
+    where: {
+      departmentId: departmentIdNumber,
+    },
+    orderBy: [
+      {
+        firstName: "asc",
+      },
+      {
+        lastName: "asc",
+      },
+    ],
+  });
+
+  async function submitUpdate(formData: FormData) {
+    "use server";
+
+    await updateAsset(assetIdForUpdate, formData);
+  }
+
+  return (
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          min-h-[110px]
+          w-full
+          min-w-0
+          flex-col
+          justify-between
+          gap-4
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-3
+          py-4
+          text-white
+          shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:px-8
+          sm:py-6
+        "
+      >
+        <div className="min-w-0">
+          <h1
+            className="
+              break-words
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-3xl
+            "
+          >
+            ✏️ แก้ไขข้อมูลครุภัณฑ์
+          </h1>
+
+          <p
+            className="
+              mt-2
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:mt-3
+              sm:text-base
+            "
+          >
+            {asset.name}
+          </p>
+        </div>
+
+        <Link
+          href={`/assets/${departmentId}/${category}/${asset.id}`}
+          className="
+            w-full
+            rounded-xl
+            bg-white/10
+            px-5
+            py-2.5
+            text-center
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-lg
+            ring-1
+            ring-white/20
+            transition
+            hover:bg-white/20
+            sm:w-auto
+          "
+        >
+          ← ยกเลิก
+        </Link>
+      </div>
+
+      {/* =====================================================
+          Form
+      ===================================================== */}
+
+      <form action={submitUpdate}>
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-300
+            bg-white
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+              🏷️ ข้อมูลครุภัณฑ์
+            </h2>
+          </div>
+
+          <div
+            className="
+              grid
+              gap-5
+              p-4
+              sm:grid-cols-2
+              sm:p-6
+              lg:grid-cols-3
+            "
+          >
+            {/* รายการครุภัณฑ์ */}
+
+            <div className="min-w-0 lg:col-span-2">
+              <label
+                htmlFor="name"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                รายการครุภัณฑ์ *
+              </label>
+
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                defaultValue={asset.name}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* ประเภท */}
+
+            <div>
+              <label
+                htmlFor="category"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                ประเภท *
+              </label>
+
+              <select
+                id="category"
+                name="category"
+                required
+                defaultValue={asset.category}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              >
+                {Object.entries(categoryName).map(
+                  ([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+
+            {/* ยี่ห้อ */}
+
+            <div>
+              <label
+                htmlFor="brand"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                ยี่ห้อ
+              </label>
+
+              <input
+                id="brand"
+                name="brand"
+                type="text"
+                defaultValue={asset.brand ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* รุ่น */}
+
+            <div>
+              <label
+                htmlFor="model"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                รุ่น
+              </label>
+
+              <input
+                id="model"
+                name="model"
+                type="text"
+                defaultValue={asset.model ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* Serial Number */}
+
+            <div>
+              <label
+                htmlFor="serialNumber"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                Serial Number
+              </label>
+
+              <input
+                id="serialNumber"
+                name="serialNumber"
+                type="text"
+                defaultValue={asset.serialNumber ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* เลขครุภัณฑ์กรม */}
+
+            <div>
+              <label
+                htmlFor="governmentAssetNo"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                เลขครุภัณฑ์กรม
+              </label>
+
+              <input
+                id="governmentAssetNo"
+                name="governmentAssetNo"
+                type="text"
+                defaultValue={asset.governmentAssetNo ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+            <div>
+              <label
+                htmlFor="officeAssetNo"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                เลขครุภัณฑ์ประจำสำนัก
+              </label>
+
+              <input
+                id="officeAssetNo"
+                name="officeAssetNo"
+                type="text"
+                defaultValue={asset.officeAssetNo ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* วันที่จัดซื้อ */}
+
+            <div>
+              <label
+                htmlFor="purchaseDate"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                วันที่จัดซื้อ
+              </label>
+
+              <input
+                id="purchaseDate"
+                name="purchaseDate"
+                type="date"
+                defaultValue={
+                  asset.purchaseDate
+                    ? new Date(asset.purchaseDate)
+                        .toISOString()
+                        .slice(0, 10)
+                    : ""
+                }
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* ราคา */}
+
+            <div>
+              <label
+                htmlFor="price"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                ราคาจัดซื้อ
+              </label>
+
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={
+                  asset.price !== null &&
+                  asset.price !== undefined
+                    ? Number(asset.price)
+                    : ""
+                }
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            หน่วยงาน / กลุ่มงาน / ผู้ครอบครอง
+        ===================================================== */}
+
+        <div
+          className="
+            mt-4
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-300
+            bg-white
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+              👤 หน่วยงานและผู้ครอบครอง
+            </h2>
+          </div>
+
+          <div
+            className="
+              grid
+              gap-5
+              p-4
+              sm:grid-cols-2
+              sm:p-6
+            "
+          >
+            {/* หน่วยงาน */}
+
+            <div>
+              <label className="text-sm font-extrabold text-slate-700">
+                หน่วยงาน
+              </label>
+
+              <div
+                className="
+                  mt-2
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-slate-100
+                  px-4
+                  py-3
+                  font-extrabold
+                  text-slate-700
+                "
+              >
+                {asset.department.name}
+              </div>
+
+              <input
+                type="hidden"
+                name="departmentId"
+                value={departmentIdNumber}
+              />
+            </div>
+
+            {/* กลุ่มงาน */}
+
+            <div>
+              <label
+                htmlFor="sectionId"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                กลุ่มงาน
+              </label>
+
+              <select
+                id="sectionId"
+                name="sectionId"
+                defaultValue={asset.sectionId ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              >
+                <option value="">-- ไม่ระบุ --</option>
+
+                {sections.map((section) => (
+                  <option
+                    key={section.id}
+                    value={section.id}
+                  >
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* ผู้ครอบครอง */}
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="officerId"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                ผู้ครอบครอง
+              </label>
+
+              <select
+                id="officerId"
+                name="officerId"
+                defaultValue={asset.officerId ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              >
+                <option value="">
+                  -- ยังไม่ได้ระบุผู้ครอบครอง --
+                </option>
+
+                {officers.map((officer) => (
+                  <option
+                    key={officer.id}
+                    value={officer.id}
+                  >
+                    {officer.firstName} {officer.lastName}
+                    {" — "}
+                    {officer.position}
+                  </option>
+                ))}
+              </select>
+
+              <p className="mt-2 text-sm font-semibold text-slate-500">
+                รายชื่อผู้ครอบครองจะแสดงเฉพาะเจ้าหน้าที่ในหน่วยงานนี้
+              </p>
+            </div>
+
+            {/* สถานที่ตั้ง */}
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="location"
+                className="text-sm font-extrabold text-slate-700"
+              >
+                สถานที่ตั้ง
+              </label>
+
+              <input
+                id="location"
+                name="location"
+                type="text"
+                defaultValue={asset.location ?? ""}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            สถานะ
+        ===================================================== */}
+
+        <div
+          className="
+            mt-4
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-300
+            bg-white
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+              📌 สถานะครุภัณฑ์
+            </h2>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <label
+              htmlFor="status"
+              className="text-sm font-extrabold text-slate-700"
+            >
+              สถานะ
+            </label>
+
+            <select
+              id="status"
+              name="status"
+              defaultValue={asset.status}
+              className="
+                mt-2
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-emerald-600
+                focus:ring-2
+                focus:ring-emerald-200
+                sm:max-w-md
+              "
+            >
+              <option value="IN_USE">
+                {statusName.IN_USE}
+              </option>
+
+              <option value="WAITING_DISPOSAL">
+                {statusName.WAITING_DISPOSAL}
+              </option>
+
+              <option value="DISPOSED">
+                {statusName.DISPOSED}
+              </option>
+            </select>
+
+            <p className="mt-2 text-sm font-semibold text-slate-500">
+              สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
+            </p>
+          </div>
+        </div>
+
+        {/* =====================================================
+            หมายเหตุ
+        ===================================================== */}
+
+        <div
+          className="
+            mt-4
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-300
+            bg-white
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+              📝 หมายเหตุ
+            </h2>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <textarea
+              id="remark"
+              name="remark"
+              rows={4}
+              defaultValue={asset.remark ?? ""}
+              className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                font-semibold
+                text-slate-900
+                outline-none
+                transition
+                focus:border-emerald-600
+                focus:ring-2
+                focus:ring-emerald-200
+              "
+              placeholder="ระบุรายละเอียดเพิ่มเติม"
+            />
+          </div>
+        </div>
+
+        {/* =====================================================
+            ปุ่ม
+        ===================================================== */}
+
+        <div
+          className="
+            mt-4
+            flex
+            w-full
+            flex-col
+            gap-3
+            sm:flex-row
+            sm:justify-end
+          "
+        >
+          <Link
+            href={`/assets/${departmentId}/${category}/${asset.id}`}
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-6
+              py-3
+              text-center
+              font-extrabold
+              text-slate-700
+              shadow-lg
+              transition
+              hover:bg-slate-100
+              sm:w-auto
+            "
+          >
+            ยกเลิก
+          </Link>
+
+          <button
+            type="submit"
+            className="
+              w-full
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-6
+              py-3
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              hover:from-emerald-700
+              hover:to-green-600
+              active:scale-[0.98]
+              sm:w-auto
+            "
+          >
+            💾 บันทึกการแก้ไข
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

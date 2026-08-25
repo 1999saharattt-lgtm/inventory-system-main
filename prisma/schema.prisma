@@ -38,6 +38,52 @@ enum IssueStatus {
   REJECTED
 }
 
+// =====================================================
+// ระบบทะเบียนคุมครุภัณฑ์
+// =====================================================
+
+// ประเภทครุภัณฑ์
+// สามารถเพิ่มประเภทใหม่ภายหลังได้โดยไม่กระทบข้อมูลพัสดุ
+enum AssetCategory {
+  DESK
+  CHAIR
+  CABINET
+  COMPUTER
+  MONITOR
+  PRINTER
+  TELEPHONE
+  SHELF
+  OTHER
+}
+
+// สถานะครุภัณฑ์ที่ Admin เป็นผู้ควบคุม
+enum AssetStatus {
+  IN_USE
+  WAITING_DISPOSAL
+  DISPOSED
+}
+
+// สถานะจากการตรวจสอบของกลุ่มงาน
+enum AssetInspectionStatus {
+  IN_USE
+  RETURNED
+  DAMAGED
+  MISSING
+  NOT_FOUND
+}
+
+// รอบการตรวจสอบ
+enum InspectionQuarter {
+  Q1
+  Q2
+  Q3
+  Q4
+}
+
+// ======================
+// User
+// ======================
+
 model User {
   id       Int     @id @default(autoincrement())
   username String  @unique
@@ -54,6 +100,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ======================
+// Material
+// ======================
 
 model Material {
   id           Int      @id @default(autoincrement())
@@ -77,6 +127,10 @@ model Material {
   updatedAt DateTime @updatedAt
 }
 
+// ======================
+// Vendor
+// ======================
+
 model Vendor {
   id      Int     @id @default(autoincrement())
   name    String
@@ -88,6 +142,10 @@ model Vendor {
   receives  Receive[]
 }
 
+// ======================
+// Department
+// ======================
+
 model Department {
   id   Int    @id @default(autoincrement())
   name String @unique
@@ -96,7 +154,17 @@ model Department {
   sections Section[]
   officers Officer[]
   users    User[]
+
+  // ======================
+  // ทะเบียนคุมครุภัณฑ์
+  // ======================
+
+  assets Asset[]
 }
+
+// ======================
+// Section
+// ======================
 
 model Section {
   id   Int    @id @default(autoincrement())
@@ -106,7 +174,17 @@ model Section {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   officers Officer[]
+
+  // ======================
+  // ทะเบียนคุมครุภัณฑ์
+  // ======================
+
+  assets Asset[]
 }
+
+// ======================
+// Officer
+// ======================
 
 model Officer {
   id Int @id @default(autoincrement())
@@ -123,6 +201,12 @@ model Officer {
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   issues Issue[]
+
+  // ======================
+  // ครุภัณฑ์ที่อยู่ในความครอบครอง
+  // ======================
+
+  assets Asset[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -285,4 +369,144 @@ model MaterialMaster {
   updatedAt DateTime @updatedAt
 
   @@unique([category, name])
+}
+
+// =====================================================
+// ทะเบียนคุมครุภัณฑ์
+// =====================================================
+
+model Asset {
+  id Int @id @default(autoincrement())
+
+  // ======================
+  // ข้อมูลครุภัณฑ์
+  // ======================
+
+  name String
+
+  category AssetCategory
+
+  brand String?
+
+  model String?
+
+  serialNumber String?
+
+  // ======================
+  // เลขทะเบียน
+  // ======================
+
+  // เลขครุภัณฑ์กรม
+  governmentAssetNo String? @unique
+
+  // เลขครุภัณฑ์ประจำสำนัก
+  officeAssetNo String? @unique
+
+  // ======================
+  // หน่วยงานที่รับผิดชอบ
+  // ======================
+
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  // กลุ่มงานย่อย
+  sectionId Int?
+  section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  // ======================
+  // ผู้ครอบครอง
+  // ======================
+
+  // จะเลือกเฉพาะ Officer ที่อยู่ใน Department เดียวกับครุภัณฑ์
+  officerId Int?
+  officer   Officer? @relation(fields: [officerId], references: [id], onDelete: SetNull)
+
+  // ======================
+  // สถานะครุภัณฑ์
+  // ======================
+
+  // Admin เป็นผู้ควบคุมสถานะหลัก
+  status AssetStatus @default(IN_USE)
+
+  // ======================
+  // ข้อมูลเพิ่มเติม
+  // ======================
+
+  purchaseDate DateTime?
+
+  price Float?
+
+  location String?
+
+  remark String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  // ======================
+  // ประวัติการตรวจสอบ
+  // ======================
+
+  inspections AssetInspection[]
+
+  @@index([departmentId])
+  @@index([sectionId])
+  @@index([officerId])
+  @@index([category])
+  @@index([status])
+}
+
+// =====================================================
+// ประวัติการตรวจสอบครุภัณฑ์
+// =====================================================
+
+model AssetInspection {
+  id Int @id @default(autoincrement())
+
+  // ======================
+  // ครุภัณฑ์ที่ตรวจ
+  // ======================
+
+  assetId Int
+  asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  // ======================
+  // รอบการตรวจ
+  // ======================
+
+  year Int
+
+  quarter InspectionQuarter
+
+  inspectionDate DateTime @default(now())
+
+  // ======================
+  // ผลการตรวจจากกลุ่มงาน
+  // ======================
+
+  status AssetInspectionStatus
+
+  // ======================
+  // รายละเอียดการตรวจ
+  // ======================
+
+  condition String?
+
+  location String?
+
+  remark String?
+
+  // ผู้ตรวจ
+  inspectorName String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([assetId, year, quarter])
+  @@index([assetId])
+  @@index([year])
+  @@index([quarter])
+  @@index([status])
 }

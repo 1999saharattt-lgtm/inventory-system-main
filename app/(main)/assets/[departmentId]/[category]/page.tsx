@@ -1,0 +1,506 @@
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+
+type Props = {
+  params: Promise<{
+    departmentId: string;
+    category: string;
+  }>;
+};
+
+const categoryName: Record<string, string> = {
+  DESK: "โต๊ะ",
+  CHAIR: "เก้าอี้",
+  CABINET: "ตู้",
+  COMPUTER: "คอมพิวเตอร์",
+  MONITOR: "จอคอมพิวเตอร์",
+  PRINTER: "เครื่องพิมพ์",
+  TELEPHONE: "โทรศัพท์",
+  SHELF: "ชั้น/ชั้นวาง",
+  OTHER: "อื่น ๆ",
+};
+
+const categoryIcon: Record<string, string> = {
+  DESK: "🪑",
+  CHAIR: "💺",
+  CABINET: "🗄️",
+  COMPUTER: "💻",
+  MONITOR: "🖥️",
+  PRINTER: "🖨️",
+  TELEPHONE: "☎️",
+  SHELF: "🗂️",
+  OTHER: "📦",
+};
+
+export default async function AssetCategoryPage({
+  params,
+}: Props) {
+  const { departmentId, category } = await params;
+
+  const departmentIdNumber = Number(departmentId);
+
+  if (!Number.isInteger(departmentIdNumber)) {
+    notFound();
+  }
+
+  const validCategories = Object.keys(categoryName);
+
+  if (!validCategories.includes(category)) {
+    notFound();
+  }
+
+  // =====================================================
+  // ดึงข้อมูลหน่วยงาน
+  // =====================================================
+
+  const department = await prisma.department.findUnique({
+    where: {
+      id: departmentIdNumber,
+    },
+  });
+
+  if (!department) {
+    notFound();
+  }
+
+  // =====================================================
+  // ดึงครุภัณฑ์ของหน่วยงาน + ประเภทที่เลือก
+  // =====================================================
+
+  const assets = await prisma.asset.findMany({
+    where: {
+      departmentId: departmentIdNumber,
+      category: category as
+        | "DESK"
+        | "CHAIR"
+        | "CABINET"
+        | "COMPUTER"
+        | "MONITOR"
+        | "PRINTER"
+        | "TELEPHONE"
+        | "SHELF"
+        | "OTHER",
+    },
+    include: {
+      section: true,
+      officer: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  return (
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          min-h-[110px]
+          w-full
+          min-w-0
+          flex-col
+          justify-center
+          gap-3
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-3
+          py-4
+          text-white
+          shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:px-8
+          sm:py-6
+        "
+      >
+        <div className="min-w-0">
+          <h1
+            className="
+              break-words
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-3xl
+            "
+          >
+            {categoryIcon[category]} {categoryName[category]}
+          </h1>
+
+          <p
+            className="
+              mt-2
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:mt-3
+              sm:text-base
+            "
+          >
+            {department.name} — ทะเบียนคุมครุภัณฑ์
+          </p>
+        </div>
+
+        <Link
+          href={`/assets/${department.id}`}
+          className="
+            w-full
+            shrink-0
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-700
+            to-slate-900
+            px-5
+            py-2.5
+            text-center
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-[1.02]
+            sm:w-auto
+            sm:px-6
+            sm:py-3
+            sm:text-base
+          "
+        >
+          ← กลับประเภทครุภัณฑ์
+        </Link>
+      </div>
+
+      {/* =====================================================
+          Toolbar
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          flex-col
+          gap-3
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-lg
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+          sm:p-5
+        "
+      >
+        <div>
+          <p className="text-lg font-extrabold text-slate-900">
+            รายการ{categoryName[category]}
+          </p>
+
+          <p className="mt-1 text-sm font-semibold text-slate-600">
+            พบทั้งหมด {assets.length} รายการ
+          </p>
+        </div>
+
+        <Link
+          href={`/assets/${department.id}/${category}/new`}
+          className="
+            w-full
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-3
+            text-center
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:w-auto
+          "
+        >
+          + เพิ่มครุภัณฑ์
+        </Link>
+      </div>
+
+      {/* =====================================================
+          ตาราง
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          overflow-hidden
+          rounded-2xl
+          border
+          border-black
+          bg-white
+          shadow-xl
+        "
+      >
+        <div className="w-full overflow-x-auto">
+          <table
+            className="
+              w-full
+              min-w-[1100px]
+              border-collapse
+              text-sm
+            "
+          >
+            <thead>
+              <tr
+                className="
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  !text-white
+                "
+              >
+                <th className="w-[6%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  ลำดับ
+                </th>
+
+                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  รายการ
+                </th>
+
+                <th className="w-[14%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  เลขครุภัณฑ์กรม
+                </th>
+
+                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  เลขครุภัณฑ์ประจำสำนัก
+                </th>
+
+                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  ผู้ครอบครอง
+                </th>
+
+                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  กลุ่มงาน
+                </th>
+
+                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  สถานะ
+                </th>
+
+                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {assets.map((asset, index) => (
+                <tr
+                  key={asset.id}
+                  className="
+                    text-slate-900
+                    transition
+                    hover:bg-blue-50
+                  "
+                >
+                  <td
+                    className="
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-bold
+                    "
+                  >
+                    {index + 1}
+                  </td>
+
+                  <td
+                    className="
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      font-semibold
+                    "
+                  >
+                    <div className="font-extrabold">
+                      {asset.name}
+                    </div>
+
+                    {(asset.brand || asset.model) && (
+                      <div className="mt-1 text-xs font-semibold text-slate-500">
+                        {[asset.brand, asset.model]
+                          .filter(Boolean)
+                          .join(" / ")}
+                      </div>
+                    )}
+                  </td>
+
+                  <td
+                    className="
+                      break-all
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-semibold
+                    "
+                  >
+                    {asset.governmentAssetNo ?? "-"}
+                  </td>
+
+                  <td
+                    className="
+                      break-all
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-semibold
+                    "
+                  >
+                    {asset.officeAssetNo ?? "-"}
+                  </td>
+
+                  <td
+                    className="
+                      break-words
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      font-semibold
+                    "
+                  >
+                    {asset.officer
+                      ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                      : "-"}
+                  </td>
+
+                  <td
+                    className="
+                      break-words
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-semibold
+                    "
+                  >
+                    {asset.section?.name ?? "-"}
+                  </td>
+
+                  <td
+                    className="
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                    "
+                  >
+                    {asset.status === "IN_USE" && (
+                      <span className="text-emerald-700">
+                        ยังใช้งาน
+                      </span>
+                    )}
+
+                    {asset.status === "WAITING_DISPOSAL" && (
+                      <span className="text-amber-700">
+                        รอจำหน่าย
+                      </span>
+                    )}
+
+                    {asset.status === "DISPOSED" && (
+                      <span className="text-red-700">
+                        จำหน่ายแล้ว
+                      </span>
+                    )}
+                  </td>
+
+                  <td
+                    className="
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                    "
+                  >
+                    <Link
+                      href={`/assets/${department.id}/${category}/${asset.id}`}
+                      className="
+                        inline-block
+                        rounded-lg
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-950
+                        px-4
+                        py-2
+                        font-extrabold
+                        text-white
+                        shadow-md
+                        transition
+                        hover:scale-105
+                      "
+                    >
+                      ดูรายละเอียด
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+
+              {assets.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-12
+                      text-center
+                      text-lg
+                      font-semibold
+                      text-slate-500
+                    "
+                  >
+                    ยังไม่มีครุภัณฑ์ประเภทนี้ในหน่วยงาน
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
