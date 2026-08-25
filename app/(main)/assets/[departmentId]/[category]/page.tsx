@@ -46,7 +46,6 @@ export default async function AssetCategoryPage({
     notFound();
   }
 
-  // รองรับ category ใน URL ทั้งตัวพิมพ์เล็กและตัวพิมพ์ใหญ่
   const normalizedCategory = category.toUpperCase();
 
   const validCategories = Object.keys(categoryName);
@@ -54,10 +53,6 @@ export default async function AssetCategoryPage({
   if (!validCategories.includes(normalizedCategory)) {
     notFound();
   }
-
-  // =====================================================
-  // ดึงข้อมูลหน่วยงาน
-  // =====================================================
 
   const department = await prisma.department.findUnique({
     where: {
@@ -68,10 +63,6 @@ export default async function AssetCategoryPage({
   if (!department) {
     notFound();
   }
-
-  // =====================================================
-  // ดึงครุภัณฑ์ของหน่วยงาน + ประเภทที่เลือก
-  // =====================================================
 
   const assets = await prisma.asset.findMany({
     where: {
@@ -97,18 +88,8 @@ export default async function AssetCategoryPage({
   });
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+      {/* Header */}
 
       <div
         className="
@@ -118,7 +99,7 @@ export default async function AssetCategoryPage({
           min-w-0
           flex-col
           justify-center
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -159,7 +140,6 @@ export default async function AssetCategoryPage({
               font-semibold
               leading-tight
               !text-slate-200
-              sm:mt-3
               sm:text-base
             "
           >
@@ -176,8 +156,8 @@ export default async function AssetCategoryPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-5
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
@@ -185,21 +165,17 @@ export default async function AssetCategoryPage({
             shadow-lg
             transition
             hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
             sm:w-auto
-            sm:px-6
+            sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
         </Link>
       </div>
 
-      {/* =====================================================
-          Search
-      ===================================================== */}
+      {/* Search */}
 
       <div
         className="
@@ -207,10 +183,12 @@ export default async function AssetCategoryPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           p-4
-          shadow-lg
+          shadow-xl
           sm:p-5
         "
       >
@@ -233,16 +211,9 @@ export default async function AssetCategoryPage({
               rounded-xl
               border
               border-slate-300
-              bg-white
               px-4
               py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-slate-700
-              focus:ring-2
-              focus:ring-slate-300
+              text-black
             "
           />
 
@@ -261,8 +232,6 @@ export default async function AssetCategoryPage({
               shadow-lg
               transition
               hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
               sm:w-auto
             "
           >
@@ -271,9 +240,7 @@ export default async function AssetCategoryPage({
         </form>
       </div>
 
-      {/* =====================================================
-          Toolbar Card
-      ===================================================== */}
+      {/* Toolbar Card */}
 
       <div
         className="
@@ -282,10 +249,12 @@ export default async function AssetCategoryPage({
           gap-3
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           p-4
-          shadow-lg
+          shadow-xl
           sm:flex-row
           sm:items-center
           sm:justify-between
@@ -293,11 +262,11 @@ export default async function AssetCategoryPage({
         "
       >
         <div>
-          <p className="text-lg font-extrabold text-slate-900">
+          <p className="text-lg font-extrabold !text-white">
             รายการ{categoryName[normalizedCategory]}
           </p>
 
-          <p className="mt-1 text-sm font-semibold text-slate-600">
+          <p className="mt-1 text-sm font-semibold !text-slate-200">
             พบทั้งหมด {assets.length} รายการ
           </p>
         </div>
@@ -318,8 +287,6 @@ export default async function AssetCategoryPage({
             shadow-lg
             transition
             hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
             sm:w-auto
           "
         >
@@ -327,23 +294,17 @@ export default async function AssetCategoryPage({
         </Link>
       </div>
 
-      {/* =====================================================
-          ตาราง
-      ===================================================== */}
+      {/* ตาราง */}
 
       <div
         className="
-          w-full
-          min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
       >
-        <div className="w-full overflow-x-auto">
+        <div className="overflow-x-auto">
           <table
             className="
               w-full
@@ -353,49 +314,170 @@ export default async function AssetCategoryPage({
             "
           >
             <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  !text-white
-                "
-              >
-                <th className="w-[6%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+              <tr>
+                <th
+                  className="
+                    w-[6%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ลำดับ
                 </th>
 
-                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[16%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   รายการ
                 </th>
 
-                <th className="w-[14%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[14%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   เลขครุภัณฑ์กรม
                 </th>
 
-                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[16%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   เลขครุภัณฑ์ประจำสำนัก
                 </th>
 
-                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[16%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ผู้ครอบครอง
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[12%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   กลุ่มงาน
                 </th>
 
-                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[10%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   สถานะ
                 </th>
 
-                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    w-[10%]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   จัดการ
                 </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="text-slate-900">
               {assets.map((asset, index) => (
                 <tr
                   key={asset.id}
@@ -409,10 +491,11 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
-                      font-bold
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     {index + 1}
@@ -422,9 +505,10 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
-                      px-3
-                      py-4
-                      font-semibold
+                      px-4
+                      py-3
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     <div className="font-extrabold">
@@ -445,10 +529,11 @@ export default async function AssetCategoryPage({
                       break-all
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
-                      font-semibold
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     {asset.governmentAssetNo ?? "-"}
@@ -459,10 +544,11 @@ export default async function AssetCategoryPage({
                       break-all
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
-                      font-semibold
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     {asset.officeAssetNo ?? "-"}
@@ -473,9 +559,10 @@ export default async function AssetCategoryPage({
                       break-words
                       border
                       border-black
-                      px-3
-                      py-4
-                      font-semibold
+                      px-4
+                      py-3
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     {asset.officer
@@ -488,10 +575,11 @@ export default async function AssetCategoryPage({
                       break-words
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
-                      font-semibold
+                      font-extrabold
+                      text-slate-900
                     "
                   >
                     {asset.section?.name ?? "-"}
@@ -501,8 +589,8 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
                       font-extrabold
                     "
@@ -530,15 +618,15 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
-                      px-3
-                      py-4
+                      px-4
+                      py-3
                       text-center
                     "
                   >
                     <Link
                       href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
                       className="
-                        inline-block
+                        whitespace-nowrap
                         rounded-lg
                         bg-gradient-to-r
                         from-emerald-600
@@ -547,11 +635,9 @@ export default async function AssetCategoryPage({
                         py-2
                         font-extrabold
                         !text-white
-                        shadow-md
+                        shadow
                         transition
                         hover:scale-105
-                        hover:from-emerald-700
-                        hover:to-green-600
                       "
                     >
                       ดูรายละเอียด
@@ -567,11 +653,10 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
-                      px-4
                       py-12
                       text-center
                       text-lg
-                      font-semibold
+                      font-bold
                       text-slate-500
                     "
                   >
