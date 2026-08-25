@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import AssetResponsibleFields from "./AssetResponsibleFields";
 
 export const dynamic = "force-dynamic";
 
@@ -75,16 +75,18 @@ export default async function NewAssetPage({
         orderBy: {
           id: "asc",
         },
-      },
-      officers: {
-        orderBy: [
-          {
-            firstName: "asc",
+        include: {
+          officers: {
+            orderBy: [
+              {
+                firstName: "asc",
+              },
+              {
+                lastName: "asc",
+              },
+            ],
           },
-          {
-            lastName: "asc",
-          },
-        ],
+        },
       },
     },
   });
@@ -99,6 +101,7 @@ export default async function NewAssetPage({
     const name = String(formData.get("name") ?? "").trim();
     const brand = String(formData.get("brand") ?? "").trim();
     const model = String(formData.get("model") ?? "").trim();
+
     const serialNumber = String(
       formData.get("serialNumber") ?? ""
     ).trim();
@@ -181,12 +184,19 @@ export default async function NewAssetPage({
         where: {
           id: officerId,
           departmentId: departmentIdNumber,
-        },
+          ...(sectionId !== null
+            ? {
+                sectionId,
+              }
+            : {}),
+      },
       });
 
       if (!officer) {
         throw new Error(
-          "ผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+          sectionId !== null
+            ? "ผู้ครอบครองไม่อยู่ในกลุ่มงานที่เลือก"
+            : "ผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
         );
       }
     }
@@ -430,7 +440,8 @@ export default async function NewAssetPage({
                   htmlFor="name"
                   className="block text-sm font-extrabold !text-slate-200"
                 >
-                  ชื่อครุภัณฑ์ <span className="text-red-400">*</span>
+                  ชื่อครุภัณฑ์{" "}
+                  <span className="text-red-400">*</span>
                 </label>
 
                 <input
@@ -676,91 +687,9 @@ export default async function NewAssetPage({
                 sm:grid-cols-2
               "
             >
-              <div>
-                <label
-                  htmlFor="sectionId"
-                  className="block text-sm font-extrabold !text-slate-200"
-                >
-                  กลุ่มงาน
-                </label>
-
-                <select
-                  id="sectionId"
-                  name="sectionId"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                >
-                  <option value="">-- ไม่ระบุ --</option>
-
-                  {department.sections.map((section) => (
-                    <option
-                      key={section.id}
-                      value={section.id}
-                    >
-                      {section.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="officerId"
-                  className="block text-sm font-extrabold !text-slate-200"
-                >
-                  ผู้ครอบครอง
-                </label>
-
-                <select
-                  id="officerId"
-                  name="officerId"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                >
-                  <option value="">-- ไม่ระบุ --</option>
-
-                  {department.officers.map((officer) => (
-                    <option
-                      key={officer.id}
-                      value={officer.id}
-                    >
-                      {officer.firstName} {officer.lastName}
-                    </option>
-                  ))}
-                </select>
-
-                <p className="mt-2 text-xs font-semibold !text-slate-400">
-                  แสดงเฉพาะบุคลากรของหน่วยงานนี้
-                </p>
-              </div>
+              <AssetResponsibleFields
+                sections={department.sections}
+              />
 
               <div>
                 <label
