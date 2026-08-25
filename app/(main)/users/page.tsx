@@ -100,6 +100,32 @@ export default async function UsersPage() {
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
           </p>
         </div>
+
+        <Link
+          href="/users/create"
+          className="
+            shrink-0
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-4
+            py-2.5
+            text-center
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:shadow-xl
+            sm:px-6
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          + เพิ่มผู้ใช้งาน
+        </Link>
       </div>
 
       {/* =====================================================
