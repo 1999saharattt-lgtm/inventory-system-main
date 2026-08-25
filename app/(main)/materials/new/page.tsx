@@ -89,6 +89,7 @@ export default async function NewMaterialPage() {
               font-semibold
               leading-tight
               !text-slate-200
+              sm:mt-3
               sm:text-base
             "
           >
@@ -104,8 +105,8 @@ export default async function NewMaterialPage() {
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-3
-            py-2
+            px-4
+            py-2.5
             text-center
             text-sm
             font-extrabold
@@ -113,9 +114,11 @@ export default async function NewMaterialPage() {
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ
@@ -139,7 +142,6 @@ export default async function NewMaterialPage() {
           to-slate-800
           p-4
           shadow-xl
-          sm:rounded-3xl
           sm:p-8
         "
       >
