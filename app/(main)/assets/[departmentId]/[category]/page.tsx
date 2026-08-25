@@ -46,9 +46,12 @@ export default async function AssetCategoryPage({
     notFound();
   }
 
+  // รองรับ category ใน URL ทั้งตัวพิมพ์เล็กและตัวพิมพ์ใหญ่
+  const normalizedCategory = category.toUpperCase();
+
   const validCategories = Object.keys(categoryName);
 
-  if (!validCategories.includes(category)) {
+  if (!validCategories.includes(normalizedCategory)) {
     notFound();
   }
 
@@ -73,7 +76,7 @@ export default async function AssetCategoryPage({
   const assets = await prisma.asset.findMany({
     where: {
       departmentId: departmentIdNumber,
-      category: category as
+      category: normalizedCategory as
         | "DESK"
         | "CHAIR"
         | "CABINET"
@@ -144,7 +147,8 @@ export default async function AssetCategoryPage({
               sm:text-3xl
             "
           >
-            {categoryIcon[category]} {categoryName[category]}
+            {categoryIcon[normalizedCategory]}{" "}
+            {categoryName[normalizedCategory]}
           </h1>
 
           <p
@@ -214,7 +218,7 @@ export default async function AssetCategoryPage({
       >
         <div>
           <p className="text-lg font-extrabold text-slate-900">
-            รายการ{categoryName[category]}
+            รายการ{categoryName[normalizedCategory]}
           </p>
 
           <p className="mt-1 text-sm font-semibold text-slate-600">
@@ -223,7 +227,7 @@ export default async function AssetCategoryPage({
         </div>
 
         <Link
-          href={`/assets/${department.id}/${category}/new`}
+          href={`/assets/${department.id}/${normalizedCategory}/new`}
           className="
             w-full
             rounded-xl
@@ -456,7 +460,7 @@ export default async function AssetCategoryPage({
                     "
                   >
                     <Link
-                      href={`/assets/${department.id}/${category}/${asset.id}`}
+                      href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
                       className="
                         inline-block
                         rounded-lg
