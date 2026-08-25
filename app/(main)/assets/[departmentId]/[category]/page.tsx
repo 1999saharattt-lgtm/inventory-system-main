@@ -118,7 +118,7 @@ export default async function AssetCategoryPage({
           min-w-0
           flex-col
           justify-center
-          gap-3
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -174,8 +174,8 @@ export default async function AssetCategoryPage({
             shrink-0
             rounded-xl
             bg-gradient-to-r
-            from-slate-700
-            to-slate-900
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
@@ -184,19 +184,95 @@ export default async function AssetCategoryPage({
             !text-white
             shadow-lg
             transition
-            hover:scale-[1.02]
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
             sm:px-6
             sm:py-3
             sm:text-base
           "
         >
-          ← กลับประเภทครุภัณฑ์
+          ← กลับ
         </Link>
       </div>
 
       {/* =====================================================
-          Toolbar
+          Search
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-lg
+          sm:p-5
+        "
+      >
+        <form
+          className="
+            flex
+            w-full
+            min-w-0
+            flex-col
+            gap-3
+            sm:flex-row
+          "
+        >
+          <input
+            type="text"
+            placeholder="ค้นหารายการ / เลขครุภัณฑ์กรม / เลขครุภัณฑ์ประจำสำนัก"
+            className="
+              min-w-0
+              flex-1
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
+              outline-none
+              transition
+              focus:border-slate-700
+              focus:ring-2
+              focus:ring-slate-300
+            "
+          />
+
+          <button
+            type="submit"
+            className="
+              w-full
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-5
+              py-3
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              hover:from-emerald-700
+              hover:to-green-600
+              sm:w-auto
+            "
+          >
+            ค้นหา
+          </button>
+        </form>
+      </div>
+
+      {/* =====================================================
+          Toolbar Card
       ===================================================== */}
 
       <div
@@ -241,7 +317,7 @@ export default async function AssetCategoryPage({
             !text-white
             shadow-lg
             transition
-            hover:scale-[1.02]
+            hover:scale-105
             hover:from-emerald-700
             hover:to-green-600
             sm:w-auto
@@ -326,7 +402,7 @@ export default async function AssetCategoryPage({
                   className="
                     text-slate-900
                     transition
-                    hover:bg-blue-50
+                    hover:bg-emerald-50
                   "
                 >
                   <td
@@ -465,15 +541,17 @@ export default async function AssetCategoryPage({
                         inline-block
                         rounded-lg
                         bg-gradient-to-r
-                        from-slate-800
-                        to-slate-950
+                        from-emerald-600
+                        to-green-500
                         px-4
                         py-2
                         font-extrabold
-                        text-white
+                        !text-white
                         shadow-md
                         transition
                         hover:scale-105
+                        hover:from-emerald-700
+                        hover:to-green-600
                       "
                     >
                       ดูรายละเอียด
