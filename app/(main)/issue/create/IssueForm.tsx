@@ -323,7 +323,7 @@ export default function IssueForm({
           <div
             className="
               text-center
-              text-lg
+              text-xl
               font-bold
               text-slate-900
             "
@@ -527,7 +527,7 @@ export default function IssueForm({
         <div
           className="
             pt-2
-            text-base
+            text-lg
             font-semibold
             text-slate-900
           "
@@ -544,8 +544,6 @@ export default function IssueForm({
           className="
             overflow-x-auto
             rounded-xl
-            border
-            border-black
             bg-white
           "
         >
@@ -554,8 +552,6 @@ export default function IssueForm({
               w-full
               min-w-[1100px]
               border-collapse
-              border
-              border-black
               text-sm
             "
           >
