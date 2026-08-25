@@ -912,17 +912,16 @@ export default async function NewAssetPage({
               className="
                 w-full
                 rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-6
+                bg-slate-700
+                px-8
                 py-3
                 text-center
+                text-lg
                 font-extrabold
-                text-slate-700
-                shadow-md
+                text-white
+                shadow-lg
                 transition
-                hover:bg-slate-100
+                hover:bg-slate-800
                 sm:w-auto
               "
             >
