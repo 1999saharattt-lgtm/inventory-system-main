@@ -44,9 +44,9 @@ export default async function EditVendorPage({
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -57,10 +57,6 @@ export default async function EditVendorPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -72,9 +68,8 @@ export default async function EditVendorPage({
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             ✏️ แก้ไขข้อมูลผู้จำหน่าย
@@ -89,7 +84,7 @@ export default async function EditVendorPage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-base
             "
           >
             แก้ไขรายละเอียดข้อมูลผู้จำหน่ายในระบบพัสดุ
@@ -99,7 +94,6 @@ export default async function EditVendorPage({
         <Link
           href="/vendors"
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
@@ -114,9 +108,9 @@ export default async function EditVendorPage({
             shadow-lg
             transition
             hover:scale-105
-            hover:shadow-xl
-            sm:w-auto
-            sm:px-6
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
             sm:py-3
             sm:text-lg
           "

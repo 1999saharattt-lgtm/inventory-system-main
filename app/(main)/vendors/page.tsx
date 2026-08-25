@@ -91,9 +91,9 @@ export default function VendorsPage() {
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -104,10 +104,6 @@ export default function VendorsPage() {
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
@@ -119,9 +115,8 @@ export default function VendorsPage() {
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
-              sm:text-5xl
+              sm:text-3xl
             "
           >
             🏢 ผู้จำหน่าย
@@ -136,7 +131,7 @@ export default function VendorsPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-base
             "
           >
             ทั้งหมด {vendors.length} รายการ
@@ -146,14 +141,13 @@ export default function VendorsPage() {
         <Link
           href="/vendors/new"
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
@@ -161,8 +155,8 @@ export default function VendorsPage() {
             shadow-lg
             transition
             hover:scale-105
-            hover:shadow-xl
-            sm:w-auto
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-6
             sm:py-3
             sm:text-lg
@@ -212,7 +206,7 @@ export default function VendorsPage() {
                 ].map((title) => (
                   <th
                     key={title}
-                    className={` 
+                    className={`
                       whitespace-nowrap
                       border
                       border-slate-900
