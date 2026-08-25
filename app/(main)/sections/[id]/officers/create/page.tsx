@@ -79,9 +79,9 @@ export default async function CreateOfficerPage({
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-center
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -92,15 +92,11 @@ export default async function CreateOfficerPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
           sm:px-8
           sm:py-6
         "
       >
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
           <h1
             className="
               break-words
@@ -108,7 +104,7 @@ export default async function CreateOfficerPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-3xl
             "
           >
             👤 เพิ่มรายชื่อเจ้าหน้าที่
@@ -123,7 +119,7 @@ export default async function CreateOfficerPage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-base
             "
           >
             {section.department.name}
@@ -135,7 +131,6 @@ export default async function CreateOfficerPage({
         <Link
           href={`/departments/${departmentId}`}
           className="
-            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
@@ -150,10 +145,11 @@ export default async function CreateOfficerPage({
             shadow-lg
             transition
             hover:scale-105
-            sm:w-auto
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-5
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ

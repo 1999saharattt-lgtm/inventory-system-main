@@ -105,7 +105,7 @@ export default async function EditOfficerPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             ✏️ แก้ไขข้อมูลเจ้าหน้าที่
@@ -120,7 +120,7 @@ export default async function EditOfficerPage({
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             ปรับปรุงข้อมูลรายชื่อและประเภทบุคลากร
@@ -145,10 +145,11 @@ export default async function EditOfficerPage({
             shadow-lg
             transition
             hover:scale-105
+            hover:shadow-xl
             sm:w-auto
-            sm:px-5
+            sm:px-6
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           ← กลับ

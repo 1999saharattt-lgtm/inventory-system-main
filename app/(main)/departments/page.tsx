@@ -53,7 +53,7 @@ export default async function DepartmentsPage() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-3xl
             "
           >
             🏢 หน่วยงาน
@@ -68,7 +68,7 @@ export default async function DepartmentsPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-base
             "
           >
             เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
