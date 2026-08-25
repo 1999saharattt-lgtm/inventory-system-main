@@ -162,6 +162,32 @@ export default async function EditUserPage({
             แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
           </p>
         </div>
+
+        <Link
+          href="/users"
+          className="
+            shrink-0
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-4
+            py-2.5
+            text-center
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:shadow-xl
+            sm:px-6
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          ← กลับ
+        </Link>
       </div>
 
       {/* =====================================================
