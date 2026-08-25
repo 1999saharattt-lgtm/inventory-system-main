@@ -264,23 +264,23 @@ export default async function EditIssuePage({
         className="
           w-full
           min-w-0
-          overflow-hidden
           rounded-2xl
           border
-          border-slate-300
-          bg-white
-          p-0
-          shadow-lg
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
+          p-4
+          shadow-xl
+          sm:p-6
         "
       >
-        <div className="w-full min-w-0">
-          <EditIssueForm
-            issue={issue}
-            departments={departments}
-            materials={materials}
-            receiveItems={receiveItems}
-          />
-        </div>
+        <EditIssueForm
+          issue={issue}
+          departments={departments}
+          materials={materials}
+          receiveItems={receiveItems}
+        />
       </div>
     </div>
   );
