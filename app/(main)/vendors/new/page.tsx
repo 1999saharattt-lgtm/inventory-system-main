@@ -107,10 +107,14 @@ export default function NewVendorPage() {
           min-w-0
           rounded-2xl
           border
-          border-slate-300
-          bg-white
-          p-0
-          shadow-lg
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-4
+          shadow-xl
+          sm:p-8
         "
       >
         <VendorForm />
