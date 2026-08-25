@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth";
 import AssetResponsibleFields from "./AssetResponsibleFields";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,9 @@ type Props = {
   params: Promise<{
     departmentId: string;
     category: string;
+  }>;
+  searchParams: Promise<{
+    sectionId?: string;
   }>;
 };
 
@@ -52,8 +56,12 @@ type AssetCategoryValue = (typeof validCategories)[number];
 
 export default async function NewAssetPage({
   params,
+  searchParams,
 }: Props) {
+  const user = await requireLogin();
+
   const { departmentId, category } = await params;
+  const { sectionId: sectionIdParam } = await searchParams;
 
   const departmentIdNumber = Number(departmentId);
 
@@ -65,6 +73,75 @@ export default async function NewAssetPage({
   }
 
   const assetCategory = category as AssetCategoryValue;
+
+  // =====================================================
+  // ตรวจสอบสิทธิ์ตามบัญชีผู้ใช้งาน
+  // =====================================================
+
+  if (
+    user.role === "STAFF" &&
+    user.departmentId !== departmentIdNumber
+  ) {
+    redirect("/");
+  }
+
+  // =====================================================
+  // ดึงข้อมูล User จริงจากฐานข้อมูล
+  //
+  // ใช้สำหรับอ่าน sectionId ของ STAFF
+  // โดยไม่ต้องรอแก้ JWT/session เพิ่มเติม
+  // =====================================================
+
+  const currentUser =
+    user.role === "STAFF"
+      ? await prisma.user.findUnique({
+          where: {
+            id: user.id,
+          },
+          select: {
+            departmentId: true,
+            sectionId: true,
+          },
+        })
+      : null;
+
+  if (
+    user.role === "STAFF" &&
+    (!currentUser ||
+      currentUser.departmentId !== departmentIdNumber ||
+      !currentUser.sectionId)
+  ) {
+    redirect("/");
+  }
+
+  // =====================================================
+  // กำหนดกลุ่มงานเริ่มต้น
+  //
+  // ADMIN:
+  // ใช้ sectionId จาก URL ถ้ามี
+  //
+  // STAFF:
+  // ใช้ sectionId ของบัญชีตัวเองเท่านั้น
+  // =====================================================
+
+  let defaultSectionId: number | null = null;
+
+  if (user.role === "STAFF") {
+    defaultSectionId = currentUser?.sectionId ?? null;
+  } else if (sectionIdParam) {
+    const parsedSectionId = Number(sectionIdParam);
+
+    if (
+      Number.isInteger(parsedSectionId) &&
+      parsedSectionId > 0
+    ) {
+      defaultSectionId = parsedSectionId;
+    }
+  }
+
+  // =====================================================
+  // ดึงหน่วยงาน + กลุ่มงาน + เจ้าหน้าที่
+  // =====================================================
 
   const department = await prisma.department.findUnique({
     where: {
@@ -95,12 +172,42 @@ export default async function NewAssetPage({
     notFound();
   }
 
+  // =====================================================
+  // ตรวจสอบ sectionId ที่ถูกส่งเข้ามา
+  //
+  // ต้องเป็นกลุ่มงานของหน่วยงานนี้เท่านั้น
+  // =====================================================
+
+  if (defaultSectionId !== null) {
+    const sectionExists = department.sections.some(
+      (section) => section.id === defaultSectionId
+    );
+
+    if (!sectionExists) {
+      if (user.role === "STAFF") {
+        redirect("/");
+      }
+
+      defaultSectionId = null;
+    }
+  }
+
   async function createAsset(formData: FormData) {
     "use server";
 
-    const name = String(formData.get("name") ?? "").trim();
-    const brand = String(formData.get("brand") ?? "").trim();
-    const model = String(formData.get("model") ?? "").trim();
+    const currentUser = await requireLogin();
+
+    const name = String(
+      formData.get("name") ?? ""
+    ).trim();
+
+    const brand = String(
+      formData.get("brand") ?? ""
+    ).trim();
+
+    const model = String(
+      formData.get("model") ?? ""
+    ).trim();
 
     const serialNumber = String(
       formData.get("serialNumber") ?? ""
@@ -142,6 +249,19 @@ export default async function NewAssetPage({
       throw new Error("กรุณาระบุชื่อครุภัณฑ์");
     }
 
+    // =====================================================
+    // ตรวจสอบสิทธิ์ STAFF อีกครั้งใน Server Action
+    // =====================================================
+
+    if (
+      currentUser.role === "STAFF" &&
+      currentUser.departmentId !== departmentIdNumber
+    ) {
+      throw new Error(
+        "ไม่มีสิทธิ์เพิ่มครุภัณฑ์ในหน่วยงานนี้"
+      );
+    }
+
     const sectionId = sectionIdRaw
       ? Number(sectionIdRaw)
       : null;
@@ -164,6 +284,44 @@ export default async function NewAssetPage({
       throw new Error("ผู้ครอบครองไม่ถูกต้อง");
     }
 
+    // =====================================================
+    // STAFF ต้องใช้กลุ่มงานของตัวเองเท่านั้น
+    // =====================================================
+
+    if (currentUser.role === "STAFF") {
+      const staffUser =
+        await prisma.user.findUnique({
+          where: {
+            id: currentUser.id,
+          },
+          select: {
+            departmentId: true,
+            sectionId: true,
+          },
+        });
+
+      if (
+        !staffUser ||
+        staffUser.departmentId !==
+          departmentIdNumber ||
+        !staffUser.sectionId
+      ) {
+        throw new Error(
+          "ไม่พบกลุ่มงานของผู้ใช้งาน"
+        );
+      }
+
+      if (sectionId !== staffUser.sectionId) {
+        throw new Error(
+          "ไม่สามารถเลือกกลุ่มงานอื่นได้"
+        );
+      }
+    }
+
+    // =====================================================
+    // ตรวจสอบกลุ่มงาน
+    // =====================================================
+
     if (sectionId !== null) {
       const section = await prisma.section.findFirst({
         where: {
@@ -179,6 +337,12 @@ export default async function NewAssetPage({
       }
     }
 
+    // =====================================================
+    // ตรวจสอบผู้ครอบครอง
+    // ต้องอยู่หน่วยงานเดียวกัน
+    // และถ้าเลือกกลุ่มงาน ต้องอยู่กลุ่มงานเดียวกัน
+    // =====================================================
+
     if (officerId !== null) {
       const officer = await prisma.officer.findFirst({
         where: {
@@ -189,7 +353,7 @@ export default async function NewAssetPage({
                 sectionId,
               }
             : {}),
-      },
+        },
       });
 
       if (!officer) {
@@ -200,6 +364,10 @@ export default async function NewAssetPage({
         );
       }
     }
+
+    // =====================================================
+    // ตรวจสอบเลขครุภัณฑ์กรม
+    // =====================================================
 
     if (governmentAssetNo) {
       const existingGovernment =
@@ -216,6 +384,10 @@ export default async function NewAssetPage({
       }
     }
 
+    // =====================================================
+    // ตรวจสอบเลขครุภัณฑ์ประจำสำนัก
+    // =====================================================
+
     if (officeAssetNo) {
       const existingOffice =
         await prisma.asset.findUnique({
@@ -231,15 +403,28 @@ export default async function NewAssetPage({
       }
     }
 
+    // =====================================================
+    // ราคา
+    // =====================================================
+
     let price: number | null = null;
 
     if (priceRaw) {
       price = Number(priceRaw);
 
-      if (!Number.isFinite(price) || price < 0) {
-        throw new Error("ราคาครุภัณฑ์ไม่ถูกต้อง");
+      if (
+        !Number.isFinite(price) ||
+        price < 0
+      ) {
+        throw new Error(
+          "ราคาครุภัณฑ์ไม่ถูกต้อง"
+        );
       }
     }
+
+    // =====================================================
+    // วันที่ได้มา
+    // =====================================================
 
     let purchaseDate: Date | null = null;
 
@@ -249,11 +434,17 @@ export default async function NewAssetPage({
       );
 
       if (Number.isNaN(parsedDate.getTime())) {
-        throw new Error("วันที่ได้มาไม่ถูกต้อง");
+        throw new Error(
+          "วันที่ได้มาไม่ถูกต้อง"
+        );
       }
 
       purchaseDate = parsedDate;
     }
+
+    // =====================================================
+    // สร้างครุภัณฑ์
+    // =====================================================
 
     const asset = await prisma.asset.create({
       data: {
@@ -338,7 +529,8 @@ export default async function NewAssetPage({
               sm:text-3xl
             "
           >
-            {categoryIcon[category]} เพิ่ม{categoryName[category]}
+            {categoryIcon[category]} เพิ่ม
+            {categoryName[category]}
           </h1>
 
           <p
@@ -689,6 +881,10 @@ export default async function NewAssetPage({
             >
               <AssetResponsibleFields
                 sections={department.sections}
+                defaultSectionId={defaultSectionId}
+                locked={
+                  user.role === "STAFF"
+                }
               />
 
               <div>

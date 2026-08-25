@@ -95,6 +95,11 @@ model User {
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
+  // กลุ่มงานของผู้ใช้งาน
+  // ใช้สำหรับ STAFF เพื่อกำหนดกลุ่มงานอัตโนมัติ
+  sectionId Int?
+  section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
   approvedIssues Issue[] @relation("IssueApprovedBy")
 
   createdAt DateTime @default(now())
@@ -174,6 +179,9 @@ model Section {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   officers Officer[]
+
+  // ผู้ใช้งานของกลุ่มงาน
+  users User[]
 
   // ======================
   // ทะเบียนคุมครุภัณฑ์

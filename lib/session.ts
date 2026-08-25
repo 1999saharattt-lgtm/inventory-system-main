@@ -16,8 +16,11 @@ export type UserRole =
 // =====================================================
 // Session User
 //
-// departmentId เป็น optional
-// เพื่อรองรับการกำหนดกลุ่มงานของผู้ใช้งาน
+// departmentId = หน่วยงานของผู้ใช้งาน
+// sectionId    = กลุ่มงานของผู้ใช้งาน
+//
+// ADMIN สามารถไม่มี departmentId / sectionId ได้
+// STAFF / VIEWER สามารถผูกกับหน่วยงานและกลุ่มงานได้
 // =====================================================
 
 export type SessionUser = {
@@ -25,7 +28,9 @@ export type SessionUser = {
   username: string;
   fullname: string;
   role: UserRole;
+
   departmentId?: number | null;
+  sectionId?: number | null;
 };
 
 // =====================================================
@@ -40,7 +45,12 @@ export async function createSession(
     username: user.username,
     fullname: user.fullname,
     role: user.role,
-    departmentId: user.departmentId ?? null,
+
+    departmentId:
+      user.departmentId ?? null,
+
+    sectionId:
+      user.sectionId ?? null,
   })
     .setProtectedHeader({
       alg: "HS256",
@@ -75,17 +85,27 @@ export async function verifySession(
 
   return {
     id: Number(payload.id),
+
     username: String(
       payload.username ?? ""
     ),
+
     fullname: String(
       payload.fullname ?? ""
     ),
+
     role: validRole,
+
     departmentId:
       payload.departmentId === null ||
       payload.departmentId === undefined
         ? null
         : Number(payload.departmentId),
+
+    sectionId:
+      payload.sectionId === null ||
+      payload.sectionId === undefined
+        ? null
+        : Number(payload.sectionId),
   };
 }

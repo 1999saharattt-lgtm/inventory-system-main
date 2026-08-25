@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 
-type Section = {
-  id: number;
-  name: string;
-  officers: Officer[];
-};
-
 type Officer = {
   id: number;
   firstName: string;
   lastName: string;
+};
+
+type Section = {
+  id: number;
+  name: string;
+  officers: Officer[];
 };
 
 type Props = {
@@ -33,18 +33,35 @@ export default function AssetResponsibleFields({
   function handleSectionChange(
     event: React.ChangeEvent<HTMLSelectElement>
   ) {
-    setSectionId(event.target.value);
+    const value = event.target.value;
+
+    setSectionId(value);
 
     // เมื่อเปลี่ยนกลุ่มงาน ให้ล้างผู้ครอบครองเดิม
     setOfficerId("");
   }
 
+  function handleOfficerChange(
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) {
+    setOfficerId(event.target.value);
+  }
+
   return (
     <>
+      {/* =====================================================
+          กลุ่มงาน
+      ===================================================== */}
+
       <div>
         <label
           htmlFor="sectionId"
-          className="block text-sm font-extrabold !text-slate-200"
+          className="
+            block
+            text-sm
+            font-extrabold
+            !text-slate-200
+          "
         >
           กลุ่มงาน
         </label>
@@ -66,12 +83,15 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
+            transition
             focus:border-emerald-600
             focus:ring-2
             focus:ring-emerald-200
           "
         >
-          <option value="">-- ไม่ระบุ --</option>
+          <option value="">
+            -- ไม่ระบุ --
+          </option>
 
           {sections.map((section) => (
             <option
@@ -84,10 +104,19 @@ export default function AssetResponsibleFields({
         </select>
       </div>
 
+      {/* =====================================================
+          ผู้ครอบครอง
+      ===================================================== */}
+
       <div>
         <label
           htmlFor="officerId"
-          className="block text-sm font-extrabold !text-slate-200"
+          className="
+            block
+            text-sm
+            font-extrabold
+            !text-slate-200
+          "
         >
           ผู้ครอบครอง
         </label>
@@ -96,9 +125,7 @@ export default function AssetResponsibleFields({
           id="officerId"
           name="officerId"
           value={officerId}
-          onChange={(event) =>
-            setOfficerId(event.target.value)
-          }
+          onChange={handleOfficerChange}
           disabled={!sectionId}
           className="
             mt-2
@@ -112,6 +139,7 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
+            transition
             disabled:cursor-not-allowed
             disabled:bg-slate-200
             focus:border-emerald-600
@@ -137,7 +165,14 @@ export default function AssetResponsibleFields({
           ))}
         </select>
 
-        <p className="mt-2 text-xs font-semibold !text-slate-400">
+        <p
+          className="
+            mt-2
+            text-xs
+            font-semibold
+            !text-slate-400
+          "
+        >
           แสดงเฉพาะบุคลากรของกลุ่มงานที่เลือก
         </p>
       </div>

@@ -7,17 +7,26 @@ import { redirect } from "next/navigation";
 import { createSession } from "@/lib/session";
 
 export async function login(formData: FormData) {
-  const username = formData.get("username")?.toString().trim();
-  const password = formData.get("password")?.toString();
+  const username = formData
+    .get("username")
+    ?.toString()
+    .trim();
+
+  const password = formData
+    .get("password")
+    ?.toString();
 
   if (!username || !password) {
-    throw new Error("กรุณากรอก Username และ Password");
+    throw new Error(
+      "กรุณากรอก Username และ Password"
+    );
   }
 
   const user = await prisma.user.findUnique({
     where: {
       username,
     },
+
     select: {
       id: true,
       username: true,
@@ -25,16 +34,25 @@ export async function login(formData: FormData) {
       fullname: true,
       role: true,
       active: true,
+
+      // หน่วยงาน
       departmentId: true,
+
+      // กลุ่มงาน
+      sectionId: true,
     },
   });
 
   if (!user) {
-    throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+    throw new Error(
+      "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+    );
   }
 
   if (!user.active) {
-    throw new Error("บัญชีผู้ใช้งานถูกปิดการใช้งาน");
+    throw new Error(
+      "บัญชีผู้ใช้งานถูกปิดการใช้งาน"
+    );
   }
 
   const validPassword = await compare(
@@ -43,11 +61,17 @@ export async function login(formData: FormData) {
   );
 
   if (!validPassword) {
-    throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+    throw new Error(
+      "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+    );
   }
 
   // =====================================================
   // สร้าง JWT Session
+  //
+  // บันทึกทั้ง departmentId และ sectionId
+  // เพื่อให้ระบบรู้ว่าผู้ใช้งานอยู่หน่วยงาน
+  // และกลุ่มงานใด
   // =====================================================
 
   const token = await createSession({
@@ -55,7 +79,9 @@ export async function login(formData: FormData) {
     username: user.username,
     fullname: user.fullname,
     role: user.role,
+
     departmentId: user.departmentId,
+    sectionId: user.sectionId,
   });
 
   // =====================================================
@@ -66,7 +92,8 @@ export async function login(formData: FormData) {
 
   cookieStore.set("session", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure:
+      process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
