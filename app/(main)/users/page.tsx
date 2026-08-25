@@ -82,8 +82,9 @@ export default async function UsersPage() {
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
+              sm:text-5xl
             "
           >
             👤 ผู้ใช้งานระบบ
@@ -98,7 +99,7 @@ export default async function UsersPage() {
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-xl
             "
           >
             จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
@@ -123,10 +124,11 @@ export default async function UsersPage() {
             shadow-lg
             transition
             hover:scale-105
+            hover:shadow-xl
             sm:w-auto
-            sm:px-5
+            sm:px-6
             sm:py-3
-            sm:text-base
+            sm:text-lg
           "
         >
           + เพิ่มผู้ใช้งาน

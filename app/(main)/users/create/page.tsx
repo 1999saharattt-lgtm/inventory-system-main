@@ -35,43 +35,56 @@ export default async function CreateUserPage() {
   await requireRole("ADMIN");
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
           flex-col
-          gap-3
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-4
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
           sm:gap-4
-          sm:p-6
-          md:flex-row
-          md:items-center
-          md:justify-between
+          sm:px-8
+          sm:py-6
         "
       >
-        <div className="min-w-0 flex-1">
-
+        <div className="min-w-0">
           <h1
             className="
               break-words
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
-              md:text-5xl
+              sm:text-5xl
             "
           >
             👤 เพิ่มผู้ใช้งานระบบ
@@ -91,13 +104,12 @@ export default async function CreateUserPage() {
           >
             สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
           </p>
-
         </div>
 
         <Link
           href="/users"
           className="
-            w-fit
+            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
@@ -105,13 +117,16 @@ export default async function CreateUserPage() {
             to-green-500
             px-4
             py-2.5
+            text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            sm:px-5
+            hover:shadow-xl
+            sm:w-auto
+            sm:px-6
             sm:py-3
             sm:text-lg
           "
@@ -120,7 +135,9 @@ export default async function CreateUserPage() {
         </Link>
       </div>
 
-      {/* Form */}
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
@@ -138,16 +155,13 @@ export default async function CreateUserPage() {
           sm:p-8
         "
       >
-
         <form
           action={createUser}
           className="space-y-6"
         >
-
           {/* Username */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -182,13 +196,11 @@ export default async function CreateUserPage() {
                 focus:ring-cyan-100
               "
             />
-
           </div>
 
           {/* ชื่อ-นามสกุล */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -223,13 +235,11 @@ export default async function CreateUserPage() {
                 focus:ring-cyan-100
               "
             />
-
           </div>
 
           {/* Password */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -264,13 +274,11 @@ export default async function CreateUserPage() {
                 focus:ring-cyan-100
               "
             />
-
           </div>
 
           {/* สิทธิ์การใช้งาน */}
 
           <div>
-
             <label
               className="
                 mb-2
@@ -303,7 +311,6 @@ export default async function CreateUserPage() {
                 focus:ring-cyan-100
               "
             >
-
               <option value="STAFF">
                 STAFF
               </option>
@@ -315,15 +322,12 @@ export default async function CreateUserPage() {
               <option value="VIEWER">
                 VIEWER
               </option>
-
             </select>
-
           </div>
 
           {/* ปุ่ม */}
 
           <div className="pt-4">
-
             <button
               type="submit"
               className="
@@ -345,13 +349,9 @@ export default async function CreateUserPage() {
             >
               💾 บันทึก
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   );
 }

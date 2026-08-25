@@ -13,7 +13,10 @@ async function updateUser(formData: FormData) {
 
   const username = formData.get("username") as string;
   const fullname = formData.get("fullname") as string;
-  const role = formData.get("role") as "ADMIN" | "STAFF" | "VIEWER";
+  const role = formData.get("role") as
+    | "ADMIN"
+    | "STAFF"
+    | "VIEWER";
   const active = formData.get("active") === "true";
 
   const password = formData.get("password") as string;
@@ -94,43 +97,56 @@ export default async function EditUserPage({
   }
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
-      {/* Header */}
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
           flex-col
-          gap-3
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
           via-slate-800
           to-slate-700
-          p-4
+          px-3
+          py-4
           text-white
           shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
           sm:gap-4
-          sm:p-6
-          md:flex-row
-          md:items-center
-          md:justify-between
+          sm:px-8
+          sm:py-6
         "
       >
-        <div className="min-w-0 flex-1">
-
+        <div className="min-w-0">
           <h1
             className="
               break-words
               text-2xl
               font-extrabold
               leading-tight
+              tracking-wide
               !text-white
-              sm:text-4xl
-              md:text-5xl
+              sm:text-5xl
             "
           >
             👤 แก้ไขผู้ใช้งานระบบ
@@ -143,20 +159,19 @@ export default async function EditUserPage({
               text-sm
               font-semibold
               leading-tight
-              text-slate-200
+              !text-slate-200
               sm:mt-3
               sm:text-xl
             "
           >
             แก้ไขข้อมูลบัญชี สิทธิ์ และสถานะการใช้งาน
           </p>
-
         </div>
 
         <Link
           href="/users"
           className="
-            w-fit
+            w-full
             shrink-0
             rounded-xl
             bg-gradient-to-r
@@ -164,23 +179,27 @@ export default async function EditUserPage({
             to-green-500
             px-4
             py-2.5
+            text-center
             text-sm
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:scale-105
-            sm:px-5
+            hover:shadow-xl
+            sm:w-auto
+            sm:px-6
             sm:py-3
             sm:text-lg
           "
         >
           ← กลับ
         </Link>
-
       </div>
 
-      {/* Form */}
+      {/* =====================================================
+          Form
+      ===================================================== */}
 
       <div
         className="
@@ -198,12 +217,10 @@ export default async function EditUserPage({
           sm:p-8
         "
       >
-
         <form
           action={updateUser}
           className="w-full space-y-6"
         >
-
           <input
             type="hidden"
             name="id"
@@ -217,9 +234,7 @@ export default async function EditUserPage({
               md:grid-cols-2
             "
           >
-
             <div>
-
               <label
                 className="
                   mb-2
@@ -254,11 +269,9 @@ export default async function EditUserPage({
                   focus:ring-cyan-300
                 "
               />
-
             </div>
 
             <div>
-
               <label
                 className="
                   mb-2
@@ -293,13 +306,10 @@ export default async function EditUserPage({
                   focus:ring-cyan-300
                 "
               />
-
             </div>
-
           </div>
 
           <div>
-
             <label
               className="
                 mb-2
@@ -335,7 +345,6 @@ export default async function EditUserPage({
                 focus:ring-cyan-300
               "
             />
-
           </div>
 
           <div
@@ -345,9 +354,7 @@ export default async function EditUserPage({
               md:grid-cols-2
             "
           >
-
             <div>
-
               <label
                 className="
                   mb-2
@@ -381,7 +388,6 @@ export default async function EditUserPage({
                   focus:ring-cyan-300
                 "
               >
-
                 <option value="ADMIN">
                   ADMIN
                 </option>
@@ -393,13 +399,10 @@ export default async function EditUserPage({
                 <option value="VIEWER">
                   VIEWER
                 </option>
-
               </select>
-
             </div>
 
             <div>
-
               <label
                 className="
                   mb-2
@@ -433,7 +436,6 @@ export default async function EditUserPage({
                   focus:ring-cyan-300
                 "
               >
-
                 <option value="true">
                   Active
                 </option>
@@ -441,11 +443,8 @@ export default async function EditUserPage({
                 <option value="false">
                   Inactive
                 </option>
-
               </select>
-
             </div>
-
           </div>
 
           <div
@@ -456,7 +455,6 @@ export default async function EditUserPage({
               pt-4
             "
           >
-
             <button
               type="submit"
               className="
@@ -500,13 +498,9 @@ export default async function EditUserPage({
             >
               ยกเลิก
             </Link>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   );
 }
