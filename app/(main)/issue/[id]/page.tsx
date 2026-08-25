@@ -178,10 +178,12 @@ export default async function IssueDetailPage({
       <div
         className="
           flex
+          min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          gap-4
+          items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -191,72 +193,68 @@ export default async function IssueDetailPage({
           py-4
           text-white
           shadow-xl
-          sm:px-6
+          sm:min-h-[140px]
+          sm:px-8
           sm:py-6
         "
       >
-        <div
-          className="
-            flex
-            min-w-0
-            items-center
-            justify-between
-            gap-3
-          "
-        >
-          <div className="min-w-0">
-            <h1
-              className="
-                break-words
-                text-2xl
-                font-extrabold
-                leading-tight
-                !text-white
-                sm:text-4xl
-              "
-            >
-              📤 รายละเอียดใบเบิกพัสดุ
-            </h1>
-
-            <p
-              className="
-                mt-2
-                break-words
-                text-sm
-                font-semibold
-                leading-tight
-                !text-slate-200
-                sm:text-xl
-              "
-            >
-              รายละเอียดรายการเบิกจ่ายพัสดุ
-            </p>
-          </div>
-
-          <Link
-            href="/issue"
+        <div className="min-w-0">
+          <h1
             className="
-              shrink-0
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2
-              text-sm
+              break-words
+              text-2xl
               font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:px-5
-              sm:py-3
+              leading-tight
+              !text-white
+              sm:text-3xl
+            "
+          >
+            📤 รายละเอียดใบเบิกพัสดุ
+          </h1>
+
+          <p
+            className="
+              mt-2
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
               sm:text-base
             "
           >
-            ← กลับ
-          </Link>
+            รายละเอียดรายการเบิกจ่ายพัสดุ
+          </p>
         </div>
+
+        <Link
+          href="/issue"
+          className="
+            shrink-0
+            whitespace-nowrap
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-3
+            py-2
+            text-center
+            text-sm
+            font-extrabold
+            leading-tight
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
+            sm:py-3
+            sm:text-base
+          "
+        >
+          ← กลับ
+        </Link>
       </div>
 
       {/* =====================================================
