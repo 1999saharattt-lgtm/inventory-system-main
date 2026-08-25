@@ -85,9 +85,7 @@ export default async function StockCardPage({ params }: Props) {
 
   const latestReceiveItem =
     material.receiveItems.length > 0
-      ? material.receiveItems[
-          material.receiveItems.length - 1
-        ]
+      ? material.receiveItems[material.receiveItems.length - 1]
       : null;
 
   const latestVendor =
@@ -420,9 +418,8 @@ export default async function StockCardPage({ params }: Props) {
               text-2xl
               font-extrabold
               leading-tight
-              tracking-wide
               !text-white
-              sm:text-5xl
+              sm:text-4xl
             "
           >
             📒 บัญชีพัสดุ
@@ -432,12 +429,12 @@ export default async function StockCardPage({ params }: Props) {
             className="
               mt-2
               break-words
-              text-sm
+              text-base
               font-semibold
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-xl
+              sm:text-lg
             "
           >
             {material.name}
@@ -462,9 +459,10 @@ export default async function StockCardPage({ params }: Props) {
             shadow-lg
             transition
             hover:scale-105
-            hover:shadow-xl
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
-            sm:px-6
+            sm:px-5
             sm:py-3
             sm:text-lg
           "

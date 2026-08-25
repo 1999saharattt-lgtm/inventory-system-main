@@ -123,7 +123,7 @@ export default async function CategoryPage({
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-3xl
             "
           >
             {categoryNames[category]}
@@ -133,12 +133,12 @@ export default async function CategoryPage({
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-base
             "
           >
             รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
@@ -168,7 +168,7 @@ export default async function CategoryPage({
             sm:w-auto
             sm:px-5
             sm:py-3
-            sm:text-lg
+            sm:text-base
           "
         >
           ← กลับ

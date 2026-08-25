@@ -92,7 +92,7 @@ export default function StockCardHome() {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-4xl
+              sm:text-3xl
             "
           >
             📚 รายการบัญชีพัสดุ
@@ -102,12 +102,12 @@ export default function StockCardHome() {
             className="
               mt-2
               break-words
-              text-base
+              text-sm
               font-semibold
               leading-tight
               !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-base
             "
           >
             เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ
