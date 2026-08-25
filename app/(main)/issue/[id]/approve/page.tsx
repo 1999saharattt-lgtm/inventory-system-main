@@ -73,9 +73,7 @@ export default async function ApproveIssuePage({
     },
     include: {
       department: true,
-
       officer: true,
-
       items: {
         include: {
           material: true,
@@ -668,31 +666,6 @@ export default async function ApproveIssuePage({
             sm:justify-end
           "
         >
-          <Link
-            href={`/issue/${issue.id}`}
-            className="
-              w-full
-              rounded-xl
-              border
-              border-emerald-700
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-6
-              py-3
-              text-center
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-auto
-            "
-          >
-            ← กลับรายละเอียด
-          </Link>
-
           <button
             type="submit"
             className="
