@@ -24,11 +24,9 @@ vendor: true,
 items: true,
 },
 
-```
 orderBy: {
   id: "desc",
 },
-```
 
 });
 
@@ -37,7 +35,6 @@ return ( <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6
 Header
 ===================================================== */}
 
-```
   <div
     className="
       flex
@@ -378,7 +375,6 @@ Header
     </div>
   </div>
 </div>
-```
 
 );
 }
