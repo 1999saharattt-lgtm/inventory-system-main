@@ -31,6 +31,12 @@ const statusName: Record<string, string> = {
   DISPOSED: "จำหน่ายแล้ว",
 };
 
+const statusClass: Record<string, string> = {
+  IN_USE: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  WAITING_DISPOSAL: "bg-amber-100 text-amber-800 border-amber-300",
+  DISPOSED: "bg-slate-200 text-slate-700 border-slate-400",
+};
+
 export default async function EditAssetPage({
   params,
 }: Props) {
@@ -207,11 +213,125 @@ export default async function EditAssetPage({
 
       <form action={submitUpdate}>
         {/* =====================================================
+            สถานะครุภัณฑ์
+        ===================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-900
+            to-slate-800
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
+              "
+            >
+              📌 สถานะครุภัณฑ์
+            </h2>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
+              <label
+                htmlFor="status"
+                className="
+                  text-sm
+                  font-extrabold
+                  text-slate-700
+                "
+              >
+                สถานะ
+              </label>
+
+              <select
+                id="status"
+                name="status"
+                defaultValue={asset.status}
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                  sm:max-w-md
+                "
+              >
+                <option value="IN_USE">
+                  {statusName.IN_USE}
+                </option>
+
+                <option value="WAITING_DISPOSAL">
+                  {statusName.WAITING_DISPOSAL}
+                </option>
+
+                <option value="DISPOSED">
+                  {statusName.DISPOSED}
+                </option>
+              </select>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  text-slate-500
+                "
+              >
+                สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
             ข้อมูลครุภัณฑ์
         ===================================================== */}
 
         <div
           className="
+            mt-4
             w-full
             min-w-0
             overflow-hidden
@@ -258,9 +378,7 @@ export default async function EditAssetPage({
               lg:grid-cols-3
             "
           >
-            {/* =================================================
-                สถานะครุภัณฑ์
-            ================================================= */}
+            {/* รายการครุภัณฑ์ */}
 
             <div
               className="
@@ -271,23 +389,26 @@ export default async function EditAssetPage({
                 bg-white
                 p-4
                 shadow-md
+                lg:col-span-2
               "
             >
               <label
-                htmlFor="status"
+                htmlFor="name"
                 className="
                   text-sm
                   font-extrabold
                   text-slate-700
                 "
               >
-                สถานะครุภัณฑ์
+                รายการครุภัณฑ์ *
               </label>
 
-              <select
-                id="status"
-                name="status"
-                defaultValue={asset.status}
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                defaultValue={asset.name}
                 className="
                   mt-2
                   w-full
@@ -300,81 +421,15 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
                 "
-              >
-                <option value="IN_USE">
-                  {statusName.IN_USE}
-                </option>
-
-                <option value="WAITING_DISPOSAL">
-                  {statusName.WAITING_DISPOSAL}
-                </option>
-
-                <option value="DISPOSED">
-                  {statusName.DISPOSED}
-                </option>
-              </select>
+              />
             </div>
 
-            {/* =================================================
-                รายการครุภัณฑ์
-            ================================================= */}
-
-            <div className="min-w-0 lg:col-span-2">
-              <div
-                className="
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  p-4
-                  shadow-md
-                "
-              >
-                <label
-                  htmlFor="name"
-                  className="
-                    text-sm
-                    font-extrabold
-                    text-slate-700
-                  "
-                >
-                  รายการครุภัณฑ์ *
-                </label>
-
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  defaultValue={asset.name}
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    transition
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-            </div>
-
-            {/* =================================================
-                ประเภท
-            ================================================= */}
+            {/* ประเภท */}
 
             <div
               className="
@@ -432,9 +487,7 @@ export default async function EditAssetPage({
               </select>
             </div>
 
-            {/* =================================================
-                ยี่ห้อ
-            ================================================= */}
+            {/* ยี่ห้อ */}
 
             <div
               className="
@@ -482,9 +535,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                รุ่น
-            ================================================= */}
+            {/* รุ่น */}
 
             <div
               className="
@@ -532,9 +583,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                Serial Number
-            ================================================= */}
+            {/* Serial Number */}
 
             <div
               className="
@@ -582,9 +631,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                เลขครุภัณฑ์กรม
-            ================================================= */}
+            {/* เลขครุภัณฑ์กรม */}
 
             <div
               className="
@@ -611,9 +658,7 @@ export default async function EditAssetPage({
                 id="governmentAssetNo"
                 name="governmentAssetNo"
                 type="text"
-                defaultValue={
-                  asset.governmentAssetNo ?? ""
-                }
+                defaultValue={asset.governmentAssetNo ?? ""}
                 className="
                   mt-2
                   w-full
@@ -634,9 +679,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                เลขครุภัณฑ์ประจำสำนัก
-            ================================================= */}
+            {/* เลขครุภัณฑ์ประจำสำนัก */}
 
             <div
               className="
@@ -663,9 +706,7 @@ export default async function EditAssetPage({
                 id="officeAssetNo"
                 name="officeAssetNo"
                 type="text"
-                defaultValue={
-                  asset.officeAssetNo ?? ""
-                }
+                defaultValue={asset.officeAssetNo ?? ""}
                 className="
                   mt-2
                   w-full
@@ -740,9 +781,7 @@ export default async function EditAssetPage({
               sm:p-6
             "
           >
-            {/* =================================================
-                หน่วยงาน
-            ================================================= */}
+            {/* หน่วยงาน */}
 
             <div
               className="
@@ -770,7 +809,7 @@ export default async function EditAssetPage({
                   rounded-xl
                   border
                   border-slate-300
-                  bg-slate-50
+                  bg-white
                   px-4
                   py-3
                   font-extrabold
@@ -787,9 +826,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                กลุ่มงาน
-            ================================================= */}
+            {/* กลุ่มงาน */}
 
             {sections.length > 0 && (
               <div
@@ -858,9 +895,7 @@ export default async function EditAssetPage({
               />
             )}
 
-            {/* =================================================
-                ผู้ครอบครอง
-            ================================================= */}
+            {/* ผู้ครอบครอง */}
 
             <div
               className="
@@ -933,9 +968,7 @@ export default async function EditAssetPage({
               </p>
             </div>
 
-            {/* =================================================
-                ตำแหน่ง
-            ================================================= */}
+            {/* ตำแหน่ง */}
 
             <div
               className="
@@ -960,11 +993,10 @@ export default async function EditAssetPage({
               <div
                 className="
                   mt-2
-                  min-h-[48px]
                   rounded-xl
                   border
                   border-slate-300
-                  bg-slate-50
+                  bg-white
                   px-4
                   py-3
                   font-extrabold
@@ -1059,7 +1091,8 @@ export default async function EditAssetPage({
         </div>
 
         {/* =====================================================
-            ปุ่ม
+            ปุ่มบันทึก
+            ไม่มีปุ่มยกเลิกด้านล่าง
         ===================================================== */}
 
         <div
@@ -1067,32 +1100,9 @@ export default async function EditAssetPage({
             mt-4
             flex
             w-full
-            flex-col
-            gap-3
-            sm:flex-row
-            sm:justify-end
+            justify-end
           "
         >
-          <Link
-            href={`/assets/${departmentId}/${category}/${asset.id}`}
-            className="
-              w-full
-              rounded-xl
-              bg-slate-700
-              px-6
-              py-3
-              text-center
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:bg-slate-800
-              sm:w-auto
-            "
-          >
-            ยกเลิก
-          </Link>
-
           <button
             type="submit"
             className="
