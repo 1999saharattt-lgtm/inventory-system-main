@@ -91,8 +91,6 @@ export default async function EditAssetPage({
 
   // =====================================================
   // ดึงผู้ครอบครองของหน่วยงาน
-  //
-  // ไม่บังคับว่าต้องมี section
   // =====================================================
 
   const officers = await prisma.officer.findMany({
@@ -189,7 +187,9 @@ export default async function EditAssetPage({
           className="
             w-full
             rounded-xl
-            bg-slate-700
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
@@ -198,11 +198,13 @@ export default async function EditAssetPage({
             !text-white
             shadow-lg
             transition
-            hover:bg-slate-800
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
           "
         >
-          ← ยกเลิก
+          ← กลับ
         </Link>
       </div>
 
@@ -211,12 +213,114 @@ export default async function EditAssetPage({
       ===================================================== */}
 
       <form action={submitUpdate}>
+
+        {/* =====================================================
+            สถานะครุภัณฑ์
+        ===================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-hidden
+            rounded-2xl
+            border
+            border-slate-300
+            bg-white
+            shadow-xl
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-900
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-4
+              sm:px-6
+            "
+          >
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
+              "
+            >
+              📌 สถานะครุภัณฑ์
+            </h2>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            <label
+              htmlFor="status"
+              className="
+                text-sm
+                font-extrabold
+                text-slate-900
+              "
+            >
+              สถานะ
+            </label>
+
+            <select
+              id="status"
+              name="status"
+              defaultValue={asset.status}
+              className="
+                mt-2
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-emerald-600
+                focus:ring-2
+                focus:ring-emerald-200
+                sm:max-w-md
+              "
+            >
+              <option value="IN_USE">
+                {statusName.IN_USE}
+              </option>
+
+              <option value="WAITING_DISPOSAL">
+                {statusName.WAITING_DISPOSAL}
+              </option>
+
+              <option value="DISPOSED">
+                {statusName.DISPOSED}
+              </option>
+            </select>
+
+            <p
+              className="
+                mt-2
+                text-sm
+                font-semibold
+                text-slate-600
+              "
+            >
+              สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
+            </p>
+          </div>
+        </div>
+
         {/* =====================================================
             ข้อมูลครุภัณฑ์
         ===================================================== */}
 
         <div
           className="
+            mt-4
             w-full
             min-w-0
             overflow-hidden
@@ -269,7 +373,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 รายการครุภัณฑ์ *
@@ -309,7 +413,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 ประเภท *
@@ -358,7 +462,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 ยี่ห้อ
@@ -397,7 +501,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 รุ่น
@@ -436,7 +540,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 Serial Number
@@ -475,7 +579,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 เลขครุภัณฑ์กรม
@@ -516,7 +620,7 @@ export default async function EditAssetPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 เลขครุภัณฑ์ประจำสำนัก
@@ -548,102 +652,11 @@ export default async function EditAssetPage({
                 "
               />
             </div>
-
-            {/* วันที่จัดซื้อ */}
-
-            <div>
-              <label
-                htmlFor="purchaseDate"
-                className="
-                  text-sm
-                  font-extrabold
-                  text-slate-700
-                "
-              >
-                วันที่จัดซื้อ
-              </label>
-
-              <input
-                id="purchaseDate"
-                name="purchaseDate"
-                type="date"
-                defaultValue={
-                  asset.purchaseDate
-                    ? new Date(
-                        asset.purchaseDate
-                      )
-                        .toISOString()
-                        .slice(0, 10)
-                    : ""
-                }
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
-            </div>
-
-            {/* ราคา */}
-
-            <div>
-              <label
-                htmlFor="price"
-                className="
-                  text-sm
-                  font-extrabold
-                  text-slate-700
-                "
-              >
-                ราคาจัดซื้อ
-              </label>
-
-              <input
-                id="price"
-                name="price"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue={
-                  asset.price !== null &&
-                  asset.price !== undefined
-                    ? Number(asset.price)
-                    : ""
-                }
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
-            </div>
           </div>
         </div>
 
         {/* =====================================================
-            หน่วยงาน / กลุ่มงาน / ผู้ครอบครอง
+            หน่วยงาน / กลุ่มงาน / ผู้ครอบครอง / ตำแหน่ง
         ===================================================== */}
 
         <div
@@ -692,16 +705,14 @@ export default async function EditAssetPage({
               sm:p-6
             "
           >
-            {/* =================================================
-                หน่วยงาน
-            ================================================= */}
+            {/* หน่วยงาน */}
 
             <div>
               <label
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 หน่วยงาน
@@ -713,11 +724,11 @@ export default async function EditAssetPage({
                   rounded-xl
                   border
                   border-slate-300
-                  bg-slate-100
+                  bg-white
                   px-4
                   py-3
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 {asset.department.name}
@@ -730,10 +741,7 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* =================================================
-                กลุ่มงาน
-                แสดงเฉพาะหน่วยงานที่มีกลุ่มงาน
-            ================================================= */}
+            {/* กลุ่มงาน */}
 
             {sections.length > 0 && (
               <div>
@@ -742,7 +750,7 @@ export default async function EditAssetPage({
                   className="
                     text-sm
                     font-extrabold
-                    text-slate-700
+                    text-slate-900
                   "
                 >
                   กลุ่มงาน
@@ -785,10 +793,7 @@ export default async function EditAssetPage({
               </div>
             )}
 
-            {/* =================================================
-                เมื่อหน่วยงานไม่มี section
-                ส่งค่า sectionId เป็นค่าว่าง
-            ================================================= */}
+            {/* เมื่อไม่มี section */}
 
             {sections.length === 0 && (
               <input
@@ -798,17 +803,15 @@ export default async function EditAssetPage({
               />
             )}
 
-            {/* =================================================
-                ผู้ครอบครอง
-            ================================================= */}
+            {/* ผู้ครอบครอง */}
 
-            <div className="sm:col-span-2">
+            <div>
               <label
                 htmlFor="officerId"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
                 ผู้ครอบครอง
@@ -857,153 +860,53 @@ export default async function EditAssetPage({
                   mt-2
                   text-sm
                   font-semibold
-                  text-slate-500
+                  text-slate-600
                 "
               >
                 รายชื่อผู้ครอบครองจะแสดงเฉพาะเจ้าหน้าที่ในหน่วยงานนี้
               </p>
             </div>
 
-            {/* =================================================
-                สถานที่ตั้ง
-            ================================================= */}
+            {/* ตำแหน่ง */}
 
-            <div className="sm:col-span-2">
+            <div>
               <label
-                htmlFor="location"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  text-slate-900
                 "
               >
-                สถานที่ตั้ง
+                ตำแหน่ง
               </label>
 
-              <input
-                id="location"
-                name="location"
-                type="text"
-                defaultValue={asset.location ?? ""}
+              <div
                 className="
                   mt-2
-                  w-full
                   rounded-xl
                   border
                   border-slate-300
                   bg-white
                   px-4
                   py-3
-                  font-semibold
+                  font-extrabold
                   text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
                 "
-              />
+              >
+                {asset.officer?.position ?? "-"}
+              </div>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  text-slate-600
+                "
+              >
+                ตำแหน่งจะอ้างอิงจากผู้ครอบครองที่เลือก
+              </p>
             </div>
-          </div>
-        </div>
-
-        {/* =====================================================
-            สถานะ
-        ===================================================== */}
-
-        <div
-          className="
-            mt-4
-            w-full
-            min-w-0
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-300
-            bg-white
-            shadow-xl
-          "
-        >
-          <div
-            className="
-              border-b
-              border-slate-900
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-4
-              sm:px-6
-            "
-          >
-            <h2
-              className="
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              📌 สถานะครุภัณฑ์
-            </h2>
-          </div>
-
-          <div className="p-4 sm:p-6">
-            <label
-              htmlFor="status"
-              className="
-                text-sm
-                font-extrabold
-                text-slate-700
-              "
-            >
-              สถานะ
-            </label>
-
-            <select
-              id="status"
-              name="status"
-              defaultValue={asset.status}
-              className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
-                sm:max-w-md
-              "
-            >
-              <option value="IN_USE">
-                {statusName.IN_USE}
-              </option>
-
-              <option value="WAITING_DISPOSAL">
-                {statusName.WAITING_DISPOSAL}
-              </option>
-
-              <option value="DISPOSED">
-                {statusName.DISPOSED}
-              </option>
-            </select>
-
-            <p
-              className="
-                mt-2
-                text-sm
-                font-semibold
-                text-slate-500
-              "
-            >
-              สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
-            </p>
           </div>
         </div>
 
@@ -1095,19 +998,23 @@ export default async function EditAssetPage({
             className="
               w-full
               rounded-xl
-              bg-slate-700
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
               px-6
               py-3
               text-center
               font-extrabold
-              text-white
+              !text-white
               shadow-lg
               transition
-              hover:bg-slate-800
+              hover:scale-[1.02]
+              hover:from-emerald-700
+              hover:to-green-600
               sm:w-auto
             "
           >
-            ยกเลิก
+            ← กลับ
           </Link>
 
           <button

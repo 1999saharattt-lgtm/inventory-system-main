@@ -238,10 +238,8 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
+          border-slate-300
+          bg-white
           shadow-xl
         "
       >
@@ -272,10 +270,12 @@ export default async function AssetDetailPage({
             lg:grid-cols-3
           "
         >
-          {/* สถานะครุภัณฑ์ */}
+          {/* =================================================
+              สถานะครุภัณฑ์
+          ================================================= */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               สถานะครุภัณฑ์
             </p>
 
@@ -300,86 +300,100 @@ export default async function AssetDetailPage({
             </span>
           </div>
 
-          {/* ชื่อครุภัณฑ์ */}
+          {/* =================================================
+              รายการครุภัณฑ์
+          ================================================= */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               รายการครุภัณฑ์
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold !text-white">
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
               {asset.name}
             </p>
           </div>
 
-          {/* ประเภท */}
+          {/* =================================================
+              ประเภท
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               ประเภท
             </p>
 
-            <p className="mt-1 font-extrabold !text-white">
+            <p className="mt-1 font-extrabold text-slate-900">
               {categoryName[asset.category] ?? asset.category}
             </p>
           </div>
 
-          {/* ยี่ห้อ */}
+          {/* =================================================
+              ยี่ห้อ
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               ยี่ห้อ
             </p>
 
-            <p className="mt-1 font-extrabold !text-white">
+            <p className="mt-1 font-extrabold text-slate-900">
               {asset.brand ?? "-"}
             </p>
           </div>
 
-          {/* รุ่น */}
+          {/* =================================================
+              รุ่น
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               รุ่น
             </p>
 
-            <p className="mt-1 break-words font-extrabold !text-white">
+            <p className="mt-1 break-words font-extrabold text-slate-900">
               {asset.model ?? "-"}
             </p>
           </div>
 
-          {/* Serial Number */}
+          {/* =================================================
+              Serial Number
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               Serial Number
             </p>
 
-            <p className="mt-1 break-all font-extrabold !text-white">
+            <p className="mt-1 break-all font-extrabold text-slate-900">
               {asset.serialNumber ?? "-"}
             </p>
           </div>
 
-          {/* เลขครุภัณฑ์กรม */}
+          {/* =================================================
+              เลขครุภัณฑ์กรม
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               เลขครุภัณฑ์กรม
             </p>
 
-            <p className="mt-1 break-all font-extrabold !text-white">
+            <p className="mt-1 break-all font-extrabold text-slate-900">
               {asset.governmentAssetNo ?? "-"}
             </p>
           </div>
 
-          {/* เลขครุภัณฑ์ประจำสำนัก */}
+          {/* =================================================
+              เลขครุภัณฑ์ประจำสำนัก
+          ================================================= */}
 
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               เลขครุภัณฑ์ประจำสำนัก
             </p>
 
-            <p className="mt-1 break-all font-extrabold !text-white">
+            <p className="mt-1 break-all font-extrabold text-slate-900">
               {asset.officeAssetNo ?? "-"}
             </p>
           </div>
@@ -397,10 +411,8 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
+          border-slate-300
+          bg-white
           shadow-xl
         "
       >
@@ -430,44 +442,52 @@ export default async function AssetDetailPage({
             sm:p-6
           "
         >
+          {/* หน่วยงาน */}
+
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               หน่วยงาน
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold !text-white">
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
               {asset.department.name}
             </p>
           </div>
 
+          {/* กลุ่มงาน */}
+
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               กลุ่มงาน
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold !text-white">
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
               {asset.section?.name ?? "-"}
             </p>
           </div>
 
+          {/* ผู้ครอบครอง */}
+
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               ผู้ครอบครอง
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold !text-white">
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
               {asset.officer
                 ? `${asset.officer.firstName} ${asset.officer.lastName}`
                 : "ยังไม่ได้ระบุผู้ครอบครอง"}
             </p>
           </div>
 
+          {/* ตำแหน่ง */}
+
           <div>
-            <p className="text-sm font-bold !text-slate-300">
+            <p className="text-sm font-bold text-slate-500">
               ตำแหน่ง
             </p>
 
-            <p className="mt-1 break-words font-extrabold !text-white">
+            <p className="mt-1 break-words font-extrabold text-slate-900">
               {asset.officer?.position ?? "-"}
             </p>
           </div>
@@ -485,10 +505,8 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
+          border-slate-300
+          bg-white
           shadow-xl
         "
       >
@@ -542,22 +560,22 @@ export default async function AssetDetailPage({
           {latestInspection ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-sm font-bold !text-slate-300">
+                <p className="text-sm font-bold text-slate-500">
                   รอบการตรวจ
                 </p>
 
-                <p className="mt-1 font-extrabold !text-white">
+                <p className="mt-1 font-extrabold text-slate-900">
                   ปี {latestInspection.year} /{" "}
                   {latestInspection.quarter}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm font-bold !text-slate-300">
+                <p className="text-sm font-bold text-slate-500">
                   วันที่ตรวจ
                 </p>
 
-                <p className="mt-1 font-extrabold !text-white">
+                <p className="mt-1 font-extrabold text-slate-900">
                   {new Date(
                     latestInspection.inspectionDate
                   ).toLocaleDateString("th-TH")}
@@ -565,7 +583,7 @@ export default async function AssetDetailPage({
               </div>
 
               <div>
-                <p className="text-sm font-bold !text-slate-300">
+                <p className="text-sm font-bold text-slate-500">
                   ผลการตรวจ
                 </p>
 
@@ -594,22 +612,22 @@ export default async function AssetDetailPage({
               </div>
 
               <div>
-                <p className="text-sm font-bold !text-slate-300">
+                <p className="text-sm font-bold text-slate-500">
                   ผู้ตรวจ
                 </p>
 
-                <p className="mt-1 break-words font-extrabold !text-white">
+                <p className="mt-1 break-words font-extrabold text-slate-900">
                   {latestInspection.inspectorName ?? "-"}
                 </p>
               </div>
 
               {latestInspection.condition && (
                 <div className="sm:col-span-2 lg:col-span-4">
-                  <p className="text-sm font-bold !text-slate-300">
+                  <p className="text-sm font-bold text-slate-500">
                     สภาพครุภัณฑ์
                   </p>
 
-                  <p className="mt-1 break-words font-semibold !text-white">
+                  <p className="mt-1 break-words font-semibold text-slate-900">
                     {latestInspection.condition}
                   </p>
                 </div>
@@ -617,11 +635,11 @@ export default async function AssetDetailPage({
 
               {latestInspection.remark && (
                 <div className="sm:col-span-2 lg:col-span-4">
-                  <p className="text-sm font-bold !text-slate-300">
+                  <p className="text-sm font-bold text-slate-500">
                     หมายเหตุการตรวจ
                   </p>
 
-                  <p className="mt-1 break-words font-semibold !text-white">
+                  <p className="mt-1 break-words font-semibold text-slate-900">
                     {latestInspection.remark}
                   </p>
                 </div>
@@ -632,12 +650,12 @@ export default async function AssetDetailPage({
               className="
                 rounded-xl
                 border
-                border-slate-700
-                bg-slate-800
+                border-slate-300
+                bg-slate-50
                 p-8
                 text-center
                 font-semibold
-                !text-slate-300
+                text-slate-500
               "
             >
               ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
@@ -657,20 +675,18 @@ export default async function AssetDetailPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-900
-            bg-gradient-to-br
-            from-slate-900
-            to-slate-800
+            border-slate-300
+            bg-white
             p-4
             shadow-xl
             sm:p-6
           "
         >
-          <p className="text-sm font-bold !text-slate-300">
+          <p className="text-sm font-bold text-slate-500">
             หมายเหตุ
           </p>
 
-          <p className="mt-2 break-words font-semibold !text-white">
+          <p className="mt-2 break-words font-semibold text-slate-900">
             {asset.remark}
           </p>
         </div>
