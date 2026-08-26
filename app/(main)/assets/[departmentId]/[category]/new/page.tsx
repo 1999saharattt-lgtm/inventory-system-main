@@ -943,7 +943,7 @@ export default async function NewAssetPage({
                 !text-white
               "
             >
-              👤 ผู้รับผิดชอบและสถานที่
+              👤 ผู้รับผิดชอบ
             </h2>
 
             <div
@@ -962,118 +962,6 @@ export default async function NewAssetPage({
                   defaultSectionId
                 }
               />
-
-              <div>
-                <label
-                  htmlFor="location"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  สถานที่ตั้ง
-                </label>
-
-                <input
-                  id="location"
-                  name="location"
-                  type="text"
-                  placeholder="เช่น ห้อง 301"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="purchaseDate"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  วันที่ได้มา
-                </label>
-
-                <input
-                  id="purchaseDate"
-                  name="purchaseDate"
-                  type="date"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="price"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  ราคาครุภัณฑ์
-                </label>
-
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
 
               <div className="sm:col-span-2">
                 <label
