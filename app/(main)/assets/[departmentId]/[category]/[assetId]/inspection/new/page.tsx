@@ -739,6 +739,7 @@ export default async function NewAssetInspectionPage({
                   text-slate-900
                   outline-none
                   transition
+                  placeholder:text-slate-400
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -802,17 +803,15 @@ export default async function NewAssetInspectionPage({
               className="
                 w-full
                 rounded-xl
-                border
-                border-slate-300
-                bg-white
+                bg-slate-700
                 px-6
                 py-3
                 text-center
                 font-extrabold
-                text-slate-700
-                shadow-md
+                !text-white
+                shadow-lg
                 transition
-                hover:bg-slate-100
+                hover:bg-slate-800
                 sm:w-auto
               "
             >

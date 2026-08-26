@@ -1,15 +1,43 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireLogin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+const validCategories = [
+  "DESK",
+  "CHAIR",
+  "CABINET",
+  "COMPUTER",
+  "MONITOR",
+  "PRINTER",
+  "TELEPHONE",
+  "SHELF",
+  "OTHER",
+] as const;
+
+const validStatuses = [
+  "IN_USE",
+  "WAITING_DISPOSAL",
+  "DISPOSED",
+] as const;
+
+type AssetCategory = (typeof validCategories)[number];
+type AssetStatus = (typeof validStatuses)[number];
 
 export async function updateAsset(
   assetId: number,
   formData: FormData
 ) {
   // =====================================================
-  // ตรวจสอบครุภัณฑ์เดิม
+  // ตรวจสอบผู้ใช้งาน
+  // =====================================================
+
+  const currentUser = await requireLogin();
+
+  // =====================================================
+  // ตรวจสอบ asset เดิม
   // =====================================================
 
   const asset = await prisma.asset.findUnique({
@@ -19,11 +47,27 @@ export async function updateAsset(
     select: {
       id: true,
       departmentId: true,
+      sectionId: true,
     },
   });
 
   if (!asset) {
     throw new Error("ไม่พบข้อมูลครุภัณฑ์");
+  }
+
+  // =====================================================
+  // STAFF
+  //
+  // ต้องแก้ไขได้เฉพาะครุภัณฑ์ในหน่วยงานของตัวเอง
+  // =====================================================
+
+  if (
+    currentUser.role === "STAFF" &&
+    currentUser.departmentId !== asset.departmentId
+  ) {
+    throw new Error(
+      "ไม่มีสิทธิ์แก้ไขครุภัณฑ์ของหน่วยงานนี้"
+    );
   }
 
   // =====================================================
@@ -59,8 +103,8 @@ export async function updateAsset(
   ).trim();
 
   /*
-   * หน่วยงานของครุภัณฑ์ไม่ควรถูกเปลี่ยนจากหน้านี้
-   * จึงใช้ departmentId จากข้อมูล asset เดิมเป็นหลัก
+   * หน่วยงานของครุภัณฑ์ไม่สามารถเปลี่ยนจากหน้านี้ได้
+   * ใช้ departmentId เดิมจากฐานข้อมูลเป็นหลัก
    */
   const departmentId = asset.departmentId;
 
@@ -108,10 +152,12 @@ export async function updateAsset(
     throw new Error("กรุณาระบุประเภทครุภัณฑ์");
   }
 
-  /*
-   * ตรวจสอบ departmentId จาก form ถ้ามีการส่งมา
-   * แต่ไม่ใช้ค่าจาก form เป็นตัวกำหนดหน่วยงานจริง
-   */
+  // =====================================================
+  // ตรวจสอบ departmentId จาก Form
+  //
+  // ไม่อนุญาตให้เปลี่ยนหน่วยงาน
+  // =====================================================
+
   if (
     Number.isFinite(departmentIdFromForm) &&
     departmentIdFromForm !== departmentId
@@ -125,59 +171,163 @@ export async function updateAsset(
   // ตรวจสอบประเภทครุภัณฑ์
   // =====================================================
 
-  const validCategories = [
-    "DESK",
-    "CHAIR",
-    "CABINET",
-    "COMPUTER",
-    "MONITOR",
-    "PRINTER",
-    "TELEPHONE",
-    "SHELF",
-    "OTHER",
-  ];
-
-  if (!validCategories.includes(category)) {
+  if (
+    !validCategories.includes(
+      category as AssetCategory
+    )
+  ) {
     throw new Error("ประเภทครุภัณฑ์ไม่ถูกต้อง");
   }
+
+  const assetCategory =
+    category as AssetCategory;
 
   // =====================================================
   // ตรวจสอบสถานะ
   // =====================================================
 
-  const validStatuses = [
-    "IN_USE",
-    "WAITING_DISPOSAL",
-    "DISPOSED",
-  ];
-
-  if (!validStatuses.includes(status)) {
+  if (
+    !validStatuses.includes(
+      status as AssetStatus
+    )
+  ) {
     throw new Error("สถานะครุภัณฑ์ไม่ถูกต้อง");
   }
+
+  const assetStatus = status as AssetStatus;
+
+  // =====================================================
+  // ดึงหน่วยงานจริงจากฐานข้อมูล
+  //
+  // ใช้ตรวจสอบว่าหน่วยงานมี section หรือไม่
+  // =====================================================
+
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: departmentId,
+      },
+      select: {
+        id: true,
+        sections: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+  if (!department) {
+    throw new Error(
+      "ไม่พบหน่วยงานของครุภัณฑ์"
+    );
+  }
+
+  const hasSections =
+    department.sections.length > 0;
 
   // =====================================================
   // แปลง sectionId
   //
-  // หน่วยงานบางแห่งไม่มี section
-  // ดังนั้น sectionId สามารถเป็น null ได้
+  // หน่วยงานไม่มี section
+  // → บังคับเป็น null
+  //
+  // หน่วยงานมี section
+  // → เลือก section ได้
   // =====================================================
 
-  const sectionId =
-    sectionIdValue === ""
-      ? null
-      : Number(sectionIdValue);
+  let sectionId: number | null = null;
+
+  if (hasSections) {
+    sectionId =
+      sectionIdValue === ""
+        ? null
+        : Number(sectionIdValue);
+
+    if (
+      sectionId !== null &&
+      !Number.isInteger(sectionId)
+    ) {
+      throw new Error(
+        "ข้อมูลกลุ่มงานไม่ถูกต้อง"
+      );
+    }
+  }
+
+  // =====================================================
+  // STAFF
+  //
+  // ถ้าหน่วยงานมี section
+  // STAFF ต้องใช้ section ของตัวเองเท่านั้น
+  // =====================================================
 
   if (
-    sectionId !== null &&
-    !Number.isInteger(sectionId)
+    currentUser.role === "STAFF" &&
+    hasSections
   ) {
-    throw new Error("ข้อมูลกลุ่มงานไม่ถูกต้อง");
+    const staffUser =
+      await prisma.user.findUnique({
+        where: {
+          id: currentUser.id,
+        },
+        select: {
+          departmentId: true,
+          sectionId: true,
+        },
+      });
+
+    if (!staffUser) {
+      throw new Error(
+        "ไม่พบข้อมูลผู้ใช้งาน"
+      );
+    }
+
+    if (
+      staffUser.departmentId !==
+      departmentId
+    ) {
+      throw new Error(
+        "ไม่มีสิทธิ์แก้ไขครุภัณฑ์ของหน่วยงานนี้"
+      );
+    }
+
+    if (!staffUser.sectionId) {
+      throw new Error(
+        "ไม่พบกลุ่มงานของผู้ใช้งาน"
+      );
+    }
+
+    if (
+      sectionId !== staffUser.sectionId
+    ) {
+      throw new Error(
+        "ไม่สามารถเลือกกลุ่มงานอื่นได้"
+      );
+    }
+  }
+
+  // =====================================================
+  // ตรวจสอบ section
+  //
+  // ต้องเป็น section ของหน่วยงานนี้เท่านั้น
+  // =====================================================
+
+  if (sectionId !== null) {
+    const sectionExists =
+      department.sections.some(
+        (section) =>
+          section.id === sectionId
+      );
+
+    if (!sectionExists) {
+      throw new Error(
+        "กลุ่มงานไม่อยู่ในหน่วยงานของครุภัณฑ์"
+      );
+    }
   }
 
   // =====================================================
   // แปลง officerId
-  //
-  // ผู้ครอบครองสามารถมีได้แม้หน่วยงานนั้นไม่มี section
   // =====================================================
 
   const officerId =
@@ -189,77 +339,99 @@ export async function updateAsset(
     officerId !== null &&
     !Number.isInteger(officerId)
   ) {
-    throw new Error("ข้อมูลผู้ครอบครองไม่ถูกต้อง");
-  }
-
-  // =====================================================
-  // ตรวจสอบหน่วยงาน
-  // =====================================================
-
-  const department = await prisma.department.findUnique({
-    where: {
-      id: departmentId,
-    },
-    select: {
-      id: true,
-      sections: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
-
-  if (!department) {
-    throw new Error("ไม่พบหน่วยงานของครุภัณฑ์");
-  }
-
-  // =====================================================
-  // ตรวจสอบกลุ่มงาน
-  //
-  // ถ้าหน่วยงานไม่มี section:
-  // - sectionId ต้องเป็น null
-  //
-  // ถ้าหน่วยงานมี section:
-  // - sectionId จะเลือกหรือไม่เลือกก็ได้
-  // - หากเลือก ต้องเป็น section ของหน่วยงานนั้น
-  // =====================================================
-
-  if (sectionId !== null) {
-    const sectionExists = department.sections.some(
-      (section) => section.id === sectionId
+    throw new Error(
+      "ข้อมูลผู้ครอบครองไม่ถูกต้อง"
     );
-
-    if (!sectionExists) {
-      throw new Error(
-        "กลุ่มงานไม่อยู่ในหน่วยงานของครุภัณฑ์"
-      );
-    }
   }
 
   // =====================================================
   // ตรวจสอบผู้ครอบครอง
   //
-  // ผู้ครอบครองต้องอยู่ในหน่วยงานเดียวกัน
+  // ต้องอยู่หน่วยงานเดียวกัน
   //
-  // ไม่บังคับว่าต้องมี section เดียวกัน
-  // เพราะหน่วยงานส่วนใหญ่ไม่มี section
+  // ถ้าหน่วยงานมี section และเลือก section:
+  // ต้องอยู่ section เดียวกัน
+  //
+  // ถ้าหน่วยงานไม่มี section:
+  // ตรวจเฉพาะ departmentId
   // =====================================================
 
   if (officerId !== null) {
-    const officer = await prisma.officer.findFirst({
-      where: {
-        id: officerId,
-        departmentId,
-      },
-      select: {
-        id: true,
-      },
-    });
+    const officer =
+      await prisma.officer.findFirst({
+        where: {
+          id: officerId,
+          departmentId,
+          ...(sectionId !== null
+            ? {
+                sectionId,
+              }
+            : {}),
+        },
+        select: {
+          id: true,
+        },
+      });
 
     if (!officer) {
       throw new Error(
-        "ผู้ครอบครองไม่อยู่ในหน่วยงานของครุภัณฑ์"
+        sectionId !== null
+          ? "ผู้ครอบครองไม่อยู่ในกลุ่มงานที่เลือก"
+          : "ผู้ครอบครองไม่อยู่ในหน่วยงานของครุภัณฑ์"
+      );
+    }
+  }
+
+  // =====================================================
+  // ตรวจสอบเลขครุภัณฑ์กรมซ้ำ
+  //
+  // ยกเว้น asset ตัวที่กำลังแก้ไข
+  // =====================================================
+
+  if (governmentAssetNo) {
+    const existingGovernment =
+      await prisma.asset.findFirst({
+        where: {
+          governmentAssetNo,
+          NOT: {
+            id: assetId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (existingGovernment) {
+      throw new Error(
+        `เลขครุภัณฑ์กรม "${governmentAssetNo}" มีอยู่แล้ว`
+      );
+    }
+  }
+
+  // =====================================================
+  // ตรวจสอบเลขครุภัณฑ์ประจำสำนักซ้ำ
+  //
+  // ยกเว้น asset ตัวที่กำลังแก้ไข
+  // =====================================================
+
+  if (officeAssetNo) {
+    const existingOffice =
+      await prisma.asset.findFirst({
+        where: {
+          officeAssetNo,
+          NOT: {
+            id: assetId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (existingOffice) {
+      throw new Error(
+        `เลขครุภัณฑ์ประจำสำนัก "${officeAssetNo}" มีอยู่แล้ว`
       );
     }
   }
@@ -277,9 +449,13 @@ export async function updateAsset(
 
   if (
     purchaseDate !== null &&
-    Number.isNaN(purchaseDate.getTime())
+    Number.isNaN(
+      purchaseDate.getTime()
+    )
   ) {
-    throw new Error("วันที่จัดซื้อไม่ถูกต้อง");
+    throw new Error(
+      "วันที่จัดซื้อไม่ถูกต้อง"
+    );
   }
 
   // =====================================================
@@ -293,60 +469,65 @@ export async function updateAsset(
 
   if (
     price !== null &&
-    (!Number.isFinite(price) || price < 0)
+    (!Number.isFinite(price) ||
+      price < 0)
   ) {
-    throw new Error("ราคาจัดซื้อไม่ถูกต้อง");
+    throw new Error(
+      "ราคาจัดซื้อไม่ถูกต้อง"
+    );
   }
 
   // =====================================================
   // อัปเดตครุภัณฑ์
   // =====================================================
 
-  const updatedAsset = await prisma.asset.update({
-    where: {
-      id: assetId,
-    },
-    data: {
-      name,
-      category: category as any,
+  const updatedAsset =
+    await prisma.asset.update({
+      where: {
+        id: assetId,
+      },
+      data: {
+        name,
+        category: assetCategory,
 
-      brand: brand || null,
-      model: model || null,
-      serialNumber: serialNumber || null,
+        brand: brand || null,
+        model: model || null,
+        serialNumber:
+          serialNumber || null,
 
-      governmentAssetNo:
-        governmentAssetNo || null,
+        governmentAssetNo:
+          governmentAssetNo || null,
 
-      officeAssetNo:
-        officeAssetNo || null,
+        officeAssetNo:
+          officeAssetNo || null,
 
-      /*
-       * คงหน่วยงานเดิม
-       */
-      departmentId,
+        /*
+         * คงหน่วยงานเดิม
+         */
+        departmentId,
 
-      /*
-       * sectionId สามารถเป็น null
-       * สำหรับหน่วยงานที่ไม่มี section
-       */
-      sectionId,
+        /*
+         * หน่วยงานที่ไม่มี section
+         * จะเก็บเป็น null
+         */
+        sectionId,
 
-      officerId,
+        officerId,
 
-      status: status as any,
+        status: assetStatus,
 
-      purchaseDate,
-      price,
+        purchaseDate,
+        price,
 
-      location: location || null,
-      remark: remark || null,
-    },
-    select: {
-      id: true,
-      departmentId: true,
-      category: true,
-    },
-  });
+        location: location || null,
+        remark: remark || null,
+      },
+      select: {
+        id: true,
+        departmentId: true,
+        category: true,
+      },
+    });
 
   // =====================================================
   // Revalidate
@@ -367,7 +548,7 @@ export async function updateAsset(
   );
 
   // =====================================================
-  // กลับไปหน้ารายละเอียดครุภัณฑ์
+  // กลับหน้ารายละเอียดครุภัณฑ์
   // =====================================================
 
   redirect(

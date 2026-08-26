@@ -52,7 +52,8 @@ const validCategories = [
   "OTHER",
 ] as const;
 
-type AssetCategoryValue = (typeof validCategories)[number];
+type AssetCategoryValue =
+  (typeof validCategories)[number];
 
 export default async function NewAssetPage({
   params,
@@ -61,21 +62,30 @@ export default async function NewAssetPage({
   const user = await requireLogin();
 
   const { departmentId, category } = await params;
-  const { sectionId: sectionIdParam } = await searchParams;
+  const { sectionId: sectionIdParam } =
+    await searchParams;
 
   const departmentIdNumber = Number(departmentId);
 
   if (
     !Number.isInteger(departmentIdNumber) ||
-    !validCategories.includes(category as AssetCategoryValue)
+    !validCategories.includes(
+      category as AssetCategoryValue
+    )
   ) {
     notFound();
   }
 
-  const assetCategory = category as AssetCategoryValue;
+  const assetCategory =
+    category as AssetCategoryValue;
 
   // =====================================================
-  // ตรวจสอบสิทธิ์ตามบัญชีผู้ใช้งาน
+  // สิทธิ์ผู้ใช้งาน
+  //
+  // 1 Account ต่อ 1 หน่วยงาน
+  //
+  // ดังนั้น STAFF ตรวจสอบเฉพาะ departmentId
+  // ไม่ผูกสิทธิ์กับ sectionId
   // =====================================================
 
   if (
@@ -86,153 +96,104 @@ export default async function NewAssetPage({
   }
 
   // =====================================================
-  // ดึงข้อมูล User จริงจากฐานข้อมูล
+  // ดึงข้อมูลหน่วยงาน
   //
-  // ใช้สำหรับอ่าน sectionId ของ STAFF
-  // โดยไม่ต้องรอแก้ JWT/session เพิ่มเติม
+  // section เป็นเพียงกลุ่มงานย่อยสำหรับจัดหมวดหมู่ข้อมูล
+  // ไม่ได้ใช้แบ่ง Account หรือสิทธิ์ผู้ใช้งาน
   // =====================================================
 
-  const currentUser =
-    user.role === "STAFF"
-      ? await prisma.user.findUnique({
-          where: {
-            id: user.id,
-          },
-          select: {
-            departmentId: true,
-            sectionId: true,
-          },
-        })
-      : null;
-
-  // =====================================================
-  // ดึงหน่วยงาน + เจ้าหน้าที่ + กลุ่มงาน + เจ้าหน้าที่
-  // =====================================================
-
-  const department = await prisma.department.findUnique({
-    where: {
-      id: departmentIdNumber,
-    },
-    include: {
-      officers: {
-        orderBy: [
-          {
-            firstName: "asc",
-          },
-          {
-            lastName: "asc",
-          },
-        ],
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: departmentIdNumber,
       },
-      sections: {
-        orderBy: {
-          id: "asc",
+      include: {
+        officers: {
+          orderBy: [
+            {
+              firstName: "asc",
+            },
+            {
+              lastName: "asc",
+            },
+          ],
         },
-        include: {
-          officers: {
-            orderBy: [
-              {
-                firstName: "asc",
-              },
-              {
-                lastName: "asc",
-              },
-            ],
+        sections: {
+          orderBy: {
+            id: "asc",
+          },
+          include: {
+            officers: {
+              orderBy: [
+                {
+                  firstName: "asc",
+                },
+                {
+                  lastName: "asc",
+                },
+              ],
+            },
           },
         },
       },
-    },
-  });
+    });
 
   if (!department) {
     notFound();
   }
 
   // =====================================================
-  // ตรวจสอบว่าหน่วยงานนี้มี section หรือไม่
-  //
-  // บางหน่วยงานไม่มี section
-  // กรณีนี้ sectionId ต้องสามารถเป็น null ได้
+  // ตรวจสอบว่าหน่วยงานมี section หรือไม่
   // =====================================================
 
-  const hasSections = department.sections.length > 0;
+  const hasSections =
+    department.sections.length > 0;
 
   // =====================================================
-  // ตรวจสอบสิทธิ์ STAFF
+  // กำหนด section เริ่มต้น
   //
-  // ถ้าหน่วยงานมี section:
-  // STAFF ต้องมี section ของตัวเอง
+  // STAFF และ ADMIN สามารถใช้ section ได้เหมือนกัน
+  // เพราะ section ไม่ได้ใช้แบ่ง Account
   //
-  // ถ้าหน่วยงานไม่มี section:
-  // STAFF ไม่ต้องมี sectionId
-  // =====================================================
-
-  if (user.role === "STAFF") {
-    if (!currentUser) {
-      redirect("/");
-    }
-
-    if (currentUser.departmentId !== departmentIdNumber) {
-      redirect("/");
-    }
-
-    if (hasSections && !currentUser.sectionId) {
-      redirect("/");
-    }
-  }
-
-  // =====================================================
-  // กำหนดกลุ่มงานเริ่มต้น
-  //
-  // ADMIN:
-  // ใช้ sectionId จาก URL ถ้ามี
-  //
-  // STAFF:
-  // ถ้าหน่วยงานมี section ให้ใช้ sectionId ของตัวเอง
-  // ถ้าหน่วยงานไม่มี section ให้เป็น null
+  // ถ้ามี sectionId จาก URL และเป็น section
+  // ของหน่วยงานนี้ ให้ใช้เป็นค่าเริ่มต้น
   // =====================================================
 
   let defaultSectionId: number | null = null;
 
-  if (hasSections) {
-    if (user.role === "STAFF") {
-      defaultSectionId = currentUser?.sectionId ?? null;
-    } else if (sectionIdParam) {
-      const parsedSectionId = Number(sectionIdParam);
+  if (hasSections && sectionIdParam) {
+    const parsedSectionId =
+      Number(sectionIdParam);
 
-      if (
-        Number.isInteger(parsedSectionId) &&
-        parsedSectionId > 0
-      ) {
-        defaultSectionId = parsedSectionId;
-      }
+    if (
+      Number.isInteger(parsedSectionId) &&
+      parsedSectionId > 0
+    ) {
+      defaultSectionId = parsedSectionId;
     }
   }
 
   // =====================================================
-  // ตรวจสอบ sectionId ที่ถูกส่งเข้ามา
+  // ตรวจสอบ sectionId
   //
-  // ต้องเป็นกลุ่มงานของหน่วยงานนี้เท่านั้น
-  //
-  // ถ้าหน่วยงานไม่มี section:
-  // sectionId ต้องเป็น null
+  // section ต้องเป็นของหน่วยงานที่กำลังเพิ่มครุภัณฑ์
   // =====================================================
 
   if (defaultSectionId !== null) {
-    const sectionExists = department.sections.some(
-      (section) => section.id === defaultSectionId
-    );
+    const sectionExists =
+      department.sections.some(
+        (section) =>
+          section.id === defaultSectionId
+      );
 
     if (!sectionExists) {
-      if (user.role === "STAFF") {
-        redirect("/");
-      }
-
       defaultSectionId = null;
     }
   }
 
-  async function createAsset(formData: FormData) {
+  async function createAsset(
+    formData: FormData
+  ) {
     "use server";
 
     const currentUser = await requireLogin();
@@ -286,16 +247,24 @@ export default async function NewAssetPage({
     ).trim();
 
     if (!name) {
-      throw new Error("กรุณาระบุชื่อครุภัณฑ์");
+      throw new Error(
+        "กรุณาระบุชื่อครุภัณฑ์"
+      );
     }
 
     // =====================================================
-    // ตรวจสอบสิทธิ์ STAFF อีกครั้งใน Server Action
+    // ตรวจสอบสิทธิ์ STAFF
+    //
+    // 1 Account ต่อ 1 หน่วยงาน
+    //
+    // ตรวจเฉพาะ departmentId
+    // ไม่ตรวจ sectionId ของ User
     // =====================================================
 
     if (
       currentUser.role === "STAFF" &&
-      currentUser.departmentId !== departmentIdNumber
+      currentUser.departmentId !==
+        departmentIdNumber
     ) {
       throw new Error(
         "ไม่มีสิทธิ์เพิ่มครุภัณฑ์ในหน่วยงานนี้"
@@ -303,10 +272,8 @@ export default async function NewAssetPage({
     }
 
     // =====================================================
-    // ตรวจสอบว่าหน่วยงานมี section หรือไม่
-    //
-    // ดึงข้อมูลจริงจากฐานข้อมูลอีกครั้งภายใน Server Action
-    // เพื่อไม่เชื่อค่าจากหน้าเว็บ
+    // ดึงข้อมูลหน่วยงานจากฐานข้อมูลอีกครั้ง
+    // ภายใน Server Action
     // =====================================================
 
     const targetDepartment =
@@ -336,8 +303,10 @@ export default async function NewAssetPage({
     // =====================================================
     // sectionId
     //
-    // ถ้าหน่วยงานไม่มี section:
-    // บังคับให้เป็น null
+    // section เป็นข้อมูลกลุ่มงานย่อย
+    // ไม่เกี่ยวกับสิทธิ์ Account
+    //
+    // ถ้าหน่วยงานไม่มี section ให้เป็น null
     // =====================================================
 
     let sectionId: number | null = null;
@@ -353,6 +322,28 @@ export default async function NewAssetPage({
       ) {
         throw new Error(
           "กลุ่มงานไม่ถูกต้อง"
+        );
+      }
+    }
+
+    // =====================================================
+    // ตรวจสอบ section
+    //
+    // ต้องเป็น section ของหน่วยงานนี้เท่านั้น
+    // =====================================================
+
+    if (sectionId !== null) {
+      const section =
+        await prisma.section.findFirst({
+          where: {
+            id: sectionId,
+            departmentId: departmentIdNumber,
+          },
+        });
+
+      if (!section) {
+        throw new Error(
+          "กลุ่มงานไม่อยู่ในหน่วยงานที่เลือก"
         );
       }
     }
@@ -375,88 +366,31 @@ export default async function NewAssetPage({
     }
 
     // =====================================================
-    // STAFF ต้องใช้กลุ่มงานของตัวเองเท่านั้น
-    //
-    // ใช้เฉพาะกรณีหน่วยงานมี section
-    // =====================================================
-
-    if (
-      currentUser.role === "STAFF" &&
-      hasTargetSections
-    ) {
-      const staffUser =
-        await prisma.user.findUnique({
-          where: {
-            id: currentUser.id,
-          },
-          select: {
-            departmentId: true,
-            sectionId: true,
-          },
-        });
-
-      if (
-        !staffUser ||
-        staffUser.departmentId !==
-          departmentIdNumber ||
-        !staffUser.sectionId
-      ) {
-        throw new Error(
-          "ไม่พบกลุ่มงานของผู้ใช้งาน"
-        );
-      }
-
-      if (sectionId !== staffUser.sectionId) {
-        throw new Error(
-          "ไม่สามารถเลือกกลุ่มงานอื่นได้"
-        );
-      }
-    }
-
-    // =====================================================
-    // ตรวจสอบกลุ่มงาน
-    //
-    // ถ้าหน่วยงานไม่มี section:
-    // sectionId ต้องเป็น null อยู่แล้ว
-    // จึงไม่ต้องตรวจสอบ section
-    // =====================================================
-
-    if (sectionId !== null) {
-      const section = await prisma.section.findFirst({
-        where: {
-          id: sectionId,
-          departmentId: departmentIdNumber,
-        },
-      });
-
-      if (!section) {
-        throw new Error(
-          "กลุ่มงานไม่อยู่ในหน่วยงานที่เลือก"
-        );
-      }
-    }
-
-    // =====================================================
     // ตรวจสอบผู้ครอบครอง
-    // ต้องอยู่หน่วยงานเดียวกัน
-    // และถ้าเลือกกลุ่มงาน ต้องอยู่กลุ่มงานเดียวกัน
     //
-    // ถ้าหน่วยงานไม่มี section:
-    // ตรวจเฉพาะ departmentId
+    // ผู้ครอบครองต้องอยู่หน่วยงานเดียวกัน
+    //
+    // ถ้าเลือก section:
+    // ผู้ครอบครองต้องอยู่ section นั้น
+    //
+    // ตรงนี้เป็นการตรวจสอบ "ข้อมูลครุภัณฑ์"
+    // ไม่ใช่การตรวจสอบสิทธิ์ Account
     // =====================================================
 
     if (officerId !== null) {
-      const officer = await prisma.officer.findFirst({
-        where: {
-          id: officerId,
-          departmentId: departmentIdNumber,
-          ...(sectionId !== null
-            ? {
-                sectionId,
-              }
-            : {}),
-        },
-      });
+      const officer =
+        await prisma.officer.findFirst({
+          where: {
+            id: officerId,
+            departmentId:
+              departmentIdNumber,
+            ...(sectionId !== null
+              ? {
+                  sectionId,
+                }
+              : {}),
+          },
+        });
 
       if (!officer) {
         throw new Error(
@@ -535,7 +469,11 @@ export default async function NewAssetPage({
         `${purchaseDateRaw}T00:00:00`
       );
 
-      if (Number.isNaN(parsedDate.getTime())) {
+      if (
+        Number.isNaN(
+          parsedDate.getTime()
+        )
+      ) {
         throw new Error(
           "วันที่ได้มาไม่ถูกต้อง"
         );
@@ -548,35 +486,38 @@ export default async function NewAssetPage({
     // สร้างครุภัณฑ์
     // =====================================================
 
-    const asset = await prisma.asset.create({
-      data: {
-        name,
-        category: assetCategory,
+    const asset =
+      await prisma.asset.create({
+        data: {
+          name,
+          category: assetCategory,
 
-        brand: brand || null,
-        model: model || null,
-        serialNumber: serialNumber || null,
+          brand: brand || null,
+          model: model || null,
+          serialNumber:
+            serialNumber || null,
 
-        governmentAssetNo:
-          governmentAssetNo || null,
+          governmentAssetNo:
+            governmentAssetNo || null,
 
-        officeAssetNo:
-          officeAssetNo || null,
+          officeAssetNo:
+            officeAssetNo || null,
 
-        departmentId: departmentIdNumber,
+          departmentId:
+            departmentIdNumber,
 
-        sectionId,
-        officerId,
+          sectionId,
+          officerId,
 
-        status: "IN_USE",
+          status: "IN_USE",
 
-        purchaseDate,
-        price,
+          purchaseDate,
+          price,
 
-        location: location || null,
-        remark: remark || null,
-      },
-    });
+          location: location || null,
+          remark: remark || null,
+        },
+      });
 
     redirect(
       `/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`
@@ -732,10 +673,17 @@ export default async function NewAssetPage({
               <div className="sm:col-span-2">
                 <label
                   htmlFor="name"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   ชื่อครุภัณฑ์{" "}
-                  <span className="text-red-400">*</span>
+                  <span className="text-red-400">
+                    *
+                  </span>
                 </label>
 
                 <input
@@ -767,7 +715,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="brand"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   ยี่ห้อ
                 </label>
@@ -798,7 +751,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="model"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   รุ่น
                 </label>
@@ -829,7 +787,12 @@ export default async function NewAssetPage({
               <div className="sm:col-span-2">
                 <label
                   htmlFor="serialNumber"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   Serial Number
                 </label>
@@ -891,7 +854,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="governmentAssetNo"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   เลขครุภัณฑ์กรม
                 </label>
@@ -922,7 +890,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="officeAssetNo"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   เลขครุภัณฑ์ประจำสำนัก
                 </label>
@@ -985,14 +958,20 @@ export default async function NewAssetPage({
                 sections={department.sections}
                 officers={department.officers}
                 departmentName={department.name}
-                defaultSectionId={defaultSectionId}
-                locked={user.role === "STAFF"}
+                defaultSectionId={
+                  defaultSectionId
+                }
               />
 
               <div>
                 <label
                   htmlFor="location"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   สถานที่ตั้ง
                 </label>
@@ -1024,7 +1003,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="purchaseDate"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   วันที่ได้มา
                 </label>
@@ -1055,7 +1039,12 @@ export default async function NewAssetPage({
               <div>
                 <label
                   htmlFor="price"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   ราคาครุภัณฑ์
                 </label>
@@ -1089,7 +1078,12 @@ export default async function NewAssetPage({
               <div className="sm:col-span-2">
                 <label
                   htmlFor="remark"
-                  className="block text-sm font-extrabold !text-slate-200"
+                  className="
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
+                  "
                 >
                   หมายเหตุ
                 </label>

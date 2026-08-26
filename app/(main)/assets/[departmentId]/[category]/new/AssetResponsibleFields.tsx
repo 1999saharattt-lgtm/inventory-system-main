@@ -19,7 +19,6 @@ type Props = {
   officers: Officer[];
   departmentName: string;
   defaultSectionId?: number | null;
-  locked?: boolean;
 };
 
 export default function AssetResponsibleFields({
@@ -27,13 +26,14 @@ export default function AssetResponsibleFields({
   officers: departmentOfficers,
   departmentName,
   defaultSectionId,
-  locked = false,
 }: Props) {
   // =====================================================
-  // กำหนดกลุ่มงานเริ่มต้น
+  // กลุ่มงาน
   //
-  // ถ้าหน่วยงานไม่มี section
-  // จะใช้ชื่อหน่วยงานเป็นกลุ่มงานอัตโนมัติ
+  // section เป็นเพียงกลุ่มงานย่อยของหน่วยงาน
+  // ไม่ได้ใช้แบ่ง Account หรือสิทธิ์ผู้ใช้งาน
+  //
+  // 1 Account สามารถเลือกได้ทุกกลุ่มงาน
   // =====================================================
 
   const [sectionId, setSectionId] = useState(
@@ -49,9 +49,18 @@ export default function AssetResponsibleFields({
     (section) => String(section.id) === sectionId
   );
 
-  // ถ้ามี section → ใช้เจ้าหน้าที่ของ section
-  // ถ้าไม่มี section → ใช้เจ้าหน้าที่ของ department
-  const officers = selectedSection?.officers ?? departmentOfficers;
+  // =====================================================
+  // ผู้ครอบครอง
+  //
+  // ถ้าเลือกกลุ่มงาน:
+  // ใช้เจ้าหน้าที่ของกลุ่มงานนั้น
+  //
+  // ถ้าไม่มี section:
+  // ใช้เจ้าหน้าที่ของหน่วยงาน
+  // =====================================================
+
+  const officers =
+    selectedSection?.officers ?? departmentOfficers;
 
   const hasSections = sections.length > 0;
 
@@ -63,7 +72,7 @@ export default function AssetResponsibleFields({
     setSectionId(value);
 
     // เมื่อเปลี่ยนกลุ่มงาน
-    // ให้ล้างผู้ครอบครองเดิม
+    // ต้องล้างผู้ครอบครองเดิม
     setOfficerId("");
   }
 
@@ -98,7 +107,6 @@ export default function AssetResponsibleFields({
             name="sectionId"
             value={sectionId}
             onChange={handleSectionChange}
-            disabled={locked}
             className="
               mt-2
               w-full
@@ -112,8 +120,6 @@ export default function AssetResponsibleFields({
               text-slate-900
               outline-none
               transition
-              disabled:cursor-not-allowed
-              disabled:bg-slate-200
               focus:border-emerald-600
               focus:ring-2
               focus:ring-emerald-200
@@ -184,10 +190,7 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={handleOfficerChange}
-          disabled={
-            locked ||
-            (hasSections && !sectionId)
-          }
+          disabled={hasSections && !sectionId}
           className="
             mt-2
             w-full
