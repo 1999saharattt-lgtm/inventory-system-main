@@ -241,7 +241,15 @@ export default async function AssetDisposalDetailPage({
               สถานะปัจจุบัน
             </p>
 
-            <p className="mt-2 font-extrabold !text-white">
+            <p
+              className={`mt-2 font-extrabold ${
+                asset.status === "DISPOSED"
+                  ? "!text-red-300"
+                  : asset.status === "WAITING_DISPOSAL"
+                    ? "!text-amber-300"
+                    : "!text-white"
+              }`}
+            >
               {statusName[asset.status] ?? asset.status}
             </p>
           </div>
@@ -386,21 +394,73 @@ export default async function AssetDisposalDetailPage({
           className="
             rounded-2xl
             border
-            border-slate-300
-            bg-slate-50
+            border-red-300
+            bg-red-50
             p-5
             shadow-lg
             sm:p-6
           "
         >
-          <p className="text-lg font-extrabold text-slate-900">
-            ⚫ ครุภัณฑ์จำหน่ายแล้ว
+          <p className="text-lg font-extrabold text-red-900">
+            🗑️ ครุภัณฑ์จำหน่ายแล้ว
           </p>
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-600 sm:text-base">
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-red-800 sm:text-base">
             ครุภัณฑ์รายการนี้มีสถานะเป็น &quot;จำหน่ายแล้ว&quot;
             และไม่สามารถดำเนินการจำหน่ายซ้ำได้
           </p>
+
+          {/* =================================================
+              ข้อมูลการจำหน่าย
+          ================================================= */}
+
+          <div
+            className="
+              mt-5
+              grid
+              gap-4
+              rounded-xl
+              border
+              border-red-200
+              bg-white
+              p-4
+              sm:grid-cols-2
+              sm:p-5
+            "
+          >
+            {/* วันที่จำหน่าย */}
+
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-slate-600">
+                วันที่จำหน่าย
+              </p>
+
+              <p className="mt-2 font-extrabold text-slate-900">
+                {asset.disposalDate
+                  ? asset.disposalDate.toLocaleDateString(
+                      "th-TH",
+                      {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      }
+                    )
+                  : "-"}
+              </p>
+            </div>
+
+            {/* สถานที่จำหน่าย */}
+
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-slate-600">
+                สถานที่จำหน่าย
+              </p>
+
+              <p className="mt-2 break-words font-extrabold text-slate-900">
+                {asset.disposalLocation ?? "-"}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

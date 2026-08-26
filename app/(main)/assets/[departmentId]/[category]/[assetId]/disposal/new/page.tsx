@@ -71,12 +71,38 @@ export default async function NewAssetDisposalPage({
       );
     }
 
+    const disposalDateValue = String(
+      formData.get("disposalDate") ?? ""
+    ).trim();
+
+    const disposalLocation = String(
+      formData.get("disposalLocation") ?? ""
+    ).trim();
+
+    if (!disposalDateValue) {
+      throw new Error("กรุณาระบุวันที่จำหน่าย");
+    }
+
+    if (!disposalLocation) {
+      throw new Error("กรุณาระบุสถานที่จำหน่าย");
+    }
+
+    const disposalDate = new Date(
+      `${disposalDateValue}T00:00:00`
+    );
+
+    if (Number.isNaN(disposalDate.getTime())) {
+      throw new Error("วันที่จำหน่ายไม่ถูกต้อง");
+    }
+
     await prisma.asset.update({
       where: {
         id: currentAsset.id,
       },
       data: {
         status: "DISPOSED",
+        disposalDate,
+        disposalLocation,
       },
     });
 
@@ -340,6 +366,92 @@ export default async function NewAssetDisposalPage({
         >
           <div
             className="
+              grid
+              gap-5
+              sm:grid-cols-2
+            "
+          >
+            {/* วันที่จำหน่าย */}
+
+            <div>
+              <label
+                htmlFor="disposalDate"
+                className="
+                  text-sm
+                  font-extrabold
+                  text-slate-700
+                "
+              >
+                วันที่จำหน่าย
+              </label>
+
+              <input
+                id="disposalDate"
+                name="disposalDate"
+                type="date"
+                required
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* สถานที่จำหน่าย */}
+
+            <div>
+              <label
+                htmlFor="disposalLocation"
+                className="
+                  text-sm
+                  font-extrabold
+                  text-slate-700
+                "
+              >
+                สถานที่จำหน่าย
+              </label>
+
+              <input
+                id="disposalLocation"
+                name="disposalLocation"
+                type="text"
+                required
+                placeholder="ระบุสถานที่จำหน่าย"
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+          </div>
+
+          <div
+            className="
+              mt-6
               flex
               flex-col
               gap-4
@@ -353,17 +465,15 @@ export default async function NewAssetDisposalPage({
               className="
                 w-full
                 rounded-xl
-                border
-                border-slate-400
-                bg-white
+                bg-slate-700
                 px-6
                 py-3
                 text-center
                 font-extrabold
-                text-slate-800
-                shadow-md
+                !text-white
+                shadow-lg
                 transition
-                hover:bg-slate-100
+                hover:bg-slate-800
                 sm:w-auto
               "
             >
