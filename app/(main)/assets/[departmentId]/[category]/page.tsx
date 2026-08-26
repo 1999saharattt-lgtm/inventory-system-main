@@ -315,8 +315,6 @@ export default async function AssetCategoryPage({
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
@@ -327,8 +325,6 @@ export default async function AssetCategoryPage({
               w-full
               min-w-[1100px]
               border-collapse
-              border
-              border-black
               text-sm
             "
           >
@@ -338,8 +334,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[6%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -358,8 +354,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -378,8 +374,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[14%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -398,8 +394,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -418,8 +414,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -438,8 +434,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[12%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -458,8 +454,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[10%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -478,8 +474,8 @@ export default async function AssetCategoryPage({
                   className="
                     w-[10%]
                     whitespace-nowrap
-                    border
-                    border-black
+                    border-b
+                    border-slate-700
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -496,7 +492,7 @@ export default async function AssetCategoryPage({
               </tr>
             </thead>
 
-            <tbody className="text-slate-900">
+            <tbody className="divide-y divide-slate-200 text-slate-900">
               {assets.map((asset, index) => (
                 <tr
                   key={asset.id}
@@ -508,8 +504,6 @@ export default async function AssetCategoryPage({
                 >
                   <td
                     className="
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -522,8 +516,6 @@ export default async function AssetCategoryPage({
 
                   <td
                     className="
-                      border
-                      border-black
                       px-4
                       py-3
                       font-extrabold
@@ -546,8 +538,6 @@ export default async function AssetCategoryPage({
                   <td
                     className="
                       break-all
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -561,8 +551,6 @@ export default async function AssetCategoryPage({
                   <td
                     className="
                       break-all
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -576,8 +564,6 @@ export default async function AssetCategoryPage({
                   <td
                     className="
                       break-words
-                      border
-                      border-black
                       px-4
                       py-3
                       font-extrabold
@@ -592,8 +578,6 @@ export default async function AssetCategoryPage({
                   <td
                     className="
                       break-words
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -606,8 +590,6 @@ export default async function AssetCategoryPage({
 
                   <td
                     className="
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -635,8 +617,6 @@ export default async function AssetCategoryPage({
 
                   <td
                     className="
-                      border
-                      border-black
                       px-4
                       py-3
                       text-center
@@ -670,8 +650,6 @@ export default async function AssetCategoryPage({
                   <td
                     colSpan={8}
                     className="
-                      border
-                      border-black
                       py-12
                       text-center
                       text-lg
