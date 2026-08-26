@@ -16,26 +16,44 @@ type Section = {
 
 type Props = {
   sections: Section[];
+  officers: Officer[];
+  departmentName: string;
   defaultSectionId?: number | null;
   locked?: boolean;
 };
 
 export default function AssetResponsibleFields({
   sections,
+  officers: departmentOfficers,
+  departmentName,
   defaultSectionId,
   locked = false,
 }: Props) {
-  // ตั้งค่าเริ่มต้นจาก defaultSectionId (ถ้ามี)
+  // =====================================================
+  // กำหนดกลุ่มงานเริ่มต้น
+  //
+  // ถ้าหน่วยงานไม่มี section
+  // จะใช้ชื่อหน่วยงานเป็นกลุ่มงานอัตโนมัติ
+  // =====================================================
+
   const [sectionId, setSectionId] = useState(
-    defaultSectionId ? String(defaultSectionId) : ""
+    defaultSectionId !== null &&
+      defaultSectionId !== undefined
+      ? String(defaultSectionId)
+      : ""
   );
+
   const [officerId, setOfficerId] = useState("");
 
   const selectedSection = sections.find(
     (section) => String(section.id) === sectionId
   );
 
-  const officers = selectedSection?.officers ?? [];
+  // ถ้ามี section → ใช้เจ้าหน้าที่ของ section
+  // ถ้าไม่มี section → ใช้เจ้าหน้าที่ของ department
+  const officers = selectedSection?.officers ?? departmentOfficers;
+
+  const hasSections = sections.length > 0;
 
   function handleSectionChange(
     event: React.ChangeEvent<HTMLSelectElement>
@@ -44,7 +62,8 @@ export default function AssetResponsibleFields({
 
     setSectionId(value);
 
-    // เมื่อเปลี่ยนกลุ่มงาน ให้ล้างผู้ครอบครองเดิม
+    // เมื่อเปลี่ยนกลุ่มงาน
+    // ให้ล้างผู้ครอบครองเดิม
     setOfficerId("");
   }
 
@@ -73,45 +92,74 @@ export default function AssetResponsibleFields({
           กลุ่มงาน
         </label>
 
-        <select
-          id="sectionId"
-          name="sectionId"
-          value={sectionId}
-          onChange={handleSectionChange}
-          disabled={locked}
-          className="
-            mt-2
-            w-full
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
-            font-semibold
-            text-slate-900
-            outline-none
-            transition
-            disabled:cursor-not-allowed
-            disabled:bg-slate-200
-            focus:border-emerald-600
-            focus:ring-2
-            focus:ring-emerald-200
-          "
-        >
-          <option value="">
-            -- ไม่ระบุ --
-          </option>
-
-          {sections.map((section) => (
-            <option
-              key={section.id}
-              value={section.id}
-            >
-              {section.name}
+        {hasSections ? (
+          <select
+            id="sectionId"
+            name="sectionId"
+            value={sectionId}
+            onChange={handleSectionChange}
+            disabled={locked}
+            className="
+              mt-2
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
+              outline-none
+              transition
+              disabled:cursor-not-allowed
+              disabled:bg-slate-200
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
+            "
+          >
+            <option value="">
+              -- ไม่ระบุ --
             </option>
-          ))}
-        </select>
+
+            {sections.map((section) => (
+              <option
+                key={section.id}
+                value={section.id}
+              >
+                {section.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <>
+            <input
+              type="text"
+              value={departmentName}
+              readOnly
+              className="
+                mt-2
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-slate-200
+                px-4
+                py-3
+                font-semibold
+                text-slate-900
+                outline-none
+              "
+            />
+
+            <input
+              type="hidden"
+              name="sectionId"
+              value=""
+            />
+          </>
+        )}
       </div>
 
       {/* =====================================================
@@ -136,7 +184,10 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={handleOfficerChange}
-          disabled={locked || !sectionId}
+          disabled={
+            locked ||
+            (hasSections && !sectionId)
+          }
           className="
             mt-2
             w-full
@@ -158,8 +209,12 @@ export default function AssetResponsibleFields({
           "
         >
           <option value="">
-            {!sectionId
-              ? "-- เลือกกลุ่มงานก่อน --"
+            {hasSections
+              ? !sectionId
+                ? "-- เลือกกลุ่มงานก่อน --"
+                : officers.length === 0
+                  ? "-- ไม่พบผู้ครอบครอง --"
+                  : "-- ไม่ระบุ --"
               : officers.length === 0
                 ? "-- ไม่พบผู้ครอบครอง --"
                 : "-- ไม่ระบุ --"}
@@ -183,7 +238,9 @@ export default function AssetResponsibleFields({
             !text-slate-400
           "
         >
-          แสดงเฉพาะบุคลากรของกลุ่มงานที่เลือก
+          {hasSections
+            ? "แสดงเฉพาะบุคลากรของกลุ่มงานที่เลือก"
+            : "แสดงเฉพาะบุคลากรของหน่วยงานที่เลือก"}
         </p>
       </div>
     </>

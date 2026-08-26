@@ -105,40 +105,6 @@ export default async function NewAssetPage({
         })
       : null;
 
-  if (
-    user.role === "STAFF" &&
-    (!currentUser ||
-      currentUser.departmentId !== departmentIdNumber ||
-      !currentUser.sectionId)
-  ) {
-    redirect("/");
-  }
-
-  // =====================================================
-  // กำหนดกลุ่มงานเริ่มต้น
-  //
-  // ADMIN:
-  // ใช้ sectionId จาก URL ถ้ามี
-  //
-  // STAFF:
-  // ใช้ sectionId ของบัญชีตัวเองเท่านั้น
-  // =====================================================
-
-  let defaultSectionId: number | null = null;
-
-  if (user.role === "STAFF") {
-    defaultSectionId = currentUser?.sectionId ?? null;
-  } else if (sectionIdParam) {
-    const parsedSectionId = Number(sectionIdParam);
-
-    if (
-      Number.isInteger(parsedSectionId) &&
-      parsedSectionId > 0
-    ) {
-      defaultSectionId = parsedSectionId;
-    }
-  }
-
   // =====================================================
   // ดึงหน่วยงาน + กลุ่มงาน + เจ้าหน้าที่
   // =====================================================
@@ -173,9 +139,73 @@ export default async function NewAssetPage({
   }
 
   // =====================================================
+  // ตรวจสอบว่าหน่วยงานนี้มี section หรือไม่
+  //
+  // บางหน่วยงานไม่มี section
+  // กรณีนี้ sectionId ต้องสามารถเป็น null ได้
+  // =====================================================
+
+  const hasSections = department.sections.length > 0;
+
+  // =====================================================
+  // ตรวจสอบสิทธิ์ STAFF
+  //
+  // ถ้าหน่วยงานมี section:
+  // STAFF ต้องมี section ของตัวเอง
+  //
+  // ถ้าหน่วยงานไม่มี section:
+  // STAFF ไม่ต้องมี sectionId
+  // =====================================================
+
+  if (user.role === "STAFF") {
+    if (!currentUser) {
+      redirect("/");
+    }
+
+    if (currentUser.departmentId !== departmentIdNumber) {
+      redirect("/");
+    }
+
+    if (hasSections && !currentUser.sectionId) {
+      redirect("/");
+    }
+  }
+
+  // =====================================================
+  // กำหนดกลุ่มงานเริ่มต้น
+  //
+  // ADMIN:
+  // ใช้ sectionId จาก URL ถ้ามี
+  //
+  // STAFF:
+  // ถ้าหน่วยงานมี section ให้ใช้ sectionId ของตัวเอง
+  // ถ้าหน่วยงานไม่มี section ให้เป็น null
+  // =====================================================
+
+  let defaultSectionId: number | null = null;
+
+  if (hasSections) {
+    if (user.role === "STAFF") {
+      defaultSectionId = currentUser?.sectionId ?? null;
+    } else if (sectionIdParam) {
+      const parsedSectionId = Number(sectionIdParam);
+
+      if (
+        Number.isInteger(parsedSectionId) &&
+        parsedSectionId > 0
+      ) {
+        defaultSectionId = parsedSectionId;
+      }
+    }
+  }
+
+  // =====================================================
   // ตรวจสอบ sectionId ที่ถูกส่งเข้ามา
   //
   // ต้องเป็นกลุ่มงานของหน่วยงานนี้เท่านั้น
+  //
+  // ถ้าหน่วยงานไม่มี section:
+  // sectionId ต้องเป็น null
   // =====================================================
 
   if (defaultSectionId !== null) {
@@ -262,33 +292,88 @@ export default async function NewAssetPage({
       );
     }
 
-    const sectionId = sectionIdRaw
-      ? Number(sectionIdRaw)
-      : null;
+    // =====================================================
+    // ตรวจสอบว่าหน่วยงานมี section หรือไม่
+    //
+    // ดึงข้อมูลจริงจากฐานข้อมูลอีกครั้งภายใน Server Action
+    // เพื่อไม่เชื่อค่าจากหน้าเว็บ
+    // =====================================================
+
+    const targetDepartment =
+      await prisma.department.findUnique({
+        where: {
+          id: departmentIdNumber,
+        },
+        select: {
+          id: true,
+          sections: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    if (!targetDepartment) {
+      throw new Error(
+        "ไม่พบหน่วยงานที่เลือก"
+      );
+    }
+
+    const hasTargetSections =
+      targetDepartment.sections.length > 0;
+
+    // =====================================================
+    // sectionId
+    //
+    // ถ้าหน่วยงานไม่มี section:
+    // บังคับให้เป็น null
+    // =====================================================
+
+    let sectionId: number | null = null;
+
+    if (hasTargetSections) {
+      sectionId = sectionIdRaw
+        ? Number(sectionIdRaw)
+        : null;
+
+      if (
+        sectionId !== null &&
+        !Number.isInteger(sectionId)
+      ) {
+        throw new Error(
+          "กลุ่มงานไม่ถูกต้อง"
+        );
+      }
+    }
+
+    // =====================================================
+    // officerId
+    // =====================================================
 
     const officerId = officerIdRaw
       ? Number(officerIdRaw)
       : null;
 
     if (
-      sectionId !== null &&
-      !Number.isInteger(sectionId)
-    ) {
-      throw new Error("กลุ่มงานไม่ถูกต้อง");
-    }
-
-    if (
       officerId !== null &&
       !Number.isInteger(officerId)
     ) {
-      throw new Error("ผู้ครอบครองไม่ถูกต้อง");
+      throw new Error(
+        "ผู้ครอบครองไม่ถูกต้อง"
+      );
     }
 
     // =====================================================
     // STAFF ต้องใช้กลุ่มงานของตัวเองเท่านั้น
+    //
+    // ใช้เฉพาะกรณีหน่วยงานมี section
     // =====================================================
 
-    if (currentUser.role === "STAFF") {
+    if (
+      currentUser.role === "STAFF" &&
+      hasTargetSections
+    ) {
       const staffUser =
         await prisma.user.findUnique({
           where: {
@@ -320,6 +405,10 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบกลุ่มงาน
+    //
+    // ถ้าหน่วยงานไม่มี section:
+    // sectionId ต้องเป็น null อยู่แล้ว
+    // จึงไม่ต้องตรวจสอบ section
     // =====================================================
 
     if (sectionId !== null) {
@@ -341,6 +430,9 @@ export default async function NewAssetPage({
     // ตรวจสอบผู้ครอบครอง
     // ต้องอยู่หน่วยงานเดียวกัน
     // และถ้าเลือกกลุ่มงาน ต้องอยู่กลุ่มงานเดียวกัน
+    //
+    // ถ้าหน่วยงานไม่มี section:
+    // ตรวจเฉพาะ departmentId
     // =====================================================
 
     if (officerId !== null) {
@@ -881,10 +973,9 @@ export default async function NewAssetPage({
             >
               <AssetResponsibleFields
                 sections={department.sections}
+                departmentName={department.name}
                 defaultSectionId={defaultSectionId}
-                locked={
-                  user.role === "STAFF"
-                }
+                locked={user.role === "STAFF"}
               />
 
               <div>

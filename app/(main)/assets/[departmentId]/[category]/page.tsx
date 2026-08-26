@@ -89,7 +89,9 @@ export default async function AssetCategoryPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
       <div
         className="
@@ -175,7 +177,9 @@ export default async function AssetCategoryPage({
         </Link>
       </div>
 
-      {/* Search */}
+      {/* =====================================================
+          Search
+      ===================================================== */}
 
       <div
         className="
@@ -211,9 +215,16 @@ export default async function AssetCategoryPage({
               rounded-xl
               border
               border-slate-300
+              bg-white
               px-4
               py-3
-              text-black
+              font-semibold
+              text-slate-900
+              outline-none
+              transition
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
             "
           />
 
@@ -240,7 +251,9 @@ export default async function AssetCategoryPage({
         </form>
       </div>
 
-      {/* Toolbar Card */}
+      {/* =====================================================
+          Toolbar
+      ===================================================== */}
 
       <div
         className="
@@ -294,12 +307,16 @@ export default async function AssetCategoryPage({
         </Link>
       </div>
 
-      {/* ตาราง */}
+      {/* =====================================================
+          ตาราง
+      ===================================================== */}
 
       <div
         className="
           overflow-hidden
           rounded-2xl
+          border
+          border-black
           bg-white
           shadow-xl
         "
@@ -310,6 +327,8 @@ export default async function AssetCategoryPage({
               w-full
               min-w-[1100px]
               border-collapse
+              border
+              border-black
               text-sm
             "
           >
