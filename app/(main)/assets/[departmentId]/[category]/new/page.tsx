@@ -106,7 +106,7 @@ export default async function NewAssetPage({
       : null;
 
   // =====================================================
-  // ดึงหน่วยงาน + กลุ่มงาน + เจ้าหน้าที่
+  // ดึงหน่วยงาน + เจ้าหน้าที่ + กลุ่มงาน + เจ้าหน้าที่
   // =====================================================
 
   const department = await prisma.department.findUnique({
@@ -114,6 +114,16 @@ export default async function NewAssetPage({
       id: departmentIdNumber,
     },
     include: {
+      officers: {
+        orderBy: [
+          {
+            firstName: "asc",
+          },
+          {
+            lastName: "asc",
+          },
+        ],
+      },
       sections: {
         orderBy: {
           id: "asc",
@@ -973,6 +983,7 @@ export default async function NewAssetPage({
             >
               <AssetResponsibleFields
                 sections={department.sections}
+                officers={department.officers}
                 departmentName={department.name}
                 defaultSectionId={defaultSectionId}
                 locked={user.role === "STAFF"}
