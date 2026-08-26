@@ -180,7 +180,9 @@ export default async function AssetDetailPage({
             className="
               w-full
               rounded-xl
-              bg-white/10
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
               px-5
               py-2.5
               text-center
@@ -188,14 +190,14 @@ export default async function AssetDetailPage({
               font-extrabold
               !text-white
               shadow-lg
-              ring-1
-              ring-white/20
               transition
-              hover:bg-white/20
+              hover:scale-[1.02]
+              hover:from-emerald-700
+              hover:to-green-600
               sm:w-auto
             "
           >
-            ← กลับรายการ
+            ← กลับ
           </Link>
 
           <Link
@@ -236,8 +238,10 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-900
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           shadow-xl
         "
       >
@@ -268,14 +272,42 @@ export default async function AssetDetailPage({
             lg:grid-cols-3
           "
         >
+          {/* สถานะครุภัณฑ์ */}
+
+          <div className="min-w-0">
+            <p className="text-sm font-bold !text-slate-300">
+              สถานะครุภัณฑ์
+            </p>
+
+            <span
+              className={`
+                mt-2
+                inline-flex
+                w-fit
+                rounded-xl
+                border
+                px-4
+                py-2
+                text-sm
+                font-extrabold
+                ${
+                  statusClass[asset.status] ??
+                  "border-slate-300 bg-slate-100 text-slate-700"
+                }
+              `}
+            >
+              {statusName[asset.status] ?? asset.status}
+            </span>
+          </div>
+
           {/* ชื่อครุภัณฑ์ */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               รายการครุภัณฑ์
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+            <p className="mt-1 break-words text-lg font-extrabold !text-white">
               {asset.name}
             </p>
           </div>
@@ -283,11 +315,11 @@ export default async function AssetDetailPage({
           {/* ประเภท */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               ประเภท
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
+            <p className="mt-1 font-extrabold !text-white">
               {categoryName[asset.category] ?? asset.category}
             </p>
           </div>
@@ -295,11 +327,11 @@ export default async function AssetDetailPage({
           {/* ยี่ห้อ */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               ยี่ห้อ
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
+            <p className="mt-1 font-extrabold !text-white">
               {asset.brand ?? "-"}
             </p>
           </div>
@@ -307,11 +339,11 @@ export default async function AssetDetailPage({
           {/* รุ่น */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               รุ่น
             </p>
 
-            <p className="mt-1 break-words font-extrabold text-slate-900">
+            <p className="mt-1 break-words font-extrabold !text-white">
               {asset.model ?? "-"}
             </p>
           </div>
@@ -319,11 +351,11 @@ export default async function AssetDetailPage({
           {/* Serial Number */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               Serial Number
             </p>
 
-            <p className="mt-1 break-all font-extrabold text-slate-900">
+            <p className="mt-1 break-all font-extrabold !text-white">
               {asset.serialNumber ?? "-"}
             </p>
           </div>
@@ -331,11 +363,11 @@ export default async function AssetDetailPage({
           {/* เลขครุภัณฑ์กรม */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์กรม
             </p>
 
-            <p className="mt-1 break-all font-extrabold text-slate-900">
+            <p className="mt-1 break-all font-extrabold !text-white">
               {asset.governmentAssetNo ?? "-"}
             </p>
           </div>
@@ -343,49 +375,12 @@ export default async function AssetDetailPage({
           {/* เลขครุภัณฑ์ประจำสำนัก */}
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์ประจำสำนัก
             </p>
 
-            <p className="mt-1 break-all font-extrabold text-slate-900">
+            <p className="mt-1 break-all font-extrabold !text-white">
               {asset.officeAssetNo ?? "-"}
-            </p>
-          </div>
-
-          {/* วันที่จัดซื้อ */}
-
-          <div>
-            <p className="text-sm font-bold text-slate-500">
-              วันที่จัดซื้อ
-            </p>
-
-            <p className="mt-1 font-extrabold text-slate-900">
-              {asset.purchaseDate
-                ? new Date(
-                    asset.purchaseDate
-                  ).toLocaleDateString("th-TH")
-                : "-"}
-            </p>
-          </div>
-
-          {/* ราคา */}
-
-          <div>
-            <p className="text-sm font-bold text-slate-500">
-              ราคาจัดซื้อ
-            </p>
-
-            <p className="mt-1 font-extrabold text-slate-900">
-              {asset.price !== null &&
-              asset.price !== undefined
-                ? `${Number(asset.price).toLocaleString(
-                    "th-TH",
-                    {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }
-                  )} บาท`
-                : "-"}
             </p>
           </div>
         </div>
@@ -402,8 +397,10 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-900
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           shadow-xl
         "
       >
@@ -434,31 +431,31 @@ export default async function AssetDetailPage({
           "
         >
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               หน่วยงาน
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+            <p className="mt-1 break-words text-lg font-extrabold !text-white">
               {asset.department.name}
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               กลุ่มงาน
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+            <p className="mt-1 break-words text-lg font-extrabold !text-white">
               {asset.section?.name ?? "-"}
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               ผู้ครอบครอง
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+            <p className="mt-1 break-words text-lg font-extrabold !text-white">
               {asset.officer
                 ? `${asset.officer.firstName} ${asset.officer.lastName}`
                 : "ยังไม่ได้ระบุผู้ครอบครอง"}
@@ -466,73 +463,14 @@ export default async function AssetDetailPage({
           </div>
 
           <div>
-            <p className="text-sm font-bold text-slate-500">
+            <p className="text-sm font-bold !text-slate-300">
               ตำแหน่ง
             </p>
 
-            <p className="mt-1 break-words font-extrabold text-slate-900">
+            <p className="mt-1 break-words font-extrabold !text-white">
               {asset.officer?.position ?? "-"}
             </p>
           </div>
-
-          <div className="sm:col-span-2">
-            <p className="text-sm font-bold text-slate-500">
-              สถานที่ตั้ง
-            </p>
-
-            <p className="mt-1 break-words font-extrabold text-slate-900">
-              {asset.location ?? "-"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* =====================================================
-          สถานะครุภัณฑ์
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-xl
-          sm:p-6
-        "
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-bold text-slate-500">
-              สถานะครุภัณฑ์
-            </p>
-
-            <p className="mt-1 text-lg font-extrabold text-slate-900">
-              สถานะที่ควบคุมโดย Admin
-            </p>
-          </div>
-
-          <span
-            className={`
-              inline-flex
-              w-fit
-              rounded-xl
-              border
-              px-5
-              py-2.5
-              text-sm
-              font-extrabold
-              ${
-                statusClass[asset.status] ??
-                "border-slate-300 bg-slate-100 text-slate-700"
-              }
-            `}
-          >
-            {statusName[asset.status] ?? asset.status}
-          </span>
         </div>
       </div>
 
@@ -547,8 +485,10 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-900
+          bg-gradient-to-br
+          from-slate-900
+          to-slate-800
           shadow-xl
         "
       >
@@ -602,22 +542,22 @@ export default async function AssetDetailPage({
           {latestInspection ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-sm font-bold text-slate-500">
+                <p className="text-sm font-bold !text-slate-300">
                   รอบการตรวจ
                 </p>
 
-                <p className="mt-1 font-extrabold text-slate-900">
+                <p className="mt-1 font-extrabold !text-white">
                   ปี {latestInspection.year} /{" "}
                   {latestInspection.quarter}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm font-bold text-slate-500">
+                <p className="text-sm font-bold !text-slate-300">
                   วันที่ตรวจ
                 </p>
 
-                <p className="mt-1 font-extrabold text-slate-900">
+                <p className="mt-1 font-extrabold !text-white">
                   {new Date(
                     latestInspection.inspectionDate
                   ).toLocaleDateString("th-TH")}
@@ -625,7 +565,7 @@ export default async function AssetDetailPage({
               </div>
 
               <div>
-                <p className="text-sm font-bold text-slate-500">
+                <p className="text-sm font-bold !text-slate-300">
                   ผลการตรวจ
                 </p>
 
@@ -654,22 +594,22 @@ export default async function AssetDetailPage({
               </div>
 
               <div>
-                <p className="text-sm font-bold text-slate-500">
+                <p className="text-sm font-bold !text-slate-300">
                   ผู้ตรวจ
                 </p>
 
-                <p className="mt-1 break-words font-extrabold text-slate-900">
+                <p className="mt-1 break-words font-extrabold !text-white">
                   {latestInspection.inspectorName ?? "-"}
                 </p>
               </div>
 
               {latestInspection.condition && (
                 <div className="sm:col-span-2 lg:col-span-4">
-                  <p className="text-sm font-bold text-slate-500">
+                  <p className="text-sm font-bold !text-slate-300">
                     สภาพครุภัณฑ์
                   </p>
 
-                  <p className="mt-1 break-words font-semibold text-slate-900">
+                  <p className="mt-1 break-words font-semibold !text-white">
                     {latestInspection.condition}
                   </p>
                 </div>
@@ -677,11 +617,11 @@ export default async function AssetDetailPage({
 
               {latestInspection.remark && (
                 <div className="sm:col-span-2 lg:col-span-4">
-                  <p className="text-sm font-bold text-slate-500">
+                  <p className="text-sm font-bold !text-slate-300">
                     หมายเหตุการตรวจ
                   </p>
 
-                  <p className="mt-1 break-words font-semibold text-slate-900">
+                  <p className="mt-1 break-words font-semibold !text-white">
                     {latestInspection.remark}
                   </p>
                 </div>
@@ -692,12 +632,12 @@ export default async function AssetDetailPage({
               className="
                 rounded-xl
                 border
-                border-slate-300
-                bg-slate-50
+                border-slate-700
+                bg-slate-800
                 p-8
                 text-center
                 font-semibold
-                text-slate-500
+                !text-slate-300
               "
             >
               ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
@@ -717,18 +657,20 @@ export default async function AssetDetailPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-900
+            to-slate-800
             p-4
-            shadow-lg
+            shadow-xl
             sm:p-6
           "
         >
-          <p className="text-sm font-bold text-slate-500">
+          <p className="text-sm font-bold !text-slate-300">
             หมายเหตุ
           </p>
 
-          <p className="mt-2 break-words font-semibold text-slate-900">
+          <p className="mt-2 break-words font-semibold !text-white">
             {asset.remark}
           </p>
         </div>
