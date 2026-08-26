@@ -315,8 +315,6 @@ export default async function AssetCategoryPage({
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-700
           bg-white
           shadow-xl
         "
@@ -507,6 +505,7 @@ export default async function AssetCategoryPage({
             <tbody className="text-slate-900">
               {assets.map((asset, index) => {
                 const isLastRow = index === assets.length - 1;
+
                 return (
                   <tr
                     key={asset.id}
