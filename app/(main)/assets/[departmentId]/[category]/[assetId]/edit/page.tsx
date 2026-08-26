@@ -75,9 +75,6 @@ export default async function EditAssetPage({
 
   // =====================================================
   // ดึงกลุ่มงานของหน่วยงาน
-  //
-  // หน่วยงานส่วนใหญ่ไม่มี section
-  // จึงปล่อยให้ผลลัพธ์เป็น [] ได้
   // =====================================================
 
   const sections = await prisma.section.findMany({
@@ -208,126 +205,22 @@ export default async function EditAssetPage({
         </Link>
       </div>
 
-      {/* =====================================================
-          Form
-      ===================================================== */}
-
       <form action={submitUpdate}>
-
-        {/* =====================================================
-            สถานะครุภัณฑ์
-        ===================================================== */}
-
-        <div
-          className="
-            w-full
-            min-w-0
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-300
-            bg-white
-            shadow-xl
-          "
-        >
-          <div
-            className="
-              border-b
-              border-slate-900
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-4
-              sm:px-6
-            "
-          >
-            <h2
-              className="
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              📌 สถานะครุภัณฑ์
-            </h2>
-          </div>
-
-          <div className="p-4 sm:p-6">
-            <label
-              htmlFor="status"
-              className="
-                text-sm
-                font-extrabold
-                text-slate-900
-              "
-            >
-              สถานะ
-            </label>
-
-            <select
-              id="status"
-              name="status"
-              defaultValue={asset.status}
-              className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
-                sm:max-w-md
-              "
-            >
-              <option value="IN_USE">
-                {statusName.IN_USE}
-              </option>
-
-              <option value="WAITING_DISPOSAL">
-                {statusName.WAITING_DISPOSAL}
-              </option>
-
-              <option value="DISPOSED">
-                {statusName.DISPOSED}
-              </option>
-            </select>
-
-            <p
-              className="
-                mt-2
-                text-sm
-                font-semibold
-                text-slate-600
-              "
-            >
-              สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
-            </p>
-          </div>
-        </div>
-
         {/* =====================================================
             ข้อมูลครุภัณฑ์
         ===================================================== */}
 
         <div
           className="
-            mt-4
             w-full
             min-w-0
             overflow-hidden
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-900
+            to-slate-800
             shadow-xl
           "
         >
@@ -365,26 +258,36 @@ export default async function EditAssetPage({
               lg:grid-cols-3
             "
           >
-            {/* รายการครุภัณฑ์ */}
+            {/* =================================================
+                สถานะครุภัณฑ์
+            ================================================= */}
 
-            <div className="min-w-0 lg:col-span-2">
+            <div
+              className="
+                min-w-0
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
-                htmlFor="name"
+                htmlFor="status"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
-                รายการครุภัณฑ์ *
+                สถานะครุภัณฑ์
               </label>
 
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                defaultValue={asset.name}
+              <select
+                id="status"
+                name="status"
+                defaultValue={asset.status}
                 className="
                   mt-2
                   w-full
@@ -397,23 +300,98 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
-                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
                 "
-              />
+              >
+                <option value="IN_USE">
+                  {statusName.IN_USE}
+                </option>
+
+                <option value="WAITING_DISPOSAL">
+                  {statusName.WAITING_DISPOSAL}
+                </option>
+
+                <option value="DISPOSED">
+                  {statusName.DISPOSED}
+                </option>
+              </select>
             </div>
 
-            {/* ประเภท */}
+            {/* =================================================
+                รายการครุภัณฑ์
+            ================================================= */}
 
-            <div>
+            <div className="min-w-0 lg:col-span-2">
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-4
+                  shadow-md
+                "
+              >
+                <label
+                  htmlFor="name"
+                  className="
+                    text-sm
+                    font-extrabold
+                    text-slate-700
+                  "
+                >
+                  รายการครุภัณฑ์ *
+                </label>
+
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  defaultValue={asset.name}
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    transition
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
+              </div>
+            </div>
+
+            {/* =================================================
+                ประเภท
+            ================================================= */}
+
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="category"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 ประเภท *
@@ -454,15 +432,26 @@ export default async function EditAssetPage({
               </select>
             </div>
 
-            {/* ยี่ห้อ */}
+            {/* =================================================
+                ยี่ห้อ
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="brand"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 ยี่ห้อ
@@ -493,15 +482,26 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* รุ่น */}
+            {/* =================================================
+                รุ่น
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="model"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 รุ่น
@@ -532,15 +532,26 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* Serial Number */}
+            {/* =================================================
+                Serial Number
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="serialNumber"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 Serial Number
@@ -571,15 +582,26 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* เลขครุภัณฑ์กรม */}
+            {/* =================================================
+                เลขครุภัณฑ์กรม
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="governmentAssetNo"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 เลขครุภัณฑ์กรม
@@ -612,15 +634,26 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* เลขครุภัณฑ์ประจำสำนัก */}
+            {/* =================================================
+                เลขครุภัณฑ์ประจำสำนัก
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="officeAssetNo"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 เลขครุภัณฑ์ประจำสำนัก
@@ -667,8 +700,10 @@ export default async function EditAssetPage({
             overflow-hidden
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-900
+            to-slate-800
             shadow-xl
           "
         >
@@ -705,14 +740,25 @@ export default async function EditAssetPage({
               sm:p-6
             "
           >
-            {/* หน่วยงาน */}
+            {/* =================================================
+                หน่วยงาน
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 หน่วยงาน
@@ -724,7 +770,7 @@ export default async function EditAssetPage({
                   rounded-xl
                   border
                   border-slate-300
-                  bg-white
+                  bg-slate-50
                   px-4
                   py-3
                   font-extrabold
@@ -741,16 +787,27 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* กลุ่มงาน */}
+            {/* =================================================
+                กลุ่มงาน
+            ================================================= */}
 
             {sections.length > 0 && (
-              <div>
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-4
+                  shadow-md
+                "
+              >
                 <label
                   htmlFor="sectionId"
                   className="
                     text-sm
                     font-extrabold
-                    text-slate-900
+                    text-slate-700
                   "
                 >
                   กลุ่มงาน
@@ -793,8 +850,6 @@ export default async function EditAssetPage({
               </div>
             )}
 
-            {/* เมื่อไม่มี section */}
-
             {sections.length === 0 && (
               <input
                 type="hidden"
@@ -803,15 +858,26 @@ export default async function EditAssetPage({
               />
             )}
 
-            {/* ผู้ครอบครอง */}
+            {/* =================================================
+                ผู้ครอบครอง
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 htmlFor="officerId"
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 ผู้ครอบครอง
@@ -860,21 +926,32 @@ export default async function EditAssetPage({
                   mt-2
                   text-sm
                   font-semibold
-                  text-slate-600
+                  text-slate-500
                 "
               >
                 รายชื่อผู้ครอบครองจะแสดงเฉพาะเจ้าหน้าที่ในหน่วยงานนี้
               </p>
             </div>
 
-            {/* ตำแหน่ง */}
+            {/* =================================================
+                ตำแหน่ง
+            ================================================= */}
 
-            <div>
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-4
+                shadow-md
+              "
+            >
               <label
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-900
+                  text-slate-700
                 "
               >
                 ตำแหน่ง
@@ -883,10 +960,11 @@ export default async function EditAssetPage({
               <div
                 className="
                   mt-2
+                  min-h-[48px]
                   rounded-xl
                   border
                   border-slate-300
-                  bg-white
+                  bg-slate-50
                   px-4
                   py-3
                   font-extrabold
@@ -895,17 +973,6 @@ export default async function EditAssetPage({
               >
                 {asset.officer?.position ?? "-"}
               </div>
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-600
-                "
-              >
-                ตำแหน่งจะอ้างอิงจากผู้ครอบครองที่เลือก
-              </p>
             </div>
           </div>
         </div>
@@ -922,8 +989,10 @@ export default async function EditAssetPage({
             overflow-hidden
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-900
+            bg-gradient-to-br
+            from-slate-900
+            to-slate-800
             shadow-xl
           "
         >
@@ -952,29 +1021,40 @@ export default async function EditAssetPage({
           </div>
 
           <div className="p-4 sm:p-6">
-            <textarea
-              id="remark"
-              name="remark"
-              rows={4}
-              defaultValue={asset.remark ?? ""}
+            <div
               className="
-                w-full
                 rounded-xl
                 border
                 border-slate-300
                 bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-                transition
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
+                p-4
+                shadow-md
               "
-              placeholder="ระบุรายละเอียดเพิ่มเติม"
-            />
+            >
+              <textarea
+                id="remark"
+                name="remark"
+                rows={4}
+                defaultValue={asset.remark ?? ""}
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+                placeholder="ระบุรายละเอียดเพิ่มเติม"
+              />
+            </div>
           </div>
         </div>
 
@@ -998,23 +1078,19 @@ export default async function EditAssetPage({
             className="
               w-full
               rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
+              bg-slate-700
               px-6
               py-3
               text-center
               font-extrabold
-              !text-white
+              text-white
               shadow-lg
               transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
+              hover:bg-slate-800
               sm:w-auto
             "
           >
-            ← กลับ
+            ยกเลิก
           </Link>
 
           <button
