@@ -315,6 +315,8 @@ export default async function AssetCategoryPage({
         className="
           overflow-hidden
           rounded-2xl
+          border
+          border-slate-700
           bg-white
           shadow-xl
         "
@@ -334,8 +336,10 @@ export default async function AssetCategoryPage({
                   className="
                     w-[6%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
+                    border-l-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -354,8 +358,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -374,8 +379,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[14%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -394,8 +400,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -414,8 +421,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[16%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -434,8 +442,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[12%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -454,8 +463,9 @@ export default async function AssetCategoryPage({
                   className="
                     w-[10%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -474,8 +484,10 @@ export default async function AssetCategoryPage({
                   className="
                     w-[10%]
                     whitespace-nowrap
-                    border-b
-                    border-slate-700
+                    border
+                    border-black
+                    border-t-0
+                    border-r-0
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -492,164 +504,194 @@ export default async function AssetCategoryPage({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-200 text-slate-900">
-              {assets.map((asset, index) => (
-                <tr
-                  key={asset.id}
-                  className="
-                    text-slate-900
-                    transition
-                    hover:bg-emerald-50
-                  "
-                >
-                  <td
+            <tbody className="text-slate-900">
+              {assets.map((asset, index) => {
+                const isLastRow = index === assets.length - 1;
+                return (
+                  <tr
+                    key={asset.id}
                     className="
-                      px-4
-                      py-3
-                      text-center
-                      font-extrabold
                       text-slate-900
+                      transition
+                      hover:bg-emerald-50
                     "
                   >
-                    {index + 1}
-                  </td>
-
-                  <td
-                    className="
-                      px-4
-                      py-3
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    <div className="font-extrabold">
-                      {asset.name}
-                    </div>
-
-                    {(asset.brand || asset.model) && (
-                      <div className="mt-1 text-xs font-semibold text-slate-500">
-                        {[asset.brand, asset.model]
-                          .filter(Boolean)
-                          .join(" / ")}
-                      </div>
-                    )}
-                  </td>
-
-                  <td
-                    className="
-                      break-all
-                      px-4
-                      py-3
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {asset.governmentAssetNo ?? "-"}
-                  </td>
-
-                  <td
-                    className="
-                      break-all
-                      px-4
-                      py-3
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {asset.officeAssetNo ?? "-"}
-                  </td>
-
-                  <td
-                    className="
-                      break-words
-                      px-4
-                      py-3
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {asset.officer
-                      ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                      : "-"}
-                  </td>
-
-                  <td
-                    className="
-                      break-words
-                      px-4
-                      py-3
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {asset.section?.name ?? "-"}
-                  </td>
-
-                  <td
-                    className="
-                      px-4
-                      py-3
-                      text-center
-                      font-extrabold
-                    "
-                  >
-                    {asset.status === "IN_USE" && (
-                      <span className="text-emerald-700">
-                        ยังใช้งาน
-                      </span>
-                    )}
-
-                    {asset.status === "WAITING_DISPOSAL" && (
-                      <span className="text-amber-700">
-                        รอจำหน่าย
-                      </span>
-                    )}
-
-                    {asset.status === "DISPOSED" && (
-                      <span className="text-red-700">
-                        จำหน่ายแล้ว
-                      </span>
-                    )}
-                  </td>
-
-                  <td
-                    className="
-                      px-4
-                      py-3
-                      text-center
-                    "
-                  >
-                    <Link
-                      href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
-                      className="
-                        whitespace-nowrap
-                        rounded-lg
-                        bg-gradient-to-r
-                        from-emerald-600
-                        to-green-500
+                    <td
+                      className={`
+                        border
+                        border-black
+                        border-l-0
+                        ${isLastRow ? "border-b-0" : ""}
                         px-4
-                        py-2
+                        py-3
+                        text-center
                         font-extrabold
-                        !text-white
-                        shadow
-                        transition
-                        hover:scale-105
-                      "
+                        text-slate-900
+                      `}
                     >
-                      ดูรายละเอียด
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                      {index + 1}
+                    </td>
+
+                    <td
+                      className={`
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        font-extrabold
+                        text-slate-900
+                      `}
+                    >
+                      <div className="font-extrabold">
+                        {asset.name}
+                      </div>
+
+                      {(asset.brand || asset.model) && (
+                        <div className="mt-1 text-xs font-semibold text-slate-500">
+                          {[asset.brand, asset.model]
+                            .filter(Boolean)
+                            .join(" / ")}
+                        </div>
+                      )}
+                    </td>
+
+                    <td
+                      className={`
+                        break-all
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      `}
+                    >
+                      {asset.governmentAssetNo ?? "-"}
+                    </td>
+
+                    <td
+                      className={`
+                        break-all
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      `}
+                    >
+                      {asset.officeAssetNo ?? "-"}
+                    </td>
+
+                    <td
+                      className={`
+                        break-words
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        font-extrabold
+                        text-slate-900
+                      `}
+                    >
+                      {asset.officer
+                        ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                        : "-"}
+                    </td>
+
+                    <td
+                      className={`
+                        break-words
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      `}
+                    >
+                      {asset.section?.name ?? "-"}
+                    </td>
+
+                    <td
+                      className={`
+                        border
+                        border-black
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        text-center
+                        font-extrabold
+                      `}
+                    >
+                      {asset.status === "IN_USE" && (
+                        <span className="text-emerald-700">
+                          ยังใช้งาน
+                        </span>
+                      )}
+
+                      {asset.status === "WAITING_DISPOSAL" && (
+                        <span className="text-amber-700">
+                          รอจำหน่าย
+                        </span>
+                      )}
+
+                      {asset.status === "DISPOSED" && (
+                        <span className="text-red-700">
+                          จำหน่ายแล้ว
+                        </span>
+                      )}
+                    </td>
+
+                    <td
+                      className={`
+                        border
+                        border-black
+                        border-r-0
+                        ${isLastRow ? "border-b-0" : ""}
+                        px-4
+                        py-3
+                        text-center
+                      `}
+                    >
+                      <Link
+                        href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
+                        className="
+                          whitespace-nowrap
+                          rounded-lg
+                          bg-gradient-to-r
+                          from-emerald-600
+                          to-green-500
+                          px-4
+                          py-2
+                          font-extrabold
+                          !text-white
+                          shadow
+                          transition
+                          hover:scale-105
+                        "
+                      >
+                        ดูรายละเอียด
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {assets.length === 0 && (
                 <tr>
                   <td
                     colSpan={8}
                     className="
+                      border-0
                       py-12
                       text-center
                       text-lg
