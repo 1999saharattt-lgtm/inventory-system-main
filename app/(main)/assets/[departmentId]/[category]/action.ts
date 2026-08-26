@@ -37,6 +37,18 @@ export async function updateAsset(
   const currentUser = await requireLogin();
 
   // =====================================================
+  // VIEWER
+  //
+  // ไม่มีสิทธิ์แก้ไขครุภัณฑ์
+  // =====================================================
+
+  if (currentUser.role === "VIEWER") {
+    throw new Error(
+      "ไม่มีสิทธิ์แก้ไขข้อมูลครุภัณฑ์"
+    );
+  }
+
+  // =====================================================
   // ตรวจสอบ asset เดิม
   // =====================================================
 
@@ -48,6 +60,7 @@ export async function updateAsset(
       id: true,
       departmentId: true,
       sectionId: true,
+      status: true,
     },
   });
 
@@ -132,13 +145,29 @@ export async function updateAsset(
     formData.get("location") ?? ""
   ).trim();
 
-  const status = String(
+  const statusFromForm = String(
     formData.get("status") ?? ""
   ).trim();
 
   const remark = String(
     formData.get("remark") ?? ""
   ).trim();
+
+  // =====================================================
+  // สถานะ
+  //
+  // ADMIN
+  // → สามารถเปลี่ยนสถานะได้
+  //
+  // STAFF
+  // → ไม่สามารถเปลี่ยนสถานะจากหน้าแก้ไข
+  // → ใช้สถานะเดิมจากฐานข้อมูล
+  // =====================================================
+
+  const status =
+    currentUser.role === "ADMIN"
+      ? statusFromForm
+      : asset.status;
 
   // =====================================================
   // ตรวจสอบข้อมูลพื้นฐาน
@@ -302,6 +331,22 @@ export async function updateAsset(
     ) {
       throw new Error(
         "ไม่สามารถเลือกกลุ่มงานอื่นได้"
+      );
+    }
+
+    // ===================================================
+    // STAFF
+    //
+    // ป้องกันการแก้ไข section ของครุภัณฑ์
+    // ที่ไม่ได้อยู่ในกลุ่มงานของตัวเอง
+    // ===================================================
+
+    if (
+      asset.sectionId !== null &&
+      asset.sectionId !== staffUser.sectionId
+    ) {
+      throw new Error(
+        "ไม่มีสิทธิ์แก้ไขครุภัณฑ์ของกลุ่มงานนี้"
       );
     }
   }

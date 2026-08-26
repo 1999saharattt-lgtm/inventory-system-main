@@ -56,9 +56,18 @@ enum AssetCategory {
   OTHER
 }
 
-// สถานะครุภัณฑ์ที่ Admin เป็นผู้ควบคุม
+// สถานะครุภัณฑ์
+//
+// IN_USE            = ใช้งานได้ปกติ
+// DAMAGED           = ชำรุด
+// WAITING_DISPOSAL  = รอจำหน่าย
+// DISPOSED          = จำหน่ายแล้ว
+//
+// Admin และ STAFF ของกลุ่มงานที่รับผิดชอบ
+// สามารถเปลี่ยนสถานะได้ตามสิทธิ์ที่กำหนดในระบบ
 enum AssetStatus {
   IN_USE
+  DAMAGED
   WAITING_DISPOSAL
   DISPOSED
 }
@@ -433,7 +442,6 @@ model Asset {
   // สถานะครุภัณฑ์
   // ======================
 
-  // Admin เป็นผู้ควบคุมสถานะหลัก
   status AssetStatus @default(IN_USE)
 
   // ======================
@@ -447,6 +455,18 @@ model Asset {
   location String?
 
   remark String?
+
+  // ======================
+  // ข้อมูลการจำหน่าย
+  // ======================
+  //
+  // ใช้เฉพาะเมื่อ status = DISPOSED
+  // ข้อมูลเดิมที่ยังไม่เคยจำหน่ายจะเป็น null
+  //
+
+  disposalLocation String?
+
+  disposalDate DateTime?
 
   createdAt DateTime @default(now())
 
