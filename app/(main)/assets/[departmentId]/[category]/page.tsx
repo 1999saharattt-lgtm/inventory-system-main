@@ -453,7 +453,7 @@ export default async function AssetCategoryPage({
                     py-4
                     text-center
                     text-lg
-                    font-extrab-bold
+                    font-extrabold
                     !text-white
                   "
                 >
@@ -639,18 +639,23 @@ export default async function AssetCategoryPage({
                       <Link
                         href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
                         className="
+                          inline-block
                           whitespace-nowrap
-                          rounded-lg
+                          rounded-xl
                           bg-gradient-to-r
-                          from-emerald-600
-                          to-green-500
+                          from-slate-950
+                          via-slate-800
+                          to-slate-700
                           px-4
                           py-2
                           font-extrabold
                           !text-white
-                          shadow
+                          shadow-lg
                           transition
                           hover:scale-105
+                          hover:from-slate-900
+                          hover:via-slate-700
+                          hover:to-slate-600
                         "
                       >
                         ดูรายละเอียด
