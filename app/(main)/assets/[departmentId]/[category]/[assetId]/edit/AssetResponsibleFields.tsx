@@ -33,15 +33,11 @@ departmentName,
 departmentId,
 }: Props) {
 const [sectionId, setSectionId] = useState<string>(
-initialSectionId !== null
-? String(initialSectionId)
-: ""
+initialSectionId !== null ? String(initialSectionId) : ""
 );
 
 const [officerId, setOfficerId] = useState<string>(
-initialOfficerId !== null
-? String(initialOfficerId)
-: ""
+initialOfficerId !== null ? String(initialOfficerId) : ""
 );
 
 const filteredOfficers = useMemo(() => {
@@ -62,8 +58,7 @@ const selectedSectionId = Number(sectionId);
 // หน่วยงานมี section
 // แสดงเฉพาะเจ้าหน้าที่ในกลุ่มงานที่เลือก
 return officers.filter(
-  (officer) =>
-    officer.sectionId === selectedSectionId
+  (officer) => officer.sectionId === selectedSectionId
 );
 
 
@@ -77,8 +72,7 @@ return null;
 
 return (
   officers.find(
-    (officer) =>
-      officer.id === Number(officerId)
+    (officer) => officer.id === Number(officerId)
   ) ?? null
 );
 
@@ -97,8 +91,7 @@ if (!value) {
 const selectedSectionId = Number(value);
 
 const currentOfficer = officers.find(
-  (officer) =>
-    officer.id === Number(officerId)
+  (officer) => officer.id === Number(officerId)
 );
 
 // ถ้าผู้ครอบครองเดิมอยู่ในกลุ่มงานใหม่
@@ -124,6 +117,7 @@ setOfficerId(value);
 return ( <div
    className="
      grid
+     items-stretch
      gap-4
      pt-4
      sm:grid-cols-2
@@ -196,9 +190,7 @@ return ( <div
         name="sectionId"
         value={sectionId}
         onChange={(event) =>
-          handleSectionChange(
-            event.target.value
-          )
+          handleSectionChange(event.target.value)
         }
         className="
           mt-2
@@ -262,14 +254,9 @@ return ( <div
       name="officerId"
       value={officerId}
       onChange={(event) =>
-        handleOfficerChange(
-          event.target.value
-        )
+        handleOfficerChange(event.target.value)
       }
-      disabled={
-        sections.length > 0 &&
-        !sectionId
-      }
+      disabled={sections.length > 0 && !sectionId}
       className="
         mt-2
         min-h-[50px]
@@ -295,17 +282,14 @@ return ( <div
         -- ยังไม่ได้ระบุผู้ครอบครอง --
       </option>
 
-      {filteredOfficers.map(
-        (officer) => (
-          <option
-            key={officer.id}
-            value={officer.id}
-          >
-            {officer.firstName}{" "}
-            {officer.lastName}
-          </option>
-        )
-      )}
+      {filteredOfficers.map((officer) => (
+        <option
+          key={officer.id}
+          value={officer.id}
+        >
+          {officer.firstName} {officer.lastName}
+        </option>
+      ))}
     </select>
 
     <p
@@ -371,6 +355,7 @@ return ( <div
       ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
     </p>
   </div>
+</div>
 
 
 );
