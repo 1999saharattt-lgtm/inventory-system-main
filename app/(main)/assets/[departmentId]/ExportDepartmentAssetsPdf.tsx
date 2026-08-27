@@ -2,7 +2,7 @@
 
 import "@/lib/fonts/THSarabunNew-normal";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -63,6 +63,7 @@ const statusName: Record<string, string> = {
 
 /* =========================================================
    ปีงบประมาณราชการ
+   ต.ค. - ก.ย.
    ========================================================= */
 
 function getFiscalYear(date: Date) {
@@ -111,13 +112,29 @@ export default function ExportDepartmentAssetsPdf({
   const [isExporting, setIsExporting] = useState(false);
 
   /*
-   * จำนวนรายการต่อหน้า
+   * A4 แนวนอน
    *
-   * ใช้ขนาดฟ้อนและความสูงแถวตามมาตรฐาน
-   * จากไฟล์ ExportPdf ที่ผู้ใช้กำหนด
+   * 297 x 210 mm
    */
 
-  const rowsPerPage = 10;
+  const pageWidth = 297;
+
+  /*
+   * ตารางกว้าง 270 mm
+   * เพื่อให้มีพื้นที่ขอบซ้าย/ขวา
+   * และอยู่กึ่งกลางหน้า A4
+   */
+
+  const tableWidth = 270;
+
+  const marginX =
+    (pageWidth - tableWidth) / 2;
+
+  /*
+   * 20 รายการต่อหน้า
+   */
+
+  const rowsPerPage = 20;
 
   /* =========================================================
      Export PDF
@@ -131,6 +148,11 @@ export default function ExportDepartmentAssetsPdf({
     try {
       setIsExporting(true);
 
+      /*
+       * คำนวณรอบไตรมาสและปีงบประมาณ
+       * ใหม่ทุกครั้งที่กด Export
+       */
+
       const currentDate = new Date();
 
       const currentQuarter =
@@ -143,6 +165,7 @@ export default function ExportDepartmentAssetsPdf({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
+        compress: true,
       });
 
       doc.setFont(
@@ -150,14 +173,9 @@ export default function ExportDepartmentAssetsPdf({
         "normal"
       );
 
-      const pageWidth =
-        doc.internal.pageSize.getWidth();
-
-      const center = pageWidth / 2;
-
-      /* =====================================================
-         แบ่งข้อมูลเป็นหน้า
-         ===================================================== */
+      /*
+       * แบ่งข้อมูลเป็นชุดละ 20 รายการ
+       */
 
       const pages: Asset[][] = [];
 
@@ -178,37 +196,46 @@ export default function ExportDepartmentAssetsPdf({
         pages.push([]);
       }
 
-      /* =====================================================
-         สร้างแต่ละหน้า
-         ===================================================== */
-
       pages.forEach(
         (pageAssets, pageIndex) => {
           if (pageIndex > 0) {
-            doc.addPage();
+            doc.addPage(
+              "a4",
+              "landscape"
+            );
           }
 
-          /* ===============================================
+          /* =================================================
              HEADER
-             =============================================== */
+             ================================================= */
+
+          const center =
+            pageWidth / 2;
+
+          /*
+           * หัวเรื่อง
+           */
 
           doc.setFontSize(26);
 
           doc.text(
             "ทะเบียนคุมครุภัณฑ์",
             center,
-            16,
+            15,
             {
               align: "center",
             }
           );
 
+          /*
+           * กลุ่มงาน + สำนักอนามัยการเจริญพันธุ์
+           * ให้อยู่บรรทัดเดียวกัน
+           */
+
           doc.setFontSize(16);
 
           doc.text(
-            departmentName
-              ? departmentName
-              : "กลุ่มอำนวยการ",
+            `${departmentName} สำนักอนามัยการเจริญพันธุ์`,
             center,
             23,
             {
@@ -216,27 +243,22 @@ export default function ExportDepartmentAssetsPdf({
             }
           );
 
-          doc.text(
-            "สำนักอนามัยการเจริญพันธุ์",
-            center,
-            30,
-            {
-              align: "center",
-            }
-          );
+          /*
+           * รอบไตรมาส + ปีงบประมาณ
+           */
 
           doc.text(
             `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
             center,
-            37,
+            31,
             {
               align: "center",
             }
           );
 
-          /* ===============================================
+          /* =================================================
              TABLE DATA
-             =============================================== */
+             ================================================= */
 
           const body = pageAssets.map(
             (asset, index) => {
@@ -246,37 +268,61 @@ export default function ExportDepartmentAssetsPdf({
                 index;
 
               return [
-                // ลำดับ
+                /*
+                 * ลำดับ
+                 */
+
                 globalIndex + 1,
 
-                // ประเภท
+                /*
+                 * ประเภท
+                 */
+
                 categoryName[
                   asset.category
                 ] ?? asset.category,
 
-                // รหัส GFMIS
+                /*
+                 * รหัส GFMIS
+                 */
+
                 asset.governmentAssetNo ??
                   "-",
 
-                // รหัสครุภัณฑ์
+                /*
+                 * รหัสครุภัณฑ์
+                 */
+
                 asset.officeAssetNo ??
                   "-",
 
-                // รายการครุภัณฑ์
+                /*
+                 * รายการครุภัณฑ์
+                 */
+
                 asset.name || "-",
 
-                // หน่วย
+                /*
+                 * หน่วย
+                 */
+
                 categoryUnit[
                   asset.category
                 ] ?? "รายการ",
 
-                // ผู้รับผิดชอบ
+                /*
+                 * ผู้รับผิดชอบ
+                 */
+
                 asset.officerName ??
                   asset.sectionName ??
                   asset.departmentName ??
                   "-",
 
-                // สถานะ
+                /*
+                 * สถานะ
+                 */
+
                 statusName[
                   asset.status
                 ] ?? asset.status,
@@ -284,11 +330,14 @@ export default function ExportDepartmentAssetsPdf({
             }
           );
 
-          /* ===============================================
-             เติมแถวเปล่าให้ครบ 10 แถว
-             =============================================== */
+          /*
+           * เติมแถวว่างให้ครบ 20 แถว
+           */
 
-          while (body.length < rowsPerPage) {
+          while (
+            body.length <
+            rowsPerPage
+          ) {
             body.push([
               "",
               "",
@@ -301,12 +350,28 @@ export default function ExportDepartmentAssetsPdf({
             ]);
           }
 
-          /* ===============================================
+          /* =================================================
              TABLE
-             =============================================== */
+             ================================================= */
 
           autoTable(doc, {
-            startY: 43,
+            /*
+             * ตารางเริ่มใต้หัวกระดาษ
+             */
+
+            startY: 37,
+
+            /*
+             * ตารางกว้าง 270 mm
+             * อยู่กึ่งกลาง A4
+             */
+
+            margin: {
+              left: marginX,
+              right: marginX,
+            },
+
+            tableWidth,
 
             head: [
               [
@@ -323,30 +388,38 @@ export default function ExportDepartmentAssetsPdf({
 
             body,
 
+            /*
+             * ตารางมีเส้นสีดำแบบเดิม
+             */
+
             theme: "grid",
+
+            /* =================================================
+               รูปแบบตาราง
+               ================================================= */
 
             styles: {
               font: "2.3.2 THSarabunNew",
               fontStyle: "normal",
-              fontSize: 16,
 
               /*
-               * ขนาดและระยะห่างอิงจากไฟล์มาตรฐาน
+               * ฟ้อนตาราง 14 pt
                */
 
-              cellPadding: 2.5,
+              fontSize: 14,
 
               /*
-               * ให้ข้อความอยู่กึ่งกลางแนวตั้ง
+               * ระยะห่างภายในช่อง
                */
 
-              valign: "middle",
+              cellPadding: 1.2,
 
               /*
-               * ค่าเริ่มต้นกึ่งกลาง
+               * กึ่งกลางทั้งแนวนอนและแนวตั้ง
                */
 
               halign: "center",
+              valign: "middle",
 
               /*
                * เส้นตารางสีดำ
@@ -356,128 +429,183 @@ export default function ExportDepartmentAssetsPdf({
               lineWidth: 0.25,
 
               /*
-               * ความสูงขั้นต่ำของแต่ละแถว
+               * ความสูงแถว
                */
 
-              minCellHeight: 8,
+              minCellHeight: 6.5,
 
               /*
-               * ป้องกันการบีบข้อความ
-               * ให้พื้นที่ข้อความมีขนาดเหมาะสม
+               * ไม่ให้ข้อความตกหลายบรรทัด
+               * หากยาวเกินช่องให้ย่อท้ายด้วย ...
                */
 
-              overflow: "visible",
+              overflow: "ellipsize",
+
+              /*
+               * สีตัวอักษร
+               */
+
+              textColor: 0,
             },
+
+            /* =================================================
+               หัวตาราง
+               ================================================= */
 
             headStyles: {
               font: "2.3.2 THSarabunNew",
               fontStyle: "normal",
 
               /*
-               * ขนาดฟ้อนหัวตาราง
+               * ฟ้อนหัวตาราง 14 pt
                */
 
-              fontSize: 16,
+              fontSize: 14,
 
               /*
-               * พื้นหัวตารางสีขาว
+               * พื้นหลังสีขาว
                */
 
               fillColor: [255, 255, 255],
 
               /*
-               * บังคับฟ้อนเป็นสีดำ
+               * บังคับฟ้อนหัวตารางเป็นสีดำ
                */
 
-              textColor: 0,
+              textColor: [0, 0, 0],
 
               /*
-               * จัดกึ่งกลางทั้งแนวนอนและแนวตั้ง
+               * กึ่งกลางแนวนอน
+               * และกึ่งกลางแนวตั้ง
                */
 
               halign: "center",
               valign: "middle",
 
               /*
-               * เส้นตารางสีดำ
+               * เส้นสีดำ
                */
 
               lineColor: [0, 0, 0],
               lineWidth: 0.25,
 
               /*
-               * เพิ่มพื้นที่หัวตาราง
+               * ระยะห่างภายในหัวตาราง
                */
 
-              cellPadding: 2.5,
+              cellPadding: 1.5,
+
+              /*
+               * ความสูงหัวตาราง
+               */
+
+              minCellHeight: 8.5,
+
+              /*
+               * ไม่ให้หัวตารางตกหลายบรรทัด
+               */
+
+              overflow: "ellipsize",
             },
+
+            /* =================================================
+               ข้อมูลในตาราง
+               ================================================= */
 
             bodyStyles: {
               font: "2.3.2 THSarabunNew",
               fontStyle: "normal",
-              fontSize: 16,
-              textColor: 0,
+              fontSize: 14,
+
+              textColor: [0, 0, 0],
+
+              /*
+               * กึ่งกลางทั้งแนวนอนและแนวตั้ง
+               */
+
               halign: "center",
               valign: "middle",
+
+              cellPadding: 1.2,
+
+              minCellHeight: 6.5,
+
+              /*
+               * ไม่ให้ข้อความตกหลายบรรทัด
+               */
+
+              overflow: "ellipsize",
             },
+
+            /* =================================================
+               ความกว้างคอลัมน์
+               รวม = 270 mm
+               ================================================= */
 
             columnStyles: {
               /*
                * ลำดับ
+               * 16
                */
 
               0: {
-                cellWidth: 18,
+                cellWidth: 16,
                 halign: "center",
               },
 
               /*
                * ประเภท
+               * 35
                */
 
               1: {
-                cellWidth: 38,
+                cellWidth: 35,
                 halign: "center",
               },
 
               /*
                * รหัส GFMIS
+               * 37
                */
 
               2: {
-                cellWidth: 38,
+                cellWidth: 37,
                 halign: "center",
               },
 
               /*
                * รหัสครุภัณฑ์
+               * 38
                */
 
               3: {
-                cellWidth: 40,
+                cellWidth: 38,
                 halign: "center",
               },
 
               /*
                * รายการครุภัณฑ์
+               * 58
                */
 
               4: {
-                cellWidth: 62,
+                cellWidth: 58,
                 halign: "center",
               },
 
               /*
                * หน่วย
+               * 19
                */
 
               5: {
-                cellWidth: 20,
+                cellWidth: 19,
                 halign: "center",
               },
 
               /*
                * ผู้รับผิดชอบ
+               * 42
                */
 
               6: {
@@ -487,13 +615,21 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * สถานะ
+               * 25
                */
 
               7: {
-                cellWidth: 28,
+                cellWidth: 25,
                 halign: "center",
               },
             },
+
+            /*
+             * บังคับเส้นกรอบตารางเป็นสีดำ
+             */
+
+            tableLineColor: [0, 0, 0],
+            tableLineWidth: 0.25,
           });
         }
       );
@@ -546,10 +682,6 @@ export default function ExportDepartmentAssetsPdf({
 
   return (
     <div className="shrink-0">
-      {/* =====================================================
-          Export Button
-      ===================================================== */}
-
       <button
         type="button"
         onClick={handleExportPdf}
