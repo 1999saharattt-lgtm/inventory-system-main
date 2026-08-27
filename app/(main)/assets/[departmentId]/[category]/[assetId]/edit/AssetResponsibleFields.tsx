@@ -18,6 +18,8 @@ type Officer = {
 type Props = {
   sections: Section[];
   officers: Officer[];
+  initialSectionId: number | null;
+  initialOfficerId: number | null;
   departmentName: string;
   departmentId: number;
 };
@@ -25,40 +27,39 @@ type Props = {
 export default function AssetResponsibleFields({
   sections,
   officers,
+  initialSectionId,
+  initialOfficerId,
   departmentName,
   departmentId,
 }: Props) {
-  const [sectionId, setSectionId] = useState<string>("");
+  const [sectionId, setSectionId] = useState<string>(
+    initialSectionId !== null
+      ? String(initialSectionId)
+      : ""
+  );
 
-  const [officerId, setOfficerId] =
-    useState<string>("");
+  const [officerId, setOfficerId] = useState<string>(
+    initialOfficerId !== null
+      ? String(initialOfficerId)
+      : ""
+  );
 
   const filteredOfficers = useMemo(() => {
-    // หน่วยงานไม่มี section
-    // แสดงเจ้าหน้าที่ทั้งหมดในหน่วยงาน
     if (sections.length === 0) {
       return officers;
     }
 
-    // หน่วยงานมี section
-    // ยังไม่ได้เลือก section
     if (!sectionId) {
       return [];
     }
 
-    const selectedSectionId =
-      Number(sectionId);
+    const selectedSectionId = Number(sectionId);
 
     return officers.filter(
       (officer) =>
-        officer.sectionId ===
-        selectedSectionId
+        officer.sectionId === selectedSectionId
     );
-  }, [
-    officers,
-    sections.length,
-    sectionId,
-  ]);
+  }, [officers, sections.length, sectionId]);
 
   const selectedOfficer = useMemo(() => {
     if (!officerId) {
@@ -68,25 +69,37 @@ export default function AssetResponsibleFields({
     return (
       officers.find(
         (officer) =>
-          officer.id ===
-          Number(officerId)
+          officer.id === Number(officerId)
       ) ?? null
     );
   }, [officers, officerId]);
 
-  function handleSectionChange(
-    value: string
-  ) {
+  function handleSectionChange(value: string) {
     setSectionId(value);
 
-    // เปลี่ยนกลุ่มงาน
-    // ต้องล้างผู้ครอบครองเดิม
+    if (!value) {
+      setOfficerId("");
+      return;
+    }
+
+    const selectedSectionId = Number(value);
+
+    const currentOfficer = officers.find(
+      (officer) =>
+        officer.id === Number(officerId)
+    );
+
+    if (
+      currentOfficer &&
+      currentOfficer.sectionId === selectedSectionId
+    ) {
+      return;
+    }
+
     setOfficerId("");
   }
 
-  function handleOfficerChange(
-    value: string
-  ) {
+  function handleOfficerChange(value: string) {
     setOfficerId(value);
   }
 
@@ -178,9 +191,7 @@ export default function AssetResponsibleFields({
             name="sectionId"
             value={sectionId}
             onChange={(event) =>
-              handleSectionChange(
-                event.target.value
-              )
+              handleSectionChange(event.target.value)
             }
             className="
               mt-2
@@ -252,9 +263,7 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={(event) =>
-            handleOfficerChange(
-              event.target.value
-            )
+            handleOfficerChange(event.target.value)
           }
           disabled={
             sections.length > 0 &&
@@ -284,17 +293,15 @@ export default function AssetResponsibleFields({
             -- ยังไม่ได้ระบุผู้ครอบครอง --
           </option>
 
-          {filteredOfficers.map(
-            (officer) => (
-              <option
-                key={officer.id}
-                value={officer.id}
-              >
-                {officer.firstName}{" "}
-                {officer.lastName}
-              </option>
-            )
-          )}
+          {filteredOfficers.map((officer) => (
+            <option
+              key={officer.id}
+              value={officer.id}
+            >
+              {officer.firstName}{" "}
+              {officer.lastName}
+            </option>
+          ))}
         </select>
 
         <p
