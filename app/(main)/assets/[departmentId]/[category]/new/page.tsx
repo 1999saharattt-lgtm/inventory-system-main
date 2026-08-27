@@ -183,6 +183,13 @@ export default async function NewAssetPage({
       formData.get("remark") ?? ""
     ).trim();
 
+    // =====================================================
+    // ชื่อครุภัณฑ์
+    //
+    // สามารถซ้ำกันได้
+    // ไม่ตรวจสอบชื่อซ้ำ
+    // =====================================================
+
     if (!name) {
       throw new Error(
         "กรุณาระบุชื่อครุภัณฑ์"
@@ -263,6 +270,9 @@ export default async function NewAssetPage({
             id: sectionId,
             departmentId: departmentIdNumber,
           },
+          select: {
+            id: true,
+          },
         });
 
       if (!section) {
@@ -291,6 +301,19 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
+    //
+    // ตรวจหน่วยงานก่อน
+    //
+    // ถ้าหน่วยงานไม่มี section
+    // → ใช้ผู้ครอบครองในหน่วยงานนั้นได้เลย
+    //
+    // ถ้าหน่วยงานมี section
+    // → ตรวจว่าผู้ครอบครองมี section จริง
+    // → ใช้ section ของผู้ครอบครองเป็นค่าจริง
+    //
+    // วิธีนี้ป้องกันปัญหาค่า sectionId จาก form
+    // ไม่ตรงกับข้อมูล Officer ในฐานข้อมูล
+    // ทั้งที่ผู้ครอบครองเป็นคนที่เลือกจาก dropdown
     // =====================================================
 
     if (officerId !== null) {
@@ -300,25 +323,81 @@ export default async function NewAssetPage({
             id: officerId,
             departmentId:
               departmentIdNumber,
-            ...(sectionId !== null
-              ? {
-                  sectionId,
-                }
-              : {}),
+          },
+          select: {
+            id: true,
+            departmentId: true,
+            sectionId: true,
           },
         });
 
       if (!officer) {
         throw new Error(
-          sectionId !== null
-            ? "ผู้ครอบครองไม่อยู่ในกลุ่มงานที่เลือก"
-            : "ผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+          "ผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
         );
       }
+
+      // ===================================================
+      // หน่วยงานมี section
+      // ===================================================
+
+      if (hasTargetSections) {
+        // ผู้ครอบครองต้องมี section
+        if (officer.sectionId === null) {
+          throw new Error(
+            "ผู้ครอบครองยังไม่ได้ระบุกลุ่มงาน"
+          );
+        }
+
+        // ตรวจว่า section ของผู้ครอบครอง
+        // เป็น section ของหน่วยงานจริง
+        const officerSection =
+          targetDepartment.sections.some(
+            (section) =>
+              section.id ===
+              officer.sectionId
+          );
+
+        if (!officerSection) {
+          throw new Error(
+            "กลุ่มงานของผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+          );
+        }
+
+        /*
+         * ใช้ sectionId ของผู้ครอบครอง
+         * เป็นค่าจริงจากฐานข้อมูล
+         *
+         * เพราะผู้ครอบครองถูกเลือกจากรายการ
+         * ที่กรองตามกลุ่มงานอยู่แล้ว
+         */
+        sectionId = officer.sectionId;
+      } else {
+        // =================================================
+        // หน่วยงานไม่มี section
+        // =================================================
+
+        sectionId = null;
+      }
+    } else {
+      // ===================================================
+      // ไม่ได้เลือกผู้ครอบครอง
+      // ===================================================
+
+      /*
+       * ถ้าไม่มีผู้ครอบครอง
+       * สามารถเก็บ section ที่เลือกไว้ได้
+       */
+      sectionId =
+        hasTargetSections
+          ? sectionId
+          : null;
     }
 
     // =====================================================
     // ตรวจสอบเลขครุภัณฑ์กรม
+    //
+    // เลขต้องไม่ซ้ำ
     // =====================================================
 
     if (governmentAssetNo) {
@@ -327,6 +406,9 @@ export default async function NewAssetPage({
           where: {
             governmentAssetNo:
               governmentAssetNo,
+          },
+          select: {
+            id: true,
           },
         });
 
@@ -339,6 +421,8 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบเลขครุภัณฑ์ประจำสำนัก
+    //
+    // เลขต้องไม่ซ้ำ
     // =====================================================
 
     if (officeAssetNo) {
@@ -347,6 +431,9 @@ export default async function NewAssetPage({
           where: {
             officeAssetNo:
               officeAssetNo,
+          },
+          select: {
+            id: true,
           },
         });
 
@@ -869,6 +956,8 @@ export default async function NewAssetPage({
               officers={department.officers}
               departmentName={department.name}
               departmentId={department.id}
+              initialSectionId={null}
+              initialOfficerId={null}
             />
           </div>
 
