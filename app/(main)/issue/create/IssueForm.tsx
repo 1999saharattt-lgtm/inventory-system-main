@@ -662,7 +662,7 @@ export default function IssueForm({
                     text-white
                   "
                 >
-                  หมายเหตุ
+                  หน่วย
                 </th>
               </tr>
             </thead>
@@ -675,6 +675,16 @@ export default function IssueForm({
                       material.category ===
                       row.category
                   );
+
+                const selectedMaterial =
+                  materials.find(
+                    (material) =>
+                      String(material.id) ===
+                      row.materialId
+                  );
+
+                const unit =
+                  selectedMaterial?.unit ?? "";
 
                 return (
                   <tr
@@ -885,7 +895,7 @@ export default function IssueForm({
                       />
                     </td>
 
-                    {/* หมายเหตุ */}
+                    {/* หน่วย */}
 
                     <td
                       className="
@@ -897,17 +907,9 @@ export default function IssueForm({
                     >
                       <input
                         type="text"
-                        name={`items[${index}].remark`}
-                        value={
-                          row.remark
-                        }
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "remark",
-                            e.target.value
-                          )
-                        }
+                        readOnly
+                        value={unit}
+                        aria-label={`หน่วยของรายการที่ ${index + 1}`}
                         className="
                           w-full
                           rounded-lg
@@ -915,13 +917,17 @@ export default function IssueForm({
                           border-slate-300
                           bg-white
                           p-2
+                          text-center
                           font-semibold
                           text-slate-900
                           outline-none
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
                         "
+                      />
+
+                      <input
+                        type="hidden"
+                        name={`items[${index}].unit`}
+                        value={unit}
                       />
                     </td>
                   </tr>
