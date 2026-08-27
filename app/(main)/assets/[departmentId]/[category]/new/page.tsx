@@ -1,4 +1,3 @@
-```tsx
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
@@ -79,7 +78,7 @@ export default async function NewAssetPage({
   //
   // 1 Account ต่อ 1 หน่วยงาน
   //
-  // ดังนั้น STAFF ตรวจสอบเฉพาะ departmentId
+  // STAFF ตรวจสอบเฉพาะ departmentId
   // ไม่ผูกสิทธิ์กับ sectionId
   // =====================================================
 
@@ -93,8 +92,8 @@ export default async function NewAssetPage({
   // =====================================================
   // ดึงข้อมูลหน่วยงาน
   //
-  // section เป็นเพียงกลุ่มงานย่อยสำหรับจัดหมวดหมู่ข้อมูล
-  // ไม่ได้ใช้แบ่ง Account หรือสิทธิ์ผู้ใช้งาน
+  // officers = เจ้าหน้าที่ทั้งหมดในหน่วยงาน
+  // sections = กลุ่มงานของหน่วยงาน
   // =====================================================
 
   const department =
@@ -200,11 +199,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบสิทธิ์ STAFF
-    //
-    // 1 Account ต่อ 1 หน่วยงาน
-    //
-    // ตรวจเฉพาะ departmentId
-    // ไม่ตรวจ sectionId ของ User
     // =====================================================
 
     if (
@@ -219,7 +213,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ดึงข้อมูลหน่วยงานจากฐานข้อมูลอีกครั้ง
-    // ภายใน Server Action
     // =====================================================
 
     const targetDepartment =
@@ -248,9 +241,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // sectionId
-    //
-    // section เป็นข้อมูลกลุ่มงานย่อย
-    // ไม่เกี่ยวกับสิทธิ์ Account
     //
     // ถ้าหน่วยงานไม่มี section ให้เป็น null
     // =====================================================
@@ -314,13 +304,10 @@ export default async function NewAssetPage({
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
     //
-    // ผู้ครอบครองต้องอยู่หน่วยงานเดียวกัน
+    // ต้องอยู่หน่วยงานเดียวกัน
     //
     // ถ้าเลือก section:
-    // ผู้ครอบครองต้องอยู่ section นั้น
-    //
-    // ตรงนี้เป็นการตรวจสอบ "ข้อมูลครุภัณฑ์"
-    // ไม่ใช่การตรวจสอบสิทธิ์ Account
+    // ต้องอยู่ใน section นั้น
     // =====================================================
 
     if (officerId !== null) {
@@ -355,7 +342,8 @@ export default async function NewAssetPage({
       const existingGovernment =
         await prisma.asset.findUnique({
           where: {
-            governmentAssetNo,
+            governmentAssetNo:
+              governmentAssetNo,
           },
         });
 
@@ -374,7 +362,8 @@ export default async function NewAssetPage({
       const existingOffice =
         await prisma.asset.findUnique({
           where: {
-            officeAssetNo,
+            officeAssetNo:
+              officeAssetNo,
           },
         });
 
@@ -892,57 +881,50 @@ export default async function NewAssetPage({
               👤 ผู้รับผิดชอบ
             </h2>
 
-            <div
-              className="
-                mt-4
-                grid
-                gap-4
-                sm:grid-cols-2
-              "
-            >
+            <div className="mt-4">
               <AssetResponsibleFields
                 sections={department.sections}
                 officers={department.officers}
                 departmentName={department.name}
                 departmentId={department.id}
               />
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="remark"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  หมายเหตุ
-                </label>
+            <div className="mt-4">
+              <label
+                htmlFor="remark"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                หมายเหตุ
+              </label>
 
-                <textarea
-                  id="remark"
-                  name="remark"
-                  rows={4}
-                  className="
-                    mt-2
-                    w-full
-                    resize-y
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
+              <textarea
+                id="remark"
+                name="remark"
+                rows={4}
+                className="
+                  mt-2
+                  w-full
+                  resize-y
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
             </div>
           </div>
 
@@ -1010,4 +992,3 @@ export default async function NewAssetPage({
     </div>
   );
 }
-```
