@@ -122,18 +122,23 @@ export default async function AssetDisposalDetailPage({
         <Link
           href={`/assets/${departmentId}/${category}/${asset.id}`}
           className="
-            shrink-0
+            w-full
             rounded-xl
-            bg-white
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
             text-sm
             font-extrabold
-            !text-slate-900
+            !text-white
             shadow-lg
             transition
             hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:w-auto
             sm:px-6
             sm:py-3
             sm:text-base
@@ -185,14 +190,13 @@ export default async function AssetDisposalDetailPage({
 
           {/* ประเภท */}
 
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               ประเภท
             </p>
 
-            <p className="mt-2 font-extrabold !text-white">
-              {categoryName[asset.category] ??
-                asset.category}
+            <p className="mt-2 break-words font-extrabold !text-white">
+              {categoryName[asset.category] ?? asset.category}
             </p>
           </div>
 
@@ -236,7 +240,7 @@ export default async function AssetDisposalDetailPage({
 
           {/* สถานะ */}
 
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               สถานะปัจจุบัน
             </p>
@@ -437,14 +441,11 @@ export default async function AssetDisposalDetailPage({
 
               <p className="mt-2 font-extrabold text-slate-900">
                 {asset.disposalDate
-                  ? asset.disposalDate.toLocaleDateString(
-                      "th-TH",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )
+                  ? asset.disposalDate.toLocaleDateString("th-TH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })
                   : "-"}
               </p>
             </div>

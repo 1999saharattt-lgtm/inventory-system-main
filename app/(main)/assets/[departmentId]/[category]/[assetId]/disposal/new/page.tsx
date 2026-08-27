@@ -132,7 +132,7 @@ export default async function NewAssetDisposalPage({
           w-full
           min-w-0
           flex-col
-          justify-center
+          justify-between
           gap-4
           rounded-2xl
           bg-gradient-to-r
@@ -146,7 +146,6 @@ export default async function NewAssetDisposalPage({
           sm:min-h-[140px]
           sm:flex-row
           sm:items-center
-          sm:justify-between
           sm:px-8
           sm:py-6
         "
@@ -184,18 +183,23 @@ export default async function NewAssetDisposalPage({
         <Link
           href={`/assets/${departmentId}/${category}/${asset.id}/disposal`}
           className="
-            shrink-0
+            w-full
             rounded-xl
-            bg-white
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
             text-sm
             font-extrabold
-            !text-slate-900
+            !text-white
             shadow-lg
             transition
             hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:w-auto
             sm:px-6
             sm:py-3
             sm:text-base
@@ -215,103 +219,246 @@ export default async function NewAssetDisposalPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-900
+          border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
           p-4
-          text-white
           shadow-xl
-          sm:p-6
+          sm:p-8
         "
       >
         <div
           className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+          "
+        >
+          <h2
+            className="
+              text-lg
+              font-extrabold
+              !text-white
+              sm:text-xl
+            "
+          >
+            📦 ข้อมูลครุภัณฑ์
+          </h2>
+        </div>
+
+        <div
+          className="
+            mt-4
             grid
             gap-5
             sm:grid-cols-2
             lg:grid-cols-3
           "
         >
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          {/* รายการ */}
+
+          <div className="min-w-0 lg:col-span-2">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               รายการครุภัณฑ์
             </p>
 
-            <p className="mt-2 break-words text-lg font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-words
+                text-lg
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.name}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* ประเภท */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               ประเภท
             </p>
 
-            <p className="mt-2 font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {categoryName[asset.category] ??
                 asset.category}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* หน่วยงาน */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               หน่วยงาน
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.department.name}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* กลุ่มงาน */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               กลุ่มงาน
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.section?.name ?? "-"}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* ผู้ครอบครอง */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               ผู้ครอบครอง
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.officer
                 ? `${asset.officer.firstName} ${asset.officer.lastName}`
                 : "-"}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* สถานะ */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               สถานะปัจจุบัน
             </p>
 
-            <p className="mt-2 font-extrabold !text-amber-300">
+            <p
+              className="
+                mt-2
+                font-extrabold
+                !text-amber-300
+              "
+            >
               รอจำหน่าย
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* เลขกรม */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               เลขครุภัณฑ์กรม
             </p>
 
-            <p className="mt-2 break-all font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-all
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.governmentAssetNo ?? "-"}
             </p>
           </div>
 
-          <div>
-            <p className="text-sm font-bold !text-slate-300">
+          {/* เลขสำนัก */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               เลขครุภัณฑ์ประจำสำนัก
             </p>
 
-            <p className="mt-2 break-all font-extrabold !text-white">
+            <p
+              className="
+                mt-2
+                break-all
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.officeAssetNo ?? "-"}
             </p>
           </div>
@@ -335,11 +482,27 @@ export default async function NewAssetDisposalPage({
           sm:p-6
         "
       >
-        <p className="text-lg font-extrabold text-red-900">
+        <p
+          className="
+            text-lg
+            font-extrabold
+            text-red-900
+            sm:text-xl
+          "
+        >
           ⚠️ ยืนยันการจำหน่าย
         </p>
 
-        <p className="mt-2 text-sm font-semibold leading-relaxed text-red-800 sm:text-base">
+        <p
+          className="
+            mt-2
+            text-sm
+            font-semibold
+            leading-relaxed
+            text-red-800
+            sm:text-base
+          "
+        >
           กรุณาตรวจสอบข้อมูลครุภัณฑ์ให้ถูกต้องก่อนยืนยัน
           เมื่อยืนยันแล้ว สถานะครุภัณฑ์จะเปลี่ยนจาก
           &quot;รอจำหน่าย&quot; เป็น &quot;จำหน่ายแล้ว&quot;
@@ -361,11 +524,34 @@ export default async function NewAssetDisposalPage({
             bg-white
             p-5
             shadow-xl
-            sm:p-6
+            sm:p-8
           "
         >
           <div
             className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+            "
+          >
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
+              "
+            >
+              📝 ข้อมูลการจำหน่าย
+            </h2>
+          </div>
+
+          <div
+            className="
+              mt-5
               grid
               gap-5
               sm:grid-cols-2
@@ -373,7 +559,7 @@ export default async function NewAssetDisposalPage({
           >
             {/* วันที่จำหน่าย */}
 
-            <div>
+            <div className="min-w-0">
               <label
                 htmlFor="disposalDate"
                 className="
@@ -402,6 +588,7 @@ export default async function NewAssetDisposalPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -411,7 +598,7 @@ export default async function NewAssetDisposalPage({
 
             {/* สถานที่จำหน่าย */}
 
-            <div>
+            <div className="min-w-0">
               <label
                 htmlFor="disposalLocation"
                 className="
@@ -441,6 +628,8 @@ export default async function NewAssetDisposalPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
+                  placeholder:text-slate-400
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -449,14 +638,16 @@ export default async function NewAssetDisposalPage({
             </div>
           </div>
 
+          {/* ปุ่ม */}
+
           <div
             className="
               mt-6
               flex
+              w-full
               flex-col
-              gap-4
+              gap-3
               sm:flex-row
-              sm:items-center
               sm:justify-end
             "
           >
