@@ -64,20 +64,41 @@ const categoryUnit: Record<string, string> = {
   NO_SYSTEM: "รายการ",
 };
 
+/*
+ * แปลงค่าที่เก็บในฐานข้อมูลเป็นภาษาไทย
+ *
+ * IN_USE = ใช้งานอยู่
+ * ACTIVE = ใช้งานอยู่ (รองรับข้อมูลเดิม)
+ * INACTIVE = ไม่ใช้งาน
+ * DAMAGED = ชำรุด
+ * DISPOSED = จำหน่ายแล้ว
+ * LOST = สูญหาย
+ */
 const statusName: Record<string, string> = {
+  IN_USE: "ใช้งานอยู่",
   ACTIVE: "ใช้งานอยู่",
   INACTIVE: "ไม่ใช้งาน",
+  DAMAGED: "ชำรุด",
   DISPOSED: "จำหน่ายแล้ว",
   LOST: "สูญหาย",
 };
 
 const statusClass: Record<string, string> = {
+  IN_USE:
+    "bg-gradient-to-r from-emerald-600 to-green-500 text-white border-emerald-700",
+
   ACTIVE:
     "bg-gradient-to-r from-emerald-600 to-green-500 text-white border-emerald-700",
+
   INACTIVE:
     "bg-slate-100 text-slate-800 border-slate-300",
+
+  DAMAGED:
+    "bg-orange-100 text-orange-800 border-orange-300",
+
   DISPOSED:
     "bg-red-100 text-red-800 border-red-300",
+
   LOST:
     "bg-amber-100 text-amber-800 border-amber-300",
 };
@@ -326,8 +347,6 @@ export default async function DepartmentAllAssetsPage({
               กลุ่มงาน
             </p>
 
-            {/* กลุ่มงาน + สำนักอนามัย อยู่บรรทัดเดียวกัน */}
-
             <p
               className="
                 mt-1
@@ -338,7 +357,7 @@ export default async function DepartmentAllAssetsPage({
                 sm:text-2xl
               "
             >
-              {department.name} สำนักอนามัยการเจริญพันธุ์
+              {department.name}
             </p>
 
             <p
@@ -395,6 +414,7 @@ export default async function DepartmentAllAssetsPage({
                 <th
                   className="
                     w-[60px]
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -406,7 +426,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   ลำดับ
@@ -417,6 +436,7 @@ export default async function DepartmentAllAssetsPage({
                 <th
                   className="
                     w-[120px]
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -428,7 +448,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   ประเภท
@@ -438,6 +457,7 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -449,7 +469,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   รหัส GFMIS
@@ -459,6 +478,7 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -470,7 +490,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   รหัสครุภัณฑ์
@@ -500,6 +519,7 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -511,7 +531,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   หน่วย
@@ -541,6 +560,7 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    whitespace-nowrap
                     border
                     border-black
                     bg-gradient-to-r
@@ -552,7 +572,6 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
-                    whitespace-nowrap
                   "
                 >
                   สถานะ
@@ -599,6 +618,7 @@ export default async function DepartmentAllAssetsPage({
 
                         <td
                           className="
+                            whitespace-nowrap
                             border
                             border-black
                             px-2
@@ -606,7 +626,6 @@ export default async function DepartmentAllAssetsPage({
                             text-center
                             align-middle
                             font-bold
-                            whitespace-nowrap
                           "
                         >
                           {index + 1}
@@ -681,6 +700,7 @@ export default async function DepartmentAllAssetsPage({
 
                         <td
                           className="
+                            whitespace-nowrap
                             border
                             border-black
                             px-3
@@ -688,7 +708,6 @@ export default async function DepartmentAllAssetsPage({
                             text-center
                             align-middle
                             font-semibold
-                            whitespace-nowrap
                           "
                         >
                           {categoryUnit[asset.category] ??
@@ -757,7 +776,7 @@ export default async function DepartmentAllAssetsPage({
                             `}
                           >
                             {statusName[asset.status] ??
-                              asset.status}
+                              "ไม่ระบุสถานะ"}
                           </span>
                         </td>
                       </tr>
