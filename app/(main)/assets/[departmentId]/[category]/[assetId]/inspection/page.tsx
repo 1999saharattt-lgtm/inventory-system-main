@@ -33,16 +33,11 @@ const inspectionStatusName: Record<string, string> = {
 };
 
 const inspectionStatusClass: Record<string, string> = {
-  IN_USE:
-    "border-emerald-300 bg-emerald-50 text-emerald-800",
-  RETURNED:
-    "border-blue-300 bg-blue-50 text-blue-800",
-  DAMAGED:
-    "border-amber-300 bg-amber-50 text-amber-800",
-  MISSING:
-    "border-red-300 bg-red-50 text-red-800",
-  NOT_FOUND:
-    "border-red-300 bg-red-50 text-red-800",
+  IN_USE: "border-emerald-300 bg-emerald-50 text-emerald-800",
+  RETURNED: "border-blue-300 bg-blue-50 text-blue-800",
+  DAMAGED: "border-amber-300 bg-amber-50 text-amber-800",
+  MISSING: "border-red-300 bg-red-50 text-red-800",
+  NOT_FOUND: "border-red-300 bg-red-50 text-red-800",
 };
 
 const quarterName: Record<string, string> = {
@@ -98,8 +93,7 @@ export default async function AssetInspectionPage({
     notFound();
   }
 
-  const latestInspection =
-    asset.inspections[0] ?? null;
+  const latestInspection = asset.inspections[0] ?? null;
 
   return (
     <div
@@ -294,8 +288,7 @@ export default async function AssetInspectionPage({
                 !text-white
               "
             >
-              {categoryName[asset.category] ??
-                asset.category}
+              {categoryName[asset.category] ?? asset.category}
             </p>
           </div>
 
@@ -370,8 +363,7 @@ export default async function AssetInspectionPage({
                 !text-white
               "
             >
-              {asset.section?.name ??
-                asset.department.name}
+              {asset.section?.name ?? asset.department.name}
             </p>
           </div>
 
@@ -510,6 +502,8 @@ export default async function AssetInspectionPage({
                 w-full
                 min-w-[1000px]
                 border-collapse
+                border
+                border-black
                 text-sm
               "
             >
