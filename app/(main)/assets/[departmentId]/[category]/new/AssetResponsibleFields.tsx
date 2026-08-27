@@ -128,8 +128,10 @@ export default function AssetResponsibleFields({
           id="departmentDisplay"
           className="
             mt-2
-            h-[50px]
+            flex
+            min-h-[50px]
             w-full
+            items-center
             rounded-xl
             border
             border-slate-300
@@ -179,6 +181,7 @@ export default function AssetResponsibleFields({
             }
             className="
               mt-2
+              min-h-[50px]
               w-full
               rounded-xl
               border
@@ -248,6 +251,7 @@ export default function AssetResponsibleFields({
           }
           className="
             mt-2
+            min-h-[50px]
             w-full
             rounded-xl
             border
@@ -320,8 +324,10 @@ export default function AssetResponsibleFields({
           id="positionDisplay"
           className="
             mt-2
-            h-[50px]
+            flex
+            min-h-[50px]
             w-full
+            items-center
             rounded-xl
             border
             border-slate-300
