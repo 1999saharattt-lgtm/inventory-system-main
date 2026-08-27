@@ -28,6 +28,7 @@ const categoryName: Record<string, string> = {
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
+  DAMAGED: "ชำรุด",
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
@@ -290,6 +291,10 @@ export default async function EditAssetPage({
                 >
                   <option value="IN_USE">
                     {statusName.IN_USE}
+                  </option>
+
+                  <option value="DAMAGED">
+                    {statusName.DAMAGED}
                   </option>
 
                   <option value="WAITING_DISPOSAL">
@@ -596,7 +601,7 @@ export default async function EditAssetPage({
                   !text-slate-200
                 "
               >
-                เลขครุภัณฑ์กรม
+                รหัส GFMIS
               </label>
 
               <input
@@ -639,7 +644,7 @@ export default async function EditAssetPage({
                   !text-slate-200
                 "
               >
-                เลขครุภัณฑ์ประจำสำนัก
+                รหัสครุภัณฑ์
               </label>
 
               <input
