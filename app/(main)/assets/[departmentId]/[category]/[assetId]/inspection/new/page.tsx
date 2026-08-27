@@ -374,11 +374,10 @@ export default async function NewAssetInspectionPage({
           href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}/inspection`}
           className="
             w-full
-            shrink-0
             rounded-xl
             bg-gradient-to-r
-            from-slate-700
-            to-slate-950
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
@@ -388,10 +387,9 @@ export default async function NewAssetInspectionPage({
             shadow-lg
             transition
             hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
-            sm:px-6
-            sm:py-3
-            sm:text-base
           "
         >
           ← กลับประวัติการตรวจ
@@ -408,24 +406,49 @@ export default async function NewAssetInspectionPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-900
+          border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
           p-4
-          text-white
           shadow-xl
-          sm:p-6
+          sm:p-8
         "
       >
         <div
           className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+          "
+        >
+          <h2
+            className="
+              text-lg
+              font-extrabold
+              !text-white
+              sm:text-xl
+            "
+          >
+            🏷️ ข้อมูลครุภัณฑ์
+          </h2>
+        </div>
+
+        <div
+          className="
+            mt-4
             grid
             gap-4
             sm:grid-cols-2
             lg:grid-cols-3
           "
         >
+          {/* รายการครุภัณฑ์ */}
+
           <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               รายการครุภัณฑ์
@@ -436,18 +459,22 @@ export default async function NewAssetInspectionPage({
             </p>
           </div>
 
-          <div>
+          {/* ประเภท */}
+
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               ประเภท
             </p>
 
-            <p className="mt-2 font-extrabold !text-white">
+            <p className="mt-2 break-words font-extrabold !text-white">
               {categoryName[asset.category] ??
                 asset.category}
             </p>
           </div>
 
-          <div>
+          {/* เลขครุภัณฑ์กรม */}
+
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์กรม
             </p>
@@ -457,7 +484,9 @@ export default async function NewAssetInspectionPage({
             </p>
           </div>
 
-          <div>
+          {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์ประจำสำนัก
             </p>
@@ -467,7 +496,9 @@ export default async function NewAssetInspectionPage({
             </p>
           </div>
 
-          <div>
+          {/* กลุ่มงาน */}
+
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               กลุ่มงาน
             </p>
@@ -478,7 +509,9 @@ export default async function NewAssetInspectionPage({
             </p>
           </div>
 
-          <div>
+          {/* ผู้ครอบครอง */}
+
+          <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
               ผู้ครอบครอง
             </p>
@@ -501,20 +534,57 @@ export default async function NewAssetInspectionPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
             p-4
-            shadow-lg
-            sm:p-6
+            shadow-xl
+            sm:p-8
           "
         >
-          <div className="grid gap-5 sm:grid-cols-2">
-            {/* ปี */}
+          <div
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+            "
+          >
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
+              "
+            >
+              🔍 แบบฟอร์มตรวจสอบ
+            </h2>
+          </div>
 
-            <div>
+          <div
+            className="
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
+            "
+          >
+            {/* ปีที่ตรวจสอบ */}
+
+            <div className="min-w-0">
               <label
                 htmlFor="year"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
               >
                 ปีที่ตรวจสอบ
               </label>
@@ -528,6 +598,7 @@ export default async function NewAssetInspectionPage({
                 max={2100}
                 required
                 className="
+                  mt-2
                   min-h-[50px]
                   w-full
                   rounded-xl
@@ -547,12 +618,17 @@ export default async function NewAssetInspectionPage({
               />
             </div>
 
-            {/* ไตรมาส */}
+            {/* รอบการตรวจสอบ */}
 
-            <div>
+            <div className="min-w-0">
               <label
                 htmlFor="quarter"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
               >
                 รอบการตรวจสอบ
               </label>
@@ -563,6 +639,7 @@ export default async function NewAssetInspectionPage({
                 defaultValue={currentQuarter}
                 required
                 className="
+                  mt-2
                   min-h-[50px]
                   w-full
                   rounded-xl
@@ -574,7 +651,6 @@ export default async function NewAssetInspectionPage({
                   font-semibold
                   text-slate-900
                   outline-none
-                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -591,12 +667,17 @@ export default async function NewAssetInspectionPage({
               </select>
             </div>
 
-            {/* ผลการตรวจ */}
+            {/* ผลการตรวจสอบ */}
 
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <label
                 htmlFor="status"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
               >
                 ผลการตรวจสอบ
               </label>
@@ -607,6 +688,7 @@ export default async function NewAssetInspectionPage({
                 required
                 defaultValue=""
                 className="
+                  mt-2
                   min-h-[50px]
                   w-full
                   rounded-xl
@@ -618,7 +700,6 @@ export default async function NewAssetInspectionPage({
                   font-semibold
                   text-slate-900
                   outline-none
-                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -641,85 +722,17 @@ export default async function NewAssetInspectionPage({
               </select>
             </div>
 
-            {/* สภาพครุภัณฑ์ */}
+            {/* ผู้ตรวจสอบ */}
 
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="condition"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
-              >
-                สภาพครุภัณฑ์
-              </label>
-
-              <input
-                id="condition"
-                name="condition"
-                type="text"
-                placeholder="เช่น ใช้งานได้ตามปกติ / ชำรุดเล็กน้อย"
-                className="
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  placeholder:text-slate-400
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
-            </div>
-
-            {/* สถานที่ตั้ง */}
-
-            <div>
-              <label
-                htmlFor="location"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
-              >
-                สถานที่ตั้ง
-              </label>
-
-              <input
-                id="location"
-                name="location"
-                type="text"
-                defaultValue={asset.location ?? ""}
-                placeholder="ระบุสถานที่ตั้ง"
-                className="
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  placeholder:text-slate-400
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
-            </div>
-
-            {/* ผู้ตรวจ */}
-
-            <div>
+            <div className="min-w-0">
               <label
                 htmlFor="inspectorName"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
               >
                 ผู้ตรวจสอบ
               </label>
@@ -733,6 +746,7 @@ export default async function NewAssetInspectionPage({
                 }
                 required
                 className="
+                  mt-2
                   min-h-[50px]
                   w-full
                   rounded-xl
@@ -755,10 +769,15 @@ export default async function NewAssetInspectionPage({
 
             {/* หมายเหตุ */}
 
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <label
                 htmlFor="remark"
-                className="mb-2 block text-sm font-extrabold text-slate-800"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
               >
                 หมายเหตุ
               </label>
@@ -769,6 +788,8 @@ export default async function NewAssetInspectionPage({
                 rows={4}
                 placeholder="ระบุรายละเอียดเพิ่มเติม ถ้ามี"
                 className="
+                  mt-2
+                  min-h-[120px]
                   w-full
                   resize-y
                   rounded-xl
@@ -791,13 +812,14 @@ export default async function NewAssetInspectionPage({
           </div>
 
           {/* =====================================================
-              ปุ่ม
+              ปุ่มบันทึก
           ===================================================== */}
 
           <div
             className="
               mt-6
               flex
+              w-full
               flex-col
               gap-3
               sm:flex-row
