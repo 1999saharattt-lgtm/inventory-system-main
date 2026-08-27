@@ -45,16 +45,21 @@ export default function AssetResponsibleFields({
   );
 
   const filteredOfficers = useMemo(() => {
+    // หน่วยงานไม่มี section
+    // แสดงเจ้าหน้าที่ทั้งหมดในหน่วยงาน
     if (sections.length === 0) {
       return officers;
     }
 
+    // ยังไม่ได้เลือกกลุ่มงาน
     if (!sectionId) {
       return [];
     }
 
     const selectedSectionId = Number(sectionId);
 
+    // หน่วยงานมี section
+    // แสดงเฉพาะเจ้าหน้าที่ในกลุ่มงานที่เลือก
     return officers.filter(
       (officer) =>
         officer.sectionId === selectedSectionId
@@ -89,6 +94,8 @@ export default function AssetResponsibleFields({
         officer.id === Number(officerId)
     );
 
+    // ถ้าผู้ครอบครองเดิมอยู่ในกลุ่มงานใหม่
+    // ให้คงค่าเดิมไว้
     if (
       currentOfficer &&
       currentOfficer.sectionId === selectedSectionId
@@ -96,6 +103,8 @@ export default function AssetResponsibleFields({
       return;
     }
 
+    // เปลี่ยนกลุ่มงานแล้วผู้ครอบครองเดิมไม่ตรงกลุ่ม
+    // ต้องล้างผู้ครอบครองเดิม
     setOfficerId("");
   }
 
@@ -115,30 +124,25 @@ export default function AssetResponsibleFields({
           หน่วยงาน
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
+          htmlFor="departmentDisplay"
           className="
+            block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           หน่วยงาน
         </label>
 
         <div
+          id="departmentDisplay"
           className="
             mt-2
+            min-h-[50px]
+            w-full
             rounded-xl
             border
             border-slate-300
@@ -164,23 +168,14 @@ export default function AssetResponsibleFields({
       ===================================================== */}
 
       {sections.length > 0 ? (
-        <div
-          className="
-            min-w-0
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            p-4
-            shadow-md
-          "
-        >
+        <div className="min-w-0">
           <label
             htmlFor="sectionId"
             className="
+              block
               text-sm
               font-extrabold
-              text-slate-700
+              !text-slate-200
             "
           >
             กลุ่มงาน
@@ -191,10 +186,13 @@ export default function AssetResponsibleFields({
             name="sectionId"
             value={sectionId}
             onChange={(event) =>
-              handleSectionChange(event.target.value)
+              handleSectionChange(
+                event.target.value
+              )
             }
             className="
               mt-2
+              min-h-[50px]
               w-full
               rounded-xl
               border
@@ -236,23 +234,14 @@ export default function AssetResponsibleFields({
           ผู้ครอบครอง
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
           htmlFor="officerId"
           className="
+            block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           ผู้ครอบครอง
@@ -263,7 +252,9 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={(event) =>
-            handleOfficerChange(event.target.value)
+            handleOfficerChange(
+              event.target.value
+            )
           }
           disabled={
             sections.length > 0 &&
@@ -271,6 +262,7 @@ export default function AssetResponsibleFields({
           }
           className="
             mt-2
+            min-h-[50px]
             w-full
             rounded-xl
             border
@@ -293,15 +285,17 @@ export default function AssetResponsibleFields({
             -- ยังไม่ได้ระบุผู้ครอบครอง --
           </option>
 
-          {filteredOfficers.map((officer) => (
-            <option
-              key={officer.id}
-              value={officer.id}
-            >
-              {officer.firstName}{" "}
-              {officer.lastName}
-            </option>
-          ))}
+          {filteredOfficers.map(
+            (officer) => (
+              <option
+                key={officer.id}
+                value={officer.id}
+              >
+                {officer.firstName}{" "}
+                {officer.lastName}
+              </option>
+            )
+          )}
         </select>
 
         <p
@@ -309,7 +303,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            text-slate-500
+            !text-slate-400
           "
         >
           {sections.length > 0
@@ -324,31 +318,25 @@ export default function AssetResponsibleFields({
           ตำแหน่ง
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
+          htmlFor="positionDisplay"
           className="
+            block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           ตำแหน่ง
         </label>
 
         <div
+          id="positionDisplay"
           className="
             mt-2
             min-h-[50px]
+            w-full
             rounded-xl
             border
             border-slate-300
@@ -367,7 +355,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            text-slate-500
+            !text-slate-400
           "
         >
           ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
