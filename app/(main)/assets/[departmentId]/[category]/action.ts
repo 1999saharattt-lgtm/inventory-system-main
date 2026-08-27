@@ -20,6 +20,7 @@ const validCategories = [
 
 const validStatuses = [
   "IN_USE",
+  "DAMAGED",
   "WAITING_DISPOSAL",
   "DISPOSED",
 ] as const;
@@ -211,6 +212,12 @@ export async function updateAsset(
 
   // =====================================================
   // ตรวจสอบสถานะ
+  //
+  // รองรับ:
+  // IN_USE
+  // DAMAGED
+  // WAITING_DISPOSAL
+  // DISPOSED
   // =====================================================
 
   if (
@@ -558,6 +565,13 @@ export async function updateAsset(
 
         officerId,
 
+        /*
+         * รองรับสถานะ:
+         * IN_USE
+         * DAMAGED
+         * WAITING_DISPOSAL
+         * DISPOSED
+         */
         status: assetStatus,
 
         purchaseDate,
