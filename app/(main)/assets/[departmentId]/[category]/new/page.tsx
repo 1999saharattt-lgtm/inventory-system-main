@@ -11,9 +11,6 @@ type Props = {
     departmentId: string;
     category: string;
   }>;
-  searchParams: Promise<{
-    sectionId?: string;
-  }>;
 };
 
 const categoryName: Record<string, string> = {
@@ -57,13 +54,10 @@ type AssetCategoryValue =
 
 export default async function NewAssetPage({
   params,
-  searchParams,
 }: Props) {
   const user = await requireLogin();
 
   const { departmentId, category } = await params;
-  const { sectionId: sectionIdParam } =
-    await searchParams;
 
   const departmentIdNumber = Number(departmentId);
 
@@ -140,55 +134,6 @@ export default async function NewAssetPage({
 
   if (!department) {
     notFound();
-  }
-
-  // =====================================================
-  // ตรวจสอบว่าหน่วยงานมี section หรือไม่
-  // =====================================================
-
-  const hasSections =
-    department.sections.length > 0;
-
-  // =====================================================
-  // กำหนด section เริ่มต้น
-  //
-  // STAFF และ ADMIN สามารถใช้ section ได้เหมือนกัน
-  // เพราะ section ไม่ได้ใช้แบ่ง Account
-  //
-  // ถ้ามี sectionId จาก URL และเป็น section
-  // ของหน่วยงานนี้ ให้ใช้เป็นค่าเริ่มต้น
-  // =====================================================
-
-  let defaultSectionId: number | null = null;
-
-  if (hasSections && sectionIdParam) {
-    const parsedSectionId =
-      Number(sectionIdParam);
-
-    if (
-      Number.isInteger(parsedSectionId) &&
-      parsedSectionId > 0
-    ) {
-      defaultSectionId = parsedSectionId;
-    }
-  }
-
-  // =====================================================
-  // ตรวจสอบ sectionId
-  //
-  // section ต้องเป็นของหน่วยงานที่กำลังเพิ่มครุภัณฑ์
-  // =====================================================
-
-  if (defaultSectionId !== null) {
-    const sectionExists =
-      department.sections.some(
-        (section) =>
-          section.id === defaultSectionId
-      );
-
-    if (!sectionExists) {
-      defaultSectionId = null;
-    }
   }
 
   async function createAsset(
@@ -958,9 +903,7 @@ export default async function NewAssetPage({
                 sections={department.sections}
                 officers={department.officers}
                 departmentName={department.name}
-                defaultSectionId={
-                  defaultSectionId
-                }
+                departmentId={department.id}
               />
 
               <div className="sm:col-span-2">
