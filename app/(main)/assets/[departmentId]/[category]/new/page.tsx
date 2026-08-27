@@ -81,6 +81,11 @@ export default async function NewAssetPage({
 
   // =====================================================
   // สิทธิ์ผู้ใช้งาน
+  //
+  // 1 Account ต่อ 1 หน่วยงาน
+  //
+  // ดังนั้น STAFF ตรวจสอบเฉพาะ departmentId
+  // ไม่ผูกสิทธิ์กับ sectionId
   // =====================================================
 
   if (
@@ -92,6 +97,9 @@ export default async function NewAssetPage({
 
   // =====================================================
   // ดึงข้อมูลหน่วยงาน
+  //
+  // section เป็นเพียงกลุ่มงานย่อยสำหรับจัดหมวดหมู่ข้อมูล
+  // ไม่ได้ใช้แบ่ง Account หรือสิทธิ์ผู้ใช้งาน
   // =====================================================
 
   const department =
@@ -143,6 +151,12 @@ export default async function NewAssetPage({
 
   // =====================================================
   // กำหนด section เริ่มต้น
+  //
+  // STAFF และ ADMIN สามารถใช้ section ได้เหมือนกัน
+  // เพราะ section ไม่ได้ใช้แบ่ง Account
+  //
+  // ถ้ามี sectionId จาก URL และเป็น section
+  // ของหน่วยงานนี้ ให้ใช้เป็นค่าเริ่มต้น
   // =====================================================
 
   let defaultSectionId: number | null = null;
@@ -161,6 +175,8 @@ export default async function NewAssetPage({
 
   // =====================================================
   // ตรวจสอบ sectionId
+  //
+  // section ต้องเป็นของหน่วยงานที่กำลังเพิ่มครุภัณฑ์
   // =====================================================
 
   if (defaultSectionId !== null) {
@@ -238,6 +254,11 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบสิทธิ์ STAFF
+    //
+    // 1 Account ต่อ 1 หน่วยงาน
+    //
+    // ตรวจเฉพาะ departmentId
+    // ไม่ตรวจ sectionId ของ User
     // =====================================================
 
     if (
@@ -252,6 +273,7 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ดึงข้อมูลหน่วยงานจากฐานข้อมูลอีกครั้ง
+    // ภายใน Server Action
     // =====================================================
 
     const targetDepartment =
@@ -280,6 +302,11 @@ export default async function NewAssetPage({
 
     // =====================================================
     // sectionId
+    //
+    // section เป็นข้อมูลกลุ่มงานย่อย
+    // ไม่เกี่ยวกับสิทธิ์ Account
+    //
+    // ถ้าหน่วยงานไม่มี section ให้เป็น null
     // =====================================================
 
     let sectionId: number | null = null;
@@ -301,6 +328,8 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบ section
+    //
+    // ต้องเป็น section ของหน่วยงานนี้เท่านั้น
     // =====================================================
 
     if (sectionId !== null) {
@@ -338,6 +367,14 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
+    //
+    // ผู้ครอบครองต้องอยู่หน่วยงานเดียวกัน
+    //
+    // ถ้าเลือก section:
+    // ผู้ครอบครองต้องอยู่ section นั้น
+    //
+    // ตรงนี้เป็นการตรวจสอบ "ข้อมูลครุภัณฑ์"
+    // ไม่ใช่การตรวจสอบสิทธิ์ Account
     // =====================================================
 
     if (officerId !== null) {
@@ -620,7 +657,6 @@ export default async function NewAssetPage({
                 text-lg
                 font-extrabold
                 !text-white
-                sm:text-xl
               "
             >
               📋 ข้อมูลครุภัณฑ์
@@ -634,248 +670,154 @@ export default async function NewAssetPage({
                 sm:grid-cols-2
               "
             >
-              {/* ชื่อครุภัณฑ์ */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                  sm:col-span-2
-                "
-              >
-                <div
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="name"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="name"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    ชื่อครุภัณฑ์{" "}
-                    <span className="text-red-400">
-                      *
-                    </span>
-                  </label>
-                </div>
+                  ชื่อครุภัณฑ์{" "}
+                  <span className="text-red-400">
+                    *
+                  </span>
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    placeholder={`เช่น ${categoryName[category]}`}
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      transition
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  placeholder={`เช่น ${categoryName[category]}`}
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    transition
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
 
-              {/* ยี่ห้อ */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                "
-              >
-                <div
+              <div>
+                <label
+                  htmlFor="brand"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="brand"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    ยี่ห้อ
-                  </label>
-                </div>
+                  ยี่ห้อ
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="brand"
-                    name="brand"
-                    type="text"
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="brand"
+                  name="brand"
+                  type="text"
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
 
-              {/* รุ่น */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                "
-              >
-                <div
+              <div>
+                <label
+                  htmlFor="model"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="model"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    รุ่น
-                  </label>
-                </div>
+                  รุ่น
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="model"
-                    name="model"
-                    type="text"
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="model"
+                  name="model"
+                  type="text"
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
 
-              {/* Serial Number */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                  sm:col-span-2
-                "
-              >
-                <div
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="serialNumber"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="serialNumber"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    Serial Number
-                  </label>
-                </div>
+                  Serial Number
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="serialNumber"
-                    name="serialNumber"
-                    type="text"
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="serialNumber"
+                  name="serialNumber"
+                  type="text"
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
             </div>
           </div>
@@ -896,7 +838,6 @@ export default async function NewAssetPage({
                 text-lg
                 font-extrabold
                 !text-white
-                sm:text-xl
               "
             >
               🔖 เลขทะเบียนครุภัณฑ์
@@ -910,122 +851,76 @@ export default async function NewAssetPage({
                 sm:grid-cols-2
               "
             >
-              {/* เลขครุภัณฑ์กรม */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                "
-              >
-                <div
+              <div>
+                <label
+                  htmlFor="governmentAssetNo"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="governmentAssetNo"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    เลขครุภัณฑ์กรม
-                  </label>
-                </div>
+                  เลขครุภัณฑ์กรม
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="governmentAssetNo"
-                    name="governmentAssetNo"
-                    type="text"
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="governmentAssetNo"
+                  name="governmentAssetNo"
+                  type="text"
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
 
-              {/* เลขครุภัณฑ์ประจำสำนัก */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                "
-              >
-                <div
+              <div>
+                <label
+                  htmlFor="officeAssetNo"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="officeAssetNo"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    เลขครุภัณฑ์ประจำสำนัก
-                  </label>
-                </div>
+                  เลขครุภัณฑ์ประจำสำนัก
+                </label>
 
-                <div className="bg-white p-3">
-                  <input
-                    id="officeAssetNo"
-                    name="officeAssetNo"
-                    type="text"
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <input
+                  id="officeAssetNo"
+                  name="officeAssetNo"
+                  type="text"
+                  className="
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
             </div>
           </div>
@@ -1046,7 +941,6 @@ export default async function NewAssetPage({
                 text-lg
                 font-extrabold
                 !text-white
-                sm:text-xl
               "
             >
               👤 ผู้รับผิดชอบ
@@ -1069,65 +963,41 @@ export default async function NewAssetPage({
                 }
               />
 
-              {/* หมายเหตุ */}
-
-              <div
-                className="
-                  min-w-0
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  shadow-md
-                  sm:col-span-2
-                "
-              >
-                <div
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="remark"
                   className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-4
-                    py-3
+                    block
+                    text-sm
+                    font-extrabold
+                    !text-slate-200
                   "
                 >
-                  <label
-                    htmlFor="remark"
-                    className="
-                      block
-                      text-sm
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    หมายเหตุ
-                  </label>
-                </div>
+                  หมายเหตุ
+                </label>
 
-                <div className="bg-white p-3">
-                  <textarea
-                    id="remark"
-                    name="remark"
-                    rows={4}
-                    className="
-                      w-full
-                      resize-y
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      focus:border-emerald-600
-                      focus:ring-2
-                      focus:ring-emerald-200
-                    "
-                  />
-                </div>
+                <textarea
+                  id="remark"
+                  name="remark"
+                  rows={4}
+                  className="
+                    mt-2
+                    w-full
+                    resize-y
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    px-4
+                    py-3
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-emerald-600
+                    focus:ring-2
+                    focus:ring-emerald-200
+                  "
+                />
               </div>
             </div>
           </div>
