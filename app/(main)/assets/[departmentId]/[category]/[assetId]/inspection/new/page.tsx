@@ -392,7 +392,7 @@ export default async function NewAssetInspectionPage({
             sm:w-auto
           "
         >
-          ← กลับประวัติการตรวจ
+          ← กลับ
         </Link>
       </div>
 
