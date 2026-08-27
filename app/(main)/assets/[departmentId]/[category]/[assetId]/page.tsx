@@ -255,248 +255,217 @@ export default async function AssetDetailPage({
           sm:p-8
         "
       >
-        <div>
+        <h2
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+            text-lg
+            font-extrabold
+            !text-white
+          "
+        >
+          🏷️ ข้อมูลครุภัณฑ์
+        </h2>
+
+        <div
+          className="
+            mt-4
+            grid
+            gap-4
+            sm:grid-cols-2
+            lg:grid-cols-3
+          "
+        >
+          {/* สถานะครุภัณฑ์ */}
+
           <div
             className="
-              flex
-              items-center
-              justify-between
-              gap-3
+              min-w-0
               rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
             "
           >
-            <h2
-              className="
-                min-w-0
-                text-lg
+            <p className="text-sm font-bold text-slate-500">
+              สถานะครุภัณฑ์
+            </p>
+
+            <span
+              className={`
+                mt-2
+                inline-flex
+                w-fit
+                rounded-xl
+                border
+                px-4
+                py-2
+                text-sm
                 font-extrabold
-                !text-white
-                sm:text-xl
-              "
+                ${
+                  statusClass[asset.status] ??
+                  "border-slate-300 bg-slate-100 text-slate-700"
+                }
+              `}
             >
-              🏷️ ข้อมูลครุภัณฑ์
-            </h2>
-
-            <div
-              className="
-                flex
-                shrink-0
-                items-center
-                gap-2
-              "
-            >
-              <span
-                className="
-                  hidden
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                  sm:inline
-                "
-              >
-                สถานะครุภัณฑ์
-              </span>
-
-              <span
-                className="
-                  text-xs
-                  font-extrabold
-                  !text-slate-200
-                  sm:hidden
-                "
-              >
-                สถานะ
-              </span>
-
-              <span
-                className={`
-                  inline-flex
-                  rounded-xl
-                  border
-                  px-3
-                  py-1.5
-                  text-sm
-                  font-extrabold
-                  ${
-                    statusClass[asset.status] ??
-                    "border-slate-300 bg-slate-100 text-slate-700"
-                  }
-                `}
-              >
-                {statusName[asset.status] ??
-                  asset.status}
-              </span>
-            </div>
+              {statusName[asset.status] ??
+                asset.status}
+            </span>
           </div>
 
+          {/* รายการครุภัณฑ์ */}
+
           <div
             className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-              lg:grid-cols-3
+              min-w-0
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
             "
           >
-            {/* รายการครุภัณฑ์ */}
+            <p className="text-sm font-bold text-slate-500">
+              รายการครุภัณฑ์
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                รายการครุภัณฑ์
-              </p>
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+              {asset.name}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
-                {asset.name}
-              </p>
-            </div>
+          {/* ประเภท */}
 
-            {/* ประเภท */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              ประเภท
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                ประเภท
-              </p>
+            <p className="mt-1 font-extrabold text-slate-900">
+              {categoryName[asset.category] ??
+                asset.category}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words font-extrabold text-slate-900">
-                {categoryName[asset.category] ??
-                  asset.category}
-              </p>
-            </div>
+          {/* ยี่ห้อ */}
 
-            {/* ยี่ห้อ */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              ยี่ห้อ
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                ยี่ห้อ
-              </p>
+            <p className="mt-1 font-extrabold text-slate-900">
+              {asset.brand ?? "-"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words font-extrabold text-slate-900">
-                {asset.brand ?? "-"}
-              </p>
-            </div>
+          {/* รุ่น */}
 
-            {/* รุ่น */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              รุ่น
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                รุ่น
-              </p>
+            <p className="mt-1 break-words font-extrabold text-slate-900">
+              {asset.model ?? "-"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words font-extrabold text-slate-900">
-                {asset.model ?? "-"}
-              </p>
-            </div>
+          {/* Serial Number */}
 
-            {/* Serial Number */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              Serial Number
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                Serial Number
-              </p>
+            <p className="mt-1 break-all font-extrabold text-slate-900">
+              {asset.serialNumber ?? "-"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-all font-extrabold text-slate-900">
-                {asset.serialNumber ?? "-"}
-              </p>
-            </div>
+          {/* เลขครุภัณฑ์กรม */}
 
-            {/* เลขครุภัณฑ์กรม */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              เลขครุภัณฑ์กรม
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                เลขครุภัณฑ์กรม
-              </p>
+            <p className="mt-1 break-all font-extrabold text-slate-900">
+              {asset.governmentAssetNo ?? "-"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-all font-extrabold text-slate-900">
-                {asset.governmentAssetNo ?? "-"}
-              </p>
-            </div>
+          {/* เลขครุภัณฑ์ประจำสำนัก */}
 
-            {/* เลขครุภัณฑ์ประจำสำนัก */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              เลขครุภัณฑ์ประจำสำนัก
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                เลขครุภัณฑ์ประจำสำนัก
-              </p>
-
-              <p className="mt-1 break-all font-extrabold text-slate-900">
-                {asset.officeAssetNo ?? "-"}
-              </p>
-            </div>
+            <p className="mt-1 break-all font-extrabold text-slate-900">
+              {asset.officeAssetNo ?? "-"}
+            </p>
           </div>
         </div>
       </div>
@@ -521,121 +490,114 @@ export default async function AssetDetailPage({
           sm:p-8
         "
       >
-        <div>
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-              sm:text-xl
-            "
-          >
-            👤 หน่วยงานและผู้ครอบครอง
-          </h2>
+        <h2
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+            text-lg
+            font-extrabold
+            !text-white
+          "
+        >
+          👤 หน่วยงานและผู้ครอบครอง
+        </h2>
+
+        <div
+          className="
+            mt-4
+            grid
+            gap-4
+            sm:grid-cols-2
+          "
+        >
+          {/* หน่วยงาน */}
 
           <div
             className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
             "
           >
-            {/* หน่วยงาน */}
+            <p className="text-sm font-bold text-slate-500">
+              หน่วยงาน
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                หน่วยงาน
-              </p>
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+              {asset.department.name}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
-                {asset.department.name}
-              </p>
-            </div>
+          {/* กลุ่มงาน */}
 
-            {/* กลุ่มงาน */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              กลุ่มงาน
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                กลุ่มงาน
-              </p>
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+              {asset.section?.name ?? "-"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
-                {asset.section?.name ?? "-"}
-              </p>
-            </div>
+          {/* ผู้ครอบครอง */}
 
-            {/* ผู้ครอบครอง */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              ผู้ครอบครอง
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                ผู้ครอบครอง
-              </p>
+            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+              {asset.officer
+                ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                : "ยังไม่ได้ระบุผู้ครอบครอง"}
+            </p>
+          </div>
 
-              <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
-                {asset.officer
-                  ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                  : "ยังไม่ได้ระบุผู้ครอบครอง"}
-              </p>
-            </div>
+          {/* ตำแหน่ง */}
 
-            {/* ตำแหน่ง */}
+          <div
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="text-sm font-bold text-slate-500">
+              ตำแหน่ง
+            </p>
 
-            <div
-              className="
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="text-sm font-bold text-slate-500">
-                ตำแหน่ง
-              </p>
-
-              <p className="mt-1 break-words font-extrabold text-slate-900">
-                {asset.officer?.position ?? "-"}
-              </p>
-            </div>
+            <p className="mt-1 break-words font-extrabold text-slate-900">
+              {asset.officer?.position ?? "-"}
+            </p>
           </div>
         </div>
       </div>
@@ -660,249 +622,226 @@ export default async function AssetDetailPage({
           sm:p-8
         "
       >
-        <div>
-          <div
+        <div
+          className="
+            flex
+            flex-col
+            gap-3
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+            🔍 ผลการตรวจสอบล่าสุด
+          </h2>
+
+          <Link
+            href={`/assets/${departmentId}/${category}/${asset.id}/inspection`}
             className="
-              flex
-              flex-col
-              gap-3
+              w-full
               rounded-xl
               bg-gradient-to-r
-              from-slate-800
-              to-slate-700
+              from-slate-700
+              to-slate-950
               px-4
-              py-3
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
+              py-2
+              text-center
+              text-sm
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              sm:w-auto
             "
           >
-            <h2
-              className="
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              🔍 ผลการตรวจสอบล่าสุด
-            </h2>
+            ดูประวัติการตรวจสอบ
+          </Link>
+        </div>
 
-            <Link
-              href={`/assets/${departmentId}/${category}/${asset.id}/inspection`}
-              className="
-                w-full
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-700
-                to-slate-950
-                px-4
-                py-2
-                text-center
-                text-sm
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-[1.02]
-                sm:w-auto
-              "
-            >
-              ดูประวัติการตรวจสอบ
-            </Link>
-          </div>
+        <div className="mt-4">
+          {latestInspection ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* รอบการตรวจ */}
 
-          <div className="mt-4">
-            {latestInspection ? (
-              <div
-                className="
-                  grid
-                  gap-4
-                  sm:grid-cols-2
-                  lg:grid-cols-4
-                "
-              >
-                {/* รอบการตรวจ */}
-
-                <div
-                  className="
-                    min-w-0
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    p-4
-                    shadow-md
-                  "
-                >
-                  <p className="text-sm font-bold text-slate-500">
-                    รอบการตรวจ
-                  </p>
-
-                  <p className="mt-1 break-words font-extrabold text-slate-900">
-                    ปี {latestInspection.year} /{" "}
-                    {latestInspection.quarter}
-                  </p>
-                </div>
-
-                {/* วันที่ตรวจ */}
-
-                <div
-                  className="
-                    min-w-0
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    p-4
-                    shadow-md
-                  "
-                >
-                  <p className="text-sm font-bold text-slate-500">
-                    วันที่ตรวจ
-                  </p>
-
-                  <p className="mt-1 break-words font-extrabold text-slate-900">
-                    {new Date(
-                      latestInspection.inspectionDate
-                    ).toLocaleDateString("th-TH")}
-                  </p>
-                </div>
-
-                {/* ผลการตรวจ */}
-
-                <div
-                  className="
-                    min-w-0
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    p-4
-                    shadow-md
-                  "
-                >
-                  <p className="text-sm font-bold text-slate-500">
-                    ผลการตรวจ
-                  </p>
-
-                  <span
-                    className={`
-                      mt-1
-                      inline-flex
-                      rounded-lg
-                      border
-                      px-3
-                      py-1.5
-                      text-sm
-                      font-extrabold
-                      ${
-                        inspectionStatusClass[
-                          latestInspection.status
-                        ] ??
-                        "border-slate-300 bg-slate-100 text-slate-700"
-                      }
-                    `}
-                  >
-                    {inspectionStatusName[
-                      latestInspection.status
-                    ] ?? latestInspection.status}
-                  </span>
-                </div>
-
-                {/* ผู้ตรวจ */}
-
-                <div
-                  className="
-                    min-w-0
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    p-4
-                    shadow-md
-                  "
-                >
-                  <p className="text-sm font-bold text-slate-500">
-                    ผู้ตรวจ
-                  </p>
-
-                  <p className="mt-1 break-words font-extrabold text-slate-900">
-                    {latestInspection.inspectorName ??
-                      "-"}
-                  </p>
-                </div>
-
-                {/* สภาพครุภัณฑ์ */}
-
-                {latestInspection.condition && (
-                  <div
-                    className="
-                      min-w-0
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      p-4
-                      shadow-md
-                      sm:col-span-2
-                      lg:col-span-4
-                    "
-                  >
-                    <p className="text-sm font-bold text-slate-500">
-                      สภาพครุภัณฑ์
-                    </p>
-
-                    <p className="mt-1 break-words font-semibold text-slate-900">
-                      {latestInspection.condition}
-                    </p>
-                  </div>
-                )}
-
-                {/* หมายเหตุการตรวจ */}
-
-                {latestInspection.remark && (
-                  <div
-                    className="
-                      min-w-0
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      p-4
-                      shadow-md
-                      sm:col-span-2
-                      lg:col-span-4
-                    "
-                  >
-                    <p className="text-sm font-bold text-slate-500">
-                      หมายเหตุการตรวจ
-                    </p>
-
-                    <p className="mt-1 break-words font-semibold text-slate-900">
-                      {latestInspection.remark}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
               <div
                 className="
                   rounded-xl
                   border
                   border-slate-300
                   bg-white
-                  p-8
-                  text-center
-                  font-semibold
-                  text-slate-500
+                  p-4
                   shadow-md
                 "
               >
-                ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
+                <p className="text-sm font-bold text-slate-500">
+                  รอบการตรวจ
+                </p>
+
+                <p className="mt-1 font-extrabold text-slate-900">
+                  ปี {latestInspection.year} /{" "}
+                  {latestInspection.quarter}
+                </p>
               </div>
-            )}
-          </div>
+
+              {/* วันที่ตรวจ */}
+
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-4
+                  shadow-md
+                "
+              >
+                <p className="text-sm font-bold text-slate-500">
+                  วันที่ตรวจ
+                </p>
+
+                <p className="mt-1 font-extrabold text-slate-900">
+                  {new Date(
+                    latestInspection.inspectionDate
+                  ).toLocaleDateString("th-TH")}
+                </p>
+              </div>
+
+              {/* ผลการตรวจ */}
+
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-4
+                  shadow-md
+                "
+              >
+                <p className="text-sm font-bold text-slate-500">
+                  ผลการตรวจ
+                </p>
+
+                <span
+                  className={`
+                    mt-1
+                    inline-flex
+                    rounded-lg
+                    border
+                    px-3
+                    py-1.5
+                    text-sm
+                    font-extrabold
+                    ${
+                      inspectionStatusClass[
+                        latestInspection.status
+                      ] ??
+                      "border-slate-300 bg-slate-100 text-slate-700"
+                    }
+                  `}
+                >
+                  {inspectionStatusName[
+                    latestInspection.status
+                  ] ?? latestInspection.status}
+                </span>
+              </div>
+
+              {/* ผู้ตรวจ */}
+
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-4
+                  shadow-md
+                "
+              >
+                <p className="text-sm font-bold text-slate-500">
+                  ผู้ตรวจ
+                </p>
+
+                <p className="mt-1 break-words font-extrabold text-slate-900">
+                  {latestInspection.inspectorName ?? "-"}
+                </p>
+              </div>
+
+              {/* สภาพครุภัณฑ์ */}
+
+              {latestInspection.condition && (
+                <div
+                  className="
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    p-4
+                    shadow-md
+                    sm:col-span-2
+                    lg:col-span-4
+                  "
+                >
+                  <p className="text-sm font-bold text-slate-500">
+                    สภาพครุภัณฑ์
+                  </p>
+
+                  <p className="mt-1 break-words font-semibold text-slate-900">
+                    {latestInspection.condition}
+                  </p>
+                </div>
+              )}
+
+              {/* หมายเหตุการตรวจ */}
+
+              {latestInspection.remark && (
+                <div
+                  className="
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    p-4
+                    shadow-md
+                    sm:col-span-2
+                    lg:col-span-4
+                  "
+                >
+                  <p className="text-sm font-bold text-slate-500">
+                    หมายเหตุการตรวจ
+                  </p>
+
+                  <p className="mt-1 break-words font-semibold text-slate-900">
+                    {latestInspection.remark}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              className="
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                p-8
+                text-center
+                font-semibold
+                text-slate-500
+                shadow-md
+              "
+            >
+              ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
+            </div>
+          )}
         </div>
       </div>
 
@@ -927,39 +866,36 @@ export default async function AssetDetailPage({
             sm:p-8
           "
         >
-          <div>
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              📝 หมายเหตุ
-            </h2>
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+            "
+          >
+            📝 หมายเหตุ
+          </h2>
 
-            <div
-              className="
-                mt-4
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-4
-                shadow-md
-              "
-            >
-              <p className="break-words font-semibold text-slate-900">
-                {asset.remark}
-              </p>
-            </div>
+          <div
+            className="
+              mt-4
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              p-4
+              shadow-md
+            "
+          >
+            <p className="break-words font-semibold text-slate-900">
+              {asset.remark}
+            </p>
           </div>
         </div>
       )}
