@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import ExportDepartmentAssetsPdf from "./ExportDepartmentAssetsPdf";
 
 export const dynamic = "force-dynamic";
 
@@ -126,29 +125,6 @@ export default async function DepartmentAssetsPage({
       (categoryCounts.get(asset.category) ?? 0) + 1
     );
   }
-
-  const exportAssets = assets.map((asset) => ({
-    id: asset.id,
-    name: asset.name,
-    category: asset.category,
-    brand: asset.brand,
-    model: asset.model,
-    serialNumber: asset.serialNumber,
-    governmentAssetNo: asset.governmentAssetNo,
-    officeAssetNo: asset.officeAssetNo,
-    departmentName: asset.department.name,
-    sectionName: asset.section?.name ?? null,
-    officerName: asset.officer
-      ? `${asset.officer.firstName} ${asset.officer.lastName}`
-      : null,
-    status: asset.status,
-    purchaseDate: asset.purchaseDate
-      ? asset.purchaseDate.toISOString()
-      : null,
-    price: asset.price,
-    location: asset.location,
-    remark: asset.remark,
-  }));
 
   return (
     <div
@@ -283,10 +259,32 @@ export default async function DepartmentAssetsPage({
         </div>
 
         <div className="shrink-0">
-          <ExportDepartmentAssetsPdf
-            departmentName={department.name}
-            assets={exportAssets}
-          />
+          <Link
+            href={`/assets/${department.id}/all`}
+            className="
+              block
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-4
+              py-2.5
+              text-center
+              text-sm
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              hover:from-emerald-700
+              hover:to-green-600
+              sm:px-6
+              sm:py-3
+              sm:text-base
+            "
+          >
+            📋 รวมรายการครุภัณฑ์
+          </Link>
         </div>
       </div>
 
