@@ -278,7 +278,7 @@ export default async function AssetInspectionPage({
 
           <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
-              เลขครุภัณฑ์กรม
+              รหัส GFMIS
             </p>
 
             <p
@@ -295,7 +295,7 @@ export default async function AssetInspectionPage({
 
           <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
-              เลขครุภัณฑ์ประจำสำนัก
+              รหัสครุภัณฑ์
             </p>
 
             <p
@@ -437,7 +437,6 @@ export default async function AssetInspectionPage({
             overflow-hidden
             rounded-2xl
             bg-white
-            shadow-xl
           "
         >
           <div className="w-full overflow-x-auto">
@@ -446,6 +445,8 @@ export default async function AssetInspectionPage({
                 w-full
                 min-w-[1000px]
                 border-collapse
+                border
+                border-black
                 text-sm
               "
             >
