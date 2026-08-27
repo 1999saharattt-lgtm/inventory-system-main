@@ -253,8 +253,12 @@ export default async function DepartmentAssetsPage({
 
       <div
         className="
+          flex
           w-full
           min-w-0
+          items-center
+          justify-between
+          gap-4
           rounded-2xl
           border
           border-slate-900
@@ -268,23 +272,23 @@ export default async function DepartmentAssetsPage({
           sm:p-6
         "
       >
-        <p className="text-sm font-bold !text-slate-300">
-          ครุภัณฑ์ทั้งหมดของกลุ่มงาน
-        </p>
+        <div className="min-w-0">
+          <p className="text-sm font-bold !text-slate-300">
+            ครุภัณฑ์ทั้งหมดของกลุ่มงาน
+          </p>
 
-        <p className="mt-1 text-3xl font-extrabold !text-white">
-          {department._count.assets} รายการ
-        </p>
+          <p className="mt-1 text-3xl font-extrabold !text-white">
+            {department._count.assets} รายการ
+          </p>
+        </div>
+
+        <div className="shrink-0">
+          <ExportDepartmentAssetsPdf
+            departmentName={department.name}
+            assets={exportAssets}
+          />
+        </div>
       </div>
-
-      {/* =====================================================
-          Export PDF
-      ===================================================== */}
-
-      <ExportDepartmentAssetsPdf
-        departmentName={department.name}
-        assets={exportAssets}
-      />
 
       {/* =====================================================
           Category Cards

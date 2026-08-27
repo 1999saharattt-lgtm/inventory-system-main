@@ -106,7 +106,11 @@ export default function ExportDepartmentAssetsPdf({
           "[data-pdf-page]"
         );
 
-      for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+      for (
+        let pageIndex = 0;
+        pageIndex < pages.length;
+        pageIndex++
+      ) {
         const page = pages[pageIndex];
 
         const canvas = await html2canvas(page, {
@@ -180,12 +184,12 @@ export default function ExportDepartmentAssetsPdf({
   );
 
   return (
-    <div className="w-full min-w-0">
+    <div className="shrink-0">
       {/* =====================================================
           Export Button
           ===================================================== */}
 
-      <div className="flex w-full justify-end">
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={handleExportPdf}
@@ -194,13 +198,13 @@ export default function ExportDepartmentAssetsPdf({
             assets.length === 0
           }
           className="
-            w-full
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-6
+            px-4
             py-3
+            text-sm
             font-extrabold
             !text-white
             shadow-lg
@@ -211,7 +215,8 @@ export default function ExportDepartmentAssetsPdf({
             active:scale-[0.98]
             disabled:cursor-not-allowed
             disabled:opacity-50
-            sm:w-auto
+            sm:px-6
+            sm:text-base
           "
         >
           {isExporting
