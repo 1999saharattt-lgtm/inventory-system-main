@@ -101,6 +101,7 @@ export default function AssetResponsibleFields({
   return (
     <div
       className="
+        mt-4
         grid
         gap-4
         sm:grid-cols-2
