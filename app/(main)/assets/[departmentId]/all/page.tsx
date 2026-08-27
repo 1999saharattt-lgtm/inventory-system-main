@@ -52,6 +52,18 @@ const categoryName: Record<string, string> = {
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
+const categoryUnit: Record<string, string> = {
+  DESK: "ตัว",
+  CHAIR: "ตัว",
+  AIR_CONDITIONER: "เครื่อง",
+  CABINET: "ตัว",
+  COMPUTER: "เครื่อง",
+  PRINTER: "เครื่อง",
+  TELEPHONE: "เครื่อง",
+  OTHER: "รายการ",
+  NO_SYSTEM: "รายการ",
+};
+
 const statusName: Record<string, string> = {
   ACTIVE: "ใช้งานอยู่",
   INACTIVE: "ไม่ใช้งาน",
@@ -377,6 +389,8 @@ export default async function DepartmentAllAssetsPage({
           >
             <thead>
               <tr>
+                {/* ลำดับ */}
+
                 <th
                   className="
                     border
@@ -395,6 +409,8 @@ export default async function DepartmentAllAssetsPage({
                   ลำดับ
                 </th>
 
+                {/* ประเภท */}
+
                 <th
                   className="
                     border
@@ -410,8 +426,50 @@ export default async function DepartmentAllAssetsPage({
                     !text-white
                   "
                 >
-                  หมวดหมู่
+                  ประเภท
                 </th>
+
+                {/* รหัส GFMIS */}
+
+                <th
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  รหัส GFMIS
+                </th>
+
+                {/* รหัสครุภัณฑ์ */}
+
+                <th
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  รหัสครุภัณฑ์
+                </th>
+
+                {/* รายการครุภัณฑ์ */}
 
                 <th
                   className="
@@ -431,6 +489,8 @@ export default async function DepartmentAllAssetsPage({
                   รายการครุภัณฑ์
                 </th>
 
+                {/* หน่วย */}
+
                 <th
                   className="
                     border
@@ -446,8 +506,10 @@ export default async function DepartmentAllAssetsPage({
                     !text-white
                   "
                 >
-                  เลขครุภัณฑ์
+                  หน่วย
                 </th>
+
+                {/* ผู้รับผิดชอบ */}
 
                 <th
                   className="
@@ -466,6 +528,8 @@ export default async function DepartmentAllAssetsPage({
                 >
                   ผู้รับผิดชอบ
                 </th>
+
+                {/* สถานะ */}
 
                 <th
                   className="
@@ -491,7 +555,7 @@ export default async function DepartmentAllAssetsPage({
               {assets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="
                       border
                       border-black
@@ -522,6 +586,8 @@ export default async function DepartmentAllAssetsPage({
                           hover:bg-emerald-50
                         "
                       >
+                        {/* ลำดับ */}
+
                         <td
                           className="
                             border
@@ -535,12 +601,15 @@ export default async function DepartmentAllAssetsPage({
                           {index + 1}
                         </td>
 
+                        {/* ประเภท */}
+
                         <td
                           className="
                             border
                             border-black
                             px-3
                             py-3
+                            text-center
                             font-semibold
                           "
                         >
@@ -548,33 +617,22 @@ export default async function DepartmentAllAssetsPage({
                             asset.category}
                         </td>
 
+                        {/* รหัส GFMIS */}
+
                         <td
                           className="
                             border
                             border-black
                             px-3
                             py-3
+                            text-center
+                            font-semibold
                           "
                         >
-                          <p className="font-extrabold">
-                            {asset.name}
-                          </p>
-
-                          {(asset.brand || asset.model) && (
-                            <p
-                              className="
-                                mt-1
-                                text-sm
-                                font-semibold
-                                text-slate-600
-                              "
-                            >
-                              {[asset.brand, asset.model]
-                                .filter(Boolean)
-                                .join(" / ")}
-                            </p>
-                          )}
+                          {asset.governmentAssetNo ?? "-"}
                         </td>
+
+                        {/* รหัสครุภัณฑ์ */}
 
                         <td
                           className="
@@ -582,40 +640,14 @@ export default async function DepartmentAllAssetsPage({
                             border-black
                             px-3
                             py-3
+                            text-center
+                            font-semibold
                           "
                         >
-                          <p className="font-extrabold">
-                            {asset.governmentAssetNo ?? "-"}
-                          </p>
-
-                          {asset.officeAssetNo && (
-                            <p
-                              className="
-                                mt-1
-                                text-sm
-                                font-semibold
-                                text-slate-600
-                              "
-                            >
-                              เลขสำนักงาน:{" "}
-                              {asset.officeAssetNo}
-                            </p>
-                          )}
-
-                          {asset.serialNumber && (
-                            <p
-                              className="
-                                mt-1
-                                break-all
-                                text-sm
-                                font-semibold
-                                text-slate-600
-                              "
-                            >
-                              S/N: {asset.serialNumber}
-                            </p>
-                          )}
+                          {asset.officeAssetNo ?? "-"}
                         </td>
+
+                        {/* รายการครุภัณฑ์ */}
 
                         <td
                           className="
@@ -623,6 +655,36 @@ export default async function DepartmentAllAssetsPage({
                             border-black
                             px-3
                             py-3
+                            font-extrabold
+                          "
+                        >
+                          {asset.name}
+                        </td>
+
+                        {/* หน่วย */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            font-semibold
+                          "
+                        >
+                          {categoryUnit[asset.category] ?? "รายการ"}
+                        </td>
+
+                        {/* ผู้รับผิดชอบ */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
                           "
                         >
                           <p className="font-semibold">
@@ -642,6 +704,8 @@ export default async function DepartmentAllAssetsPage({
                             </p>
                           )}
                         </td>
+
+                        {/* สถานะ */}
 
                         <td
                           className="

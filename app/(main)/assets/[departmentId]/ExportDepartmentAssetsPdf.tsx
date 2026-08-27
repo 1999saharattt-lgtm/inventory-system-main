@@ -28,6 +28,18 @@ type Props = {
   assets: Asset[];
 };
 
+const categoryName: Record<string, string> = {
+  DESK: "โต๊ะ",
+  CHAIR: "เก้าอี้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  CABINET: "ตู้และชั้น",
+  COMPUTER: "คอมพิวเตอร์",
+  PRINTER: "เครื่องพิมพ์",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+};
+
 const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
@@ -40,39 +52,12 @@ const categoryUnit: Record<string, string> = {
   NO_SYSTEM: "รายการ",
 };
 
-/* =========================================================
-   เดือนภาษาไทย
-   ========================================================= */
-
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
-];
-
-const thaiMonthShort = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
+const statusName: Record<string, string> = {
+  ACTIVE: "ใช้งานอยู่",
+  INACTIVE: "ไม่ใช้งาน",
+  DISPOSED: "จำหน่ายแล้ว",
+  LOST: "สูญหาย",
+};
 
 /* =========================================================
    ปีงบประมาณราชการ
@@ -88,115 +73,29 @@ function getFiscalYear(date: Date) {
 }
 
 /* =========================================================
-   แปลงวันที่จาก input type="date"
-   เป็น Date โดยไม่ให้ timezone ทำให้วันที่เลื่อน
+   รอบไตรมาสปัจจุบัน
+   ต.ค. - ธ.ค. = 1
+   ม.ค. - มี.ค. = 2
+   เม.ย. - มิ.ย. = 3
+   ก.ค. - ก.ย. = 4
    ========================================================= */
 
-function parseInputDate(value: string) {
-  if (!value) {
-    return null;
+function getCurrentQuarter(date: Date) {
+  const month = date.getMonth() + 1;
+
+  if (month >= 10 && month <= 12) {
+    return 1;
   }
 
-  const [year, month, day] = value
-    .split("-")
-    .map(Number);
-
-  return new Date(
-    year,
-    month - 1,
-    day
-  );
-}
-
-/* =========================================================
-   วันที่ภาษาไทยแบบเต็ม
-   ========================================================= */
-
-function formatThaiDate(
-  value: string
-) {
-  const date = parseInputDate(value);
-
-  if (!date) {
-    return "-";
+  if (month >= 1 && month <= 3) {
+    return 2;
   }
 
-  const day = date.getDate();
-  const month =
-    thaiMonths[date.getMonth()];
-  const year =
-    date.getFullYear() + 543;
-
-  return `${day} ${month} ${year}`;
-}
-
-/* =========================================================
-   วันที่ภาษาไทยแบบย่อ
-   เช่น 1 ต.ค. 2568
-   ========================================================= */
-
-function formatThaiShortDate(
-  value: string
-) {
-  const date = parseInputDate(value);
-
-  if (!date) {
-    return "-";
+  if (month >= 4 && month <= 6) {
+    return 3;
   }
 
-  const day = date.getDate();
-  const month =
-    thaiMonthShort[date.getMonth()];
-  const year =
-    date.getFullYear() + 543;
-
-  return `${day} ${month} ${year}`;
-}
-
-/* =========================================================
-   สถานะครุภัณฑ์
-   ========================================================= */
-
-function getConditionMark(
-  status: string,
-  condition: string
-) {
-  if (condition === "normal") {
-    return status === "IN_USE"
-      ? "/"
-      : "";
-  }
-
-  if (condition === "damaged") {
-    return status === "DAMAGED"
-      ? "/"
-      : "";
-  }
-
-  if (condition === "deteriorated") {
-    return status === "WAITING_DISPOSAL"
-      ? "/"
-      : "";
-  }
-
-  if (condition === "notRequired") {
-    return status === "DISPOSED"
-      ? "/"
-      : "";
-  }
-
-  return "";
-}
-
-function getInspectionMark(
-  status: string
-) {
-  return status === "IN_USE" ||
-    status === "DAMAGED" ||
-    status === "WAITING_DISPOSAL" ||
-    status === "DISPOSED"
-    ? "/"
-    : "";
+  return 4;
 }
 
 /* =========================================================
@@ -207,71 +106,29 @@ export default function ExportDepartmentAssetsPdf({
   departmentName,
   assets,
 }: Props) {
-  const pdfRef =
-    useRef<HTMLDivElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
-  const [isExporting, setIsExporting] =
-    useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-  /* =========================================================
-     วันที่ตรวจสอบ
-     ผู้ใช้เลือกเอง
-     ========================================================= */
-
-  const today = new Date();
-
-  const defaultDate =
-    `${today.getFullYear()}-${String(
-      today.getMonth() + 1
-    ).padStart(2, "0")}-${String(
-      today.getDate()
-    ).padStart(2, "0")}`;
-
-  const [inspectionStartDate, setInspectionStartDate] =
-    useState(defaultDate);
-
-  const [inspectionEndDate, setInspectionEndDate] =
-    useState(defaultDate);
-
-  /* =========================================================
-     ปีงบประมาณ
-     อ้างอิงจากวันที่เริ่มตรวจสอบ
-     ========================================================= */
-
-  const startDateObject =
-    parseInputDate(
-      inspectionStartDate
-    );
-
-  const fiscalYear =
-    startDateObject
-      ? getFiscalYear(startDateObject)
-      : getFiscalYear(today);
-
-  /* =========================================================
-     A4 แนวนอน
-     พื้นที่จริง 297 x 210 mm
-     ขอบ 10 mm
-     ========================================================= */
+  /*
+   * A4 แนวนอน
+   * ขอบ 10 mm
+   */
 
   const pdfWidth = 277;
   const pdfHeight = 190;
 
   /*
-   * ฟอนต์ต้นฉบับ 14 pt
-   * เนื้อหา PDF จะถูกย่อเหลือ 70%
-   * ตอนนำลง A4 เพื่อให้ตารางยังพอดีหน้า
+   * ย่อเนื้อหาให้พอดีกับ A4
    */
 
-  const pdfScale = 0.7;
+  const pdfScale = 0.85;
 
   /*
    * จำนวนรายการต่อหน้า
-   * เพิ่มขนาดฟอนต์เป็น 14 pt
-   * จึงลดจำนวนแถวลงเพื่อไม่ให้ชนพื้นที่ลายเซ็น
    */
 
-  const rowsPerPage = 12;
+  const rowsPerPage = 18;
 
   const totalPages = Math.max(
     1,
@@ -292,30 +149,21 @@ export default function ExportDepartmentAssetsPdf({
       return;
     }
 
-    if (
-      !inspectionStartDate ||
-      !inspectionEndDate
-    ) {
-      alert(
-        "กรุณาเลือกวันที่เริ่มดำเนินการตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ"
-      );
-
-      return;
-    }
-
-    if (
-      inspectionEndDate <
-      inspectionStartDate
-    ) {
-      alert(
-        "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ"
-      );
-
-      return;
-    }
-
     try {
       setIsExporting(true);
+
+      /*
+       * คำนวณรอบไตรมาสและปีงบประมาณ
+       * ใหม่ทุกครั้งที่กด Export
+       */
+
+      const currentDate = new Date();
+
+      const currentQuarter =
+        getCurrentQuarter(currentDate);
+
+      const fiscalYear =
+        getFiscalYear(currentDate);
 
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -340,17 +188,14 @@ export default function ExportDepartmentAssetsPdf({
           await html2canvas(page, {
             scale: 2,
             useCORS: true,
-            backgroundColor:
-              "#ffffff",
+            backgroundColor: "#ffffff",
             logging: false,
             width: page.scrollWidth,
             height: page.scrollHeight,
           });
 
         const imageData =
-          canvas.toDataURL(
-            "image/png"
-          );
+          canvas.toDataURL("image/png");
 
         if (pageIndex > 0) {
           pdf.addPage(
@@ -358,12 +203,6 @@ export default function ExportDepartmentAssetsPdf({
             "landscape"
           );
         }
-
-        /*
-         * A4 พื้นที่ใช้งาน 277 x 190 mm
-         * ย่อเนื้อหาลง 70%
-         * และจัดให้อยู่กึ่งกลางหน้า
-         */
 
         const imageWidth =
           pdfWidth * pdfScale;
@@ -373,15 +212,11 @@ export default function ExportDepartmentAssetsPdf({
 
         const imageX =
           10 +
-          (pdfWidth -
-            imageWidth) /
-            2;
+          (pdfWidth - imageWidth) / 2;
 
         const imageY =
           10 +
-          (pdfHeight -
-            imageHeight) /
-            2;
+          (pdfHeight - imageHeight) / 2;
 
         pdf.addImage(
           imageData,
@@ -399,9 +234,7 @@ export default function ExportDepartmentAssetsPdf({
         pdf.output("blob");
 
       const pdfUrl =
-        URL.createObjectURL(
-          pdfBlob
-        );
+        URL.createObjectURL(pdfBlob);
 
       const newWindow =
         window.open(
@@ -412,9 +245,7 @@ export default function ExportDepartmentAssetsPdf({
 
       if (!newWindow) {
         const link =
-          document.createElement(
-            "a"
-          );
+          document.createElement("a");
 
         link.href = pdfUrl;
         link.target = "_blank";
@@ -425,9 +256,7 @@ export default function ExportDepartmentAssetsPdf({
       }
 
       setTimeout(() => {
-        URL.revokeObjectURL(
-          pdfUrl
-        );
+        URL.revokeObjectURL(pdfUrl);
       }, 60000);
     } catch (error) {
       console.error(
@@ -453,119 +282,62 @@ export default function ExportDepartmentAssetsPdf({
     },
     (_, pageIndex) =>
       assets.slice(
-        pageIndex *
-          rowsPerPage,
-        (pageIndex + 1) *
-          rowsPerPage
+        pageIndex * rowsPerPage,
+        (pageIndex + 1) * rowsPerPage
       )
   );
+
+  /*
+   * แสดงค่าปัจจุบันในตัว Preview ที่ซ่อนอยู่
+   * เพื่อให้ตรงกับค่าที่ใช้ตอน Export
+   */
+
+  const currentDate = new Date();
+
+  const currentQuarter =
+    getCurrentQuarter(currentDate);
+
+  const fiscalYear =
+    getFiscalYear(currentDate);
 
   return (
     <div className="shrink-0">
       {/* =====================================================
-          ตัวเลือกวันที่
+          Export Button
           ===================================================== */}
 
-      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-slate-300 bg-white p-4 shadow-lg sm:flex-row sm:items-end sm:justify-end">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-bold text-slate-700">
-            เริ่มดำเนินการตรวจสอบ
-          </label>
-
-          <input
-            type="date"
-            value={inspectionStartDate}
-            onChange={(event) =>
-              setInspectionStartDate(
-                event.target.value
-              )
-            }
-            className="
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-3
-              py-2
-              text-sm
-              text-slate-800
-              outline-none
-              focus:border-slate-500
-              focus:ring-2
-              focus:ring-slate-200
-            "
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-bold text-slate-700">
-            ตรวจสอบแล้วเสร็จ
-          </label>
-
-          <input
-            type="date"
-            value={inspectionEndDate}
-            onChange={(event) =>
-              setInspectionEndDate(
-                event.target.value
-              )
-            }
-            className="
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-3
-              py-2
-              text-sm
-              text-slate-800
-              outline-none
-              focus:border-slate-500
-              focus:ring-2
-              focus:ring-slate-200
-            "
-          />
-        </div>
-
-        {/* ===================================================
-            Export Button
-            =================================================== */}
-
-        <button
-          type="button"
-          onClick={
-            handleExportPdf
-          }
-          disabled={
-            isExporting ||
-            assets.length === 0
-          }
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-3
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            active:scale-[0.98]
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-            sm:px-6
-          "
-        >
-          {isExporting
-            ? "⏳ กำลังสร้าง PDF..."
-            : "📄 ส่งออก PDF"}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={handleExportPdf}
+        disabled={
+          isExporting ||
+          assets.length === 0
+        }
+        className="
+          rounded-xl
+          bg-gradient-to-r
+          from-emerald-600
+          to-green-500
+          px-4
+          py-3
+          text-sm
+          font-extrabold
+          !text-white
+          shadow-lg
+          transition
+          hover:scale-[1.02]
+          hover:from-emerald-700
+          hover:to-green-600
+          active:scale-[0.98]
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+          sm:px-6
+        "
+      >
+        {isExporting
+          ? "⏳ กำลังสร้าง PDF..."
+          : "📄 ส่งออก PDF"}
+      </button>
 
       {/* =====================================================
           Hidden PDF Document
@@ -611,16 +383,19 @@ export default function ExportDepartmentAssetsPdf({
                   Header
                   =============================================== */}
 
-              <div className="text-center leading-none">
+              <div
+                className="
+                  text-center
+                  leading-none
+                "
+              >
                 <div
                   className="
-                    text-[14pt]
+                    text-[16pt]
                     font-bold
                   "
                 >
-                  กระดาษทำการตรวจสอบพัสดุ
-                  ประจำปีงบประมาณ พ.ศ.{" "}
-                  {fiscalYear}
+                  ทะเบียนคุมครุภัณฑ์
                 </div>
 
                 <div
@@ -630,6 +405,8 @@ export default function ExportDepartmentAssetsPdf({
                     font-bold
                   "
                 >
+                  กลุ่มอำนวยการ
+                  {" "}
                   สำนักอนามัยการเจริญพันธุ์
                 </div>
 
@@ -640,23 +417,10 @@ export default function ExportDepartmentAssetsPdf({
                     font-bold
                   "
                 >
-                  เริ่มดำเนินการตรวจสอบวันที่{" "}
-                  {formatThaiDate(
-                    inspectionStartDate
-                  )}
-                </div>
-
-                <div
-                  className="
-                    mt-[1mm]
-                    text-[14pt]
-                    font-bold
-                  "
-                >
-                  ตรวจสอบแล้วเสร็จวันที่{" "}
-                  {formatThaiDate(
-                    inspectionEndDate
-                  )}
+                  รอบไตรมาสที่{" "}
+                  {currentQuarter}{" "}
+                  ปีงบประมาณ พ.ศ.{" "}
+                  {fiscalYear}
                 </div>
               </div>
 
@@ -666,7 +430,7 @@ export default function ExportDepartmentAssetsPdf({
 
               <table
                 className="
-                  mt-[3mm]
+                  mt-[4mm]
                   w-full
                   table-fixed
                   border-collapse
@@ -677,30 +441,19 @@ export default function ExportDepartmentAssetsPdf({
                 "
               >
                 <colgroup>
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "7%" }} />
-                  <col style={{ width: "7%" }} />
-                  <col style={{ width: "11%" }} />
-                  <col style={{ width: "12%" }} />
                   <col style={{ width: "5%" }} />
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "11%" }} />
+                  <col style={{ width: "13%" }} />
+                  <col style={{ width: "13%" }} />
+                  <col style={{ width: "24%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "11%" }} />
                 </colgroup>
 
                 <thead>
-                  <tr className="h-[12mm]">
+                  <tr className="h-[11mm]">
                     <th
-                      rowSpan={3}
                       className="
                         border
                         border-black
@@ -715,7 +468,20 @@ export default function ExportDepartmentAssetsPdf({
                     </th>
 
                     <th
-                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ประเภท
+                    </th>
+
+                    <th
                       className="
                         border
                         border-black
@@ -730,7 +496,6 @@ export default function ExportDepartmentAssetsPdf({
                     </th>
 
                     <th
-                      rowSpan={3}
                       className="
                         border
                         border-black
@@ -745,7 +510,34 @@ export default function ExportDepartmentAssetsPdf({
                     </th>
 
                     <th
-                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รายการครุภัณฑ์
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      หน่วย
+                    </th>
+
+                    <th
                       className="
                         border
                         border-black
@@ -760,7 +552,6 @@ export default function ExportDepartmentAssetsPdf({
                     </th>
 
                     <th
-                      rowSpan={3}
                       className="
                         border
                         border-black
@@ -771,375 +562,14 @@ export default function ExportDepartmentAssetsPdf({
                         text-black
                       "
                     >
-                      รายการ
-                    </th>
-
-                    <th
-                      rowSpan={3}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      หน่วยนับ
-                    </th>
-
-                    <th
-                      rowSpan={2}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ยอดคงเหลือ
-                      <br />
-                      ตามทะเบียน
-                      <br />
-                      ณ วันที่
-                      <br />
-                      {formatThaiShortDate(
-                        inspectionStartDate
-                      )}
-                    </th>
-
-                    <th
-                      colSpan={2}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      รายการรับ - จ่าย
-                      <br />
-                      ระหว่างปีงบประมาณ
-                      <br />
-                      พ.ศ. {fiscalYear}
-                    </th>
-
-                    <th
-                      rowSpan={2}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ยอดคงเหลือ
-                      <br />
-                      ตามทะเบียน
-                      <br />
-                      ณ วันที่ตรวจนับ
-                    </th>
-
-                    <th
-                      rowSpan={2}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      จำนวนที่
-                      <br />
-                      ตรวจนับได้
-                    </th>
-
-                    <th
-                      colSpan={2}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ผลการตรวจนับ
-                      <br />
-                      ครุภัณฑ์ตามทะเบียน
-                    </th>
-
-                    <th
-                      colSpan={4}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      สภาพครุภัณฑ์
-                      ที่ตรวจนับพบ
-                    </th>
-
-                    <th
-                      rowSpan={3}
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      หมายเหตุ
-                    </th>
-                  </tr>
-
-                  <tr className="h-[8mm]">
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      รับ
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      จ่าย
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ถูกต้อง
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ไม่ถูกต้อง
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ใช้งาน
-                      <br />
-                      ได้
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ชำรุด
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      เสื่อม
-                      <br />
-                      สภาพ
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ไม่จำเป็น
-                      <br />
-                      ต้องใช้
-                    </th>
-                  </tr>
-
-                  <tr className="h-[6mm]">
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      -
+                      สถานะ
                     </th>
                   </tr>
                 </thead>
 
-                {/* =================================================
+                {/* ===============================================
                     Body
-                    ================================================= */}
+                    =============================================== */}
 
                 <tbody>
                   {pageAssets.map(
@@ -1154,106 +584,122 @@ export default function ExportDepartmentAssetsPdf({
                           key={asset.id}
                           className="h-[7.5mm]"
                         >
-                          <td className="border border-black px-1 text-center">
-                            {globalIndex +
-                              1}
+                          {/* ลำดับ */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {globalIndex + 1}
                           </td>
 
-                          <td className="border border-black px-1 text-center">
-                            {asset.governmentAssetNo ||
+                          {/* ประเภท */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {categoryName[
+                              asset.category
+                            ] ??
+                              asset.category}
+                          </td>
+
+                          {/* รหัส GFMIS */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {asset.governmentAssetNo ??
                               "-"}
                           </td>
 
-                          <td className="border border-black px-1 text-center">
-                            {asset.officeAssetNo ||
+                          {/* รหัสครุภัณฑ์ */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {asset.officeAssetNo ??
                               "-"}
                           </td>
 
-                          {/* =========================================
-                              ผู้รับผิดชอบ = กลุ่มงาน
-                              ========================================= */}
+                          {/* รายการครุภัณฑ์ */}
 
-                          <td className="border border-black px-1 text-center">
-                            {asset.sectionName ||
-                              asset.departmentName ||
-                              "-"}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
                             {asset.name}
                           </td>
 
-                          <td className="border border-black px-1 text-center">
+                          {/* หน่วย */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
                             {categoryUnit[
                               asset.category
-                            ] ||
-                              "ตัว"}
+                            ] ??
+                              "รายการ"}
                           </td>
 
-                          <td className="border border-black px-1 text-center">
-                            1
+                          {/* ผู้รับผิดชอบ */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {asset.officerName ??
+                              asset.sectionName ??
+                              asset.departmentName ??
+                              "-"}
                           </td>
 
-                          <td className="border border-black px-1 text-center">
-                            -
-                          </td>
+                          {/* สถานะ */}
 
-                          <td className="border border-black px-1 text-center">
-                            -
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            1
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            1
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {getInspectionMark(
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-1
+                              text-center
+                            "
+                          >
+                            {statusName[
                               asset.status
-                            )}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {asset.status ===
-                            "DAMAGED"
-                              ? ""
-                              : ""}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {getConditionMark(
-                              asset.status,
-                              "normal"
-                            )}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {getConditionMark(
-                              asset.status,
-                              "damaged"
-                            )}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {getConditionMark(
-                              asset.status,
-                              "deteriorated"
-                            )}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {getConditionMark(
-                              asset.status,
-                              "notRequired"
-                            )}
-                          </td>
-
-                          <td className="border border-black px-1 text-center">
-                            {asset.remark ||
-                              ""}
+                            ] ??
+                              asset.status}
                           </td>
                         </tr>
                       );
@@ -1272,26 +718,18 @@ export default function ExportDepartmentAssetsPdf({
                           rowsPerPage -
                           pageAssets.length,
                       },
-                      (
-                        _,
-                        emptyIndex
-                      ) => (
+                      (_, emptyIndex) => (
                         <tr
                           key={`empty-${emptyIndex}`}
                           className="h-[7.5mm]"
                         >
                           {Array.from(
                             {
-                              length: 18,
+                              length: 8,
                             },
-                            (
-                              _,
-                              cellIndex
-                            ) => (
+                            (_, cellIndex) => (
                               <td
-                                key={
-                                  cellIndex
-                                }
+                                key={cellIndex}
                                 className="
                                   border
                                   border-black
@@ -1308,95 +746,6 @@ export default function ExportDepartmentAssetsPdf({
                     )}
                 </tbody>
               </table>
-
-              {/* =================================================
-                  Signature
-                  ================================================= */}
-
-              {pageIndex ===
-                totalPages - 1 && (
-                <div
-                  className="
-                    mt-[6mm]
-                    grid
-                    grid-cols-5
-                    gap-[5mm]
-                    text-center
-                    text-[14pt]
-                    leading-tight
-                  "
-                >
-                  <div>
-                    <div>
-                      ลงชื่อ................................
-                    </div>
-
-                    <div className="mt-[1.5mm]">
-                      (................................)
-                    </div>
-
-                    <div className="mt-[1mm]">
-                      ................................
-                    </div>
-                  </div>
-
-                  <div>
-                    <div>
-                      ลงชื่อ................................
-                    </div>
-
-                    <div className="mt-[1.5mm]">
-                      (................................)
-                    </div>
-
-                    <div className="mt-[1mm]">
-                      ................................
-                    </div>
-                  </div>
-
-                  <div>
-                    <div>
-                      ลงชื่อ................................
-                    </div>
-
-                    <div className="mt-[1.5mm]">
-                      (................................)
-                    </div>
-
-                    <div className="mt-[1mm]">
-                      ................................
-                    </div>
-                  </div>
-
-                  <div>
-                    <div>
-                      ลงชื่อ................................
-                    </div>
-
-                    <div className="mt-[1.5mm]">
-                      (................................)
-                    </div>
-
-                    <div className="mt-[1mm]">
-                      ................................
-                    </div>
-                  </div>
-
-                  <div>
-                    <div>
-                      ลงชื่อ................................
-                    </div>
-
-                    <div className="mt-[1.5mm]">
-                      (................................)
-                    </div>
-
-                    <div className="mt-[1mm]">
-                      ................................
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )
         )}
