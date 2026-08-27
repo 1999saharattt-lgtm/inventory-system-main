@@ -16,37 +16,37 @@ type Props = {
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
   CABINET: "ตู้",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
   TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้น/ชั้นวาง",
   OTHER: "อื่น ๆ",
+  NO_SYSTEM: "ไม่มีในระบบ",
 };
 
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
   CHAIR: "💺",
+  AIR_CONDITIONER: "❄️",
   CABINET: "🗄️",
   COMPUTER: "💻",
-  MONITOR: "🖥️",
   PRINTER: "🖨️",
   TELEPHONE: "☎️",
-  SHELF: "🗂️",
   OTHER: "📦",
+  NO_SYSTEM: "❓",
 };
 
 const validCategories = [
   "DESK",
   "CHAIR",
+  "AIR_CONDITIONER",
   "CABINET",
   "COMPUTER",
-  "MONITOR",
   "PRINTER",
   "TELEPHONE",
-  "SHELF",
   "OTHER",
+  "NO_SYSTEM",
 ] as const;
 
 type AssetCategoryValue =
