@@ -124,8 +124,8 @@ setOfficerId(value);
 return ( <div
    className="
      grid
-     items-stretch
      gap-4
+     pt-4
      sm:grid-cols-2
    "
  >
@@ -134,25 +134,14 @@ return ( <div
 ===================================================== */}
 
 
-  <div
-    className="
-      min-w-0
-      h-full
-      rounded-xl
-      border
-      border-slate-300
-      bg-white
-      p-4
-      shadow-md
-    "
-  >
+  <div className="min-w-0">
     <label
       htmlFor="departmentDisplay"
       className="
         block
         text-sm
         font-extrabold
-        text-slate-700
+        !text-slate-200
       "
     >
       หน่วยงาน
@@ -189,25 +178,14 @@ return ( <div
   ===================================================== */}
 
   {sections.length > 0 ? (
-    <div
-      className="
-        min-w-0
-        h-full
-        rounded-xl
-        border
-        border-slate-300
-        bg-white
-        p-4
-        shadow-md
-      "
-    >
+    <div className="min-w-0">
       <label
         htmlFor="sectionId"
         className="
           block
           text-sm
           font-extrabold
-          text-slate-700
+          !text-slate-200
         "
       >
         กลุ่มงาน
@@ -266,25 +244,14 @@ return ( <div
       ผู้ครอบครอง
   ===================================================== */}
 
-  <div
-    className="
-      min-w-0
-      h-full
-      rounded-xl
-      border
-      border-slate-300
-      bg-white
-      p-4
-      shadow-md
-    "
-  >
+  <div className="min-w-0">
     <label
       htmlFor="officerId"
       className="
         block
         text-sm
         font-extrabold
-        text-slate-700
+        !text-slate-200
       "
     >
       ผู้ครอบครอง
@@ -361,25 +328,14 @@ return ( <div
       ตำแหน่ง
   ===================================================== */}
 
-  <div
-    className="
-      min-w-0
-      h-full
-      rounded-xl
-      border
-      border-slate-300
-      bg-white
-      p-4
-      shadow-md
-    "
-  >
+  <div className="min-w-0">
     <label
       htmlFor="positionDisplay"
       className="
         block
         text-sm
         font-extrabold
-        text-slate-700
+        !text-slate-200
       "
     >
       ตำแหน่ง
@@ -415,7 +371,7 @@ return ( <div
       ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
     </p>
   </div>
-</div>
+
 
 );
 }
