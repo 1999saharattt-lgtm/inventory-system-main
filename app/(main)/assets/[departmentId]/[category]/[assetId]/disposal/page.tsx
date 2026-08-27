@@ -16,6 +16,7 @@ const categoryName: Record<string, string> = {
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
+  DAMAGED: "ชำรุด",
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
@@ -251,7 +252,9 @@ export default async function AssetDisposalDetailPage({
                   ? "!text-red-300"
                   : asset.status === "WAITING_DISPOSAL"
                     ? "!text-amber-300"
-                    : "!text-white"
+                    : asset.status === "DAMAGED"
+                      ? "!text-orange-300"
+                      : "!text-white"
               }`}
             >
               {statusName[asset.status] ?? asset.status}
@@ -262,7 +265,7 @@ export default async function AssetDisposalDetailPage({
 
           <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
-              เลขครุภัณฑ์กรม
+              รหัส GFMIS
             </p>
 
             <p className="mt-2 break-all font-extrabold !text-white">
@@ -274,7 +277,7 @@ export default async function AssetDisposalDetailPage({
 
           <div className="min-w-0">
             <p className="text-sm font-bold !text-slate-300">
-              เลขครุภัณฑ์ประจำสำนัก
+              รหัสครุภัณฑ์
             </p>
 
             <p className="mt-2 break-all font-extrabold !text-white">
@@ -297,7 +300,7 @@ export default async function AssetDisposalDetailPage({
       </div>
 
       {/* =====================================================
-          สถานะ
+          สถานะใช้งาน
       ===================================================== */}
 
       {asset.status === "IN_USE" && (
@@ -347,6 +350,61 @@ export default async function AssetDisposalDetailPage({
         </div>
       )}
 
+      {/* =====================================================
+          สถานะชำรุด
+      ===================================================== */}
+
+      {asset.status === "DAMAGED" && (
+        <div
+          className="
+            rounded-2xl
+            border
+            border-orange-300
+            bg-orange-50
+            p-5
+            shadow-lg
+            sm:p-6
+          "
+        >
+          <p className="text-lg font-extrabold text-orange-900">
+            🛠️ ครุภัณฑ์มีสถานะชำรุด
+          </p>
+
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-orange-800 sm:text-base">
+            ครุภัณฑ์รายการนี้มีสถานะเป็น &quot;ชำรุด&quot;
+            กรุณาตรวจสอบสภาพครุภัณฑ์และดำเนินการตามขั้นตอนที่เกี่ยวข้อง
+          </p>
+
+          <div className="mt-4">
+            <Link
+              href={`/assets/${departmentId}/${category}/${asset.id}/edit`}
+              className="
+                inline-block
+                rounded-xl
+                bg-gradient-to-r
+                from-orange-600
+                to-amber-500
+                px-6
+                py-3
+                font-extrabold
+                !text-white
+                shadow-lg
+                transition
+                hover:scale-105
+                hover:from-orange-700
+                hover:to-amber-600
+              "
+            >
+              แก้ไขสถานะครุภัณฑ์
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          รอจำหน่าย
+      ===================================================== */}
+
       {asset.status === "WAITING_DISPOSAL" && (
         <div
           className="
@@ -392,6 +450,10 @@ export default async function AssetDisposalDetailPage({
           </div>
         </div>
       )}
+
+      {/* =====================================================
+          จำหน่ายแล้ว
+      ===================================================== */}
 
       {asset.status === "DISPOSED" && (
         <div
