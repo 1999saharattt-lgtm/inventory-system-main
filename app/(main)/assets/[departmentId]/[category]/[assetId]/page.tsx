@@ -1,15 +1,43 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ExportDepartmentAssetsPdf from "../ExportDepartmentAssetsPdf";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{
     departmentId: string;
-    category: string;
-    assetId: string;
   }>;
+};
+
+type AssetItem = {
+  id: number;
+  name: string;
+  category: string;
+  brand: string | null;
+  model: string | null;
+  serialNumber: string | null;
+  governmentAssetNo: string | null;
+  officeAssetNo: string | null;
+  departmentId: number;
+  department: {
+    name: string;
+  };
+  sectionId: number | null;
+  section: {
+    name: string;
+  } | null;
+  officerId: number | null;
+  officer: {
+    firstName: string;
+    lastName: string;
+  } | null;
+  status: string;
+  purchaseDate: Date | null;
+  price: unknown;
+  location: string | null;
+  remark: string | null;
 };
 
 const categoryName: Record<string, string> = {
@@ -24,85 +52,162 @@ const categoryName: Record<string, string> = {
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
+const categoryUnit: Record<string, string> = {
+  DESK: "ตัว",
+  CHAIR: "ตัว",
+  AIR_CONDITIONER: "เครื่อง",
+  CABINET: "ตัว",
+  COMPUTER: "เครื่อง",
+  PRINTER: "เครื่อง",
+  TELEPHONE: "เครื่อง",
+  OTHER: "รายการ",
+  NO_SYSTEM: "รายการ",
+};
+
+/*
+ * แปลงค่าที่เก็บในฐานข้อมูลเป็นภาษาไทย
+ *
+ * IN_USE = ยังใช้งาน
+ * ACTIVE = ยังใช้งาน (รองรับข้อมูลเดิม)
+ * INACTIVE = ไม่ใช้งาน
+ * DAMAGED = ชำรุด
+ * DISPOSED = จำหน่ายแล้ว
+ * LOST = สูญหาย
+ */
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
-  WAITING_DISPOSAL: "รอจำหน่าย",
+  ACTIVE: "ยังใช้งาน",
+  INACTIVE: "ไม่ใช้งาน",
+  DAMAGED: "ชำรุด",
   DISPOSED: "จำหน่ายแล้ว",
+  LOST: "สูญหาย",
 };
 
 const statusClass: Record<string, string> = {
   IN_USE:
     "bg-emerald-100 text-emerald-800 border-emerald-300",
-  WAITING_DISPOSAL:
-    "bg-amber-100 text-amber-800 border-amber-300",
-  DISPOSED:
-    "bg-slate-200 text-slate-700 border-slate-400",
-};
 
-const inspectionStatusName: Record<string, string> = {
-  IN_USE: "ยังใช้งานอยู่",
-  RETURNED: "ส่งคืน",
-  DAMAGED: "ชำรุด",
-  MISSING: "สูญหาย",
-  NOT_FOUND: "ไม่พบครุภัณฑ์",
-};
-
-const inspectionStatusClass: Record<string, string> = {
-  IN_USE:
+  ACTIVE:
     "bg-emerald-100 text-emerald-800 border-emerald-300",
-  RETURNED:
-    "bg-blue-100 text-blue-800 border-blue-300",
+
+  INACTIVE:
+    "bg-slate-100 text-slate-800 border-slate-300",
+
   DAMAGED:
     "bg-amber-100 text-amber-800 border-amber-300",
-  MISSING:
+
+  DISPOSED:
     "bg-red-100 text-red-800 border-red-300",
-  NOT_FOUND:
+
+  LOST:
     "bg-red-100 text-red-800 border-red-300",
 };
 
-export default async function AssetDetailPage({
+export default async function DepartmentAllAssetsPage({
   params,
 }: Props) {
-  const {
-    departmentId,
-    category,
-    assetId,
-  } = await params;
+  const { departmentId } = await params;
 
-  const departmentIdNumber = Number(departmentId);
-  const assetIdNumber = Number(assetId);
+  const id = Number(departmentId);
 
-  if (
-    !Number.isInteger(departmentIdNumber) ||
-    !Number.isInteger(assetIdNumber)
-  ) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 
-  const asset = await prisma.asset.findFirst({
+  // =====================================================
+  // ดึงข้อมูลกลุ่มงาน
+  // =====================================================
+
+  const department = await prisma.department.findUnique({
     where: {
-      id: assetIdNumber,
-      departmentId: departmentIdNumber,
-      category: category as any,
+      id,
     },
     include: {
-      department: true,
-      section: true,
-      officer: true,
-      inspections: {
-        orderBy: {
-          inspectionDate: "desc",
+      _count: {
+        select: {
+          assets: true,
         },
-        take: 4,
       },
     },
   });
 
-  if (!asset) {
+  if (!department) {
     notFound();
   }
 
-  const latestInspection = asset.inspections[0];
+  // =====================================================
+  // ดึงครุภัณฑ์ทั้งหมดของกลุ่มงาน
+  // =====================================================
+
+  const assets = await prisma.asset.findMany({
+    where: {
+      departmentId: id,
+    },
+    orderBy: {
+      id: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      brand: true,
+      model: true,
+      serialNumber: true,
+      governmentAssetNo: true,
+      officeAssetNo: true,
+      departmentId: true,
+      department: {
+        select: {
+          name: true,
+        },
+      },
+      sectionId: true,
+      section: {
+        select: {
+          name: true,
+        },
+      },
+      officerId: true,
+      officer: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      status: true,
+      purchaseDate: true,
+      price: true,
+      location: true,
+      remark: true,
+    },
+  });
+
+  // =====================================================
+  // เตรียมข้อมูลสำหรับ Export PDF
+  // =====================================================
+
+  const exportAssets = assets.map((asset) => ({
+    id: asset.id,
+    name: asset.name,
+    category: asset.category,
+    brand: asset.brand,
+    model: asset.model,
+    serialNumber: asset.serialNumber,
+    governmentAssetNo: asset.governmentAssetNo,
+    officeAssetNo: asset.officeAssetNo,
+    departmentName: asset.department.name,
+    sectionName: asset.section?.name ?? null,
+    officerName: asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`
+      : null,
+    status: asset.status,
+    purchaseDate: asset.purchaseDate
+      ? asset.purchaseDate.toISOString()
+      : null,
+    price: asset.price,
+    location: asset.location,
+    remark: asset.remark,
+  }));
 
   return (
     <div
@@ -124,9 +229,9 @@ export default async function AssetDetailPage({
           min-h-[110px]
           w-full
           min-w-0
-          flex-col
+          items-center
           justify-between
-          gap-4
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -137,8 +242,6 @@ export default async function AssetDetailPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
           sm:px-8
           sm:py-6
         "
@@ -154,7 +257,7 @@ export default async function AssetDetailPage({
               sm:text-3xl
             "
           >
-            📋 รายละเอียดครุภัณฑ์
+            📋 รายการครุภัณฑ์ทั้งหมด
           </h1>
 
           <p
@@ -165,1094 +268,525 @@ export default async function AssetDetailPage({
               font-semibold
               leading-tight
               !text-slate-200
-              sm:mt-3
               sm:text-base
             "
           >
-            {asset.name} — ทะเบียนคุมครุภัณฑ์
+            {department.name}
           </p>
         </div>
 
+        <Link
+          href={`/assets/${department.id}`}
+          className="
+            shrink-0
+            whitespace-nowrap
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-3
+            py-2
+            text-center
+            text-sm
+            font-extrabold
+            leading-tight
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
+            sm:py-3
+            sm:text-base
+          "
+        >
+          ← กลับ
+        </Link>
+      </div>
+
+      {/* =====================================================
+          ข้อมูลกลุ่มงาน
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          rounded-2xl
+          border
+          border-slate-900
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          p-4
+          !text-white
+          shadow-xl
+          sm:p-6
+        "
+      >
         <div
           className="
             flex
-            w-full
             flex-col
-            gap-2
-            sm:w-auto
+            gap-4
             sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          <Link
-            href={`/assets/${departmentId}/${category}`}
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-auto
-            "
-          >
-            ← กลับ
-          </Link>
-
-          <Link
-            href={`/assets/${departmentId}/${category}/${asset.id}/edit`}
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-red-600
-              to-red-500
-              px-5
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-red-700
-              hover:to-red-600
-              sm:w-auto
-            "
-          >
-            ✏️ แก้ไข
-          </Link>
-        </div>
-      </div>
-
-      {/* =====================================================
-          ข้อมูลครุภัณฑ์
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <div>
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              gap-3
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
-            <h2
+          <div className="min-w-0">
+            <p
               className="
-                min-w-0
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              📋 ข้อมูลครุภัณฑ์
-            </h2>
-
-            <div
-              className="
-                flex
-                shrink-0
-                items-center
-                gap-2
-              "
-            >
-              <span
-                className="
-                  hidden
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                  sm:inline
-                "
-              >
-                สถานะครุภัณฑ์
-              </span>
-
-              <span
-                className="
-                  text-xs
-                  font-extrabold
-                  !text-slate-200
-                  sm:hidden
-                "
-              >
-                สถานะ
-              </span>
-
-              <span
-                className={`
-                  inline-flex
-                  rounded-xl
-                  border
-                  px-3
-                  py-1.5
-                  text-sm
-                  font-extrabold
-                  ${
-                    statusClass[asset.status] ??
-                    "border-slate-300 bg-slate-100 text-slate-700"
-                  }
-                `}
-              >
-                {statusName[asset.status] ??
-                  asset.status}
-              </span>
-            </div>
-          </div>
-
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
-            {/* ชื่อครุภัณฑ์ */}
-
-            <div className="min-w-0 sm:col-span-2">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                ชื่อครุภัณฑ์
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-words text-lg font-extrabold text-slate-900">
-                  {asset.name}
-                </p>
-              </div>
-            </div>
-
-            {/* ยี่ห้อ */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                ยี่ห้อ
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-words font-extrabold text-slate-900">
-                  {asset.brand ?? "-"}
-                </p>
-              </div>
-            </div>
-
-            {/* รุ่น */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                รุ่น
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-words font-extrabold text-slate-900">
-                  {asset.model ?? "-"}
-                </p>
-              </div>
-            </div>
-
-            {/* Serial Number */}
-
-            <div className="min-w-0 sm:col-span-2">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                Serial Number
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-all font-extrabold text-slate-900">
-                  {asset.serialNumber ?? "-"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* =====================================================
-          เลขทะเบียนครุภัณฑ์
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <div>
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-              sm:text-xl
-            "
-          >
-            🔖 เลขทะเบียนครุภัณฑ์
-          </h2>
-
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
-            {/* เลขครุภัณฑ์กรม */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                เลขครุภัณฑ์กรม
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-all font-extrabold text-slate-900">
-                  {asset.governmentAssetNo ?? "-"}
-                </p>
-              </div>
-            </div>
-
-            {/* เลขครุภัณฑ์ประจำสำนัก */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                เลขครุภัณฑ์ประจำสำนัก
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-all font-extrabold text-slate-900">
-                  {asset.officeAssetNo ?? "-"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* =====================================================
-          ผู้รับผิดชอบ
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <div>
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-              sm:text-xl
-            "
-          >
-            👤 ผู้รับผิดชอบ
-          </h2>
-
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
-            {/* หน่วยงาน */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                หน่วยงาน
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-extrabold
-                  text-slate-900
-                  shadow-md
-                "
-              >
-                {asset.department.name}
-              </div>
-            </div>
-
-            {/* กลุ่มงาน */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                กลุ่มงาน
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-extrabold
-                  text-slate-900
-                  shadow-md
-                "
-              >
-                {asset.section?.name ?? "-"}
-              </div>
-            </div>
-
-            {/* ผู้ครอบครอง */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                ผู้ครอบครอง
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-extrabold
-                  text-slate-900
-                  shadow-md
-                "
-              >
-                {asset.officer
-                  ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                  : "ยังไม่ได้ระบุผู้ครอบครอง"}
-              </div>
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  !text-slate-400
-                "
-              >
-                ผู้รับผิดชอบครุภัณฑ์
-              </p>
-            </div>
-
-            {/* ตำแหน่ง */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                ตำแหน่ง
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-extrabold
-                  text-slate-900
-                  shadow-md
-                "
-              >
-                {asset.officer?.position ?? "-"}
-              </div>
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  !text-slate-400
-                "
-              >
-                ตำแหน่งตามผู้ครอบครองที่เลือก
-              </p>
-            </div>
-          </div>
-
-          {/* หมายเหตุ */}
-
-          {asset.remark && (
-            <div className="mt-4">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                หมายเหตุ
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-words font-semibold text-slate-900">
-                  {asset.remark}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* =====================================================
-          ผลการตรวจสอบล่าสุด
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <div>
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
-            <h2
-              className="
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              🔍 ผลการตรวจสอบล่าสุด
-            </h2>
-
-            <Link
-              href={`/assets/${departmentId}/${category}/${asset.id}/inspection`}
-              className="
-                w-full
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-4
-                py-2
-                text-center
                 text-sm
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-[1.02]
-                hover:from-emerald-700
-                hover:to-green-600
-                sm:w-auto
+                font-bold
+                !text-slate-300
               "
             >
-              ดูประวัติการตรวจสอบ
-            </Link>
+              กลุ่มงาน
+            </p>
+
+            <p
+              className="
+                mt-1
+                break-words
+                text-xl
+                font-extrabold
+                !text-white
+                sm:text-2xl
+              "
+            >
+              {department.name}
+            </p>
+
+            <p
+              className="
+                mt-2
+                text-sm
+                font-semibold
+                !text-slate-300
+              "
+            >
+              ครุภัณฑ์ทั้งหมด {department._count.assets} รายการ
+            </p>
           </div>
 
-          <div className="mt-4">
-            {latestInspection ? (
-              <div
-                className="
-                  grid
-                  gap-4
-                  sm:grid-cols-2
-                  lg:grid-cols-4
-                "
-              >
-                {/* รอบการตรวจ */}
+          {/* Export PDF ด้านขวาบน */}
 
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-sm
-                      font-extrabold
-                      !text-slate-200
-                    "
-                  >
-                    รอบการตรวจ
-                  </p>
-
-                  <div
-                    className="
-                      mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      text-center
-                      shadow-md
-                    "
-                  >
-                    <p className="break-words text-center font-extrabold text-slate-900">
-                      ปี {latestInspection.year} /{" "}
-                      {latestInspection.quarter}
-                    </p>
-                  </div>
-                </div>
-
-                {/* วันที่ตรวจ */}
-
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-sm
-                      font-extrabold
-                      !text-slate-200
-                    "
-                  >
-                    วันที่ตรวจ
-                  </p>
-
-                  <div
-                    className="
-                      mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      text-center
-                      shadow-md
-                    "
-                  >
-                    <p className="break-words text-center font-extrabold text-slate-900">
-                      {new Date(
-                        latestInspection.inspectionDate
-                      ).toLocaleDateString("th-TH")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* ผลการตรวจ */}
-
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-sm
-                      font-extrabold
-                      !text-slate-200
-                    "
-                  >
-                    ผลการตรวจ
-                  </p>
-
-                  <div
-                    className="
-                      mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-2
-                      text-center
-                      shadow-md
-                    "
-                  >
-                    <span
-                      className={`
-                        inline-flex
-                        rounded-lg
-                        border
-                        px-3
-                        py-1.5
-                        text-center
-                        text-sm
-                        font-extrabold
-                        ${
-                          inspectionStatusClass[
-                            latestInspection.status
-                          ] ??
-                          "border-slate-300 bg-slate-100 text-slate-700"
-                        }
-                      `}
-                    >
-                      {inspectionStatusName[
-                        latestInspection.status
-                      ] ?? latestInspection.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* ผู้ตรวจ */}
-
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-sm
-                      font-extrabold
-                      !text-slate-200
-                    "
-                  >
-                    ผู้ตรวจ
-                  </p>
-
-                  <div
-                    className="
-                      mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      text-center
-                      shadow-md
-                    "
-                  >
-                    <p className="break-words text-center font-extrabold text-slate-900">
-                      {latestInspection.inspectorName ??
-                        "-"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* สภาพครุภัณฑ์ */}
-
-                {latestInspection.condition && (
-                  <div
-                    className="
-                      min-w-0
-                      sm:col-span-2
-                      lg:col-span-4
-                    "
-                  >
-                    <p
-                      className="
-                        text-sm
-                        font-extrabold
-                        !text-slate-200
-                      "
-                    >
-                      สภาพครุภัณฑ์
-                    </p>
-
-                    <div
-                      className="
-                        mt-2
-                        flex
-                        min-h-[50px]
-                        items-center
-                        justify-center
-                        rounded-xl
-                        border
-                        border-slate-300
-                        bg-white
-                        px-4
-                        py-3
-                        text-center
-                        shadow-md
-                      "
-                    >
-                      <p className="break-words text-center font-semibold text-slate-900">
-                        {latestInspection.condition}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* หมายเหตุการตรวจ */}
-
-                {latestInspection.remark && (
-                  <div
-                    className="
-                      min-w-0
-                      sm:col-span-2
-                      lg:col-span-4
-                    "
-                  >
-                    <p
-                      className="
-                        text-sm
-                        font-extrabold
-                        !text-slate-200
-                      "
-                    >
-                      หมายเหตุการตรวจ
-                    </p>
-
-                    <div
-                      className="
-                        mt-2
-                        flex
-                        min-h-[50px]
-                        items-center
-                        justify-center
-                        rounded-xl
-                        border
-                        border-slate-300
-                        bg-white
-                        px-4
-                        py-3
-                        text-center
-                        shadow-md
-                      "
-                    >
-                      <p className="break-words text-center font-semibold text-slate-900">
-                        {latestInspection.remark}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                className="
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  p-8
-                  text-center
-                  font-semibold
-                  text-slate-500
-                  shadow-md
-                "
-              >
-                ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
-              </div>
-            )}
+          <div className="w-full shrink-0 sm:w-auto">
+            <ExportDepartmentAssetsPdf
+              departmentName={department.name}
+              assets={exportAssets}
+            />
           </div>
         </div>
       </div>
 
       {/* =====================================================
-          การดำเนินการ
+          ตารางรายการครุภัณฑ์
+          ไม่มีกรอบซ้อนรอบตาราง
       ===================================================== */}
 
       <div
         className="
-          flex
           w-full
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:justify-end
+          min-w-0
+          overflow-hidden
+          rounded-2xl
+          bg-white
+          shadow-xl
         "
       >
-        <Link
-          href={`/assets/${departmentId}/${category}/${asset.id}/inspection/new`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-blue-600
-            to-blue-500
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-blue-700
-            hover:to-blue-600
-            sm:w-auto
-          "
-        >
-          🔍 บันทึกผลการตรวจ
-        </Link>
+        <div className="overflow-x-auto">
+          <table
+            className="
+              w-full
+              border-collapse
+              border
+              border-black
+            "
+          >
+            <thead>
+              <tr>
+                {/* ลำดับ */}
 
-        <Link
-          href={`/assets/${departmentId}/${category}/${asset.id}/disposal`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-amber-600
-            to-orange-500
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-amber-700
-            hover:to-amber-600
-            sm:w-auto
-          "
-        >
-          📦 การจำหน่าย
-        </Link>
+                <th
+                  className="
+                    w-[60px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ลำดับ
+                </th>
+
+                {/* ประเภท */}
+
+                <th
+                  className="
+                    w-[120px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-2
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ประเภท
+                </th>
+
+                {/* เลขครุภัณฑ์กรม */}
+
+                <th
+                  className="
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  เลขครุภัณฑ์กรม
+                </th>
+
+                {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+                <th
+                  className="
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  เลขครุภัณฑ์ประจำสำนัก
+                </th>
+
+                {/* ชื่อครุภัณฑ์ */}
+
+                <th
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ชื่อครุภัณฑ์
+                </th>
+
+                {/* หน่วย */}
+
+                <th
+                  className="
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  หน่วย
+                </th>
+
+                {/* ผู้ครอบครอง */}
+
+                <th
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ผู้ครอบครอง
+                </th>
+
+                {/* สถานะ */}
+
+                <th
+                  className="
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  สถานะ
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="text-slate-900">
+              {assets.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-8
+                      text-center
+                      text-lg
+                      font-bold
+                      text-slate-500
+                    "
+                  >
+                    ไม่พบรายการครุภัณฑ์
+                  </td>
+                </tr>
+              ) : (
+                assets.map(
+                  (asset: AssetItem, index: number) => {
+                    const officerName = asset.officer
+                      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+                      : "-";
+
+                    return (
+                      <tr
+                        key={asset.id}
+                        className="
+                          text-slate-900
+                          transition
+                          hover:bg-emerald-50
+                        "
+                      >
+                        {/* ลำดับ */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-2
+                            py-3
+                            text-center
+                            align-middle
+                            font-bold
+                          "
+                        >
+                          {index + 1}
+                        </td>
+
+                        {/* ประเภท */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-2
+                            py-3
+                            text-center
+                            align-middle
+                            font-semibold
+                          "
+                        >
+                          {categoryName[asset.category] ??
+                            asset.category}
+                        </td>
+
+                        {/* เลขครุภัณฑ์กรม */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                            font-semibold
+                          "
+                        >
+                          {asset.governmentAssetNo ?? "-"}
+                        </td>
+
+                        {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                            font-semibold
+                          "
+                        >
+                          {asset.officeAssetNo ?? "-"}
+                        </td>
+
+                        {/* ชื่อครุภัณฑ์ */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                            font-extrabold
+                          "
+                        >
+                          {asset.name}
+                        </td>
+
+                        {/* หน่วย */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                            font-semibold
+                          "
+                        >
+                          {categoryUnit[asset.category] ??
+                            "รายการ"}
+                        </td>
+
+                        {/* ผู้ครอบครอง */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                          "
+                        >
+                          <p className="font-semibold">
+                            {officerName}
+                          </p>
+
+                          {asset.section && (
+                            <p
+                              className="
+                                mt-1
+                                text-center
+                                text-sm
+                                font-semibold
+                                text-slate-600
+                              "
+                            >
+                              {asset.section.name}
+                            </p>
+                          )}
+                        </td>
+
+                        {/* สถานะ */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                          "
+                        >
+                          <span
+                            className={`
+                              inline-flex
+                              items-center
+                              justify-center
+                              rounded-full
+                              border
+                              px-4
+                              py-1.5
+                              text-sm
+                              font-extrabold
+                              shadow-sm
+                              ${
+                                statusClass[asset.status] ??
+                                "border-slate-300 bg-slate-100 text-slate-800"
+                              }
+                            `}
+                          >
+                            {statusName[asset.status] ??
+                              "ไม่ระบุสถานะ"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
