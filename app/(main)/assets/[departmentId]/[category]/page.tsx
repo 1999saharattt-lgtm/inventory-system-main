@@ -11,29 +11,43 @@ type Props = {
   }>;
 };
 
-const categoryName: Record<string, string> = {
+const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  TELEPHONE: "โทรศัพท์",
   CABINET: "ตู้",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้น/ชั้นวาง",
   OTHER: "อื่น ๆ",
-};
+  NO_SYSTEM: "ไม่มีระบบ",
+} as const;
 
-const categoryIcon: Record<string, string> = {
+const categoryIcon = {
   DESK: "🪑",
   CHAIR: "💺",
+  AIR_CONDITIONER: "❄️",
+  TELEPHONE: "☎️",
   CABINET: "🗄️",
   COMPUTER: "💻",
-  MONITOR: "🖥️",
   PRINTER: "🖨️",
-  TELEPHONE: "☎️",
-  SHELF: "🗂️",
   OTHER: "📦",
-};
+  NO_SYSTEM: "📋",
+} as const;
+
+const validCategories = [
+  "DESK",
+  "CHAIR",
+  "AIR_CONDITIONER",
+  "TELEPHONE",
+  "CABINET",
+  "COMPUTER",
+  "PRINTER",
+  "OTHER",
+  "NO_SYSTEM",
+] as const;
+
+type AssetCategory = (typeof validCategories)[number];
 
 export default async function AssetCategoryPage({
   params,
@@ -42,50 +56,52 @@ export default async function AssetCategoryPage({
 
   const departmentIdNumber = Number(departmentId);
 
-  if (!Number.isInteger(departmentIdNumber)) {
+  if (
+    !Number.isInteger(departmentIdNumber) ||
+    departmentIdNumber <= 0
+  ) {
     notFound();
   }
 
-  const normalizedCategory = category.toUpperCase();
+  const normalizedCategory =
+    category.toUpperCase();
 
-  const validCategories = Object.keys(categoryName);
-
-  if (!validCategories.includes(normalizedCategory)) {
+  if (
+    !validCategories.includes(
+      normalizedCategory as AssetCategory
+    )
+  ) {
     notFound();
   }
 
-  const department = await prisma.department.findUnique({
-    where: {
-      id: departmentIdNumber,
-    },
-  });
+  const assetCategory =
+    normalizedCategory as AssetCategory;
+
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: departmentIdNumber,
+      },
+    });
 
   if (!department) {
     notFound();
   }
 
-  const assets = await prisma.asset.findMany({
-    where: {
-      departmentId: departmentIdNumber,
-      category: normalizedCategory as
-        | "DESK"
-        | "CHAIR"
-        | "CABINET"
-        | "COMPUTER"
-        | "MONITOR"
-        | "PRINTER"
-        | "TELEPHONE"
-        | "SHELF"
-        | "OTHER",
-    },
-    include: {
-      section: true,
-      officer: true,
-    },
-    orderBy: {
-      id: "asc",
-    },
-  });
+  const assets =
+    await prisma.asset.findMany({
+      where: {
+        departmentId: departmentIdNumber,
+        category: assetCategory,
+      },
+      include: {
+        section: true,
+        officer: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
@@ -130,8 +146,8 @@ export default async function AssetCategoryPage({
               sm:text-3xl
             "
           >
-            {categoryIcon[normalizedCategory]}{" "}
-            {categoryName[normalizedCategory]}
+            {categoryIcon[assetCategory]}{" "}
+            {categoryName[assetCategory]}
           </h1>
 
           <p
@@ -276,7 +292,7 @@ export default async function AssetCategoryPage({
       >
         <div>
           <p className="text-lg font-extrabold !text-white">
-            รายการ{categoryName[normalizedCategory]}
+            รายการ{categoryName[assetCategory]}
           </p>
 
           <p className="mt-1 text-sm font-semibold !text-slate-200">
@@ -285,7 +301,7 @@ export default async function AssetCategoryPage({
         </div>
 
         <Link
-          href={`/assets/${department.id}/${normalizedCategory}/new`}
+          href={`/assets/${department.id}/${assetCategory}/new`}
           className="
             w-full
             rounded-xl
@@ -315,6 +331,8 @@ export default async function AssetCategoryPage({
         className="
           overflow-hidden
           rounded-2xl
+          border
+          border-black
           bg-white
           shadow-xl
         "
@@ -494,7 +512,8 @@ export default async function AssetCategoryPage({
 
             <tbody className="text-slate-900">
               {assets.map((asset, index) => {
-                const isLastRow = index === assets.length - 1;
+                const isLastRow =
+                  index === assets.length - 1;
 
                 return (
                   <tr
@@ -535,9 +554,13 @@ export default async function AssetCategoryPage({
                         {asset.name}
                       </div>
 
-                      {(asset.brand || asset.model) && (
+                      {(asset.brand ||
+                        asset.model) && (
                         <div className="mt-1 text-xs font-semibold text-slate-500">
-                          {[asset.brand, asset.model]
+                          {[
+                            asset.brand,
+                            asset.model,
+                          ]
                             .filter(Boolean)
                             .join(" / ")}
                         </div>
@@ -557,7 +580,8 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       `}
                     >
-                      {asset.governmentAssetNo ?? "-"}
+                      {asset.governmentAssetNo ??
+                        "-"}
                     </td>
 
                     <td
@@ -573,7 +597,8 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       `}
                     >
-                      {asset.officeAssetNo ?? "-"}
+                      {asset.officeAssetNo ??
+                        "-"}
                     </td>
 
                     <td
@@ -606,7 +631,8 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       `}
                     >
-                      {asset.section?.name ?? "-"}
+                      {asset.section?.name ??
+                        "-"}
                     </td>
 
                     <td
@@ -620,19 +646,29 @@ export default async function AssetCategoryPage({
                         font-extrabold
                       `}
                     >
-                      {asset.status === "IN_USE" && (
+                      {asset.status ===
+                        "IN_USE" && (
                         <span className="text-emerald-700">
                           ยังใช้งาน
                         </span>
                       )}
 
-                      {asset.status === "WAITING_DISPOSAL" && (
+                      {asset.status ===
+                        "DAMAGED" && (
+                        <span className="text-orange-700">
+                          ชำรุด
+                        </span>
+                      )}
+
+                      {asset.status ===
+                        "WAITING_DISPOSAL" && (
                         <span className="text-amber-700">
                           รอจำหน่าย
                         </span>
                       )}
 
-                      {asset.status === "DISPOSED" && (
+                      {asset.status ===
+                        "DISPOSED" && (
                         <span className="text-red-700">
                           จำหน่ายแล้ว
                         </span>
@@ -650,7 +686,7 @@ export default async function AssetCategoryPage({
                       `}
                     >
                       <Link
-                        href={`/assets/${department.id}/${normalizedCategory}/${asset.id}`}
+                        href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
                         className="
                           inline-block
                           whitespace-nowrap
