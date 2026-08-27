@@ -870,26 +870,35 @@ export default async function NewAssetPage({
               departmentName={department.name}
               departmentId={department.id}
             />
+          </div>
+
+          {/* =================================================
+              หมายเหตุ
+          ================================================= */}
+
+          <div className="mt-6">
+            <h2
+              className="
+                rounded-xl
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-4
+                py-3
+                text-lg
+                font-extrabold
+                !text-white
+              "
+            >
+              📝 หมายเหตุ
+            </h2>
 
             <div className="mt-4">
-              <label
-                htmlFor="remark"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                หมายเหตุ
-              </label>
-
               <textarea
                 id="remark"
                 name="remark"
                 rows={4}
                 className="
-                  mt-2
                   w-full
                   resize-y
                   rounded-xl

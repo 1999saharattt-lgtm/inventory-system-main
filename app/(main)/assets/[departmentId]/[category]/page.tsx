@@ -63,8 +63,7 @@ export default async function AssetCategoryPage({
     notFound();
   }
 
-  const normalizedCategory =
-    category.toUpperCase();
+  const normalizedCategory = category.toUpperCase();
 
   if (
     !validCategories.includes(
@@ -332,7 +331,7 @@ export default async function AssetCategoryPage({
           overflow-hidden
           rounded-2xl
           border
-          border-black
+          border-slate-300
           bg-white
           shadow-xl
         "
@@ -353,7 +352,7 @@ export default async function AssetCategoryPage({
                     w-[6%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -373,7 +372,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -393,7 +392,7 @@ export default async function AssetCategoryPage({
                     w-[14%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -413,7 +412,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -433,7 +432,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -453,7 +452,7 @@ export default async function AssetCategoryPage({
                     w-[12%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -473,7 +472,7 @@ export default async function AssetCategoryPage({
                     w-[10%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -493,7 +492,7 @@ export default async function AssetCategoryPage({
                     w-[10%]
                     whitespace-nowrap
                     border
-                    border-black
+                    border-slate-300
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -512,9 +511,6 @@ export default async function AssetCategoryPage({
 
             <tbody className="text-slate-900">
               {assets.map((asset, index) => {
-                const isLastRow =
-                  index === assets.length - 1;
-
                 return (
                   <tr
                     key={asset.id}
@@ -525,30 +521,28 @@ export default async function AssetCategoryPage({
                     "
                   >
                     <td
-                      className={`
+                      className="
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       {index + 1}
                     </td>
 
                     <td
-                      className={`
+                      className="
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       <div className="font-extrabold">
                         {asset.name}
@@ -568,50 +562,47 @@ export default async function AssetCategoryPage({
                     </td>
 
                     <td
-                      className={`
+                      className="
                         break-all
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       {asset.governmentAssetNo ??
                         "-"}
                     </td>
 
                     <td
-                      className={`
+                      className="
                         break-all
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       {asset.officeAssetNo ??
                         "-"}
                     </td>
 
                     <td
-                      className={`
+                      className="
                         break-words
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       {asset.officer
                         ? `${asset.officer.firstName} ${asset.officer.lastName}`
@@ -619,32 +610,30 @@ export default async function AssetCategoryPage({
                     </td>
 
                     <td
-                      className={`
+                      className="
                         break-words
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
                         font-extrabold
                         text-slate-900
-                      `}
+                      "
                     >
                       {asset.section?.name ??
                         "-"}
                     </td>
 
                     <td
-                      className={`
+                      className="
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
                         font-extrabold
-                      `}
+                      "
                     >
                       {asset.status ===
                         "IN_USE" && (
@@ -676,14 +665,13 @@ export default async function AssetCategoryPage({
                     </td>
 
                     <td
-                      className={`
+                      className="
                         border
-                        border-black
-                        ${isLastRow ? "border-b-0" : ""}
+                        border-slate-300
                         px-4
                         py-3
                         text-center
-                      `}
+                      "
                     >
                       <Link
                         href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
@@ -720,7 +708,7 @@ export default async function AssetCategoryPage({
                     colSpan={8}
                     className="
                       border
-                      border-black
+                      border-slate-300
                       px-6
                       py-12
                       text-center
