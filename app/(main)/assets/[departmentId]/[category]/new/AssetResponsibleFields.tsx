@@ -110,32 +110,24 @@ export default function AssetResponsibleFields({
           หน่วยงาน
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
+          htmlFor="departmentDisplay"
           className="
             block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           หน่วยงาน
         </label>
 
         <div
+          id="departmentDisplay"
           className="
             mt-2
-            min-h-[50px]
+            w-full
             rounded-xl
             border
             border-slate-300
@@ -161,24 +153,14 @@ export default function AssetResponsibleFields({
       ===================================================== */}
 
       {sections.length > 0 ? (
-        <div
-          className="
-            min-w-0
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            p-4
-            shadow-md
-          "
-        >
+        <div className="min-w-0">
           <label
             htmlFor="sectionId"
             className="
               block
               text-sm
               font-extrabold
-              text-slate-700
+              !text-slate-200
             "
           >
             กลุ่มงาน
@@ -205,7 +187,6 @@ export default function AssetResponsibleFields({
               font-semibold
               text-slate-900
               outline-none
-              transition
               focus:border-emerald-600
               focus:ring-2
               focus:ring-emerald-200
@@ -237,24 +218,14 @@ export default function AssetResponsibleFields({
           ผู้ครอบครอง
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
           htmlFor="officerId"
           className="
             block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           ผู้ครอบครอง
@@ -285,7 +256,6 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
-            transition
             disabled:cursor-not-allowed
             disabled:bg-slate-100
             disabled:text-slate-400
@@ -316,7 +286,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            text-slate-500
+            !text-slate-400
           "
         >
           {sections.length > 0
@@ -331,32 +301,25 @@ export default function AssetResponsibleFields({
           ตำแหน่ง
       ===================================================== */}
 
-      <div
-        className="
-          min-w-0
-          rounded-xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-md
-        "
-      >
+      <div className="min-w-0">
         <label
+          htmlFor="positionDisplay"
           className="
             block
             text-sm
             font-extrabold
-            text-slate-700
+            !text-slate-200
           "
         >
           ตำแหน่ง
         </label>
 
         <div
+          id="positionDisplay"
           className="
             mt-2
             min-h-[50px]
+            w-full
             rounded-xl
             border
             border-slate-300
@@ -375,7 +338,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            text-slate-500
+            !text-slate-400
           "
         >
           ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
