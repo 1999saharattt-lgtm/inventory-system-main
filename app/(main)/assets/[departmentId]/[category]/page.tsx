@@ -325,20 +325,17 @@ export default async function AssetCategoryPage({
               w-full
               min-w-[1100px]
               border-collapse
-              border
-              border-black
               text-sm
             "
           >
-            <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  !text-white
-                "
-              >
+            <thead
+              className="
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+              "
+            >
+              <tr>
                 <th
                   className="
                     w-[6%]
