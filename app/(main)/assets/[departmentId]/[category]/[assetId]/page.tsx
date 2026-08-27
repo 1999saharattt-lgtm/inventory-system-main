@@ -238,64 +238,40 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-slate-700
           bg-gradient-to-br
-          from-slate-900
+          from-slate-950
+          via-slate-900
           to-slate-800
+          p-4
           shadow-xl
+          sm:p-6
         "
       >
         <div
           className="
+            mb-5
+            flex
+            items-center
+            justify-between
+            gap-3
             border-b
-            border-slate-900
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-4
-            sm:px-6
+            border-slate-700
+            pb-4
           "
         >
           <h2 className="text-lg font-extrabold !text-white sm:text-xl">
             🏷️ ข้อมูลครุภัณฑ์
           </h2>
-        </div>
 
-        <div
-          className="
-            grid
-            gap-5
-            p-4
-            sm:grid-cols-2
-            sm:p-6
-            lg:grid-cols-3
-          "
-        >
-          {/* =================================================
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-sm font-bold !text-slate-300">
               สถานะครุภัณฑ์
-          ================================================= */}
-
-          <div
-            className="
-              min-w-0
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-4
-              shadow-md
-            "
-          >
-            <p className="text-sm font-bold text-slate-500">
-              สถานะครุภัณฑ์
-            </p>
+            </span>
 
             <span
               className={`
-                mt-2
                 inline-flex
-                w-fit
                 rounded-xl
                 border
                 px-4
@@ -311,10 +287,17 @@ export default async function AssetDetailPage({
               {statusName[asset.status] ?? asset.status}
             </span>
           </div>
+        </div>
 
-          {/* =================================================
-              รายการครุภัณฑ์
-          ================================================= */}
+        <div
+          className="
+            grid
+            gap-5
+            sm:grid-cols-2
+            lg:grid-cols-3
+          "
+        >
+          {/* รายการครุภัณฑ์ */}
 
           <div
             className="
@@ -336,9 +319,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              ประเภท
-          ================================================= */}
+          {/* ประเภท */}
 
           <div
             className="
@@ -359,9 +340,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              ยี่ห้อ
-          ================================================= */}
+          {/* ยี่ห้อ */}
 
           <div
             className="
@@ -382,9 +361,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              รุ่น
-          ================================================= */}
+          {/* รุ่น */}
 
           <div
             className="
@@ -405,9 +382,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              Serial Number
-          ================================================= */}
+          {/* Serial Number */}
 
           <div
             className="
@@ -428,9 +403,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              เลขครุภัณฑ์กรม
-          ================================================= */}
+          {/* เลขครุภัณฑ์กรม */}
 
           <div
             className="
@@ -451,9 +424,7 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* =================================================
-              เลขครุภัณฑ์ประจำสำนัก
-          ================================================= */}
+          {/* เลขครุภัณฑ์ประจำสำนัก */}
 
           <div
             className="
@@ -487,23 +458,22 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-slate-700
           bg-gradient-to-br
-          from-slate-900
+          from-slate-950
+          via-slate-900
           to-slate-800
+          p-4
           shadow-xl
+          sm:p-6
         "
       >
         <div
           className="
+            mb-5
             border-b
-            border-slate-900
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-4
-            sm:px-6
+            border-slate-700
+            pb-4
           "
         >
           <h2 className="text-lg font-extrabold !text-white sm:text-xl">
@@ -515,9 +485,7 @@ export default async function AssetDetailPage({
           className="
             grid
             gap-5
-            p-4
             sm:grid-cols-2
-            sm:p-6
           "
         >
           {/* หน่วยงาน */}
@@ -619,29 +587,28 @@ export default async function AssetDetailPage({
           overflow-hidden
           rounded-2xl
           border
-          border-slate-900
+          border-slate-700
           bg-gradient-to-br
-          from-slate-900
+          from-slate-950
+          via-slate-900
           to-slate-800
+          p-4
           shadow-xl
+          sm:p-6
         "
       >
         <div
           className="
+            mb-5
             flex
             flex-col
             gap-3
             border-b
-            border-slate-900
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-4
+            border-slate-700
+            pb-4
             sm:flex-row
             sm:items-center
             sm:justify-between
-            sm:px-6
           "
         >
           <h2 className="text-lg font-extrabold !text-white sm:text-xl">
@@ -672,7 +639,7 @@ export default async function AssetDetailPage({
           </Link>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div>
           {latestInspection ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {/* รอบการตรวจ */}
@@ -842,6 +809,7 @@ export default async function AssetDetailPage({
                 text-center
                 font-semibold
                 text-slate-500
+                shadow-md
               "
             >
               ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
@@ -861,9 +829,10 @@ export default async function AssetDetailPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-900
+            border-slate-700
             bg-gradient-to-br
-            from-slate-900
+            from-slate-950
+            via-slate-900
             to-slate-800
             p-4
             shadow-xl
