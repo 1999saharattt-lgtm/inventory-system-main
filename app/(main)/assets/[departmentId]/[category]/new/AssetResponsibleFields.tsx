@@ -123,6 +123,7 @@ export default function AssetResponsibleFields({
       >
         <label
           className="
+            block
             text-sm
             font-extrabold
             text-slate-700
@@ -134,6 +135,7 @@ export default function AssetResponsibleFields({
         <div
           className="
             mt-2
+            min-h-[50px]
             rounded-xl
             border
             border-slate-300
@@ -173,6 +175,7 @@ export default function AssetResponsibleFields({
           <label
             htmlFor="sectionId"
             className="
+              block
               text-sm
               font-extrabold
               text-slate-700
@@ -202,6 +205,7 @@ export default function AssetResponsibleFields({
               font-semibold
               text-slate-900
               outline-none
+              transition
               focus:border-emerald-600
               focus:ring-2
               focus:ring-emerald-200
@@ -247,6 +251,7 @@ export default function AssetResponsibleFields({
         <label
           htmlFor="officerId"
           className="
+            block
             text-sm
             font-extrabold
             text-slate-700
@@ -280,6 +285,7 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
+            transition
             disabled:cursor-not-allowed
             disabled:bg-slate-100
             disabled:text-slate-400
@@ -338,6 +344,7 @@ export default function AssetResponsibleFields({
       >
         <label
           className="
+            block
             text-sm
             font-extrabold
             text-slate-700
