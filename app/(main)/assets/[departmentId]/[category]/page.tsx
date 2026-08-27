@@ -330,8 +330,6 @@ export default async function AssetCategoryPage({
         className="
           overflow-hidden
           rounded-2xl
-          border
-          border-slate-300
           bg-white
           shadow-xl
         "
