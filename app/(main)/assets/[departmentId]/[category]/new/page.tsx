@@ -598,7 +598,7 @@ export default async function NewAssetPage({
                     !text-slate-200
                   "
                 >
-                  ชื่อครุภัณฑ์{" "}
+                  รายการครุภัณฑ์{" "}
                   <span className="text-red-400">
                     *
                   </span>
@@ -779,7 +779,7 @@ export default async function NewAssetPage({
                     !text-slate-200
                   "
                 >
-                  เลขครุภัณฑ์กรม
+                  รหัส GFMIS
                 </label>
 
                 <input
@@ -815,7 +815,7 @@ export default async function NewAssetPage({
                     !text-slate-200
                   "
                 >
-                  เลขครุภัณฑ์ประจำสำนัก
+                  รหัสครุภัณฑ์
                 </label>
 
                 <input
