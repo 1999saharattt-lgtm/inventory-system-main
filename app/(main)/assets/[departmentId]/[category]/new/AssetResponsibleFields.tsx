@@ -1,85 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+type Section = {
+  id: number;
+  name: string;
+};
 
 type Officer = {
   id: number;
   firstName: string;
   lastName: string;
-};
-
-type Section = {
-  id: number;
-  name: string;
-  officers: Officer[];
+  position: string | null;
+  sectionId: number | null;
 };
 
 type Props = {
   sections: Section[];
   officers: Officer[];
-  departmentName: string;
-  defaultSectionId?: number | null;
+  defaultSectionId: number | null;
+  defaultOfficerId: number | null;
 };
 
 export default function AssetResponsibleFields({
   sections,
-  officers: departmentOfficers,
-  departmentName,
+  officers,
   defaultSectionId,
+  defaultOfficerId,
 }: Props) {
-  // =====================================================
-  // กลุ่มงาน
-  //
-  // section เป็นเพียงกลุ่มงานย่อยของหน่วยงาน
-  // ไม่ได้ใช้แบ่ง Account หรือสิทธิ์ผู้ใช้งาน
-  //
-  // 1 Account สามารถเลือกได้ทุกกลุ่มงาน
-  // =====================================================
-
-  const [sectionId, setSectionId] = useState(
-    defaultSectionId !== null &&
-      defaultSectionId !== undefined
+  const [sectionId, setSectionId] = useState<string>(
+    defaultSectionId
       ? String(defaultSectionId)
       : ""
   );
 
-  const [officerId, setOfficerId] = useState("");
-
-  const selectedSection = sections.find(
-    (section) => String(section.id) === sectionId
+  const [officerId, setOfficerId] = useState<string>(
+    defaultOfficerId
+      ? String(defaultOfficerId)
+      : ""
   );
 
-  // =====================================================
-  // ผู้ครอบครอง
-  //
-  // ถ้าเลือกกลุ่มงาน:
-  // ใช้เจ้าหน้าที่ของกลุ่มงานนั้น
-  //
-  // ถ้าไม่มี section:
-  // ใช้เจ้าหน้าที่ของหน่วยงาน
-  // =====================================================
+  const filteredOfficers = useMemo(() => {
+    if (!sectionId) {
+      return officers;
+    }
 
-  const officers =
-    selectedSection?.officers ?? departmentOfficers;
+    return officers.filter(
+      (officer) =>
+        String(officer.sectionId) === sectionId
+    );
+  }, [officers, sectionId]);
 
-  const hasSections = sections.length > 0;
+  const selectedOfficer = officers.find(
+    (officer) =>
+      String(officer.id) === officerId
+  );
 
   function handleSectionChange(
-    event: React.ChangeEvent<HTMLSelectElement>
+    value: string
   ) {
-    const value = event.target.value;
-
     setSectionId(value);
 
-    // เมื่อเปลี่ยนกลุ่มงาน
-    // ต้องล้างผู้ครอบครองเดิม
-    setOfficerId("");
-  }
+    if (!value) {
+      setOfficerId("");
+      return;
+    }
 
-  function handleOfficerChange(
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) {
-    setOfficerId(event.target.value);
+    const currentOfficer =
+      officers.find(
+        (officer) =>
+          String(officer.id) === officerId
+      );
+
+    if (
+      !currentOfficer ||
+      String(currentOfficer.sectionId) !== value
+    ) {
+      setOfficerId("");
+    }
   }
 
   return (
@@ -88,25 +86,39 @@ export default function AssetResponsibleFields({
           กลุ่มงาน
       ===================================================== */}
 
-      <div>
-        <label
-          htmlFor="sectionId"
+      {sections.length > 0 && (
+        <div
           className="
-            block
-            text-sm
-            font-extrabold
-            !text-slate-200
+            min-w-0
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            p-4
+            shadow-md
           "
         >
-          กลุ่มงาน
-        </label>
+          <label
+            htmlFor="sectionId"
+            className="
+              block
+              text-sm
+              font-extrabold
+              text-slate-700
+            "
+          >
+            กลุ่มงาน
+          </label>
 
-        {hasSections ? (
           <select
             id="sectionId"
             name="sectionId"
             value={sectionId}
-            onChange={handleSectionChange}
+            onChange={(event) =>
+              handleSectionChange(
+                event.target.value
+              )
+            }
             className="
               mt-2
               w-full
@@ -119,7 +131,6 @@ export default function AssetResponsibleFields({
               font-semibold
               text-slate-900
               outline-none
-              transition
               focus:border-emerald-600
               focus:ring-2
               focus:ring-emerald-200
@@ -138,48 +149,31 @@ export default function AssetResponsibleFields({
               </option>
             ))}
           </select>
-        ) : (
-          <>
-            <input
-              type="text"
-              value={departmentName}
-              readOnly
-              className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-200
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-              "
-            />
-
-            <input
-              type="hidden"
-              name="sectionId"
-              value=""
-            />
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* =====================================================
           ผู้ครอบครอง
       ===================================================== */}
 
-      <div>
+      <div
+        className="
+          min-w-0
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-md
+        "
+      >
         <label
           htmlFor="officerId"
           className="
             block
             text-sm
             font-extrabold
-            !text-slate-200
+            text-slate-700
           "
         >
           ผู้ครอบครอง
@@ -189,8 +183,9 @@ export default function AssetResponsibleFields({
           id="officerId"
           name="officerId"
           value={officerId}
-          onChange={handleOfficerChange}
-          disabled={hasSections && !sectionId}
+          onChange={(event) =>
+            setOfficerId(event.target.value)
+          }
           className="
             mt-2
             w-full
@@ -203,32 +198,22 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
-            transition
-            disabled:cursor-not-allowed
-            disabled:bg-slate-200
             focus:border-emerald-600
             focus:ring-2
             focus:ring-emerald-200
           "
         >
           <option value="">
-            {hasSections
-              ? !sectionId
-                ? "-- เลือกกลุ่มงานก่อน --"
-                : officers.length === 0
-                  ? "-- ไม่พบผู้ครอบครอง --"
-                  : "-- ไม่ระบุ --"
-              : officers.length === 0
-                ? "-- ไม่พบผู้ครอบครอง --"
-                : "-- ไม่ระบุ --"}
+            -- ยังไม่ได้ระบุผู้ครอบครอง --
           </option>
 
-          {officers.map((officer) => (
+          {filteredOfficers.map((officer) => (
             <option
               key={officer.id}
               value={officer.id}
             >
-              {officer.firstName} {officer.lastName}
+              {officer.firstName}{" "}
+              {officer.lastName}
             </option>
           ))}
         </select>
@@ -236,14 +221,69 @@ export default function AssetResponsibleFields({
         <p
           className="
             mt-2
-            text-xs
+            text-sm
             font-semibold
-            !text-slate-400
+            text-slate-500
           "
         >
-          {hasSections
-            ? "แสดงเฉพาะบุคลากรของกลุ่มงานที่เลือก"
-            : "แสดงเฉพาะบุคลากรของหน่วยงานที่เลือก"}
+          {sectionId
+            ? "รายชื่อผู้ครอบครองจะแสดงเฉพาะเจ้าหน้าที่ในกลุ่มงานที่เลือก"
+            : "รายชื่อผู้ครอบครองจะแสดงตามหน่วยงาน"}
+        </p>
+      </div>
+
+      {/* =====================================================
+          ตำแหน่ง
+      ===================================================== */}
+
+      <div
+        className="
+          min-w-0
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-md
+        "
+      >
+        <label
+          className="
+            block
+            text-sm
+            font-extrabold
+            text-slate-700
+          "
+        >
+          ตำแหน่ง
+        </label>
+
+        <div
+          className="
+            mt-2
+            min-h-[50px]
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            font-extrabold
+            text-slate-900
+          "
+        >
+          {selectedOfficer?.position ?? "-"}
+        </div>
+
+        <p
+          className="
+            mt-2
+            text-sm
+            font-semibold
+            text-slate-500
+          "
+        >
+          ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
         </p>
       </div>
     </>
