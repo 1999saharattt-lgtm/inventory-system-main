@@ -15,12 +15,12 @@ const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  TELEPHONE: "โทรศัพท์",
-  CABINET: "ตู้",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  OTHER: "อื่น ๆ",
-  NO_SYSTEM: "ไม่มีระบบ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 } as const;
 
 const categoryIcon = {

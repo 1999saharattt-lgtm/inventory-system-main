@@ -13,13 +13,13 @@ type Props = {
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  MONITOR: "เครื่องปรับอากาศ",
-  TELEPHONE: "เครื่องโทรศัพท์",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
   CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
+  TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
-  SHELF: "ไม่มีอยู่ในระบบ",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const categoryIcon: Record<string, string> = {

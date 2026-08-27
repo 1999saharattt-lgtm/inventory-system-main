@@ -15,13 +15,13 @@ type Props = {
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  CABINET: "ตู้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้นวาง/ชั้นใส่แฟ้ม",
-  OTHER: "อื่น ๆ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const statusName: Record<string, string> = {
@@ -932,17 +932,21 @@ export default async function AssetDetailPage({
                   <div
                     className="
                       mt-2
+                      flex
                       min-h-[50px]
+                      items-center
+                      justify-center
                       rounded-xl
                       border
                       border-slate-300
                       bg-white
                       px-4
                       py-3
+                      text-center
                       shadow-md
                     "
                   >
-                    <p className="break-words font-extrabold text-slate-900">
+                    <p className="break-words text-center font-extrabold text-slate-900">
                       ปี {latestInspection.year} /{" "}
                       {latestInspection.quarter}
                     </p>
@@ -965,17 +969,21 @@ export default async function AssetDetailPage({
                   <div
                     className="
                       mt-2
+                      flex
                       min-h-[50px]
+                      items-center
+                      justify-center
                       rounded-xl
                       border
                       border-slate-300
                       bg-white
                       px-4
                       py-3
+                      text-center
                       shadow-md
                     "
                   >
-                    <p className="break-words font-extrabold text-slate-900">
+                    <p className="break-words text-center font-extrabold text-slate-900">
                       {new Date(
                         latestInspection.inspectionDate
                       ).toLocaleDateString("th-TH")}
@@ -999,13 +1007,17 @@ export default async function AssetDetailPage({
                   <div
                     className="
                       mt-2
+                      flex
                       min-h-[50px]
+                      items-center
+                      justify-center
                       rounded-xl
                       border
                       border-slate-300
                       bg-white
                       px-4
                       py-2
+                      text-center
                       shadow-md
                     "
                   >
@@ -1016,6 +1028,7 @@ export default async function AssetDetailPage({
                         border
                         px-3
                         py-1.5
+                        text-center
                         text-sm
                         font-extrabold
                         ${
@@ -1049,17 +1062,21 @@ export default async function AssetDetailPage({
                   <div
                     className="
                       mt-2
+                      flex
                       min-h-[50px]
+                      items-center
+                      justify-center
                       rounded-xl
                       border
                       border-slate-300
                       bg-white
                       px-4
                       py-3
+                      text-center
                       shadow-md
                     "
                   >
-                    <p className="break-words font-extrabold text-slate-900">
+                    <p className="break-words text-center font-extrabold text-slate-900">
                       {latestInspection.inspectorName ??
                         "-"}
                     </p>
@@ -1089,16 +1106,21 @@ export default async function AssetDetailPage({
                     <div
                       className="
                         mt-2
+                        flex
+                        min-h-[50px]
+                        items-center
+                        justify-center
                         rounded-xl
                         border
                         border-slate-300
                         bg-white
                         px-4
                         py-3
+                        text-center
                         shadow-md
                       "
                     >
-                      <p className="break-words font-semibold text-slate-900">
+                      <p className="break-words text-center font-semibold text-slate-900">
                         {latestInspection.condition}
                       </p>
                     </div>
@@ -1128,16 +1150,21 @@ export default async function AssetDetailPage({
                     <div
                       className="
                         mt-2
+                        flex
+                        min-h-[50px]
+                        items-center
+                        justify-center
                         rounded-xl
                         border
                         border-slate-300
                         bg-white
                         px-4
                         py-3
+                        text-center
                         shadow-md
                       "
                     >
-                      <p className="break-words font-semibold text-slate-900">
+                      <p className="break-words text-center font-semibold text-slate-900">
                         {latestInspection.remark}
                       </p>
                     </div>

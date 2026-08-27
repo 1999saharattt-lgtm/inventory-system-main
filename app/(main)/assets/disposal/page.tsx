@@ -6,17 +6,17 @@ const statusName = {
   DISPOSED: "จำหน่ายแล้ว",
 } as const;
 
-const categoryName = {
+const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  CABINET: "ตู้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้น / ชั้นวาง",
-  OTHER: "อื่น ๆ",
-} as const;
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+};
 
 export default async function AssetDisposalPage() {
   const assets = await prisma.asset.findMany({

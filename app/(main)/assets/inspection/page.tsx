@@ -4,13 +4,13 @@ import { prisma } from "@/lib/prisma";
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  CABINET: "ตู้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้นใส่แฟ้ม",
-  OTHER: "อื่น ๆ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const inspectionStatusName: Record<string, string> = {

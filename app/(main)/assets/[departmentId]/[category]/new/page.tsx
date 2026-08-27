@@ -17,12 +17,12 @@ const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  OTHER: "อื่น ๆ",
-  NO_SYSTEM: "ไม่มีในระบบ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const categoryIcon: Record<string, string> = {
