@@ -75,11 +75,6 @@ export default async function NewAssetPage({
 
   // =====================================================
   // สิทธิ์ผู้ใช้งาน
-  //
-  // 1 Account ต่อ 1 หน่วยงาน
-  //
-  // STAFF ตรวจสอบเฉพาะ departmentId
-  // ไม่ผูกสิทธิ์กับ sectionId
   // =====================================================
 
   if (
@@ -91,9 +86,6 @@ export default async function NewAssetPage({
 
   // =====================================================
   // ดึงข้อมูลหน่วยงาน
-  //
-  // officers = เจ้าหน้าที่ทั้งหมดในหน่วยงาน
-  // sections = กลุ่มงานของหน่วยงาน
   // =====================================================
 
   const department =
@@ -241,8 +233,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // sectionId
-    //
-    // ถ้าหน่วยงานไม่มี section ให้เป็น null
     // =====================================================
 
     let sectionId: number | null = null;
@@ -264,8 +254,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบ section
-    //
-    // ต้องเป็น section ของหน่วยงานนี้เท่านั้น
     // =====================================================
 
     if (sectionId !== null) {
@@ -303,11 +291,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
-    //
-    // ต้องอยู่หน่วยงานเดียวกัน
-    //
-    // ถ้าเลือก section:
-    // ต้องอยู่ใน section นั้น
     // =====================================================
 
     if (officerId !== null) {
@@ -881,14 +864,12 @@ export default async function NewAssetPage({
               👤 ผู้รับผิดชอบ
             </h2>
 
-            <div className="mt-4">
-              <AssetResponsibleFields
-                sections={department.sections}
-                officers={department.officers}
-                departmentName={department.name}
-                departmentId={department.id}
-              />
-            </div>
+            <AssetResponsibleFields
+              sections={department.sections}
+              officers={department.officers}
+              departmentName={department.name}
+              departmentId={department.id}
+            />
 
             <div className="mt-4">
               <label
