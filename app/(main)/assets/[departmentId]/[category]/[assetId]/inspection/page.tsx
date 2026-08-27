@@ -98,7 +98,8 @@ export default async function AssetInspectionPage({
     notFound();
   }
 
-  const latestInspection = asset.inspections[0] ?? null;
+  const latestInspection =
+    asset.inspections[0] ?? null;
 
   return (
     <div
@@ -174,7 +175,9 @@ export default async function AssetInspectionPage({
           className="
             w-full
             rounded-xl
-            bg-white/10
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
             px-5
             py-2.5
             text-center
@@ -182,14 +185,14 @@ export default async function AssetInspectionPage({
             font-extrabold
             !text-white
             shadow-lg
-            ring-1
-            ring-white/20
             transition
-            hover:bg-white/20
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
             sm:w-auto
           "
         >
-          ← กลับข้อมูลครุภัณฑ์
+          ← กลับ
         </Link>
       </div>
 
@@ -203,147 +206,249 @@ export default async function AssetInspectionPage({
           min-w-0
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-4
           shadow-xl
+          sm:p-8
         "
       >
         <div
           className="
-            rounded-t-2xl
+            rounded-xl
             bg-gradient-to-r
             from-slate-800
             to-slate-700
             px-4
-            py-4
-            sm:px-6
+            py-3
           "
         >
-          <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+          <h2
+            className="
+              text-lg
+              font-extrabold
+              !text-white
+              sm:text-xl
+            "
+          >
             📦 ข้อมูลครุภัณฑ์
           </h2>
         </div>
 
         <div
           className="
+            mt-4
             grid
             gap-4
-            p-4
             sm:grid-cols-2
-            sm:p-6
             lg:grid-cols-3
           "
         >
-          {/* รายการ */}
+          {/* รายการครุภัณฑ์ */}
 
           <div className="min-w-0 lg:col-span-2">
-            <p className="text-sm font-bold text-slate-500">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               รายการครุภัณฑ์
             </p>
 
-            <p className="mt-1 break-words text-lg font-extrabold text-slate-900">
+            <p
+              className="
+                mt-2
+                break-words
+                text-lg
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.name}
             </p>
           </div>
 
           {/* ประเภท */}
 
-          <div>
-            <p className="text-sm font-bold text-slate-500">
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               ประเภท
             </p>
 
-            <p className="mt-1 font-extrabold text-slate-900">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {categoryName[asset.category] ??
                 asset.category}
             </p>
           </div>
 
-          {/* เลขกรม */}
+          {/* เลขครุภัณฑ์กรม */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               เลขครุภัณฑ์กรม
             </p>
 
-            <p className="mt-1 break-all font-extrabold text-slate-900">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.governmentAssetNo ?? "-"}
             </p>
           </div>
 
-          {/* เลขสำนัก */}
+          {/* เลขครุภัณฑ์ประจำสำนัก */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               เลขครุภัณฑ์ประจำสำนัก
             </p>
 
-            <p className="mt-1 break-all font-extrabold text-slate-900">
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
               {asset.officeAssetNo ?? "-"}
-            </p>
-          </div>
-
-          {/* ผู้ครอบครอง */}
-
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
-              ผู้ครอบครอง
-            </p>
-
-            <p className="mt-1 break-words font-extrabold text-slate-900">
-              {asset.officer
-                ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                : "-"}
             </p>
           </div>
 
           {/* กลุ่มงาน */}
 
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-500">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               กลุ่มงาน
             </p>
 
-            <p className="mt-1 break-words font-extrabold text-slate-900">
-              {asset.section?.name ?? "-"}
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
+              {asset.section?.name ??
+                asset.department.name}
             </p>
           </div>
 
-          {/* สถานะล่าสุด */}
+          {/* ผู้ครอบครอง */}
 
-          <div>
-            <p className="text-sm font-bold text-slate-500">
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
+              ผู้ครอบครอง
+            </p>
+
+            <p
+              className="
+                mt-2
+                break-words
+                font-extrabold
+                !text-white
+              "
+            >
+              {asset.officer
+                ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                : "-"}
+            </p>
+          </div>
+
+          {/* ผลการตรวจล่าสุด */}
+
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-bold
+                !text-slate-300
+              "
+            >
               ผลการตรวจล่าสุด
             </p>
 
-            {latestInspection ? (
-              <span
-                className={`
-                  mt-1
-                  inline-flex
-                  rounded-lg
-                  border
-                  px-3
-                  py-1
-                  text-sm
-                  font-extrabold
-                  ${
-                    inspectionStatusClass[
-                      latestInspection.status
-                    ] ??
-                    "border-slate-300 bg-slate-50 text-slate-700"
-                  }
-                `}
-              >
-                {inspectionStatusName[
-                  latestInspection.status
-                ] ?? latestInspection.status}
-              </span>
-            ) : (
-              <p className="mt-1 font-extrabold text-slate-500">
-                ยังไม่มีประวัติการตรวจ
-              </p>
-            )}
+            <div className="mt-2">
+              {latestInspection ? (
+                <span
+                  className={`
+                    inline-flex
+                    rounded-lg
+                    border
+                    px-3
+                    py-1
+                    text-sm
+                    font-extrabold
+                    ${
+                      inspectionStatusClass[
+                        latestInspection.status
+                      ] ??
+                      "border-slate-300 bg-slate-50 text-slate-700"
+                    }
+                  `}
+                >
+                  {inspectionStatusName[
+                    latestInspection.status
+                  ] ?? latestInspection.status}
+                </span>
+              ) : (
+                <p
+                  className="
+                    font-extrabold
+                    !text-slate-400
+                  "
+                >
+                  ยังไม่มีประวัติการตรวจ
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -395,159 +500,344 @@ export default async function AssetInspectionPage({
         className="
           w-full
           min-w-0
-          overflow-hidden
           rounded-2xl
           border
-          border-black
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-4
           shadow-xl
+          sm:p-8
         "
       >
-        <div className="w-full overflow-x-auto">
-          <table
+        <div
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
+          "
+        >
+          <h2
             className="
-              w-full
-              min-w-[1000px]
-              border-collapse
-              text-sm
+              text-lg
+              font-extrabold
+              !text-white
+              sm:text-xl
             "
           >
-            <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  !text-white
-                "
-              >
-                <th className="w-[8%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  ลำดับ
-                </th>
+            📋 ประวัติการตรวจสอบ
+          </h2>
+        </div>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  ปี
-                </th>
-
-                <th className="w-[14%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  รอบตรวจ
-                </th>
-
-                <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  วันที่ตรวจ
-                </th>
-
-                <th className="w-[17%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  ผลการตรวจ
-                </th>
-
-                <th className="w-[18%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  ผู้ตรวจ
-                </th>
-
-                <th className="w-[16%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  รายละเอียด
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {asset.inspections.map(
-                (inspection, index) => (
-                  <tr
-                    key={inspection.id}
+        <div
+          className="
+            mt-4
+            overflow-hidden
+            rounded-2xl
+            bg-white
+            shadow-xl
+          "
+        >
+          <div className="w-full overflow-x-auto">
+            <table
+              className="
+                w-full
+                min-w-[1000px]
+                border-collapse
+                text-sm
+              "
+            >
+              <thead>
+                <tr
+                  className="
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    !text-white
+                  "
+                >
+                  <th
                     className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td className="border border-black px-3 py-4 text-center font-bold">
-                      {index + 1}
-                    </td>
-
-                    <td className="border border-black px-3 py-4 text-center font-extrabold">
-                      {inspection.year}
-                    </td>
-
-                    <td className="border border-black px-3 py-4 text-center font-bold">
-                      {quarterName[
-                        inspection.quarter
-                      ] ?? inspection.quarter}
-                    </td>
-
-                    <td className="border border-black px-3 py-4 text-center font-semibold">
-                      {new Date(
-                        inspection.inspectionDate
-                      ).toLocaleDateString("th-TH")}
-                    </td>
-
-                    <td className="border border-black px-3 py-4 text-center">
-                      <span
-                        className={`
-                          inline-flex
-                          rounded-lg
-                          border
-                          px-3
-                          py-1
-                          text-sm
-                          font-extrabold
-                          ${
-                            inspectionStatusClass[
-                              inspection.status
-                            ] ??
-                            "border-slate-300 bg-slate-50 text-slate-700"
-                          }
-                        `}
-                      >
-                        {inspectionStatusName[
-                          inspection.status
-                        ] ?? inspection.status}
-                      </span>
-                    </td>
-
-                    <td className="break-words border border-black px-3 py-4 font-semibold">
-                      {inspection.inspectorName ?? "-"}
-                    </td>
-
-                    <td className="border border-black px-3 py-4 text-center">
-                      <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-slate-700">
-                          {inspection.condition ?? "-"}
-                        </span>
-
-                        {inspection.remark && (
-                          <span className="break-words text-sm text-slate-500">
-                            {inspection.remark}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
-
-              {asset.inspections.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="
+                      w-[8%]
                       border
                       border-black
-                      px-6
-                      py-12
+                      px-3
+                      py-4
                       text-center
-                      text-lg
-                      font-semibold
-                      text-slate-500
+                      font-extrabold
+                      !text-white
                     "
                   >
-                    ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
-                  </td>
+                    ลำดับ
+                  </th>
+
+                  <th
+                    className="
+                      w-[12%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    ปี
+                  </th>
+
+                  <th
+                    className="
+                      w-[14%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    รอบตรวจ
+                  </th>
+
+                  <th
+                    className="
+                      w-[15%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    วันที่ตรวจ
+                  </th>
+
+                  <th
+                    className="
+                      w-[17%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    ผลการตรวจ
+                  </th>
+
+                  <th
+                    className="
+                      w-[18%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    ผู้ตรวจ
+                  </th>
+
+                  <th
+                    className="
+                      w-[16%]
+                      border
+                      border-black
+                      px-3
+                      py-4
+                      text-center
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    รายละเอียด
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {asset.inspections.map(
+                  (inspection, index) => (
+                    <tr
+                      key={inspection.id}
+                      className="
+                        text-slate-900
+                        transition
+                        hover:bg-slate-50
+                      "
+                    >
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                          font-bold
+                        "
+                      >
+                        {index + 1}
+                      </td>
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                          font-extrabold
+                        "
+                      >
+                        {inspection.year}
+                      </td>
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                          font-bold
+                        "
+                      >
+                        {quarterName[
+                          inspection.quarter
+                        ] ?? inspection.quarter}
+                      </td>
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                          font-semibold
+                        "
+                      >
+                        {new Date(
+                          inspection.inspectionDate
+                        ).toLocaleDateString("th-TH")}
+                      </td>
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                        "
+                      >
+                        <span
+                          className={`
+                            inline-flex
+                            rounded-lg
+                            border
+                            px-3
+                            py-1
+                            text-sm
+                            font-extrabold
+                            ${
+                              inspectionStatusClass[
+                                inspection.status
+                              ] ??
+                              "border-slate-300 bg-slate-50 text-slate-700"
+                            }
+                          `}
+                        >
+                          {inspectionStatusName[
+                            inspection.status
+                          ] ?? inspection.status}
+                        </span>
+                      </td>
+
+                      <td
+                        className="
+                          break-words
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          font-semibold
+                        "
+                      >
+                        {inspection.inspectorName ?? "-"}
+                      </td>
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-4
+                          text-center
+                        "
+                      >
+                        <div className="flex flex-col gap-2">
+                          <span
+                            className="
+                              font-semibold
+                              text-slate-700
+                            "
+                          >
+                            {inspection.condition ?? "-"}
+                          </span>
+
+                          {inspection.remark && (
+                            <span
+                              className="
+                                break-words
+                                text-sm
+                                text-slate-500
+                              "
+                            >
+                              {inspection.remark}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
+
+                {asset.inspections.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="
+                        border
+                        border-black
+                        px-6
+                        py-12
+                        text-center
+                        text-lg
+                        font-semibold
+                        text-slate-500
+                      "
+                    >
+                      ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
