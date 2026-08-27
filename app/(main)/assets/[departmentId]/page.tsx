@@ -13,37 +13,37 @@ type Props = {
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  CABINET: "ตู้",
+  MONITOR: "เครื่องปรับอากาศ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
-  MONITOR: "จอคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "โทรศัพท์",
-  SHELF: "ชั้นใส่แฟ้ม",
-  OTHER: "อื่น ๆ",
+  OTHER: "ทั่วไป",
+  SHELF: "ไม่มีอยู่ในระบบ",
 };
 
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
   CHAIR: "💺",
+  MONITOR: "❄️",
+  TELEPHONE: "☎️",
   CABINET: "🗄️",
   COMPUTER: "💻",
-  MONITOR: "🖥️",
   PRINTER: "🖨️",
-  TELEPHONE: "☎️",
-  SHELF: "📚",
   OTHER: "📦",
+  SHELF: "❓",
 };
 
 const categoryOrder = [
   "DESK",
   "CHAIR",
+  "MONITOR",
+  "TELEPHONE",
   "CABINET",
   "COMPUTER",
-  "MONITOR",
   "PRINTER",
-  "TELEPHONE",
-  "SHELF",
   "OTHER",
+  "SHELF",
 ];
 
 export default async function DepartmentAssetsPage({
