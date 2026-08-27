@@ -340,6 +340,8 @@ export default async function AssetCategoryPage({
               w-full
               min-w-[1100px]
               border-collapse
+              border
+              border-black
               text-sm
             "
           >
@@ -350,7 +352,7 @@ export default async function AssetCategoryPage({
                     w-[6%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -370,7 +372,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -390,7 +392,7 @@ export default async function AssetCategoryPage({
                     w-[14%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -410,7 +412,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -430,7 +432,7 @@ export default async function AssetCategoryPage({
                     w-[16%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -450,7 +452,7 @@ export default async function AssetCategoryPage({
                     w-[12%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -470,7 +472,7 @@ export default async function AssetCategoryPage({
                     w-[10%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -490,7 +492,7 @@ export default async function AssetCategoryPage({
                     w-[10%]
                     whitespace-nowrap
                     border
-                    border-slate-300
+                    border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
@@ -521,7 +523,7 @@ export default async function AssetCategoryPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -535,7 +537,7 @@ export default async function AssetCategoryPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         font-extrabold
@@ -563,7 +565,7 @@ export default async function AssetCategoryPage({
                       className="
                         break-all
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -571,15 +573,14 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       "
                     >
-                      {asset.governmentAssetNo ??
-                        "-"}
+                      {asset.governmentAssetNo ?? "-"}
                     </td>
 
                     <td
                       className="
                         break-all
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -587,15 +588,14 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       "
                     >
-                      {asset.officeAssetNo ??
-                        "-"}
+                      {asset.officeAssetNo ?? "-"}
                     </td>
 
                     <td
                       className="
                         break-words
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         font-extrabold
@@ -611,7 +611,7 @@ export default async function AssetCategoryPage({
                       className="
                         break-words
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -619,29 +619,26 @@ export default async function AssetCategoryPage({
                         text-slate-900
                       "
                     >
-                      {asset.section?.name ??
-                        "-"}
+                      {asset.section?.name ?? "-"}
                     </td>
 
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
                         font-extrabold
                       "
                     >
-                      {asset.status ===
-                        "IN_USE" && (
+                      {asset.status === "IN_USE" && (
                         <span className="text-emerald-700">
                           ยังใช้งาน
                         </span>
                       )}
 
-                      {asset.status ===
-                        "DAMAGED" && (
+                      {asset.status === "DAMAGED" && (
                         <span className="text-orange-700">
                           ชำรุด
                         </span>
@@ -654,8 +651,7 @@ export default async function AssetCategoryPage({
                         </span>
                       )}
 
-                      {asset.status ===
-                        "DISPOSED" && (
+                      {asset.status === "DISPOSED" && (
                         <span className="text-red-700">
                           จำหน่ายแล้ว
                         </span>
@@ -665,7 +661,7 @@ export default async function AssetCategoryPage({
                     <td
                       className="
                         border
-                        border-slate-300
+                        border-black
                         px-4
                         py-3
                         text-center
@@ -706,7 +702,7 @@ export default async function AssetCategoryPage({
                     colSpan={8}
                     className="
                       border
-                      border-slate-300
+                      border-black
                       px-6
                       py-12
                       text-center
