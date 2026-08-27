@@ -528,6 +528,7 @@ export default async function NewAssetInspectionPage({
                 max={2100}
                 required
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
@@ -562,6 +563,7 @@ export default async function NewAssetInspectionPage({
                 defaultValue={currentQuarter}
                 required
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
@@ -605,6 +607,7 @@ export default async function NewAssetInspectionPage({
                 required
                 defaultValue=""
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
@@ -654,6 +657,7 @@ export default async function NewAssetInspectionPage({
                 type="text"
                 placeholder="เช่น ใช้งานได้ตามปกติ / ชำรุดเล็กน้อย"
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
@@ -690,6 +694,7 @@ export default async function NewAssetInspectionPage({
                 defaultValue={asset.location ?? ""}
                 placeholder="ระบุสถานที่ตั้ง"
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
@@ -728,6 +733,7 @@ export default async function NewAssetInspectionPage({
                 }
                 required
                 className="
+                  min-h-[50px]
                   w-full
                   rounded-xl
                   border
