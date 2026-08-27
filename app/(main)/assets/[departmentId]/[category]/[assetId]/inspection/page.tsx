@@ -454,45 +454,6 @@ export default async function AssetInspectionPage({
       </div>
 
       {/* =====================================================
-          ปุ่มตรวจสอบ
-      ===================================================== */}
-
-      <div
-        className="
-          flex
-          w-full
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:justify-end
-        "
-      >
-        <Link
-          href={`/assets/${departmentId}/${category}/${asset.id}/inspection/new`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-          "
-        >
-          🔍 บันทึกผลการตรวจสอบ
-        </Link>
-      </div>
-
-      {/* =====================================================
           ประวัติการตรวจสอบ
       ===================================================== */}
 
