@@ -26,6 +26,7 @@ const categoryName: Record<string, string> = {
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
+  DAMAGED: "ชำรุด",
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
@@ -33,6 +34,8 @@ const statusName: Record<string, string> = {
 const statusClass: Record<string, string> = {
   IN_USE:
     "bg-emerald-100 text-emerald-800 border-emerald-300",
+  DAMAGED:
+    "bg-orange-100 text-orange-800 border-orange-300",
   WAITING_DISPOSAL:
     "bg-amber-100 text-amber-800 border-amber-300",
   DISPOSED:
@@ -314,7 +317,7 @@ export default async function AssetDetailPage({
               </span>
 
               <span
-                className={` 
+                className={`
                   inline-flex
                   rounded-xl
                   border
@@ -350,7 +353,7 @@ export default async function AssetDetailPage({
                   !text-slate-200
                 "
               >
-                ชื่อครุภัณฑ์
+                รายการครุภัณฑ์
               </p>
 
               <div
@@ -523,7 +526,7 @@ export default async function AssetDetailPage({
                   !text-slate-200
                 "
               >
-                เลขครุภัณฑ์กรม
+                รหัส GFMIS
               </p>
 
               <div
@@ -554,7 +557,7 @@ export default async function AssetDetailPage({
                   !text-slate-200
                 "
               >
-                เลขครุภัณฑ์ประจำสำนัก
+                รหัสครุภัณฑ์
               </p>
 
               <div
@@ -902,7 +905,7 @@ export default async function AssetDetailPage({
                       !text-slate-200
                     "
                   >
-                    รอบการตรวจ
+                    รอบการตรวจสอบ
                   </p>
 
                   <div
@@ -937,7 +940,7 @@ export default async function AssetDetailPage({
                       !text-slate-200
                     "
                   >
-                    วันที่ตรวจ
+                    วันที่ตรวจสอบ
                   </p>
 
                   <div
@@ -973,7 +976,7 @@ export default async function AssetDetailPage({
                       !text-slate-200
                     "
                   >
-                    ผลการตรวจ
+                    ผลการตรวจสอบ
                   </p>
 
                   <div
@@ -1026,7 +1029,7 @@ export default async function AssetDetailPage({
                       !text-slate-200
                     "
                   >
-                    ผู้ตรวจ
+                    ผู้ตรวจครุภัณฑ์
                   </p>
 
                   <div
