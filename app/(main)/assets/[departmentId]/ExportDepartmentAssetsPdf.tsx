@@ -131,10 +131,13 @@ export default function ExportDepartmentAssetsPdf({
     (pageWidth - tableWidth) / 2;
 
   /*
-   * 18 รายการต่อหน้า
+   * 17 รายการต่อหน้า
+   *
+   * ดังนั้นรายการที่ 18 จะขึ้นหน้าใหม่
+   * พร้อม Header ใหม่ทั้งหมด
    */
 
-  const rowsPerPage = 18;
+  const rowsPerPage = 17;
 
   /* =========================================================
      Export PDF
@@ -149,7 +152,7 @@ export default function ExportDepartmentAssetsPdf({
       setIsExporting(true);
 
       /*
-       * คำนวณรอบไตรมาสและปีงบประมาณ
+       * คำนวณรอบไตรมาสและปีงบประมาณปัจจุบัน
        * ใหม่ทุกครั้งที่กด Export
        */
 
@@ -174,7 +177,7 @@ export default function ExportDepartmentAssetsPdf({
       );
 
       /*
-       * แบ่งข้อมูลเป็นชุดละ 18 รายการ
+       * แบ่งข้อมูลเป็นชุดละ 17 รายการ
        */
 
       const pages: Asset[][] = [];
@@ -204,7 +207,7 @@ export default function ExportDepartmentAssetsPdf({
       pages.forEach(
         (pageAssets, pageIndex) => {
           /*
-           * หน้าแรกใช้หน้าปัจจุบัน
+           * หน้าแรกใช้หน้าที่สร้างไว้แล้ว
            * หน้าถัดไปสร้างหน้าใหม่
            */
 
@@ -224,7 +227,6 @@ export default function ExportDepartmentAssetsPdf({
 
           /*
            * บรรทัดที่ 1
-           * ทะเบียนคุมครุภัณฑ์
            */
 
           doc.setFontSize(26);
@@ -257,7 +259,6 @@ export default function ExportDepartmentAssetsPdf({
 
           /*
            * บรรทัดที่ 3
-           * รอบไตรมาส + ปีงบประมาณปัจจุบัน
            */
 
           doc.text(
@@ -344,7 +345,7 @@ export default function ExportDepartmentAssetsPdf({
           );
 
           /*
-           * เติมแถวว่างให้ครบ 18 แถว
+           * เติมแถวว่างให้ครบ 17 แถว
            */
 
           while (
@@ -369,7 +370,7 @@ export default function ExportDepartmentAssetsPdf({
 
           autoTable(doc, {
             /*
-             * เริ่มตารางหลัง Header
+             * ตารางเริ่มหลัง Header
              */
 
             startY: 37,
@@ -412,7 +413,7 @@ export default function ExportDepartmentAssetsPdf({
             theme: "grid",
 
             /* =================================================
-               รูปแบบตารางหลัก
+               รูปแบบพื้นฐานของตาราง
                ================================================= */
 
             styles: {
@@ -427,24 +428,16 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * เพิ่มระยะห่างภายในช่อง
-               * ไม่ให้ตัวหนังสือติดกัน
                */
 
               cellPadding: 1.5,
 
               /*
-               * กึ่งกลางแนวนอน
-               * และแนวตั้ง
+               * ทุกช่องกึ่งกลาง
                */
 
               halign: "center",
               valign: "middle",
-
-              /*
-               * สีตัวอักษร
-               */
-
-              textColor: [0, 0, 0],
 
               /*
                * เส้นตารางสีดำ
@@ -454,16 +447,25 @@ export default function ExportDepartmentAssetsPdf({
               lineWidth: 0.25,
 
               /*
-               * ความสูงขั้นต่ำของแถว
+               * ความสูงแถว
                */
 
-              minCellHeight: 6.8,
+              minCellHeight: 7.2,
 
               /*
-               * ไม่ให้ข้อความตกหลายบรรทัด
+               * ไม่ตัดข้อมูลเป็น ...
+               *
+               * ใช้ linebreak เพื่อไม่ให้ข้อมูลหาย
+               * หากข้อความยาวกว่าพื้นที่
                */
 
-              overflow: "ellipsize",
+              overflow: "linebreak",
+
+              /*
+               * ตัวอักษรสีดำ
+               */
+
+              textColor: [0, 0, 0],
             },
 
             /* =================================================
@@ -475,10 +477,10 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * หัวตารางใหญ่กว่าข้อมูล
+               * ฟ้อนหัวตาราง 14 pt
                */
 
-              fontSize: 16,
+              fontSize: 14,
 
               /*
                * พื้นหลังสีขาว
@@ -487,7 +489,7 @@ export default function ExportDepartmentAssetsPdf({
               fillColor: [255, 255, 255],
 
               /*
-               * บังคับฟ้อนหัวตารางเป็นสีดำ
+               * บังคับสีฟ้อนเป็นดำ
                */
 
               textColor: [0, 0, 0],
@@ -500,30 +502,30 @@ export default function ExportDepartmentAssetsPdf({
               valign: "middle",
 
               /*
-               * เส้นตารางสีดำ
+               * เส้นสีดำ
                */
 
               lineColor: [0, 0, 0],
               lineWidth: 0.25,
 
               /*
-               * เพิ่มระยะห่างภายในหัวตาราง
+               * ระยะห่างภายในหัวตาราง
                */
 
-              cellPadding: 2,
+              cellPadding: 1.7,
 
               /*
                * เพิ่มความสูงหัวตาราง
                * ให้ตัวหนังสือไม่ติดกัน
                */
 
-              minCellHeight: 10,
+              minCellHeight: 9,
 
               /*
-               * ไม่ให้หัวตารางตกหลายบรรทัด
+               * ไม่ตัดข้อมูลทิ้ง
                */
 
-              overflow: "ellipsize",
+              overflow: "linebreak",
             },
 
             /* =================================================
@@ -538,30 +540,20 @@ export default function ExportDepartmentAssetsPdf({
               textColor: [0, 0, 0],
 
               /*
-               * กึ่งกลางแนวนอน
-               * และแนวตั้ง
+               * กึ่งกลางแนวตั้ง
                */
 
-              halign: "center",
               valign: "middle",
-
-              /*
-               * เพิ่มช่องว่างให้ข้อความ
-               */
 
               cellPadding: 1.5,
 
-              /*
-               * ความสูงของแต่ละแถว
-               */
-
-              minCellHeight: 6.8,
+              minCellHeight: 7.2,
 
               /*
-               * ไม่ให้ข้อความตกบรรทัด
+               * ไม่ตัดข้อมูลทิ้ง
                */
 
-              overflow: "ellipsize",
+              overflow: "linebreak",
             },
 
             /* =================================================
@@ -572,20 +564,22 @@ export default function ExportDepartmentAssetsPdf({
             columnStyles: {
               /*
                * ลำดับ
+               * ลดความกว้างลง
                */
 
               0: {
-                cellWidth: 16,
+                cellWidth: 12,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
                * ประเภท
+               * ลดความกว้างลง
                */
 
               1: {
-                cellWidth: 35,
+                cellWidth: 30,
                 halign: "center",
                 valign: "middle",
               },
@@ -613,11 +607,11 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * รายการครุภัณฑ์
                *
-               * เฉพาะข้อมูลในคอลัมน์นี้ชิดซ้าย
+               * เฉพาะข้อมูลคอลัมน์นี้ชิดซ้าย
                */
 
               4: {
-                cellWidth: 58,
+                cellWidth: 61,
                 halign: "left",
                 valign: "middle",
               },
@@ -627,7 +621,7 @@ export default function ExportDepartmentAssetsPdf({
                */
 
               5: {
-                cellWidth: 19,
+                cellWidth: 18,
                 halign: "center",
                 valign: "middle",
               },
@@ -637,7 +631,7 @@ export default function ExportDepartmentAssetsPdf({
                */
 
               6: {
-                cellWidth: 42,
+                cellWidth: 49,
                 halign: "center",
                 valign: "middle",
               },
