@@ -128,7 +128,7 @@ return ( <div
 ===================================================== */}
 
 
-  <div className="min-w-0">
+  <div className="min-w-0 h-full">
     <label
       htmlFor="departmentDisplay"
       className="
@@ -172,7 +172,7 @@ return ( <div
   ===================================================== */}
 
   {sections.length > 0 ? (
-    <div className="min-w-0">
+    <div className="min-w-0 h-full">
       <label
         htmlFor="sectionId"
         className="
@@ -236,7 +236,7 @@ return ( <div
       ผู้ครอบครอง
   ===================================================== */}
 
-  <div className="min-w-0">
+  <div className="min-w-0 h-full">
     <label
       htmlFor="officerId"
       className="
@@ -312,7 +312,7 @@ return ( <div
       ตำแหน่ง
   ===================================================== */}
 
-  <div className="min-w-0">
+  <div className="min-w-0 h-full">
     <label
       htmlFor="positionDisplay"
       className="
@@ -356,7 +356,6 @@ return ( <div
     </p>
   </div>
 </div>
-
 
 );
 }
