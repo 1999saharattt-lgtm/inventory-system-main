@@ -328,13 +328,7 @@ export default async function AssetCategoryPage({
               text-sm
             "
           >
-            <thead
-              className="
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-              "
-            >
+            <thead>
               <tr>
                 <th
                   className="
@@ -342,6 +336,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -359,6 +356,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -376,6 +376,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -393,6 +396,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -410,6 +416,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -427,6 +436,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -444,6 +456,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
@@ -461,6 +476,9 @@ export default async function AssetCategoryPage({
                     whitespace-nowrap
                     border
                     border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
                     px-4
                     py-4
                     text-center
