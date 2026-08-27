@@ -2,17 +2,18 @@
 
 import { useMemo, useState } from "react";
 
-type Section = {
-  id: number;
-  name: string;
-};
-
 type Officer = {
   id: number;
   firstName: string;
   lastName: string;
   position: string;
   sectionId: number | null;
+};
+
+type Section = {
+  id: number;
+  name: string;
+  officers: Officer[];
 };
 
 type Props = {
@@ -28,10 +29,24 @@ export default function AssetResponsibleFields({
   departmentName,
   departmentId,
 }: Props) {
-  const [sectionId, setSectionId] = useState<string>("");
+  const [sectionId, setSectionId] =
+    useState<string>("");
 
   const [officerId, setOfficerId] =
     useState<string>("");
+
+  const selectedSection = useMemo(() => {
+    if (!sectionId) {
+      return null;
+    }
+
+    return (
+      sections.find(
+        (section) =>
+          section.id === Number(sectionId)
+      ) ?? null
+    );
+  }, [sections, sectionId]);
 
   const filteredOfficers = useMemo(() => {
     // หน่วยงานไม่มี section
@@ -40,24 +55,18 @@ export default function AssetResponsibleFields({
       return officers;
     }
 
-    // หน่วยงานมี section
-    // ยังไม่ได้เลือก section
-    if (!sectionId) {
+    // ยังไม่ได้เลือกกลุ่มงาน
+    if (!selectedSection) {
       return [];
     }
 
-    const selectedSectionId =
-      Number(sectionId);
-
-    return officers.filter(
-      (officer) =>
-        officer.sectionId ===
-        selectedSectionId
-    );
+    // หน่วยงานมี section
+    // ใช้เจ้าหน้าที่จาก section ที่เลือกโดยตรง
+    return selectedSection.officers;
   }, [
     officers,
-    sections.length,
-    sectionId,
+    sections,
+    selectedSection,
   ]);
 
   const selectedOfficer = useMemo(() => {
@@ -66,13 +75,12 @@ export default function AssetResponsibleFields({
     }
 
     return (
-      officers.find(
+      filteredOfficers.find(
         (officer) =>
-          officer.id ===
-          Number(officerId)
+          officer.id === Number(officerId)
       ) ?? null
     );
-  }, [officers, officerId]);
+  }, [filteredOfficers, officerId]);
 
   function handleSectionChange(
     value: string
