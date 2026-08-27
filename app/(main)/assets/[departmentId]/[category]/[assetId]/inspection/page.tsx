@@ -241,16 +241,8 @@ export default async function AssetInspectionPage({
             lg:grid-cols-3
           "
         >
-          {/* รายการครุภัณฑ์ */}
-
           <div className="min-w-0 lg:col-span-2">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               รายการครุภัณฑ์
             </p>
 
@@ -267,16 +259,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* ประเภท */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               ประเภท
             </p>
 
@@ -292,16 +276,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* เลขครุภัณฑ์กรม */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์กรม
             </p>
 
@@ -317,16 +293,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* เลขครุภัณฑ์ประจำสำนัก */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               เลขครุภัณฑ์ประจำสำนัก
             </p>
 
@@ -342,16 +310,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* กลุ่มงาน */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               กลุ่มงาน
             </p>
 
@@ -367,16 +327,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* ผู้ครอบครอง */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               ผู้ครอบครอง
             </p>
 
@@ -394,16 +346,8 @@ export default async function AssetInspectionPage({
             </p>
           </div>
 
-          {/* ผลการตรวจล่าสุด */}
-
           <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-300
-              "
-            >
+            <p className="text-sm font-bold !text-slate-300">
               ผลการตรวจล่าสุด
             </p>
 
@@ -502,25 +446,20 @@ export default async function AssetInspectionPage({
                 w-full
                 min-w-[1000px]
                 border-collapse
-                border
-                border-black
                 text-sm
               "
             >
               <thead>
-                <tr
-                  className="
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    !text-white
-                  "
-                >
+                <tr>
                   <th
                     className="
                       w-[8%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -534,8 +473,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[12%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -549,8 +492,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[14%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -564,8 +511,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[15%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -579,8 +530,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[17%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -594,8 +549,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[18%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -609,8 +568,12 @@ export default async function AssetInspectionPage({
                   <th
                     className="
                       w-[16%]
+                      whitespace-nowrap
                       border
                       border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
                       px-3
                       py-4
                       text-center
@@ -623,7 +586,7 @@ export default async function AssetInspectionPage({
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="text-slate-900">
                 {asset.inspections.map(
                   (inspection, index) => (
                     <tr
