@@ -121,8 +121,8 @@ export default function ExportDepartmentAssetsPdf({
 
   /*
    * ความกว้างตาราง
-   * ให้มีขอบซ้าย/ขวาเท่ากัน
-   * และอยู่กึ่งกลางหน้า A4
+   *
+   * ตารางอยู่กึ่งกลางหน้า A4
    */
 
   const tableWidth = 270;
@@ -198,13 +198,13 @@ export default function ExportDepartmentAssetsPdf({
 
       /* =====================================================
          สร้าง PDF ทีละหน้า
-         ทุกหน้าจะมี Header ใหม่ทั้งหมด
+         ทุกหน้ามี Header ใหม่ทั้งหมด
          ===================================================== */
 
       pages.forEach(
         (pageAssets, pageIndex) => {
           /*
-           * หน้าแรกใช้หน้าที่สร้างมาแล้ว
+           * หน้าแรกใช้หน้าปัจจุบัน
            * หน้าถัดไปสร้างหน้าใหม่
            */
 
@@ -224,6 +224,7 @@ export default function ExportDepartmentAssetsPdf({
 
           /*
            * บรรทัดที่ 1
+           * ทะเบียนคุมครุภัณฑ์
            */
 
           doc.setFontSize(26);
@@ -256,7 +257,7 @@ export default function ExportDepartmentAssetsPdf({
 
           /*
            * บรรทัดที่ 3
-           * รอบไตรมาส + ปีงบประมาณ
+           * รอบไตรมาส + ปีงบประมาณปัจจุบัน
            */
 
           doc.text(
@@ -375,7 +376,7 @@ export default function ExportDepartmentAssetsPdf({
 
             /*
              * ตารางกว้าง 270 mm
-             * และอยู่กึ่งกลางหน้า A4
+             * อยู่กึ่งกลางหน้า A4
              */
 
             margin: {
@@ -386,7 +387,7 @@ export default function ExportDepartmentAssetsPdf({
             tableWidth,
 
             /*
-             * หัวตารางตรงกับหน้าหลัก
+             * หัวตาราง
              */
 
             head: [
@@ -411,7 +412,7 @@ export default function ExportDepartmentAssetsPdf({
             theme: "grid",
 
             /* =================================================
-               รูปแบบตาราง
+               รูปแบบตารางหลัก
                ================================================= */
 
             styles: {
@@ -419,16 +420,77 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * ฟ้อน 14 pt
+               * ฟ้อนข้อมูล 14 pt
                */
 
               fontSize: 14,
 
               /*
-               * ระยะห่างภายในช่อง
+               * เพิ่มระยะห่างภายในช่อง
+               * ไม่ให้ตัวหนังสือติดกัน
                */
 
-              cellPadding: 1.2,
+              cellPadding: 1.5,
+
+              /*
+               * กึ่งกลางแนวนอน
+               * และแนวตั้ง
+               */
+
+              halign: "center",
+              valign: "middle",
+
+              /*
+               * สีตัวอักษร
+               */
+
+              textColor: [0, 0, 0],
+
+              /*
+               * เส้นตารางสีดำ
+               */
+
+              lineColor: [0, 0, 0],
+              lineWidth: 0.25,
+
+              /*
+               * ความสูงขั้นต่ำของแถว
+               */
+
+              minCellHeight: 6.8,
+
+              /*
+               * ไม่ให้ข้อความตกหลายบรรทัด
+               */
+
+              overflow: "ellipsize",
+            },
+
+            /* =================================================
+               หัวตาราง
+               ================================================= */
+
+            headStyles: {
+              font: "2.3.2 THSarabunNew",
+              fontStyle: "normal",
+
+              /*
+               * หัวตารางใหญ่กว่าข้อมูล
+               */
+
+              fontSize: 16,
+
+              /*
+               * พื้นหลังสีขาว
+               */
+
+              fillColor: [255, 255, 255],
+
+              /*
+               * บังคับฟ้อนหัวตารางเป็นสีดำ
+               */
+
+              textColor: [0, 0, 0],
 
               /*
                * กึ่งกลางทั้งแนวนอนและแนวตั้ง
@@ -445,75 +507,17 @@ export default function ExportDepartmentAssetsPdf({
               lineWidth: 0.25,
 
               /*
-               * ความสูงขั้นต่ำของแถว
+               * เพิ่มระยะห่างภายในหัวตาราง
                */
 
-              minCellHeight: 6.5,
+              cellPadding: 2,
 
               /*
-               * ไม่ให้ข้อความตกหลายบรรทัด
+               * เพิ่มความสูงหัวตาราง
+               * ให้ตัวหนังสือไม่ติดกัน
                */
 
-              overflow: "ellipsize",
-
-              /*
-               * ตัวอักษรสีดำ
-               */
-
-              textColor: [0, 0, 0],
-            },
-
-            /* =================================================
-               หัวตาราง
-               ================================================= */
-
-            headStyles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
-
-              /*
-               * ฟ้อน 14 pt
-               */
-
-              fontSize: 14,
-
-              /*
-               * พื้นหลังสีขาว
-               */
-
-              fillColor: [255, 255, 255],
-
-              /*
-               * บังคับฟ้อนเป็นสีดำ
-               */
-
-              textColor: [0, 0, 0],
-
-              /*
-               * กึ่งกลาง
-               */
-
-              halign: "center",
-              valign: "middle",
-
-              /*
-               * เส้นสีดำ
-               */
-
-              lineColor: [0, 0, 0],
-              lineWidth: 0.25,
-
-              /*
-               * ระยะห่างภายในหัวตาราง
-               */
-
-              cellPadding: 1.5,
-
-              /*
-               * ความสูงหัวตาราง
-               */
-
-              minCellHeight: 8.5,
+              minCellHeight: 10,
 
               /*
                * ไม่ให้หัวตารางตกหลายบรรทัด
@@ -541,12 +545,20 @@ export default function ExportDepartmentAssetsPdf({
               halign: "center",
               valign: "middle",
 
-              cellPadding: 1.2,
+              /*
+               * เพิ่มช่องว่างให้ข้อความ
+               */
 
-              minCellHeight: 6.5,
+              cellPadding: 1.5,
 
               /*
-               * ไม่ให้ข้อความตกหลายบรรทัด
+               * ความสูงของแต่ละแถว
+               */
+
+              minCellHeight: 6.8,
+
+              /*
+               * ไม่ให้ข้อความตกบรรทัด
                */
 
               overflow: "ellipsize",
@@ -565,6 +577,7 @@ export default function ExportDepartmentAssetsPdf({
               0: {
                 cellWidth: 16,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
@@ -574,6 +587,7 @@ export default function ExportDepartmentAssetsPdf({
               1: {
                 cellWidth: 35,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
@@ -583,6 +597,7 @@ export default function ExportDepartmentAssetsPdf({
               2: {
                 cellWidth: 37,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
@@ -592,15 +607,19 @@ export default function ExportDepartmentAssetsPdf({
               3: {
                 cellWidth: 38,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
                * รายการครุภัณฑ์
+               *
+               * เฉพาะข้อมูลในคอลัมน์นี้ชิดซ้าย
                */
 
               4: {
                 cellWidth: 58,
-                halign: "center",
+                halign: "left",
+                valign: "middle",
               },
 
               /*
@@ -610,6 +629,7 @@ export default function ExportDepartmentAssetsPdf({
               5: {
                 cellWidth: 19,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
@@ -619,6 +639,7 @@ export default function ExportDepartmentAssetsPdf({
               6: {
                 cellWidth: 42,
                 halign: "center",
+                valign: "middle",
               },
 
               /*
@@ -628,6 +649,7 @@ export default function ExportDepartmentAssetsPdf({
               7: {
                 cellWidth: 25,
                 halign: "center",
+                valign: "middle",
               },
             },
 
