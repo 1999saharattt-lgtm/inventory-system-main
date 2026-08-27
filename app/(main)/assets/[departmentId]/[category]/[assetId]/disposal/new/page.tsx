@@ -520,9 +520,13 @@ export default async function NewAssetDisposalPage({
             min-w-0
             rounded-2xl
             border
-            border-slate-300
-            bg-white
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
             p-5
+            text-white
             shadow-xl
             sm:p-8
           "
@@ -565,7 +569,7 @@ export default async function NewAssetDisposalPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  !text-slate-300
                 "
               >
                 วันที่จำหน่าย
@@ -604,7 +608,7 @@ export default async function NewAssetDisposalPage({
                 className="
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  !text-slate-300
                 "
               >
                 สถานที่จำหน่าย

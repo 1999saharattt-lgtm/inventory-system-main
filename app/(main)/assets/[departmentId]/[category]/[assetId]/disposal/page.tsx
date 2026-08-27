@@ -144,7 +144,7 @@ export default async function AssetDisposalDetailPage({
             sm:text-base
           "
         >
-          ← กลับรายละเอียด
+          ← กลับ
         </Link>
       </div>
 
