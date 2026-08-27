@@ -326,6 +326,8 @@ export default async function DepartmentAllAssetsPage({
               กลุ่มงาน
             </p>
 
+            {/* กลุ่มงาน + สำนักอนามัย อยู่บรรทัดเดียวกัน */}
+
             <p
               className="
                 mt-1
@@ -336,7 +338,7 @@ export default async function DepartmentAllAssetsPage({
                 sm:text-2xl
               "
             >
-              {department.name}
+              {department.name} สำนักอนามัยการเจริญพันธุ์
             </p>
 
             <p
@@ -364,6 +366,7 @@ export default async function DepartmentAllAssetsPage({
 
       {/* =====================================================
           ตารางรายการครุภัณฑ์
+          ไม่มีกรอบซ้อนรอบตาราง
       ===================================================== */}
 
       <div
@@ -372,8 +375,6 @@ export default async function DepartmentAllAssetsPage({
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
@@ -393,17 +394,19 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    w-[60px]
                     border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-3
+                    px-2
                     py-3
                     text-center
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   ลำดับ
@@ -413,17 +416,19 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
+                    w-[120px]
                     border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
                     to-slate-700
-                    px-3
+                    px-2
                     py-3
                     text-center
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   ประเภท
@@ -444,6 +449,7 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   รหัส GFMIS
@@ -464,6 +470,7 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   รหัสครุภัณฑ์
@@ -504,6 +511,7 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   หน่วย
@@ -544,6 +552,7 @@ export default async function DepartmentAllAssetsPage({
                     text-lg
                     font-extrabold
                     !text-white
+                    whitespace-nowrap
                   "
                 >
                   สถานะ
@@ -592,10 +601,12 @@ export default async function DepartmentAllAssetsPage({
                           className="
                             border
                             border-black
-                            px-3
+                            px-2
                             py-3
                             text-center
+                            align-middle
                             font-bold
+                            whitespace-nowrap
                           "
                         >
                           {index + 1}
@@ -607,9 +618,10 @@ export default async function DepartmentAllAssetsPage({
                           className="
                             border
                             border-black
-                            px-3
+                            px-2
                             py-3
                             text-center
+                            align-middle
                             font-semibold
                           "
                         >
@@ -626,6 +638,7 @@ export default async function DepartmentAllAssetsPage({
                             px-3
                             py-3
                             text-center
+                            align-middle
                             font-semibold
                           "
                         >
@@ -641,6 +654,7 @@ export default async function DepartmentAllAssetsPage({
                             px-3
                             py-3
                             text-center
+                            align-middle
                             font-semibold
                           "
                         >
@@ -655,6 +669,8 @@ export default async function DepartmentAllAssetsPage({
                             border-black
                             px-3
                             py-3
+                            text-center
+                            align-middle
                             font-extrabold
                           "
                         >
@@ -670,10 +686,13 @@ export default async function DepartmentAllAssetsPage({
                             px-3
                             py-3
                             text-center
+                            align-middle
                             font-semibold
+                            whitespace-nowrap
                           "
                         >
-                          {categoryUnit[asset.category] ?? "รายการ"}
+                          {categoryUnit[asset.category] ??
+                            "รายการ"}
                         </td>
 
                         {/* ผู้รับผิดชอบ */}
@@ -685,6 +704,7 @@ export default async function DepartmentAllAssetsPage({
                             px-3
                             py-3
                             text-center
+                            align-middle
                           "
                         >
                           <p className="font-semibold">
@@ -695,6 +715,7 @@ export default async function DepartmentAllAssetsPage({
                             <p
                               className="
                                 mt-1
+                                text-center
                                 text-sm
                                 font-semibold
                                 text-slate-600
@@ -714,6 +735,7 @@ export default async function DepartmentAllAssetsPage({
                             px-3
                             py-3
                             text-center
+                            align-middle
                           "
                         >
                           <span
