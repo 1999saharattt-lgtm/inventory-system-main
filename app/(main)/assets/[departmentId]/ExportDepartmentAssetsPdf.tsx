@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import html2canvas from "html2canvas";
+import "@/lib/fonts/THSarabunNew-normal";
+
+import React, { useState } from "react";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Asset = {
   id: number;
@@ -106,56 +108,28 @@ export default function ExportDepartmentAssetsPdf({
   departmentName,
   assets,
 }: Props) {
-  const pdfRef = useRef<HTMLDivElement>(null);
-
   const [isExporting, setIsExporting] = useState(false);
 
   /*
-   * A4 แนวนอน
-   * ขอบ 10 mm
-   */
-
-  const pdfWidth = 277;
-  const pdfHeight = 190;
-
-  /*
-   * ย่อเนื้อหาให้พอดีกับ A4
-   */
-
-  const pdfScale = 0.85;
-
-  /*
    * จำนวนรายการต่อหน้า
+   *
+   * ใช้ขนาดฟ้อนและความสูงแถวตามมาตรฐาน
+   * จากไฟล์ ExportPdf ที่ผู้ใช้กำหนด
    */
 
-  const rowsPerPage = 18;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      assets.length / rowsPerPage
-    )
-  );
+  const rowsPerPage = 10;
 
   /* =========================================================
      Export PDF
      ========================================================= */
 
   async function handleExportPdf() {
-    if (
-      !pdfRef.current ||
-      assets.length === 0
-    ) {
+    if (assets.length === 0) {
       return;
     }
 
     try {
       setIsExporting(true);
-
-      /*
-       * คำนวณรอบไตรมาสและปีงบประมาณ
-       * ใหม่ทุกครั้งที่กด Export
-       */
 
       const currentDate = new Date();
 
@@ -165,73 +139,371 @@ export default function ExportDepartmentAssetsPdf({
       const fiscalYear =
         getFiscalYear(currentDate);
 
-      const pdf = new jsPDF({
+      const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
-        compress: true,
       });
 
-      const pages =
-        pdfRef.current.querySelectorAll<HTMLElement>(
-          "[data-pdf-page]"
-        );
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
+
+      const pageWidth =
+        doc.internal.pageSize.getWidth();
+
+      const center = pageWidth / 2;
+
+      /* =====================================================
+         แบ่งข้อมูลเป็นหน้า
+         ===================================================== */
+
+      const pages: Asset[][] = [];
 
       for (
-        let pageIndex = 0;
-        pageIndex < pages.length;
-        pageIndex++
+        let i = 0;
+        i < assets.length;
+        i += rowsPerPage
       ) {
-        const page = pages[pageIndex];
-
-        const canvas =
-          await html2canvas(page, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            logging: false,
-            width: page.scrollWidth,
-            height: page.scrollHeight,
-          });
-
-        const imageData =
-          canvas.toDataURL("image/png");
-
-        if (pageIndex > 0) {
-          pdf.addPage(
-            "a4",
-            "landscape"
-          );
-        }
-
-        const imageWidth =
-          pdfWidth * pdfScale;
-
-        const imageHeight =
-          pdfHeight * pdfScale;
-
-        const imageX =
-          10 +
-          (pdfWidth - imageWidth) / 2;
-
-        const imageY =
-          10 +
-          (pdfHeight - imageHeight) / 2;
-
-        pdf.addImage(
-          imageData,
-          "PNG",
-          imageX,
-          imageY,
-          imageWidth,
-          imageHeight,
-          undefined,
-          "FAST"
+        pages.push(
+          assets.slice(
+            i,
+            i + rowsPerPage
+          )
         );
       }
 
+      if (pages.length === 0) {
+        pages.push([]);
+      }
+
+      /* =====================================================
+         สร้างแต่ละหน้า
+         ===================================================== */
+
+      pages.forEach(
+        (pageAssets, pageIndex) => {
+          if (pageIndex > 0) {
+            doc.addPage();
+          }
+
+          /* ===============================================
+             HEADER
+             =============================================== */
+
+          doc.setFontSize(26);
+
+          doc.text(
+            "ทะเบียนคุมครุภัณฑ์",
+            center,
+            16,
+            {
+              align: "center",
+            }
+          );
+
+          doc.setFontSize(16);
+
+          doc.text(
+            departmentName
+              ? departmentName
+              : "กลุ่มอำนวยการ",
+            center,
+            23,
+            {
+              align: "center",
+            }
+          );
+
+          doc.text(
+            "สำนักอนามัยการเจริญพันธุ์",
+            center,
+            30,
+            {
+              align: "center",
+            }
+          );
+
+          doc.text(
+            `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
+            center,
+            37,
+            {
+              align: "center",
+            }
+          );
+
+          /* ===============================================
+             TABLE DATA
+             =============================================== */
+
+          const body = pageAssets.map(
+            (asset, index) => {
+              const globalIndex =
+                pageIndex *
+                  rowsPerPage +
+                index;
+
+              return [
+                // ลำดับ
+                globalIndex + 1,
+
+                // ประเภท
+                categoryName[
+                  asset.category
+                ] ?? asset.category,
+
+                // รหัส GFMIS
+                asset.governmentAssetNo ??
+                  "-",
+
+                // รหัสครุภัณฑ์
+                asset.officeAssetNo ??
+                  "-",
+
+                // รายการครุภัณฑ์
+                asset.name || "-",
+
+                // หน่วย
+                categoryUnit[
+                  asset.category
+                ] ?? "รายการ",
+
+                // ผู้รับผิดชอบ
+                asset.officerName ??
+                  asset.sectionName ??
+                  asset.departmentName ??
+                  "-",
+
+                // สถานะ
+                statusName[
+                  asset.status
+                ] ?? asset.status,
+              ];
+            }
+          );
+
+          /* ===============================================
+             เติมแถวเปล่าให้ครบ 10 แถว
+             =============================================== */
+
+          while (body.length < rowsPerPage) {
+            body.push([
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+            ]);
+          }
+
+          /* ===============================================
+             TABLE
+             =============================================== */
+
+          autoTable(doc, {
+            startY: 43,
+
+            head: [
+              [
+                "ลำดับ",
+                "ประเภท",
+                "รหัส GFMIS",
+                "รหัสครุภัณฑ์",
+                "รายการครุภัณฑ์",
+                "หน่วย",
+                "ผู้รับผิดชอบ",
+                "สถานะ",
+              ],
+            ],
+
+            body,
+
+            theme: "grid",
+
+            styles: {
+              font: "2.3.2 THSarabunNew",
+              fontStyle: "normal",
+              fontSize: 16,
+
+              /*
+               * ขนาดและระยะห่างอิงจากไฟล์มาตรฐาน
+               */
+
+              cellPadding: 2.5,
+
+              /*
+               * ให้ข้อความอยู่กึ่งกลางแนวตั้ง
+               */
+
+              valign: "middle",
+
+              /*
+               * ค่าเริ่มต้นกึ่งกลาง
+               */
+
+              halign: "center",
+
+              /*
+               * เส้นตารางสีดำ
+               */
+
+              lineColor: [0, 0, 0],
+              lineWidth: 0.25,
+
+              /*
+               * ความสูงขั้นต่ำของแต่ละแถว
+               */
+
+              minCellHeight: 8,
+
+              /*
+               * ป้องกันการบีบข้อความ
+               * ให้พื้นที่ข้อความมีขนาดเหมาะสม
+               */
+
+              overflow: "visible",
+            },
+
+            headStyles: {
+              font: "2.3.2 THSarabunNew",
+              fontStyle: "normal",
+
+              /*
+               * ขนาดฟ้อนหัวตาราง
+               */
+
+              fontSize: 16,
+
+              /*
+               * พื้นหัวตารางสีขาว
+               */
+
+              fillColor: [255, 255, 255],
+
+              /*
+               * บังคับฟ้อนเป็นสีดำ
+               */
+
+              textColor: 0,
+
+              /*
+               * จัดกึ่งกลางทั้งแนวนอนและแนวตั้ง
+               */
+
+              halign: "center",
+              valign: "middle",
+
+              /*
+               * เส้นตารางสีดำ
+               */
+
+              lineColor: [0, 0, 0],
+              lineWidth: 0.25,
+
+              /*
+               * เพิ่มพื้นที่หัวตาราง
+               */
+
+              cellPadding: 2.5,
+            },
+
+            bodyStyles: {
+              font: "2.3.2 THSarabunNew",
+              fontStyle: "normal",
+              fontSize: 16,
+              textColor: 0,
+              halign: "center",
+              valign: "middle",
+            },
+
+            columnStyles: {
+              /*
+               * ลำดับ
+               */
+
+              0: {
+                cellWidth: 18,
+                halign: "center",
+              },
+
+              /*
+               * ประเภท
+               */
+
+              1: {
+                cellWidth: 38,
+                halign: "center",
+              },
+
+              /*
+               * รหัส GFMIS
+               */
+
+              2: {
+                cellWidth: 38,
+                halign: "center",
+              },
+
+              /*
+               * รหัสครุภัณฑ์
+               */
+
+              3: {
+                cellWidth: 40,
+                halign: "center",
+              },
+
+              /*
+               * รายการครุภัณฑ์
+               */
+
+              4: {
+                cellWidth: 62,
+                halign: "center",
+              },
+
+              /*
+               * หน่วย
+               */
+
+              5: {
+                cellWidth: 20,
+                halign: "center",
+              },
+
+              /*
+               * ผู้รับผิดชอบ
+               */
+
+              6: {
+                cellWidth: 42,
+                halign: "center",
+              },
+
+              /*
+               * สถานะ
+               */
+
+              7: {
+                cellWidth: 28,
+                halign: "center",
+              },
+            },
+          });
+        }
+      );
+
+      /* =====================================================
+         เปิด PDF
+         ===================================================== */
+
       const pdfBlob =
-        pdf.output("blob");
+        doc.output("blob");
 
       const pdfUrl =
         URL.createObjectURL(pdfBlob);
@@ -272,39 +544,11 @@ export default function ExportDepartmentAssetsPdf({
     }
   }
 
-  /* =========================================================
-     แบ่งข้อมูลเป็นหน้า
-     ========================================================= */
-
-  const pages = Array.from(
-    {
-      length: totalPages,
-    },
-    (_, pageIndex) =>
-      assets.slice(
-        pageIndex * rowsPerPage,
-        (pageIndex + 1) * rowsPerPage
-      )
-  );
-
-  /*
-   * แสดงค่าปัจจุบันในตัว Preview ที่ซ่อนอยู่
-   * เพื่อให้ตรงกับค่าที่ใช้ตอน Export
-   */
-
-  const currentDate = new Date();
-
-  const currentQuarter =
-    getCurrentQuarter(currentDate);
-
-  const fiscalYear =
-    getFiscalYear(currentDate);
-
   return (
     <div className="shrink-0">
       {/* =====================================================
           Export Button
-          ===================================================== */}
+      ===================================================== */}
 
       <button
         type="button"
@@ -338,418 +582,6 @@ export default function ExportDepartmentAssetsPdf({
           ? "⏳ กำลังสร้าง PDF..."
           : "📄 ส่งออก PDF"}
       </button>
-
-      {/* =====================================================
-          Hidden PDF Document
-          ===================================================== */}
-
-      <div
-        ref={pdfRef}
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          fixed
-          left-[-10000px]
-          top-0
-          z-[-1]
-        "
-      >
-        {pages.map(
-          (
-            pageAssets,
-            pageIndex
-          ) => (
-            <div
-              key={pageIndex}
-              data-pdf-page
-              className="
-                box-border
-                h-[190mm]
-                w-[277mm]
-                overflow-hidden
-                bg-white
-                px-[2mm]
-                py-[1mm]
-                text-black
-              "
-              style={{
-                fontFamily:
-                  "'TH Sarabun New', 'Tahoma', sans-serif",
-                fontSize: "14pt",
-                lineHeight: "1",
-              }}
-            >
-              {/* ===============================================
-                  Header
-                  =============================================== */}
-
-              <div
-                className="
-                  text-center
-                  leading-none
-                "
-              >
-                <div
-                  className="
-                    text-[16pt]
-                    font-bold
-                  "
-                >
-                  ทะเบียนคุมครุภัณฑ์
-                </div>
-
-                <div
-                  className="
-                    mt-[1.5mm]
-                    text-[14pt]
-                    font-bold
-                  "
-                >
-                  กลุ่มอำนวยการ
-                  {" "}
-                  สำนักอนามัยการเจริญพันธุ์
-                </div>
-
-                <div
-                  className="
-                    mt-[1.5mm]
-                    text-[14pt]
-                    font-bold
-                  "
-                >
-                  รอบไตรมาสที่{" "}
-                  {currentQuarter}{" "}
-                  ปีงบประมาณ พ.ศ.{" "}
-                  {fiscalYear}
-                </div>
-              </div>
-
-              {/* ===============================================
-                  Table
-                  =============================================== */}
-
-              <table
-                className="
-                  mt-[4mm]
-                  w-full
-                  table-fixed
-                  border-collapse
-                  border
-                  border-black
-                  text-[14pt]
-                  leading-none
-                "
-              >
-                <colgroup>
-                  <col style={{ width: "5%" }} />
-                  <col style={{ width: "11%" }} />
-                  <col style={{ width: "13%" }} />
-                  <col style={{ width: "13%" }} />
-                  <col style={{ width: "24%" }} />
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "11%" }} />
-                </colgroup>
-
-                <thead>
-                  <tr className="h-[11mm]">
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ลำดับ
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ประเภท
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      รหัส GFMIS
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      รหัสครุภัณฑ์
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      รายการครุภัณฑ์
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      หน่วย
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      ผู้รับผิดชอบ
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-white
-                        px-1
-                        text-center
-                        font-bold
-                        text-black
-                      "
-                    >
-                      สถานะ
-                    </th>
-                  </tr>
-                </thead>
-
-                {/* ===============================================
-                    Body
-                    =============================================== */}
-
-                <tbody>
-                  {pageAssets.map(
-                    (asset, index) => {
-                      const globalIndex =
-                        pageIndex *
-                          rowsPerPage +
-                        index;
-
-                      return (
-                        <tr
-                          key={asset.id}
-                          className="h-[7.5mm]"
-                        >
-                          {/* ลำดับ */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {globalIndex + 1}
-                          </td>
-
-                          {/* ประเภท */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {categoryName[
-                              asset.category
-                            ] ??
-                              asset.category}
-                          </td>
-
-                          {/* รหัส GFMIS */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {asset.governmentAssetNo ??
-                              "-"}
-                          </td>
-
-                          {/* รหัสครุภัณฑ์ */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {asset.officeAssetNo ??
-                              "-"}
-                          </td>
-
-                          {/* รายการครุภัณฑ์ */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {asset.name}
-                          </td>
-
-                          {/* หน่วย */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {categoryUnit[
-                              asset.category
-                            ] ??
-                              "รายการ"}
-                          </td>
-
-                          {/* ผู้รับผิดชอบ */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {asset.officerName ??
-                              asset.sectionName ??
-                              asset.departmentName ??
-                              "-"}
-                          </td>
-
-                          {/* สถานะ */}
-
-                          <td
-                            className="
-                              border
-                              border-black
-                              px-1
-                              text-center
-                            "
-                          >
-                            {statusName[
-                              asset.status
-                            ] ??
-                              asset.status}
-                          </td>
-                        </tr>
-                      );
-                    }
-                  )}
-
-                  {/* ===============================================
-                      เติมแถวว่าง
-                      =============================================== */}
-
-                  {pageAssets.length <
-                    rowsPerPage &&
-                    Array.from(
-                      {
-                        length:
-                          rowsPerPage -
-                          pageAssets.length,
-                      },
-                      (_, emptyIndex) => (
-                        <tr
-                          key={`empty-${emptyIndex}`}
-                          className="h-[7.5mm]"
-                        >
-                          {Array.from(
-                            {
-                              length: 8,
-                            },
-                            (_, cellIndex) => (
-                              <td
-                                key={cellIndex}
-                                className="
-                                  border
-                                  border-black
-                                  bg-white
-                                  px-1
-                                "
-                              >
-                                &nbsp;
-                              </td>
-                            )
-                          )}
-                        </tr>
-                      )
-                    )}
-                </tbody>
-              </table>
-            </div>
-          )
-        )}
-      </div>
     </div>
   );
 }
