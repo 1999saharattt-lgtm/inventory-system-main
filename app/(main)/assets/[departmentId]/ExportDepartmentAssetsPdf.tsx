@@ -120,8 +120,8 @@ export default function ExportDepartmentAssetsPdf({
   const pageWidth = 297;
 
   /*
-   * ตารางกว้าง 270 mm
-   * เพื่อให้มีพื้นที่ขอบซ้าย/ขวา
+   * ความกว้างตาราง
+   * ให้มีขอบซ้าย/ขวาเท่ากัน
    * และอยู่กึ่งกลางหน้า A4
    */
 
@@ -131,10 +131,10 @@ export default function ExportDepartmentAssetsPdf({
     (pageWidth - tableWidth) / 2;
 
   /*
-   * 20 รายการต่อหน้า
+   * 18 รายการต่อหน้า
    */
 
-  const rowsPerPage = 20;
+  const rowsPerPage = 18;
 
   /* =========================================================
      Export PDF
@@ -174,7 +174,7 @@ export default function ExportDepartmentAssetsPdf({
       );
 
       /*
-       * แบ่งข้อมูลเป็นชุดละ 20 รายการ
+       * แบ่งข้อมูลเป็นชุดละ 18 รายการ
        */
 
       const pages: Asset[][] = [];
@@ -196,8 +196,18 @@ export default function ExportDepartmentAssetsPdf({
         pages.push([]);
       }
 
+      /* =====================================================
+         สร้าง PDF ทีละหน้า
+         ทุกหน้าจะมี Header ใหม่ทั้งหมด
+         ===================================================== */
+
       pages.forEach(
         (pageAssets, pageIndex) => {
+          /*
+           * หน้าแรกใช้หน้าที่สร้างมาแล้ว
+           * หน้าถัดไปสร้างหน้าใหม่
+           */
+
           if (pageIndex > 0) {
             doc.addPage(
               "a4",
@@ -205,15 +215,15 @@ export default function ExportDepartmentAssetsPdf({
             );
           }
 
+          const center =
+            pageWidth / 2;
+
           /* =================================================
              HEADER
              ================================================= */
 
-          const center =
-            pageWidth / 2;
-
           /*
-           * หัวเรื่อง
+           * บรรทัดที่ 1
            */
 
           doc.setFontSize(26);
@@ -228,8 +238,9 @@ export default function ExportDepartmentAssetsPdf({
           );
 
           /*
+           * บรรทัดที่ 2
            * กลุ่มงาน + สำนักอนามัยการเจริญพันธุ์
-           * ให้อยู่บรรทัดเดียวกัน
+           * อยู่บรรทัดเดียวกัน
            */
 
           doc.setFontSize(16);
@@ -244,6 +255,7 @@ export default function ExportDepartmentAssetsPdf({
           );
 
           /*
+           * บรรทัดที่ 3
            * รอบไตรมาส + ปีงบประมาณ
            */
 
@@ -331,7 +343,7 @@ export default function ExportDepartmentAssetsPdf({
           );
 
           /*
-           * เติมแถวว่างให้ครบ 20 แถว
+           * เติมแถวว่างให้ครบ 18 แถว
            */
 
           while (
@@ -356,14 +368,14 @@ export default function ExportDepartmentAssetsPdf({
 
           autoTable(doc, {
             /*
-             * ตารางเริ่มใต้หัวกระดาษ
+             * เริ่มตารางหลัง Header
              */
 
             startY: 37,
 
             /*
              * ตารางกว้าง 270 mm
-             * อยู่กึ่งกลาง A4
+             * และอยู่กึ่งกลางหน้า A4
              */
 
             margin: {
@@ -372,6 +384,10 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             tableWidth,
+
+            /*
+             * หัวตารางตรงกับหน้าหลัก
+             */
 
             head: [
               [
@@ -389,7 +405,7 @@ export default function ExportDepartmentAssetsPdf({
             body,
 
             /*
-             * ตารางมีเส้นสีดำแบบเดิม
+             * ตารางมีเส้นสีดำ
              */
 
             theme: "grid",
@@ -403,7 +419,7 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * ฟ้อนตาราง 14 pt
+               * ฟ้อน 14 pt
                */
 
               fontSize: 14,
@@ -429,23 +445,22 @@ export default function ExportDepartmentAssetsPdf({
               lineWidth: 0.25,
 
               /*
-               * ความสูงแถว
+               * ความสูงขั้นต่ำของแถว
                */
 
               minCellHeight: 6.5,
 
               /*
                * ไม่ให้ข้อความตกหลายบรรทัด
-               * หากยาวเกินช่องให้ย่อท้ายด้วย ...
                */
 
               overflow: "ellipsize",
 
               /*
-               * สีตัวอักษร
+               * ตัวอักษรสีดำ
                */
 
-              textColor: 0,
+              textColor: [0, 0, 0],
             },
 
             /* =================================================
@@ -457,7 +472,7 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * ฟ้อนหัวตาราง 14 pt
+               * ฟ้อน 14 pt
                */
 
               fontSize: 14,
@@ -469,14 +484,13 @@ export default function ExportDepartmentAssetsPdf({
               fillColor: [255, 255, 255],
 
               /*
-               * บังคับฟ้อนหัวตารางเป็นสีดำ
+               * บังคับฟ้อนเป็นสีดำ
                */
 
               textColor: [0, 0, 0],
 
               /*
-               * กึ่งกลางแนวนอน
-               * และกึ่งกลางแนวตั้ง
+               * กึ่งกลาง
                */
 
               halign: "center",
@@ -520,7 +534,8 @@ export default function ExportDepartmentAssetsPdf({
               textColor: [0, 0, 0],
 
               /*
-               * กึ่งกลางทั้งแนวนอนและแนวตั้ง
+               * กึ่งกลางแนวนอน
+               * และแนวตั้ง
                */
 
               halign: "center",
@@ -545,7 +560,6 @@ export default function ExportDepartmentAssetsPdf({
             columnStyles: {
               /*
                * ลำดับ
-               * 16
                */
 
               0: {
@@ -555,7 +569,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * ประเภท
-               * 35
                */
 
               1: {
@@ -565,7 +578,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * รหัส GFMIS
-               * 37
                */
 
               2: {
@@ -575,7 +587,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * รหัสครุภัณฑ์
-               * 38
                */
 
               3: {
@@ -585,7 +596,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * รายการครุภัณฑ์
-               * 58
                */
 
               4: {
@@ -595,7 +605,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * หน่วย
-               * 19
                */
 
               5: {
@@ -605,7 +614,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * ผู้รับผิดชอบ
-               * 42
                */
 
               6: {
@@ -615,7 +623,6 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * สถานะ
-               * 25
                */
 
               7: {
@@ -625,7 +632,7 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             /*
-             * บังคับเส้นกรอบตารางเป็นสีดำ
+             * เส้นกรอบตารางสีดำ
              */
 
             tableLineColor: [0, 0, 0],
