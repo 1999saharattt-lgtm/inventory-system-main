@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireLogin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AssetCategory, AssetStatus } from "@prisma/client";
 
 const validCategories = [
   "DESK",
@@ -22,9 +23,6 @@ const validStatuses = [
   "WAITING_DISPOSAL",
   "DISPOSED",
 ] as const;
-
-type AssetCategory = (typeof validCategories)[number];
-type AssetStatus = (typeof validStatuses)[number];
 
 export async function updateAsset(
   assetId: number,
@@ -202,7 +200,7 @@ export async function updateAsset(
 
   if (
     !validCategories.includes(
-      category as AssetCategory
+      category as (typeof validCategories)[number]
     )
   ) {
     throw new Error("ประเภทครุภัณฑ์ไม่ถูกต้อง");
@@ -217,13 +215,14 @@ export async function updateAsset(
 
   if (
     !validStatuses.includes(
-      status as AssetStatus
+      status as (typeof validStatuses)[number]
     )
   ) {
     throw new Error("สถานะครุภัณฑ์ไม่ถูกต้อง");
   }
 
-  const assetStatus = status as AssetStatus;
+  const assetStatus =
+    status as AssetStatus;
 
   // =====================================================
   // ดึงหน่วยงานจริงจากฐานข้อมูล

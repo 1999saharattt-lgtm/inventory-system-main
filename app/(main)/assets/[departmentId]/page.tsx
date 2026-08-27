@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ExportDepartmentAssetsPdf from "./ExportDepartmentAssetsPdf";
 
 export const dynamic = "force-dynamic";
 
@@ -25,25 +26,25 @@ const categoryName: Record<string, string> = {
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
   CHAIR: "💺",
-  MONITOR: "❄️",
+  AIR_CONDITIONER: "❄️",
   TELEPHONE: "☎️",
   CABINET: "🗄️",
   COMPUTER: "💻",
   PRINTER: "🖨️",
   OTHER: "📦",
-  SHELF: "❓",
+  NO_SYSTEM: "❓",
 };
 
 const categoryOrder = [
   "DESK",
   "CHAIR",
-  "MONITOR",
+  "AIR_CONDITIONER",
   "TELEPHONE",
   "CABINET",
   "COMPUTER",
   "PRINTER",
   "OTHER",
-  "SHELF",
+  "NO_SYSTEM",
 ];
 
 export default async function DepartmentAssetsPage({
@@ -78,8 +79,42 @@ export default async function DepartmentAssetsPage({
     where: {
       departmentId: id,
     },
+    orderBy: {
+      id: "asc",
+    },
     select: {
+      id: true,
+      name: true,
       category: true,
+      brand: true,
+      model: true,
+      serialNumber: true,
+      governmentAssetNo: true,
+      officeAssetNo: true,
+      departmentId: true,
+      department: {
+        select: {
+          name: true,
+        },
+      },
+      sectionId: true,
+      section: {
+        select: {
+          name: true,
+        },
+      },
+      officerId: true,
+      officer: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      status: true,
+      purchaseDate: true,
+      price: true,
+      location: true,
+      remark: true,
     },
   });
 
@@ -91,6 +126,29 @@ export default async function DepartmentAssetsPage({
       (categoryCounts.get(asset.category) ?? 0) + 1
     );
   }
+
+  const exportAssets = assets.map((asset) => ({
+    id: asset.id,
+    name: asset.name,
+    category: asset.category,
+    brand: asset.brand,
+    model: asset.model,
+    serialNumber: asset.serialNumber,
+    governmentAssetNo: asset.governmentAssetNo,
+    officeAssetNo: asset.officeAssetNo,
+    departmentName: asset.department.name,
+    sectionName: asset.section?.name ?? null,
+    officerName: asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`
+      : null,
+    status: asset.status,
+    purchaseDate: asset.purchaseDate
+      ? asset.purchaseDate.toISOString()
+      : null,
+    price: asset.price,
+    location: asset.location,
+    remark: asset.remark,
+  }));
 
   return (
     <div
@@ -218,6 +276,15 @@ export default async function DepartmentAssetsPage({
           {department._count.assets} รายการ
         </p>
       </div>
+
+      {/* =====================================================
+          Export PDF
+      ===================================================== */}
+
+      <ExportDepartmentAssetsPdf
+        departmentName={department.name}
+        assets={exportAssets}
+      />
 
       {/* =====================================================
           Category Cards
