@@ -169,7 +169,7 @@ export default async function AssetDetailPage({
               sm:text-base
             "
           >
-            {asset.name}
+            {asset.name} — ทะเบียนคุมครุภัณฑ์
           </p>
         </div>
 
@@ -279,10 +279,9 @@ export default async function AssetDetailPage({
                 sm:text-xl
               "
             >
-              🏷️ ข้อมูลครุภัณฑ์
+              📋 ข้อมูลครุภัณฑ์
             </h2>
 
-            {/* สถานะคงตำแหน่งเดิม */}
             <div
               className="
                 flex
@@ -341,12 +340,11 @@ export default async function AssetDetailPage({
               grid
               gap-4
               sm:grid-cols-2
-              lg:grid-cols-3
             "
           >
-            {/* รายการครุภัณฑ์ */}
+            {/* ชื่อครุภัณฑ์ */}
 
-            <div className="min-w-0">
+            <div className="min-w-0 sm:col-span-2">
               <p
                 className="
                   text-sm
@@ -354,13 +352,14 @@ export default async function AssetDetailPage({
                   !text-slate-200
                 "
               >
-                รายการครุภัณฑ์
+                ชื่อครุภัณฑ์
               </p>
 
               <div
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -372,39 +371,6 @@ export default async function AssetDetailPage({
               >
                 <p className="break-words text-lg font-extrabold text-slate-900">
                   {asset.name}
-                </p>
-              </div>
-            </div>
-
-            {/* ประเภท */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                ประเภท
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-words font-extrabold text-slate-900">
-                  {categoryName[asset.category] ??
-                    asset.category}
                 </p>
               </div>
             </div>
@@ -426,6 +392,7 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -458,6 +425,7 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -475,7 +443,7 @@ export default async function AssetDetailPage({
 
             {/* Serial Number */}
 
-            <div className="min-w-0">
+            <div className="min-w-0 sm:col-span-2">
               <p
                 className="
                   text-sm
@@ -490,6 +458,7 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -504,76 +473,12 @@ export default async function AssetDetailPage({
                 </p>
               </div>
             </div>
-
-            {/* เลขครุภัณฑ์กรม */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                เลขครุภัณฑ์กรม
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-all font-extrabold text-slate-900">
-                  {asset.governmentAssetNo ?? "-"}
-                </p>
-              </div>
-            </div>
-
-            {/* เลขครุภัณฑ์ประจำสำนัก */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                เลขครุภัณฑ์ประจำสำนัก
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  min-h-[50px]
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-md
-                "
-              >
-                <p className="break-all font-extrabold text-slate-900">
-                  {asset.officeAssetNo ?? "-"}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
       {/* =====================================================
-          หน่วยงานและผู้ครอบครอง
+          เลขทะเบียนครุภัณฑ์
       ===================================================== */}
 
       <div
@@ -607,7 +512,122 @@ export default async function AssetDetailPage({
               sm:text-xl
             "
           >
-            👤 หน่วยงานและผู้ครอบครอง
+            🔖 เลขทะเบียนครุภัณฑ์
+          </h2>
+
+          <div
+            className="
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
+            "
+          >
+            {/* เลขครุภัณฑ์กรม */}
+
+            <div className="min-w-0">
+              <p
+                className="
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                เลขครุภัณฑ์กรม
+              </p>
+
+              <div
+                className="
+                  mt-2
+                  min-h-[50px]
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  shadow-md
+                "
+              >
+                <p className="break-all font-extrabold text-slate-900">
+                  {asset.governmentAssetNo ?? "-"}
+                </p>
+              </div>
+            </div>
+
+            {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+            <div className="min-w-0">
+              <p
+                className="
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                เลขครุภัณฑ์ประจำสำนัก
+              </p>
+
+              <div
+                className="
+                  mt-2
+                  min-h-[50px]
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  shadow-md
+                "
+              >
+                <p className="break-all font-extrabold text-slate-900">
+                  {asset.officeAssetNo ?? "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          ผู้รับผิดชอบ
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          min-w-0
+          rounded-2xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-4
+          shadow-xl
+          sm:p-8
+        "
+      >
+        <div>
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+              sm:text-xl
+            "
+          >
+            👤 ผู้รับผิดชอบ
           </h2>
 
           <div
@@ -635,18 +655,19 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
                   bg-white
                   px-4
                   py-3
+                  font-extrabold
+                  text-slate-900
                   shadow-md
                 "
               >
-                <p className="break-words text-lg font-extrabold text-slate-900">
-                  {asset.department.name}
-                </p>
+                {asset.department.name}
               </div>
             </div>
 
@@ -667,18 +688,19 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
                   bg-white
                   px-4
                   py-3
+                  font-extrabold
+                  text-slate-900
                   shadow-md
                 "
               >
-                <p className="break-words text-lg font-extrabold text-slate-900">
-                  {asset.section?.name ?? "-"}
-                </p>
+                {asset.section?.name ?? "-"}
               </div>
             </div>
 
@@ -699,21 +721,33 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
                   bg-white
                   px-4
                   py-3
+                  font-extrabold
+                  text-slate-900
                   shadow-md
                 "
               >
-                <p className="break-words text-lg font-extrabold text-slate-900">
-                  {asset.officer
-                    ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                    : "ยังไม่ได้ระบุผู้ครอบครอง"}
-                </p>
+                {asset.officer
+                  ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                  : "ยังไม่ได้ระบุผู้ครอบครอง"}
               </div>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  !text-slate-400
+                "
+              >
+                ผู้รับผิดชอบครุภัณฑ์
+              </p>
             </div>
 
             {/* ตำแหน่ง */}
@@ -733,6 +767,53 @@ export default async function AssetDetailPage({
                 className="
                   mt-2
                   min-h-[50px]
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-extrabold
+                  text-slate-900
+                  shadow-md
+                "
+              >
+                {asset.officer?.position ?? "-"}
+              </div>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  !text-slate-400
+                "
+              >
+                ตำแหน่งตามผู้ครอบครองที่เลือก
+              </p>
+            </div>
+          </div>
+
+          {/* หมายเหตุ */}
+
+          {asset.remark && (
+            <div className="mt-4">
+              <p
+                className="
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                หมายเหตุ
+              </p>
+
+              <div
+                className="
+                  mt-2
+                  min-h-[50px]
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -742,12 +823,12 @@ export default async function AssetDetailPage({
                   shadow-md
                 "
               >
-                <p className="break-words font-extrabold text-slate-900">
-                  {asset.officer?.position ?? "-"}
+                <p className="break-words font-semibold text-slate-900">
+                  {asset.remark}
                 </p>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -1081,76 +1162,6 @@ export default async function AssetDetailPage({
           </div>
         </div>
       </div>
-
-      {/* =====================================================
-          หมายเหตุ
-      ===================================================== */}
-
-      {asset.remark && (
-        <div
-          className="
-            w-full
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-4
-            shadow-xl
-            sm:p-8
-          "
-        >
-          <div>
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-                sm:text-xl
-              "
-            >
-              📝 หมายเหตุ
-            </h2>
-
-            <div className="mt-4">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                หมายเหตุ
-              </p>
-
-              <div
-                className="
-                  mt-2
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  p-4
-                  shadow-md
-                "
-              >
-                <p className="break-words font-semibold text-slate-900">
-                  {asset.remark}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* =====================================================
           การดำเนินการ

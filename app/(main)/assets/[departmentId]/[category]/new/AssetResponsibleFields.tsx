@@ -128,6 +128,7 @@ export default function AssetResponsibleFields({
           id="departmentDisplay"
           className="
             mt-2
+            h-[50px]
             w-full
             rounded-xl
             border
@@ -319,7 +320,7 @@ export default function AssetResponsibleFields({
           id="positionDisplay"
           className="
             mt-2
-            min-h-[50px]
+            h-[50px]
             w-full
             rounded-xl
             border
