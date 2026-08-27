@@ -11,50 +11,68 @@ type Officer = {
   id: number;
   firstName: string;
   lastName: string;
-  position: string | null;
+  position: string;
   sectionId: number | null;
 };
 
 type Props = {
   sections: Section[];
   officers: Officer[];
-  defaultSectionId: number | null;
-  defaultOfficerId: number | null;
+  initialSectionId: number | null;
+  initialOfficerId: number | null;
+  departmentName: string;
+  departmentId: number;
 };
 
 export default function AssetResponsibleFields({
   sections,
   officers,
-  defaultSectionId,
-  defaultOfficerId,
+  initialSectionId,
+  initialOfficerId,
+  departmentName,
+  departmentId,
 }: Props) {
   const [sectionId, setSectionId] = useState<string>(
-    defaultSectionId
-      ? String(defaultSectionId)
+    initialSectionId !== null
+      ? String(initialSectionId)
       : ""
   );
 
   const [officerId, setOfficerId] = useState<string>(
-    defaultOfficerId
-      ? String(defaultOfficerId)
+    initialOfficerId !== null
+      ? String(initialOfficerId)
       : ""
   );
 
   const filteredOfficers = useMemo(() => {
-    if (!sectionId) {
+    if (sections.length === 0) {
       return officers;
     }
 
+    if (!sectionId) {
+      return [];
+    }
+
+    const selectedSectionId = Number(sectionId);
+
     return officers.filter(
       (officer) =>
-        String(officer.sectionId) === sectionId
+        officer.sectionId === selectedSectionId
     );
-  }, [officers, sectionId]);
+  }, [officers, sections.length, sectionId]);
 
-  const selectedOfficer = officers.find(
-    (officer) =>
-      String(officer.id) === officerId
-  );
+  const selectedOfficer = useMemo(() => {
+    if (!officerId) {
+      return null;
+    }
+
+    return (
+      officers.find(
+        (officer) =>
+          officer.id === Number(officerId)
+      ) ?? null
+    );
+  }, [officers, officerId]);
 
   function handleSectionChange(
     value: string
@@ -66,27 +84,92 @@ export default function AssetResponsibleFields({
       return;
     }
 
+    const selectedSectionId = Number(value);
+
     const currentOfficer =
       officers.find(
         (officer) =>
-          String(officer.id) === officerId
+          officer.id === Number(officerId)
       );
 
     if (
-      !currentOfficer ||
-      String(currentOfficer.sectionId) !== value
+      currentOfficer &&
+      currentOfficer.sectionId ===
+        selectedSectionId
     ) {
-      setOfficerId("");
+      return;
     }
+
+    setOfficerId("");
+  }
+
+  function handleOfficerChange(
+    value: string
+  ) {
+    setOfficerId(value);
   }
 
   return (
-    <>
+    <div
+      className="
+        grid
+        gap-4
+        sm:grid-cols-2
+      "
+    >
+      {/* =====================================================
+          หน่วยงาน
+      ===================================================== */}
+
+      <div
+        className="
+          min-w-0
+          rounded-xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-md
+        "
+      >
+        <label
+          className="
+            text-sm
+            font-extrabold
+            text-slate-700
+          "
+        >
+          หน่วยงาน
+        </label>
+
+        <div
+          className="
+            mt-2
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            px-4
+            py-3
+            font-extrabold
+            text-slate-900
+          "
+        >
+          {departmentName}
+        </div>
+
+        <input
+          type="hidden"
+          name="departmentId"
+          value={departmentId}
+        />
+      </div>
+
       {/* =====================================================
           กลุ่มงาน
       ===================================================== */}
 
-      {sections.length > 0 && (
+      {sections.length > 0 ? (
         <div
           className="
             min-w-0
@@ -101,7 +184,6 @@ export default function AssetResponsibleFields({
           <label
             htmlFor="sectionId"
             className="
-              block
               text-sm
               font-extrabold
               text-slate-700
@@ -150,6 +232,12 @@ export default function AssetResponsibleFields({
             ))}
           </select>
         </div>
+      ) : (
+        <input
+          type="hidden"
+          name="sectionId"
+          value=""
+        />
       )}
 
       {/* =====================================================
@@ -170,7 +258,6 @@ export default function AssetResponsibleFields({
         <label
           htmlFor="officerId"
           className="
-            block
             text-sm
             font-extrabold
             text-slate-700
@@ -184,7 +271,13 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={(event) =>
-            setOfficerId(event.target.value)
+            handleOfficerChange(
+              event.target.value
+            )
+          }
+          disabled={
+            sections.length > 0 &&
+            !sectionId
           }
           className="
             mt-2
@@ -198,6 +291,9 @@ export default function AssetResponsibleFields({
             font-semibold
             text-slate-900
             outline-none
+            disabled:cursor-not-allowed
+            disabled:bg-slate-100
+            disabled:text-slate-400
             focus:border-emerald-600
             focus:ring-2
             focus:ring-emerald-200
@@ -207,15 +303,17 @@ export default function AssetResponsibleFields({
             -- ยังไม่ได้ระบุผู้ครอบครอง --
           </option>
 
-          {filteredOfficers.map((officer) => (
-            <option
-              key={officer.id}
-              value={officer.id}
-            >
-              {officer.firstName}{" "}
-              {officer.lastName}
-            </option>
-          ))}
+          {filteredOfficers.map(
+            (officer) => (
+              <option
+                key={officer.id}
+                value={officer.id}
+              >
+                {officer.firstName}{" "}
+                {officer.lastName}
+              </option>
+            )
+          )}
         </select>
 
         <p
@@ -226,9 +324,11 @@ export default function AssetResponsibleFields({
             text-slate-500
           "
         >
-          {sectionId
-            ? "รายชื่อผู้ครอบครองจะแสดงเฉพาะเจ้าหน้าที่ในกลุ่มงานที่เลือก"
-            : "รายชื่อผู้ครอบครองจะแสดงตามหน่วยงาน"}
+          {sections.length > 0
+            ? sectionId
+              ? "แสดงเฉพาะเจ้าหน้าที่ในกลุ่มงานที่เลือก"
+              : "กรุณาเลือกกลุ่มงานก่อน"
+            : "แสดงเจ้าหน้าที่ทั้งหมดในหน่วยงานนี้"}
         </p>
       </div>
 
@@ -249,7 +349,6 @@ export default function AssetResponsibleFields({
       >
         <label
           className="
-            block
             text-sm
             font-extrabold
             text-slate-700
@@ -286,6 +385,6 @@ export default function AssetResponsibleFields({
           ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
         </p>
       </div>
-    </>
+    </div>
   );
 }
