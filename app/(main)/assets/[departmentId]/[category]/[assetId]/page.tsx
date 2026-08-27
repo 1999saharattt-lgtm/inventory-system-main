@@ -886,8 +886,8 @@ export default async function AssetDetailPage({
                 w-full
                 rounded-xl
                 bg-gradient-to-r
-                from-slate-700
-                to-slate-950
+                from-emerald-600
+                to-green-500
                 px-4
                 py-2
                 text-center
@@ -897,6 +897,8 @@ export default async function AssetDetailPage({
                 shadow-lg
                 transition
                 hover:scale-[1.02]
+                hover:from-emerald-700
+                hover:to-green-600
                 sm:w-auto
               "
             >
