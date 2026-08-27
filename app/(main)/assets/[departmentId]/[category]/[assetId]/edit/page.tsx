@@ -662,7 +662,6 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
-                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -769,25 +768,12 @@ export default async function EditAssetPage({
           </div>
 
           <div className="mt-4">
-            <label
-              htmlFor="remark"
-              className="
-                block
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              หมายเหตุ
-            </label>
-
             <textarea
               id="remark"
               name="remark"
               rows={4}
               defaultValue={asset.remark ?? ""}
               className="
-                mt-2
                 min-h-[120px]
                 w-full
                 rounded-xl
