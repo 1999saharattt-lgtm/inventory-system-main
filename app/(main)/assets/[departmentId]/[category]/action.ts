@@ -8,13 +8,13 @@ import { redirect } from "next/navigation";
 const validCategories = [
   "DESK",
   "CHAIR",
+  "AIR_CONDITIONER",
+  "TELEPHONE",
   "CABINET",
   "COMPUTER",
-  "MONITOR",
   "PRINTER",
-  "TELEPHONE",
-  "SHELF",
   "OTHER",
+  "NO_SYSTEM",
 ] as const;
 
 const validStatuses = [
