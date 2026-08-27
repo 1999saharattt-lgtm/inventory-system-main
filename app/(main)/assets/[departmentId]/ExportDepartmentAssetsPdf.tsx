@@ -40,6 +40,141 @@ const categoryUnit: Record<string, string> = {
   NO_SYSTEM: "รายการ",
 };
 
+/* =========================================================
+   ปีงบประมาณราชการ + ไตรมาส
+   ========================================================= */
+
+function getFiscalQuarterInfo() {
+  const now = new Date();
+
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+
+  let quarter: number;
+  let fiscalYear: number;
+  let startDate: Date;
+  let endDate: Date;
+
+  /*
+   * ไตรมาส 1
+   * 1 ตุลาคม - 31 ธันวาคม
+   * เป็นปีงบประมาณถัดไป
+   */
+  if (month >= 10) {
+    quarter = 1;
+    fiscalYear = year + 1 + 543;
+
+    startDate = new Date(year, 9, 1);
+    endDate = new Date(year, 11, 31);
+  }
+
+  /*
+   * ไตรมาส 2
+   * 1 มกราคม - 31 มีนาคม
+   */
+  else if (month >= 1 && month <= 3) {
+    quarter = 2;
+    fiscalYear = year + 543;
+
+    startDate = new Date(year, 0, 1);
+    endDate = new Date(year, 2, 31);
+  }
+
+  /*
+   * ไตรมาส 3
+   * 1 เมษายน - 30 มิถุนายน
+   */
+  else if (month >= 4 && month <= 6) {
+    quarter = 3;
+    fiscalYear = year + 543;
+
+    startDate = new Date(year, 3, 1);
+    endDate = new Date(year, 5, 30);
+  }
+
+  /*
+   * ไตรมาส 4
+   * 1 กรกฎาคม - 30 กันยายน
+   */
+  else {
+    quarter = 4;
+    fiscalYear = year + 543;
+
+    startDate = new Date(year, 6, 1);
+    endDate = new Date(year, 8, 30);
+  }
+
+  return {
+    quarter,
+    fiscalYear,
+    startDate,
+    endDate,
+  };
+}
+
+/* =========================================================
+   เดือนภาษาไทยแบบราชการ
+   ========================================================= */
+
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+const thaiMonthShort = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+/* =========================================================
+   วันที่ภาษาไทยแบบเต็ม
+   ========================================================= */
+
+function formatThaiDate(date: Date) {
+  const day = date.getDate();
+  const month = thaiMonths[date.getMonth()];
+  const year = date.getFullYear() + 543;
+
+  return `${day} ${month} ${year}`;
+}
+
+/* =========================================================
+   วันที่ภาษาไทยแบบย่อราชการ
+   เช่น 1 ก.ค. 2569
+   ========================================================= */
+
+function formatThaiShortDate(date: Date) {
+  const day = date.getDate();
+  const month = thaiMonthShort[date.getMonth()];
+  const year = date.getFullYear() + 543;
+
+  return `${day} ${month} ${year}`;
+}
+
+/* =========================================================
+   สถานะครุภัณฑ์
+   ========================================================= */
+
 function getConditionMark(
   status: string,
   condition: string
@@ -79,12 +214,41 @@ export default function ExportDepartmentAssetsPdf({
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const rowsPerPage = 20;
+  /* =========================================================
+     ข้อมูลปีงบประมาณและไตรมาสปัจจุบัน
+     ========================================================= */
+
+  const {
+    quarter,
+    fiscalYear,
+    startDate,
+    endDate,
+  } = getFiscalQuarterInfo();
+
+  /* =========================================================
+     ขนาดพื้นที่ A4 แนวนอน
+     กระดาษจริง 297 x 210 mm
+     ขอบ 10 mm
+     พื้นที่ใช้งาน 277 x 190 mm
+     ========================================================= */
+
+  const pdfWidth = 277;
+  const pdfHeight = 190;
+
+  /* =========================================================
+     จำนวนรายการต่อหน้า
+     ========================================================= */
+
+  const rowsPerPage = 18;
 
   const totalPages = Math.max(
     1,
     Math.ceil(assets.length / rowsPerPage)
   );
+
+  /* =========================================================
+     Export PDF
+     ========================================================= */
 
   async function handleExportPdf() {
     if (!pdfRef.current || assets.length === 0) {
@@ -133,8 +297,8 @@ export default function ExportDepartmentAssetsPdf({
           "PNG",
           10,
           10,
-          277,
-          190,
+          pdfWidth,
+          pdfHeight,
           undefined,
           "FAST"
         );
@@ -151,9 +315,11 @@ export default function ExportDepartmentAssetsPdf({
 
       if (!newWindow) {
         const link = document.createElement("a");
+
         link.href = pdfUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
+
         link.click();
       }
 
@@ -173,6 +339,10 @@ export default function ExportDepartmentAssetsPdf({
       setIsExporting(false);
     }
   }
+
+  /* =========================================================
+     แบ่งข้อมูลตามจำนวนรายการต่อหน้า
+     ========================================================= */
 
   const pages = Array.from(
     { length: totalPages },
@@ -227,7 +397,6 @@ export default function ExportDepartmentAssetsPdf({
 
       {/* =====================================================
           Hidden PDF Document
-          ไม่แสดงบนหน้า /assets/1
           ===================================================== */}
 
       <div
@@ -271,7 +440,8 @@ export default function ExportDepartmentAssetsPdf({
                   font-bold
                 "
               >
-                กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ 2568
+                กระดาษทำการตรวจสอบพัสดุ
+                ประจำปีงบประมาณ พ.ศ. {fiscalYear}
               </div>
 
               <div
@@ -281,18 +451,29 @@ export default function ExportDepartmentAssetsPdf({
                   font-bold
                 "
               >
-                สำนักอนามัยการเจริญพันธุ์
+                {departmentName}
               </div>
 
               <div
                 className="
-                  mt-[2mm]
+                  mt-[1.5mm]
                   text-[11px]
                   font-bold
                 "
               >
-                เริ่มดำเนินการตรวจสอบวันที่ 1 ตุลาคม 2568
-                และตรวจสอบแล้วเสร็จวันที่ 4 พฤศจิกายน 2568
+                ไตรมาสที่ {quarter}
+              </div>
+
+              <div
+                className="
+                  mt-[1mm]
+                  text-[10px]
+                  font-bold
+                "
+              >
+                ระหว่างวันที่ {formatThaiDate(startDate)}
+                {" "}
+                ถึงวันที่ {formatThaiDate(endDate)}
               </div>
             </div>
 
@@ -309,92 +490,178 @@ export default function ExportDepartmentAssetsPdf({
                 border
                 border-black
                 text-[9px]
+                leading-none
               "
             >
+              {/* =================================================
+                  รวมความกว้าง = 100%
+                  เพื่อไม่ให้ตารางล้น A4
+                  ================================================= */}
+
               <colgroup>
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "3%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "7%" }} />
                 <col style={{ width: "11%" }} />
                 <col style={{ width: "12%" }} />
                 <col style={{ width: "5%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "5%" }} />
-                <col style={{ width: "8%" }} />
+                <col style={{ width: "6%" }} />
                 <col style={{ width: "4%" }} />
                 <col style={{ width: "4%" }} />
                 <col style={{ width: "6%" }} />
+                <col style={{ width: "6%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "7%" }} />
               </colgroup>
 
               <thead>
                 <tr className="h-[11mm]">
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     ลำดับ
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     รหัส GFMIS
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     รหัสครุภัณฑ์
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     ผู้รับผิดชอบ
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     รายการ
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     หน่วยนับ
                   </th>
 
                   <th
                     rowSpan={2}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     ยอดคงเหลือ
                     <br />
                     ตามทะเบียน
                     <br />
-                    ณ วันที่ 1 ต.ค. 68
+                    ณ วันที่
+                    <br />
+                    {formatThaiShortDate(startDate)}
                   </th>
 
                   <th
                     colSpan={2}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     รายการรับ - จ่ายระหว่าง
                     <br />
-                    ปีงบประมาณ พ.ศ. 2568
+                    ไตรมาสที่ {quarter}
+                    <br />
+                    ปีงบประมาณ พ.ศ. {fiscalYear}
                   </th>
 
                   <th
                     rowSpan={2}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     ยอดคงเหลือ
                     <br />
@@ -405,7 +672,15 @@ export default function ExportDepartmentAssetsPdf({
 
                   <th
                     rowSpan={2}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     จำนวนที่
                     <br />
@@ -414,7 +689,15 @@ export default function ExportDepartmentAssetsPdf({
 
                   <th
                     colSpan={2}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     ผลการตรวจนับ
                     <br />
@@ -423,53 +706,149 @@ export default function ExportDepartmentAssetsPdf({
 
                   <th
                     colSpan={4}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     สภาพครุภัณฑ์ที่ตรวจนับพบ
                   </th>
 
                   <th
                     rowSpan={3}
-                    className="border border-black px-1 text-center font-bold"
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
                   >
                     หมายเหตุ
                   </th>
                 </tr>
 
                 <tr className="h-[7mm]">
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     รับ
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     จ่าย
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     ถูกต้อง
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     ไม่ถูกต้อง
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     ใช้งาน
                     <br />
                     ได้
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     ชำรุด
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     เสื่อม
                     <br />
                     สภาพ
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     ไม่จำเป็น
                     <br />
                     ต้องใช้
@@ -477,31 +856,101 @@ export default function ExportDepartmentAssetsPdf({
                 </tr>
 
                 <tr className="h-[5mm]">
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
 
-                  <th className="border border-black px-1 text-center font-bold">
+                  <th
+                    className="
+                      border
+                      border-black
+                      bg-transparent
+                      px-1
+                      text-center
+                      font-bold
+                      text-black
+                    "
+                  >
                     -
                   </th>
                 </tr>
@@ -529,8 +978,15 @@ export default function ExportDepartmentAssetsPdf({
                         {asset.officeAssetNo || "-"}
                       </td>
 
+                      {/* =================================================
+                          ผู้รับผิดชอบ = กลุ่มงาน
+                          ใช้ sectionName แทน officerName
+                          ================================================= */}
+
                       <td className="border border-black px-1 text-center">
-                        {asset.officerName || "-"}
+                        {asset.sectionName ||
+                          asset.departmentName ||
+                          "-"}
                       </td>
 
                       <td className="border border-black px-1 text-center">
@@ -562,15 +1018,15 @@ export default function ExportDepartmentAssetsPdf({
                       </td>
 
                       <td className="border border-black px-1 text-center">
-                        {getInspectionMark(asset.status)}
+                        {getInspectionMark(
+                          asset.status
+                        )}
                       </td>
 
                       <td className="border border-black px-1 text-center">
                         {asset.status === "DAMAGED"
                           ? ""
-                          : asset.status === "IN_USE"
-                            ? ""
-                            : ""}
+                          : ""}
                       </td>
 
                       <td className="border border-black px-1 text-center">
@@ -608,6 +1064,10 @@ export default function ExportDepartmentAssetsPdf({
                   );
                 })}
 
+                {/* =================================================
+                    เติมแถวว่างให้ทุกหน้ามีความสูงเท่ากัน
+                    ================================================= */}
+
                 {pageAssets.length < rowsPerPage &&
                   Array.from(
                     {
@@ -624,7 +1084,11 @@ export default function ExportDepartmentAssetsPdf({
                           (_, cellIndex) => (
                             <td
                               key={cellIndex}
-                              className="border border-black px-1"
+                              className="
+                                border
+                                border-black
+                                px-1
+                              "
                             >
                               &nbsp;
                             </td>
@@ -642,54 +1106,84 @@ export default function ExportDepartmentAssetsPdf({
                 ================================================= */}
 
             {pageIndex === totalPages - 1 && (
-              <div className="mt-[7mm] grid grid-cols-5 gap-[8mm] text-center text-[10px]">
+              <div
+                className="
+                  mt-[5mm]
+                  grid
+                  grid-cols-5
+                  gap-[5mm]
+                  text-center
+                  text-[10px]
+                  leading-tight
+                "
+              >
                 <div>
-                  <div>ลงชื่อ........................................</div>
-                  <div className="mt-[2mm]">
-                    (........................................)
+                  <div>
+                    ลงชื่อ................................
                   </div>
+
+                  <div className="mt-[1.5mm]">
+                    (................................)
+                  </div>
+
                   <div className="mt-[1mm]">
-                    ........................................
+                    ................................
                   </div>
                 </div>
 
                 <div>
-                  <div>ลงชื่อ........................................</div>
-                  <div className="mt-[2mm]">
-                    (........................................)
+                  <div>
+                    ลงชื่อ................................
                   </div>
+
+                  <div className="mt-[1.5mm]">
+                    (................................)
+                  </div>
+
                   <div className="mt-[1mm]">
-                    ........................................
+                    ................................
                   </div>
                 </div>
 
                 <div>
-                  <div>ลงชื่อ........................................</div>
-                  <div className="mt-[2mm]">
-                    (........................................)
+                  <div>
+                    ลงชื่อ................................
                   </div>
+
+                  <div className="mt-[1.5mm]">
+                    (................................)
+                  </div>
+
                   <div className="mt-[1mm]">
-                    ........................................
+                    ................................
                   </div>
                 </div>
 
                 <div>
-                  <div>ลงชื่อ........................................</div>
-                  <div className="mt-[2mm]">
-                    (........................................)
+                  <div>
+                    ลงชื่อ................................
                   </div>
+
+                  <div className="mt-[1.5mm]">
+                    (................................)
+                  </div>
+
                   <div className="mt-[1mm]">
-                    ........................................
+                    ................................
                   </div>
                 </div>
 
                 <div>
-                  <div>ลงชื่อ........................................</div>
-                  <div className="mt-[2mm]">
-                    (........................................)
+                  <div>
+                    ลงชื่อ................................
                   </div>
+
+                  <div className="mt-[1.5mm]">
+                    (................................)
+                  </div>
+
                   <div className="mt-[1mm]">
-                    ........................................
+                    ................................
                   </div>
                 </div>
               </div>
