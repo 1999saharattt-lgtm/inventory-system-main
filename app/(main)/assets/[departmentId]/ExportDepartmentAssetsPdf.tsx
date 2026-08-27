@@ -41,79 +41,7 @@ const categoryUnit: Record<string, string> = {
 };
 
 /* =========================================================
-   ปีงบประมาณราชการ + ไตรมาส
-   ========================================================= */
-
-function getFiscalQuarterInfo() {
-  const now = new Date();
-
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-
-  let quarter: number;
-  let fiscalYear: number;
-  let startDate: Date;
-  let endDate: Date;
-
-  /*
-   * ไตรมาส 1
-   * 1 ตุลาคม - 31 ธันวาคม
-   * เป็นปีงบประมาณถัดไป
-   */
-  if (month >= 10) {
-    quarter = 1;
-    fiscalYear = year + 1 + 543;
-
-    startDate = new Date(year, 9, 1);
-    endDate = new Date(year, 11, 31);
-  }
-
-  /*
-   * ไตรมาส 2
-   * 1 มกราคม - 31 มีนาคม
-   */
-  else if (month >= 1 && month <= 3) {
-    quarter = 2;
-    fiscalYear = year + 543;
-
-    startDate = new Date(year, 0, 1);
-    endDate = new Date(year, 2, 31);
-  }
-
-  /*
-   * ไตรมาส 3
-   * 1 เมษายน - 30 มิถุนายน
-   */
-  else if (month >= 4 && month <= 6) {
-    quarter = 3;
-    fiscalYear = year + 543;
-
-    startDate = new Date(year, 3, 1);
-    endDate = new Date(year, 5, 30);
-  }
-
-  /*
-   * ไตรมาส 4
-   * 1 กรกฎาคม - 30 กันยายน
-   */
-  else {
-    quarter = 4;
-    fiscalYear = year + 543;
-
-    startDate = new Date(year, 6, 1);
-    endDate = new Date(year, 8, 30);
-  }
-
-  return {
-    quarter,
-    fiscalYear,
-    startDate,
-    endDate,
-  };
-}
-
-/* =========================================================
-   เดือนภาษาไทยแบบราชการ
+   เดือนภาษาไทย
    ========================================================= */
 
 const thaiMonths = [
@@ -147,26 +75,80 @@ const thaiMonthShort = [
 ];
 
 /* =========================================================
+   ปีงบประมาณราชการ
+   ========================================================= */
+
+function getFiscalYear(date: Date) {
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  return month >= 10
+    ? year + 1 + 543
+    : year + 543;
+}
+
+/* =========================================================
+   แปลงวันที่จาก input type="date"
+   เป็น Date โดยไม่ให้ timezone ทำให้วันที่เลื่อน
+   ========================================================= */
+
+function parseInputDate(value: string) {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] = value
+    .split("-")
+    .map(Number);
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
+
+/* =========================================================
    วันที่ภาษาไทยแบบเต็ม
    ========================================================= */
 
-function formatThaiDate(date: Date) {
+function formatThaiDate(
+  value: string
+) {
+  const date = parseInputDate(value);
+
+  if (!date) {
+    return "-";
+  }
+
   const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
+  const month =
+    thaiMonths[date.getMonth()];
+  const year =
+    date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
 }
 
 /* =========================================================
-   วันที่ภาษาไทยแบบย่อราชการ
-   เช่น 1 ก.ค. 2569
+   วันที่ภาษาไทยแบบย่อ
+   เช่น 1 ต.ค. 2568
    ========================================================= */
 
-function formatThaiShortDate(date: Date) {
+function formatThaiShortDate(
+  value: string
+) {
+  const date = parseInputDate(value);
+
+  if (!date) {
+    return "-";
+  }
+
   const day = date.getDate();
-  const month = thaiMonthShort[date.getMonth()];
-  const year = date.getFullYear() + 543;
+  const month =
+    thaiMonthShort[date.getMonth()];
+  const year =
+    date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
 }
@@ -180,25 +162,35 @@ function getConditionMark(
   condition: string
 ) {
   if (condition === "normal") {
-    return status === "IN_USE" ? "/" : "";
+    return status === "IN_USE"
+      ? "/"
+      : "";
   }
 
   if (condition === "damaged") {
-    return status === "DAMAGED" ? "/" : "";
+    return status === "DAMAGED"
+      ? "/"
+      : "";
   }
 
   if (condition === "deteriorated") {
-    return status === "WAITING_DISPOSAL" ? "/" : "";
+    return status === "WAITING_DISPOSAL"
+      ? "/"
+      : "";
   }
 
   if (condition === "notRequired") {
-    return status === "DISPOSED" ? "/" : "";
+    return status === "DISPOSED"
+      ? "/"
+      : "";
   }
 
   return "";
 }
 
-function getInspectionMark(status: string) {
+function getInspectionMark(
+  status: string
+) {
   return status === "IN_USE" ||
     status === "DAMAGED" ||
     status === "WAITING_DISPOSAL" ||
@@ -207,43 +199,85 @@ function getInspectionMark(status: string) {
     : "";
 }
 
+/* =========================================================
+   Component
+   ========================================================= */
+
 export default function ExportDepartmentAssetsPdf({
   departmentName,
   assets,
 }: Props) {
-  const pdfRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const pdfRef =
+    useRef<HTMLDivElement>(null);
+
+  const [isExporting, setIsExporting] =
+    useState(false);
 
   /* =========================================================
-     ข้อมูลปีงบประมาณและไตรมาสปัจจุบัน
+     วันที่ตรวจสอบ
+     ผู้ใช้เลือกเอง
      ========================================================= */
 
-  const {
-    quarter,
-    fiscalYear,
-    startDate,
-    endDate,
-  } = getFiscalQuarterInfo();
+  const today = new Date();
+
+  const defaultDate =
+    `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(
+      today.getDate()
+    ).padStart(2, "0")}`;
+
+  const [inspectionStartDate, setInspectionStartDate] =
+    useState(defaultDate);
+
+  const [inspectionEndDate, setInspectionEndDate] =
+    useState(defaultDate);
 
   /* =========================================================
-     ขนาดพื้นที่ A4 แนวนอน
-     กระดาษจริง 297 x 210 mm
+     ปีงบประมาณ
+     อ้างอิงจากวันที่เริ่มตรวจสอบ
+     ========================================================= */
+
+  const startDateObject =
+    parseInputDate(
+      inspectionStartDate
+    );
+
+  const fiscalYear =
+    startDateObject
+      ? getFiscalYear(startDateObject)
+      : getFiscalYear(today);
+
+  /* =========================================================
+     A4 แนวนอน
+     พื้นที่จริง 297 x 210 mm
      ขอบ 10 mm
-     พื้นที่ใช้งาน 277 x 190 mm
      ========================================================= */
 
   const pdfWidth = 277;
   const pdfHeight = 190;
 
-  /* =========================================================
-     จำนวนรายการต่อหน้า
-     ========================================================= */
+  /*
+   * ฟอนต์ต้นฉบับ 14 pt
+   * เนื้อหา PDF จะถูกย่อเหลือ 70%
+   * ตอนนำลง A4 เพื่อให้ตารางยังพอดีหน้า
+   */
 
-  const rowsPerPage = 18;
+  const pdfScale = 0.7;
+
+  /*
+   * จำนวนรายการต่อหน้า
+   * เพิ่มขนาดฟอนต์เป็น 14 pt
+   * จึงลดจำนวนแถวลงเพื่อไม่ให้ชนพื้นที่ลายเซ็น
+   */
+
+  const rowsPerPage = 12;
 
   const totalPages = Math.max(
     1,
-    Math.ceil(assets.length / rowsPerPage)
+    Math.ceil(
+      assets.length / rowsPerPage
+    )
   );
 
   /* =========================================================
@@ -251,7 +285,32 @@ export default function ExportDepartmentAssetsPdf({
      ========================================================= */
 
   async function handleExportPdf() {
-    if (!pdfRef.current || assets.length === 0) {
+    if (
+      !pdfRef.current ||
+      assets.length === 0
+    ) {
+      return;
+    }
+
+    if (
+      !inspectionStartDate ||
+      !inspectionEndDate
+    ) {
+      alert(
+        "กรุณาเลือกวันที่เริ่มดำเนินการตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ"
+      );
+
+      return;
+    }
+
+    if (
+      inspectionEndDate <
+      inspectionStartDate
+    ) {
+      alert(
+        "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ"
+      );
+
       return;
     }
 
@@ -277,54 +336,98 @@ export default function ExportDepartmentAssetsPdf({
       ) {
         const page = pages[pageIndex];
 
-        const canvas = await html2canvas(page, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: page.scrollWidth,
-          height: page.scrollHeight,
-        });
+        const canvas =
+          await html2canvas(page, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor:
+              "#ffffff",
+            logging: false,
+            width: page.scrollWidth,
+            height: page.scrollHeight,
+          });
 
-        const imageData = canvas.toDataURL("image/png");
+        const imageData =
+          canvas.toDataURL(
+            "image/png"
+          );
 
         if (pageIndex > 0) {
-          pdf.addPage("a4", "landscape");
+          pdf.addPage(
+            "a4",
+            "landscape"
+          );
         }
+
+        /*
+         * A4 พื้นที่ใช้งาน 277 x 190 mm
+         * ย่อเนื้อหาลง 70%
+         * และจัดให้อยู่กึ่งกลางหน้า
+         */
+
+        const imageWidth =
+          pdfWidth * pdfScale;
+
+        const imageHeight =
+          pdfHeight * pdfScale;
+
+        const imageX =
+          10 +
+          (pdfWidth -
+            imageWidth) /
+            2;
+
+        const imageY =
+          10 +
+          (pdfHeight -
+            imageHeight) /
+            2;
 
         pdf.addImage(
           imageData,
           "PNG",
-          10,
-          10,
-          pdfWidth,
-          pdfHeight,
+          imageX,
+          imageY,
+          imageWidth,
+          imageHeight,
           undefined,
           "FAST"
         );
       }
 
-      const pdfBlob = pdf.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const pdfBlob =
+        pdf.output("blob");
 
-      const newWindow = window.open(
-        pdfUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
+      const pdfUrl =
+        URL.createObjectURL(
+          pdfBlob
+        );
+
+      const newWindow =
+        window.open(
+          pdfUrl,
+          "_blank",
+          "noopener,noreferrer"
+        );
 
       if (!newWindow) {
-        const link = document.createElement("a");
+        const link =
+          document.createElement(
+            "a"
+          );
 
         link.href = pdfUrl;
         link.target = "_blank";
-        link.rel = "noopener noreferrer";
+        link.rel =
+          "noopener noreferrer";
 
         link.click();
       }
 
       setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
+        URL.revokeObjectURL(
+          pdfUrl
+        );
       }, 60000);
     } catch (error) {
       console.error(
@@ -341,28 +444,98 @@ export default function ExportDepartmentAssetsPdf({
   }
 
   /* =========================================================
-     แบ่งข้อมูลตามจำนวนรายการต่อหน้า
+     แบ่งข้อมูลเป็นหน้า
      ========================================================= */
 
   const pages = Array.from(
-    { length: totalPages },
+    {
+      length: totalPages,
+    },
     (_, pageIndex) =>
       assets.slice(
-        pageIndex * rowsPerPage,
-        (pageIndex + 1) * rowsPerPage
+        pageIndex *
+          rowsPerPage,
+        (pageIndex + 1) *
+          rowsPerPage
       )
   );
 
   return (
     <div className="shrink-0">
       {/* =====================================================
-          Export Button
+          ตัวเลือกวันที่
           ===================================================== */}
 
-      <div className="flex justify-end">
+      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-slate-300 bg-white p-4 shadow-lg sm:flex-row sm:items-end sm:justify-end">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-bold text-slate-700">
+            เริ่มดำเนินการตรวจสอบ
+          </label>
+
+          <input
+            type="date"
+            value={inspectionStartDate}
+            onChange={(event) =>
+              setInspectionStartDate(
+                event.target.value
+              )
+            }
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-3
+              py-2
+              text-sm
+              text-slate-800
+              outline-none
+              focus:border-slate-500
+              focus:ring-2
+              focus:ring-slate-200
+            "
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-bold text-slate-700">
+            ตรวจสอบแล้วเสร็จ
+          </label>
+
+          <input
+            type="date"
+            value={inspectionEndDate}
+            onChange={(event) =>
+              setInspectionEndDate(
+                event.target.value
+              )
+            }
+            className="
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-3
+              py-2
+              text-sm
+              text-slate-800
+              outline-none
+              focus:border-slate-500
+              focus:ring-2
+              focus:ring-slate-200
+            "
+          />
+        </div>
+
+        {/* ===================================================
+            Export Button
+            =================================================== */}
+
         <button
           type="button"
-          onClick={handleExportPdf}
+          onClick={
+            handleExportPdf
+          }
           disabled={
             isExporting ||
             assets.length === 0
@@ -386,7 +559,6 @@ export default function ExportDepartmentAssetsPdf({
             disabled:cursor-not-allowed
             disabled:opacity-50
             sm:px-6
-            sm:text-base
           "
         >
           {isExporting
@@ -410,786 +582,824 @@ export default function ExportDepartmentAssetsPdf({
           z-[-1]
         "
       >
-        {pages.map((pageAssets, pageIndex) => (
-          <div
-            key={pageIndex}
-            data-pdf-page
-            className="
-              box-border
-              h-[190mm]
-              w-[277mm]
-              overflow-hidden
-              bg-white
-              px-[2mm]
-              py-[1mm]
-              text-black
-            "
-            style={{
-              fontFamily:
-                "'TH Sarabun New', 'Tahoma', sans-serif",
-            }}
-          >
-            {/* =================================================
-                Header
-                ================================================= */}
-
-            <div className="text-center leading-none">
-              <div
-                className="
-                  text-[13px]
-                  font-bold
-                "
-              >
-                กระดาษทำการตรวจสอบพัสดุ
-                ประจำปีงบประมาณ พ.ศ. {fiscalYear}
-              </div>
-
-              <div
-                className="
-                  mt-[1mm]
-                  text-[12px]
-                  font-bold
-                "
-              >
-                {departmentName}
-              </div>
-
-              <div
-                className="
-                  mt-[1.5mm]
-                  text-[11px]
-                  font-bold
-                "
-              >
-                ไตรมาสที่ {quarter}
-              </div>
-
-              <div
-                className="
-                  mt-[1mm]
-                  text-[10px]
-                  font-bold
-                "
-              >
-                ระหว่างวันที่ {formatThaiDate(startDate)}
-                {" "}
-                ถึงวันที่ {formatThaiDate(endDate)}
-              </div>
-            </div>
-
-            {/* =================================================
-                Table
-                ================================================= */}
-
-            <table
+        {pages.map(
+          (
+            pageAssets,
+            pageIndex
+          ) => (
+            <div
+              key={pageIndex}
+              data-pdf-page
               className="
-                mt-[2mm]
-                w-full
-                table-fixed
-                border-collapse
-                border
-                border-black
-                text-[9px]
-                leading-none
+                box-border
+                h-[190mm]
+                w-[277mm]
+                overflow-hidden
+                bg-white
+                px-[2mm]
+                py-[1mm]
+                text-black
               "
+              style={{
+                fontFamily:
+                  "'TH Sarabun New', 'Tahoma', sans-serif",
+                fontSize: "14pt",
+                lineHeight: "1",
+              }}
             >
-              {/* =================================================
-                  รวมความกว้าง = 100%
-                  เพื่อไม่ให้ตารางล้น A4
-                  ================================================= */}
+              {/* ===============================================
+                  Header
+                  =============================================== */}
 
-              <colgroup>
-                <col style={{ width: "3%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "5%" }} />
-                <col style={{ width: "6%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "6%" }} />
-                <col style={{ width: "6%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "3.5%" }} />
-                <col style={{ width: "3.5%" }} />
-                <col style={{ width: "3.5%" }} />
-                <col style={{ width: "3.5%" }} />
-                <col style={{ width: "7%" }} />
-              </colgroup>
+              <div className="text-center leading-none">
+                <div
+                  className="
+                    text-[14pt]
+                    font-bold
+                  "
+                >
+                  กระดาษทำการตรวจสอบพัสดุ
+                  ประจำปีงบประมาณ พ.ศ.{" "}
+                  {fiscalYear}
+                </div>
 
-              <thead>
-                <tr className="h-[11mm]">
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ลำดับ
-                  </th>
+                <div
+                  className="
+                    mt-[1.5mm]
+                    text-[14pt]
+                    font-bold
+                  "
+                >
+                  สำนักอนามัยการเจริญพันธุ์
+                </div>
 
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    รหัส GFMIS
-                  </th>
+                <div
+                  className="
+                    mt-[1.5mm]
+                    text-[14pt]
+                    font-bold
+                  "
+                >
+                  เริ่มดำเนินการตรวจสอบวันที่{" "}
+                  {formatThaiDate(
+                    inspectionStartDate
+                  )}
+                </div>
 
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    รหัสครุภัณฑ์
-                  </th>
+                <div
+                  className="
+                    mt-[1mm]
+                    text-[14pt]
+                    font-bold
+                  "
+                >
+                  ตรวจสอบแล้วเสร็จวันที่{" "}
+                  {formatThaiDate(
+                    inspectionEndDate
+                  )}
+                </div>
+              </div>
 
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ผู้รับผิดชอบ
-                  </th>
+              {/* ===============================================
+                  Table
+                  =============================================== */}
 
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    รายการ
-                  </th>
+              <table
+                className="
+                  mt-[3mm]
+                  w-full
+                  table-fixed
+                  border-collapse
+                  border
+                  border-black
+                  text-[14pt]
+                  leading-none
+                "
+              >
+                <colgroup>
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "11%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "7%" }} />
+                </colgroup>
 
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    หน่วยนับ
-                  </th>
-
-                  <th
-                    rowSpan={2}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ยอดคงเหลือ
-                    <br />
-                    ตามทะเบียน
-                    <br />
-                    ณ วันที่
-                    <br />
-                    {formatThaiShortDate(startDate)}
-                  </th>
-
-                  <th
-                    colSpan={2}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    รายการรับ - จ่ายระหว่าง
-                    <br />
-                    ไตรมาสที่ {quarter}
-                    <br />
-                    ปีงบประมาณ พ.ศ. {fiscalYear}
-                  </th>
-
-                  <th
-                    rowSpan={2}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ยอดคงเหลือ
-                    <br />
-                    ตามทะเบียน
-                    <br />
-                    ณ วันที่ตรวจนับ
-                  </th>
-
-                  <th
-                    rowSpan={2}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    จำนวนที่
-                    <br />
-                    ตรวจนับได้
-                  </th>
-
-                  <th
-                    colSpan={2}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ผลการตรวจนับ
-                    <br />
-                    ครุภัณฑ์ตามทะเบียน
-                  </th>
-
-                  <th
-                    colSpan={4}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    สภาพครุภัณฑ์ที่ตรวจนับพบ
-                  </th>
-
-                  <th
-                    rowSpan={3}
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    หมายเหตุ
-                  </th>
-                </tr>
-
-                <tr className="h-[7mm]">
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    รับ
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    จ่าย
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ถูกต้อง
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ไม่ถูกต้อง
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ใช้งาน
-                    <br />
-                    ได้
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ชำรุด
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    เสื่อม
-                    <br />
-                    สภาพ
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    ไม่จำเป็น
-                    <br />
-                    ต้องใช้
-                  </th>
-                </tr>
-
-                <tr className="h-[5mm]">
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-
-                  <th
-                    className="
-                      border
-                      border-black
-                      bg-transparent
-                      px-1
-                      text-center
-                      font-bold
-                      text-black
-                    "
-                  >
-                    -
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {pageAssets.map((asset, index) => {
-                  const globalIndex =
-                    pageIndex * rowsPerPage + index;
-
-                  return (
-                    <tr
-                      key={asset.id}
-                      className="h-[6.2mm]"
+                <thead>
+                  <tr className="h-[12mm]">
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
                     >
-                      <td className="border border-black px-1 text-center">
-                        {globalIndex + 1}
-                      </td>
+                      ลำดับ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.governmentAssetNo || "-"}
-                      </td>
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รหัส GFMIS
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.officeAssetNo || "-"}
-                      </td>
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รหัสครุภัณฑ์
+                    </th>
 
-                      {/* =================================================
-                          ผู้รับผิดชอบ = กลุ่มงาน
-                          ใช้ sectionName แทน officerName
-                          ================================================= */}
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ผู้รับผิดชอบ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.sectionName ||
-                          asset.departmentName ||
-                          "-"}
-                      </td>
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รายการ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.name}
-                      </td>
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      หน่วยนับ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {categoryUnit[asset.category] || "ตัว"}
-                      </td>
+                    <th
+                      rowSpan={2}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ยอดคงเหลือ
+                      <br />
+                      ตามทะเบียน
+                      <br />
+                      ณ วันที่
+                      <br />
+                      {formatThaiShortDate(
+                        inspectionStartDate
+                      )}
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        1
-                      </td>
+                    <th
+                      colSpan={2}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รายการรับ - จ่าย
+                      <br />
+                      ระหว่างปีงบประมาณ
+                      <br />
+                      พ.ศ. {fiscalYear}
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        -
-                      </td>
+                    <th
+                      rowSpan={2}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ยอดคงเหลือ
+                      <br />
+                      ตามทะเบียน
+                      <br />
+                      ณ วันที่ตรวจนับ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        -
-                      </td>
+                    <th
+                      rowSpan={2}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      จำนวนที่
+                      <br />
+                      ตรวจนับได้
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        1
-                      </td>
+                    <th
+                      colSpan={2}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ผลการตรวจนับ
+                      <br />
+                      ครุภัณฑ์ตามทะเบียน
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        1
-                      </td>
+                    <th
+                      colSpan={4}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      สภาพครุภัณฑ์
+                      ที่ตรวจนับพบ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {getInspectionMark(
-                          asset.status
-                        )}
-                      </td>
+                    <th
+                      rowSpan={3}
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      หมายเหตุ
+                    </th>
+                  </tr>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.status === "DAMAGED"
-                          ? ""
-                          : ""}
-                      </td>
+                  <tr className="h-[8mm]">
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      รับ
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {getConditionMark(
-                          asset.status,
-                          "normal"
-                        )}
-                      </td>
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      จ่าย
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {getConditionMark(
-                          asset.status,
-                          "damaged"
-                        )}
-                      </td>
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ถูกต้อง
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {getConditionMark(
-                          asset.status,
-                          "deteriorated"
-                        )}
-                      </td>
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ไม่ถูกต้อง
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {getConditionMark(
-                          asset.status,
-                          "notRequired"
-                        )}
-                      </td>
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ใช้งาน
+                      <br />
+                      ได้
+                    </th>
 
-                      <td className="border border-black px-1 text-center">
-                        {asset.remark || ""}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ชำรุด
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      เสื่อม
+                      <br />
+                      สภาพ
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      ไม่จำเป็น
+                      <br />
+                      ต้องใช้
+                    </th>
+                  </tr>
+
+                  <tr className="h-[6mm]">
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+
+                    <th
+                      className="
+                        border
+                        border-black
+                        bg-white
+                        px-1
+                        text-center
+                        font-bold
+                        text-black
+                      "
+                    >
+                      -
+                    </th>
+                  </tr>
+                </thead>
 
                 {/* =================================================
-                    เติมแถวว่างให้ทุกหน้ามีความสูงเท่ากัน
+                    Body
                     ================================================= */}
 
-                {pageAssets.length < rowsPerPage &&
-                  Array.from(
-                    {
-                      length:
-                        rowsPerPage - pageAssets.length,
-                    },
-                    (_, emptyIndex) => (
-                      <tr
-                        key={`empty-${emptyIndex}`}
-                        className="h-[6.2mm]"
-                      >
-                        {Array.from(
-                          { length: 18 },
-                          (_, cellIndex) => (
-                            <td
-                              key={cellIndex}
-                              className="
-                                border
-                                border-black
-                                px-1
-                              "
-                            >
-                              &nbsp;
-                            </td>
-                          )
-                        )}
-                      </tr>
-                    )
+                <tbody>
+                  {pageAssets.map(
+                    (asset, index) => {
+                      const globalIndex =
+                        pageIndex *
+                          rowsPerPage +
+                        index;
+
+                      return (
+                        <tr
+                          key={asset.id}
+                          className="h-[7.5mm]"
+                        >
+                          <td className="border border-black px-1 text-center">
+                            {globalIndex +
+                              1}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.governmentAssetNo ||
+                              "-"}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.officeAssetNo ||
+                              "-"}
+                          </td>
+
+                          {/* =========================================
+                              ผู้รับผิดชอบ = กลุ่มงาน
+                              ========================================= */}
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.sectionName ||
+                              asset.departmentName ||
+                              "-"}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.name}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {categoryUnit[
+                              asset.category
+                            ] ||
+                              "ตัว"}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            1
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            -
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            -
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            1
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            1
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {getInspectionMark(
+                              asset.status
+                            )}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.status ===
+                            "DAMAGED"
+                              ? ""
+                              : ""}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {getConditionMark(
+                              asset.status,
+                              "normal"
+                            )}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {getConditionMark(
+                              asset.status,
+                              "damaged"
+                            )}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {getConditionMark(
+                              asset.status,
+                              "deteriorated"
+                            )}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {getConditionMark(
+                              asset.status,
+                              "notRequired"
+                            )}
+                          </td>
+
+                          <td className="border border-black px-1 text-center">
+                            {asset.remark ||
+                              ""}
+                          </td>
+                        </tr>
+                      );
+                    }
                   )}
-              </tbody>
-            </table>
 
-            {/* =================================================
-                Signature area
-                แสดงเฉพาะหน้าสุดท้าย
-                ================================================= */}
+                  {/* ===============================================
+                      เติมแถวว่าง
+                      =============================================== */}
 
-            {pageIndex === totalPages - 1 && (
-              <div
-                className="
-                  mt-[5mm]
-                  grid
-                  grid-cols-5
-                  gap-[5mm]
-                  text-center
-                  text-[10px]
-                  leading-tight
-                "
-              >
-                <div>
+                  {pageAssets.length <
+                    rowsPerPage &&
+                    Array.from(
+                      {
+                        length:
+                          rowsPerPage -
+                          pageAssets.length,
+                      },
+                      (
+                        _,
+                        emptyIndex
+                      ) => (
+                        <tr
+                          key={`empty-${emptyIndex}`}
+                          className="h-[7.5mm]"
+                        >
+                          {Array.from(
+                            {
+                              length: 18,
+                            },
+                            (
+                              _,
+                              cellIndex
+                            ) => (
+                              <td
+                                key={
+                                  cellIndex
+                                }
+                                className="
+                                  border
+                                  border-black
+                                  bg-white
+                                  px-1
+                                "
+                              >
+                                &nbsp;
+                              </td>
+                            )
+                          )}
+                        </tr>
+                      )
+                    )}
+                </tbody>
+              </table>
+
+              {/* =================================================
+                  Signature
+                  ================================================= */}
+
+              {pageIndex ===
+                totalPages - 1 && (
+                <div
+                  className="
+                    mt-[6mm]
+                    grid
+                    grid-cols-5
+                    gap-[5mm]
+                    text-center
+                    text-[14pt]
+                    leading-tight
+                  "
+                >
                   <div>
-                    ลงชื่อ................................
+                    <div>
+                      ลงชื่อ................................
+                    </div>
+
+                    <div className="mt-[1.5mm]">
+                      (................................)
+                    </div>
+
+                    <div className="mt-[1mm]">
+                      ................................
+                    </div>
                   </div>
 
-                  <div className="mt-[1.5mm]">
-                    (................................)
+                  <div>
+                    <div>
+                      ลงชื่อ................................
+                    </div>
+
+                    <div className="mt-[1.5mm]">
+                      (................................)
+                    </div>
+
+                    <div className="mt-[1mm]">
+                      ................................
+                    </div>
                   </div>
 
-                  <div className="mt-[1mm]">
-                    ................................
+                  <div>
+                    <div>
+                      ลงชื่อ................................
+                    </div>
+
+                    <div className="mt-[1.5mm]">
+                      (................................)
+                    </div>
+
+                    <div className="mt-[1mm]">
+                      ................................
+                    </div>
+                  </div>
+
+                  <div>
+                    <div>
+                      ลงชื่อ................................
+                    </div>
+
+                    <div className="mt-[1.5mm]">
+                      (................................)
+                    </div>
+
+                    <div className="mt-[1mm]">
+                      ................................
+                    </div>
+                  </div>
+
+                  <div>
+                    <div>
+                      ลงชื่อ................................
+                    </div>
+
+                    <div className="mt-[1.5mm]">
+                      (................................)
+                    </div>
+
+                    <div className="mt-[1mm]">
+                      ................................
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <div>
-                    ลงชื่อ................................
-                  </div>
-
-                  <div className="mt-[1.5mm]">
-                    (................................)
-                  </div>
-
-                  <div className="mt-[1mm]">
-                    ................................
-                  </div>
-                </div>
-
-                <div>
-                  <div>
-                    ลงชื่อ................................
-                  </div>
-
-                  <div className="mt-[1.5mm]">
-                    (................................)
-                  </div>
-
-                  <div className="mt-[1mm]">
-                    ................................
-                  </div>
-                </div>
-
-                <div>
-                  <div>
-                    ลงชื่อ................................
-                  </div>
-
-                  <div className="mt-[1.5mm]">
-                    (................................)
-                  </div>
-
-                  <div className="mt-[1mm]">
-                    ................................
-                  </div>
-                </div>
-
-                <div>
-                  <div>
-                    ลงชื่อ................................
-                  </div>
-
-                  <div className="mt-[1.5mm]">
-                    (................................)
-                  </div>
-
-                  <div className="mt-[1mm]">
-                    ................................
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          )
+        )}
       </div>
     </div>
   );
