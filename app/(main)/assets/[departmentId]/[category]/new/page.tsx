@@ -185,9 +185,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ชื่อครุภัณฑ์
-    //
-    // สามารถซ้ำกันได้
-    // ไม่ตรวจสอบชื่อซ้ำ
     // =====================================================
 
     if (!name) {
@@ -239,43 +236,38 @@ export default async function NewAssetPage({
       targetDepartment.sections.length > 0;
 
     // =====================================================
-    // sectionId
+    // sectionId จาก form
+    //
+    // ใช้สำหรับกรณีที่ไม่ได้เลือกผู้ครอบครอง
+    // เท่านั้น
     // =====================================================
 
-    let sectionId: number | null = null;
+    let selectedSectionId: number | null = null;
 
-    if (hasTargetSections) {
-      sectionId = sectionIdRaw
-        ? Number(sectionIdRaw)
-        : null;
+    if (hasTargetSections && sectionIdRaw) {
+      selectedSectionId = Number(sectionIdRaw);
 
       if (
-        sectionId !== null &&
-        !Number.isInteger(sectionId)
+        !Number.isInteger(selectedSectionId)
       ) {
         throw new Error(
           "กลุ่มงานไม่ถูกต้อง"
         );
       }
-    }
 
-    // =====================================================
-    // ตรวจสอบ section
-    // =====================================================
-
-    if (sectionId !== null) {
-      const section =
+      const selectedSection =
         await prisma.section.findFirst({
           where: {
-            id: sectionId,
-            departmentId: departmentIdNumber,
+            id: selectedSectionId,
+            departmentId:
+              departmentIdNumber,
           },
           select: {
             id: true,
           },
         });
 
-      if (!section) {
+      if (!selectedSection) {
         throw new Error(
           "กลุ่มงานไม่อยู่ในหน่วยงานที่เลือก"
         );
@@ -302,19 +294,18 @@ export default async function NewAssetPage({
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
     //
-    // ตรวจหน่วยงานก่อน
+    // สำคัญ:
+    // เมื่อเลือกผู้ครอบครองจาก dropdown แล้ว
+    // ให้ยึด Officer จากฐานข้อมูลเป็นหลัก
     //
-    // ถ้าหน่วยงานไม่มี section
-    // → ใช้ผู้ครอบครองในหน่วยงานนั้นได้เลย
-    //
-    // ถ้าหน่วยงานมี section
-    // → ตรวจว่าผู้ครอบครองมี section จริง
-    // → ใช้ section ของผู้ครอบครองเป็นค่าจริง
-    //
-    // วิธีนี้ป้องกันปัญหาค่า sectionId จาก form
-    // ไม่ตรงกับข้อมูล Officer ในฐานข้อมูล
-    // ทั้งที่ผู้ครอบครองเป็นคนที่เลือกจาก dropdown
+    // ไม่ใช้ sectionId จาก form ไปบังคับว่า
+    // officer ต้องตรงกับ sectionId ที่ส่งมา
+    // เพราะ dropdown แสดง officer จาก section
+    // อยู่แล้ว
     // =====================================================
+
+    let sectionId: number | null =
+      selectedSectionId;
 
     if (officerId !== null) {
       const officer =
@@ -338,19 +329,17 @@ export default async function NewAssetPage({
       }
 
       // ===================================================
-      // หน่วยงานมี section
+      // ถ้าหน่วยงานมี section
+      // ให้ใช้ sectionId ของผู้ครอบครองจากฐานข้อมูล
       // ===================================================
 
       if (hasTargetSections) {
-        // ผู้ครอบครองต้องมี section
         if (officer.sectionId === null) {
           throw new Error(
             "ผู้ครอบครองยังไม่ได้ระบุกลุ่มงาน"
           );
         }
 
-        // ตรวจว่า section ของผู้ครอบครอง
-        // เป็น section ของหน่วยงานจริง
         const officerSection =
           targetDepartment.sections.some(
             (section) =>
@@ -364,40 +353,15 @@ export default async function NewAssetPage({
           );
         }
 
-        /*
-         * ใช้ sectionId ของผู้ครอบครอง
-         * เป็นค่าจริงจากฐานข้อมูล
-         *
-         * เพราะผู้ครอบครองถูกเลือกจากรายการ
-         * ที่กรองตามกลุ่มงานอยู่แล้ว
-         */
+        // ใช้ค่าจริงจาก Officer
         sectionId = officer.sectionId;
       } else {
-        // =================================================
-        // หน่วยงานไม่มี section
-        // =================================================
-
         sectionId = null;
       }
-    } else {
-      // ===================================================
-      // ไม่ได้เลือกผู้ครอบครอง
-      // ===================================================
-
-      /*
-       * ถ้าไม่มีผู้ครอบครอง
-       * สามารถเก็บ section ที่เลือกไว้ได้
-       */
-      sectionId =
-        hasTargetSections
-          ? sectionId
-          : null;
     }
 
     // =====================================================
     // ตรวจสอบเลขครุภัณฑ์กรม
-    //
-    // เลขต้องไม่ซ้ำ
     // =====================================================
 
     if (governmentAssetNo) {
@@ -421,8 +385,6 @@ export default async function NewAssetPage({
 
     // =====================================================
     // ตรวจสอบเลขครุภัณฑ์ประจำสำนัก
-    //
-    // เลขต้องไม่ซ้ำ
     // =====================================================
 
     if (officeAssetNo) {
@@ -956,8 +918,6 @@ export default async function NewAssetPage({
               officers={department.officers}
               departmentName={department.name}
               departmentId={department.id}
-              initialSectionId={null}
-              initialOfficerId={null}
             />
           </div>
 
