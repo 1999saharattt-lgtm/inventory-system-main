@@ -294,14 +294,17 @@ export default async function NewAssetPage({
     // =====================================================
     // ตรวจสอบผู้ครอบครอง
     //
-    // สำคัญ:
-    // เมื่อเลือกผู้ครอบครองจาก dropdown แล้ว
-    // ให้ยึด Officer จากฐานข้อมูลเป็นหลัก
+    // Officer สามารถสังกัดหน่วยงานได้ 2 รูปแบบ
     //
-    // ไม่ใช้ sectionId จาก form ไปบังคับว่า
-    // officer ต้องตรงกับ sectionId ที่ส่งมา
-    // เพราะ dropdown แสดง officer จาก section
-    // อยู่แล้ว
+    // 1. Officer.departmentId ตรงกับหน่วยงาน
+    // 2. Officer.departmentId เป็น null
+    //    แต่ Officer มี section ที่อยู่ในหน่วยงานนั้น
+    //
+    // รองรับโครงสร้าง Prisma:
+    //
+    // Officer.departmentId Int?
+    // Officer.sectionId    Int?
+    // Section.departmentId Int
     // =====================================================
 
     let sectionId: number | null =
@@ -312,13 +315,29 @@ export default async function NewAssetPage({
         await prisma.officer.findFirst({
           where: {
             id: officerId,
-            departmentId:
-              departmentIdNumber,
+            OR: [
+              {
+                departmentId:
+                  departmentIdNumber,
+              },
+              {
+                section: {
+                  departmentId:
+                    departmentIdNumber,
+                },
+              },
+            ],
           },
           select: {
             id: true,
             departmentId: true,
             sectionId: true,
+            section: {
+              select: {
+                id: true,
+                departmentId: true,
+              },
+            },
           },
         });
 
@@ -330,16 +349,17 @@ export default async function NewAssetPage({
 
       // ===================================================
       // ถ้าหน่วยงานมี section
-      // ให้ใช้ sectionId ของผู้ครอบครองจากฐานข้อมูล
       // ===================================================
 
       if (hasTargetSections) {
+        // ผู้ครอบครองต้องมี section
         if (officer.sectionId === null) {
           throw new Error(
             "ผู้ครอบครองยังไม่ได้ระบุกลุ่มงาน"
           );
         }
 
+        // ตรวจ section ของผู้ครอบครองจากฐานข้อมูล
         const officerSection =
           targetDepartment.sections.some(
             (section) =>
@@ -353,9 +373,13 @@ export default async function NewAssetPage({
           );
         }
 
-        // ใช้ค่าจริงจาก Officer
+        // ใช้ sectionId จริงจาก Officer
         sectionId = officer.sectionId;
       } else {
+        // =================================================
+        // หน่วยงานไม่มี section
+        // =================================================
+
         sectionId = null;
       }
     }
