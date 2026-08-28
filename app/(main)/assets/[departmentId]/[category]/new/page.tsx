@@ -511,7 +511,7 @@ export default async function NewAssetPage({
       });
 
     redirect(
-      `/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`
+      `/assets/${departmentIdNumber}/${assetCategory}`
     );
   }
 
