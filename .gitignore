@@ -51,3 +51,4 @@ prisma/dev.db
 dev.db
 .vercel
 .env*
+tools/
