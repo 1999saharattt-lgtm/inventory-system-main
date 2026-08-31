@@ -3,199 +3,172 @@
 import { useState } from "react";
 
 type Department = {
-id: number;
-name: string;
+  id: number;
+  name: string;
 };
 
 type Asset = {
-id: number;
-name: string;
-category: string;
-brand: string | null;
-model: string | null;
-serialNumber: string | null;
-governmentAssetNo: string | null;
-officeAssetNo: string | null;
-departmentId: number;
-sectionId: number | null;
-officerId: number | null;
-status: string;
-purchaseDate: Date | string | null;
-price: number | null;
-location: string | null;
-remark: string | null;
+  id: number;
+  name: string;
+  category: string;
+  brand: string | null;
+  model: string | null;
+  serialNumber: string | null;
+  governmentAssetNo: string | null;
+  officeAssetNo: string | null;
+  departmentId: number;
+  sectionId: number | null;
+  officerId: number | null;
+  status: string;
+  purchaseDate: Date | string | null;
+  price: number | null;
+  location: string | null;
+  remark: string | null;
 
-section: {
-id: number;
-name: string;
-} | null;
+  section: {
+    id: number;
+    name: string;
+  } | null;
 
-officer: {
-id: number;
-firstName: string;
-lastName: string;
-position: string;
-} | null;
+  officer: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    position: string;
+  } | null;
 };
 
 type Officer = {
-id: number;
-firstName: string;
-lastName: string;
-position: string;
-type: string;
-departmentId: number | null;
-sectionId: number | null;
+  id: number;
+  firstName: string;
+  lastName: string;
+  position: string;
+  type: string;
+  departmentId: number | null;
+  sectionId: number | null;
 
-department: {
-id: number;
-name: string;
-} | null;
+  department: {
+    id: number;
+    name: string;
+  } | null;
 
-section: {
-id: number;
-name: string;
-} | null;
+  section: {
+    id: number;
+    name: string;
+  } | null;
 };
 
 type Props = {
-department: Department;
-assets: Asset[];
-officers: Officer[];
+  department: Department;
+  assets: Asset[];
+  officers: Officer[];
 };
 
 type InspectionRow = {
-assetId: number;
-countedQty: string;
-accuracy: string;
-status: string;
-remark: string;
+  assetId: number;
+  countedQty: string;
+  accuracy: string;
+  status: string;
+  remark: string;
 };
 
 const inspectionStatuses = [
-{
-value: "IN_USE",
-label: "ใช้งาน",
-},
-{
-value: "DAMAGED",
-label: "ชำรุด",
-},
-{
-value: "DETERIORATED",
-label: "เสื่อมสภาพ",
-},
-{
-value: "UNUSABLE",
-label: "ไม่สามารถใช้งาน",
-},
+  {
+    value: "IN_USE",
+    label: "ใช้งาน",
+  },
+  {
+    value: "DAMAGED",
+    label: "ชำรุด",
+  },
+  {
+    value: "DETERIORATED",
+    label: "เสื่อมสภาพ",
+  },
+  {
+    value: "UNUSABLE",
+    label: "ไม่สามารถใช้งาน",
+  },
 ];
 
 const accuracyOptions = [
-{
-value: "CORRECT",
-label: "ถูกต้อง",
-},
-{
-value: "INCORRECT",
-label: "ไม่ถูกต้อง",
-},
+  {
+    value: "CORRECT",
+    label: "ถูกต้อง",
+  },
+  {
+    value: "INCORRECT",
+    label: "ไม่ถูกต้อง",
+  },
 ];
 
 function getCurrentDate() {
-const now = new Date();
+  const now = new Date();
 
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, "0");
-const day = String(now.getDate()).padStart(2, "0");
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
-return `${year}-${month}-${day}`;
+  return `${year}-${month}-${day}`;
 }
 
 /**
-
-* แปลง YYYY-MM-DD เป็น Date แบบ local
-* เพื่อป้องกันปัญหา timezone
-  */
-  function parseDateOnly(value: string) {
+ * แปลง YYYY-MM-DD เป็น Date แบบ local
+ * เพื่อป้องกันปัญหา timezone
+ */
+function parseDateOnly(value: string) {
   const [year, month, day] = value.split("-").map(Number);
 
-return new Date(year, month - 1, day);
+  return new Date(year, month - 1, day);
 }
 
 /**
-
-* วันที่ย้อนหลัง 1 ปี
-  */
-  function getOneYearBefore(value: string) {
+ * วันที่ย้อนหลัง 1 ปี
+ */
+function getOneYearBefore(value: string) {
   if (!value) {
-  return "";
+    return "";
   }
 
-const date = parseDateOnly(value);
+  const date = parseDateOnly(value);
 
-date.setFullYear(date.getFullYear() - 1);
+  date.setFullYear(date.getFullYear() - 1);
 
-return formatDateInput(date);
+  return formatDateInput(date);
 }
 
 /**
-
-* วันที่ย้อนหลัง 1 วัน
-  */
-  function getOneDayBefore(value: string) {
+ * วันที่ย้อนหลัง 1 วัน
+ */
+function getOneDayBefore(value: string) {
   if (!value) {
-  return "";
+    return "";
   }
 
-const date = parseDateOnly(value);
+  const date = parseDateOnly(value);
 
-date.setDate(date.getDate() - 1);
+  date.setDate(date.getDate() - 1);
 
-return formatDateInput(date);
+  return formatDateInput(date);
 }
 
 /**
-
-* แปลง Date เป็น YYYY-MM-DD
-  */
-  function formatDateInput(date: Date) {
+ * แปลง Date เป็น YYYY-MM-DD
+ */
+function formatDateInput(date: Date) {
   const year = date.getFullYear();
 
-const month = String(date.getMonth() + 1).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-const day = String(date.getDate()).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-return `${year}-${month}-${day}`;
+  return `${year}-${month}-${day}`;
 }
 
 /**
-
-* แสดงวันที่ด้านบนเป็น วัน/เดือน/ปี
-*
-* เช่น
-* 2026-08-31
-* -> 31/08/2569
-  */
-  function formatThaiDateSlash(value: string) {
-  if (!value) {
-  return "";
-  }
-
-const date = parseDateOnly(value);
-
-const day = String(date.getDate()).padStart(2, "0");
-const month = String(date.getMonth() + 1).padStart(2, "0");
-const year = date.getFullYear() + 543;
-
-return `${day}/${month}/${year}`;
-}
-
-/**
-
-* ชื่อเดือนภาษาไทยแบบย่อ
-  */
-  const thaiShortMonths = [
+ * ชื่อเดือนภาษาไทยแบบย่อ
+ */
+const thaiShortMonths = [
   "ม.ค.",
   "ก.พ.",
   "มี.ค.",
@@ -208,1534 +181,251 @@ return `${day}/${month}/${year}`;
   "ต.ค.",
   "พ.ย.",
   "ธ.ค.",
-  ];
+];
 
 /**
-
-* แสดงวันที่สำหรับหัวตาราง
-*
-* เช่น
-* 2025-10-01
-* -> 1 ต.ค. 2568
-  */
-  function formatThaiShortDate(value: string) {
+ * แสดงวันที่สำหรับหัวตาราง
+ *
+ * เช่น
+ * 2025-10-01
+ * -> 1 ต.ค. 2568
+ */
+function formatThaiShortDate(value: string) {
   if (!value) {
-  return "........";
+    return "........";
   }
 
-const date = parseDateOnly(value);
+  const date = parseDateOnly(value);
 
-const day = date.getDate();
+  const day = date.getDate();
 
-const month = thaiShortMonths[date.getMonth()];
+  const month = thaiShortMonths[date.getMonth()];
 
-const year = date.getFullYear() + 543;
+  const year = date.getFullYear() + 543;
 
-return `${day} ${month} ${year}`;
+  return `${day} ${month} ${year}`;
 }
 
 /**
-
-* หน่วยของครุภัณฑ์
-  */
-  function getCategoryUnit(category: string) {
+ * หน่วยของครุภัณฑ์
+ */
+function getCategoryUnit(category: string) {
   const categoryUnit: Record<string, string> = {
-  COMPUTER: "เครื่อง",
-  DESKTOP: "เครื่อง",
-  LAPTOP: "เครื่อง",
-  PRINTER: "เครื่อง",
-  TELEPHONE: "เครื่อง",
-  AIR_CONDITIONER: "เครื่อง",
-  FAN: "เครื่อง",
-  CHAIR: "ตัว",
-  DESK: "ตัว",
-  CABINET: "ตู้",
-  TABLE: "ตัว",
-  OTHER: "รายการ",
+    COMPUTER: "เครื่อง",
+    DESKTOP: "เครื่อง",
+    LAPTOP: "เครื่อง",
+    PRINTER: "เครื่อง",
+    TELEPHONE: "เครื่อง",
+    AIR_CONDITIONER: "เครื่อง",
+    FAN: "เครื่อง",
+    CHAIR: "ตัว",
+    DESK: "ตัว",
+    CABINET: "ตู้",
+    TABLE: "ตัว",
+    OTHER: "รายการ",
   };
 
-return categoryUnit[category] || "รายการ";
+  return categoryUnit[category] || "รายการ";
 }
 
 function createInitialRows(assets: Asset[]): InspectionRow[] {
-return assets.map((asset) => ({
-assetId: asset.id,
-countedQty: "1",
-accuracy: "",
-status: "",
-remark: "",
-}));
+  return assets.map((asset) => ({
+    assetId: asset.id,
+    countedQty: "1",
+    accuracy: "",
+    status: "",
+    remark: "",
+  }));
 }
 
 export default function InspectionForm({
-department,
-assets,
-officers,
+  department,
+  assets,
+  officers,
 }: Props) {
-// =====================================================
-// วันที่ตรวจสอบ
-// =====================================================
+  // =====================================================
+  // วันที่ตรวจสอบ
+  // =====================================================
 
-const [inspectionStartDate, setInspectionStartDate] =
-useState(getCurrentDate());
+  const [inspectionStartDate, setInspectionStartDate] =
+    useState(getCurrentDate());
 
-const [inspectionEndDate, setInspectionEndDate] =
-useState(getCurrentDate());
+  const [inspectionEndDate, setInspectionEndDate] =
+    useState(getCurrentDate());
 
-// =====================================================
-// วันที่ที่ใช้แสดงในหัวตาราง
-//
-// 1. ย้อนหลัง 1 ปีจากวันเริ่มตรวจสอบ
-// 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
-// =====================================================
+  // =====================================================
+  // วันที่ที่ใช้แสดงในหัวตาราง
+  //
+  // 1. ย้อนหลัง 1 ปีจากวันเริ่มตรวจสอบ
+  // 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
+  // =====================================================
 
-const accountStartDate = getOneYearBefore(inspectionStartDate);
+  const accountStartDate = getOneYearBefore(inspectionStartDate);
 
-const accountEndDate = getOneDayBefore(inspectionEndDate);
+  const accountEndDate = getOneDayBefore(inspectionEndDate);
 
-// =====================================================
-// รายการตรวจสอบ
-// =====================================================
+  // =====================================================
+  // รายการตรวจสอบ
+  // =====================================================
 
-const [rows, setRows] = useState<InspectionRow[]>(
-() => createInitialRows(assets)
-);
+  const [rows, setRows] = useState<InspectionRow[]>(
+    () => createInitialRows(assets)
+  );
 
-// =====================================================
-// ผู้ตรวจสอบ 5 คน
-// =====================================================
+  // =====================================================
+  // ผู้ตรวจสอบ 5 คน
+  // =====================================================
 
-const [inspectorIds, setInspectorIds] = useState<string[]>(
-Array.from(
-{
-length: 5,
-},
-() => ""
-)
-);
+  const [inspectorIds, setInspectorIds] = useState<string[]>(
+    Array.from(
+      {
+        length: 5,
+      },
+      () => ""
+    )
+  );
 
-// =====================================================
-// อัปเดตข้อมูลรายการตรวจ
-// =====================================================
+  // =====================================================
+  // อัปเดตข้อมูลรายการตรวจ
+  // =====================================================
 
-function updateRow(
-index: number,
-key: keyof InspectionRow,
-value: string
-) {
-const copy = [...rows];
+  function updateRow(
+    index: number,
+    key: keyof InspectionRow,
+    value: string
+  ) {
+    const copy = [...rows];
 
-```
-copy[index] = {
-  ...copy[index],
-  [key]: value,
-};
+    copy[index] = {
+      ...copy[index],
+      [key]: value,
+    };
 
-setRows(copy);
-```
+    setRows(copy);
+  }
 
-}
+  // =====================================================
+  // เปลี่ยนผู้ตรวจสอบ
+  // =====================================================
 
-// =====================================================
-// เปลี่ยนผู้ตรวจสอบ
-// =====================================================
+  function updateInspector(index: number, value: string) {
+    const copy = [...inspectorIds];
 
-function updateInspector(index: number, value: string) {
-const copy = [...inspectorIds];
+    copy[index] = value;
 
-```
-copy[index] = value;
+    setInspectorIds(copy);
+  }
 
-setInspectorIds(copy);
-```
+  // =====================================================
+  // หาข้อมูล Officer จาก ID
+  // =====================================================
 
-}
+  function getOfficer(officerId: string) {
+    return officers.find(
+      (officer) => String(officer.id) === officerId
+    );
+  }
 
-// =====================================================
-// หาข้อมูล Officer จาก ID
-// =====================================================
+  // =====================================================
+  // ป้องกันเลือก Officer คนเดียวกันซ้ำ
+  // =====================================================
 
-function getOfficer(officerId: string) {
-return officers.find(
-(officer) => String(officer.id) === officerId
-);
-}
+  function isOfficerSelected(
+    officerId: number,
+    currentIndex: number
+  ) {
+    return inspectorIds.some(
+      (selectedId, index) =>
+        index !== currentIndex &&
+        selectedId === String(officerId)
+    );
+  }
 
-// =====================================================
-// ป้องกันเลือก Officer คนเดียวกันซ้ำ
-// =====================================================
-
-function isOfficerSelected(
-officerId: number,
-currentIndex: number
-) {
-return inspectorIds.some(
-(selectedId, index) =>
-index !== currentIndex &&
-selectedId === String(officerId)
-);
-}
-
-return ( <div
-   className="
-     mx-auto
-     w-full
-     max-w-[1800px]
-     space-y-6
-   "
- >
-{/* =====================================================
-ข้อมูลการตรวจสอบ
-===================================================== */}
-
-```
-  <div
-    className="
-      rounded-2xl
-      border
-      border-slate-300
-      bg-white
-      p-4
-      shadow-lg
-      sm:p-6
-    "
-  >
+  return (
     <div
       className="
-        mb-5
-        border-b
-        border-slate-300
-        pb-4
-      "
-    >
-      <h2
-        className="
-          text-xl
-          font-extrabold
-          text-slate-900
-          sm:text-2xl
-        "
-      >
-        ข้อมูลการตรวจสอบ
-      </h2>
-
-      <p
-        className="
-          mt-1
-          text-sm
-          font-semibold
-          text-slate-600
-        "
-      >
-        {department.name}
-      </p>
-    </div>
-
-    <div
-      className="
-        grid
-        gap-4
-        md:grid-cols-2
-      "
-    >
-      {/* วันที่เริ่มตรวจสอบ */}
-
-      <div>
-        <label
-          className="
-            mb-2
-            block
-            text-base
-            font-extrabold
-            text-slate-900
-          "
-        >
-          เริ่มดำเนินการตรวจสอบวันที่
-        </label>
-
-        <input
-          type="date"
-          value={inspectionStartDate}
-          onChange={(e) =>
-            setInspectionStartDate(e.target.value)
-          }
-          required
-          className="
-            w-full
-            rounded-lg
-            border
-            border-slate-300
-            bg-white
-            p-2.5
-            font-semibold
-            text-slate-900
-            outline-none
-            focus:border-cyan-500
-            focus:ring-2
-            focus:ring-cyan-100
-          "
-        />
-
-        <div
-          className="
-            mt-2
-            text-sm
-            font-bold
-            text-slate-600
-          "
-        >
-          วันที่เลือก:{" "}
-          <span className="text-slate-900">
-            {formatThaiDateSlash(inspectionStartDate)}
-          </span>
-        </div>
-      </div>
-
-      {/* วันที่ตรวจสอบแล้วเสร็จ */}
-
-      <div>
-        <label
-          className="
-            mb-2
-            block
-            text-base
-            font-extrabold
-            text-slate-900
-          "
-        >
-          ตรวจสอบแล้วเสร็จวันที่
-        </label>
-
-        <input
-          type="date"
-          value={inspectionEndDate}
-          onChange={(e) =>
-            setInspectionEndDate(e.target.value)
-          }
-          required
-          className="
-            w-full
-            rounded-lg
-            border
-            border-slate-300
-            bg-white
-            p-2.5
-            font-semibold
-            text-slate-900
-            outline-none
-            focus:border-cyan-500
-            focus:ring-2
-            focus:ring-cyan-100
-          "
-        />
-
-        <div
-          className="
-            mt-2
-            text-sm
-            font-bold
-            text-slate-600
-          "
-        >
-          วันที่เลือก:{" "}
-          <span className="text-slate-900">
-            {formatThaiDateSlash(inspectionEndDate)}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {/* =====================================================
-      ตารางตรวจสอบครุภัณฑ์
-  ===================================================== */}
-
-  <div
-    className="
-      w-full
-      rounded-2xl
-      border
-      border-slate-300
-      bg-white
-      p-3
-      shadow-lg
-      sm:p-4
-      lg:p-6
-    "
-  >
-    <div
-      className="
-        mb-5
-        flex
-        flex-col
-        gap-2
-        border-b
-        border-slate-300
-        pb-4
-        sm:flex-row
-        sm:items-center
-        sm:justify-between
-      "
-    >
-      <div>
-        <h2
-          className="
-            text-xl
-            font-extrabold
-            text-slate-900
-            sm:text-2xl
-          "
-        >
-          รายการครุภัณฑ์ที่ตรวจสอบ
-        </h2>
-
-        <p
-          className="
-            mt-1
-            text-sm
-            font-semibold
-            text-slate-600
-          "
-        >
-          จำนวน {assets.length} รายการ
-        </p>
-      </div>
-    </div>
-
-    {/* =====================================================
-        ตาราง
-        - ขยายความกว้างได้มากขึ้น
-        - ข้อความข้อมูลไม่ตัดบรรทัดโดยไม่จำเป็น
-        - รหัสครุภัณฑ์และผู้รับผิดชอบบรรทัดเดียว
-        - หัวตารางแบ่งบรรทัดเฉพาะจุดที่กำหนด
-    ===================================================== */}
-
-    <div
-      className="
+        mx-auto
         w-full
-        overflow-x-auto
-        overflow-y-hidden
-        rounded-xl
-        bg-white
+        max-w-[1800px]
+        space-y-6
       "
     >
-      <table
+      {/* =====================================================
+          ข้อมูลการตรวจสอบ
+      ===================================================== */}
+
+      <div
         className="
-          w-max
-          min-w-[2100px]
-          border-collapse
-          text-xs
-          sm:text-sm
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-lg
+          sm:p-6
         "
       >
-        <colgroup>
-          <col className="w-[70px]" />
-          <col className="w-[150px]" />
-          <col className="w-[180px]" />
-          <col className="w-[220px]" />
-          <col className="w-[280px]" />
-          <col className="w-[90px]" />
-          <col className="w-[150px]" />
-          <col className="w-[150px]" />
-          <col className="w-[150px]" />
-          <col className="w-[160px]" />
-          <col className="w-[100px]" />
-          <col className="w-[100px]" />
-          <col className="w-[100px]" />
-          <col className="w-[100px]" />
-          <col className="w-[100px]" />
-          <col className="w-[120px]" />
-          <col className="w-[220px]" />
-        </colgroup>
-
-        <thead>
-          {/* =================================================
-              แถวที่ 1
-          ================================================= */}
-
-          <tr>
-            {/* ลำดับ */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ลำดับ
-            </th>
-
-            {/* รหัส GFMIS */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              รหัส GFMIS
-            </th>
-
-            {/* รหัสครุภัณฑ์ */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              รหัสครุภัณฑ์
-            </th>
-
-            {/* ผู้รับผิดชอบ */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ผู้รับผิดชอบ
-            </th>
-
-            {/* รายการ */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              รายการ
-            </th>
-
-            {/* หน่วย */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              หน่วย
-            </th>
-
-            {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 ปี */}
-
-            <th
-              colSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <div className="whitespace-nowrap">
-                ยอดคงเหลือตามบัญชี
-              </div>
-
-              <div className="mt-1 whitespace-nowrap">
-                ณ วันที่{" "}
-                <span className="font-bold">
-                  {formatThaiShortDate(accountStartDate)}
-                </span>
-              </div>
-            </th>
-
-            {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 วัน */}
-
-            <th
-              rowSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <div className="whitespace-nowrap">
-                ยอดคงเหลือตามบัญชี
-              </div>
-
-              <div className="mt-1 whitespace-nowrap">
-                ณ วันที่{" "}
-                <span className="font-bold">
-                  {formatThaiShortDate(accountEndDate)}
-                </span>
-              </div>
-            </th>
-
-            {/* จำนวนที่ตรวจนับได้ */}
-
-            <th
-              rowSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <div className="whitespace-nowrap">
-                จำนวนที่
-              </div>
-
-              <div className="whitespace-nowrap">
-                ตรวจนับได้
-              </div>
-            </th>
-
-            {/* ผลการตรวจนับ */}
-
-            <th
-              colSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <div className="whitespace-nowrap">
-                ผลการตรวจนับ
-              </div>
-
-              <div className="mt-1 whitespace-nowrap">
-                ถูกต้องตรงกับยอดคงเหลือ
-              </div>
-
-              <div className="whitespace-nowrap">
-                ตามบัญชี
-              </div>
-            </th>
-
-            {/* สภาพ */}
-
-            <th
-              colSpan={4}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <span className="whitespace-nowrap">
-                สภาพครุภัณฑ์ที่ตรวจนับ
-              </span>
-            </th>
-
-            {/* หมายเหตุ */}
-
-            <th
-              rowSpan={2}
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              หมายเหตุ
-            </th>
-          </tr>
-
-          {/* =================================================
-              แถวที่ 2
-          ================================================= */}
-
-          <tr>
-            {/* รับ */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              รับ
-            </th>
-
-            {/* จ่าย */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              จ่าย
-            </th>
-
-            {/* ถูกต้อง */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ถูกต้อง
-            </th>
-
-            {/* ไม่ถูกต้อง */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ไม่ถูกต้อง
-            </th>
-
-            {/* ใช้งาน */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ใช้งาน
-            </th>
-
-            {/* ชำรุด */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              ชำรุด
-            </th>
-
-            {/* เสื่อมสภาพ */}
-
-            <th
-              className="
-                whitespace-nowrap
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              เสื่อมสภาพ
-            </th>
-
-            {/* ไม่สามารถใช้งาน */}
-
-            <th
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-3
-                py-2
-                text-center
-                align-middle
-                font-extrabold
-                text-white
-              "
-            >
-              <div className="whitespace-nowrap">
-                ไม่สามารถ
-              </div>
-
-              <div className="whitespace-nowrap">
-                ใช้งาน
-              </div>
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {assets.map((asset, index) => {
-            const row = rows[index];
-
-            const officer = asset.officer;
-
-            return (
-              <tr
-                key={asset.id}
-                className="
-                  transition
-                  hover:bg-emerald-50
-                "
-              >
-                {/* ลำดับ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-bold
-                    text-slate-900
-                  "
-                >
-                  {index + 1}
-                </td>
-
-                {/* GFMIS */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-semibold
-                    text-slate-900
-                  "
-                >
-                  {asset.governmentAssetNo || "-"}
-                </td>
-
-                {/* รหัสครุภัณฑ์ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-semibold
-                    text-slate-900
-                  "
-                >
-                  {asset.officeAssetNo || "-"}
-                </td>
-
-                {/* ผู้รับผิดชอบ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-semibold
-                    text-slate-900
-                  "
-                >
-                  {officer
-                    ? `${officer.firstName} ${officer.lastName}`
-                    : "-"}
-                </td>
-
-                {/* รายการ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    font-semibold
-                    text-slate-900
-                  "
-                >
-                  <span>
-                    {asset.name}
-                  </span>
-
-                  {(asset.brand || asset.model) && (
-                    <span
-                      className="
-                        ml-2
-                        text-xs
-                        font-semibold
-                        text-slate-500
-                        sm:text-sm
-                      "
-                    >
-                      (
-                      {asset.brand || ""}
-
-                      {asset.brand && asset.model
-                        ? " / "
-                        : ""}
-
-                      {asset.model || ""}
-                      )
-                    </span>
-                  )}
-                </td>
-
-                {/* หน่วย */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-semibold
-                    text-slate-900
-                  "
-                >
-                  {getCategoryUnit(asset.category)}
-                </td>
-
-                {/* รับ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-bold
-                    text-slate-500
-                  "
-                >
-                  -
-                </td>
-
-                {/* จ่าย */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-bold
-                    text-slate-500
-                  "
-                >
-                  -
-                </td>
-
-                {/* ยอดคงเหลือ ณ วันสิ้นสุด */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                    font-bold
-                    text-slate-500
-                  "
-                >
-                  -
-                </td>
-
-                {/* จำนวนที่ตรวจนับได้ */}
-
-                <td
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-2
-                  "
-                >
-                  <input
-                    type="number"
-                    min="0"
-                    value={row.countedQty}
-                    onChange={(e) =>
-                      updateRow(
-                        index,
-                        "countedQty",
-                        e.target.value
-                      )
-                    }
-                    className="
-                      block
-                      w-full
-                      min-w-[80px]
-                      rounded-lg
-                      border
-                      border-slate-300
-                      bg-white
-                      p-1.5
-                      text-center
-                      text-xs
-                      font-bold
-                      text-slate-900
-                      outline-none
-                      focus:border-cyan-500
-                      focus:ring-2
-                      focus:ring-cyan-100
-                      sm:p-2
-                      sm:text-sm
-                    "
-                  />
-                </td>
-
-                {/* ถูกต้อง */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`accuracy-${asset.id}`}
-                    checked={row.accuracy === "CORRECT"}
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "accuracy",
-                        "CORRECT"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* ไม่ถูกต้อง */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`accuracy-${asset.id}`}
-                    checked={row.accuracy === "INCORRECT"}
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "accuracy",
-                        "INCORRECT"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* ใช้งาน */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`status-${asset.id}`}
-                    checked={row.status === "IN_USE"}
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "status",
-                        "IN_USE"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* ชำรุด */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`status-${asset.id}`}
-                    checked={row.status === "DAMAGED"}
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "status",
-                        "DAMAGED"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* เสื่อมสภาพ */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`status-${asset.id}`}
-                    checked={
-                      row.status === "DETERIORATED"
-                    }
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "status",
-                        "DETERIORATED"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* ไม่สามารถใช้งาน */}
-
-                <td
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    px-3
-                    py-2
-                    text-center
-                  "
-                >
-                  <input
-                    type="radio"
-                    name={`status-${asset.id}`}
-                    checked={row.status === "UNUSABLE"}
-                    onChange={() =>
-                      updateRow(
-                        index,
-                        "status",
-                        "UNUSABLE"
-                      )
-                    }
-                    className="
-                      h-4
-                      w-4
-                      cursor-pointer
-                      sm:h-5
-                      sm:w-5
-                    "
-                  />
-                </td>
-
-                {/* หมายเหตุ */}
-
-                <td
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-2
-                  "
-                >
-                  <input
-                    type="text"
-                    value={row.remark}
-                    onChange={(e) =>
-                      updateRow(
-                        index,
-                        "remark",
-                        e.target.value
-                      )
-                    }
-                    placeholder="หมายเหตุ"
-                    className="
-                      block
-                      w-full
-                      min-w-[180px]
-                      rounded-lg
-                      border
-                      border-slate-300
-                      bg-white
-                      p-1.5
-                      text-xs
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      placeholder:text-slate-400
-                      focus:border-cyan-500
-                      focus:ring-2
-                      focus:ring-cyan-100
-                      sm:p-2
-                      sm:text-sm
-                    "
-                  />
-                </td>
-              </tr>
-            );
-          })}
-
-          {assets.length === 0 && (
-            <tr>
-              <td
-                colSpan={17}
-                className="
-                  border
-                  border-black
-                  px-4
-                  py-10
-                  text-center
-                  font-bold
-                  text-slate-500
-                "
-              >
-                ไม่พบรายการครุภัณฑ์
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  {/* =====================================================
-      ผู้ตรวจสอบ 5 คน
-  ===================================================== */}
-
-  <div
-    className="
-      rounded-2xl
-      border
-      border-slate-300
-      bg-white
-      p-4
-      shadow-lg
-      sm:p-6
-    "
-  >
-    <div
-      className="
-        mb-5
-        border-b
-        border-slate-300
-        pb-4
-      "
-    >
-      <h2
-        className="
-          text-xl
-          font-extrabold
-          text-slate-900
-          sm:text-2xl
-        "
-      >
-        ผู้ตรวจสอบ
-      </h2>
-
-      <p
-        className="
-          mt-1
-          text-sm
-          font-semibold
-          text-slate-600
-        "
-      >
-        เลือกรายชื่อจาก Officer ของทุกกลุ่มงาน
-      </p>
-    </div>
-
-    <div
-      className="
-        grid
-        gap-4
-        lg:grid-cols-2
-      "
-    >
-      {inspectorIds.map((inspectorId, index) => {
-        const selectedOfficer = getOfficer(inspectorId);
-
-        return (
-          <div
-            key={index}
+        <div
+          className="
+            mb-5
+            border-b
+            border-slate-300
+            pb-4
+          "
+        >
+          <h2
             className="
-              rounded-xl
-              border
-              border-slate-300
-              bg-slate-50
-              p-4
+              text-xl
+              font-extrabold
+              text-slate-900
+              sm:text-2xl
             "
           >
-            <div
+            ข้อมูลการตรวจสอบ
+          </h2>
+
+          <p
+            className="
+              mt-1
+              text-sm
+              font-semibold
+              text-slate-600
+            "
+          >
+            {department.name}
+          </p>
+        </div>
+
+        <div
+          className="
+            grid
+            gap-4
+            md:grid-cols-2
+          "
+        >
+          {/* วันที่เริ่มตรวจสอบ */}
+
+          <div>
+            <label
               className="
-                mb-3
+                mb-2
+                block
                 text-base
                 font-extrabold
                 text-slate-900
               "
             >
-              ผู้ตรวจสอบคนที่ {index + 1}
-            </div>
-
-            {/* เลือกชื่อ */}
-
-            <label
-              className="
-                mb-2
-                block
-                text-sm
-                font-bold
-                text-slate-700
-              "
-            >
-              ลงชื่อ
+              เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <select
-              value={inspectorId}
+            <input
+              type="date"
+              lang="en-GB"
+              value={inspectionStartDate}
               onChange={(e) =>
-                updateInspector(
-                  index,
-                  e.target.value
-                )
+                setInspectionStartDate(e.target.value)
               }
+              required
               className="
                 w-full
                 rounded-lg
@@ -1750,136 +440,1501 @@ return ( <div
                 focus:ring-2
                 focus:ring-cyan-100
               "
+            />
+          </div>
+
+          {/* วันที่ตรวจสอบแล้วเสร็จ */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-base
+                font-extrabold
+                text-slate-900
+              "
             >
-              <option value="">
-                -- เลือกผู้ตรวจสอบ --
-              </option>
+              ตรวจสอบแล้วเสร็จวันที่
+            </label>
 
-              {officers.map((officer) => (
-                <option
-                  key={officer.id}
-                  value={officer.id}
-                  disabled={isOfficerSelected(
-                    officer.id,
-                    index
-                  )}
+            <input
+              type="date"
+              lang="en-GB"
+              value={inspectionEndDate}
+              onChange={(e) =>
+                setInspectionEndDate(e.target.value)
+              }
+              required
+              className="
+                w-full
+                rounded-lg
+                border
+                border-slate-300
+                bg-white
+                p-2.5
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-cyan-500
+                focus:ring-2
+                focus:ring-cyan-100
+              "
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          ตารางตรวจสอบครุภัณฑ์
+      ===================================================== */}
+
+      <div
+        className="
+          w-full
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-3
+          shadow-lg
+          sm:p-4
+          lg:p-6
+        "
+      >
+        <div
+          className="
+            mb-5
+            flex
+            flex-col
+            gap-2
+            border-b
+            border-slate-300
+            pb-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <div>
+            <h2
+              className="
+                text-xl
+                font-extrabold
+                text-slate-900
+                sm:text-2xl
+              "
+            >
+              รายการครุภัณฑ์ที่ตรวจสอบ
+            </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                text-slate-600
+              "
+            >
+              จำนวน {assets.length} รายการ
+            </p>
+          </div>
+        </div>
+
+        {/* =====================================================
+            ตาราง
+
+            สำคัญ:
+            - ใช้ table-fixed ไม่ได้ เพราะจะบีบข้อความ
+            - ใช้ w-max เพื่อให้ตารางขยายตาม min-width ของแต่ละช่อง
+            - แต่ละคอลัมน์มี min-width ของตัวเอง
+            - ไม่ตัดคำกลางคำ
+            - หน้าจอแคบเลื่อนซ้าย/ขวาได้
+        ===================================================== */}
+
+        <div
+          className="
+            w-full
+            overflow-x-auto
+            overflow-y-hidden
+            rounded-xl
+            bg-white
+          "
+        >
+          <table
+            className="
+              w-max
+              min-w-full
+              border-collapse
+              text-xs
+              sm:text-sm
+            "
+          >
+            <colgroup>
+              {/* ลำดับ */}
+              <col className="min-w-[70px]" />
+
+              {/* รหัส GFMIS */}
+              <col className="min-w-[150px]" />
+
+              {/* รหัสครุภัณฑ์ */}
+              <col className="min-w-[180px]" />
+
+              {/* ผู้รับผิดชอบ */}
+              <col className="min-w-[190px]" />
+
+              {/* รายการ */}
+              <col className="min-w-[230px]" />
+
+              {/* หน่วย */}
+              <col className="min-w-[85px]" />
+
+              {/* รับ */}
+              <col className="min-w-[85px]" />
+
+              {/* จ่าย */}
+              <col className="min-w-[85px]" />
+
+              {/* ยอดคงเหลือ */}
+              <col className="min-w-[180px]" />
+
+              {/* จำนวนที่ตรวจนับได้ */}
+              <col className="min-w-[145px]" />
+
+              {/* ถูกต้อง */}
+              <col className="min-w-[85px]" />
+
+              {/* ไม่ถูกต้อง */}
+              <col className="min-w-[90px]" />
+
+              {/* ใช้งาน */}
+              <col className="min-w-[85px]" />
+
+              {/* ชำรุด */}
+              <col className="min-w-[85px]" />
+
+              {/* เสื่อมสภาพ */}
+              <col className="min-w-[100px]" />
+
+              {/* ไม่สามารถใช้งาน */}
+              <col className="min-w-[125px]" />
+
+              {/* หมายเหตุ */}
+              <col className="min-w-[170px]" />
+            </colgroup>
+
+            <thead>
+              {/* =================================================
+                  แถวที่ 1
+              ================================================= */}
+
+              <tr>
+                {/* ลำดับ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[70px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
                 >
-                  {officer.firstName}{" "}
-                  {officer.lastName}
-                  {officer.department
-                    ? ` — ${officer.department.name}`
-                    : ""}
-                  {officer.section
-                    ? ` / ${officer.section.name}`
-                    : ""}
-                </option>
-              ))}
-            </select>
+                  ลำดับ
+                </th>
 
-            {/* ตำแหน่ง */}
+                {/* รหัส GFMIS */}
 
-            <div className="mt-3">
-              <label
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[150px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  รหัส GFMIS
+                </th>
+
+                {/* รหัสครุภัณฑ์ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[180px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  รหัสครุภัณฑ์
+                </th>
+
+                {/* ผู้รับผิดชอบ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[190px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  ผู้รับผิดชอบ
+                </th>
+
+                {/* รายการ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[230px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  รายการ
+                </th>
+
+                {/* หน่วย */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  หน่วย
+                </th>
+
+                {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 ปี */}
+
+                <th
+                  colSpan={2}
+                  className="
+                    min-w-[170px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
+
+                  <div className="mt-1 whitespace-nowrap">
+                    ณ วันที่{" "}
+                    <span className="font-bold">
+                      {formatThaiShortDate(accountStartDate)}
+                    </span>
+                  </div>
+                </th>
+
+                {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 วัน */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[180px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
+
+                  <div className="mt-1 whitespace-nowrap">
+                    ณ วันที่{" "}
+                    <span className="font-bold">
+                      {formatThaiShortDate(accountEndDate)}
+                    </span>
+                  </div>
+                </th>
+
+                {/* จำนวนที่ตรวจนับได้ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[145px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <div className="whitespace-nowrap">
+                    จำนวนที่
+                  </div>
+
+                  <div className="mt-1 whitespace-nowrap">
+                    ตรวจนับได้
+                  </div>
+                </th>
+
+                {/* ผลการตรวจนับ */}
+
+                <th
+                  colSpan={2}
+                  className="
+                    min-w-[175px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <div className="whitespace-nowrap">
+                    ผลการตรวจนับ
+                  </div>
+
+                  <div className="mt-1 whitespace-nowrap">
+                    ถูกต้องตรงกับ
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
+                </th>
+
+                {/* สภาพ */}
+
+                <th
+                  colSpan={4}
+                  className="
+                    min-w-[395px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <span className="whitespace-nowrap">
+                    สภาพครุภัณฑ์ที่ตรวจนับ
+                  </span>
+                </th>
+
+                {/* หมายเหตุ */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    min-w-[170px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  หมายเหตุ
+                </th>
+              </tr>
+
+              {/* =================================================
+                  แถวที่ 2
+              ================================================= */}
+
+              <tr>
+                {/* รับ */}
+
+                <th
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  รับ
+                </th>
+
+                {/* จ่าย */}
+
+                <th
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  จ่าย
+                </th>
+
+                {/* ถูกต้อง */}
+
+                <th
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  ถูกต้อง
+                </th>
+
+                {/* ไม่ถูกต้อง */}
+
+                <th
+                  className="
+                    min-w-[90px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  ไม่ถูกต้อง
+                </th>
+
+                {/* ใช้งาน */}
+
+                <th
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  ใช้งาน
+                </th>
+
+                {/* ชำรุด */}
+
+                <th
+                  className="
+                    min-w-[85px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  ชำรุด
+                </th>
+
+                {/* เสื่อมสภาพ */}
+
+                <th
+                  className="
+                    min-w-[100px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  เสื่อมสภาพ
+                </th>
+
+                {/* ไม่สามารถใช้งาน */}
+
+                <th
+                  className="
+                    min-w-[125px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    leading-tight
+                    text-white
+                  "
+                >
+                  <div className="whitespace-nowrap">
+                    ไม่สามารถ
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ใช้งาน
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {assets.map((asset, index) => {
+                const row = rows[index];
+
+                const officer = asset.officer;
+
+                return (
+                  <tr
+                    key={asset.id}
+                    className="
+                      transition
+                      hover:bg-emerald-50
+                    "
+                  >
+                    {/* ลำดับ */}
+
+                    <td
+                      className="
+                        min-w-[70px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-900
+                      "
+                    >
+                      {index + 1}
+                    </td>
+
+                    {/* GFMIS */}
+
+                    <td
+                      className="
+                        min-w-[150px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      {asset.governmentAssetNo || "-"}
+                    </td>
+
+                    {/* รหัสครุภัณฑ์ */}
+
+                    <td
+                      className="
+                        min-w-[180px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      {asset.officeAssetNo || "-"}
+                    </td>
+
+                    {/* ผู้รับผิดชอบ */}
+
+                    <td
+                      className="
+                        min-w-[190px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      {officer
+                        ? `${officer.firstName} ${officer.lastName}`
+                        : "-"}
+                    </td>
+
+                    {/* รายการ */}
+
+                    <td
+                      className="
+                        min-w-[230px]
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <div
+                        className="
+                          whitespace-nowrap
+                          leading-tight
+                        "
+                      >
+                        {asset.name}
+                      </div>
+
+                      {(asset.brand || asset.model) && (
+                        <div
+                          className="
+                            mt-1
+                            whitespace-nowrap
+                            text-[10px]
+                            leading-tight
+                            text-slate-500
+                            sm:text-xs
+                          "
+                        >
+                          {asset.brand || ""}
+
+                          {asset.brand && asset.model
+                            ? " / "
+                            : ""}
+
+                          {asset.model || ""}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* หน่วย */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      {getCategoryUnit(asset.category)}
+                    </td>
+
+                    {/* รับ */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* จ่าย */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* ยอดคงเหลือ ณ วันสิ้นสุด */}
+
+                    <td
+                      className="
+                        min-w-[180px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* จำนวนที่ตรวจนับได้ */}
+
+                    <td
+                      className="
+                        min-w-[145px]
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="number"
+                        min="0"
+                        value={row.countedQty}
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "countedQty",
+                            e.target.value
+                          )
+                        }
+                        className="
+                          block
+                          w-full
+                          min-w-[90px]
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-white
+                          p-1.5
+                          text-center
+                          text-xs
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:p-2
+                          sm:text-sm
+                        "
+                      />
+                    </td>
+
+                    {/* ถูกต้อง */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        checked={row.accuracy === "CORRECT"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "accuracy",
+                            "CORRECT"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ไม่ถูกต้อง */}
+
+                    <td
+                      className="
+                        min-w-[90px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        checked={
+                          row.accuracy === "INCORRECT"
+                        }
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "accuracy",
+                            "INCORRECT"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ใช้งาน */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={row.status === "IN_USE"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "IN_USE"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ชำรุด */}
+
+                    <td
+                      className="
+                        min-w-[85px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={row.status === "DAMAGED"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "DAMAGED"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* เสื่อมสภาพ */}
+
+                    <td
+                      className="
+                        min-w-[100px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={
+                          row.status === "DETERIORATED"
+                        }
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "DETERIORATED"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ไม่สามารถใช้งาน */}
+
+                    <td
+                      className="
+                        min-w-[125px]
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={
+                          row.status === "UNUSABLE"
+                        }
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "UNUSABLE"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* หมายเหตุ */}
+
+                    <td
+                      className="
+                        min-w-[170px]
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        align-middle
+                      "
+                    >
+                      <input
+                        type="text"
+                        value={row.remark}
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "remark",
+                            e.target.value
+                          )
+                        }
+                        placeholder="หมายเหตุ"
+                        className="
+                          block
+                          w-full
+                          min-w-[140px]
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-white
+                          p-1.5
+                          text-xs
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          placeholder:text-slate-400
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:p-2
+                          sm:text-sm
+                        "
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {assets.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={17}
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-10
+                      text-center
+                      font-bold
+                      text-slate-500
+                    "
+                  >
+                    ไม่พบรายการครุภัณฑ์
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* =====================================================
+          ผู้ตรวจสอบ 5 คน
+      ===================================================== */}
+
+      <div
+        className="
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-4
+          shadow-lg
+          sm:p-6
+        "
+      >
+        <div
+          className="
+            mb-5
+            border-b
+            border-slate-300
+            pb-4
+          "
+        >
+          <h2
+            className="
+              text-xl
+              font-extrabold
+              text-slate-900
+              sm:text-2xl
+            "
+          >
+            ผู้ตรวจสอบ
+          </h2>
+
+          <p
+            className="
+              mt-1
+              text-sm
+              font-semibold
+              text-slate-600
+            "
+          >
+            เลือกรายชื่อจาก Officer ของทุกกลุ่มงาน
+          </p>
+        </div>
+
+        <div
+          className="
+            grid
+            gap-4
+            lg:grid-cols-2
+          "
+        >
+          {inspectorIds.map((inspectorId, index) => {
+            const selectedOfficer = getOfficer(inspectorId);
+
+            return (
+              <div
+                key={index}
                 className="
-                  mb-2
-                  block
-                  text-sm
-                  font-bold
-                  text-slate-700
-                "
-              >
-                ตำแหน่ง
-              </label>
-
-              <input
-                type="text"
-                readOnly
-                value={
-                  selectedOfficer?.position || ""
-                }
-                placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
-                className="
-                  w-full
-                  rounded-lg
+                  rounded-xl
                   border
                   border-slate-300
-                  bg-slate-100
-                  p-2.5
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  placeholder:text-slate-400
+                  bg-slate-50
+                  p-4
                 "
-              />
-            </div>
-          </div>
-        );
-      })}
+              >
+                <div
+                  className="
+                    mb-3
+                    text-base
+                    font-extrabold
+                    text-slate-900
+                  "
+                >
+                  ผู้ตรวจสอบคนที่ {index + 1}
+                </div>
+
+                {/* เลือกชื่อ */}
+
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-sm
+                    font-bold
+                    text-slate-700
+                  "
+                >
+                  ลงชื่อ
+                </label>
+
+                <select
+                  value={inspectorId}
+                  onChange={(e) =>
+                    updateInspector(
+                      index,
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    rounded-lg
+                    border
+                    border-slate-300
+                    bg-white
+                    p-2.5
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-cyan-500
+                    focus:ring-2
+                    focus:ring-cyan-100
+                  "
+                >
+                  <option value="">
+                    -- เลือกผู้ตรวจสอบ --
+                  </option>
+
+                  {officers.map((officer) => (
+                    <option
+                      key={officer.id}
+                      value={officer.id}
+                      disabled={isOfficerSelected(
+                        officer.id,
+                        index
+                      )}
+                    >
+                      {officer.firstName}{" "}
+                      {officer.lastName}
+                      {officer.department
+                        ? ` — ${officer.department.name}`
+                        : ""}
+                      {officer.section
+                        ? ` / ${officer.section.name}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+
+                {/* ตำแหน่ง */}
+
+                <div className="mt-3">
+                  <label
+                    className="
+                      mb-2
+                      block
+                      text-sm
+                      font-bold
+                      text-slate-700
+                    "
+                  >
+                    ตำแหน่ง
+                  </label>
+
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      selectedOfficer?.position || ""
+                    }
+                    placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
+                    className="
+                      w-full
+                      rounded-lg
+                      border
+                      border-slate-300
+                      bg-slate-100
+                      p-2.5
+                      font-semibold
+                      text-slate-900
+                      outline-none
+                      placeholder:text-slate-400
+                    "
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* =====================================================
+          ปุ่ม
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          flex-col
+          justify-end
+          gap-3
+          pt-2
+          sm:flex-row
+        "
+      >
+        <button
+          type="button"
+          className="
+            rounded-xl
+            bg-slate-700
+            px-8
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:bg-slate-800
+          "
+          onClick={() => {
+            window.history.back();
+          }}
+        >
+          ยกเลิก
+        </button>
+
+        <button
+          type="button"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            via-green-500
+            to-emerald-500
+            px-8
+            py-3
+            text-lg
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+          "
+          onClick={() => {
+            alert(
+              "ขั้นตอนนี้เป็นการเตรียมแบบฟอร์ม ยังไม่ได้บันทึกข้อมูล"
+            );
+          }}
+        >
+          💾 บันทึกผลการตรวจสอบ
+        </button>
+      </div>
     </div>
-  </div>
-
-  {/* =====================================================
-      ปุ่ม
-  ===================================================== */}
-
-  <div
-    className="
-      flex
-      flex-col
-      justify-end
-      gap-3
-      pt-2
-      sm:flex-row
-    "
-  >
-    <button
-      type="button"
-      className="
-        rounded-xl
-        bg-slate-700
-        px-8
-        py-3
-        text-lg
-        font-extrabold
-        text-white
-        shadow-lg
-        transition
-        hover:bg-slate-800
-      "
-      onClick={() => {
-        window.history.back();
-      }}
-    >
-      ยกเลิก
-    </button>
-
-    <button
-      type="button"
-      className="
-        rounded-xl
-        bg-gradient-to-r
-        from-emerald-600
-        via-green-500
-        to-emerald-500
-        px-8
-        py-3
-        text-lg
-        font-extrabold
-        text-white
-        shadow-lg
-        transition
-        hover:scale-105
-      "
-      onClick={() => {
-        alert(
-          "ขั้นตอนนี้เป็นการเตรียมแบบฟอร์ม ยังไม่ได้บันทึกข้อมูล"
-        );
-      }}
-    >
-      💾 บันทึกผลการตรวจสอบ
-    </button>
-  </div>
-</div>
-
-);
+  );
 }
