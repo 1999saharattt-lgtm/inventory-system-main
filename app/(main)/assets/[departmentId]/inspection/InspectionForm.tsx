@@ -106,12 +106,8 @@ function getCurrentDate() {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(
-    now.getMonth() + 1
-  ).padStart(2, "0");
-  const day = String(
-    now.getDate()
-  ).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -121,31 +117,22 @@ function getCurrentDate() {
  * เพื่อป้องกันปัญหา timezone
  */
 function parseDateOnly(value: string) {
-  const [year, month, day] =
-    value.split("-").map(Number);
+  const [year, month, day] = value.split("-").map(Number);
 
-  return new Date(
-    year,
-    month - 1,
-    day
-  );
+  return new Date(year, month - 1, day);
 }
 
 /**
  * วันที่ย้อนหลัง 1 ปี
  */
-function getOneYearBefore(
-  value: string
-) {
+function getOneYearBefore(value: string) {
   if (!value) {
     return "";
   }
 
   const date = parseDateOnly(value);
 
-  date.setFullYear(
-    date.getFullYear() - 1
-  );
+  date.setFullYear(date.getFullYear() - 1);
 
   return formatDateInput(date);
 }
@@ -153,18 +140,14 @@ function getOneYearBefore(
 /**
  * วันที่ย้อนหลัง 1 วัน
  */
-function getOneDayBefore(
-  value: string
-) {
+function getOneDayBefore(value: string) {
   if (!value) {
     return "";
   }
 
   const date = parseDateOnly(value);
 
-  date.setDate(
-    date.getDate() - 1
-  );
+  date.setDate(date.getDate() - 1);
 
   return formatDateInput(date);
 }
@@ -172,19 +155,12 @@ function getOneDayBefore(
 /**
  * แปลง Date เป็น YYYY-MM-DD
  */
-function formatDateInput(
-  date: Date
-) {
-  const year =
-    date.getFullYear();
+function formatDateInput(date: Date) {
+  const year = date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -214,26 +190,18 @@ const thaiShortMonths = [
  * 2025-10-01
  * -> 1 ต.ค. 2568
  */
-function formatThaiShortDate(
-  value: string
-) {
+function formatThaiShortDate(value: string) {
   if (!value) {
     return "........";
   }
 
-  const date =
-    parseDateOnly(value);
+  const date = parseDateOnly(value);
 
-  const day =
-    date.getDate();
+  const day = date.getDate();
 
-  const month =
-    thaiShortMonths[
-      date.getMonth()
-    ];
+  const month = thaiShortMonths[date.getMonth()];
 
-  const year =
-    date.getFullYear() + 543;
+  const year = date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
 }
@@ -241,13 +209,8 @@ function formatThaiShortDate(
 /**
  * หน่วยของครุภัณฑ์
  */
-function getCategoryUnit(
-  category: string
-) {
-  const categoryUnit: Record<
-    string,
-    string
-  > = {
+function getCategoryUnit(category: string) {
+  const categoryUnit: Record<string, string> = {
     COMPUTER: "เครื่อง",
     DESKTOP: "เครื่อง",
     LAPTOP: "เครื่อง",
@@ -262,15 +225,10 @@ function getCategoryUnit(
     OTHER: "รายการ",
   };
 
-  return (
-    categoryUnit[category] ||
-    "รายการ"
-  );
+  return categoryUnit[category] || "รายการ";
 }
 
-function createInitialRows(
-  assets: Asset[]
-): InspectionRow[] {
+function createInitialRows(assets: Asset[]): InspectionRow[] {
   return assets.map((asset) => ({
     assetId: asset.id,
     countedQty: "1",
@@ -302,37 +260,30 @@ export default function InspectionForm({
   // 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
   // =====================================================
 
-  const accountStartDate =
-    getOneYearBefore(
-      inspectionStartDate
-    );
+  const accountStartDate = getOneYearBefore(inspectionStartDate);
 
-  const accountEndDate =
-    getOneDayBefore(
-      inspectionEndDate
-    );
+  const accountEndDate = getOneDayBefore(inspectionEndDate);
 
   // =====================================================
   // รายการตรวจสอบ
   // =====================================================
 
-  const [rows, setRows] = useState<
-    InspectionRow[]
-  >(() => createInitialRows(assets));
+  const [rows, setRows] = useState<InspectionRow[]>(
+    () => createInitialRows(assets)
+  );
 
   // =====================================================
   // ผู้ตรวจสอบ 5 คน
   // =====================================================
 
-  const [inspectorIds, setInspectorIds] =
-    useState<string[]>(
-      Array.from(
-        {
-          length: 5,
-        },
-        () => ""
-      )
-    );
+  const [inspectorIds, setInspectorIds] = useState<string[]>(
+    Array.from(
+      {
+        length: 5,
+      },
+      () => ""
+    )
+  );
 
   // =====================================================
   // อัปเดตข้อมูลรายการตรวจ
@@ -357,10 +308,7 @@ export default function InspectionForm({
   // เปลี่ยนผู้ตรวจสอบ
   // =====================================================
 
-  function updateInspector(
-    index: number,
-    value: string
-  ) {
+  function updateInspector(index: number, value: string) {
     const copy = [...inspectorIds];
 
     copy[index] = value;
@@ -372,13 +320,9 @@ export default function InspectionForm({
   // หาข้อมูล Officer จาก ID
   // =====================================================
 
-  function getOfficer(
-    officerId: string
-  ) {
+  function getOfficer(officerId: string) {
     return officers.find(
-      (officer) =>
-        String(officer.id) ===
-        officerId
+      (officer) => String(officer.id) === officerId
     );
   }
 
@@ -401,6 +345,7 @@ export default function InspectionForm({
     <div
       className="
         mx-auto
+        w-full
         max-w-[1800px]
         space-y-6
       "
@@ -477,9 +422,7 @@ export default function InspectionForm({
               type="date"
               value={inspectionStartDate}
               onChange={(e) =>
-                setInspectionStartDate(
-                  e.target.value
-                )
+                setInspectionStartDate(e.target.value)
               }
               required
               className="
@@ -518,9 +461,7 @@ export default function InspectionForm({
               type="date"
               value={inspectionEndDate}
               onChange={(e) =>
-                setInspectionEndDate(
-                  e.target.value
-                )
+                setInspectionEndDate(e.target.value)
               }
               required
               className="
@@ -548,13 +489,15 @@ export default function InspectionForm({
 
       <div
         className="
+          w-full
           rounded-2xl
           border
           border-slate-300
           bg-white
-          p-4
+          p-3
           shadow-lg
-          sm:p-6
+          sm:p-4
+          lg:p-6
         "
       >
         <div
@@ -596,21 +539,40 @@ export default function InspectionForm({
           </div>
         </div>
 
-        <div
-          className="
-            overflow-x-auto
-            rounded-xl
-            bg-white
-          "
-        >
+        {/* =====================================================
+            ตารางพอดีกับพื้นที่หน้า
+        ===================================================== */}
+
+        <div className="w-full overflow-hidden rounded-xl bg-white">
           <table
             className="
               w-full
-              min-w-[2200px]
+              table-fixed
               border-collapse
-              text-sm
+              text-xs
+              sm:text-sm
             "
           >
+            <colgroup>
+              <col className="w-[4%]" />
+              <col className="w-[7%]" />
+              <col className="w-[8%]" />
+              <col className="w-[9%]" />
+              <col className="w-[14%]" />
+              <col className="w-[5%]" />
+              <col className="w-[6%]" />
+              <col className="w-[6%]" />
+              <col className="w-[7%]" />
+              <col className="w-[6%]" />
+              <col className="w-[4%]" />
+              <col className="w-[4%]" />
+              <col className="w-[4%]" />
+              <col className="w-[4%]" />
+              <col className="w-[4%]" />
+              <col className="w-[4%]" />
+              <col className="w-[7%]" />
+            </colgroup>
+
             <thead>
               {/* =================================================
                   แถวที่ 1
@@ -622,16 +584,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[4%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ลำดับ
@@ -642,16 +605,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[9%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   รหัส GFMIS
@@ -662,16 +626,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[10%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   รหัสครุภัณฑ์
@@ -682,16 +647,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[11%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ผู้รับผิดชอบ
@@ -702,16 +668,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[15%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   รายการ
@@ -722,16 +689,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[5%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   หน่วย
@@ -742,23 +710,22 @@ export default function InspectionForm({
                 <th
                   colSpan={2}
                   className="
-                    w-[14%]
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
-                  <div>
-                    ยอดคงเหลือตามบัญชี
-                  </div>
+                  <div>ยอดคงเหลือตามบัญชี</div>
 
-                  <div>
+                  <div className="mt-0.5">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(
@@ -773,23 +740,22 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[10%]
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
-                  <div>
-                    ยอดคงเหลือตามบัญชี
-                  </div>
+                  <div>ยอดคงเหลือตามบัญชี</div>
 
-                  <div>
+                  <div className="mt-0.5">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(
@@ -804,16 +770,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[8%]
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   จำนวนที่
@@ -826,29 +793,24 @@ export default function InspectionForm({
                 <th
                   colSpan={2}
                   className="
-                    w-[12%]
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
-                  <div>
-                    ผลการตรวจนับ
-                  </div>
+                  <div>ผลการตรวจนับ</div>
 
-                  <div>
-                    ถูกต้องตรงกับยอดคงเหลือ
-                  </div>
+                  <div>ถูกต้องตรงกับยอดคงเหลือ</div>
 
-                  <div>
-                    ตามบัญชี
-                  </div>
+                  <div>ตามบัญชี</div>
                 </th>
 
                 {/* สภาพ */}
@@ -856,16 +818,17 @@ export default function InspectionForm({
                 <th
                   colSpan={4}
                   className="
-                    w-[16%]
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   สภาพครุภัณฑ์ที่ตรวจนับ
@@ -876,16 +839,17 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    w-[10%]
                     border
                     border-black
-                    bg-white
-                    px-2
-                    py-3
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
+                    py-2
                     text-center
                     align-middle
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   หมายเหตุ
@@ -903,12 +867,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   รับ
@@ -920,12 +886,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   จ่าย
@@ -937,12 +905,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ถูกต้อง
@@ -954,12 +924,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ไม่ถูกต้อง
@@ -971,12 +943,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ใช้งาน
@@ -988,12 +962,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ชำรุด
@@ -1005,12 +981,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   เสื่อมสภาพ
@@ -1022,12 +1000,14 @@ export default function InspectionForm({
                   className="
                     border
                     border-black
-                    bg-white
-                    px-2
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-1
                     py-2
                     text-center
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ไม่สามารถ
@@ -1038,481 +1018,490 @@ export default function InspectionForm({
             </thead>
 
             <tbody>
-              {assets.map(
-                (asset, index) => {
-                  const row =
-                    rows[index];
+              {assets.map((asset, index) => {
+                const row = rows[index];
 
-                  const officer =
-                    asset.officer;
+                const officer = asset.officer;
 
-                  return (
-                    <tr
-                      key={asset.id}
+                return (
+                  <tr
+                    key={asset.id}
+                    className="
+                      transition
+                      hover:bg-emerald-50
+                    "
+                  >
+                    {/* ลำดับ */}
+
+                    <td
                       className="
-                        transition
-                        hover:bg-emerald-50
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-900
                       "
                     >
-                      {/* ลำดับ */}
+                      {index + 1}
+                    </td>
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-bold
-                          text-slate-900
-                        "
-                      >
-                        {index + 1}
-                      </td>
+                    {/* GFMIS */}
 
-                      {/* GFMIS */}
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <span className="block break-words">
+                        {asset.governmentAssetNo || "-"}
+                      </span>
+                    </td>
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-semibold
-                          text-slate-900
-                        "
-                      >
-                        {asset.governmentAssetNo ||
-                          "-"}
-                      </td>
+                    {/* รหัสครุภัณฑ์ */}
 
-                      {/* รหัสครุภัณฑ์ */}
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <span className="block break-words">
+                        {asset.officeAssetNo || "-"}
+                      </span>
+                    </td>
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-semibold
-                          text-slate-900
-                        "
-                      >
-                        {asset.officeAssetNo ||
-                          "-"}
-                      </td>
+                    {/* ผู้รับผิดชอบ */}
 
-                      {/* ผู้รับผิดชอบ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-semibold
-                          text-slate-900
-                        "
-                      >
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <span className="block break-words">
                         {officer
                           ? `${officer.firstName} ${officer.lastName}`
                           : "-"}
-                      </td>
+                      </span>
+                    </td>
 
-                      {/* รายการ */}
+                    {/* รายการ */}
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          font-semibold
-                          text-slate-900
-                        "
-                      >
-                        <div>
-                          {asset.name}
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <div className="break-words">
+                        {asset.name}
+                      </div>
+
+                      {(asset.brand || asset.model) && (
+                        <div
+                          className="
+                            mt-1
+                            break-words
+                            text-[10px]
+                            text-slate-500
+                            sm:text-xs
+                          "
+                        >
+                          {asset.brand || ""}
+
+                          {asset.brand && asset.model
+                            ? " / "
+                            : ""}
+
+                          {asset.model || ""}
                         </div>
+                      )}
+                    </td>
 
-                        {(asset.brand ||
-                          asset.model) && (
-                          <div
-                            className="
-                              mt-1
-                              text-xs
-                              text-slate-500
-                            "
-                          >
-                            {asset.brand ||
-                              ""}
-                            {asset.brand &&
-                            asset.model
-                              ? " / "
-                              : ""}
-                            {asset.model ||
-                              ""}
-                          </div>
-                        )}
-                      </td>
+                    {/* หน่วย */}
 
-                      {/* หน่วย */}
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-semibold
+                        text-slate-900
+                      "
+                    >
+                      <span className="break-words">
+                        {getCategoryUnit(asset.category)}
+                      </span>
+                    </td>
 
-                      <td
+                    {/* รับ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* จ่าย */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* ยอดคงเหลือ ณ วันสิ้นสุด */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* จำนวนที่ตรวจนับได้ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                      "
+                    >
+                      <input
+                        type="number"
+                        min="0"
+                        value={row.countedQty}
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "countedQty",
+                            e.target.value
+                          )
+                        }
                         className="
+                          block
+                          min-w-0
+                          w-full
+                          rounded-lg
                           border
-                          border-black
-                          px-2
-                          py-2
+                          border-slate-300
+                          bg-white
+                          p-1.5
                           text-center
+                          text-xs
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:p-2
+                          sm:text-sm
+                        "
+                      />
+                    </td>
+
+                    {/* ถูกต้อง */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        checked={row.accuracy === "CORRECT"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "accuracy",
+                            "CORRECT"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ไม่ถูกต้อง */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        checked={row.accuracy === "INCORRECT"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "accuracy",
+                            "INCORRECT"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ใช้งาน */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={row.status === "IN_USE"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "IN_USE"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ชำรุด */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={row.status === "DAMAGED"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "DAMAGED"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* เสื่อมสภาพ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={
+                          row.status === "DETERIORATED"
+                        }
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "DETERIORATED"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* ไม่สามารถใช้งาน */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-1
+                        py-2
+                        text-center
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        checked={row.status === "UNUSABLE"}
+                        onChange={() =>
+                          updateRow(
+                            index,
+                            "status",
+                            "UNUSABLE"
+                          )
+                        }
+                        className="
+                          h-4
+                          w-4
+                          cursor-pointer
+                          sm:h-5
+                          sm:w-5
+                        "
+                      />
+                    </td>
+
+                    {/* หมายเหตุ */}
+
+                    <td
+                      className="
+                        overflow-hidden
+                        border
+                        border-black
+                        px-1
+                        py-2
+                      "
+                    >
+                      <input
+                        type="text"
+                        value={row.remark}
+                        onChange={(e) =>
+                          updateRow(
+                            index,
+                            "remark",
+                            e.target.value
+                          )
+                        }
+                        placeholder="หมายเหตุ"
+                        className="
+                          block
+                          min-w-0
+                          w-full
+                          rounded-lg
+                          border
+                          border-slate-300
+                          bg-white
+                          p-1.5
+                          text-xs
                           font-semibold
                           text-slate-900
+                          outline-none
+                          placeholder:text-slate-400
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:p-2
+                          sm:text-sm
                         "
-                      >
-                        {getCategoryUnit(
-                          asset.category
-                        )}
-                      </td>
-
-                      {/* รับ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-bold
-                          text-slate-500
-                        "
-                      >
-                        -
-                      </td>
-
-                      {/* จ่าย */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-bold
-                          text-slate-500
-                        "
-                      >
-                        -
-                      </td>
-
-                      {/* ยอดคงเหลือ ณ วันสิ้นสุด */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                          font-bold
-                          text-slate-500
-                        "
-                      >
-                        -
-                      </td>
-
-                      {/* จำนวนที่ตรวจนับได้ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                        "
-                      >
-                        <input
-                          type="number"
-                          min="0"
-                          value={
-                            row.countedQty
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "countedQty",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            text-center
-                            font-bold
-                            text-slate-900
-                            outline-none
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        />
-                      </td>
-
-                      {/* ถูกต้อง */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`accuracy-${asset.id}`}
-                          checked={
-                            row.accuracy ===
-                            "CORRECT"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "accuracy",
-                              "CORRECT"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* ไม่ถูกต้อง */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`accuracy-${asset.id}`}
-                          checked={
-                            row.accuracy ===
-                            "INCORRECT"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "accuracy",
-                              "INCORRECT"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* ใช้งาน */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          checked={
-                            row.status ===
-                            "IN_USE"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "status",
-                              "IN_USE"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* ชำรุด */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          checked={
-                            row.status ===
-                            "DAMAGED"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "status",
-                              "DAMAGED"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* เสื่อมสภาพ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          checked={
-                            row.status ===
-                            "DETERIORATED"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "status",
-                              "DETERIORATED"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* ไม่สามารถใช้งาน */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                          text-center
-                        "
-                      >
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          checked={
-                            row.status ===
-                            "UNUSABLE"
-                          }
-                          onChange={() =>
-                            updateRow(
-                              index,
-                              "status",
-                              "UNUSABLE"
-                            )
-                          }
-                          className="
-                            h-5
-                            w-5
-                            cursor-pointer
-                          "
-                        />
-                      </td>
-
-                      {/* หมายเหตุ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-2
-                          py-2
-                        "
-                      >
-                        <input
-                          type="text"
-                          value={
-                            row.remark
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              index,
-                              "remark",
-                              e.target.value
-                            )
-                          }
-                          placeholder="หมายเหตุ"
-                          className="
-                            w-full
-                            rounded-lg
-                            border
-                            border-slate-300
-                            bg-white
-                            p-2
-                            font-semibold
-                            text-slate-900
-                            outline-none
-                            placeholder:text-slate-400
-                            focus:border-cyan-500
-                            focus:ring-2
-                            focus:ring-cyan-100
-                          "
-                        />
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
 
               {assets.length === 0 && (
                 <tr>
                   <td
-                    colSpan={18}
+                    colSpan={17}
                     className="
                       border
                       border-black
@@ -1585,36 +1574,96 @@ export default function InspectionForm({
             lg:grid-cols-2
           "
         >
-          {inspectorIds.map(
-            (inspectorId, index) => {
-              const selectedOfficer =
-                getOfficer(inspectorId);
+          {inspectorIds.map((inspectorId, index) => {
+            const selectedOfficer = getOfficer(inspectorId);
 
-              return (
+            return (
+              <div
+                key={index}
+                className="
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-slate-50
+                  p-4
+                "
+              >
                 <div
-                  key={index}
                   className="
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-slate-50
-                    p-4
+                    mb-3
+                    text-base
+                    font-extrabold
+                    text-slate-900
                   "
                 >
-                  <div
-                    className="
-                      mb-3
-                      text-base
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    ผู้ตรวจสอบคนที่{" "}
-                    {index + 1}
-                  </div>
+                  ผู้ตรวจสอบคนที่ {index + 1}
+                </div>
 
-                  {/* เลือกชื่อ */}
+                {/* เลือกชื่อ */}
 
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-sm
+                    font-bold
+                    text-slate-700
+                  "
+                >
+                  ลงชื่อ
+                </label>
+
+                <select
+                  value={inspectorId}
+                  onChange={(e) =>
+                    updateInspector(
+                      index,
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    rounded-lg
+                    border
+                    border-slate-300
+                    bg-white
+                    p-2.5
+                    font-semibold
+                    text-slate-900
+                    outline-none
+                    focus:border-cyan-500
+                    focus:ring-2
+                    focus:ring-cyan-100
+                  "
+                >
+                  <option value="">
+                    -- เลือกผู้ตรวจสอบ --
+                  </option>
+
+                  {officers.map((officer) => (
+                    <option
+                      key={officer.id}
+                      value={officer.id}
+                      disabled={isOfficerSelected(
+                        officer.id,
+                        index
+                      )}
+                    >
+                      {officer.firstName}{" "}
+                      {officer.lastName}
+                      {officer.department
+                        ? ` — ${officer.department.name}`
+                        : ""}
+                      {officer.section
+                        ? ` / ${officer.section.name}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+
+                {/* ตำแหน่ง */}
+
+                <div className="mt-3">
                   <label
                     className="
                       mb-2
@@ -1624,100 +1673,33 @@ export default function InspectionForm({
                       text-slate-700
                     "
                   >
-                    ลงชื่อ
+                    ตำแหน่ง
                   </label>
 
-                  <select
-                    value={inspectorId}
-                    onChange={(e) =>
-                      updateInspector(
-                        index,
-                        e.target.value
-                      )
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      selectedOfficer?.position || ""
                     }
+                    placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
                     className="
                       w-full
                       rounded-lg
                       border
                       border-slate-300
-                      bg-white
+                      bg-slate-100
                       p-2.5
                       font-semibold
                       text-slate-900
                       outline-none
-                      focus:border-cyan-500
-                      focus:ring-2
-                      focus:ring-cyan-100
+                      placeholder:text-slate-400
                     "
-                  >
-                    <option value="">
-                      -- เลือกผู้ตรวจสอบ --
-                    </option>
-
-                    {officers.map(
-                      (officer) => (
-                        <option
-                          key={officer.id}
-                          value={officer.id}
-                          disabled={isOfficerSelected(
-                            officer.id,
-                            index
-                          )}
-                        >
-                          {officer.firstName}{" "}
-                          {officer.lastName}
-                          {officer.department
-                            ? ` — ${officer.department.name}`
-                            : ""}
-                          {officer.section
-                            ? ` / ${officer.section.name}`
-                            : ""}
-                        </option>
-                      )
-                    )}
-                  </select>
-
-                  {/* ตำแหน่ง */}
-
-                  <div className="mt-3">
-                    <label
-                      className="
-                        mb-2
-                        block
-                        text-sm
-                        font-bold
-                        text-slate-700
-                      "
-                    >
-                      ตำแหน่ง
-                    </label>
-
-                    <input
-                      type="text"
-                      readOnly
-                      value={
-                        selectedOfficer?.position ||
-                        ""
-                      }
-                      placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
-                      className="
-                        w-full
-                        rounded-lg
-                        border
-                        border-slate-300
-                        bg-slate-100
-                        p-2.5
-                        font-semibold
-                        text-slate-900
-                        outline-none
-                        placeholder:text-slate-400
-                      "
-                    />
-                  </div>
+                  />
                 </div>
-              );
-            }
-          )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
