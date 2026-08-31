@@ -541,9 +541,10 @@ export default function InspectionForm({
 
         {/* =====================================================
             ตาราง
-            - ให้ข้อมูลมีพื้นที่เพียงพอ
+            - ไม่ตัดคำภาษาไทยกลางคำ
+            - หัวตารางสามารถขึ้น 2 บรรทัดได้
+            - ข้อมูลยาวสามารถขึ้นบรรทัดใหม่ได้
             - หน้าจอแคบสามารถเลื่อนซ้าย/ขวาได้
-            - ไม่บีบข้อความจนอ่านยาก
         ===================================================== */}
 
         <div
@@ -595,7 +596,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -606,6 +608,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -617,7 +620,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -628,6 +632,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -639,7 +644,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -650,6 +656,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -661,7 +668,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -672,6 +680,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -683,7 +692,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -694,6 +704,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -705,7 +716,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -716,6 +728,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -727,6 +740,8 @@ export default function InspectionForm({
                 <th
                   colSpan={2}
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -737,14 +752,15 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <div className="whitespace-nowrap">
+                  <div>
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="mt-0.5 whitespace-nowrap">
+                  <div className="mt-0.5">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(accountStartDate)}
@@ -757,6 +773,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -767,14 +785,19 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <div className="whitespace-nowrap">
-                    ยอดคงเหลือตามบัญชี
+                  <div>
+                    ยอดคงเหลือ
                   </div>
 
-                  <div className="mt-0.5 whitespace-nowrap">
+                  <div>
+                    ตามบัญชี
+                  </div>
+
+                  <div className="mt-0.5">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(accountEndDate)}
@@ -787,6 +810,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -797,14 +822,15 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <div className="whitespace-nowrap">
+                  <div>
                     จำนวนที่
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div>
                     ตรวจนับได้
                   </div>
                 </th>
@@ -814,6 +840,8 @@ export default function InspectionForm({
                 <th
                   colSpan={2}
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -824,19 +852,20 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <div className="whitespace-nowrap">
+                  <div>
                     ผลการตรวจนับ
                   </div>
 
-                  <div className="mt-0.5 whitespace-nowrap">
-                    ถูกต้องตรงกับยอดคงเหลือ
+                  <div className="mt-0.5">
+                    ถูกต้องตรงกับ
                   </div>
 
-                  <div className="whitespace-nowrap">
-                    ตามบัญชี
+                  <div>
+                    ยอดคงเหลือตามบัญชี
                   </div>
                 </th>
 
@@ -845,6 +874,8 @@ export default function InspectionForm({
                 <th
                   colSpan={4}
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -855,12 +886,11 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <span className="whitespace-nowrap">
-                    สภาพครุภัณฑ์ที่ตรวจนับ
-                  </span>
+                  สภาพครุภัณฑ์ที่ตรวจนับ
                 </th>
 
                 {/* หมายเหตุ */}
@@ -868,7 +898,8 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -879,6 +910,7 @@ export default function InspectionForm({
                     text-center
                     align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -895,7 +927,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -904,7 +937,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -915,7 +950,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -924,7 +960,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -935,7 +973,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -944,7 +983,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -955,7 +996,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -964,7 +1006,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -975,7 +1019,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -984,7 +1029,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -995,7 +1042,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -1004,7 +1052,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -1015,7 +1065,8 @@ export default function InspectionForm({
 
                 <th
                   className="
-                    whitespace-nowrap
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -1024,7 +1075,9 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
@@ -1035,6 +1088,8 @@ export default function InspectionForm({
 
                 <th
                   className="
+                    whitespace-normal
+                    break-keep
                     border
                     border-black
                     bg-gradient-to-r
@@ -1043,15 +1098,17 @@ export default function InspectionForm({
                     px-2
                     py-2
                     text-center
+                    align-middle
                     font-extrabold
+                    leading-tight
                     text-white
                   "
                 >
-                  <div className="whitespace-nowrap">
+                  <div>
                     ไม่สามารถ
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div>
                     ใช้งาน
                   </div>
                 </th>
@@ -1081,6 +1138,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-bold
                         text-slate-900
                       "
@@ -1097,11 +1155,19 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-semibold
                         text-slate-900
                       "
                     >
-                      <span className="block break-words">
+                      <span
+                        className="
+                          block
+                          whitespace-normal
+                          break-words
+                          leading-tight
+                        "
+                      >
                         {asset.governmentAssetNo || "-"}
                       </span>
                     </td>
@@ -1115,11 +1181,19 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-semibold
                         text-slate-900
                       "
                     >
-                      <span className="block break-words">
+                      <span
+                        className="
+                          block
+                          whitespace-normal
+                          break-words
+                          leading-tight
+                        "
+                      >
                         {asset.officeAssetNo || "-"}
                       </span>
                     </td>
@@ -1133,11 +1207,19 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-semibold
                         text-slate-900
                       "
                     >
-                      <span className="block break-words">
+                      <span
+                        className="
+                          block
+                          whitespace-normal
+                          break-keep
+                          leading-tight
+                        "
+                      >
                         {officer
                           ? `${officer.firstName} ${officer.lastName}`
                           : "-"}
@@ -1152,11 +1234,18 @@ export default function InspectionForm({
                         border-black
                         px-2
                         py-2
+                        align-middle
                         font-semibold
                         text-slate-900
                       "
                     >
-                      <div className="break-words">
+                      <div
+                        className="
+                          whitespace-normal
+                          break-keep
+                          leading-tight
+                        "
+                      >
                         {asset.name}
                       </div>
 
@@ -1164,8 +1253,10 @@ export default function InspectionForm({
                         <div
                           className="
                             mt-1
-                            break-words
+                            whitespace-normal
+                            break-keep
                             text-[10px]
+                            leading-tight
                             text-slate-500
                             sm:text-xs
                           "
@@ -1190,11 +1281,16 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-semibold
                         text-slate-900
                       "
                     >
-                      <span className="whitespace-nowrap">
+                      <span
+                        className="
+                          whitespace-nowrap
+                        "
+                      >
                         {getCategoryUnit(asset.category)}
                       </span>
                     </td>
@@ -1208,6 +1304,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-bold
                         text-slate-500
                       "
@@ -1224,6 +1321,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-bold
                         text-slate-500
                       "
@@ -1240,6 +1338,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                         font-bold
                         text-slate-500
                       "
@@ -1255,6 +1354,7 @@ export default function InspectionForm({
                         border-black
                         px-2
                         py-2
+                        align-middle
                       "
                     >
                       <input
@@ -1300,6 +1400,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1332,6 +1433,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1364,6 +1466,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1396,6 +1499,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1428,6 +1532,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1462,6 +1567,7 @@ export default function InspectionForm({
                         px-2
                         py-2
                         text-center
+                        align-middle
                       "
                     >
                       <input
@@ -1493,6 +1599,7 @@ export default function InspectionForm({
                         border-black
                         px-2
                         py-2
+                        align-middle
                       "
                     >
                       <input
