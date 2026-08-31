@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,8 @@ const categoryOrder = [
 export default async function DepartmentAssetsPage({
   params,
 }: Props) {
+  const user = await requireLogin();
+
   const { departmentId } = await params;
 
   const id = Number(departmentId);
@@ -258,7 +261,54 @@ export default async function DepartmentAssetsPage({
           </p>
         </div>
 
-        <div className="shrink-0">
+        <div
+          className="
+            flex
+            shrink-0
+            flex-col
+            gap-2
+            sm:flex-row
+            sm:items-center
+          "
+        >
+          {/* =================================================
+              ปุ่มตรวจสอบรายการครุภัณฑ์
+              แสดงเฉพาะ ADMIN
+          ================================================= */}
+
+          {user.role === "ADMIN" && (
+            <Link
+              href={`/assets/${department.id}/inspection`}
+              className="
+                block
+                rounded-xl
+                bg-gradient-to-r
+                from-blue-600
+                to-indigo-500
+                px-4
+                py-2.5
+                text-center
+                text-sm
+                font-extrabold
+                !text-white
+                shadow-lg
+                transition
+                hover:scale-105
+                hover:from-blue-700
+                hover:to-indigo-600
+                sm:px-6
+                sm:py-3
+                sm:text-base
+              "
+            >
+              🔎 ตรวจสอบรายการครุภัณฑ์
+            </Link>
+          )}
+
+          {/* =================================================
+              ปุ่มรวมรายการครุภัณฑ์
+          ================================================= */}
+
           <Link
             href={`/assets/${department.id}/all`}
             className="
