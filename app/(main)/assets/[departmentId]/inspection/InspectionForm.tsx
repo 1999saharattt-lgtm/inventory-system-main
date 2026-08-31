@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Department = {
   id: number;
@@ -166,6 +166,27 @@ function formatDateInput(date: Date) {
 }
 
 /**
+ * แสดงวันที่ในรูปแบบ วัน/เดือน/ปี ค.ศ.
+ *
+ * เช่น
+ * 2026-08-31
+ * -> 31/08/2026
+ */
+function formatDateDisplay(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const [year, month, day] = value.split("-");
+
+  if (!year || !month || !day) {
+    return "";
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
+/**
  * ชื่อเดือนภาษาไทยแบบย่อ
  */
 const thaiShortMonths = [
@@ -252,6 +273,15 @@ export default function InspectionForm({
 
   const [inspectionEndDate, setInspectionEndDate] =
     useState(getCurrentDate());
+
+  // =====================================================
+  // ตัวอ้างอิง input date
+  // ใช้ให้ช่องวันที่แสดงเป็น วัน/เดือน/ปี ค.ศ.
+  // แต่ยังเปิด date picker ของ Browser ได้
+  // =====================================================
+
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   // =====================================================
   // วันที่ที่ใช้แสดงในหัวตาราง
@@ -418,28 +448,66 @@ export default function InspectionForm({
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <input
-              type="date"
-              value={inspectionStartDate}
-              onChange={(e) =>
-                setInspectionStartDate(e.target.value)
-              }
-              required
+            <div className="relative">
+              <input
+                type="text"
+                value={formatDateDisplay(
+                  inspectionStartDate
+                )}
+                readOnly
+                onClick={() =>
+                  startDateRef.current?.showPicker?.()
+                }
+                className="
+                  w-full
+                  cursor-pointer
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  p-2.5
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-cyan-500
+                  focus:ring-2
+                  focus:ring-cyan-100
+                "
+                aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
+              />
+
+              <input
+                ref={startDateRef}
+                type="date"
+                value={inspectionStartDate}
+                onChange={(e) =>
+                  setInspectionStartDate(e.target.value)
+                }
+                required
+                className="
+                  pointer-events-none
+                  absolute
+                  right-3
+                  top-1/2
+                  h-5
+                  w-5
+                  -translate-y-1/2
+                  opacity-0
+                "
+                tabIndex={-1}
+              />
+            </div>
+
+            <p
               className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
+                mt-1.5
+                text-xs
                 font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
+                text-slate-500
               "
-            />
+            >
+              รูปแบบวันที่: วัน/เดือน/ปี ค.ศ.
+            </p>
           </div>
 
           {/* วันที่ตรวจสอบแล้วเสร็จ */}
@@ -457,28 +525,66 @@ export default function InspectionForm({
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <input
-              type="date"
-              value={inspectionEndDate}
-              onChange={(e) =>
-                setInspectionEndDate(e.target.value)
-              }
-              required
+            <div className="relative">
+              <input
+                type="text"
+                value={formatDateDisplay(
+                  inspectionEndDate
+                )}
+                readOnly
+                onClick={() =>
+                  endDateRef.current?.showPicker?.()
+                }
+                className="
+                  w-full
+                  cursor-pointer
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  p-2.5
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-cyan-500
+                  focus:ring-2
+                  focus:ring-cyan-100
+                "
+                aria-label="วันที่ตรวจสอบแล้วเสร็จ"
+              />
+
+              <input
+                ref={endDateRef}
+                type="date"
+                value={inspectionEndDate}
+                onChange={(e) =>
+                  setInspectionEndDate(e.target.value)
+                }
+                required
+                className="
+                  pointer-events-none
+                  absolute
+                  right-3
+                  top-1/2
+                  h-5
+                  w-5
+                  -translate-y-1/2
+                  opacity-0
+                "
+                tabIndex={-1}
+              />
+            </div>
+
+            <p
               className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
+                mt-1.5
+                text-xs
                 font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
+                text-slate-500
               "
-            />
+            >
+              รูปแบบวันที่: วัน/เดือน/ปี ค.ศ.
+            </p>
           </div>
         </div>
       </div>
@@ -543,14 +649,22 @@ export default function InspectionForm({
             ตารางพอดีกับพื้นที่หน้า
         ===================================================== */}
 
-        <div className="w-full overflow-hidden rounded-xl bg-white">
+        <div
+          className="
+            w-full
+            overflow-hidden
+            rounded-xl
+            bg-white
+          "
+        >
           <table
             className="
               w-full
               table-fixed
               border-collapse
-              text-xs
-              sm:text-sm
+              text-[10px]
+              sm:text-xs
+              lg:text-sm
             "
           >
             <colgroup>
@@ -705,7 +819,7 @@ export default function InspectionForm({
                   หน่วย
                 </th>
 
-                {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 ปี */}
+                {/* ยอดคงเหลือตามบัญชี */}
 
                 <th
                   colSpan={2}
@@ -723,9 +837,11 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  <div>ยอดคงเหลือตามบัญชี</div>
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
 
-                  <div className="mt-0.5">
+                  <div className="mt-0.5 whitespace-nowrap">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(
@@ -735,7 +851,7 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 วัน */}
+                {/* ยอดคงเหลือตามบัญชี */}
 
                 <th
                   rowSpan={2}
@@ -753,9 +869,11 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  <div>ยอดคงเหลือตามบัญชี</div>
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
 
-                  <div className="mt-0.5">
+                  <div className="mt-0.5 whitespace-nowrap">
                     ณ วันที่{" "}
                     <span className="font-bold">
                       {formatThaiShortDate(
@@ -783,9 +901,9 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  จำนวนที่
-                  <br />
-                  ตรวจนับได้
+                  <span className="whitespace-nowrap">
+                    จำนวนที่ตรวจนับได้
+                  </span>
                 </th>
 
                 {/* ผลการตรวจนับ */}
@@ -806,11 +924,17 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  <div>ผลการตรวจนับ</div>
+                  <div className="whitespace-nowrap">
+                    ผลการตรวจนับ
+                  </div>
 
-                  <div>ถูกต้องตรงกับยอดคงเหลือ</div>
+                  <div className="mt-0.5 whitespace-nowrap">
+                    ถูกต้องตรงกับยอดคงเหลือ
+                  </div>
 
-                  <div>ตามบัญชี</div>
+                  <div className="whitespace-nowrap">
+                    ตามบัญชี
+                  </div>
                 </th>
 
                 {/* สภาพ */}
@@ -831,7 +955,9 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  สภาพครุภัณฑ์ที่ตรวจนับ
+                  <span className="whitespace-nowrap">
+                    สภาพครุภัณฑ์ที่ตรวจนับ
+                  </span>
                 </th>
 
                 {/* หมายเหตุ */}
@@ -1010,9 +1136,9 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  ไม่สามารถ
-                  <br />
-                  ใช้งาน
+                  <span className="whitespace-nowrap">
+                    ไม่สามารถใช้งาน
+                  </span>
                 </th>
               </tr>
             </thead>
