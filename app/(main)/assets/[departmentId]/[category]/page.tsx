@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,8 @@ type AssetCategory = (typeof validCategories)[number];
 export default async function AssetCategoryPage({
   params,
 }: Props) {
+  const user = await requireLogin();
+
   const { departmentId, category } = await params;
 
   const departmentIdNumber = Number(departmentId);
@@ -97,6 +100,82 @@ export default async function AssetCategoryPage({
 
   if (!department) {
     notFound();
+  }
+
+  // =====================================================
+  // ลบครุภัณฑ์
+  // =====================================================
+
+  async function deleteAsset(formData: FormData) {
+    "use server";
+
+    const currentUser = await requireLogin();
+
+    const assetIdRaw = String(
+      formData.get("assetId") ?? ""
+    ).trim();
+
+    const assetId = Number(assetIdRaw);
+
+    if (
+      !Number.isInteger(assetId) ||
+      assetId <= 0
+    ) {
+      throw new Error("รหัสครุภัณฑ์ไม่ถูกต้อง");
+    }
+
+    // ===================================================
+    // ตรวจสอบสิทธิ์ STAFF
+    // ===================================================
+
+    if (
+      currentUser.role === "STAFF" &&
+      currentUser.departmentId !== departmentIdNumber
+    ) {
+      throw new Error(
+        "ไม่มีสิทธิ์ลบครุภัณฑ์ในหน่วยงานนี้"
+      );
+    }
+
+    // ===================================================
+    // ตรวจสอบว่าครุภัณฑ์อยู่ในหน่วยงานและประเภทที่ถูกต้อง
+    // ===================================================
+
+    const asset =
+      await prisma.asset.findFirst({
+        where: {
+          id: assetId,
+          departmentId: departmentIdNumber,
+          category: assetCategory,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (!asset) {
+      throw new Error(
+        "ไม่พบครุภัณฑ์ที่ต้องการลบ"
+      );
+    }
+
+    // ===================================================
+    // ลบครุภัณฑ์
+    // ===================================================
+
+    await prisma.asset.delete({
+      where: {
+        id: asset.id,
+      },
+    });
+
+    // ===================================================
+    // กลับมาหน้ารายการเดิม
+    // ===================================================
+
+    redirect(
+      `/assets/${departmentIdNumber}/${assetCategory}`
+    );
   }
 
   const assets =
@@ -712,7 +791,9 @@ export default async function AssetCategoryPage({
                       )}
                     </td>
 
-                    {/* จัดการ */}
+                    {/* =================================================
+                        จัดการ
+                    ================================================= */}
 
                     <td
                       className="
@@ -723,30 +804,70 @@ export default async function AssetCategoryPage({
                         text-center
                       "
                     >
-                      <Link
-                        href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
+                      <div
                         className="
-                          inline-block
-                          whitespace-nowrap
-                          rounded-xl
-                          bg-gradient-to-r
-                          from-slate-950
-                          via-slate-800
-                          to-slate-700
-                          px-4
-                          py-2
-                          font-extrabold
-                          !text-white
-                          shadow-lg
-                          transition
-                          hover:scale-105
-                          hover:from-slate-900
-                          hover:via-slate-700
-                          hover:to-slate-600
+                          flex
+                          items-center
+                          justify-center
+                          gap-2
                         "
                       >
-                        ดูรายละเอียด
-                      </Link>
+                        {/* ดูรายละเอียด */}
+
+                        <Link
+                          href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
+                          className="
+                            inline-block
+                            whitespace-nowrap
+                            rounded-xl
+                            bg-gradient-to-r
+                            from-slate-950
+                            via-slate-800
+                            to-slate-700
+                            px-4
+                            py-2
+                            font-extrabold
+                            !text-white
+                            shadow-lg
+                            transition
+                            hover:scale-105
+                            hover:from-slate-900
+                            hover:via-slate-700
+                            hover:to-slate-600
+                          "
+                        >
+                          ดูรายละเอียด
+                        </Link>
+
+                        {/* ลบ */}
+
+                        <form action={deleteAsset}>
+                          <input
+                            type="hidden"
+                            name="assetId"
+                            value={asset.id}
+                          />
+
+                          <button
+                            type="submit"
+                            className="
+                              whitespace-nowrap
+                              rounded-xl
+                              bg-red-600
+                              px-4
+                              py-2
+                              font-extrabold
+                              !text-white
+                              shadow-lg
+                              transition
+                              hover:scale-105
+                              hover:bg-red-700
+                            "
+                          >
+                            ลบ
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 );
