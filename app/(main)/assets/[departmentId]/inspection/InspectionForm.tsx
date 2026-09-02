@@ -362,7 +362,7 @@ export default function InspectionForm({
             className="
               text-xl
               font-extrabold
-              text-white
+              !text-white
               sm:text-2xl
             "
           >
@@ -507,7 +507,7 @@ export default function InspectionForm({
               className="
                 text-xl
                 font-extrabold
-                text-white
+                !text-white
                 sm:text-2xl
               "
             >
@@ -1597,7 +1597,7 @@ export default function InspectionForm({
             className="
               text-xl
               font-extrabold
-              text-white
+              !text-white
               sm:text-2xl
             "
           >
