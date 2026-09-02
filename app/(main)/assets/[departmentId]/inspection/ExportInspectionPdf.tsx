@@ -95,10 +95,28 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
+/* =========================================================
+   วันที่
+========================================================= */
+
 function parseDateOnly(value: string) {
+  if (!value) {
+    return new Date(NaN);
+  }
+
   const [year, month, day] = value.split("-").map(Number);
 
   return new Date(year, month - 1, day);
+}
+
+function formatDateOnly(date: Date) {
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function formatThaiDate(value: string) {
@@ -108,8 +126,14 @@ function formatThaiDate(value: string) {
 
   const date = parseDateOnly(value);
 
+  if (Number.isNaN(date.getTime())) {
+    return "........";
+  }
+
   const day = date.getDate();
+
   const month = thaiMonths[date.getMonth()];
+
   const year = date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
@@ -121,12 +145,61 @@ function getFiscalYear(value: string) {
   }
 
   const date = parseDateOnly(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "........";
+  }
+
   const year = date.getFullYear();
 
   return date.getMonth() >= 9
     ? year + 1 + 543
     : year + 543;
 }
+
+/* =========================================================
+   วันที่ย้อนหลัง 1 ปี
+========================================================= */
+
+function getOneYearBefore(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = parseDateOnly(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  date.setFullYear(date.getFullYear() - 1);
+
+  return formatDateOnly(date);
+}
+
+/* =========================================================
+   วันที่ย้อนหลัง 1 วัน
+========================================================= */
+
+function getOneDayBefore(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = parseDateOnly(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  date.setDate(date.getDate() - 1);
+
+  return formatDateOnly(date);
+}
+
+/* =========================================================
+   หน่วยครุภัณฑ์
+========================================================= */
 
 function getCategoryUnit(category: string) {
   const categoryUnit: Record<string, string> = {
@@ -147,10 +220,18 @@ function getCategoryUnit(category: string) {
   return categoryUnit[category] || "รายการ";
 }
 
+/* =========================================================
+   ผู้ตรวจสอบ
+========================================================= */
+
 function getOfficer(
   officerId: string,
   officers: Officer[]
 ) {
+  if (!officerId) {
+    return undefined;
+  }
+
   return officers.find(
     (officer) => String(officer.id) === officerId
   );
@@ -170,6 +251,10 @@ function getAccuracyChecked(
   return row.accuracy === accuracy ? "✓" : "";
 }
 
+/* =========================================================
+   Component
+========================================================= */
+
 export default function ExportInspectionPdf({
   department,
   assets,
@@ -188,6 +273,10 @@ export default function ExportInspectionPdf({
     Math.ceil(assets.length / ROWS_PER_PAGE)
   );
 
+  /* =======================================================
+     Export PDF
+  ======================================================= */
+
   async function handleExportPdf() {
     if (!pdfRef.current) {
       return;
@@ -200,6 +289,21 @@ export default function ExportInspectionPdf({
 
     try {
       setIsExporting(true);
+
+      /*
+       * ใช้ค่า props ล่าสุด ณ เวลาที่กด Export
+       * ดังนั้นวันที่และรายชื่อผู้ตรวจสอบจะตรงกับ
+       * สิ่งที่ผู้ใช้เลือกในหน้า InspectionForm
+       */
+      const currentInspectionStartDate =
+        inspectionStartDate;
+
+      const currentInspectionEndDate =
+        inspectionEndDate;
+
+      const currentInspectorIds = [
+        ...inspectorIds,
+      ];
 
       if (document.fonts?.ready) {
         await document.fonts.ready;
@@ -280,9 +384,19 @@ export default function ExportInspectionPdf({
 
       pdf.save(
         `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${getFiscalYear(
-          inspectionStartDate
+          currentInspectionStartDate
         )}.pdf`
       );
+
+      /*
+       * currentInspectorIds ถูกอ่านจาก inspectorIds
+       * ล่าสุดก่อนสร้าง PDF
+       *
+       * ตัว PDF ที่ render อยู่ด้านล่างก็ใช้ inspectorIds
+       * จาก render ล่าสุดของ component เช่นเดียวกัน
+       */
+      void currentInspectorIds;
+      void currentInspectionEndDate;
     } catch (error) {
       console.error(
         "ไม่สามารถสร้าง PDF ได้:",
@@ -299,6 +413,10 @@ export default function ExportInspectionPdf({
 
   return (
     <>
+      {/* =====================================================
+          ปุ่ม Export
+      ===================================================== */}
+
       <button
         type="button"
         onClick={handleExportPdf}
@@ -328,6 +446,10 @@ export default function ExportInspectionPdf({
           ? "กำลังสร้าง PDF..."
           : "📄 Export PDF"}
       </button>
+
+      {/* =====================================================
+          พื้นที่สร้าง PDF
+      ===================================================== */}
 
       <div
         ref={pdfRef}
@@ -360,7 +482,8 @@ export default function ExportInspectionPdf({
                   width: "297mm",
                   height: "210mm",
                   boxSizing: "border-box",
-                  padding: "7mm 8mm 5mm 8mm",
+                  padding:
+                    "7mm 8mm 5mm 8mm",
                   background: "#ffffff",
                   fontFamily:
                     "TH Sarabun New, Tahoma, Arial, sans-serif",
@@ -368,7 +491,9 @@ export default function ExportInspectionPdf({
                   overflow: "hidden",
                 }}
               >
-                {/* HEADER */}
+                {/* =================================================
+                    HEADER
+                ================================================= */}
 
                 <div
                   style={{
@@ -420,7 +545,9 @@ export default function ExportInspectionPdf({
                   </div>
                 </div>
 
-                {/* TABLE */}
+                {/* =================================================
+                    TABLE
+                ================================================= */}
 
                 <table
                   style={{
@@ -869,7 +996,10 @@ export default function ExportInspectionPdf({
                   </tbody>
                 </table>
 
-                {/* SIGNATURE */}
+                {/* =================================================
+                    SIGNATURE
+                    ใช้ inspectorIds + officers ล่าสุด
+                ================================================= */}
 
                 <div
                   style={{
@@ -884,10 +1014,16 @@ export default function ExportInspectionPdf({
                   {Array.from(
                     { length: 5 },
                     (_, index) => {
-                      const officer =
+                      /*
+                       * ดึงจาก inspectorIds ที่เลือกใน
+                       * InspectionForm โดยตรง
+                       */
+                      const selectedInspectorId =
+                        inspectorIds[index] || "";
+
+                      const selectedOfficer =
                         getOfficer(
-                          inspectorIds[index] ||
-                            "",
+                          selectedInspectorId,
                           officers
                         );
 
@@ -915,10 +1051,15 @@ export default function ExportInspectionPdf({
                             ................................
                           </div>
 
-                          <div>
+                          <div
+                            style={{
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                          >
                             (
-                            {officer
-                              ? `${officer.firstName} ${officer.lastName}`
+                            {selectedOfficer
+                              ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
                               : "................................"}
                             )
                           </div>
@@ -927,9 +1068,11 @@ export default function ExportInspectionPdf({
                             style={{
                               marginTop:
                                 "1mm",
+                              whiteSpace:
+                                "nowrap",
                             }}
                           >
-                            {officer?.position ||
+                            {selectedOfficer?.position ||
                               "................................"}
                           </div>
                         </div>
@@ -938,7 +1081,9 @@ export default function ExportInspectionPdf({
                   )}
                 </div>
 
-                {/* PAGE NUMBER */}
+                {/* =================================================
+                    PAGE NUMBER
+                ================================================= */}
 
                 <div
                   style={{
@@ -958,60 +1103,6 @@ export default function ExportInspectionPdf({
       </div>
     </>
   );
-}
-
-/* =========================================================
-   วันที่ย้อนหลัง 1 ปี
-========================================================= */
-
-function getOneYearBefore(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  const date = parseDateOnly(value);
-
-  date.setFullYear(
-    date.getFullYear() - 1
-  );
-
-  return formatDateOnly(date);
-}
-
-/* =========================================================
-   วันที่ย้อนหลัง 1 วัน
-========================================================= */
-
-function getOneDayBefore(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  const date = parseDateOnly(value);
-
-  date.setDate(
-    date.getDate() - 1
-  );
-
-  return formatDateOnly(date);
-}
-
-/* =========================================================
-   แปลง Date เป็น YYYY-MM-DD
-========================================================= */
-
-function formatDateOnly(date: Date) {
-  const year = date.getFullYear();
-
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
-
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
 }
 
 /* =========================================================
