@@ -1,3 +1,4 @@
+```tsx
 "use client";
 
 import React, { useRef, useState } from "react";
@@ -202,6 +203,26 @@ export default function ExportInspectionPdf({
     try {
       setIsExporting(true);
 
+      /*
+       * รอให้ฟอนต์ TH Sarabun New โหลดเสร็จ
+       * ก่อนนำ HTML ไปสร้างเป็นภาพ PDF
+       */
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      /*
+       * รอ browser render อีก 2 frame
+       * ให้ขนาดตารางและฟอนต์ถูกคำนวณเรียบร้อย
+       */
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resolve();
+          });
+        });
+      });
+
       const pages =
         pdfRef.current.querySelectorAll<HTMLElement>(
           ".inspection-pdf-page"
@@ -224,19 +245,25 @@ export default function ExportInspectionPdf({
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
 
+        const width = page.clientWidth;
+        const height = page.clientHeight;
+
         const canvas = await html2canvas(page, {
           scale: 2,
           useCORS: true,
+          allowTaint: false,
           backgroundColor: "#ffffff",
+          width,
+          height,
+          windowWidth: width,
+          windowHeight: height,
+          scrollX: 0,
+          scrollY: 0,
           logging: false,
-          width: 1122,
-          height: 794,
-          windowWidth: 1122,
-          windowHeight: 794,
         });
 
         const imageData =
-          canvas.toDataURL("image/png");
+          canvas.toDataURL("image/png", 1.0);
 
         if (i > 0) {
           pdf.addPage();
@@ -287,7 +314,9 @@ export default function ExportInspectionPdf({
       <button
         type="button"
         onClick={handleExportPdf}
-        disabled={isExporting || assets.length === 0}
+        disabled={
+          isExporting || assets.length === 0
+        }
         className="
           rounded-xl
           bg-gradient-to-r
@@ -313,8 +342,9 @@ export default function ExportInspectionPdf({
       </button>
 
       {/* =====================================================
-          พื้นที่สำหรับสร้าง PDF
-          ซ่อนไว้นอกหน้าจอ
+          พื้นที่สร้าง PDF
+          A4 Landscape
+          297mm × 210mm
       ===================================================== */}
 
       <div
@@ -323,9 +353,10 @@ export default function ExportInspectionPdf({
           position: "fixed",
           left: "-100000px",
           top: 0,
-          width: "1122px",
+          width: "297mm",
           background: "#ffffff",
           zIndex: -1,
+          pointerEvents: "none",
         }}
       >
         {Array.from(
@@ -344,14 +375,16 @@ export default function ExportInspectionPdf({
                 key={pageIndex}
                 className="inspection-pdf-page"
                 style={{
-                  width: "1122px",
-                  height: "794px",
-                  background: "#ffffff",
+                  width: "297mm",
+                  height: "210mm",
                   boxSizing: "border-box",
-                  padding: "22px 16px 12px 16px",
+                  padding:
+                    "7mm 8mm 5mm 8mm",
+                  background: "#ffffff",
                   fontFamily:
                     "TH Sarabun New, Tahoma, Arial, sans-serif",
                   color: "#000000",
+                  overflow: "hidden",
                 }}
               >
                 {/* =================================================
@@ -360,15 +393,17 @@ export default function ExportInspectionPdf({
 
                 <div
                   style={{
+                    width: "100%",
                     textAlign: "center",
-                    lineHeight: 1.1,
-                    marginBottom: "5px",
+                    lineHeight: 1,
+                    marginBottom: "3mm",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "17px",
+                      fontSize: "21px",
                       fontWeight: 700,
+                      marginBottom: "1mm",
                     }}
                   >
                     กระดาษทำการตรวจสอบพัสดุ
@@ -380,8 +415,9 @@ export default function ExportInspectionPdf({
 
                   <div
                     style={{
-                      fontSize: "16px",
+                      fontSize: "19px",
                       fontWeight: 700,
+                      marginBottom: "1mm",
                     }}
                   >
                     สำนักอนามัยการเจริญพันธุ์
@@ -389,7 +425,7 @@ export default function ExportInspectionPdf({
 
                   <div
                     style={{
-                      fontSize: "14px",
+                      fontSize: "16px",
                       fontWeight: 600,
                     }}
                   >
@@ -397,7 +433,7 @@ export default function ExportInspectionPdf({
                     {formatThaiDate(
                       inspectionStartDate
                     )}
-                    {"   "}
+                    {"     "}
                     ตรวจสอบแล้วเสร็จวันที่{" "}
                     {formatThaiDate(
                       inspectionEndDate
@@ -414,32 +450,33 @@ export default function ExportInspectionPdf({
                     width: "100%",
                     borderCollapse: "collapse",
                     tableLayout: "fixed",
-                    fontSize: "11px",
+                    fontSize: "10px",
+                    lineHeight: 1,
                   }}
                 >
                   <colgroup>
-                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "8%" }} />
                     <col style={{ width: "9%" }} />
                     <col style={{ width: "10%" }} />
-                    <col style={{ width: "11%" }} />
                     <col style={{ width: "12%" }} />
-                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "3.5%" }} />
 
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "8%" }} />
-
-                    <col style={{ width: "8%" }} />
-
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "5%" }} />
-
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "3.5%" }} />
                     <col style={{ width: "7%" }} />
 
-                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "7%" }} />
+
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "4%" }} />
+
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "6%" }} />
+
+                    <col style={{ width: "7%" }} />
                   </colgroup>
 
                   <thead>
@@ -498,7 +535,11 @@ export default function ExportInspectionPdf({
                           ยอดคงเหลือตามบัญชี
                         </div>
 
-                        <div>
+                        <div
+                          style={{
+                            marginTop: "1mm",
+                          }}
+                        >
                           ณ วันที่{" "}
                           {formatThaiDate(
                             getOneYearBefore(
@@ -516,7 +557,11 @@ export default function ExportInspectionPdf({
                           ยอดคงเหลือตามบัญชี
                         </div>
 
-                        <div>
+                        <div
+                          style={{
+                            marginTop: "1mm",
+                          }}
+                        >
                           ณ วันที่{" "}
                           {formatThaiDate(
                             getOneDayBefore(
@@ -541,8 +586,13 @@ export default function ExportInspectionPdf({
                           ผลการตรวจนับ
                         </div>
 
-                        <div>
-                          ถูกต้องตรงกับยอดคงเหลือตามบัญชี
+                        <div
+                          style={{
+                            marginTop: "1mm",
+                          }}
+                        >
+                          ถูกต้องตรงกับ
+                          ยอดคงเหลือตามบัญชี
                         </div>
                       </th>
 
@@ -604,7 +654,8 @@ export default function ExportInspectionPdf({
                     {pageAssets.map(
                       (asset, localIndex) => {
                         const actualIndex =
-                          startIndex + localIndex;
+                          startIndex +
+                          localIndex;
 
                         const row =
                           rows[actualIndex] || {
@@ -623,20 +674,26 @@ export default function ExportInspectionPdf({
                             key={asset.id}
                           >
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               {actualIndex + 1}
                             </td>
 
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               {asset.governmentAssetNo ||
                                 ""}
                             </td>
 
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               {asset.officeAssetNo ||
                                 ""}
@@ -657,11 +714,16 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                textAlign: "left",
+                                textAlign:
+                                  "left",
                                 paddingLeft:
-                                  "5px",
+                                  "3px",
                                 whiteSpace:
                                   "nowrap",
+                                overflow:
+                                  "hidden",
+                                textOverflow:
+                                  "clip",
                               }}
                             >
                               {asset.name}
@@ -685,7 +747,9 @@ export default function ExportInspectionPdf({
                             </td>
 
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               {getCategoryUnit(
                                 asset.category
@@ -694,28 +758,36 @@ export default function ExportInspectionPdf({
 
                             {/* รับ */}
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               -
                             </td>
 
                             {/* จ่าย */}
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               -
                             </td>
 
                             {/* ยอดคงเหลือ */}
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               -
                             </td>
 
                             {/* จำนวนตรวจนับ */}
                             <td
-                              style={bodyCellStyle}
+                              style={
+                                bodyCellStyle
+                              }
                             >
                               {row.countedQty}
                             </td>
@@ -724,8 +796,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                               }}
                             >
                               {getAccuracyChecked(
@@ -738,8 +812,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                               }}
                             >
                               {getAccuracyChecked(
@@ -752,8 +828,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                               }}
                             >
                               {getStatusChecked(
@@ -766,8 +844,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                               }}
                             >
                               {getStatusChecked(
@@ -780,8 +860,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                               }}
                             >
                               {getStatusChecked(
@@ -794,8 +876,10 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  700,
                                 whiteSpace:
                                   "nowrap",
                               }}
@@ -810,9 +894,14 @@ export default function ExportInspectionPdf({
                             <td
                               style={{
                                 ...bodyCellStyle,
-                                textAlign: "left",
+                                textAlign:
+                                  "left",
                                 paddingLeft:
-                                  "5px",
+                                  "3px",
+                                whiteSpace:
+                                  "nowrap",
+                                overflow:
+                                  "hidden",
                               }}
                             >
                               {row.remark || ""}
@@ -830,11 +919,11 @@ export default function ExportInspectionPdf({
 
                 <div
                   style={{
-                    marginTop: "8px",
+                    marginTop: "3mm",
                     display: "grid",
                     gridTemplateColumns:
                       "repeat(5, 1fr)",
-                    gap: "8px",
+                    columnGap: "3mm",
                     width: "100%",
                   }}
                 >
@@ -843,8 +932,9 @@ export default function ExportInspectionPdf({
                     (_, index) => {
                       const officer =
                         getOfficer(
-                          inspectorIds[index] ||
-                            "",
+                          inspectorIds[
+                            index
+                          ] || "",
                           officers
                         );
 
@@ -852,37 +942,42 @@ export default function ExportInspectionPdf({
                         <div
                           key={index}
                           style={{
-                            textAlign: "center",
-                            fontSize: "10px",
-                            lineHeight: 1.15,
+                            textAlign:
+                              "center",
+                            fontSize:
+                              "11px",
+                            lineHeight:
+                              1.05,
                           }}
                         >
                           <div
                             style={{
                               marginBottom:
-                                "8px",
+                                "2mm",
+                              whiteSpace:
+                                "nowrap",
                             }}
                           >
                             ลงชื่อ
-                            ........................................
+                            ................................
                           </div>
 
                           <div>
                             (
                             {officer
                               ? `${officer.firstName} ${officer.lastName}`
-                              : "........................................"}
+                              : "................................"}
                             )
                           </div>
 
                           <div
                             style={{
                               marginTop:
-                                "3px",
+                                "1mm",
                             }}
                           >
                             {officer?.position ||
-                              "........................................"}
+                              "................................"}
                           </div>
                         </div>
                       );
@@ -897,8 +992,9 @@ export default function ExportInspectionPdf({
                 <div
                   style={{
                     textAlign: "right",
-                    marginTop: "4px",
-                    fontSize: "9px",
+                    marginTop: "2mm",
+                    fontSize: "10px",
+                    lineHeight: 1,
                   }}
                 >
                   หน้า {pageIndex + 1} /{" "}
@@ -978,16 +1074,20 @@ const headerStyle: React.CSSProperties = {
   textAlign: "center",
   verticalAlign: "middle",
   fontWeight: 700,
-  padding: "3px 2px",
-  lineHeight: 1.05,
+  padding: "1.5mm 1mm",
+  lineHeight: 1,
+  height: "8mm",
 };
 
 const bodyCellStyle: React.CSSProperties = {
   border: "1px solid #000000",
+  background: "#ffffff",
   color: "#000000",
   textAlign: "center",
   verticalAlign: "middle",
-  padding: "2px 2px",
-  lineHeight: 1.05,
-  height: "24px",
+  padding: "1mm 0.8mm",
+  lineHeight: 1,
+  height: "8mm",
+  boxSizing: "border-box",
 };
+```
