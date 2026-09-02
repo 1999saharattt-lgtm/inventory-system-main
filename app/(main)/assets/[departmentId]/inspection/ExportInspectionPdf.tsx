@@ -1,4 +1,3 @@
-```tsx
 "use client";
 
 import React, { useRef, useState } from "react";
@@ -182,8 +181,7 @@ export default function ExportInspectionPdf({
 }: Props) {
   const pdfRef = useRef<HTMLDivElement>(null);
 
-  const [isExporting, setIsExporting] =
-    useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const totalPages = Math.max(
     1,
@@ -203,18 +201,10 @@ export default function ExportInspectionPdf({
     try {
       setIsExporting(true);
 
-      /*
-       * รอให้ฟอนต์ TH Sarabun New โหลดเสร็จ
-       * ก่อนนำ HTML ไปสร้างเป็นภาพ PDF
-       */
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
-      /*
-       * รอ browser render อีก 2 frame
-       * ให้ขนาดตารางและฟอนต์ถูกคำนวณเรียบร้อย
-       */
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -262,8 +252,10 @@ export default function ExportInspectionPdf({
           logging: false,
         });
 
-        const imageData =
-          canvas.toDataURL("image/png", 1.0);
+        const imageData = canvas.toDataURL(
+          "image/png",
+          1.0
+        );
 
         if (i > 0) {
           pdf.addPage();
@@ -307,10 +299,6 @@ export default function ExportInspectionPdf({
 
   return (
     <>
-      {/* =====================================================
-          ปุ่ม Export PDF
-      ===================================================== */}
-
       <button
         type="button"
         onClick={handleExportPdf}
@@ -340,12 +328,6 @@ export default function ExportInspectionPdf({
           ? "กำลังสร้าง PDF..."
           : "📄 Export PDF"}
       </button>
-
-      {/* =====================================================
-          พื้นที่สร้าง PDF
-          A4 Landscape
-          297mm × 210mm
-      ===================================================== */}
 
       <div
         ref={pdfRef}
@@ -378,8 +360,7 @@ export default function ExportInspectionPdf({
                   width: "297mm",
                   height: "210mm",
                   boxSizing: "border-box",
-                  padding:
-                    "7mm 8mm 5mm 8mm",
+                  padding: "7mm 8mm 5mm 8mm",
                   background: "#ffffff",
                   fontFamily:
                     "TH Sarabun New, Tahoma, Arial, sans-serif",
@@ -387,9 +368,7 @@ export default function ExportInspectionPdf({
                   overflow: "hidden",
                 }}
               >
-                {/* =================================================
-                    HEADER
-                ================================================= */}
+                {/* HEADER */}
 
                 <div
                   style={{
@@ -441,9 +420,7 @@ export default function ExportInspectionPdf({
                   </div>
                 </div>
 
-                {/* =================================================
-                    TABLE
-                ================================================= */}
+                {/* TABLE */}
 
                 <table
                   style={{
@@ -480,10 +457,6 @@ export default function ExportInspectionPdf({
                   </colgroup>
 
                   <thead>
-                    {/* =============================================
-                        HEADER ROW 1
-                    ============================================= */}
-
                     <tr>
                       <th
                         rowSpan={2}
@@ -611,10 +584,6 @@ export default function ExportInspectionPdf({
                       </th>
                     </tr>
 
-                    {/* =============================================
-                        HEADER ROW 2
-                    ============================================= */}
-
                     <tr>
                       <th style={headerStyle}>
                         รับ
@@ -670,9 +639,7 @@ export default function ExportInspectionPdf({
                           asset.officer;
 
                         return (
-                          <tr
-                            key={asset.id}
-                          >
+                          <tr key={asset.id}>
                             <td
                               style={
                                 bodyCellStyle
@@ -756,7 +723,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* รับ */}
                             <td
                               style={
                                 bodyCellStyle
@@ -765,7 +731,6 @@ export default function ExportInspectionPdf({
                               -
                             </td>
 
-                            {/* จ่าย */}
                             <td
                               style={
                                 bodyCellStyle
@@ -774,7 +739,6 @@ export default function ExportInspectionPdf({
                               -
                             </td>
 
-                            {/* ยอดคงเหลือ */}
                             <td
                               style={
                                 bodyCellStyle
@@ -783,7 +747,6 @@ export default function ExportInspectionPdf({
                               -
                             </td>
 
-                            {/* จำนวนตรวจนับ */}
                             <td
                               style={
                                 bodyCellStyle
@@ -792,7 +755,6 @@ export default function ExportInspectionPdf({
                               {row.countedQty}
                             </td>
 
-                            {/* ถูกต้อง */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -808,7 +770,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* ไม่ถูกต้อง */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -824,7 +785,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* ใช้งาน */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -840,7 +800,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* ชำรุด */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -856,7 +815,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* เสื่อมสภาพ */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -872,7 +830,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* ไม่สามารถใช้งาน */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -890,7 +847,6 @@ export default function ExportInspectionPdf({
                               )}
                             </td>
 
-                            {/* หมายเหตุ */}
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -913,9 +869,7 @@ export default function ExportInspectionPdf({
                   </tbody>
                 </table>
 
-                {/* =================================================
-                    SIGNATURE
-                ================================================= */}
+                {/* SIGNATURE */}
 
                 <div
                   style={{
@@ -932,9 +886,8 @@ export default function ExportInspectionPdf({
                     (_, index) => {
                       const officer =
                         getOfficer(
-                          inspectorIds[
-                            index
-                          ] || "",
+                          inspectorIds[index] ||
+                            "",
                           officers
                         );
 
@@ -985,9 +938,7 @@ export default function ExportInspectionPdf({
                   )}
                 </div>
 
-                {/* =================================================
-                    PAGE NUMBER
-                ================================================= */}
+                {/* PAGE NUMBER */}
 
                 <div
                   style={{
@@ -1090,4 +1041,3 @@ const bodyCellStyle: React.CSSProperties = {
   height: "8mm",
   boxSizing: "border-box",
 };
-```
