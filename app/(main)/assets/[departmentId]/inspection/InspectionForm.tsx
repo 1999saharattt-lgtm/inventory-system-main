@@ -190,6 +190,100 @@ function formatThaiShortDate(value: string) {
 }
 
 /**
+ * แปลงวันที่จาก DD/MM/YYYY
+ * เป็น YYYY-MM-DD
+ */
+function parseDisplayDate(value: string) {
+  const cleaned = value.replace(/[^\d]/g, "");
+
+  if (cleaned.length !== 8) {
+    return "";
+  }
+
+  const day = cleaned.slice(0, 2);
+  const month = cleaned.slice(2, 4);
+  const year = cleaned.slice(4, 8);
+
+  const dayNumber = Number(day);
+  const monthNumber = Number(month);
+  const yearNumber = Number(year);
+
+  if (
+    !Number.isInteger(dayNumber) ||
+    !Number.isInteger(monthNumber) ||
+    !Number.isInteger(yearNumber)
+  ) {
+    return "";
+  }
+
+  const date = new Date(
+    yearNumber,
+    monthNumber - 1,
+    dayNumber
+  );
+
+  if (
+    date.getFullYear() !== yearNumber ||
+    date.getMonth() !== monthNumber - 1 ||
+    date.getDate() !== dayNumber
+  ) {
+    return "";
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * แปลง YYYY-MM-DD
+ * เป็น DD/MM/YYYY
+ */
+function formatDisplayDate(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = parseDateOnly(value);
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * รับค่าช่องวันที่ DD/MM/YYYY
+ * และคืนค่าเป็น YYYY-MM-DD เมื่อวันที่ถูกต้อง
+ */
+function handleDisplayDateChange(
+  value: string,
+  setter: (value: string) => void
+) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+
+  let formatted = digits;
+
+  if (digits.length > 4) {
+    formatted = `${digits.slice(0, 2)}/${digits.slice(
+      2,
+      4
+    )}/${digits.slice(4)}`;
+  } else if (digits.length > 2) {
+    formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  }
+
+  const parsed = parseDisplayDate(formatted);
+
+  if (parsed) {
+    setter(parsed);
+  } else if (digits.length === 0) {
+    setter("");
+  } else {
+    setter(formatted);
+  }
+}
+
+/**
  * หน่วยของครุภัณฑ์
  */
 function getCategoryUnit(category: string) {
@@ -423,12 +517,18 @@ export default function InspectionForm({
             </label>
 
             <input
-              type="date"
-              value={inspectionStartDate}
+              type="text"
+              inputMode="numeric"
+              placeholder="วัน/เดือน/ปี ค.ศ."
+              value={formatDisplayDate(inspectionStartDate)}
               onChange={(e) =>
-                setInspectionStartDate(e.target.value)
+                handleDisplayDateChange(
+                  e.target.value,
+                  setInspectionStartDate
+                )
               }
               required
+              maxLength={10}
               className="
                 w-full
                 rounded-lg
@@ -439,6 +539,7 @@ export default function InspectionForm({
                 font-semibold
                 text-slate-900
                 outline-none
+                placeholder:text-slate-400
                 focus:border-cyan-500
                 focus:ring-2
                 focus:ring-cyan-100
@@ -462,12 +563,18 @@ export default function InspectionForm({
             </label>
 
             <input
-              type="date"
-              value={inspectionEndDate}
+              type="text"
+              inputMode="numeric"
+              placeholder="วัน/เดือน/ปี ค.ศ."
+              value={formatDisplayDate(inspectionEndDate)}
               onChange={(e) =>
-                setInspectionEndDate(e.target.value)
+                handleDisplayDateChange(
+                  e.target.value,
+                  setInspectionEndDate
+                )
               }
               required
+              maxLength={10}
               className="
                 w-full
                 rounded-lg
@@ -478,6 +585,7 @@ export default function InspectionForm({
                 font-semibold
                 text-slate-900
                 outline-none
+                placeholder:text-slate-400
                 focus:border-cyan-500
                 focus:ring-2
                 focus:ring-cyan-100
@@ -590,142 +698,31 @@ export default function InspectionForm({
 
             <thead>
               <tr>
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   ลำดับ
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   รหัส GFMIS
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   รหัสครุภัณฑ์
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   ผู้รับผิดชอบ
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   รายการ
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   หน่วย
                 </th>
 
-                <th
-                  colSpan={2}
-                  className="
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th colSpan={2} className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
                   </div>
@@ -738,22 +735,7 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
                   </div>
@@ -766,42 +748,11 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   จำนวนที่ตรวจนับได้
                 </th>
 
-                <th
-                  colSpan={2}
-                  className="
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th colSpan={2} className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   <div className="whitespace-nowrap">
                     ผลการตรวจนับ
                   </div>
@@ -811,190 +762,47 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                <th
-                  colSpan={4}
-                  className="
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th colSpan={4} className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   <span className="whitespace-nowrap">
                     สภาพครุภัณฑ์ที่ตรวจนับ
                   </span>
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    align-middle
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th rowSpan={2} className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white">
                   หมายเหตุ
                 </th>
               </tr>
 
               <tr>
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   รับ
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   จ่าย
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   ถูกต้อง
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   ไม่ถูกต้อง
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   ใช้งาน
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   ชำรุด
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   เสื่อมสภาพ
                 </th>
 
-                <th
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-2
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
                   <span className="whitespace-nowrap">
                     ไม่สามารถใช้งาน
                   </span>
@@ -1011,84 +819,27 @@ export default function InspectionForm({
                 return (
                   <tr
                     key={asset.id}
-                    className="
-                      transition
-                      hover:bg-emerald-50
-                    "
+                    className="transition hover:bg-emerald-50"
                   >
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-900">
                       {index + 1}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                       {asset.governmentAssetNo || "-"}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                       {asset.officeAssetNo || "-"}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                       {officer
                         ? `${officer.firstName} ${officer.lastName}`
                         : "-"}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 font-semibold text-slate-900">
                       {asset.name}
 
                       {(asset.brand || asset.model) && (
@@ -1106,74 +857,23 @@ export default function InspectionForm({
                       )}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                       {getCategoryUnit(asset.category)}
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-500
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                       -
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-500
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                       -
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-500
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                       -
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-2
-                      "
-                    >
+                    <td className="border border-black px-3 py-2">
                       <input
                         type="number"
                         min="0"
@@ -1185,39 +885,11 @@ export default function InspectionForm({
                             e.target.value
                           )
                         }
-                        className="
-                          block
-                          w-full
-                          min-w-[100px]
-                          rounded-lg
-                          border
-                          border-slate-300
-                          bg-white
-                          p-1.5
-                          text-center
-                          text-xs
-                          font-bold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
-                          sm:p-2
-                          sm:text-sm
-                        "
+                        className="block w-full min-w-[100px] rounded-lg border border-slate-300 bg-white p-1.5 text-center text-xs font-bold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-2 sm:text-sm"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
@@ -1229,26 +901,11 @@ export default function InspectionForm({
                             "CORRECT"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
@@ -1260,26 +917,11 @@ export default function InspectionForm({
                             "INCORRECT"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1291,26 +933,11 @@ export default function InspectionForm({
                             "IN_USE"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1322,26 +949,11 @@ export default function InspectionForm({
                             "DAMAGED"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1355,26 +967,11 @@ export default function InspectionForm({
                             "DETERIORATED"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                      "
-                    >
+                    <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1386,24 +983,11 @@ export default function InspectionForm({
                             "UNUSABLE"
                           )
                         }
-                        className="
-                          h-4
-                          w-4
-                          cursor-pointer
-                          sm:h-5
-                          sm:w-5
-                        "
+                        className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                       />
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-2
-                      "
-                    >
+                    <td className="border border-black px-3 py-2">
                       <input
                         type="text"
                         value={row.remark}
@@ -1415,26 +999,7 @@ export default function InspectionForm({
                           )
                         }
                         placeholder="หมายเหตุ"
-                        className="
-                          block
-                          w-full
-                          min-w-[150px]
-                          rounded-lg
-                          border
-                          border-slate-300
-                          bg-white
-                          p-1.5
-                          text-xs
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                          placeholder:text-slate-400
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
-                          sm:p-2
-                          sm:text-sm
-                        "
+                        className="block w-full min-w-[150px] rounded-lg border border-slate-300 bg-white p-1.5 text-xs font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-2 sm:text-sm"
                       />
                     </td>
                   </tr>
@@ -1445,15 +1010,7 @@ export default function InspectionForm({
                 <tr>
                   <td
                     colSpan={17}
-                    className="
-                      border
-                      border-black
-                      px-4
-                      py-10
-                      text-center
-                      font-bold
-                      text-slate-500
-                    "
+                    className="border border-black px-4 py-10 text-center font-bold text-slate-500"
                   >
                     ไม่พบรายการครุภัณฑ์
                   </td>
