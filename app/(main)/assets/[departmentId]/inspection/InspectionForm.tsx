@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ExportInspectionPdf from "./ExportInspectionPdf";
 
 type Department = {
   id: number;
@@ -529,13 +530,6 @@ export default function InspectionForm({
 
         {/* =====================================================
             ตาราง
-
-            สำคัญ:
-            - ใช้ความกว้างแบบ px แทน %
-            - ตารางสามารถยืดออกได้
-            - ข้อความไม่ถูกบีบ
-            - ข้อมูลสำคัญเป็นบรรทัดเดียว
-            - หน้าจอแคบเลื่อนซ้าย/ขวาได้
         ===================================================== */}
 
         <div
@@ -557,66 +551,27 @@ export default function InspectionForm({
             "
           >
             <colgroup>
-              {/* ลำดับ */}
               <col className="w-[60px]" />
-
-              {/* GFMIS */}
               <col className="w-[180px]" />
-
-              {/* รหัสครุภัณฑ์ */}
               <col className="w-[190px]" />
-
-              {/* ผู้รับผิดชอบ */}
               <col className="w-[240px]" />
-
-              {/* รายการ */}
               <col className="w-[300px]" />
-
-              {/* หน่วย */}
               <col className="w-[100px]" />
-
-              {/* รับ */}
               <col className="w-[100px]" />
-
-              {/* จ่าย */}
               <col className="w-[100px]" />
-
-              {/* ยอดคงเหลือ */}
               <col className="w-[190px]" />
-
-              {/* จำนวนตรวจนับ */}
               <col className="w-[180px]" />
-
-              {/* ถูกต้อง */}
               <col className="w-[110px]" />
-
-              {/* ไม่ถูกต้อง */}
               <col className="w-[130px]" />
-
-              {/* ใช้งาน */}
               <col className="w-[110px]" />
-
-              {/* ชำรุด */}
               <col className="w-[110px]" />
-
-              {/* เสื่อมสภาพ */}
               <col className="w-[140px]" />
-
-              {/* ไม่สามารถใช้งาน */}
               <col className="w-[190px]" />
-
-              {/* หมายเหตุ */}
               <col className="w-[240px]" />
             </colgroup>
 
             <thead>
-              {/* =================================================
-                  แถวที่ 1
-              ================================================= */}
-
               <tr>
-                {/* ลำดับ */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -636,8 +591,6 @@ export default function InspectionForm({
                 >
                   ลำดับ
                 </th>
-
-                {/* รหัส GFMIS */}
 
                 <th
                   rowSpan={2}
@@ -659,8 +612,6 @@ export default function InspectionForm({
                   รหัส GFMIS
                 </th>
 
-                {/* รหัสครุภัณฑ์ */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -680,8 +631,6 @@ export default function InspectionForm({
                 >
                   รหัสครุภัณฑ์
                 </th>
-
-                {/* ผู้รับผิดชอบ */}
 
                 <th
                   rowSpan={2}
@@ -703,8 +652,6 @@ export default function InspectionForm({
                   ผู้รับผิดชอบ
                 </th>
 
-                {/* รายการ */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -725,8 +672,6 @@ export default function InspectionForm({
                   รายการ
                 </th>
 
-                {/* หน่วย */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -746,8 +691,6 @@ export default function InspectionForm({
                 >
                   หน่วย
                 </th>
-
-                {/* ยอดคงเหลือตามบัญชี */}
 
                 <th
                   colSpan={2}
@@ -777,8 +720,6 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                {/* ยอดคงเหลือตามบัญชี ณ วันที่ย้อนหลัง 1 วัน */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -807,8 +748,6 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                {/* จำนวนที่ตรวจนับได้ */}
-
                 <th
                   rowSpan={2}
                   className="
@@ -828,8 +767,6 @@ export default function InspectionForm({
                 >
                   จำนวนที่ตรวจนับได้
                 </th>
-
-                {/* ผลการตรวจนับ */}
 
                 <th
                   colSpan={2}
@@ -856,8 +793,6 @@ export default function InspectionForm({
                   </div>
                 </th>
 
-                {/* สภาพ */}
-
                 <th
                   colSpan={4}
                   className="
@@ -878,8 +813,6 @@ export default function InspectionForm({
                     สภาพครุภัณฑ์ที่ตรวจนับ
                   </span>
                 </th>
-
-                {/* หมายเหตุ */}
 
                 <th
                   rowSpan={2}
@@ -902,13 +835,7 @@ export default function InspectionForm({
                 </th>
               </tr>
 
-              {/* =================================================
-                  แถวที่ 2
-              ================================================= */}
-
               <tr>
-                {/* รับ */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -926,8 +853,6 @@ export default function InspectionForm({
                 >
                   รับ
                 </th>
-
-                {/* จ่าย */}
 
                 <th
                   className="
@@ -947,8 +872,6 @@ export default function InspectionForm({
                   จ่าย
                 </th>
 
-                {/* ถูกต้อง */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -966,8 +889,6 @@ export default function InspectionForm({
                 >
                   ถูกต้อง
                 </th>
-
-                {/* ไม่ถูกต้อง */}
 
                 <th
                   className="
@@ -987,8 +908,6 @@ export default function InspectionForm({
                   ไม่ถูกต้อง
                 </th>
 
-                {/* ใช้งาน */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -1006,8 +925,6 @@ export default function InspectionForm({
                 >
                   ใช้งาน
                 </th>
-
-                {/* ชำรุด */}
 
                 <th
                   className="
@@ -1027,8 +944,6 @@ export default function InspectionForm({
                   ชำรุด
                 </th>
 
-                {/* เสื่อมสภาพ */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -1046,8 +961,6 @@ export default function InspectionForm({
                 >
                   เสื่อมสภาพ
                 </th>
-
-                {/* ไม่สามารถใช้งาน */}
 
                 <th
                   className="
@@ -1085,8 +998,6 @@ export default function InspectionForm({
                       hover:bg-emerald-50
                     "
                   >
-                    {/* ลำดับ */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1101,8 +1012,6 @@ export default function InspectionForm({
                     >
                       {index + 1}
                     </td>
-
-                    {/* GFMIS */}
 
                     <td
                       className="
@@ -1119,8 +1028,6 @@ export default function InspectionForm({
                       {asset.governmentAssetNo || "-"}
                     </td>
 
-                    {/* รหัสครุภัณฑ์ */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1135,8 +1042,6 @@ export default function InspectionForm({
                     >
                       {asset.officeAssetNo || "-"}
                     </td>
-
-                    {/* ผู้รับผิดชอบ */}
 
                     <td
                       className="
@@ -1154,8 +1059,6 @@ export default function InspectionForm({
                         ? `${officer.firstName} ${officer.lastName}`
                         : "-"}
                     </td>
-
-                    {/* รายการ */}
 
                     <td
                       className="
@@ -1185,8 +1088,6 @@ export default function InspectionForm({
                       )}
                     </td>
 
-                    {/* หน่วย */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1202,7 +1103,20 @@ export default function InspectionForm({
                       {getCategoryUnit(asset.category)}
                     </td>
 
-                    {/* รับ */}
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2
+                        text-center
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
 
                     <td
                       className="
@@ -1219,8 +1133,6 @@ export default function InspectionForm({
                       -
                     </td>
 
-                    {/* จ่าย */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1235,25 +1147,6 @@ export default function InspectionForm({
                     >
                       -
                     </td>
-
-                    {/* ยอดคงเหลือ */}
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-500
-                      "
-                    >
-                      -
-                    </td>
-
-                    {/* จำนวนที่ตรวจนับได้ */}
 
                     <td
                       className="
@@ -1297,8 +1190,6 @@ export default function InspectionForm({
                       />
                     </td>
 
-                    {/* ถูกต้อง */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1329,8 +1220,6 @@ export default function InspectionForm({
                         "
                       />
                     </td>
-
-                    {/* ไม่ถูกต้อง */}
 
                     <td
                       className="
@@ -1363,8 +1252,6 @@ export default function InspectionForm({
                       />
                     </td>
 
-                    {/* ใช้งาน */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1396,8 +1283,6 @@ export default function InspectionForm({
                       />
                     </td>
 
-                    {/* ชำรุด */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1428,8 +1313,6 @@ export default function InspectionForm({
                         "
                       />
                     </td>
-
-                    {/* เสื่อมสภาพ */}
 
                     <td
                       className="
@@ -1464,8 +1347,6 @@ export default function InspectionForm({
                       />
                     </td>
 
-                    {/* ไม่สามารถใช้งาน */}
-
                     <td
                       className="
                         whitespace-nowrap
@@ -1496,8 +1377,6 @@ export default function InspectionForm({
                         "
                       />
                     </td>
-
-                    {/* หมายเหตุ */}
 
                     <td
                       className="
@@ -1648,8 +1527,6 @@ export default function InspectionForm({
                   ผู้ตรวจสอบคนที่ {index + 1}
                 </div>
 
-                {/* เลือกชื่อ */}
-
                 <label
                   className="
                     mb-2
@@ -1710,8 +1587,6 @@ export default function InspectionForm({
                   ))}
                 </select>
 
-                {/* ตำแหน่ง */}
-
                 <div className="mt-3">
                   <label
                     className="
@@ -1766,6 +1641,16 @@ export default function InspectionForm({
           sm:flex-row
         "
       >
+        <ExportInspectionPdf
+          department={department}
+          assets={assets}
+          rows={rows}
+          inspectionStartDate={inspectionStartDate}
+          inspectionEndDate={inspectionEndDate}
+          inspectorIds={inspectorIds}
+          officers={officers}
+        />
+
         <button
           type="button"
           className="
