@@ -354,32 +354,50 @@ export default function InspectionForm({
         <div
           className="
             mb-5
+            flex
+            flex-col
+            gap-4
             border-b
             border-slate-700
             pb-4
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
           "
         >
-          <h2
-            className="
-              text-xl
-              font-extrabold
-              !text-white
-              sm:text-2xl
-            "
-          >
-            ข้อมูลการตรวจสอบ
-          </h2>
+          <div>
+            <h2
+              className="
+                text-xl
+                font-extrabold
+                !text-white
+                sm:text-2xl
+              "
+            >
+              ข้อมูลการตรวจสอบ
+            </h2>
 
-          <p
-            className="
-              mt-1
-              text-sm
-              font-semibold
-              text-slate-300
-            "
-          >
-            {department.name}
-          </p>
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                text-slate-300
+              "
+            >
+              {department.name}
+            </p>
+          </div>
+
+          <ExportInspectionPdf
+            department={department}
+            assets={assets}
+            rows={rows}
+            inspectionStartDate={inspectionStartDate}
+            inspectionEndDate={inspectionEndDate}
+            inspectorIds={inspectorIds}
+            officers={officers}
+          />
         </div>
 
         <div
@@ -1641,16 +1659,6 @@ export default function InspectionForm({
           sm:flex-row
         "
       >
-        <ExportInspectionPdf
-          department={department}
-          assets={assets}
-          rows={rows}
-          inspectionStartDate={inspectionStartDate}
-          inspectionEndDate={inspectionEndDate}
-          inspectorIds={inspectorIds}
-          officers={officers}
-        />
-
         <button
           type="button"
           className="
