@@ -340,10 +340,13 @@ export default function InspectionForm({
         className="
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-4
-          shadow-lg
+          text-white
+          shadow-xl
           sm:p-6
         "
       >
@@ -351,7 +354,7 @@ export default function InspectionForm({
           className="
             mb-5
             border-b
-            border-slate-300
+            border-slate-700
             pb-4
           "
         >
@@ -359,7 +362,7 @@ export default function InspectionForm({
             className="
               text-xl
               font-extrabold
-              text-slate-900
+              text-white
               sm:text-2xl
             "
           >
@@ -371,7 +374,7 @@ export default function InspectionForm({
               mt-1
               text-sm
               font-semibold
-              text-slate-600
+              text-slate-300
             "
           >
             {department.name}
@@ -394,7 +397,7 @@ export default function InspectionForm({
                 block
                 text-base
                 font-extrabold
-                text-slate-900
+                text-white
               "
             >
               เริ่มดำเนินการตรวจสอบวันที่
@@ -433,7 +436,7 @@ export default function InspectionForm({
                 block
                 text-base
                 font-extrabold
-                text-slate-900
+                text-white
               "
             >
               ตรวจสอบแล้วเสร็จวันที่
@@ -474,10 +477,13 @@ export default function InspectionForm({
           w-full
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-3
-          shadow-lg
+          text-white
+          shadow-xl
           sm:p-4
           lg:p-6
         "
@@ -489,7 +495,7 @@ export default function InspectionForm({
             flex-col
             gap-2
             border-b
-            border-slate-300
+            border-slate-700
             pb-4
             sm:flex-row
             sm:items-center
@@ -501,7 +507,7 @@ export default function InspectionForm({
               className="
                 text-xl
                 font-extrabold
-                text-slate-900
+                text-white
                 sm:text-2xl
               "
             >
@@ -513,7 +519,7 @@ export default function InspectionForm({
                 mt-1
                 text-sm
                 font-semibold
-                text-slate-600
+                text-slate-300
               "
             >
               จำนวน {assets.length} รายการ
@@ -544,7 +550,7 @@ export default function InspectionForm({
           <table
             className="
               w-max
-              min-w-[2550px]
+              min-w-[2700px]
               border-collapse
               text-xs
               sm:text-sm
@@ -555,16 +561,16 @@ export default function InspectionForm({
               <col className="w-[60px]" />
 
               {/* GFMIS */}
-              <col className="w-[170px]" />
-
-              {/* รหัสครุภัณฑ์ */}
               <col className="w-[180px]" />
 
+              {/* รหัสครุภัณฑ์ */}
+              <col className="w-[190px]" />
+
               {/* ผู้รับผิดชอบ */}
-              <col className="w-[220px]" />
+              <col className="w-[240px]" />
 
               {/* รายการ */}
-              <col className="w-[280px]" />
+              <col className="w-[300px]" />
 
               {/* หน่วย */}
               <col className="w-[100px]" />
@@ -576,7 +582,7 @@ export default function InspectionForm({
               <col className="w-[100px]" />
 
               {/* ยอดคงเหลือ */}
-              <col className="w-[180px]" />
+              <col className="w-[190px]" />
 
               {/* จำนวนตรวจนับ */}
               <col className="w-[180px]" />
@@ -585,7 +591,7 @@ export default function InspectionForm({
               <col className="w-[110px]" />
 
               {/* ไม่ถูกต้อง */}
-              <col className="w-[120px]" />
+              <col className="w-[130px]" />
 
               {/* ใช้งาน */}
               <col className="w-[110px]" />
@@ -594,13 +600,13 @@ export default function InspectionForm({
               <col className="w-[110px]" />
 
               {/* เสื่อมสภาพ */}
-              <col className="w-[130px]" />
+              <col className="w-[140px]" />
 
               {/* ไม่สามารถใช้งาน */}
-              <col className="w-[170px]" />
+              <col className="w-[190px]" />
 
               {/* หมายเหตุ */}
-              <col className="w-[220px]" />
+              <col className="w-[240px]" />
             </colgroup>
 
             <thead>
@@ -1058,7 +1064,9 @@ export default function InspectionForm({
                     text-white
                   "
                 >
-                  ไม่สามารถใช้งาน
+                  <span className="whitespace-nowrap">
+                    ไม่สามารถใช้งาน
+                  </span>
                 </th>
               </tr>
             </thead>
@@ -1567,10 +1575,13 @@ export default function InspectionForm({
         className="
           rounded-2xl
           border
-          border-slate-300
-          bg-white
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          to-slate-800
           p-4
-          shadow-lg
+          text-white
+          shadow-xl
           sm:p-6
         "
       >
@@ -1578,7 +1589,7 @@ export default function InspectionForm({
           className="
             mb-5
             border-b
-            border-slate-300
+            border-slate-700
             pb-4
           "
         >
@@ -1586,7 +1597,7 @@ export default function InspectionForm({
             className="
               text-xl
               font-extrabold
-              text-slate-900
+              text-white
               sm:text-2xl
             "
           >
@@ -1598,7 +1609,7 @@ export default function InspectionForm({
               mt-1
               text-sm
               font-semibold
-              text-slate-600
+              text-slate-300
             "
           >
             เลือกรายชื่อจาก Officer ของทุกกลุ่มงาน
@@ -1621,8 +1632,8 @@ export default function InspectionForm({
                 className="
                   rounded-xl
                   border
-                  border-slate-300
-                  bg-slate-50
+                  border-slate-700
+                  bg-slate-900/70
                   p-4
                 "
               >
@@ -1631,7 +1642,7 @@ export default function InspectionForm({
                     mb-3
                     text-base
                     font-extrabold
-                    text-slate-900
+                    text-white
                   "
                 >
                   ผู้ตรวจสอบคนที่ {index + 1}
@@ -1645,7 +1656,7 @@ export default function InspectionForm({
                     block
                     text-sm
                     font-bold
-                    text-slate-700
+                    text-slate-300
                   "
                 >
                   ลงชื่อ
@@ -1708,7 +1719,7 @@ export default function InspectionForm({
                       block
                       text-sm
                       font-bold
-                      text-slate-700
+                      text-slate-300
                     "
                   >
                     ตำแหน่ง
