@@ -41,11 +41,40 @@ const inspectionStatusClass: Record<string, string> = {
 };
 
 const quarterName: Record<string, string> = {
-  Q1: "ไตรมาส 1",
-  Q2: "ไตรมาส 2",
-  Q3: "ไตรมาส 3",
-  Q4: "ไตรมาส 4",
+  Q1: "ไตรมาสที่ 1",
+  Q2: "ไตรมาสที่ 2",
+  Q3: "ไตรมาสที่ 3",
+  Q4: "ไตรมาสที่ 4",
 };
+
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: Date | string | null) {
+  if (!date) return "-";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "-";
+  }
+
+  return `${parsedDate.getDate()} ${
+    thaiMonths[parsedDate.getMonth()]
+  } ${parsedDate.getFullYear() + 543}`;
+}
 
 export default async function AssetInspectionPage({
   params,
@@ -649,9 +678,9 @@ export default async function AssetInspectionPage({
                           font-semibold
                         "
                       >
-                        {new Date(
+                        {formatThaiDate(
                           inspection.inspectionDate
-                        ).toLocaleDateString("th-TH")}
+                        )}
                       </td>
 
                       <td
