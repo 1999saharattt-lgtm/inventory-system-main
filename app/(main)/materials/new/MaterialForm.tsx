@@ -152,9 +152,22 @@ export default function MaterialForm({
       onSubmit={handleSubmit}
       className="
         space-y-6
+        rounded-3xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        p-6
+        text-white
+        shadow-2xl
+        sm:p-8
       "
     >
-      {/* ผู้จำหน่าย */}
+      {/* =====================================================
+          ผู้จำหน่าย
+      ===================================================== */}
 
       <div>
         <label
@@ -176,15 +189,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-800
             p-3
             font-bold
-            text-black
+            text-white
             outline-none
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           <option value="">
@@ -202,7 +214,9 @@ export default function MaterialForm({
         </select>
       </div>
 
-      {/* หมวดหมู่ */}
+      {/* =====================================================
+          หมวดหมู่
+      ===================================================== */}
 
       <div>
         <label
@@ -232,15 +246,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-800
             p-3
             font-bold
-            text-black
+            text-white
             outline-none
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           <option value="">
@@ -258,7 +271,9 @@ export default function MaterialForm({
         </select>
       </div>
 
-      {/* รายการพัสดุ */}
+      {/* =====================================================
+          รายการพัสดุ
+      ===================================================== */}
 
       <div>
         <label
@@ -283,15 +298,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-800
             p-3
             font-bold
-            text-black
+            text-white
             outline-none
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            focus:border-cyan-400
+            focus:outline-none
           "
         >
           <option value="">
@@ -330,16 +344,15 @@ export default function MaterialForm({
                 w-full
                 rounded-xl
                 border
-                border-slate-300
-                bg-white
+                border-slate-600
+                bg-slate-800
                 p-3
                 font-bold
-                text-black
+                text-white
                 placeholder:text-slate-400
                 outline-none
-                focus:border-emerald-500
-                focus:ring-2
-                focus:ring-emerald-200
+                focus:border-cyan-400
+                focus:outline-none
               "
             />
 
@@ -354,23 +367,24 @@ export default function MaterialForm({
                 w-full
                 rounded-xl
                 border
-                border-slate-300
-                bg-white
+                border-slate-600
+                bg-slate-800
                 p-3
                 font-bold
-                text-black
+                text-white
                 placeholder:text-slate-400
                 outline-none
-                focus:border-emerald-500
-                focus:ring-2
-                focus:ring-emerald-200
+                focus:border-cyan-400
+                focus:outline-none
               "
             />
           </div>
         )}
       </div>
 
-      {/* จำนวน + หน่วย */}
+      {/* =====================================================
+          จำนวน + หน่วย
+      ===================================================== */}
 
       <div
         className="
@@ -401,15 +415,14 @@ export default function MaterialForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
+              border-slate-600
+              bg-slate-800
               p-3
               font-bold
-              text-black
+              text-white
               outline-none
-              focus:border-emerald-500
-              focus:ring-2
-              focus:ring-emerald-200
+              focus:border-cyan-400
+              focus:outline-none
             "
           />
         </div>
@@ -434,17 +447,19 @@ export default function MaterialForm({
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-slate-100
+              border-slate-600
+              bg-slate-700
               p-3
               font-bold
-              text-black
+              text-white
             "
           />
         </div>
       </div>
 
-      {/* ราคาล่าสุด */}
+      {/* =====================================================
+          ราคาล่าสุด
+      ===================================================== */}
 
       <div>
         <label
@@ -469,36 +484,41 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-800
             p-3
             text-right
             font-bold
-            text-black
+            text-white
             outline-none
-            focus:border-emerald-500
-            focus:ring-2
-            focus:ring-emerald-200
+            focus:border-cyan-400
+            focus:outline-none
           "
         />
       </div>
 
-      {/* ปุ่ม */}
+      {/* =====================================================
+          Buttons
+      ===================================================== */}
 
       <div
         className="
           flex
           justify-end
           gap-3
-          pt-4
+          border-t
+          border-slate-700
+          pt-5
         "
       >
+        {/* ปุ่มยกเลิก */}
+
         <a
           href="/materials"
           className="
             rounded-xl
             bg-slate-700
-            px-8
+            px-6
             py-3
             font-extrabold
             text-white
@@ -510,21 +530,24 @@ export default function MaterialForm({
           ยกเลิก
         </a>
 
+        {/* ปุ่มบันทึก */}
+
         <button
           type="submit"
           className="
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
-            via-green-500
-            to-emerald-500
-            px-8
+            to-green-500
+            px-7
             py-3
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
           "
         >
           💾 บันทึก
