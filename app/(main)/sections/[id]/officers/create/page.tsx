@@ -136,8 +136,8 @@ export default async function CreateOfficerPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
@@ -160,241 +160,271 @@ export default async function CreateOfficerPage({
           Form
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-7
-        "
-      >
-        <form
-          action={createOfficer}
-          className="space-y-6"
-        >
-          {/* ชื่อ + นามสกุล */}
-
+      <div className="flex w-full justify-center py-2 sm:py-4">
+        <div className="w-full max-w-4xl">
           <div
             className="
-              grid
-              gap-6
-              md:grid-cols-2
+              w-full
+              rounded-3xl
+              border
+              border-slate-700
+              bg-gradient-to-br
+              from-slate-950
+              via-slate-900
+              to-slate-800
+              p-6
+              text-white
+              shadow-2xl
+              sm:p-8
             "
           >
-            {/* ชื่อ */}
+            <form
+              action={createOfficer}
+              className="space-y-6"
+            >
+              {/* =====================================================
+                  ชื่อ + นามสกุล
+              ===================================================== */}
 
-            <div>
-              <label
+              <div
                 className="
-                  mb-2
-                  block
-                  text-base
-                  font-extrabold
-                  text-white
-                  sm:text-lg
+                  grid
+                  grid-cols-1
+                  gap-5
+                  md:grid-cols-2
                 "
               >
-                ชื่อ
-              </label>
+                {/* ชื่อ */}
 
-              <input
-                name="firstName"
-                required
+                <div>
+                  <label
+                    className="
+                      mb-2
+                      block
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    ชื่อ
+                  </label>
+
+                  <input
+                    name="firstName"
+                    required
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-slate-600
+                      bg-slate-800
+                      p-3
+                      font-bold
+                      text-white
+                      outline-none
+                      transition
+                      focus:border-cyan-400
+                      focus:outline-none
+                    "
+                  />
+                </div>
+
+                {/* นามสกุล */}
+
+                <div>
+                  <label
+                    className="
+                      mb-2
+                      block
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    นามสกุล
+                  </label>
+
+                  <input
+                    name="lastName"
+                    required
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-slate-600
+                      bg-slate-800
+                      p-3
+                      font-bold
+                      text-white
+                      outline-none
+                      transition
+                      focus:border-cyan-400
+                      focus:outline-none
+                    "
+                  />
+                </div>
+              </div>
+
+              {/* =====================================================
+                  ตำแหน่ง
+              ===================================================== */}
+
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+                  ตำแหน่ง
+                </label>
+
+                <input
+                  name="position"
+                  required
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-600
+                    bg-slate-800
+                    p-3
+                    font-bold
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-cyan-400
+                    focus:outline-none
+                  "
+                />
+              </div>
+
+              {/* =====================================================
+                  ประเภทบุคลากร
+              ===================================================== */}
+
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+                  ประเภทบุคลากร
+                </label>
+
+                <select
+                  name="type"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-600
+                    bg-slate-800
+                    p-3
+                    font-bold
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-cyan-400
+                    focus:outline-none
+                  "
+                >
+                  <option
+                    value="CIVIL_SERVANT"
+                    className="bg-slate-800 text-white"
+                  >
+                    ข้าราชการ
+                  </option>
+
+                  <option
+                    value="GOVERNMENT_EMPLOYEE"
+                    className="bg-slate-800 text-white"
+                  >
+                    พนักงานราชการ
+                  </option>
+
+                  <option
+                    value="PERMANENT_EMPLOYEE"
+                    className="bg-slate-800 text-white"
+                  >
+                    ลูกจ้างประจำ
+                  </option>
+
+                  <option
+                    value="OUTSOURCE"
+                    className="bg-slate-800 text-white"
+                  >
+                    จ้างเหมาบริการ
+                  </option>
+                </select>
+              </div>
+
+              {/* =====================================================
+                  ปุ่ม
+              ===================================================== */}
+
+              <div
                 className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  text-base
-                  font-medium
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-cyan-400
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-cyan-400/30
-                  sm:text-lg
-                "
-              />
-            </div>
-
-            {/* นามสกุล */}
-
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-base
-                  font-extrabold
-                  text-white
-                  sm:text-lg
+                  flex
+                  justify-end
+                  gap-3
+                  border-t
+                  border-slate-700
+                  pt-5
                 "
               >
-                นามสกุล
-              </label>
+                {/* ยกเลิก */}
 
-              <input
-                name="lastName"
-                required
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  text-base
-                  font-medium
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-cyan-400
-                  focus:outline-none
-                  focus:ring-2
-                  focus:ring-cyan-400/30
-                  sm:text-lg
-                "
-              />
-            </div>
+                <Link
+                  href={`/departments/${departmentId}`}
+                  className="
+                    rounded-xl
+                    bg-slate-700
+                    px-6
+                    py-3
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    transition
+                    hover:bg-slate-800
+                  "
+                >
+                  ยกเลิก
+                </Link>
+
+                {/* บันทึก */}
+
+                <button
+                  type="submit"
+                  className="
+                    rounded-xl
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-green-500
+                    px-7
+                    py-3
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    transition
+                    hover:scale-105
+                    hover:from-emerald-700
+                    hover:to-green-600
+                  "
+                >
+                  💾 บันทึก
+                </button>
+              </div>
+            </form>
           </div>
-
-          {/* ตำแหน่ง */}
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-base
-                font-extrabold
-                text-white
-                sm:text-lg
-              "
-            >
-              ตำแหน่ง
-            </label>
-
-            <input
-              name="position"
-              required
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-base
-                font-medium
-                text-slate-900
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:outline-none
-                focus:ring-2
-                focus:ring-cyan-400/30
-                sm:text-lg
-              "
-            />
-          </div>
-
-          {/* ประเภท */}
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-base
-                font-extrabold
-                text-white
-                sm:text-lg
-              "
-            >
-              ประเภทบุคลากร
-            </label>
-
-            <select
-              name="type"
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-base
-                font-medium
-                text-slate-900
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:outline-none
-                focus:ring-2
-                focus:ring-cyan-400/30
-                sm:text-lg
-              "
-            >
-              <option value="CIVIL_SERVANT">
-                ข้าราชการ
-              </option>
-
-              <option value="GOVERNMENT_EMPLOYEE">
-                พนักงานราชการ
-              </option>
-
-              <option value="PERMANENT_EMPLOYEE">
-                ลูกจ้างประจำ
-              </option>
-
-              <option value="OUTSOURCE">
-                จ้างเหมาบริการ
-              </option>
-            </select>
-          </div>
-
-          {/* ปุ่ม */}
-
-          <div className="pt-4">
-            <button
-              type="submit"
-              className="
-                w-full
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-8
-                py-3
-                text-base
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-[1.02]
-                sm:w-auto
-                sm:text-lg
-              "
-            >
-              💾 บันทึก
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

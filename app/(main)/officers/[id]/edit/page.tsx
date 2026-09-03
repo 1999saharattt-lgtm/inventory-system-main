@@ -131,8 +131,8 @@ export default async function EditOfficerPage({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
@@ -155,195 +155,273 @@ export default async function EditOfficerPage({
           Form
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-8
-          shadow-2xl
-        "
-      >
-        <form
-          action={updateOfficer}
-          className="space-y-6"
-        >
+      <div className="flex w-full justify-center py-2 sm:py-4">
+        <div className="w-full max-w-4xl">
           <div
             className="
-              grid
-              gap-6
-              md:grid-cols-2
-            "
-          >
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
-                "
-              >
-                ชื่อ
-              </label>
-
-              <input
-                name="firstName"
-                defaultValue={officer.firstName}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-4
-                  py-3
-                  font-bold
-                  text-white
-                  outline-none
-                  focus:border-cyan-400
-                "
-              />
-            </div>
-
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
-                "
-              >
-                นามสกุล
-              </label>
-
-              <input
-                name="lastName"
-                defaultValue={officer.lastName}
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-4
-                  py-3
-                  font-bold
-                  text-white
-                  outline-none
-                  focus:border-cyan-400
-                "
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
-              "
-            >
-              ตำแหน่ง
-            </label>
-
-            <input
-              name="position"
-              defaultValue={officer.position}
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-3
-                font-bold
-                text-white
-                outline-none
-                focus:border-cyan-400
-              "
-            />
-          </div>
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
-              "
-            >
-              ประเภทบุคลากร
-            </label>
-
-            <select
-              name="type"
-              defaultValue={officer.type}
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-3
-                font-bold
-                text-white
-                outline-none
-                focus:border-cyan-400
-              "
-            >
-              <option value="CIVIL_SERVANT">
-                ข้าราชการ
-              </option>
-
-              <option value="GOVERNMENT_EMPLOYEE">
-                พนักงานราชการ
-              </option>
-
-              <option value="PERMANENT_EMPLOYEE">
-                ลูกจ้างประจำ
-              </option>
-
-              <option value="OUTSOURCE">
-                จ้างเหมาบริการ
-              </option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-8
-              py-3
-              font-extrabold
+              w-full
+              space-y-6
+              rounded-3xl
+              border
+              border-slate-700
+              bg-gradient-to-br
+              from-slate-950
+              via-slate-900
+              to-slate-800
+              p-6
               text-white
-              shadow-lg
-              transition
-              hover:scale-105
+              shadow-2xl
+              sm:p-8
             "
           >
-            💾 บันทึกการแก้ไข
-          </button>
-        </form>
+            <form
+              action={updateOfficer}
+              className="space-y-6"
+            >
+              {/* =====================================================
+                  ชื่อ + นามสกุล
+              ===================================================== */}
+
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-5
+                  md:grid-cols-2
+                "
+              >
+                {/* ชื่อ */}
+
+                <div>
+                  <label
+                    className="
+                      mb-2
+                      block
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    ชื่อ
+                  </label>
+
+                  <input
+                    name="firstName"
+                    defaultValue={officer.firstName}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-slate-600
+                      bg-slate-800
+                      p-3
+                      font-bold
+                      text-white
+                      outline-none
+                      transition
+                      focus:border-cyan-400
+                      focus:outline-none
+                    "
+                  />
+                </div>
+
+                {/* นามสกุล */}
+
+                <div>
+                  <label
+                    className="
+                      mb-2
+                      block
+                      text-lg
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    นามสกุล
+                  </label>
+
+                  <input
+                    name="lastName"
+                    defaultValue={officer.lastName}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-slate-600
+                      bg-slate-800
+                      p-3
+                      font-bold
+                      text-white
+                      outline-none
+                      transition
+                      focus:border-cyan-400
+                      focus:outline-none
+                    "
+                  />
+                </div>
+              </div>
+
+              {/* =====================================================
+                  ตำแหน่ง
+              ===================================================== */}
+
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+                  ตำแหน่ง
+                </label>
+
+                <input
+                  name="position"
+                  defaultValue={officer.position}
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-600
+                    bg-slate-800
+                    p-3
+                    font-bold
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-cyan-400
+                    focus:outline-none
+                  "
+                />
+              </div>
+
+              {/* =====================================================
+                  ประเภทบุคลากร
+              ===================================================== */}
+
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-lg
+                    font-extrabold
+                    text-white
+                  "
+                >
+                  ประเภทบุคลากร
+                </label>
+
+                <select
+                  name="type"
+                  defaultValue={officer.type}
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-600
+                    bg-slate-800
+                    p-3
+                    font-bold
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-cyan-400
+                    focus:outline-none
+                  "
+                >
+                  <option
+                    value="CIVIL_SERVANT"
+                    className="bg-slate-800 text-white"
+                  >
+                    ข้าราชการ
+                  </option>
+
+                  <option
+                    value="GOVERNMENT_EMPLOYEE"
+                    className="bg-slate-800 text-white"
+                  >
+                    พนักงานราชการ
+                  </option>
+
+                  <option
+                    value="PERMANENT_EMPLOYEE"
+                    className="bg-slate-800 text-white"
+                  >
+                    ลูกจ้างประจำ
+                  </option>
+
+                  <option
+                    value="OUTSOURCE"
+                    className="bg-slate-800 text-white"
+                  >
+                    จ้างเหมาบริการ
+                  </option>
+                </select>
+              </div>
+
+              {/* =====================================================
+                  ปุ่ม
+              ===================================================== */}
+
+              <div
+                className="
+                  flex
+                  justify-end
+                  gap-3
+                  border-t
+                  border-slate-700
+                  pt-5
+                "
+              >
+                {/* ยกเลิก */}
+
+                <Link
+                  href={`/departments/${sectionId}`}
+                  className="
+                    rounded-xl
+                    bg-slate-700
+                    px-6
+                    py-3
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    transition
+                    hover:bg-slate-800
+                  "
+                >
+                  ยกเลิก
+                </Link>
+
+                {/* บันทึก */}
+
+                <button
+                  type="submit"
+                  className="
+                    rounded-xl
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-green-500
+                    px-7
+                    py-3
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    transition
+                    hover:scale-105
+                    hover:from-emerald-700
+                    hover:to-green-600
+                  "
+                >
+                  💾 บันทึกการแก้ไข
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
