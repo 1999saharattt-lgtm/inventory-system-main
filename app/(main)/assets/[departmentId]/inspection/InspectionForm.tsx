@@ -103,6 +103,36 @@ const accuracyOptions = [
   },
 ];
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+const thaiMonthsShort = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
 function getCurrentDate() {
   const now = new Date();
 
@@ -167,11 +197,34 @@ function formatDateInput(date: Date) {
 }
 
 /**
- * แสดงวันที่เป็น วัน/เดือน/ปี ค.ศ.
+ * แสดงวันที่แบบภาษาไทย
  *
  * เช่น
- * 2026-08-30
- * -> 30/08/2026
+ * 2026-09-03
+ * -> 3 กันยายน 2569
+ */
+function formatThaiDateDisplay(value: string) {
+  if (!value) {
+    return "เลือกวันที่";
+  }
+
+  const date = parseDateOnly(value);
+
+  const day = date.getDate();
+
+  const month = thaiMonths[date.getMonth()];
+
+  const year = date.getFullYear() + 543;
+
+  return `${day} ${month} ${year}`;
+}
+
+/**
+ * แสดงวันที่แบบสั้นภาษาไทย
+ *
+ * เช่น
+ * 2026-09-03
+ * -> 03 ก.ย. 2569
  */
 function formatThaiShortDate(value: string) {
   if (!value) {
@@ -182,11 +235,11 @@ function formatThaiShortDate(value: string) {
 
   const day = String(date.getDate()).padStart(2, "0");
 
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const month = thaiMonthsShort[date.getMonth()];
 
-  const year = date.getFullYear();
+  const year = date.getFullYear() + 543;
 
-  return `${day}/${month}/${year}`;
+  return `${day} ${month} ${year}`;
 }
 
 /**
@@ -422,28 +475,61 @@ export default function InspectionForm({
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <input
-              type="date"
-              value={inspectionStartDate}
-              onChange={(e) =>
-                setInspectionStartDate(e.target.value)
-              }
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
-              "
-            />
+            <div className="relative w-full">
+              <div
+                className="
+                  flex
+                  min-h-[46px]
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  px-3
+                  py-2.5
+                  font-semibold
+                  text-slate-900
+                  transition
+                "
+              >
+                <span>
+                  {formatThaiDateDisplay(
+                    inspectionStartDate
+                  )}
+                </span>
+
+                <span
+                  className="
+                    ml-3
+                    text-xl
+                    leading-none
+                  "
+                  aria-hidden="true"
+                >
+                  📅
+                </span>
+              </div>
+
+              <input
+                type="date"
+                value={inspectionStartDate}
+                onChange={(e) =>
+                  setInspectionStartDate(e.target.value)
+                }
+                required
+                aria-label="เลือกวันเริ่มดำเนินการตรวจสอบ"
+                className="
+                  absolute
+                  inset-0
+                  h-full
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+            </div>
           </div>
 
           {/* วันที่ตรวจสอบแล้วเสร็จ */}
@@ -461,28 +547,61 @@ export default function InspectionForm({
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <input
-              type="date"
-              value={inspectionEndDate}
-              onChange={(e) =>
-                setInspectionEndDate(e.target.value)
-              }
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
-              "
-            />
+            <div className="relative w-full">
+              <div
+                className="
+                  flex
+                  min-h-[46px]
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  px-3
+                  py-2.5
+                  font-semibold
+                  text-slate-900
+                  transition
+                "
+              >
+                <span>
+                  {formatThaiDateDisplay(
+                    inspectionEndDate
+                  )}
+                </span>
+
+                <span
+                  className="
+                    ml-3
+                    text-xl
+                    leading-none
+                  "
+                  aria-hidden="true"
+                >
+                  📅
+                </span>
+              </div>
+
+              <input
+                type="date"
+                value={inspectionEndDate}
+                onChange={(e) =>
+                  setInspectionEndDate(e.target.value)
+                }
+                required
+                aria-label="เลือกวันตรวจสอบแล้วเสร็จ"
+                className="
+                  absolute
+                  inset-0
+                  h-full
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -643,7 +762,9 @@ export default function InspectionForm({
                   <div className="mt-1 whitespace-nowrap">
                     ณ วันที่{" "}
                     <span className="font-bold">
-                      {formatThaiShortDate(accountStartDate)}
+                      {formatThaiShortDate(
+                        accountStartDate
+                      )}
                     </span>
                   </div>
                 </th>
@@ -659,7 +780,9 @@ export default function InspectionForm({
                   <div className="mt-1 whitespace-nowrap">
                     ณ วันที่{" "}
                     <span className="font-bold">
-                      {formatThaiShortDate(accountEndDate)}
+                      {formatThaiShortDate(
+                        accountEndDate
+                      )}
                     </span>
                   </div>
                 </th>
@@ -821,7 +944,9 @@ export default function InspectionForm({
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
-                        checked={row.accuracy === "CORRECT"}
+                        checked={
+                          row.accuracy === "CORRECT"
+                        }
                         onChange={() =>
                           updateRow(
                             index,
@@ -837,7 +962,9 @@ export default function InspectionForm({
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
-                        checked={row.accuracy === "INCORRECT"}
+                        checked={
+                          row.accuracy === "INCORRECT"
+                        }
                         onChange={() =>
                           updateRow(
                             index,
@@ -853,7 +980,9 @@ export default function InspectionForm({
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
-                        checked={row.status === "IN_USE"}
+                        checked={
+                          row.status === "IN_USE"
+                        }
                         onChange={() =>
                           updateRow(
                             index,
@@ -869,7 +998,9 @@ export default function InspectionForm({
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
-                        checked={row.status === "DAMAGED"}
+                        checked={
+                          row.status === "DAMAGED"
+                        }
                         onChange={() =>
                           updateRow(
                             index,
@@ -903,7 +1034,9 @@ export default function InspectionForm({
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
-                        checked={row.status === "UNUSABLE"}
+                        checked={
+                          row.status === "UNUSABLE"
+                        }
                         onChange={() =>
                           updateRow(
                             index,
@@ -1006,7 +1139,8 @@ export default function InspectionForm({
           "
         >
           {inspectorIds.map((inspectorId, index) => {
-            const selectedOfficer = getOfficer(inspectorId);
+            const selectedOfficer =
+              getOfficer(inspectorId);
 
             return (
               <div
