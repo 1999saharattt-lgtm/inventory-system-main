@@ -55,7 +55,6 @@ null
 useEffect(() => {
 let mounted = true;
 
-```
 const loadNotifications = async () => {
   try {
     const response = await fetch(
@@ -96,7 +95,6 @@ return () => {
   mounted = false;
   window.clearInterval(interval);
 };
-```
 
 }, []);
 
@@ -144,7 +142,6 @@ icon: MonitorCog,
 ],
 },
 
-```
 // =====================================================
 // หน่วยงาน
 // =====================================================
@@ -183,7 +180,6 @@ icon: MonitorCog,
     },
   ],
 },
-```
 
 ];
 
@@ -238,7 +234,6 @@ return ( <aside
 Main Navigation
 ===================================================== */}
 
-```
   <div
     className="
       flex
@@ -565,7 +560,6 @@ Main Navigation
     </nav>
   </div>
 </aside>
-```
 
 );
 }
