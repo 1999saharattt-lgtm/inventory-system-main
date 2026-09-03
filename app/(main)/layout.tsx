@@ -11,24 +11,25 @@ export default async function MainLayout({
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Header: โลโก้ + ชื่อระบบ */}
+      <Header />
+
+      {/* Navigation: เมนูหลัก ติดกับ Header */}
       <Sidebar role={user.role} />
 
-      <div className="min-w-0">
-        <Header />
-
-        <main
-          className="
-            min-w-0
-            p-3
-            bg-white
-            min-h-screen
-            overflow-x-hidden
-            sm:p-4
-          "
-        >
-          {children}
-        </main>
-      </div>
+      {/* Content */}
+      <main
+        className="
+          min-w-0
+          bg-white
+          min-h-screen
+          overflow-x-hidden
+          p-3
+          sm:p-4
+        "
+      >
+        {children}
+      </main>
     </div>
   );
 }

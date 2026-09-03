@@ -9,19 +9,18 @@ export default async function Header() {
   return (
     <header
       className="
-        sticky
-        top-0
-        z-30
         w-full
         border-b
-        border-slate-200
-        bg-white/95
+        border-slate-700
+        bg-gradient-to-r
+        from-slate-950
+        via-slate-800
+        to-slate-700
         px-3
-        py-2
-        shadow-sm
-        backdrop-blur
+        py-3
+        shadow-xl
         sm:px-5
-        sm:py-3
+        sm:py-4
         md:px-8
       "
     >
@@ -32,7 +31,6 @@ export default async function Header() {
           items-center
           justify-between
           gap-3
-          sm:gap-4
         "
       >
         {/* Mobile Menu */}
@@ -41,27 +39,18 @@ export default async function Header() {
         </div>
 
         {/* Logo + System Name */}
-        <div
-          className="
-            flex
-            min-w-0
-            flex-1
-            items-center
-          "
-        >
+        <div className="min-w-0 flex-1">
           <div
             className="
               flex
-              min-w-0
+              w-fit
               max-w-full
               items-center
               gap-3
               rounded-2xl
               border
-              border-slate-700
-              bg-gradient-to-br
-              from-slate-950
-              to-slate-800
+              border-slate-600
+              bg-slate-950/70
               px-3
               py-2
               shadow-xl
@@ -74,18 +63,15 @@ export default async function Header() {
             <div
               className="
                 relative
-                flex
-                h-12
-                w-12
+                h-14
+                w-14
                 shrink-0
-                items-center
-                justify-center
                 overflow-hidden
                 rounded-xl
                 bg-white
                 shadow-lg
-                sm:h-16
-                sm:w-16
+                sm:h-20
+                sm:w-20
               "
             >
               <Image
@@ -94,12 +80,12 @@ export default async function Header() {
                 fill
                 priority
                 className="object-contain p-1"
-                sizes="64px"
+                sizes="80px"
               />
             </div>
 
             {/* System Name */}
-            <div
+            <h1
               className="
                 whitespace-nowrap
                 text-2xl
@@ -111,7 +97,7 @@ export default async function Header() {
               "
             >
               ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
-            </div>
+            </h1>
           </div>
         </div>
 
@@ -129,12 +115,12 @@ export default async function Header() {
             className="
               rounded-xl
               border
-              border-slate-200
+              border-slate-300
               bg-white
               px-3
               py-1.5
               text-right
-              shadow-sm
+              shadow-lg
               sm:px-5
               sm:py-2
             "
