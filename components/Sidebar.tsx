@@ -265,13 +265,13 @@ export default function Sidebar({ role }: SidebarProps) {
               rounded-xl
               px-4
               py-3
-              text-xl
+              text-2xl
               font-extrabold
               transition-all
               duration-200
               sm:px-5
               sm:py-4
-              sm:text-2xl
+              sm:text-3xl
               ${
                 pathname === "/"
                   ? `
@@ -289,7 +289,7 @@ export default function Sidebar({ role }: SidebarProps) {
             `}
           >
             <LayoutDashboard
-              size={24}
+              size={28}
               strokeWidth={2.5}
             />
 
@@ -315,13 +315,13 @@ export default function Sidebar({ role }: SidebarProps) {
               rounded-xl
               px-4
               py-3
-              text-xl
+              text-2xl
               font-extrabold
               transition-all
               duration-200
               sm:px-5
               sm:py-4
-              sm:text-2xl
+              sm:text-3xl
               ${
                 pathname === "/notifications"
                   ? `
@@ -339,7 +339,7 @@ export default function Sidebar({ role }: SidebarProps) {
             `}
           >
             <Bell
-              size={24}
+              size={28}
               strokeWidth={2.5}
             />
 
@@ -351,14 +351,14 @@ export default function Sidebar({ role }: SidebarProps) {
               <span
                 className="
                   flex
-                  min-w-6
-                  h-6
+                  min-w-7
+                  h-7
                   items-center
                   justify-center
                   rounded-full
                   bg-red-500
-                  px-1.5
-                  text-sm
+                  px-2
+                  text-base
                   font-extrabold
                   !text-white
                   shadow-lg
@@ -405,14 +405,14 @@ export default function Sidebar({ role }: SidebarProps) {
                     rounded-xl
                     px-4
                     py-3
-                    text-lg
+                    text-2xl
                     font-extrabold
                     !text-white
                     transition-all
                     duration-200
                     sm:px-5
                     sm:py-4
-                    sm:text-xl
+                    sm:text-3xl
                     ${
                       active || isOpen
                         ? `
@@ -433,7 +433,7 @@ export default function Sidebar({ role }: SidebarProps) {
                   </span>
 
                   <ChevronDown
-                    size={21}
+                    size={25}
                     strokeWidth={2.5}
                     className={`
                       transition-transform
