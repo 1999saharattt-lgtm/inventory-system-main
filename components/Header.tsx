@@ -31,6 +31,7 @@ export default async function Header() {
           items-center
           justify-between
           gap-3
+          sm:gap-5
         "
       >
         {/* Mobile Menu */}
@@ -43,35 +44,26 @@ export default async function Header() {
           <div
             className="
               flex
-              w-fit
-              max-w-full
               items-center
-              gap-3
-              rounded-2xl
-              border
-              border-slate-600
-              bg-slate-950/70
-              px-3
-              py-2
-              shadow-xl
-              sm:gap-4
-              sm:px-5
-              sm:py-3
+              gap-4
+              sm:gap-5
             "
           >
             {/* Logo */}
             <div
               className="
                 relative
-                h-14
-                w-14
+                h-20
+                w-20
                 shrink-0
                 overflow-hidden
                 rounded-xl
                 bg-white
                 shadow-lg
-                sm:h-20
-                sm:w-20
+                sm:h-24
+                sm:w-24
+                md:h-28
+                md:w-28
               "
             >
               <Image
@@ -80,7 +72,7 @@ export default async function Header() {
                 fill
                 priority
                 className="object-contain p-1"
-                sizes="80px"
+                sizes="112px"
               />
             </div>
 
@@ -91,9 +83,9 @@ export default async function Header() {
                 text-2xl
                 font-extrabold
                 tracking-tight
-                text-white
-                sm:text-4xl
-                md:text-5xl
+                !text-white
+                sm:text-3xl
+                md:text-4xl
               "
             >
               ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
