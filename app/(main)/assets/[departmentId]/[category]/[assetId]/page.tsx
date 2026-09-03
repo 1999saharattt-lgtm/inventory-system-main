@@ -63,6 +63,52 @@ const inspectionStatusClass: Record<string, string> = {
     "bg-red-100 text-red-800 border-red-300",
 };
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: Date | string | null) {
+  if (!date) return "-";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "-";
+  }
+
+  return `${parsedDate.getDate()} ${
+    thaiMonths[parsedDate.getMonth()]
+  } ${parsedDate.getFullYear() + 543}`;
+}
+
+function formatQuarter(quarter: string | null) {
+  if (!quarter) return "-";
+
+  const quarterMap: Record<string, string> = {
+    Q1: "ไตรมาสที่ 1",
+    Q2: "ไตรมาสที่ 2",
+    Q3: "ไตรมาสที่ 3",
+    Q4: "ไตรมาสที่ 4",
+    "1": "ไตรมาสที่ 1",
+    "2": "ไตรมาสที่ 2",
+    "3": "ไตรมาสที่ 3",
+    "4": "ไตรมาสที่ 4",
+  };
+
+  return quarterMap[quarter] ?? quarter;
+}
+
 export default async function AssetDetailPage({
   params,
 }: Props) {
@@ -927,7 +973,9 @@ export default async function AssetDetailPage({
                   >
                     <p className="break-words text-center font-extrabold text-slate-900">
                       ปี {latestInspection.year} /{" "}
-                      {latestInspection.quarter}
+                      {formatQuarter(
+                        latestInspection.quarter
+                      )}
                     </p>
                   </div>
                 </div>
@@ -961,9 +1009,9 @@ export default async function AssetDetailPage({
                     "
                   >
                     <p className="break-words text-center font-extrabold text-slate-900">
-                      {new Date(
+                      {formatThaiDate(
                         latestInspection.inspectionDate
-                      ).toLocaleDateString("th-TH")}
+                      )}
                     </p>
                   </div>
                 </div>
