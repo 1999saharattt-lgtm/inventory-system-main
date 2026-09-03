@@ -32,6 +32,33 @@ const categoryLabel: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: Date | null) {
+  if (!date) return "-";
+
+  const d = new Date(date);
+
+  if (Number.isNaN(d.getTime())) return "-";
+
+  return `${d.getDate()} ${
+    thaiMonths[d.getMonth()]
+  } ${d.getFullYear() + 543}`;
+}
+
 export default async function ReceiveDetailPage({
   params,
 }: Props) {
@@ -169,9 +196,7 @@ export default async function ReceiveDetailPage({
           <span className="font-extrabold">
             วันที่รับเข้า :
           </span>{" "}
-          {new Date(
-            receive.receiveDate
-          ).toLocaleDateString("th-TH")}
+          {formatThaiDate(receive.receiveDate)}
         </p>
 
         <p>
@@ -308,8 +333,9 @@ export default async function ReceiveDetailPage({
                         sm:text-base
                       "
                     >
-                      {categoryLabel[item.material.category] ??
-                        item.material.category}
+                      {categoryLabel[
+                        item.material.category
+                      ] ?? item.material.category}
                     </td>
 
                     <td
@@ -392,12 +418,30 @@ export default async function ReceiveDetailPage({
                         sm:text-base
                       "
                     >
-                      {Number(item.unitPrice).toLocaleString(
-                        "th-TH",
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }
+                      {Number(
+                        item.unitPrice
+                      ).toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-black
+                        px-3
+                        py-2.5
+                        text-center
+                        text-sm
+                        sm:px-4
+                        sm:py-3
+                        sm:text-base
+                      "
+                    >
+                      {formatThaiDate(
+                        item.manufacture
                       )}
                     </td>
 
@@ -415,32 +459,7 @@ export default async function ReceiveDetailPage({
                         sm:text-base
                       "
                     >
-                      {item.manufacture
-                        ? new Date(
-                            item.manufacture
-                          ).toLocaleDateString("th-TH")
-                        : "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-2.5
-                        text-center
-                        text-sm
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {item.expiry
-                        ? new Date(
-                            item.expiry
-                          ).toLocaleDateString("th-TH")
-                        : "-"}
+                      {formatThaiDate(item.expiry)}
                     </td>
                   </tr>
                 )

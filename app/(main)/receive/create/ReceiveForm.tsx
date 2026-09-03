@@ -58,6 +58,43 @@ const categories = [
   },
 ];
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(dateString: string) {
+  if (!dateString) return "";
+
+  const [year, month, day] = dateString
+    .split("-")
+    .map(Number);
+
+  if (!year || !month || !day) return "";
+
+  return `${day} ${thaiMonths[month - 1]} ${year + 543}`;
+}
+
+function getTodayInputValue() {
+  const today = new Date();
+
+  return [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 export default function ReceiveForm({
   vendors,
   materials,
@@ -86,6 +123,9 @@ export default function ReceiveForm({
 
   const [documentValue, setDocumentValue] =
     useState(documentNo);
+
+  const [receiveDate, setReceiveDate] =
+    useState(getTodayInputValue());
 
   function updateRow(
     index: number,
@@ -151,31 +191,53 @@ export default function ReceiveForm({
               วันที่รับเข้า
             </label>
 
-            <input
-              type="date"
-              name="receiveDate"
-              defaultValue={
-                new Date()
-                  .toISOString()
-                  .split("T")[0]
-              }
-              required
-              className="
-                w-full
-                min-w-0
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-3
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-4
-                focus:ring-cyan-100
-              "
-            />
+            <div className="relative">
+              <input
+                type="date"
+                name="receiveDate"
+                value={receiveDate}
+                onChange={(e) =>
+                  setReceiveDate(e.target.value)
+                }
+                required
+                className="
+                  absolute
+                  inset-0
+                  z-10
+                  h-full
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+
+              <div
+                className="
+                  flex
+                  min-h-[50px]
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-3
+                  font-semibold
+                  text-slate-900
+                "
+              >
+                <span>
+                  {receiveDate
+                    ? formatThaiDate(receiveDate)
+                    : "เลือกวันที่"}
+                </span>
+
+                <span className="text-xl">
+                  📅
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* เลขที่เอกสาร */}
@@ -595,39 +657,7 @@ export default function ReceiveForm({
                       />
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <input
-                        type="date"
-                        name={`items[${index}].manufacture`}
-                        value={row.manufacture}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "manufacture",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-36
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-bold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                        "
-                      />
-                    </td>
+                    {/* วันผลิต */}
 
                     <td
                       className="
@@ -637,30 +667,120 @@ export default function ReceiveForm({
                         py-3
                       "
                     >
-                      <input
-                        type="date"
-                        name={`items[${index}].expiry`}
-                        value={row.expiry}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "expiry",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-36
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-bold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                        "
-                      />
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name={`items[${index}].manufacture`}
+                          value={row.manufacture}
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "manufacture",
+                              e.target.value
+                            )
+                          }
+                          className="
+                            absolute
+                            inset-0
+                            z-10
+                            h-full
+                            w-full
+                            cursor-pointer
+                            opacity-0
+                          "
+                        />
+
+                        <div
+                          className="
+                            flex
+                            min-h-[42px]
+                            w-36
+                            items-center
+                            justify-between
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-2
+                            py-2
+                            font-bold
+                            text-slate-900
+                          "
+                        >
+                          <span className="whitespace-nowrap text-sm">
+                            {row.manufacture
+                              ? formatThaiDate(
+                                  row.manufacture
+                                )
+                              : "เลือกวันที่"}
+                          </span>
+
+                          <span>📅</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* วันหมดอายุ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                      "
+                    >
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name={`items[${index}].expiry`}
+                          value={row.expiry}
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "expiry",
+                              e.target.value
+                            )
+                          }
+                          className="
+                            absolute
+                            inset-0
+                            z-10
+                            h-full
+                            w-full
+                            cursor-pointer
+                            opacity-0
+                          "
+                        />
+
+                        <div
+                          className="
+                            flex
+                            min-h-[42px]
+                            w-36
+                            items-center
+                            justify-between
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-2
+                            py-2
+                            font-bold
+                            text-slate-900
+                          "
+                        >
+                          <span className="whitespace-nowrap text-sm">
+                            {row.expiry
+                              ? formatThaiDate(
+                                  row.expiry
+                                )
+                              : "เลือกวันที่"}
+                          </span>
+
+                          <span>📅</span>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 );

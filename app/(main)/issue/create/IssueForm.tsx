@@ -82,14 +82,80 @@ const categories = [
   },
 ];
 
+// =====================================================
+// เดือนภาษาไทย
+// =====================================================
+
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+// =====================================================
+// วันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
+// ใช้สำหรับ value ของ input date
+// =====================================================
+
 function getCurrentDate() {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(
+    2,
+    "0"
+  );
+  const day = String(now.getDate()).padStart(
+    2,
+    "0"
+  );
 
   return `${year}-${month}-${day}`;
+}
+
+// =====================================================
+// แปลง YYYY-MM-DD เป็น วัน เดือน ปี พ.ศ.
+// =====================================================
+
+function formatThaiDate(dateString: string) {
+  if (!dateString) {
+    return "";
+  }
+
+  const match = dateString.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
+
+  if (!match) {
+    return "";
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (
+    !year ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return "";
+  }
+
+  return `${day} ${thaiMonths[month - 1]} ${
+    year + 543
+  }`;
 }
 
 export default function IssueForm({
@@ -372,29 +438,51 @@ export default function IssueForm({
               วันที่เบิก
             </label>
 
-            <input
-              type="date"
-              name="issueDate"
-              value={issueDate}
-              onChange={(e) =>
-                setIssueDate(e.target.value)
-              }
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
-              "
-            />
+            <div className="relative">
+              <input
+                type="date"
+                name="issueDate"
+                value={issueDate}
+                onChange={(e) =>
+                  setIssueDate(e.target.value)
+                }
+                required
+                className="
+                  absolute
+                  inset-0
+                  z-10
+                  h-full
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+
+              <div
+                className="
+                  flex
+                  min-h-[50px]
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  p-2.5
+                  font-semibold
+                  text-slate-900
+                "
+              >
+                <span>
+                  {formatThaiDate(issueDate)}
+                </span>
+
+                <span className="text-xl">
+                  📅
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* หน่วยงาน */}

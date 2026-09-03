@@ -56,6 +56,43 @@ const statusClass: Record<string, string> = {
     "bg-red-100 text-red-800 border-red-300",
 };
 
+// =====================================================
+// เดือนภาษาไทย
+// =====================================================
+
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+// =====================================================
+// แปลงวันที่เป็น วัน เดือน ปี พ.ศ.
+// =====================================================
+
+function formatThaiDate(date: Date | string | null) {
+  if (!date) return "-";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "-";
+  }
+
+  return `${parsedDate.getDate()} ${
+    thaiMonths[parsedDate.getMonth()]
+  } ${parsedDate.getFullYear() + 543}`;
+}
+
 export default async function IssueDetailPage({
   params,
 }: Props) {
@@ -384,9 +421,9 @@ export default async function IssueDetailPage({
                     !text-white
                   "
                 >
-                  {new Date(
+                  {formatThaiDate(
                     issue.approvedAt
-                  ).toLocaleDateString("th-TH")}
+                  )}
                 </p>
 
                 {issue.approvedBy && (
@@ -555,9 +592,9 @@ export default async function IssueDetailPage({
             </p>
 
             <p className="mt-1 font-semibold !text-white">
-              {new Date(
+              {formatThaiDate(
                 issue.issueDate
-              ).toLocaleDateString("th-TH")}
+              )}
             </p>
           </div>
 

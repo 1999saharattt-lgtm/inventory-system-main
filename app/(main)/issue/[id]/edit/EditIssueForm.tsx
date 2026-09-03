@@ -85,6 +85,96 @@ const statusClass: Record<string, string> = {
     "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
 };
 
+// =====================================================
+// เดือนภาษาไทย
+// =====================================================
+
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+// =====================================================
+// แปลง Date / string เป็น YYYY-MM-DD
+// ป้องกันปัญหา timezone ทำให้วันที่เหลื่อม
+// =====================================================
+
+function toDateInputValue(
+  value: Date | string | null | undefined
+) {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    const match = value.match(
+      /^(\d{4})-(\d{2})-(\d{2})/
+    );
+
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+// =====================================================
+// แปลง YYYY-MM-DD เป็น วัน เดือน ปี พ.ศ.
+// =====================================================
+
+function formatThaiDate(
+  dateString: string | null | undefined
+) {
+  if (!dateString) {
+    return "-";
+  }
+
+  const match = dateString.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
+
+  if (!match) {
+    return "-";
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (
+    !year ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return "-";
+  }
+
+  return `${day} ${thaiMonths[month - 1]} ${
+    year + 543
+  }`;
+}
+
 export default function EditIssueForm({
   issue,
   departments,
@@ -92,6 +182,18 @@ export default function EditIssueForm({
   receiveItems,
 }: Props) {
   const isPending = issue.status === "PENDING";
+
+  // =====================================================
+  // วันที่เบิกจ่าย
+  // =====================================================
+
+  const [issueDate, setIssueDate] = useState(
+    toDateInputValue(issue.issueDate)
+  );
+
+  // =====================================================
+  // รายการเบิก
+  // =====================================================
 
   const [items, setItems] = useState<IssueRow[]>(() => {
     const rows = issue.items.map((item: any) => {
@@ -114,23 +216,15 @@ export default function EditIssueForm({
         receiveItemId,
 
         manufacture: lot?.manufacture
-          ? new Date(lot.manufacture)
-              .toISOString()
-              .split("T")[0]
+          ? toDateInputValue(lot.manufacture)
           : item.manufacture
-            ? new Date(item.manufacture)
-                .toISOString()
-                .split("T")[0]
+            ? toDateInputValue(item.manufacture)
             : "",
 
         expiry: lot?.expiry
-          ? new Date(lot.expiry)
-              .toISOString()
-              .split("T")[0]
+          ? toDateInputValue(lot.expiry)
           : item.expiry
-            ? new Date(item.expiry)
-                .toISOString()
-                .split("T")[0]
+            ? toDateInputValue(item.expiry)
             : "",
       };
     });
@@ -364,15 +458,58 @@ export default function EditIssueForm({
                 วันที่เบิกจ่าย
               </label>
 
-              <input
-                type="date"
-                name="issueDate"
-                defaultValue={issue.issueDate
-                  .toISOString()
-                  .split("T")[0]}
-                disabled={!isPending}
-                className={inputClass}
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  name="issueDate"
+                  value={issueDate}
+                  onChange={(e) =>
+                    setIssueDate(e.target.value)
+                  }
+                  disabled={!isPending}
+                  required
+                  className="
+                    absolute
+                    inset-0
+                    z-10
+                    h-full
+                    w-full
+                    cursor-pointer
+                    opacity-0
+                    disabled:cursor-not-allowed
+                  "
+                />
+
+                <div
+                  className={`
+                    flex
+                    min-h-[50px]
+                    w-full
+                    items-center
+                    justify-between
+                    rounded-xl
+                    border
+                    border-slate-300
+                    bg-white
+                    p-3
+                    font-bold
+                    text-black
+                    ${
+                      !isPending
+                        ? "bg-slate-100 text-slate-500"
+                        : ""
+                    }
+                  `}
+                >
+                  <span>
+                    {formatThaiDate(issueDate)}
+                  </span>
+
+                  <span className="text-xl">
+                    📅
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* เลขที่เอกสาร */}
@@ -718,16 +855,46 @@ export default function EditIssueForm({
                             py-3
                           "
                         >
-                          <input
-                            type="date"
-                            value={row.manufacture}
-                            readOnly
-                            className={`
-                              ${tableInputClass}
-                              bg-slate-100
-                              text-center
-                            `}
-                          />
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={row.manufacture}
+                              readOnly
+                              tabIndex={-1}
+                              className="
+                                absolute
+                                inset-0
+                                z-10
+                                h-full
+                                w-full
+                                opacity-0
+                              "
+                            />
+
+                            <div
+                              className={`
+                                flex
+                                min-h-[42px]
+                                w-full
+                                items-center
+                                justify-center
+                                rounded-lg
+                                border
+                                border-slate-300
+                                bg-slate-100
+                                p-2
+                                text-center
+                                font-bold
+                                text-slate-700
+                              `}
+                            >
+                              <span>
+                                {formatThaiDate(
+                                  row.manufacture
+                                )}
+                              </span>
+                            </div>
+                          </div>
                         </td>
 
                         {/* วันหมดอายุ */}
@@ -740,16 +907,46 @@ export default function EditIssueForm({
                             py-3
                           "
                         >
-                          <input
-                            type="date"
-                            value={row.expiry}
-                            readOnly
-                            className={`
-                              ${tableInputClass}
-                              bg-slate-100
-                              text-center
-                            `}
-                          />
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={row.expiry}
+                              readOnly
+                              tabIndex={-1}
+                              className="
+                                absolute
+                                inset-0
+                                z-10
+                                h-full
+                                w-full
+                                opacity-0
+                              "
+                            />
+
+                            <div
+                              className="
+                                flex
+                                min-h-[42px]
+                                w-full
+                                items-center
+                                justify-center
+                                rounded-lg
+                                border
+                                border-slate-300
+                                bg-slate-100
+                                p-2
+                                text-center
+                                font-bold
+                                text-slate-700
+                              "
+                            >
+                              <span>
+                                {formatThaiDate(
+                                  row.expiry
+                                )}
+                              </span>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     );

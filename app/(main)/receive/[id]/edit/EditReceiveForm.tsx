@@ -58,11 +58,61 @@ type ReceiveRow = {
   expiry: string;
 };
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(dateString: string) {
+  if (!dateString) return "";
+
+  const [year, month, day] = dateString
+    .split("-")
+    .map(Number);
+
+  if (!year || !month || !day) return "";
+
+  return `${day} ${thaiMonths[month - 1]} ${
+    year + 543
+  }`;
+}
+
+function toDateInputValue(value: Date | string | null) {
+  if (!value) return "";
+
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 export default function EditReceiveForm({
   receive,
   vendors,
   materials,
 }: Props) {
+  const [receiveDate, setReceiveDate] = useState(
+    toDateInputValue(receive.receiveDate)
+  );
+
   const [items, setItems] = useState<ReceiveRow[]>(() => {
     const rows = receive.items.map((item: any) => ({
       category: item.material.category,
@@ -74,15 +124,11 @@ export default function EditReceiveForm({
       unitPrice: Number(item.unitPrice).toFixed(2),
 
       manufacture: item.manufacture
-        ? new Date(item.manufacture)
-            .toISOString()
-            .split("T")[0]
+        ? toDateInputValue(item.manufacture)
         : "",
 
       expiry: item.expiry
-        ? new Date(item.expiry)
-            .toISOString()
-            .split("T")[0]
+        ? toDateInputValue(item.expiry)
         : "",
     }));
 
@@ -148,6 +194,8 @@ export default function EditReceiveForm({
             md:grid-cols-3
           "
         >
+          {/* วันที่รับเข้า */}
+
           <div>
             <label
               className="
@@ -161,26 +209,60 @@ export default function EditReceiveForm({
               วันที่รับเข้า
             </label>
 
-            <input
-              type="date"
-              name="receiveDate"
-              defaultValue={
-                receive.receiveDate
-                  .toISOString()
-                  .split("T")[0]
-              }
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-3
-                font-bold
-                text-black
-              "
-            />
+            <div className="relative">
+              <input
+                type="hidden"
+                name="receiveDate"
+                value={receiveDate}
+              />
+
+              <input
+                type="date"
+                value={receiveDate}
+                onChange={(e) =>
+                  setReceiveDate(e.target.value)
+                }
+                className="
+                  absolute
+                  inset-0
+                  z-10
+                  h-full
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+
+              <div
+                className="
+                  flex
+                  min-h-[50px]
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  p-3
+                  font-bold
+                  text-black
+                "
+              >
+                <span>
+                  {receiveDate
+                    ? formatThaiDate(receiveDate)
+                    : "เลือกวันที่รับเข้า"}
+                </span>
+
+                <span className="text-xl">
+                  📅
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* เลขที่เอกสาร */}
 
           <div>
             <label
@@ -211,6 +293,8 @@ export default function EditReceiveForm({
               "
             />
           </div>
+
+          {/* ผู้จำหน่าย */}
 
           <div>
             <label
@@ -329,6 +413,8 @@ export default function EditReceiveForm({
                       hover:bg-emerald-50
                     "
                   >
+                    {/* ลำดับ */}
+
                     <td
                       className="
                         border
@@ -342,6 +428,8 @@ export default function EditReceiveForm({
                     >
                       {index + 1}
                     </td>
+
+                    {/* หมวดหมู่ */}
 
                     <td
                       className="
@@ -392,6 +480,8 @@ export default function EditReceiveForm({
                       </select>
                     </td>
 
+                    {/* รายการพัสดุ */}
+
                     <td
                       className="
                         border
@@ -440,6 +530,8 @@ export default function EditReceiveForm({
                       </select>
                     </td>
 
+                    {/* หน่วย */}
+
                     <td
                       className="
                         border
@@ -468,6 +560,8 @@ export default function EditReceiveForm({
                         "
                       />
                     </td>
+
+                    {/* จำนวน */}
 
                     <td
                       className="
@@ -503,6 +597,8 @@ export default function EditReceiveForm({
                       />
                     </td>
 
+                    {/* ราคาต่อหน่วย */}
+
                     <td
                       className="
                         border
@@ -536,40 +632,7 @@ export default function EditReceiveForm({
                       />
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-3
-                        py-3
-                      "
-                    >
-                      <input
-                        type="date"
-                        name={`items[${index}].manufacture`}
-                        value={
-                          row.manufacture
-                        }
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "manufacture",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-full
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-bold
-                          text-black
-                        "
-                      />
-                    </td>
+                    {/* วันผลิต */}
 
                     <td
                       className="
@@ -579,29 +642,136 @@ export default function EditReceiveForm({
                         py-3
                       "
                     >
-                      <input
-                        type="date"
-                        name={`items[${index}].expiry`}
-                        value={row.expiry}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "expiry",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-full
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-bold
-                          text-black
-                        "
-                      />
+                      <div className="relative">
+                        <input
+                          type="hidden"
+                          name={`items[${index}].manufacture`}
+                          value={row.manufacture}
+                        />
+
+                        <input
+                          type="date"
+                          value={row.manufacture}
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "manufacture",
+                              e.target.value
+                            )
+                          }
+                          className="
+                            absolute
+                            inset-0
+                            z-10
+                            h-full
+                            w-full
+                            cursor-pointer
+                            opacity-0
+                          "
+                        />
+
+                        <div
+                          className="
+                            flex
+                            min-h-[42px]
+                            w-full
+                            items-center
+                            justify-between
+                            gap-2
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            p-2
+                            text-center
+                            font-bold
+                            text-black
+                          "
+                        >
+                          <span className="min-w-0 flex-1 truncate">
+                            {row.manufacture
+                              ? formatThaiDate(
+                                  row.manufacture
+                                )
+                              : "เลือกวันผลิต"}
+                          </span>
+
+                          <span className="shrink-0">
+                            📅
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* วันหมดอายุ */}
+
+                    <td
+                      className="
+                        border
+                        border-slate-900
+                        px-3
+                        py-3
+                      "
+                    >
+                      <div className="relative">
+                        <input
+                          type="hidden"
+                          name={`items[${index}].expiry`}
+                          value={row.expiry}
+                        />
+
+                        <input
+                          type="date"
+                          value={row.expiry}
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "expiry",
+                              e.target.value
+                            )
+                          }
+                          className="
+                            absolute
+                            inset-0
+                            z-10
+                            h-full
+                            w-full
+                            cursor-pointer
+                            opacity-0
+                          "
+                        />
+
+                        <div
+                          className="
+                            flex
+                            min-h-[42px]
+                            w-full
+                            items-center
+                            justify-between
+                            gap-2
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            p-2
+                            text-center
+                            font-bold
+                            text-black
+                          "
+                        >
+                          <span className="min-w-0 flex-1 truncate">
+                            {row.expiry
+                              ? formatThaiDate(
+                                  row.expiry
+                                )
+                              : "เลือกวันหมดอายุ"}
+                          </span>
+
+                          <span className="shrink-0">
+                            📅
+                          </span>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 );
