@@ -104,14 +104,13 @@ export default async function CreateUserPage() {
         <Link
           href="/users"
           className="
-            w-auto
             shrink-0
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-4
-            py-2.5
+            px-3
+            py-2
             text-center
             text-sm
             font-extrabold
@@ -120,7 +119,7 @@ export default async function CreateUserPage() {
             transition
             hover:scale-105
             hover:shadow-xl
-            sm:px-6
+            sm:px-5
             sm:py-3
             sm:text-lg
           "
@@ -133,218 +132,254 @@ export default async function CreateUserPage() {
           Form
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <form
-          action={createUser}
-          className="space-y-6"
-        >
-          {/* Username */}
+      <div className="flex w-full justify-center py-2 sm:py-4">
+        <div className="w-full max-w-4xl">
+          <form
+            action={createUser}
+            className="
+              space-y-6
+              rounded-3xl
+              border
+              border-slate-700
+              bg-gradient-to-br
+              from-slate-950
+              via-slate-900
+              to-slate-800
+              p-6
+              text-white
+              shadow-2xl
+              sm:p-8
+            "
+          >
+            {/* Username */}
 
-          <div>
-            <label
+            <div>
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-white
+                "
+              >
+                Username
+              </label>
+
+              <input
+                type="text"
+                name="username"
+                required
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-600
+                  bg-slate-800
+                  p-3
+                  text-lg
+                  font-bold
+                  text-white
+                  outline-none
+                  transition
+                  placeholder:text-slate-400
+                  focus:border-cyan-400
+                  focus:ring-4
+                  focus:ring-cyan-900/40
+                "
+              />
+            </div>
+
+            {/* ชื่อ-นามสกุล */}
+
+            <div>
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-white
+                "
+              >
+                ชื่อ-นามสกุล
+              </label>
+
+              <input
+                type="text"
+                name="fullname"
+                required
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-600
+                  bg-slate-800
+                  p-3
+                  text-lg
+                  font-bold
+                  text-white
+                  outline-none
+                  transition
+                  placeholder:text-slate-400
+                  focus:border-cyan-400
+                  focus:ring-4
+                  focus:ring-cyan-900/40
+                "
+              />
+            </div>
+
+            {/* Password */}
+
+            <div>
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-white
+                "
+              >
+                Password
+              </label>
+
+              <input
+                type="password"
+                name="password"
+                required
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-600
+                  bg-slate-800
+                  p-3
+                  text-lg
+                  font-bold
+                  text-white
+                  outline-none
+                  transition
+                  placeholder:text-slate-400
+                  focus:border-cyan-400
+                  focus:ring-4
+                  focus:ring-cyan-900/40
+                "
+              />
+            </div>
+
+            {/* สิทธิ์การใช้งาน */}
+
+            <div>
+              <label
+                className="
+                  mb-2
+                  block
+                  text-lg
+                  font-extrabold
+                  text-white
+                "
+              >
+                สิทธิ์การใช้งาน
+              </label>
+
+              <select
+                name="role"
+                defaultValue="STAFF"
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-600
+                  bg-slate-800
+                  p-3
+                  text-lg
+                  font-bold
+                  text-white
+                  outline-none
+                  transition
+                  focus:border-cyan-400
+                  focus:ring-4
+                  focus:ring-cyan-900/40
+                "
+              >
+                <option value="STAFF">
+                  STAFF
+                </option>
+
+                <option value="ADMIN">
+                  ADMIN
+                </option>
+
+                <option value="VIEWER">
+                  VIEWER
+                </option>
+              </select>
+            </div>
+
+            {/* ปุ่ม */}
+
+            <div
               className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
+                flex
+                flex-col-reverse
+                gap-3
+                border-t
+                border-slate-700
+                pt-5
+                sm:flex-row
+                sm:justify-end
               "
             >
-              Username
-            </label>
+              <Link
+                href="/users"
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-slate-700
+                  px-6
+                  py-3
+                  text-base
+                  font-extrabold
+                  !text-white
+                  shadow-lg
+                  transition
+                  hover:bg-slate-800
+                  sm:px-8
+                  sm:text-lg
+                "
+              >
+                ยกเลิก
+              </Link>
 
-            <input
-              type="text"
-              name="username"
-              required
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-bold
-                text-black
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-100
-              "
-            />
-          </div>
-
-          {/* ชื่อ-นามสกุล */}
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
-              "
-            >
-              ชื่อ-นามสกุล
-            </label>
-
-            <input
-              type="text"
-              name="fullname"
-              required
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-bold
-                text-black
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-100
-              "
-            />
-          </div>
-
-          {/* Password */}
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
-              "
-            >
-              Password
-            </label>
-
-            <input
-              type="password"
-              name="password"
-              required
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-bold
-                text-black
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-100
-              "
-            />
-          </div>
-
-          {/* สิทธิ์การใช้งาน */}
-
-          <div>
-            <label
-              className="
-                mb-2
-                block
-                text-lg
-                font-extrabold
-                text-white
-              "
-            >
-              สิทธิ์การใช้งาน
-            </label>
-
-            <select
-              name="role"
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                text-lg
-                font-bold
-                text-black
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-100
-              "
-            >
-              <option value="STAFF">
-                STAFF
-              </option>
-
-              <option value="ADMIN">
-                ADMIN
-              </option>
-
-              <option value="VIEWER">
-                VIEWER
-              </option>
-            </select>
-          </div>
-
-          {/* ปุ่ม */}
-
-          <div className="pt-4">
-            <button
-              type="submit"
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-6
-                py-3
-                text-base
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                sm:px-8
-                sm:text-lg
-              "
-            >
-              💾 บันทึก
-            </button>
-          </div>
-        </form>
+              <button
+                type="submit"
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-emerald-600
+                  to-green-500
+                  px-6
+                  py-3
+                  text-base
+                  font-extrabold
+                  !text-white
+                  shadow-lg
+                  transition
+                  hover:scale-105
+                  hover:from-emerald-700
+                  hover:to-green-600
+                  sm:px-8
+                  sm:text-lg
+                "
+              >
+                💾 บันทึก
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
