@@ -251,7 +251,6 @@ export default function Sidebar({ role }: SidebarProps) {
         >
           {/* =================================================
               หน้าแรก
-              กดแล้วเข้า Dashboard โดยตรง
           ================================================= */}
 
           <Link
@@ -278,7 +277,7 @@ export default function Sidebar({ role }: SidebarProps) {
               sm:py-4
               sm:text-3xl
               ${
-                pathname === "/"
+                pathname === "/" && openMenu === null
                   ? `
                     bg-gradient-to-r
                     from-blue-600
@@ -305,7 +304,6 @@ export default function Sidebar({ role }: SidebarProps) {
 
           {/* =================================================
               การแจ้งเตือน
-              อยู่ต่อจากหน้าแรก
           ================================================= */}
 
           <Link
@@ -333,7 +331,8 @@ export default function Sidebar({ role }: SidebarProps) {
               sm:py-4
               sm:text-3xl
               ${
-                pathname === "/notifications"
+                pathname === "/notifications" &&
+                openMenu === null
                   ? `
                     bg-gradient-to-r
                     from-blue-600
@@ -432,7 +431,8 @@ export default function Sidebar({ role }: SidebarProps) {
                     sm:py-4
                     sm:text-3xl
                     ${
-                      active || isOpen
+                      (active && openMenu === null) ||
+                      isOpen
                         ? `
                           bg-gradient-to-r
                           from-blue-600
