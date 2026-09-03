@@ -1,5 +1,3 @@
-"use client";
-
 import { logout } from "@/app/logout/action";
 import { requireLogin } from "@/lib/auth";
 import MobileMenu from "@/components/MobileMenu";
