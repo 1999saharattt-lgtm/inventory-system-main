@@ -58,7 +58,8 @@ export default function EditMaterialForm({
   const [vendorId, setVendorId] = useState(
     material.vendorId?.toString() ?? ""
   );
-    const names = useMemo(() => {
+
+  const names = useMemo(() => {
     const thaiCategory = categoryName[category];
 
     return (
@@ -140,7 +141,8 @@ export default function EditMaterialForm({
       setLoading(false);
     }
   }
-    return (
+
+  return (
     <form
       onSubmit={handleSubmit}
       className="
@@ -152,16 +154,17 @@ export default function EditMaterialForm({
         from-slate-950
         via-slate-900
         to-slate-800
-        p-8
+        p-6
         text-white
         shadow-2xl
+        sm:p-8
       "
     >
-
-      {/* รหัสพัสดุ */}
+      {/* =====================================================
+          รหัสพัสดุ
+      ===================================================== */}
 
       <div>
-
         <label className="mb-2 block text-lg font-extrabold text-white">
           รหัสพัสดุ
         </label>
@@ -181,13 +184,13 @@ export default function EditMaterialForm({
             focus:outline-none
           "
         />
-
       </div>
 
-      {/* หมวดหมู่ */}
+      {/* =====================================================
+          หมวดหมู่
+      ===================================================== */}
 
       <div>
-
         <label className="mb-2 block text-lg font-extrabold text-white">
           หมวดหมู่
         </label>
@@ -216,13 +219,13 @@ export default function EditMaterialForm({
             </option>
           ))}
         </select>
-
       </div>
 
-      {/* รายการพัสดุ */}
+      {/* =====================================================
+          รายการพัสดุ
+      ===================================================== */}
 
       <div>
-
         <label className="mb-2 block text-lg font-extrabold text-white">
           รายการพัสดุ
         </label>
@@ -255,13 +258,13 @@ export default function EditMaterialForm({
             </option>
           ))}
         </select>
-
       </div>
 
-      {/* ผู้จำหน่าย */}
+      {/* =====================================================
+          ผู้จำหน่าย
+      ===================================================== */}
 
       <div>
-
         <label className="mb-2 block text-lg font-extrabold text-white">
           ผู้จำหน่าย
         </label>
@@ -296,9 +299,11 @@ export default function EditMaterialForm({
             </option>
           ))}
         </select>
-
       </div>
-            {/* จำนวน + หน่วย */}
+
+      {/* =====================================================
+          จำนวน + หน่วย
+      ===================================================== */}
 
       <div
         className="
@@ -308,9 +313,7 @@ export default function EditMaterialForm({
           md:grid-cols-2
         "
       >
-
         <div>
-
           <label className="mb-2 block text-lg font-extrabold text-white">
             จำนวน
           </label>
@@ -331,11 +334,9 @@ export default function EditMaterialForm({
               focus:outline-none
             "
           />
-
         </div>
 
         <div>
-
           <label className="mb-2 block text-lg font-extrabold text-white">
             หน่วย
           </label>
@@ -353,15 +354,14 @@ export default function EditMaterialForm({
               text-white
             "
           />
-
         </div>
-
       </div>
 
-      {/* ราคาล่าสุด */}
+      {/* =====================================================
+          ราคาล่าสุด
+      ===================================================== */}
 
       <div>
-
         <label className="mb-2 block text-lg font-extrabold text-white">
           ราคาล่าสุด
         </label>
@@ -384,18 +384,50 @@ export default function EditMaterialForm({
             focus:outline-none
           "
         />
-
       </div>
 
-      {/* Buttons */}
+      {/* =====================================================
+          Buttons
+      ===================================================== */}
 
       <div
         className="
           flex
-          gap-4
-          pt-4
+          justify-end
+          gap-3
+          border-t
+          border-slate-700
+          pt-5
         "
       >
+        {/* ปุ่มยกเลิก */}
+
+        <button
+          type="button"
+          onClick={() =>
+            router.push(
+              `/materials/category/${category}`
+            )
+          }
+          disabled={loading}
+          className="
+            rounded-xl
+            bg-slate-700
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:bg-slate-800
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          ยกเลิก
+        </button>
+
+        {/* ปุ่มบันทึก */}
 
         <button
           type="submit"
@@ -405,21 +437,24 @@ export default function EditMaterialForm({
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-8
+            px-7
             py-3
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            disabled:cursor-not-allowed
             disabled:opacity-50
           "
         >
-          {loading ? "กำลังบันทึก..." : "💾 บันทึก"}
+          {loading
+            ? "กำลังบันทึก..."
+            : "💾 บันทึกการแก้ไข"}
         </button>
-
       </div>
-
     </form>
   );
 }
