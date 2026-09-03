@@ -52,14 +52,30 @@ export default function VendorForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6"
+      className="
+        space-y-6
+        rounded-3xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        p-6
+        text-white
+        shadow-2xl
+        sm:p-8
+      "
     >
-      {/* ข้อมูลผู้จำหน่าย */}
+      {/* =====================================================
+          ข้อมูลผู้จำหน่าย
+      ===================================================== */}
 
       <div
         className="
           grid
-          gap-6
+          grid-cols-1
+          gap-5
           md:grid-cols-2
         "
       >
@@ -86,20 +102,15 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              text-lg
-              font-medium
-              text-slate-900
-              outline-none
-              transition
+              border-slate-600
+              bg-slate-800
+              p-3
+              font-bold
+              text-white
               placeholder:text-slate-400
+              outline-none
               focus:border-cyan-400
               focus:outline-none
-              focus:ring-2
-              focus:ring-cyan-400/30
             "
           />
         </div>
@@ -126,20 +137,15 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              text-lg
-              font-medium
-              text-slate-900
-              outline-none
-              transition
+              border-slate-600
+              bg-slate-800
+              p-3
+              font-bold
+              text-white
               placeholder:text-slate-400
+              outline-none
               focus:border-cyan-400
               focus:outline-none
-              focus:ring-2
-              focus:ring-cyan-400/30
             "
           />
         </div>
@@ -166,26 +172,23 @@ export default function VendorForm() {
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              text-lg
-              font-medium
-              text-slate-900
-              outline-none
-              transition
+              border-slate-600
+              bg-slate-800
+              p-3
+              font-bold
+              text-white
               placeholder:text-slate-400
+              outline-none
               focus:border-cyan-400
               focus:outline-none
-              focus:ring-2
-              focus:ring-cyan-400/30
             "
           />
         </div>
       </div>
 
-      {/* ที่อยู่ */}
+      {/* =====================================================
+          ที่อยู่
+      ===================================================== */}
 
       <div>
         <label
@@ -208,65 +211,42 @@ export default function VendorForm() {
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
-            text-lg
-            font-medium
-            text-slate-900
-            outline-none
-            transition
+            border-slate-600
+            bg-slate-800
+            p-3
+            font-bold
+            text-white
             placeholder:text-slate-400
+            outline-none
             focus:border-cyan-400
             focus:outline-none
-            focus:ring-2
-            focus:ring-cyan-400/30
           "
         />
       </div>
 
-      {/* ปุ่ม */}
+      {/* =====================================================
+          ปุ่ม
+      ===================================================== */}
 
       <div
         className="
           flex
-          gap-4
-          pt-4
+          justify-end
+          gap-3
+          border-t
+          border-slate-700
+          pt-5
         "
       >
-        <button
-          type="submit"
-          disabled={loading}
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-8
-            py-3
-            text-lg
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            disabled:opacity-50
-          "
-        >
-          {loading
-            ? "กำลังบันทึก..."
-            : "💾 บันทึก"}
-        </button>
+        {/* ยกเลิก */}
 
         <a
           href="/vendors"
           className="
             rounded-xl
             bg-slate-700
-            px-8
+            px-6
             py-3
-            text-lg
             font-extrabold
             text-white
             shadow-lg
@@ -276,6 +256,34 @@ export default function VendorForm() {
         >
           ยกเลิก
         </a>
+
+        {/* บันทึก */}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-7
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          {loading
+            ? "กำลังบันทึก..."
+            : "💾 บันทึก"}
+        </button>
       </div>
     </form>
   );

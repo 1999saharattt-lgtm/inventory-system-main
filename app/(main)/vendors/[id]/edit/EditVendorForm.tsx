@@ -15,92 +15,58 @@ export default function EditVendorForm({
 }: {
   vendor: Vendor;
 }) {
-
   const [loading, setLoading] = useState(false);
-
 
   async function handleSubmit(
     e: React.FormEvent
   ) {
-
     e.preventDefault();
 
     setLoading(true);
 
-
     try {
-
       const formData =
         new FormData(
           e.currentTarget as HTMLFormElement
         );
 
-
       const body = {
-
         name: formData.get("name"),
-
         address: formData.get("address"),
-
         phone: formData.get("phone"),
-
         taxId: formData.get("taxId"),
-
       };
-
-
 
       const res = await fetch(
         `/api/vendors/${vendor.id}`,
         {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify(body),
         }
       );
 
-
-
       if (res.ok) {
-
         alert("บันทึกสำเร็จ");
 
         location.href = "/vendors";
-
       } else {
-
         alert("บันทึกไม่สำเร็จ");
-
       }
-
-
     } catch (error) {
-
       console.error(error);
 
       alert("เกิดข้อผิดพลาด");
-
-
     } finally {
-
       setLoading(false);
-
     }
-
   }
 
-
-
   return (
-
     <form
-
       onSubmit={handleSubmit}
-
       className="
         w-full
         space-y-6
@@ -111,27 +77,27 @@ export default function EditVendorForm({
         from-slate-950
         via-slate-900
         to-slate-800
-        p-8
+        p-6
         text-white
         shadow-2xl
+        sm:p-8
       "
-
     >
-
-
+      {/* =====================================================
+          ข้อมูลผู้จำหน่าย
+      ===================================================== */}
 
       <div
         className="
           grid
-          gap-6
+          grid-cols-1
+          gap-5
           md:grid-cols-2
         "
       >
-
-
+        {/* ชื่อผู้จำหน่าย */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -144,15 +110,10 @@ export default function EditVendorForm({
             ชื่อผู้จำหน่าย
           </label>
 
-
           <input
-
             name="name"
-
             defaultValue={vendor.name}
-
             required
-
             className="
               w-full
               rounded-xl
@@ -165,21 +126,14 @@ export default function EditVendorForm({
               outline-none
               transition
               focus:border-cyan-400
-              focus:ring-2
-              focus:ring-cyan-300
+              focus:outline-none
             "
-
           />
-
-
         </div>
 
-
-
-
+        {/* เบอร์โทร */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -192,13 +146,9 @@ export default function EditVendorForm({
             เบอร์โทร
           </label>
 
-
           <input
-
             name="phone"
-
             defaultValue={vendor.phone ?? ""}
-
             className="
               w-full
               rounded-xl
@@ -211,20 +161,14 @@ export default function EditVendorForm({
               outline-none
               transition
               focus:border-cyan-400
-              focus:ring-2
-              focus:ring-cyan-300
+              focus:outline-none
             "
-
           />
-
         </div>
 
-
-
-
+        {/* เลขประจำตัวผู้เสียภาษี */}
 
         <div>
-
           <label
             className="
               mb-2
@@ -237,13 +181,9 @@ export default function EditVendorForm({
             เลขประจำตัวผู้เสียภาษี
           </label>
 
-
           <input
-
             name="taxId"
-
             defaultValue={vendor.taxId ?? ""}
-
             className="
               w-full
               rounded-xl
@@ -256,24 +196,17 @@ export default function EditVendorForm({
               outline-none
               transition
               focus:border-cyan-400
-              focus:ring-2
-              focus:ring-cyan-300
+              focus:outline-none
             "
-
           />
-
         </div>
-
-
       </div>
 
-
-
-
+      {/* =====================================================
+          ที่อยู่
+      ===================================================== */}
 
       <div>
-
-
         <label
           className="
             mb-2
@@ -286,15 +219,10 @@ export default function EditVendorForm({
           ที่อยู่
         </label>
 
-
         <textarea
-
           name="address"
-
           rows={4}
-
           defaultValue={vendor.address ?? ""}
-
           className="
             w-full
             rounded-xl
@@ -307,96 +235,72 @@ export default function EditVendorForm({
             outline-none
             transition
             focus:border-cyan-400
-            focus:ring-2
-            focus:ring-cyan-300
+            focus:outline-none
           "
-
         />
-
-
       </div>
 
-
-
-
-
+      {/* =====================================================
+          ปุ่ม
+      ===================================================== */}
 
       <div
         className="
           flex
-          gap-4
-          pt-4
+          justify-end
+          gap-3
+          border-t
+          border-slate-700
+          pt-5
         "
       >
+        {/* ยกเลิก */}
 
+        <a
+          href="/vendors"
+          className="
+            rounded-xl
+            bg-slate-700
+            px-6
+            py-3
+            font-extrabold
+            text-white
+            shadow-lg
+            transition
+            hover:bg-slate-800
+          "
+        >
+          ยกเลิก
+        </a>
 
+        {/* บันทึก */}
 
         <button
-
           type="submit"
-
           disabled={loading}
-
           className="
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
             to-green-500
-            px-8
+            px-7
             py-3
             font-extrabold
             text-white
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            disabled:cursor-not-allowed
             disabled:opacity-50
           "
-
         >
-
-          {
-            loading
+          {loading
             ? "กำลังบันทึก..."
-            : "💾 บันทึกการแก้ไข"
-          }
-
+            : "💾 บันทึกการแก้ไข"}
         </button>
-
-
-
-
-
-        <a
-
-          href="/vendors"
-
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-8
-            py-3
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:scale-105
-          "
-
-        >
-
-          ยกเลิก
-
-        </a>
-
-
       </div>
-
-
-
     </form>
-
   );
-
 }
