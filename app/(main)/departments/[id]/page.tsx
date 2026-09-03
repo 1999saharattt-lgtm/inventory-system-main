@@ -83,13 +83,24 @@ export default async function DepartmentDetailPage({
     return (
       <div
         className="
+          w-full
+          min-w-0
           overflow-hidden
           rounded-2xl
+          border
+          border-slate-300
           bg-white
-          shadow-xl
+          shadow-lg
         "
       >
-        <div className="overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
           <table
             className="
               min-w-full

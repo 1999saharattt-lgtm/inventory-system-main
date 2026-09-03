@@ -14,7 +14,7 @@ import {
   Truck,
   Building2,
   Users,
-  AlertTriangle,
+  Bell,
   Menu,
   X,
 } from "lucide-react";
@@ -55,17 +55,12 @@ const menus: MenuGroup[] = [
   },
 
   {
-    title: "รายงานพัสดุ",
+    title: "รายการพัสดุ",
     items: [
       {
         name: "รายการพัสดุทั้งหมด",
         href: "/materials",
         icon: Boxes,
-      },
-      {
-        name: "จำนวนพัสดุใกล้หมด",
-        href: "/materials/low-stock",
-        icon: AlertTriangle,
       },
       {
         name: "รายการรับเข้า",
@@ -95,21 +90,21 @@ const menus: MenuGroup[] = [
     title: "หน่วยงาน",
     items: [
       {
-        name: "กลุ่มงาน",
-        href: "/departments",
-        icon: Building2,
-      },
-      {
         name: "ผู้จำหน่าย",
         href: "/vendors",
         icon: Truck,
         adminOnly: true,
       },
+      {
+        name: "กลุ่มงาน",
+        href: "/departments",
+        icon: Building2,
+      },
     ],
   },
 
   {
-    title: "ผู้ดูแลระบบ",
+    title: "เกี่ยวกับเรา",
     adminOnly: true,
     items: [
       {
@@ -430,9 +425,7 @@ export default function MobileMenu({
               "
             >
               {visibleMenus.map((group) => (
-                <div
-                  key={group.title}
-                >
+                <div key={group.title}>
                   {/* =========================================
                       Group Title
                   ========================================= */}
@@ -525,10 +518,6 @@ export default function MobileMenu({
                             }
                           `}
                         >
-                          {/* =================================
-                              Icon
-                          ================================= */}
-
                           <div
                             className={`
                               flex
@@ -560,10 +549,6 @@ export default function MobileMenu({
                             />
                           </div>
 
-                          {/* =================================
-                              Text
-                          ================================= */}
-
                           <span
                             className="
                               min-w-0
@@ -582,6 +567,117 @@ export default function MobileMenu({
                   </div>
                 </div>
               ))}
+
+              {/* =================================================
+                  การแจ้งเตือน
+                  แยกออกจากเมนูหลัก
+              ================================================= */}
+
+              <div>
+                <div
+                  className="
+                    mb-2
+                    flex
+                    items-center
+                    gap-2
+                    px-2
+                  "
+                >
+                  <div
+                    className="
+                      h-1
+                      w-8
+                      rounded-full
+                      bg-gradient-to-r
+                      from-blue-500
+                      to-cyan-400
+                    "
+                  />
+
+                  <p
+                    className="
+                      text-[15px]
+                      font-black
+                      tracking-wide
+                      !text-slate-200
+                    "
+                  >
+                    การแจ้งเตือน
+                  </p>
+                </div>
+
+                <Link
+                  href="/notifications"
+                  onClick={() => setOpen(false)}
+                  className={`
+                    flex
+                    min-h-11
+                    items-center
+                    gap-2.5
+                    rounded-xl
+                    border
+                    px-3
+                    py-2
+                    transition-all
+                    duration-200
+
+                    ${
+                      isActive("/notifications")
+                        ? `
+                          border-blue-400/40
+                          bg-gradient-to-r
+                          from-blue-600
+                          via-blue-500
+                          to-cyan-500
+                          !text-white
+                          shadow-lg
+                          shadow-blue-950/40
+                        `
+                        : `
+                          border-slate-700/50
+                          bg-slate-900/40
+                          !text-white
+                          hover:border-slate-600
+                          hover:bg-gradient-to-r
+                          hover:from-slate-800
+                          hover:to-slate-700
+                        `
+                    }
+                  `}
+                >
+                  <div
+                    className="
+                      flex
+                      h-8
+                      w-8
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-lg
+                      bg-slate-800
+                    "
+                  >
+                    <Bell
+                      size={18}
+                      strokeWidth={2.2}
+                    />
+                  </div>
+
+                  <span
+                    className="
+                      min-w-0
+                      flex-1
+                      whitespace-nowrap
+                      text-[15px]
+                      font-extrabold
+                      leading-tight
+                      !text-white
+                    "
+                  >
+                    การแจ้งเตือน
+                  </span>
+                </Link>
+              </div>
             </nav>
 
             {/* =================================================

@@ -176,8 +176,10 @@ export default function VendorsPage() {
           min-w-0
           overflow-hidden
           rounded-2xl
+          border
+          border-slate-300
           bg-white
-          shadow-xl
+          shadow-lg
         "
       >
         <div
