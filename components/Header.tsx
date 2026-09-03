@@ -40,7 +40,7 @@ export default async function Header() {
           <MobileMenu role={user.role} />
         </div>
 
-        {/* System Logo + Name */}
+        {/* Logo + System Name */}
         <div
           className="
             flex
@@ -53,7 +53,6 @@ export default async function Header() {
             className="
               flex
               min-w-0
-              w-fit
               max-w-full
               items-center
               gap-3
@@ -90,8 +89,8 @@ export default async function Header() {
               "
             >
               <Image
-                src="/logo.png"
-                alt="โลโก้สำนักอนามัยการเจริญพันธุ์"
+                src="/images/dohl-logo.png"
+                alt="โลโก้กรมอนามัย"
                 fill
                 priority
                 className="object-contain p-1"
@@ -102,7 +101,6 @@ export default async function Header() {
             {/* System Name */}
             <div
               className="
-                min-w-0
                 whitespace-nowrap
                 text-2xl
                 font-extrabold
