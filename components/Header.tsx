@@ -17,10 +17,10 @@ export default async function Header() {
         via-slate-800
         to-slate-700
         px-3
-        py-3
+        py-2
         shadow-xl
         sm:px-5
-        sm:py-4
+        sm:py-3
         md:px-8
       "
     >
@@ -45,25 +45,25 @@ export default async function Header() {
             className="
               flex
               items-center
-              gap-4
-              sm:gap-5
+              gap-3
+              sm:gap-4
             "
           >
             {/* Logo */}
             <div
               className="
                 relative
-                h-20
-                w-20
+                h-14
+                w-14
                 shrink-0
                 overflow-hidden
-                rounded-xl
+                rounded-lg
                 bg-white
                 shadow-lg
-                sm:h-24
-                sm:w-24
-                md:h-28
-                md:w-28
+                sm:h-16
+                sm:w-16
+                md:h-[72px]
+                md:w-[72px]
               "
             >
               <Image
@@ -72,7 +72,7 @@ export default async function Header() {
                 fill
                 priority
                 className="object-contain p-1"
-                sizes="112px"
+                sizes="72px"
               />
             </div>
 
@@ -80,12 +80,12 @@ export default async function Header() {
             <h1
               className="
                 whitespace-nowrap
-                text-2xl
+                text-xl
                 font-extrabold
                 tracking-tight
                 !text-white
-                sm:text-3xl
-                md:text-4xl
+                sm:text-2xl
+                md:text-3xl
               "
             >
               ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
@@ -113,7 +113,7 @@ export default async function Header() {
               py-1.5
               text-right
               shadow-lg
-              sm:px-5
+              sm:px-4
               sm:py-2
             "
           >
@@ -126,7 +126,7 @@ export default async function Header() {
                 font-extrabold
                 text-slate-800
                 sm:max-w-none
-                sm:text-lg
+                sm:text-base
               "
             >
               {user.fullname}
@@ -138,7 +138,7 @@ export default async function Header() {
                 text-xs
                 font-bold
                 text-blue-600
-                sm:text-base
+                sm:text-sm
               "
             >
               {user.role}
@@ -160,8 +160,8 @@ export default async function Header() {
                 shadow-lg
                 transition
                 hover:bg-red-700
-                sm:px-5
-                sm:text-base
+                sm:px-4
+                sm:text-sm
               "
             >
               ออกจากระบบ
