@@ -16,6 +16,7 @@ import {
   Building2,
   Users,
   Bell,
+  ChevronDown,
 } from "lucide-react";
 
 type UserRole = "ADMIN" | "STAFF" | "VIEWER";
@@ -42,6 +43,10 @@ export default function Sidebar({ role }: SidebarProps) {
 
   const [notificationCount, setNotificationCount] =
     useState(0);
+
+  const [openMenu, setOpenMenu] = useState<string | null>(
+    null
+  );
 
   // =====================================================
   // โหลดจำนวนแจ้งเตือน
@@ -92,6 +97,10 @@ export default function Sidebar({ role }: SidebarProps) {
     };
   }, []);
 
+  // =====================================================
+  // เมนูหลัก
+  // =====================================================
+
   const menus: MenuGroup[] = [
     {
       title: "หน้าแรก",
@@ -101,16 +110,11 @@ export default function Sidebar({ role }: SidebarProps) {
           href: "/",
           icon: LayoutDashboard,
         },
-        {
-          name: "การแจ้งเตือน",
-          href: "/notifications",
-          icon: Bell,
-        },
       ],
     },
 
     {
-      title: "รายงานพัสดุ",
+      title: "รายการพัสดุ",
       items: [
         {
           name: "รายการพัสดุทั้งหมด",
@@ -144,12 +148,6 @@ export default function Sidebar({ role }: SidebarProps) {
       ],
     },
 
-    // =====================================================
-    // หน่วยงาน
-    //
-    // กลุ่มงาน + ผู้จำหน่าย อยู่ในหัวข้อเดียวกัน
-    // =====================================================
-
     {
       title: "หน่วยงาน",
       items: [
@@ -167,14 +165,8 @@ export default function Sidebar({ role }: SidebarProps) {
       ],
     },
 
-    // =====================================================
-    // ผู้ดูแลระบบ
-    //
-    // เฉพาะ ADMIN
-    // =====================================================
-
     {
-      title: "ผู้ดูแลระบบ",
+      title: "เกี่ยวกับเรา",
       adminOnly: true,
       items: [
         {
@@ -185,6 +177,10 @@ export default function Sidebar({ role }: SidebarProps) {
       ],
     },
   ];
+
+  // =====================================================
+  // กรองเมนูตามสิทธิ์
+  // =====================================================
 
   const visibleMenus = menus
     .filter(
@@ -202,265 +198,444 @@ export default function Sidebar({ role }: SidebarProps) {
       (group) => group.items.length > 0
     );
 
+  // =====================================================
+  // ตรวจสอบว่าหัวข้อหลักใดเป็นหน้าปัจจุบัน
+  // =====================================================
+
+  const isGroupActive = (group: MenuGroup) => {
+    return group.items.some((item) => {
+      return (
+        pathname === item.href ||
+        (item.href !== "/" &&
+          pathname.startsWith(item.href))
+      );
+    });
+  };
+
   return (
     <aside
       className="
-        hidden
-        md:block
-        w-72
-        shrink-0
-        min-h-screen
-        border-r
+        relative
+        z-50
+        w-full
+        border-b
         border-slate-800
-        bg-gradient-to-b
+        bg-gradient-to-r
         from-slate-950
         via-slate-900
-        to-slate-900
+        to-slate-800
         shadow-2xl
       "
     >
-      {/* Logo */}
+      {/* =====================================================
+          Logo / ชื่อระบบ
+          ===================================================== */}
 
-      <div className="border-b border-slate-800 p-5">
+      <div
+        className="
+          border-b
+          border-slate-800
+          px-3
+          py-3
+          sm:px-6
+          sm:py-4
+        "
+      >
         <div
           className="
-            rounded-2xl
-            border
-            border-slate-200
-            bg-white
-            p-4
-            shadow-xl
+            mx-auto
+            flex
+            max-w-[1800px]
+            items-center
+            gap-3
           "
         >
-          <div className="flex items-center gap-4">
-            <div
+          <div
+            className="
+              flex
+              h-12
+              w-12
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              bg-white
+              shadow-lg
+              sm:h-14
+              sm:w-14
+            "
+          >
+            <img
+              src="/images/dohl-logo.png"
+              alt="กรมอนามัย"
               className="
-                flex
-                h-14
-                w-14
-                items-center
-                justify-center
-                rounded-2xl
-                bg-slate-100
-                shadow-inner
+                h-9
+                w-9
+                object-contain
+                sm:h-10
+                sm:w-10
+              "
+            />
+          </div>
+
+          <div className="min-w-0">
+            <h1
+              className="
+                truncate
+                text-base
+                font-extrabold
+                text-white
+                sm:text-xl
               "
             >
-              <img
-                src="/images/dohl-logo.png"
-                alt="กรมอนามัย"
-                className="h-10 w-10 object-contain"
-              />
-            </div>
+              ระบบบริหารคลังพัสดุ
+            </h1>
 
-            <div className="min-w-0 flex-1">
-              <h1
-                className="
-                  truncate
-                  text-lg
-                  font-extrabold
-                  text-slate-800
-                "
-              >
-                ระบบบริหารคลังพัสดุ
-              </h1>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  text-blue-600
-                "
-              >
-                สำนักอนามัยการเจริญพันธุ์
-              </p>
-            </div>
+            <p
+              className="
+                mt-0.5
+                truncate
+                text-xs
+                font-semibold
+                text-cyan-400
+                sm:text-sm
+              "
+            >
+              สำนักอนามัยการเจริญพันธุ์
+            </p>
           </div>
         </div>
       </div>
 
-      <nav
+      {/* =====================================================
+          Navigation
+          ===================================================== */}
+
+      <div
         className="
-          space-y-8
-          px-4
-          py-6
+          mx-auto
+          max-w-[1800px]
+          px-3
+          py-3
+          sm:px-6
         "
       >
-        {visibleMenus.map((group) => (
-          <div key={group.title}>
-            <div className="mb-3 px-3">
-              <p
-                className="
-                  sidebar-title
-                  mb-3
-                  text-lg
-                  font-black
-                  tracking-[0.15em]
-                "
-              >
-                {group.title}
-              </p>
-            </div>
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-3
+          "
+        >
+          {/* =================================================
+              เมนูหลัก
+              ================================================= */}
 
-            <div className="space-y-2">
-              {group.items.map((item) => {
-                const active =
-                  pathname === item.href ||
-                  (item.href !== "/" &&
-                    pathname.startsWith(item.href));
+          <nav
+            className="
+              min-w-0
+              flex-1
+              overflow-x-auto
+            "
+          >
+            <div
+              className="
+                flex
+                min-w-max
+                items-center
+                gap-2
+                sm:gap-3
+              "
+            >
+              {visibleMenus.map((group) => {
+                const activeGroup =
+                  isGroupActive(group);
 
-                const Icon = item.icon;
-
-                const isNotification =
-                  item.href === "/notifications";
+                const isOpen =
+                  openMenu === group.title;
 
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      group
-                      relative
-                      flex
-                      items-center
-                      gap-3
-                      overflow-hidden
-                      rounded-2xl
-                      px-4
-                      py-3
-                      transition-all
-                      duration-300
-
-                      ${
-                        active
-                          ? `
-                            bg-gradient-to-r
-                            from-blue-600
-                            to-cyan-500
-                            text-white
-                            shadow-xl
-                            shadow-blue-900/40
-                          `
-                          : `
-                            text-slate-300
-                            hover:bg-slate-800
-                            hover:text-white
-                            hover:translate-x-1
-                          `
-                      }
-                    `}
+                  <div
+                    key={group.title}
+                    className="relative"
                   >
-                    {active && (
+                    {/* หัวข้อใหญ่ */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenMenu(
+                          isOpen
+                            ? null
+                            : group.title
+                        )
+                      }
+                      className={`
+                        group
+                        flex
+                        min-w-[130px]
+                        items-center
+                        justify-center
+                        gap-2
+                        rounded-xl
+                        px-4
+                        py-3
+                        text-base
+                        font-extrabold
+                        transition-all
+                        duration-200
+                        sm:min-w-[155px]
+                        sm:px-5
+                        sm:text-lg
+
+                        ${
+                          activeGroup || isOpen
+                            ? `
+                              bg-gradient-to-r
+                              from-blue-600
+                              to-cyan-500
+                              text-white
+                              shadow-lg
+                              shadow-blue-900/30
+                            `
+                            : `
+                              text-slate-200
+                              hover:bg-slate-800
+                              hover:text-white
+                            `
+                        }
+                      `}
+                    >
+                      <span>
+                        {group.title}
+                      </span>
+
+                      <ChevronDown
+                        size={18}
+                        strokeWidth={2.5}
+                        className={`
+                          transition-transform
+                          duration-200
+
+                          ${
+                            isOpen
+                              ? "rotate-180"
+                              : "rotate-0"
+                          }
+                        `}
+                      />
+                    </button>
+
+                    {/* =================================================
+                        เมนูย่อย
+                        ================================================= */}
+
+                    {isOpen && (
                       <div
                         className="
                           absolute
                           left-0
-                          top-3
-                          h-8
-                          w-1
-                          rounded-r-full
-                          bg-white
+                          top-full
+                          z-[100]
+                          mt-2
+                          w-[280px]
+                          overflow-hidden
+                          rounded-2xl
+                          border
+                          border-slate-700
+                          bg-gradient-to-br
+                          from-slate-950
+                          to-slate-800
+                          p-2
+                          shadow-2xl
                         "
-                      />
+                      >
+                        <div className="space-y-1">
+                          {group.items.map(
+                            (item) => {
+                              const active =
+                                pathname ===
+                                  item.href ||
+                                (item.href !== "/" &&
+                                  pathname.startsWith(
+                                    item.href
+                                  ));
+
+                              const Icon =
+                                item.icon;
+
+                              return (
+                                <Link
+                                  key={item.href}
+                                  href={item.href}
+                                  onClick={() =>
+                                    setOpenMenu(
+                                      null
+                                    )
+                                  }
+                                  className={`
+                                    group
+                                    flex
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    px-3
+                                    py-3
+                                    transition-all
+                                    duration-200
+
+                                    ${
+                                      active
+                                        ? `
+                                          bg-gradient-to-r
+                                          from-blue-600
+                                          to-cyan-500
+                                          text-white
+                                          shadow-lg
+                                        `
+                                        : `
+                                          text-slate-200
+                                          hover:bg-slate-800
+                                          hover:text-white
+                                        `
+                                    }
+                                  `}
+                                >
+                                  <div
+                                    className={`
+                                      flex
+                                      h-10
+                                      w-10
+                                      shrink-0
+                                      items-center
+                                      justify-center
+                                      rounded-xl
+
+                                      ${
+                                        active
+                                          ? "bg-white/20"
+                                          : "bg-slate-800 group-hover:bg-slate-700"
+                                      }
+                                    `}
+                                  >
+                                    <Icon
+                                      size={20}
+                                      strokeWidth={
+                                        2.2
+                                      }
+                                    />
+                                  </div>
+
+                                  <span
+                                    className="
+                                      min-w-0
+                                      flex-1
+                                      text-[16px]
+                                      font-extrabold
+                                    "
+                                  >
+                                    {item.name}
+                                  </span>
+                                </Link>
+                              );
+                            }
+                          )}
+                        </div>
+                      </div>
                     )}
-
-                    <div
-                      className={`
-                        flex
-                        h-10
-                        w-10
-                        items-center
-                        justify-center
-                        rounded-xl
-                        transition-all
-
-                        ${
-                          active
-                            ? "bg-white/20"
-                            : "bg-slate-800 group-hover:bg-slate-700"
-                        }
-                      `}
-                    >
-                      <Icon
-                        size={20}
-                        strokeWidth={2.2}
-                      />
-                    </div>
-
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span
-                        className="
-                          whitespace-nowrap
-                          text-[17px]
-                          font-extrabold
-                          leading-tight
-                          text-white
-                        "
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-
-                    {/* จำนวนแจ้งเตือน */}
-
-                    {isNotification &&
-                      notificationCount > 0 && (
-                        <span
-                          className="
-                            flex
-                            min-w-7
-                            h-7
-                            items-center
-                            justify-center
-                            rounded-full
-                            bg-red-500
-                            px-2
-                            text-sm
-                            font-extrabold
-                            text-white
-                            shadow-lg
-                            shadow-red-900/30
-                          "
-                        >
-                          {notificationCount > 99
-                            ? "99+"
-                            : notificationCount}
-                        </span>
-                      )}
-
-                    <div
-                      className={`
-                        transition-all
-                        duration-300
-
-                        ${
-                          active
-                            ? "translate-x-0 opacity-100"
-                            : "translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
-                        }
-                      `}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
-          </div>
-        ))}
-      </nav>
+          </nav>
+
+          {/* =================================================
+              การแจ้งเตือน
+              แยกออกจากเมนูหลัก
+              ================================================= */}
+
+          <Link
+            href="/notifications"
+            className={`
+              group
+              flex
+              shrink-0
+              items-center
+              gap-2
+              rounded-xl
+              px-3
+              py-3
+              font-extrabold
+              transition-all
+              duration-200
+              sm:px-4
+
+              ${
+                pathname === "/notifications"
+                  ? `
+                    bg-gradient-to-r
+                    from-blue-600
+                    to-cyan-500
+                    text-white
+                    shadow-lg
+                    shadow-blue-900/30
+                  `
+                  : `
+                    bg-slate-800
+                    text-slate-200
+                    hover:bg-slate-700
+                    hover:text-white
+                  `
+              }
+            `}
+          >
+            <div className="relative">
+              <Bell
+                size={21}
+                strokeWidth={2.4}
+              />
+
+              {notificationCount > 0 && (
+                <span
+                  className="
+                    absolute
+                    -right-3
+                    -top-3
+                    flex
+                    min-h-5
+                    min-w-5
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-red-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    text-white
+                    shadow-lg
+                    shadow-red-900/30
+                  "
+                >
+                  {notificationCount > 99
+                    ? "99+"
+                    : notificationCount}
+                </span>
+              )}
+            </div>
+
+            <span
+              className="
+                hidden
+                whitespace-nowrap
+                sm:inline
+              "
+            >
+              การแจ้งเตือน
+            </span>
+          </Link>
+        </div>
+      </div>
     </aside>
   );
 }

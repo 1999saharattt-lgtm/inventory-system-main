@@ -10,10 +10,10 @@ export default async function MainLayout({
   const user = await requireLogin();
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       <Sidebar role={user.role} />
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0">
         <Header />
 
         <main
