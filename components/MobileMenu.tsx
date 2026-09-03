@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ElementType } from "react";
+import { useEffect, useState, type ElementType } from "react";
 
 import {
   LayoutDashboard,
@@ -17,6 +17,7 @@ import {
   Bell,
   Menu,
   X,
+  ChevronDown,
 } from "lucide-react";
 
 type UserRole = "ADMIN" | "STAFF" | "VIEWER";
@@ -43,17 +44,6 @@ type MobileMenuProps = {
    ========================================================= */
 
 const menus: MenuGroup[] = [
-  {
-    title: "หน้าแรก",
-    items: [
-      {
-        name: "ภาพรวมระบบ",
-        href: "/",
-        icon: LayoutDashboard,
-      },
-    ],
-  },
-
   {
     title: "รายการพัสดุ",
     items: [
@@ -120,7 +110,62 @@ export default function MobileMenu({
   role,
 }: MobileMenuProps) {
   const pathname = usePathname();
+
   const [open, setOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(
+    null
+  );
+
+  const [notificationCount, setNotificationCount] =
+    useState(0);
+
+  /* =========================================================
+     โหลดจำนวนแจ้งเตือน
+     ========================================================= */
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch(
+          "/api/notifications",
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (mounted) {
+          setNotificationCount(
+            Number(data.count ?? 0)
+          );
+        }
+      } catch (error) {
+        console.error(
+          "ไม่สามารถโหลดจำนวนการแจ้งเตือนได้:",
+          error
+        );
+      }
+    };
+
+    loadNotifications();
+
+    const interval = window.setInterval(
+      loadNotifications,
+      30000
+    );
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   /* =========================================================
      Filter Menu ตาม Role
@@ -136,21 +181,12 @@ export default function MobileMenu({
       ...group,
 
       items: group.items.map((item) => {
-        /*
-         * ADMIN
-         *   /materials
-         *
-         * STAFF / VIEWER
-         *   /materials/summary
-         */
-
         if (
           item.name ===
           "รายการพัสดุทั้งหมด"
         ) {
           return {
             ...item,
-
             href:
               role === "ADMIN"
                 ? "/materials"
@@ -189,6 +225,21 @@ export default function MobileMenu({
       pathname.startsWith(`${href}/`)
     );
   }
+
+  function isGroupActive(group: MenuGroup) {
+    return group.items.some((item) =>
+      isActive(item.href)
+    );
+  }
+
+  function closeMenu() {
+    setOpen(false);
+    setOpenMenu(null);
+  }
+
+  /* =========================================================
+     Mobile Menu
+     ========================================================= */
 
   return (
     <>
@@ -254,7 +305,7 @@ export default function MobileMenu({
               bg-slate-950/60
               backdrop-blur-[2px]
             "
-            onClick={() => setOpen(false)}
+            onClick={closeMenu}
           />
 
           {/* =================================================
@@ -269,8 +320,8 @@ export default function MobileMenu({
               z-[10000]
               flex
               h-[100dvh]
-              w-[256px]
-              max-w-[86vw]
+              w-[300px]
+              max-w-[88vw]
               flex-col
               overflow-hidden
               border-r
@@ -296,7 +347,7 @@ export default function MobileMenu({
                 from-slate-950
                 via-slate-800
                 to-slate-700
-                px-3
+                px-4
                 py-3
                 shadow-lg
               "
@@ -306,29 +357,28 @@ export default function MobileMenu({
                   flex
                   items-center
                   justify-between
-                  gap-2
+                  gap-3
                 "
               >
-                {/* =============================================
-                    Logo + System Name
-                ============================================= */}
+                {/* Logo + System Name */}
 
                 <div
                   className="
                     flex
                     min-w-0
                     items-center
-                    gap-2.5
+                    gap-3
                   "
                 >
                   <div
                     className="
                       flex
-                      h-10
-                      w-10
+                      h-11
+                      w-11
                       shrink-0
                       items-center
                       justify-center
+                      overflow-hidden
                       rounded-xl
                       border
                       border-slate-200
@@ -340,8 +390,8 @@ export default function MobileMenu({
                       src="/images/dohl-logo.png"
                       alt="กรมอนามัย"
                       className="
-                        h-8
-                        w-8
+                        h-9
+                        w-9
                         object-contain
                       "
                     />
@@ -351,7 +401,7 @@ export default function MobileMenu({
                     <div
                       className="
                         truncate
-                        text-[15px]
+                        text-base
                         font-extrabold
                         leading-tight
                         !text-white
@@ -374,17 +424,15 @@ export default function MobileMenu({
                   </div>
                 </div>
 
-                {/* =============================================
-                    Close Button
-                ============================================= */}
+                {/* Close Button */}
 
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={closeMenu}
                   className="
                     flex
-                    h-9
-                    w-9
+                    h-10
+                    w-10
                     shrink-0
                     items-center
                     justify-center
@@ -404,7 +452,7 @@ export default function MobileMenu({
                   aria-label="ปิดเมนู"
                 >
                   <X
-                    size={19}
+                    size={20}
                     strokeWidth={2.4}
                   />
                 </button>
@@ -412,217 +460,44 @@ export default function MobileMenu({
             </div>
 
             {/* =================================================
-                Menu
+                Main Navigation
             ================================================= */}
 
             <nav
               className="
                 flex-1
-                space-y-4
                 overflow-y-auto
                 px-3
                 py-4
               "
             >
-              {visibleMenus.map((group) => (
-                <div key={group.title}>
-                  {/* =========================================
-                      Group Title
-                  ========================================= */}
+              <div className="space-y-2">
 
-                  <div
-                    className="
-                      mb-2
-                      flex
-                      items-center
-                      gap-2
-                      px-2
-                    "
-                  >
-                    <div
-                      className="
-                        h-1
-                        w-8
-                        rounded-full
-                        bg-gradient-to-r
-                        from-blue-500
-                        to-cyan-400
-                      "
-                    />
-
-                    <p
-                      className="
-                        text-[15px]
-                        font-black
-                        tracking-wide
-                        !text-slate-200
-                      "
-                    >
-                      {group.title}
-                    </p>
-                  </div>
-
-                  {/* =========================================
-                      Group Items
-                  ========================================= */}
-
-                  <div className="space-y-1.5">
-                    {group.items.map((item) => {
-                      const active =
-                        isActive(item.href);
-
-                      const Icon =
-                        item.icon;
-
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() =>
-                            setOpen(false)
-                          }
-                          className={`
-                            group
-                            flex
-                            min-h-11
-                            items-center
-                            gap-2.5
-                            rounded-xl
-                            border
-                            px-3
-                            py-2
-                            transition-all
-                            duration-200
-
-                            ${
-                              active
-                                ? `
-                                  border-blue-400/40
-                                  bg-gradient-to-r
-                                  from-blue-600
-                                  via-blue-500
-                                  to-cyan-500
-                                  !text-white
-                                  shadow-lg
-                                  shadow-blue-950/40
-                                `
-                                : `
-                                  border-slate-700/50
-                                  bg-slate-900/40
-                                  !text-white
-                                  hover:border-slate-600
-                                  hover:bg-gradient-to-r
-                                  hover:from-slate-800
-                                  hover:to-slate-700
-                                `
-                            }
-                          `}
-                        >
-                          <div
-                            className={`
-                              flex
-                              h-8
-                              w-8
-                              shrink-0
-                              items-center
-                              justify-center
-                              rounded-lg
-                              transition-all
-                              duration-200
-
-                              ${
-                                active
-                                  ? `
-                                    bg-white/20
-                                    shadow-sm
-                                  `
-                                  : `
-                                    bg-slate-800
-                                    group-hover:bg-slate-700
-                                  `
-                              }
-                            `}
-                          >
-                            <Icon
-                              size={18}
-                              strokeWidth={2.2}
-                            />
-                          </div>
-
-                          <span
-                            className="
-                              min-w-0
-                              whitespace-nowrap
-                              text-[15px]
-                              font-extrabold
-                              leading-tight
-                              !text-white
-                            "
-                          >
-                            {item.name}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-
-              {/* =================================================
-                  การแจ้งเตือน
-                  แยกออกจากเมนูหลัก
-              ================================================= */}
-
-              <div>
-                <div
-                  className="
-                    mb-2
-                    flex
-                    items-center
-                    gap-2
-                    px-2
-                  "
-                >
-                  <div
-                    className="
-                      h-1
-                      w-8
-                      rounded-full
-                      bg-gradient-to-r
-                      from-blue-500
-                      to-cyan-400
-                    "
-                  />
-
-                  <p
-                    className="
-                      text-[15px]
-                      font-black
-                      tracking-wide
-                      !text-slate-200
-                    "
-                  >
-                    การแจ้งเตือน
-                  </p>
-                </div>
+                {/* =================================================
+                    หน้าแรก
+                ================================================= */}
 
                 <Link
-                  href="/notifications"
-                  onClick={() => setOpen(false)}
+                  href="/"
+                  onClick={closeMenu}
                   className={`
                     flex
-                    min-h-11
+                    min-h-[58px]
+                    w-full
                     items-center
-                    gap-2.5
+                    gap-3
                     rounded-xl
                     border
-                    px-3
-                    py-2
+                    px-4
+                    py-3
+                    text-lg
+                    font-extrabold
                     transition-all
                     duration-200
 
                     ${
-                      isActive("/notifications")
+                      isActive("/") &&
+                      openMenu === null
                         ? `
                           border-blue-400/40
                           bg-gradient-to-r
@@ -638,9 +513,7 @@ export default function MobileMenu({
                           bg-slate-900/40
                           !text-white
                           hover:border-slate-600
-                          hover:bg-gradient-to-r
-                          hover:from-slate-800
-                          hover:to-slate-700
+                          hover:bg-slate-800
                         `
                     }
                   `}
@@ -648,35 +521,324 @@ export default function MobileMenu({
                   <div
                     className="
                       flex
-                      h-8
-                      w-8
+                      h-10
+                      w-10
                       shrink-0
                       items-center
                       justify-center
-                      rounded-lg
-                      bg-slate-800
+                      rounded-xl
+                      bg-white/10
                     "
                   >
-                    <Bell
-                      size={18}
-                      strokeWidth={2.2}
+                    <LayoutDashboard
+                      size={21}
+                      strokeWidth={2.4}
                     />
                   </div>
 
-                  <span
-                    className="
-                      min-w-0
-                      flex-1
-                      whitespace-nowrap
-                      text-[15px]
-                      font-extrabold
-                      leading-tight
-                      !text-white
-                    "
-                  >
-                    การแจ้งเตือน
+                  <span>
+                    หน้าแรก
                   </span>
                 </Link>
+
+                {/* =================================================
+                    การแจ้งเตือน
+                ================================================= */}
+
+                <Link
+                  href="/notifications"
+                  onClick={closeMenu}
+                  className={`
+                    relative
+                    flex
+                    min-h-[58px]
+                    w-full
+                    items-center
+                    gap-3
+                    rounded-xl
+                    border
+                    px-4
+                    py-3
+                    text-lg
+                    font-extrabold
+                    transition-all
+                    duration-200
+
+                    ${
+                      isActive(
+                        "/notifications"
+                      ) &&
+                      openMenu === null
+                        ? `
+                          border-blue-400/40
+                          bg-gradient-to-r
+                          from-blue-600
+                          via-blue-500
+                          to-cyan-500
+                          !text-white
+                          shadow-lg
+                          shadow-blue-950/40
+                        `
+                        : `
+                          border-slate-700/50
+                          bg-slate-900/40
+                          !text-white
+                          hover:border-slate-600
+                          hover:bg-slate-800
+                        `
+                    }
+                  `}
+                >
+                  <div
+                    className="
+                      flex
+                      h-10
+                      w-10
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-white/10
+                    "
+                  >
+                    <Bell
+                      size={21}
+                      strokeWidth={2.4}
+                    />
+                  </div>
+
+                  <span className="flex-1">
+                    การแจ้งเตือน
+                  </span>
+
+                  {notificationCount > 0 && (
+                    <span
+                      className="
+                        flex
+                        min-w-7
+                        h-7
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-red-500
+                        px-2
+                        text-sm
+                        font-extrabold
+                        !text-white
+                        shadow-lg
+                        shadow-red-900/40
+                      "
+                    >
+                      {notificationCount > 99
+                        ? "99+"
+                        : notificationCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* =================================================
+                    Dropdown Menus
+                ================================================= */}
+
+                {visibleMenus.map((group) => {
+                  const active =
+                    isGroupActive(group);
+
+                  const isOpen =
+                    openMenu ===
+                    group.title;
+
+                  return (
+                    <div
+                      key={group.title}
+                      className="
+                        w-full
+                      "
+                    >
+                      {/* =================================================
+                          Group Button
+                      ================================================= */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenMenu(
+                            isOpen
+                              ? null
+                              : group.title
+                          )
+                        }
+                        className={`
+                          flex
+                          min-h-[58px]
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+                          rounded-xl
+                          border
+                          px-4
+                          py-3
+                          text-lg
+                          font-extrabold
+                          !text-white
+                          transition-all
+                          duration-200
+
+                          ${
+                            (active &&
+                              openMenu === null) ||
+                            isOpen
+                              ? `
+                                border-blue-400/40
+                                bg-gradient-to-r
+                                from-blue-600
+                                via-blue-500
+                                to-cyan-500
+                                shadow-lg
+                                shadow-blue-950/40
+                              `
+                              : `
+                                border-slate-700/50
+                                bg-slate-900/40
+                                hover:border-slate-600
+                                hover:bg-slate-800
+                              `
+                          }
+                        `}
+                      >
+                        <span>
+                          {group.title}
+                        </span>
+
+                        <ChevronDown
+                          size={23}
+                          strokeWidth={2.5}
+                          className={`
+                            shrink-0
+                            transition-transform
+                            duration-200
+                            ${
+                              isOpen
+                                ? "rotate-180"
+                                : ""
+                            }
+                          `}
+                        />
+                      </button>
+
+                      {/* =================================================
+                          Dropdown Items
+                      ================================================= */}
+
+                      {isOpen && (
+                        <div
+                          className="
+                            mt-2
+                            space-y-1.5
+                            rounded-2xl
+                            border
+                            border-slate-700
+                            bg-slate-950/70
+                            p-2
+                            shadow-xl
+                          "
+                        >
+                          {group.items.map(
+                            (item) => {
+                              const itemActive =
+                                isActive(
+                                  item.href
+                                );
+
+                              const Icon =
+                                item.icon;
+
+                              return (
+                                <Link
+                                  key={
+                                    item.href
+                                  }
+                                  href={
+                                    item.href
+                                  }
+                                  onClick={
+                                    closeMenu
+                                  }
+                                  className={`
+                                    flex
+                                    min-h-[52px]
+                                    w-full
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    text-base
+                                    font-extrabold
+                                    transition-all
+                                    duration-200
+
+                                    ${
+                                      itemActive
+                                        ? `
+                                          bg-gradient-to-r
+                                          from-blue-600
+                                          via-blue-500
+                                          to-cyan-500
+                                          !text-white
+                                          shadow-lg
+                                          shadow-blue-950/30
+                                        `
+                                        : `
+                                          !text-slate-100
+                                          hover:bg-slate-800
+                                          hover:!text-white
+                                        `
+                                    }
+                                  `}
+                                >
+                                  <div
+                                    className={`
+                                      flex
+                                      h-9
+                                      w-9
+                                      shrink-0
+                                      items-center
+                                      justify-center
+                                      rounded-lg
+
+                                      ${
+                                        itemActive
+                                          ? "bg-white/20"
+                                          : "bg-slate-800"
+                                      }
+                                    `}
+                                  >
+                                    <Icon
+                                      size={
+                                        19
+                                      }
+                                      strokeWidth={
+                                        2.3
+                                      }
+                                    />
+                                  </div>
+
+                                  <span className="whitespace-nowrap">
+                                    {
+                                      item.name
+                                    }
+                                  </span>
+                                </Link>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </nav>
 
