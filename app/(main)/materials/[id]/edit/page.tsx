@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import EditMaterialForm from "./EditMaterialForm";
 
 type Props = {
@@ -30,10 +31,11 @@ export default async function EditMaterialPage({
   });
 
   return (
-    <div className="w-full min-w-0 overflow-x-hidden">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
       {/* =====================================================
           Header
       ===================================================== */}
+
       <div
         className="
           flex
@@ -41,6 +43,8 @@ export default async function EditMaterialPage({
           w-full
           min-w-0
           items-center
+          justify-between
+          gap-3
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -83,12 +87,44 @@ export default async function EditMaterialPage({
             แก้ไขรายละเอียดรายการพัสดุ
           </p>
         </div>
+
+        {/* =====================================================
+            ปุ่มกลับ
+        ===================================================== */}
+
+        <Link
+          href={`/materials/category/${material.category}`}
+          className="
+            shrink-0
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-3
+            py-2
+            text-center
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:px-5
+            sm:py-3
+            sm:text-lg
+          "
+        >
+          ← กลับ
+        </Link>
       </div>
 
       {/* =====================================================
           Edit Material Form
       ===================================================== */}
-      <div className="flex w-full justify-center py-4 sm:py-6">
+
+      <div className="flex w-full justify-center py-2 sm:py-4">
         <div className="w-full max-w-4xl">
           <EditMaterialForm
             material={material}
