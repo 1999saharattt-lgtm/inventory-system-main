@@ -98,15 +98,17 @@ export default async function Home() {
               <div className="p-3 sm:p-5">
                 <div className="flex min-w-0 items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="break-words text-sm font-bold text-white sm:text-base">
+                    {/* ชื่อการ์ด: ใหญ่และหนาขึ้น */}
+                    <p className="break-words text-xl font-extrabold leading-tight text-white sm:text-2xl">
                       {card.title}
                     </p>
 
-                    <p className="mt-1 text-2xl font-extrabold text-white sm:text-3xl">
+                    {/* ตัวเลข: ใหญ่และหนาขึ้น */}
+                    <p className="mt-1 text-3xl font-extrabold text-white sm:text-4xl">
                       {card.value}
                     </p>
 
-                    <p className="text-xs font-semibold text-slate-200 sm:text-sm">
+                    <p className="text-sm font-semibold text-slate-200 sm:text-base">
                       {card.unit}
                     </p>
                   </div>
