@@ -18,12 +18,31 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-function formatDateAD(date: Date | string) {
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: Date | string | null) {
+  if (!date) return "-";
+
   const d = new Date(date);
 
-  return `${String(d.getDate()).padStart(2, "0")}/${String(
-    d.getMonth() + 1
-  ).padStart(2, "0")}/${d.getFullYear()}`;
+  if (Number.isNaN(d.getTime())) return "-";
+
+  return `${d.getDate()} ${
+    thaiMonths[d.getMonth()]
+  } ${d.getFullYear() + 543}`;
 }
 
 export default async function StockCardPage({ params }: Props) {
@@ -779,7 +798,7 @@ export default async function StockCardPage({ params }: Props) {
                         sm:text-base
                       "
                     >
-                      {formatDateAD(row.date)}
+                      {formatThaiDate(row.date)}
                     </td>
 
                     <td
@@ -921,7 +940,7 @@ export default async function StockCardPage({ params }: Props) {
                       "
                     >
                       {row.manufacture
-                        ? formatDateAD(
+                        ? formatThaiDate(
                             row.manufacture
                           )
                         : "-"}
@@ -944,7 +963,7 @@ export default async function StockCardPage({ params }: Props) {
                       "
                     >
                       {row.expiry
-                        ? formatDateAD(
+                        ? formatThaiDate(
                             row.expiry
                           )
                         : "-"}

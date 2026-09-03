@@ -19,14 +19,33 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-function formatDate(date: any) {
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: any) {
   if (!date) return "-";
 
   const d = new Date(date);
 
-  return `${String(d.getDate()).padStart(2, "0")}/${String(
-    d.getMonth() + 1
-  ).padStart(2, "0")}/${d.getFullYear()}`;
+  if (Number.isNaN(d.getTime())) {
+    return "-";
+  }
+
+  return `${d.getDate()} ${
+    thaiMonths[d.getMonth()]
+  } ${d.getFullYear() + 543}`;
 }
 
 function formatMoney(
@@ -190,7 +209,7 @@ export default function ExportPdf({
           (r: any) => {
             return [
               // วันที่
-              formatDate(r.date),
+              formatThaiDate(r.date),
 
               // เลขที่เอกสาร
               r.documentNo || "-",
@@ -226,12 +245,12 @@ export default function ExportPdf({
                 : r.balance,
 
               // วันผลิต
-              formatDate(
+              formatThaiDate(
                 r.manufacture
               ),
 
               // วันหมดอายุ
-              formatDate(
+              formatThaiDate(
                 r.expiry
               ),
             ];
