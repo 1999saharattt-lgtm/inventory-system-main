@@ -259,8 +259,11 @@ export default function Sidebar({ role }: SidebarProps) {
             onClick={() => setOpenMenu(null)}
             className={`
               flex
+              h-[64px]
+              w-[220px]
               shrink-0
               items-center
+              justify-center
               gap-2
               rounded-xl
               px-4
@@ -269,6 +272,8 @@ export default function Sidebar({ role }: SidebarProps) {
               font-extrabold
               transition-all
               duration-200
+              sm:h-[72px]
+              sm:w-[220px]
               sm:px-5
               sm:py-4
               sm:text-3xl
@@ -309,8 +314,11 @@ export default function Sidebar({ role }: SidebarProps) {
             className={`
               relative
               flex
+              h-[64px]
+              w-[220px]
               shrink-0
               items-center
+              justify-center
               gap-2
               rounded-xl
               px-4
@@ -319,6 +327,8 @@ export default function Sidebar({ role }: SidebarProps) {
               font-extrabold
               transition-all
               duration-200
+              sm:h-[72px]
+              sm:w-[220px]
               sm:px-5
               sm:py-4
               sm:text-3xl
@@ -384,7 +394,11 @@ export default function Sidebar({ role }: SidebarProps) {
             return (
               <div
                 key={group.title}
-                className="relative shrink-0"
+                className="
+                  relative
+                  w-[220px]
+                  shrink-0
+                "
               >
                 {/* Main Group Button */}
 
@@ -399,6 +413,8 @@ export default function Sidebar({ role }: SidebarProps) {
                   }
                   className={`
                     flex
+                    h-[64px]
+                    w-[220px]
                     items-center
                     justify-center
                     gap-2
@@ -410,6 +426,8 @@ export default function Sidebar({ role }: SidebarProps) {
                     !text-white
                     transition-all
                     duration-200
+                    sm:h-[72px]
+                    sm:w-[220px]
                     sm:px-5
                     sm:py-4
                     sm:text-3xl
