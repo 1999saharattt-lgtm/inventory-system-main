@@ -37,6 +37,33 @@ type Issue = {
   }[];
 };
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+function formatThaiDate(date: Date | string | null) {
+  if (!date) return "-";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) return "-";
+
+  return `${parsedDate.getDate()} ${
+    thaiMonths[parsedDate.getMonth()]
+  } ${parsedDate.getFullYear() + 543}`;
+}
+
 function getStatusLabel(status: string) {
   switch (status) {
     case "PENDING":
@@ -509,9 +536,7 @@ export default async function IssuePage() {
                         "
                       >
                         {issue.issueDate
-                          ? new Date(
-                              issue.issueDate
-                            ).toLocaleDateString("th-TH")
+                          ? formatThaiDate(issue.issueDate)
                           : "-"}
                       </td>
 
