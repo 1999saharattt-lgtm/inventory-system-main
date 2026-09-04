@@ -152,7 +152,6 @@ if (assets.length === 0) {
 return;
 }
 
-```
 try {
   setIsExporting(true);
 
@@ -656,7 +655,6 @@ try {
 } finally {
   setIsExporting(false);
 }
-```
 
 }
 
