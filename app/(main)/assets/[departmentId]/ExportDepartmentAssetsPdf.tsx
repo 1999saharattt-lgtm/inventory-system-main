@@ -54,11 +54,15 @@ const categoryUnit: Record<string, string> = {
   NO_SYSTEM: "รายการ",
 };
 
+/*
+ * สถานะครุภัณฑ์
+ * ให้ตรงกับสถานะที่แสดงในหน้า /assets/1/all
+ */
 const statusName: Record<string, string> = {
-  ACTIVE: "ใช้งานอยู่",
-  INACTIVE: "ไม่ใช้งาน",
+  IN_USE: "ยังใช้งาน",
+  DAMAGED: "ชำรุด",
+  WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
-  LOST: "สูญหาย",
 };
 
 /* =========================================================
@@ -116,7 +120,6 @@ export default function ExportDepartmentAssetsPdf({
    *
    * 297 x 210 mm
    */
-
   const pageWidth = 297;
 
   /*
@@ -124,7 +127,6 @@ export default function ExportDepartmentAssetsPdf({
    *
    * ตารางอยู่กึ่งกลางหน้า A4
    */
-
   const tableWidth = 270;
 
   const marginX =
@@ -134,9 +136,8 @@ export default function ExportDepartmentAssetsPdf({
    * 17 รายการต่อหน้า
    *
    * ดังนั้นรายการที่ 18 จะขึ้นหน้าใหม่
-   * พร้อม Header ใหม่ทั้งหมด
+   * พร้อมหัวกระดาษและหัวตารางใหม่ทั้งหมด
    */
-
   const rowsPerPage = 17;
 
   /* =========================================================
@@ -155,7 +156,6 @@ export default function ExportDepartmentAssetsPdf({
        * คำนวณรอบไตรมาสและปีงบประมาณปัจจุบัน
        * ใหม่ทุกครั้งที่กด Export
        */
-
       const currentDate = new Date();
 
       const currentQuarter =
@@ -179,7 +179,6 @@ export default function ExportDepartmentAssetsPdf({
       /*
        * แบ่งข้อมูลเป็นชุดละ 17 รายการ
        */
-
       const pages: Asset[][] = [];
 
       for (
@@ -210,7 +209,6 @@ export default function ExportDepartmentAssetsPdf({
            * หน้าแรกใช้หน้าที่สร้างไว้แล้ว
            * หน้าถัดไปสร้างหน้าใหม่
            */
-
           if (pageIndex > 0) {
             doc.addPage(
               "a4",
@@ -228,7 +226,6 @@ export default function ExportDepartmentAssetsPdf({
           /*
            * บรรทัดที่ 1
            */
-
           doc.setFontSize(26);
 
           doc.text(
@@ -243,9 +240,7 @@ export default function ExportDepartmentAssetsPdf({
           /*
            * บรรทัดที่ 2
            * กลุ่มงาน + สำนักอนามัยการเจริญพันธุ์
-           * อยู่บรรทัดเดียวกัน
            */
-
           doc.setFontSize(16);
 
           doc.text(
@@ -260,7 +255,6 @@ export default function ExportDepartmentAssetsPdf({
           /*
            * บรรทัดที่ 3
            */
-
           doc.text(
             `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
             center,
@@ -285,13 +279,11 @@ export default function ExportDepartmentAssetsPdf({
                 /*
                  * ลำดับ
                  */
-
                 globalIndex + 1,
 
                 /*
                  * ประเภท
                  */
-
                 categoryName[
                   asset.category
                 ] ?? asset.category,
@@ -299,27 +291,31 @@ export default function ExportDepartmentAssetsPdf({
                 /*
                  * รหัส GFMIS
                  */
-
                 asset.governmentAssetNo ??
                   "-",
 
                 /*
                  * รหัสครุภัณฑ์
                  */
-
                 asset.officeAssetNo ??
                   "-",
 
                 /*
                  * รายการครุภัณฑ์
                  */
-
                 asset.name || "-",
+
+                /*
+                 * จำนวน
+                 *
+                 * ครุภัณฑ์แต่ละรายการ
+                 * นับเป็น 1 รายการ
+                 */
+                "1",
 
                 /*
                  * หน่วย
                  */
-
                 categoryUnit[
                   asset.category
                 ] ?? "รายการ",
@@ -327,7 +323,6 @@ export default function ExportDepartmentAssetsPdf({
                 /*
                  * ผู้รับผิดชอบ
                  */
-
                 asset.officerName ??
                   asset.sectionName ??
                   asset.departmentName ??
@@ -336,7 +331,6 @@ export default function ExportDepartmentAssetsPdf({
                 /*
                  * สถานะ
                  */
-
                 statusName[
                   asset.status
                 ] ?? asset.status,
@@ -347,12 +341,12 @@ export default function ExportDepartmentAssetsPdf({
           /*
            * เติมแถวว่างให้ครบ 17 แถว
            */
-
           while (
             body.length <
             rowsPerPage
           ) {
             body.push([
+              "",
               "",
               "",
               "",
@@ -372,14 +366,12 @@ export default function ExportDepartmentAssetsPdf({
             /*
              * ตารางเริ่มหลัง Header
              */
-
             startY: 37,
 
             /*
              * ตารางกว้าง 270 mm
              * อยู่กึ่งกลางหน้า A4
              */
-
             margin: {
               left: marginX,
               right: marginX,
@@ -390,7 +382,6 @@ export default function ExportDepartmentAssetsPdf({
             /*
              * หัวตาราง
              */
-
             head: [
               [
                 "ลำดับ",
@@ -398,6 +389,7 @@ export default function ExportDepartmentAssetsPdf({
                 "รหัส GFMIS",
                 "รหัสครุภัณฑ์",
                 "รายการครุภัณฑ์",
+                "จำนวน",
                 "หน่วย",
                 "ผู้รับผิดชอบ",
                 "สถานะ",
@@ -409,7 +401,6 @@ export default function ExportDepartmentAssetsPdf({
             /*
              * ตารางมีเส้นสีดำ
              */
-
             theme: "grid",
 
             /* =================================================
@@ -423,48 +414,39 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * ฟ้อนข้อมูล 14 pt
                */
-
               fontSize: 14,
 
               /*
-               * เพิ่มระยะห่างภายในช่อง
+               * ระยะห่างภายในช่อง
                */
-
               cellPadding: 1.5,
 
               /*
                * ทุกช่องกึ่งกลาง
                */
-
               halign: "center",
               valign: "middle",
 
               /*
                * เส้นตารางสีดำ
                */
-
               lineColor: [0, 0, 0],
               lineWidth: 0.25,
 
               /*
                * ความสูงแถว
                */
-
               minCellHeight: 7.2,
 
               /*
-               * ไม่ตัดข้อมูลเป็น ...
-               *
-               * ใช้ linebreak เพื่อไม่ให้ข้อมูลหาย
-               * หากข้อความยาวกว่าพื้นที่
+               * ใช้ linebreak
+               * เพื่อไม่ให้ข้อมูลหาย
                */
-
               overflow: "linebreak",
 
               /*
                * ตัวอักษรสีดำ
                */
-
               textColor: [0, 0, 0],
             },
 
@@ -479,52 +461,43 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * ฟ้อนหัวตาราง 14 pt
                */
-
               fontSize: 14,
 
               /*
                * พื้นหลังสีขาว
                */
-
               fillColor: [255, 255, 255],
 
               /*
-               * บังคับสีฟ้อนเป็นดำ
+               * ตัวอักษรสีดำ
                */
-
               textColor: [0, 0, 0],
 
               /*
-               * กึ่งกลางทั้งแนวนอนและแนวตั้ง
+               * กึ่งกลาง
                */
-
               halign: "center",
               valign: "middle",
 
               /*
                * เส้นสีดำ
                */
-
               lineColor: [0, 0, 0],
               lineWidth: 0.25,
 
               /*
                * ระยะห่างภายในหัวตาราง
                */
-
               cellPadding: 1.7,
 
               /*
-               * เพิ่มความสูงหัวตาราง
-               * ให้ตัวหนังสือไม่ติดกัน
+               * ความสูงหัวตาราง
                */
-
               minCellHeight: 9,
 
               /*
                * ไม่ตัดข้อมูลทิ้ง
                */
-
               overflow: "linebreak",
             },
 
@@ -542,7 +515,6 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * กึ่งกลางแนวตั้ง
                */
-
               valign: "middle",
 
               cellPadding: 1.5,
@@ -552,7 +524,6 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * ไม่ตัดข้อมูลทิ้ง
                */
-
               overflow: "linebreak",
             },
 
@@ -564,9 +535,7 @@ export default function ExportDepartmentAssetsPdf({
             columnStyles: {
               /*
                * ลำดับ
-               * ลดความกว้างลง
                */
-
               0: {
                 cellWidth: 12,
                 halign: "center",
@@ -575,11 +544,9 @@ export default function ExportDepartmentAssetsPdf({
 
               /*
                * ประเภท
-               * ลดความกว้างลง
                */
-
               1: {
-                cellWidth: 30,
+                cellWidth: 29,
                 halign: "center",
                 valign: "middle",
               },
@@ -587,9 +554,8 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * รหัส GFMIS
                */
-
               2: {
-                cellWidth: 37,
+                cellWidth: 35,
                 halign: "center",
                 valign: "middle",
               },
@@ -597,9 +563,8 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * รหัสครุภัณฑ์
                */
-
               3: {
-                cellWidth: 38,
+                cellWidth: 36,
                 halign: "center",
                 valign: "middle",
               },
@@ -609,19 +574,26 @@ export default function ExportDepartmentAssetsPdf({
                *
                * เฉพาะข้อมูลคอลัมน์นี้ชิดซ้าย
                */
-
               4: {
-                cellWidth: 61,
+                cellWidth: 57,
                 halign: "left",
+                valign: "middle",
+              },
+
+              /*
+               * จำนวน
+               */
+              5: {
+                cellWidth: 15,
+                halign: "center",
                 valign: "middle",
               },
 
               /*
                * หน่วย
                */
-
-              5: {
-                cellWidth: 18,
+              6: {
+                cellWidth: 17,
                 halign: "center",
                 valign: "middle",
               },
@@ -629,9 +601,8 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * ผู้รับผิดชอบ
                */
-
-              6: {
-                cellWidth: 49,
+              7: {
+                cellWidth: 44,
                 halign: "center",
                 valign: "middle",
               },
@@ -639,8 +610,7 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * สถานะ
                */
-
-              7: {
+              8: {
                 cellWidth: 25,
                 halign: "center",
                 valign: "middle",
@@ -650,7 +620,6 @@ export default function ExportDepartmentAssetsPdf({
             /*
              * เส้นกรอบตารางสีดำ
              */
-
             tableLineColor: [0, 0, 0],
             tableLineWidth: 0.25,
           });
