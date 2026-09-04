@@ -122,7 +122,7 @@ export default function AssetResponsibleFields({
       className="
         mt-4
         grid
-        gap-4
+        gap-5
         sm:grid-cols-2
       "
     >
@@ -134,10 +134,11 @@ export default function AssetResponsibleFields({
         <label
           htmlFor="departmentDisplay"
           className="
+            mb-2
             block
-            text-sm
+            text-lg
             font-extrabold
-            !text-slate-200
+            text-white
           "
         >
           หน่วยงาน
@@ -146,19 +147,18 @@ export default function AssetResponsibleFields({
         <div
           id="departmentDisplay"
           className="
-            mt-2
             flex
             min-h-[50px]
             w-full
             items-center
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-700
             px-4
             py-3
             font-extrabold
-            text-slate-900
+            text-white
           "
         >
           {departmentName}
@@ -180,10 +180,11 @@ export default function AssetResponsibleFields({
           <label
             htmlFor="sectionId"
             className="
+              mb-2
               block
-              text-sm
+              text-lg
               font-extrabold
-              !text-slate-200
+              text-white
             "
           >
             กลุ่มงาน
@@ -199,21 +200,16 @@ export default function AssetResponsibleFields({
               )
             }
             className="
-              mt-2
               min-h-[50px]
               w-full
               rounded-xl
               border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
+              border-slate-600
+              bg-slate-800
+              p-3
+              text-white
+              focus:border-cyan-400
+              focus:outline-none
             "
           >
             <option value="">
@@ -246,10 +242,11 @@ export default function AssetResponsibleFields({
         <label
           htmlFor="officerId"
           className="
+            mb-2
             block
-            text-sm
+            text-lg
             font-extrabold
-            !text-slate-200
+            text-white
           "
         >
           ผู้ครอบครอง
@@ -269,24 +266,19 @@ export default function AssetResponsibleFields({
             !sectionId
           }
           className="
-            mt-2
             min-h-[50px]
             w-full
             rounded-xl
             border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
-            font-semibold
-            text-slate-900
-            outline-none
+            border-slate-600
+            bg-slate-800
+            p-3
+            text-white
+            focus:border-cyan-400
+            focus:outline-none
             disabled:cursor-not-allowed
-            disabled:bg-slate-100
+            disabled:bg-slate-700
             disabled:text-slate-400
-            focus:border-emerald-600
-            focus:ring-2
-            focus:ring-emerald-200
           "
         >
           <option value="">
@@ -311,7 +303,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            !text-slate-400
+            text-slate-400
           "
         >
           {sections.length > 0
@@ -330,10 +322,11 @@ export default function AssetResponsibleFields({
         <label
           htmlFor="positionDisplay"
           className="
+            mb-2
             block
-            text-sm
+            text-lg
             font-extrabold
-            !text-slate-200
+            text-white
           "
         >
           ตำแหน่ง
@@ -342,19 +335,18 @@ export default function AssetResponsibleFields({
         <div
           id="positionDisplay"
           className="
-            mt-2
             flex
             min-h-[50px]
             w-full
             items-center
             rounded-xl
             border
-            border-slate-300
-            bg-white
+            border-slate-600
+            bg-slate-700
             px-4
             py-3
             font-extrabold
-            text-slate-900
+            text-white
           "
         >
           {selectedOfficer?.position ?? "-"}
@@ -365,7 +357,7 @@ export default function AssetResponsibleFields({
             mt-2
             text-sm
             font-semibold
-            !text-slate-400
+            text-slate-400
           "
         >
           ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
