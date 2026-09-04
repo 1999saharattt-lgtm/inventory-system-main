@@ -203,7 +203,6 @@ export default async function Home() {
       color: "bg-blue-600",
       hover: "hover:border-blue-300",
       href: "/materials/summary",
-      detail: `รับเข้าเดือนนี้ ${receiveThisMonth} รายการ`,
     },
     {
       title: "รับเข้าวันนี้",
@@ -212,8 +211,7 @@ export default async function Home() {
       icon: "📥",
       color: "bg-emerald-600",
       hover: "hover:border-emerald-300",
-      href: "/receive/today",
-      detail: `เดือนนี้ ${receiveThisMonth} รายการ`,
+      href: "/receive?date=today",
     },
     {
       title: "เบิกจ่ายวันนี้",
@@ -222,8 +220,7 @@ export default async function Home() {
       icon: "📤",
       color: "bg-amber-600",
       hover: "hover:border-amber-300",
-      href: "/issue/today",
-      detail: `เดือนนี้ ${issueThisMonth} รายการ`,
+      href: "/issue?date=today",
     },
     {
       title: "พัสดุที่ต้องตรวจสอบ",
@@ -297,9 +294,11 @@ export default async function Home() {
                       {card.unit}
                     </p>
 
-                    <p className="mt-2 break-words text-sm font-bold !text-slate-300 sm:text-base">
-                      {card.detail}
-                    </p>
+                    {card.detail && (
+                      <p className="mt-2 break-words text-sm font-bold !text-slate-300 sm:text-base">
+                        {card.detail}
+                      </p>
+                    )}
                   </div>
 
                   <div
@@ -328,6 +327,97 @@ export default async function Home() {
             </Link>
           );
         })}
+      </div>
+
+      {/* =====================================================
+          Monthly Summary
+      ===================================================== */}
+
+      <div
+        className="
+          grid
+          w-full
+          min-w-0
+          grid-cols-1
+          gap-4
+          md:grid-cols-2
+        "
+      >
+        <Link
+          href="/receive?period=month"
+          className="
+            min-w-0
+            rounded-2xl
+            border
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
+            p-5
+            text-white
+            shadow-xl
+            transition-all
+            hover:-translate-y-1
+            hover:shadow-2xl
+          "
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xl font-extrabold !text-white sm:text-2xl">
+                📥 รับเข้าประจำเดือน
+              </p>
+
+              <p className="mt-2 text-4xl font-extrabold !text-emerald-300 sm:text-5xl">
+                {receiveThisMonth}
+              </p>
+
+              <p className="mt-1 text-base font-bold !text-slate-300">
+                ใบรับเข้าในเดือนนี้
+              </p>
+            </div>
+
+            <span className="text-4xl">📥</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/issue?period=month"
+          className="
+            min-w-0
+            rounded-2xl
+            border
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
+            p-5
+            text-white
+            shadow-xl
+            transition-all
+            hover:-translate-y-1
+            hover:shadow-2xl
+          "
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xl font-extrabold !text-white sm:text-2xl">
+                📤 เบิกจ่ายประจำเดือน
+              </p>
+
+              <p className="mt-2 text-4xl font-extrabold !text-amber-300 sm:text-5xl">
+                {issueThisMonth}
+              </p>
+
+              <p className="mt-1 text-base font-bold !text-slate-300">
+                ใบเบิกจ่ายในเดือนนี้
+              </p>
+            </div>
+
+            <span className="text-4xl">📤</span>
+          </div>
+        </Link>
       </div>
 
       {/* =====================================================
@@ -404,7 +494,7 @@ export default async function Home() {
 
           <div className="space-y-3 p-4 sm:p-5">
             <Link
-              href="/issue"
+              href="/notifications"
               className="
                 flex
                 items-center
@@ -768,97 +858,6 @@ export default async function Home() {
             })}
           </div>
         </div>
-      </div>
-
-      {/* =====================================================
-          Monthly Summary
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          w-full
-          min-w-0
-          grid-cols-1
-          gap-4
-          md:grid-cols-2
-        "
-      >
-        <Link
-          href="/receive"
-          className="
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-5
-            text-white
-            shadow-xl
-            transition-all
-            hover:-translate-y-1
-            hover:shadow-2xl
-          "
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xl font-extrabold !text-white sm:text-2xl">
-                📥 รับเข้าประจำเดือน
-              </p>
-
-              <p className="mt-2 text-4xl font-extrabold !text-emerald-300 sm:text-5xl">
-                {receiveThisMonth}
-              </p>
-
-              <p className="mt-1 text-base font-bold !text-slate-300">
-                ใบรับเข้าในเดือนนี้
-              </p>
-            </div>
-
-            <span className="text-4xl">📥</span>
-          </div>
-        </Link>
-
-        <Link
-          href="/issue"
-          className="
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-5
-            text-white
-            shadow-xl
-            transition-all
-            hover:-translate-y-1
-            hover:shadow-2xl
-          "
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xl font-extrabold !text-white sm:text-2xl">
-                📤 เบิกจ่ายประจำเดือน
-              </p>
-
-              <p className="mt-2 text-4xl font-extrabold !text-amber-300 sm:text-5xl">
-                {issueThisMonth}
-              </p>
-
-              <p className="mt-1 text-base font-bold !text-slate-300">
-                ใบเบิกจ่ายในเดือนนี้
-              </p>
-            </div>
-
-            <span className="text-4xl">📤</span>
-          </div>
-        </Link>
       </div>
     </div>
   );

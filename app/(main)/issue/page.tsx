@@ -37,6 +37,13 @@ type Issue = {
   }[];
 };
 
+type IssuePageProps = {
+  searchParams: Promise<{
+    date?: string;
+    period?: string;
+  }>;
+};
+
 const thaiMonths = [
   "มกราคม",
   "กุมภาพันธ์",
@@ -80,7 +87,15 @@ function getStatusLabel(status: string) {
   }
 }
 
-export default async function IssuePage() {
+export default async function IssuePage({
+  searchParams,
+}: IssuePageProps) {
+  // =====================================================
+  // Search Params
+  // =====================================================
+
+  const params = await searchParams;
+
   // =====================================================
   // Session
   // =====================================================
@@ -114,11 +129,83 @@ export default async function IssuePage() {
           };
 
   // =====================================================
+  // กำหนดช่วงวันที่สำหรับการกรอง
+  // =====================================================
+
+  const now = new Date();
+
+  let startDate: Date | undefined;
+  let endDate: Date | undefined;
+
+  // เบิกจ่ายวันนี้
+  if (params.date === "today") {
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0,
+      0
+    );
+  }
+
+  // เบิกจ่ายประจำเดือน
+  if (params.period === "month") {
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1,
+      0,
+      0,
+      0,
+      0
+    );
+  }
+
+  // =====================================================
+  // รวมเงื่อนไขกลุ่มงาน + วันที่
+  // =====================================================
+
+  const issueWhere = {
+    ...where,
+
+    ...(startDate && endDate
+      ? {
+          issueDate: {
+            gte: startDate,
+            lt: endDate,
+          },
+        }
+      : {}),
+  };
+
+  // =====================================================
   // ดึงรายการเบิก
   // =====================================================
 
   const issues = await prisma.issue.findMany({
-    where,
+    where: issueWhere,
 
     orderBy: {
       issueDate: "desc",

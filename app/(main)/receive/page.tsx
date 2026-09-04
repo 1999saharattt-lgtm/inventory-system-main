@@ -17,8 +17,84 @@ type Receive = {
   }[];
 };
 
-export default async function ReceivePage() {
+type ReceivePageProps = {
+  searchParams: Promise<{
+    date?: string;
+    period?: string;
+  }>;
+};
+
+export default async function ReceivePage({
+  searchParams,
+}: ReceivePageProps) {
+  const params = await searchParams;
+
+  // =====================================================
+  // กำหนดช่วงวันที่สำหรับการกรอง
+  // =====================================================
+
+  const now = new Date();
+
+  let startDate: Date | undefined;
+  let endDate: Date | undefined;
+
+  // รับเข้าวันนี้
+  if (params.date === "today") {
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0,
+      0
+    );
+  }
+
+  // รับเข้าประจำเดือน
+  if (params.period === "month") {
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1,
+      0,
+      0,
+      0,
+      0
+    );
+  }
+
   const receives = await prisma.receive.findMany({
+    where:
+      startDate && endDate
+        ? {
+            receiveDate: {
+              gte: startDate,
+              lt: endDate,
+            },
+          }
+        : undefined,
+
     include: {
       vendor: true,
       items: true,
