@@ -378,30 +378,26 @@ export default function InspectionForm({
   }
 
   return (
-    <div
-      className="
-        mx-auto
-        w-full
-        max-w-[1800px]
-        space-y-6
-      "
-    >
+    <div className="w-full space-y-5">
       {/* =====================================================
           ข้อมูลการตรวจสอบ
       ===================================================== */}
 
       <div
         className="
+          w-full
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
-          p-4
+          p-3
           text-white
           shadow-xl
-          sm:p-6
+          sm:p-5
+          lg:p-6
         "
       >
         <div
@@ -618,23 +614,24 @@ export default function InspectionForm({
           border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
-          p-3
+          p-2
           text-white
           shadow-xl
-          sm:p-4
-          lg:p-6
+          sm:p-3
+          lg:p-4
         "
       >
         <div
           className="
-            mb-5
+            mb-4
             flex
             flex-col
             gap-2
             border-b
             border-slate-700
-            pb-4
+            pb-3
             sm:flex-row
             sm:items-center
             sm:justify-between
@@ -686,7 +683,7 @@ export default function InspectionForm({
               leading-tight
               sm:text-[11px]
               lg:text-xs
-            "
+          "
           >
             <colgroup>
               <col style={{ width: "3.5%" }} />
@@ -1715,16 +1712,19 @@ export default function InspectionForm({
 
       <div
         className="
+          w-full
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
           from-slate-950
+          via-slate-900
           to-slate-800
-          p-4
+          p-3
           text-white
           shadow-xl
-          sm:p-6
+          sm:p-5
+          lg:p-6
         "
       >
         <div
@@ -1901,7 +1901,7 @@ export default function InspectionForm({
           flex-col
           justify-end
           gap-3
-          pt-2
+          pt-1
           sm:flex-row
         "
       >
