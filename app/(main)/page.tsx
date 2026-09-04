@@ -39,7 +39,11 @@ function addMonths(date: Date, amount: number) {
 export default async function Home() {
   const user = await getCurrentUser();
 
-  const isUserAdmin = user?.role === "ADMIN";
+  // แปลงค่า Role ให้เป็นตัวพิมพ์ใหญ่ และตรวจสอบทุกกรณีที่เป็น Admin
+  const userRoleUpper = user?.role ? String(user.role).toUpperCase() : "";
+  const isUserAdmin = userRoleUpper === "ADMIN" || userRoleUpper === "SUPERADMIN";
+
+  // ADMIN = ไม่กรองแผนก ({}), STAFF/USER = กรองเฉพาะ departmentId
   const departmentWhere = isUserAdmin
     ? {}
     : user?.departmentId
