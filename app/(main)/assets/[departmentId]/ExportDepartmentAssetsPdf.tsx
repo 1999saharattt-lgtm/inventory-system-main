@@ -57,7 +57,6 @@ NO_SYSTEM: "รายการ",
 /*
 
 * สถานะครุภัณฑ์
-* ให้ตรงกับสถานะที่แสดงในหน้า /assets/1/all
   */
   const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
@@ -75,9 +74,11 @@ function getFiscalYear(date: Date) {
 const month = date.getMonth() + 1;
 const year = date.getFullYear();
 
-return month >= 10
-? year + 1 + 543
-: year + 543;
+if (month >= 10) {
+return year + 1 + 543;
+}
+
+return year + 543;
 }
 
 /* =========================================================
@@ -119,7 +120,6 @@ const [isExporting, setIsExporting] = useState(false);
 /*
 
 * A4 แนวนอน
-*
 * 297 x 210 mm
   */
   const pageWidth = 297;
@@ -127,19 +127,19 @@ const [isExporting, setIsExporting] = useState(false);
 /*
 
 * ความกว้างตาราง
-*
-* ตารางอยู่กึ่งกลางหน้า A4
   */
   const tableWidth = 270;
 
-const marginX =
-(pageWidth - tableWidth) / 2;
+/*
+
+* จัดตารางให้อยู่กึ่งกลางหน้า
+  */
+  const marginX =
+  (pageWidth - tableWidth) / 2;
 
 /*
 
-* 17 รายการต่อหน้า
-*
-* รายการที่ 18 จะขึ้นหน้าใหม่
+* จำนวนรายการต่อหน้า
   */
   const rowsPerPage = 17;
 
@@ -157,8 +157,7 @@ try {
   setIsExporting(true);
 
   /*
-   * คำนวณรอบไตรมาสและปีงบประมาณปัจจุบัน
-   * ใหม่ทุกครั้งที่กด Export
+   * คำนวณไตรมาสและปีงบประมาณ
    */
   const currentDate = new Date();
 
@@ -168,6 +167,9 @@ try {
   const fiscalYear =
     getFiscalYear(currentDate);
 
+  /*
+   * สร้างเอกสาร PDF A4 แนวนอน
+   */
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -175,14 +177,18 @@ try {
     compress: true,
   });
 
+  /*
+   * ตั้งฟอนต์ภาษาไทย
+   */
   doc.setFont(
     "2.3.2 THSarabunNew",
     "normal"
   );
 
-  /*
-   * แบ่งข้อมูลเป็นชุดละ 17 รายการ
-   */
+  /* =====================================================
+     แบ่งข้อมูลเป็นหน้า ๆ
+     ===================================================== */
+
   const pages: Asset[][] = [];
 
   for (
@@ -198,23 +204,19 @@ try {
     );
   }
 
-  if (pages.length === 0) {
-    pages.push([]);
-  }
-
   /* =====================================================
      สร้าง PDF ทีละหน้า
-
+     
      สำคัญ:
-     ทุกหน้าจะสร้าง Header ใหม่
-     และสร้างตารางใหม่
+     Header จะถูกสร้างใหม่ทุกครั้ง
+     ดังนั้นหน้า 2, 3, 4... จะมี Header เหมือนหน้าแรก
      ===================================================== */
 
   pages.forEach(
     (pageAssets, pageIndex) => {
       /*
-       * หน้าแรกใช้หน้าที่สร้างไว้แล้ว
-       * หน้าที่ 2 เป็นต้นไปสร้างหน้าใหม่
+       * หน้าแรกใช้หน้าที่สร้างโดย jsPDF
+       * หน้าถัดไปเพิ่มหน้าใหม่
        */
       if (pageIndex > 0) {
         doc.addPage(
@@ -228,7 +230,6 @@ try {
 
       /* =================================================
          HEADER
-         ทุกหน้าจะมี Header ชุดนี้
          ================================================= */
 
       /*
@@ -258,8 +259,12 @@ try {
        */
       doc.setFontSize(16);
 
+      const departmentHeader =
+        departmentName +
+        " สำนักอนามัยการเจริญพันธุ์";
+
       doc.text(
-        `${departmentName} สำนักอนามัยการเจริญพันธุ์`,
+        departmentHeader,
         center,
         23,
         {
@@ -273,8 +278,14 @@ try {
        * ตัวอย่าง:
        * รอบไตรมาสที่ 4 ปีงบประมาณ พ.ศ. 2569
        */
+      const fiscalHeader =
+        "รอบไตรมาสที่ " +
+        currentQuarter +
+        " ปีงบประมาณ พ.ศ. " +
+        fiscalYear;
+
       doc.text(
-        `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
+        fiscalHeader,
         center,
         31,
         {
@@ -288,6 +299,9 @@ try {
 
       const body = pageAssets.map(
         (asset, index) => {
+          /*
+           * คำนวณลำดับจริงของรายการ
+           */
           const globalIndex =
             pageIndex *
               rowsPerPage +
@@ -323,9 +337,6 @@ try {
 
             /*
              * จำนวน
-             *
-             * ครุภัณฑ์แต่ละรายการ
-             * นับเป็น 1 รายการ
              */
             "1",
 
@@ -356,8 +367,6 @@ try {
 
       /*
        * เติมแถวว่างให้ครบ 17 แถว
-       *
-       * เพื่อให้ทุกหน้ามีความสูงของตารางเท่ากัน
        */
       while (
         body.length <
@@ -382,19 +391,21 @@ try {
 
       autoTable(doc, {
         /*
-         * ตารางเริ่มหลัง Header
+         * เริ่มตารางหลัง Header
          */
         startY: 37,
 
         /*
-         * ตารางกว้าง 270 mm
-         * อยู่กึ่งกลางหน้า A4
+         * จัดตารางให้อยู่กึ่งกลางหน้า
          */
         margin: {
           left: marginX,
           right: marginX,
         },
 
+        /*
+         * ความกว้างรวม 270 mm
+         */
         tableWidth,
 
         /*
@@ -414,57 +425,37 @@ try {
           ],
         ],
 
+        /*
+         * ข้อมูล
+         */
         body,
 
         /*
-         * ตารางมีเส้นสีดำ
+         * ตารางแบบมีเส้น
          */
         theme: "grid",
 
         /* =================================================
-           รูปแบบพื้นฐานของตาราง
+           รูปแบบตารางพื้นฐาน
            ================================================= */
 
         styles: {
           font: "2.3.2 THSarabunNew",
           fontStyle: "normal",
-
-          /*
-           * ฟ้อนข้อมูล
-           */
           fontSize: 13,
 
-          /*
-           * ระยะห่างภายในช่อง
-           */
           cellPadding: 1.2,
 
-          /*
-           * ทุกช่องกึ่งกลาง
-           */
           halign: "center",
           valign: "middle",
 
-          /*
-           * เส้นตารางสีดำ
-           */
           lineColor: [0, 0, 0],
           lineWidth: 0.25,
 
-          /*
-           * ความสูงแถว
-           */
           minCellHeight: 7.2,
 
-          /*
-           * ให้ข้อความสามารถตัดบรรทัด
-           * กรณีข้อความยาวเกินความกว้างช่อง
-           */
           overflow: "linebreak",
 
-          /*
-           * ตัวอักษรสีดำ
-           */
           textColor: [0, 0, 0],
         },
 
@@ -475,10 +466,6 @@ try {
         headStyles: {
           font: "2.3.2 THSarabunNew",
           fontStyle: "normal",
-
-          /*
-           * ฟ้อนหัวตาราง
-           */
           fontSize: 13,
 
           /*
@@ -491,31 +478,16 @@ try {
            */
           textColor: [0, 0, 0],
 
-          /*
-           * กึ่งกลาง
-           */
           halign: "center",
           valign: "middle",
 
-          /*
-           * เส้นสีดำ
-           */
           lineColor: [0, 0, 0],
           lineWidth: 0.25,
 
-          /*
-           * ระยะห่างภายในหัวตาราง
-           */
           cellPadding: 1.3,
 
-          /*
-           * ความสูงหัวตาราง
-           */
           minCellHeight: 9,
 
-          /*
-           * ไม่ตัดข้อมูลทิ้ง
-           */
           overflow: "linebreak",
         },
 
@@ -530,24 +502,19 @@ try {
 
           textColor: [0, 0, 0],
 
-          /*
-           * กึ่งกลางแนวตั้ง
-           */
           valign: "middle",
 
           cellPadding: 1.2,
 
           minCellHeight: 7.2,
 
-          /*
-           * ให้ข้อความสามารถแสดงได้เต็มพื้นที่
-           */
           overflow: "linebreak",
         },
 
         /* =================================================
            ความกว้างคอลัมน์
-           รวม = 270 mm
+           
+           รวมทั้งหมด = 270 mm
            ================================================= */
 
         columnStyles: {
@@ -562,10 +529,6 @@ try {
 
           /*
            * 1 - ประเภท
-           *
-           * รองรับ
-           * "เครื่องปรับอากาศ"
-           * "ไม่มีอยู่ในระบบ"
            */
           1: {
             cellWidth: 29,
@@ -593,9 +556,6 @@ try {
 
           /*
            * 4 - รายการครุภัณฑ์
-           *
-           * ให้พื้นที่มากที่สุด
-           * สำหรับชื่อครุภัณฑ์
            */
           4: {
             cellWidth: 62,
@@ -641,7 +601,7 @@ try {
         },
 
         /*
-         * เส้นกรอบตารางสีดำ
+         * เส้นกรอบตาราง
          */
         tableLineColor: [0, 0, 0],
         tableLineWidth: 0.25,
@@ -678,6 +638,9 @@ try {
     link.click();
   }
 
+  /*
+   * ล้าง Object URL หลังจากเปิดไฟล์ไปแล้ว
+   */
   setTimeout(() => {
     URL.revokeObjectURL(pdfUrl);
   }, 60000);
@@ -696,6 +659,10 @@ try {
 ```
 
 }
+
+/* =========================================================
+UI
+========================================================= */
 
 return ( <div className="shrink-0">
 <button
