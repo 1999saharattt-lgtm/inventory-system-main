@@ -2,33 +2,81 @@ import { login } from "./action";
 
 export default function LoginPage() {
   return (
-    <div
+    <main
       className="
+        relative
         flex
         min-h-screen
         items-center
         justify-center
-        bg-slate-100
-        px-3
-        sm:px-4
+        overflow-hidden
+        bg-gradient-to-br
+        from-slate-950
+        via-slate-900
+        to-slate-800
+        px-4
+        py-6
+        sm:px-6
+        sm:py-8
       "
     >
+      {/* Background Decoration */}
+
       <div
         className="
+          pointer-events-none
+          absolute
+          -left-24
+          -top-24
+          h-64
+          w-64
+          rounded-full
+          bg-blue-500/10
+          blur-3xl
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -bottom-24
+          -right-24
+          h-72
+          w-72
+          rounded-full
+          bg-cyan-400/10
+          blur-3xl
+        "
+      />
+
+      {/* Login Card */}
+
+      <div
+        className="
+          relative
+          z-10
           w-full
-          max-w-md
+          max-w-[430px]
           overflow-hidden
           rounded-2xl
           border
-          border-slate-200
-          bg-white
+          border-slate-700
+          bg-slate-900
           shadow-2xl
+          sm:rounded-3xl
         "
       >
-        {/* Header */}
+        {/* =====================================================
+            Header
+        ===================================================== */}
 
         <div
           className="
+            relative
+            overflow-hidden
+            border-b
+            border-slate-700
             bg-gradient-to-r
             from-slate-950
             via-slate-800
@@ -36,91 +84,155 @@ export default function LoginPage() {
             px-5
             py-6
             text-center
-            text-white
             sm:px-8
             sm:py-8
           "
         >
-          <img
-            src="/images/dohl-logo.png"
-            alt="logo"
-            width={80}
-            height={80}
+          {/* Header Glow */}
+
+          <div
             className="
-              mx-auto
-              mb-4
-              h-16
-              w-16
+              pointer-events-none
+              absolute
+              left-1/2
+              top-0
+              h-32
+              w-32
+              -translate-x-1/2
               rounded-full
-              bg-white
-              p-2
-              sm:mb-5
-              sm:h-20
-              sm:w-20
+              bg-blue-400/10
+              blur-3xl
             "
           />
 
-          <h1
+          {/* Logo */}
+
+          <div
             className="
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
+              relative
+              mx-auto
+              mb-4
+              flex
+              h-20
+              w-20
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-white/30
+              bg-white
+              p-2
+              shadow-xl
+              sm:mb-5
+              sm:h-24
+              sm:w-24
             "
           >
-            ระบบบริหารงานคลังพัสดุ
+            <img
+              src="/images/dohl-logo.png"
+              alt="โลโก้กรมอนามัย"
+              className="
+                h-full
+                w-full
+                object-contain
+              "
+            />
+          </div>
+
+          {/* System Name */}
+
+          <h1
+            className="
+              relative
+              text-xl
+              font-extrabold
+              leading-tight
+              tracking-tight
+              !text-white
+              sm:text-2xl
+              md:text-3xl
+            "
+          >
+            ระบบบริหารคลังพัสดุ
           </h1>
 
           <p
             className="
+              relative
               mt-2
-              text-base
+              text-sm
               font-semibold
-              text-slate-200
+              leading-relaxed
+              !text-slate-200
               sm:mt-3
-              sm:text-lg
+              sm:text-base
             "
           >
-            สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+            สำนักอนามัยการเจริญพันธุ์
+            <br className="sm:hidden" />
+            <span className="sm:ml-1">
+              กรมอนามัย
+            </span>
           </p>
         </div>
 
-        {/* Form */}
+        {/* =====================================================
+            Form
+        ===================================================== */}
 
         <div
           className="
-            p-5
-            sm:p-8
+            bg-gradient-to-b
+            from-slate-900
+            to-slate-950
+            px-5
+            py-6
+            sm:px-8
+            sm:py-8
           "
         >
-          <h2
-            className="
-              mb-5
-              text-center
-              text-xl
-              font-extrabอด
-              font-extrabold
-              text-slate-800
-              sm:mb-6
-              sm:text-2xl
-            "
-          >
-            เข้าสู่ระบบ
-          </h2>
+          {/* Form Title */}
+
+          <div className="mb-5 text-center sm:mb-6">
+            <h2
+              className="
+                text-xl
+                font-extrabold
+                !text-white
+                sm:text-2xl
+              "
+            >
+              เข้าสู่ระบบ
+            </h2>
+
+            <p
+              className="
+                mt-1
+                text-xs
+                font-medium
+                !text-slate-400
+                sm:text-sm
+              "
+            >
+              กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ
+            </p>
+          </div>
 
           <form
             action={login}
             className="space-y-4 sm:space-y-5"
           >
+            {/* Username */}
+
             <div>
               <label
+                htmlFor="username"
                 className="
                   mb-2
                   block
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  !text-slate-200
                   sm:text-base
                 "
               >
@@ -128,37 +240,45 @@ export default function LoginPage() {
               </label>
 
               <input
+                id="username"
                 type="text"
                 name="username"
-                placeholder="ชื่อผู้ใช้งาน"
+                placeholder="กรุณากรอกรหัสผู้ใช้งาน"
+                autoComplete="username"
                 className="
                   w-full
                   rounded-xl
                   border
-                  border-slate-300
-                  bg-white
+                  border-slate-600
+                  bg-slate-800
                   px-4
                   py-3
                   text-base
                   font-medium
-                  text-slate-900
+                  !text-white
+                  placeholder:text-slate-500
                   outline-none
-                  transition
+                  transition-all
+                  duration-200
                   focus:border-blue-500
+                  focus:bg-slate-800
                   focus:ring-4
-                  focus:ring-blue-100
+                  focus:ring-blue-500/10
                 "
               />
             </div>
 
+            {/* Password */}
+
             <div>
               <label
+                htmlFor="password"
                 className="
                   mb-2
                   block
                   text-sm
                   font-extrabold
-                  text-slate-700
+                  !text-slate-200
                   sm:text-base
                 "
               >
@@ -166,79 +286,113 @@ export default function LoginPage() {
               </label>
 
               <input
+                id="password"
                 type="password"
                 name="password"
-                placeholder="รหัสผ่าน"
+                placeholder="กรุณากรอกรหัสผ่าน"
+                autoComplete="current-password"
                 className="
                   w-full
                   rounded-xl
                   border
-                  border-slate-300
-                  bg-white
+                  border-slate-600
+                  bg-slate-800
                   px-4
                   py-3
                   text-base
                   font-medium
-                  text-slate-900
+                  !text-white
+                  placeholder:text-slate-500
                   outline-none
-                  transition
+                  transition-all
+                  duration-200
                   focus:border-blue-500
+                  focus:bg-slate-800
                   focus:ring-4
-                  focus:ring-blue-100
+                  focus:ring-blue-500/10
                 "
               />
             </div>
 
+            {/* Login Button */}
+
             <button
               type="submit"
               className="
-                mt-3
+                mt-2
+                flex
                 w-full
+                items-center
+                justify-center
                 rounded-xl
                 bg-gradient-to-r
                 from-emerald-600
                 to-green-500
+                px-4
                 py-3
                 text-base
                 font-extrabold
-                text-white
+                !text-white
                 shadow-lg
-                transition
-                hover:scale-[1.02]
+                shadow-emerald-950/30
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:from-emerald-500
+                hover:to-green-400
+                hover:shadow-xl
+                active:translate-y-0
+                sm:py-3.5
                 sm:text-lg
               "
             >
-              🔐 เข้าสู่ระบบ
+              <span className="mr-2">
+                🔐
+              </span>
+              เข้าสู่ระบบ
             </button>
           </form>
 
-          {/* Footer */}
+          {/* =====================================================
+              Footer
+          ===================================================== */}
 
           <div
             className="
               mt-6
               border-t
-              border-slate-200
+              border-slate-700
               pt-4
               text-center
-              text-xs
-              font-semibold
-              text-slate-500
-              sm:mt-8
+              sm:mt-7
               sm:pt-5
-              sm:text-sm
             "
           >
-            <div>
-              © {new Date().getFullYear()}
+            <div
+              className="
+                text-xs
+                font-semibold
+                !text-slate-500
+                sm:text-sm
+              "
+            >
+              © {new Date().getFullYear()} ระบบบริหารคลังพัสดุ
             </div>
 
-            <div className="mt-1">
+            <div
+              className="
+                mt-1
+                text-[11px]
+                font-semibold
+                !text-slate-500
+                sm:text-xs
+              "
+            >
               กลุ่มอำนวยการ (งานพัสดุ)
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
