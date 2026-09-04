@@ -238,29 +238,16 @@ export default async function AssetInspectionPage({
 
       {/* =====================================================
           Form
+          
+          เอาการ์ดสีขาวด้านนอกออก
+          เพื่อให้ InspectionForm ใช้พื้นที่เต็มความกว้าง
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          p-4
-          shadow-xl
-          sm:rounded-3xl
-          sm:p-6
-          lg:p-8
-        "
-      >
-        <InspectionForm
-          department={department}
-          assets={assets}
-          officers={officers}
-        />
-      </div>
+      <InspectionForm
+        department={department}
+        assets={assets}
+        officers={officers}
+      />
     </div>
   );
 }
