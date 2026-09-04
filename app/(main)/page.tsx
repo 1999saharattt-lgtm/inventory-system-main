@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifySession } from "@/lib/auth"; // ปรับ Path ให้ตรงกับไฟล์ verifySession ของคุณ
 import { prisma } from "@/lib/prisma";
 
 const thaiMonthsShort = [
@@ -36,6 +38,30 @@ function addMonths(date: Date, amount: number) {
 }
 
 export default async function Home() {
+  // =====================================================
+  // 1. Session & Role Authentication Check
+  // =====================================================
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+  let session = null;
+
+  if (token) {
+    try {
+      session = await verifySession(token);
+    } catch {
+      session = null;
+    }
+  }
+
+  // สร้าง Filter สำหรับ prisma.issue
+  // หากเป็น ADMIN จะไม่มี Filter ({}) แต่ถ้าเป็น USER จะกรองเฉพาะ departmentId ของตนเอง
+  const departmentWhere =
+    session?.role === "ADMIN"
+      ? {}
+      : session?.departmentId
+      ? { departmentId: session.departmentId }
+      : { id: -1 }; // ป้องกันกรณีหลุด Session/ไม่มี departmentId ให้ไม่ดึงข้อมูลมาเลย
+
   const now = new Date();
 
   const todayStart = startOfDay(now);
@@ -101,9 +127,10 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายวันนี้ (นับจากตาราง Issue โดยตรง)
+    // จำนวนใบเบิกจ่ายวันนี้ (เพิ่ม departmentWhere)
     prisma.issue.count({
       where: {
+        ...departmentWhere,
         issueDate: {
           gte: todayStart,
           lt: tomorrowStart,
@@ -121,9 +148,10 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายประจำเดือนนี้
+    // จำนวนใบเบิกจ่ายประจำเดือนนี้ (เพิ่ม departmentWhere)
     prisma.issue.count({
       where: {
+        ...departmentWhere,
         issueDate: {
           gte: currentMonthStart,
           lt: nextMonthStart,
@@ -131,9 +159,10 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกที่รอดำเนินการ (status = PENDING)
+    // จำนวนใบเบิกที่รอดำเนินการ (เพิ่ม departmentWhere)
     prisma.issue.count({
       where: {
+        ...departmentWhere,
         status: "PENDING",
       },
     }),
@@ -158,8 +187,10 @@ export default async function Home() {
           },
         }),
 
+        // เพิ่ม departmentWhere ในการนับใบเบิกจ่ายย้อนหลัง 6 เดือน
         prisma.issue.count({
           where: {
+            ...departmentWhere,
             issueDate: {
               gte: monthStart,
               lt: nextMonth,
@@ -229,242 +260,89 @@ export default async function Home() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
-      {/* =====================================================
-          Summary Cards
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          w-full
-          min-w-0
-          grid-cols-1
-          gap-3
-          md:grid-cols-2
-          xl:grid-cols-4
-        "
-      >
-        {cards.map((card) => {
-          return (
-            <Link
-              key={card.title}
-              href={card.href}
-              className={`
-                group
-                min-w-0
-                overflow-hidden
-                rounded-2xl
-                border
-                border-slate-700
-                bg-gradient-to-br
-                from-slate-950
-                via-slate-900
-                to-slate-800
-                text-white
-                shadow-xl
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-2xl
-                ${card.hover}
-              `}
-            >
-              <div className={`h-1 ${card.color}`} />
-
-              <div className="p-4">
-                <div className="flex min-w-0 items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
-                      {card.title}
-                    </p>
-
-                    <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
-                      {card.value}
-                    </p>
-
-                    <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
-                      {card.unit}
-                    </p>
-                  </div>
-
-                  <div
-                    className="
-                      flex
-                      h-10
-                      w-10
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-white/20
-                      bg-white/10
-                      text-lg
-                      backdrop-blur
-                      sm:h-12
-                      sm:w-12
-                      sm:text-xl
-                    "
-                  >
-                    {card.icon}
-                  </div>
+      {/* Summary Cards */}
+      <div className="grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <Link
+            key={card.title}
+            href={card.href}
+            className={`group min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.hover}`}
+          >
+            <div className={`h-1 ${card.color}`} />
+            <div className="p-4">
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
+                    {card.title}
+                  </p>
+                  <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
+                    {card.value}
+                  </p>
+                  <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
+                    {card.unit}
+                  </p>
+                </div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg backdrop-blur sm:h-12 sm:w-12 sm:text-xl">
+                  {card.icon}
                 </div>
               </div>
-            </Link>
-          );
-        })}
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* =====================================================
-          Monthly Summary
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          w-full
-          min-w-0
-          grid-cols-1
-          gap-4
-          md:grid-cols-2
-        "
-      >
+      {/* Monthly Summary */}
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         <Link
           href="/receive?period=month"
-          className="
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-4
-            text-white
-            shadow-xl
-            transition-all
-            hover:-translate-y-1
-            hover:shadow-2xl
-          "
+          className="min-w-0 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📥 รับเข้าประจำเดือน
               </p>
-
               <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
                 {receiveThisMonth}
               </p>
             </div>
-
             <span className="shrink-0 text-3xl sm:text-4xl">📥</span>
           </div>
         </Link>
 
         <Link
           href="/issue?period=month"
-          className="
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-4
-            text-white
-            shadow-xl
-            transition-all
-            hover:-translate-y-1
-            hover:shadow-2xl
-          "
+          className="min-w-0 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📤 เบิกจ่ายประจำเดือน
               </p>
-
               <p className="mt-1 text-4xl font-extrabold leading-none !text-amber-300 sm:text-5xl">
                 {issueThisMonth}
               </p>
             </div>
-
             <span className="shrink-0 text-3xl sm:text-4xl">📤</span>
           </div>
         </Link>
       </div>
 
-      {/* =====================================================
-          Action + Stock Status
-      ===================================================== */}
-
+      {/* Action + Stock Status */}
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* ===================================================
-            Pending Actions
-        =================================================== */}
-
-        <div
-          className="
-            min-w-0
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            text-white
-            shadow-xl
-          "
-        >
-          <div
-            className="
-              border-b
-              border-slate-700
-              bg-gradient-to-r
-              from-slate-950
-              via-slate-900
-              to-slate-800
-              px-4
-              py-3
-              sm:px-5
-              sm:py-4
-            "
-          >
+        {/* Pending Actions */}
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
+          <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                   🔔 รายการที่ต้องดำเนินการ
                 </h2>
-
                 <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                   รายการที่อยู่ระหว่างการดำเนินงาน
                 </p>
               </div>
-
-              <span
-                className="
-                  flex
-                  h-10
-                  min-w-10
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-red-400/30
-                  bg-red-500/15
-                  px-3
-                  text-lg
-                  font-extrabold
-                  !text-red-300
-                "
-              >
+              <span className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 px-3 text-lg font-extrabold !text-red-300">
                 {pendingIssues}
               </span>
             </div>
@@ -473,36 +351,19 @@ export default async function Home() {
           <div className="space-y-3 p-4">
             <Link
               href="/notifications"
-              className="
-                flex
-                items-center
-                justify-between
-                gap-3
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                transition-all
-                hover:border-red-400
-                hover:bg-slate-50
-              "
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 transition-all hover:border-red-400 hover:bg-slate-50"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="shrink-0 text-xl">🔴</span>
-
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     ใบเบิกที่รอดำเนินการ
                   </p>
-
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
                   </p>
                 </div>
               </div>
-
               <span className="shrink-0 text-lg font-extrabold !text-red-500">
                 {pendingIssues}
               </span>
@@ -510,36 +371,19 @@ export default async function Home() {
 
             <Link
               href="/materials/low-stock"
-              className="
-                flex
-                items-center
-                justify-between
-                gap-3
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                transition-all
-                hover:border-amber-400
-                hover:bg-slate-50
-              "
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 transition-all hover:border-amber-400 hover:bg-slate-50"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="shrink-0 text-xl">🟠</span>
-
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     พัสดุที่ต้องตรวจสอบ
                   </p>
-
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     พัสดุหมดและพัสดุใกล้หมด
                   </p>
                 </div>
               </div>
-
               <span className="shrink-0 text-lg font-extrabold !text-amber-500">
                 {lowStock + outOfStock}
               </span>
@@ -547,62 +391,27 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* ===================================================
-            Stock Status
-        =================================================== */}
-
-        <div
-          className="
-            min-w-0
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            text-white
-            shadow-xl
-          "
-        >
-          <div
-            className="
-              border-b
-              border-slate-700
-              bg-gradient-to-r
-              from-slate-950
-              via-slate-900
-              to-slate-800
-              px-4
-              py-3
-              sm:px-5
-              sm:py-4
-            "
-          >
+        {/* Stock Status */}
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
+          <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
             <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
               📊 สถานะพัสดุคงเหลือ
             </h2>
-
             <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
               สรุปจากจำนวนคงเหลือปัจจุบัน
             </p>
           </div>
 
           <div className="space-y-3 p-4">
-            {/* Normal */}
-
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-3">
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟢 คงเหลือปกติ
                 </span>
-
                 <span className="text-base font-extrabold !text-emerald-300 sm:text-lg">
                   {normalStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
@@ -617,19 +426,15 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Low */}
-
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-3">
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟠 ใกล้หมด
                 </span>
-
                 <span className="text-base font-extrabold !text-amber-300 sm:text-lg">
                   {lowStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-amber-500 transition-all"
@@ -644,19 +449,15 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Out */}
-
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-3">
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🔴 หมด
                 </span>
-
                 <span className="text-base font-extrabold !text-red-300 sm:text-lg">
                   {outOfStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-red-500 transition-all"
@@ -673,23 +474,7 @@ export default async function Home() {
 
             <Link
               href="/materials/summary"
-              className="
-                mt-1
-                flex
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-2.5
-                text-base
-                font-extrabold
-                !text-white
-                transition-all
-                hover:bg-slate-700
-              "
+              className="mt-1 flex items-center justify-center rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 text-base font-extrabold !text-white transition-all hover:bg-slate-700"
             >
               ดูรายการพัสดุทั้งหมด →
             </Link>
@@ -697,54 +482,20 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* =====================================================
-          6 Months Movement
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          text-white
-          shadow-xl
-        "
-      >
-        <div
-          className="
-            border-b
-            border-slate-700
-            bg-gradient-to-r
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            px-4
-            py-3
-            sm:px-5
-            sm:py-4
-          "
-        >
+      {/* 6 Months Movement */}
+      <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
+        <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📈 การเคลื่อนไหวพัสดุ
               </h2>
-
               <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                 เปรียบเทียบการรับเข้าและเบิกจ่ายย้อนหลัง 6 เดือน
               </p>
             </div>
-
             <div className="flex gap-4 text-sm font-extrabold sm:text-base">
               <span className="!text-emerald-300">● รับเข้า</span>
-
               <span className="!text-amber-300">● เบิกจ่าย</span>
             </div>
           </div>
@@ -768,71 +519,31 @@ export default async function Home() {
                   key={`${month.label}-${month.year}`}
                   className="min-w-0"
                 >
-                  <div
-                    className="
-                      mb-2
-                      flex
-                      h-32
-                      items-end
-                      justify-center
-                      gap-1
-                      border-b
-                      border-slate-700
-                      sm:h-40
-                      sm:gap-2
-                    "
-                  >
+                  <div className="mb-2 flex h-32 items-end justify-center gap-1 border-b border-slate-700 sm:h-40 sm:gap-2">
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
-                        className="
-                          w-full
-                          max-w-8
-                          rounded-t-lg
-                          bg-emerald-500
-                          transition-all
-                          duration-300
-                        "
-                        style={{
-                          height: `${receiveHeight}%`,
-                        }}
+                        className="w-full max-w-8 rounded-t-lg bg-emerald-500 transition-all duration-300"
+                        style={{ height: `${receiveHeight}%` }}
                         title={`รับเข้า ${month.receive} ใบรับเข้า`}
                       />
                     </div>
-
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
-                        className="
-                          w-full
-                          max-w-8
-                          rounded-t-lg
-                          bg-amber-500
-                          transition-all
-                          duration-300
-                        "
-                        style={{
-                          height: `${issueHeight}%`,
-                        }}
+                        className="w-full max-w-8 rounded-t-lg bg-amber-500 transition-all duration-300"
+                        style={{ height: `${issueHeight}%` }}
                         title={`เบิกจ่าย ${month.issue} ใบเบิก`}
                       />
                     </div>
                   </div>
-
                   <p className="text-center text-sm font-extrabold !text-white sm:text-base">
                     {month.label}
                   </p>
-
                   <p className="text-center text-xs font-bold !text-slate-400 sm:text-sm">
                     {month.year}
                   </p>
-
                   <div className="mt-1 space-y-0.5 text-center text-xs font-bold sm:text-sm">
-                    <p className="!text-emerald-300">
-                      รับ {month.receive}
-                    </p>
-
-                    <p className="!text-amber-300">
-                      เบิก {month.issue}
-                    </p>
+                    <p className="!text-emerald-300">รับ {month.receive}</p>
+                    <p className="!text-amber-300">เบิก {month.issue}</p>
                   </div>
                 </div>
               );
