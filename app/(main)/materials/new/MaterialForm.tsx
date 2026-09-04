@@ -151,6 +151,9 @@ export default function MaterialForm({
     <form
       onSubmit={handleSubmit}
       className="
+        mx-auto
+        w-full
+        max-w-4xl
         space-y-6
         rounded-3xl
         border
