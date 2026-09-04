@@ -156,15 +156,10 @@ export default function MaterialForm({
         max-w-4xl
         space-y-6
         rounded-3xl
-        border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
+        bg-white
         p-6
-        text-white
-        shadow-2xl
+        text-slate-900
+        shadow-xl
         sm:p-8
       "
     >
@@ -173,7 +168,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label className="mb-2 block text-lg font-extrabold text-white">
+        <label className="mb-2 block text-lg font-extrabold text-slate-900">
           ผู้จำหน่าย
         </label>
 
@@ -184,12 +179,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
+            border-slate-300
+            bg-white
             p-3
-            text-white
-            focus:border-cyan-400
+            text-slate-900
+            focus:border-cyan-500
             focus:outline-none
+            focus:ring-2
+            focus:ring-cyan-200
           "
         >
           <option value="">
@@ -212,7 +209,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label className="mb-2 block text-lg font-extrabold text-white">
+        <label className="mb-2 block text-lg font-extrabold text-slate-900">
           หมวดหมู่
         </label>
 
@@ -231,12 +228,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
+            border-slate-300
+            bg-white
             p-3
-            text-white
-            focus:border-cyan-400
+            text-slate-900
+            focus:border-cyan-500
             focus:outline-none
+            focus:ring-2
+            focus:ring-cyan-200
           "
         >
           <option value="">
@@ -259,7 +258,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label className="mb-2 block text-lg font-extrabold text-white">
+        <label className="mb-2 block text-lg font-extrabold text-slate-900">
           รายการพัสดุ
         </label>
 
@@ -273,12 +272,14 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
+            border-slate-300
+            bg-white
             p-3
-            text-white
-            focus:border-cyan-400
+            text-slate-900
+            focus:border-cyan-500
             focus:outline-none
+            focus:ring-2
+            focus:ring-cyan-200
           "
         >
           <option value="">
@@ -312,13 +313,15 @@ export default function MaterialForm({
                 w-full
                 rounded-xl
                 border
-                border-slate-600
-                bg-slate-800
+                border-slate-300
+                bg-white
                 p-3
-                text-white
+                text-slate-900
                 placeholder:text-slate-400
-                focus:border-cyan-400
+                focus:border-cyan-500
                 focus:outline-none
+                focus:ring-2
+                focus:ring-cyan-200
               "
             />
 
@@ -333,13 +336,15 @@ export default function MaterialForm({
                 w-full
                 rounded-xl
                 border
-                border-slate-600
-                bg-slate-800
+                border-slate-300
+                bg-white
                 p-3
-                text-white
+                text-slate-900
                 placeholder:text-slate-400
-                focus:border-cyan-400
+                focus:border-cyan-500
                 focus:outline-none
+                focus:ring-2
+                focus:ring-cyan-200
               "
             />
           </div>
@@ -359,7 +364,7 @@ export default function MaterialForm({
         "
       >
         <div>
-          <label className="mb-2 block text-lg font-extrabold text-white">
+          <label className="mb-2 block text-lg font-extrabold text-slate-900">
             จำนวน
           </label>
 
@@ -371,18 +376,20 @@ export default function MaterialForm({
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
+              border-slate-300
+              bg-white
               p-3
-              text-white
-              focus:border-cyan-400
+              text-slate-900
+              focus:border-cyan-500
               focus:outline-none
+              focus:ring-2
+              focus:ring-cyan-200
             "
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-lg font-extrabold text-white">
+          <label className="mb-2 block text-lg font-extrabold text-slate-900">
             หน่วย
           </label>
 
@@ -393,10 +400,10 @@ export default function MaterialForm({
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-700
+              border-slate-300
+              bg-slate-100
               p-3
-              text-white
+              text-slate-900
             "
           />
         </div>
@@ -407,7 +414,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label className="mb-2 block text-lg font-extrabold text-white">
+        <label className="mb-2 block text-lg font-extrabold text-slate-900">
           ราคาล่าสุด
         </label>
 
@@ -421,13 +428,15 @@ export default function MaterialForm({
             w-full
             rounded-xl
             border
-            border-slate-600
-            bg-slate-800
+            border-slate-300
+            bg-white
             p-3
             text-right
-            text-white
-            focus:border-cyan-400
+            text-slate-900
+            focus:border-cyan-500
             focus:outline-none
+            focus:ring-2
+            focus:ring-cyan-200
           "
         />
       </div>
@@ -442,7 +451,7 @@ export default function MaterialForm({
           justify-end
           gap-3
           border-t
-          border-slate-700
+          border-slate-200
           pt-5
         "
       >
@@ -452,14 +461,14 @@ export default function MaterialForm({
           href="/materials"
           className="
             rounded-xl
-            bg-slate-700
+            bg-slate-200
             px-6
             py-3
             font-extrabold
-            text-white
-            shadow-lg
+            text-slate-800
+            shadow-sm
             transition
-            hover:bg-slate-800
+            hover:bg-slate-300
           "
         >
           ยกเลิก
