@@ -139,9 +139,9 @@ export default async function Home() {
       },
     }),
 
+    // ปรับการนับ PENDING ให้เหมือนกับ NotificationsPage (ดึงตามสิทธิ์ หรือนับ PENDING ทั้งหมด)
     prisma.issue.count({
       where: {
-        ...departmentWhere,
         status: "PENDING",
       },
     }),
