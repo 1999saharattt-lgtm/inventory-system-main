@@ -518,10 +518,12 @@ export default async function NewAssetPage({
   return (
     <div
       className="
+        min-h-screen
         w-full
         min-w-0
         space-y-4
         overflow-x-hidden
+        bg-white
         sm:space-y-6
       "
     >
@@ -613,367 +615,191 @@ export default async function NewAssetPage({
 
       {/* =====================================================
           Form
+          การ์ดเดียว / กึ่งกลาง / max-w-4xl
       ===================================================== */}
 
-      <form action={createAsset}>
-        <div
-          className="
-            w-full
-            min-w-0
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-4
-            shadow-xl
-            sm:p-8
-          "
-        >
-          {/* =================================================
-              ข้อมูลหลัก
-          ================================================= */}
+      <form
+        action={createAsset}
+        className="
+          mx-auto
+          w-full
+          max-w-4xl
+          rounded-3xl
+          border
+          border-slate-700
+          bg-gradient-to-br
+          from-slate-950
+          via-slate-900
+          to-slate-800
+          p-6
+          text-white
+          shadow-2xl
+          sm:p-8
+        "
+      >
+        {/* =================================================
+            ข้อมูลหลัก
+        ================================================= */}
 
-          <div>
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-              "
-            >
-              📋 ข้อมูลครุภัณฑ์
-            </h2>
+        <div>
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+            "
+          >
+            📋 ข้อมูลครุภัณฑ์
+          </h2>
 
-            <div
-              className="
-                mt-4
-                grid
-                gap-4
-                sm:grid-cols-2
-              "
-            >
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="name"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  รายการครุภัณฑ์{" "}
-                  <span className="text-red-400">
-                    *
-                  </span>
-                </label>
-
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder={`เช่น ${categoryName[category]}`}
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    transition
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="brand"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  ยี่ห้อ
-                </label>
-
-                <input
-                  id="brand"
-                  name="brand"
-                  type="text"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="model"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  รุ่น
-                </label>
-
-                <input
-                  id="model"
-                  name="model"
-                  type="text"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="serialNumber"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  Serial Number
-                </label>
-
-                <input
-                  id="serialNumber"
-                  name="serialNumber"
-                  type="text"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* =================================================
-              เลขทะเบียน
-          ================================================= */}
-
-          <div className="mt-6">
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-              "
-            >
-              🔖 เลขทะเบียนครุภัณฑ์
-            </h2>
-
-            <div
-              className="
-                mt-4
-                grid
-                gap-4
-                sm:grid-cols-2
-              "
-            >
-              <div>
-                <label
-                  htmlFor="governmentAssetNo"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  รหัส GFMIS
-                </label>
-
-                <input
-                  id="governmentAssetNo"
-                  name="governmentAssetNo"
-                  type="text"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="officeAssetNo"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  รหัสครุภัณฑ์
-                </label>
-
-                <input
-                  id="officeAssetNo"
-                  name="officeAssetNo"
-                  type="text"
-                  className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* =================================================
-              ผู้รับผิดชอบ
-          ================================================= */}
-
-          <div className="mt-6">
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-              "
-            >
-              👤 ผู้รับผิดชอบ
-            </h2>
-
-            <AssetResponsibleFields
-              sections={department.sections}
-              officers={department.officers}
-              departmentName={department.name}
-              departmentId={department.id}
-            />
-          </div>
-
-          {/* =================================================
-              หมายเหตุ
-          ================================================= */}
-
-          <div className="mt-6">
-            <h2
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
-                text-lg
-                font-extrabold
-                !text-white
-              "
-            >
-              📝 หมายเหตุ
-            </h2>
-
-            <div className="mt-4">
-              <textarea
-                id="remark"
-                name="remark"
-                rows={4}
+          <div
+            className="
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
+            "
+          >
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="name"
                 className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                รายการครุภัณฑ์{" "}
+                <span className="text-red-400">
+                  *
+                </span>
+              </label>
+
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                placeholder={`เช่น ${categoryName[category]}`}
+                className="
+                  mt-2
                   w-full
-                  resize-y
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="brand"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                ยี่ห้อ
+              </label>
+
+              <input
+                id="brand"
+                name="brand"
+                type="text"
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="model"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                รุ่น
+              </label>
+
+              <input
+                id="model"
+                name="model"
+                type="text"
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="serialNumber"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                Serial Number
+              </label>
+
+              <input
+                id="serialNumber"
+                name="serialNumber"
+                type="text"
+                className="
+                  mt-2
+                  w-full
                   rounded-xl
                   border
                   border-slate-300
@@ -990,66 +816,247 @@ export default async function NewAssetPage({
               />
             </div>
           </div>
+        </div>
 
-          {/* =================================================
-              ปุ่ม
-          ================================================= */}
+        {/* =================================================
+            เลขทะเบียน
+        ================================================= */}
+
+        <div className="mt-6">
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+            "
+          >
+            🔖 เลขทะเบียนครุภัณฑ์
+          </h2>
 
           <div
             className="
-              mt-6
-              flex
-              flex-col-reverse
-              gap-3
-              sm:flex-row
-              sm:justify-end
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
             "
           >
-            <Link
-              href={`/assets/${department.id}/${category}`}
-              className="
-                w-full
-                rounded-xl
-                bg-slate-700
-                px-8
-                py-3
-                text-center
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:bg-slate-800
-                sm:w-auto
-              "
-            >
-              ยกเลิก
-            </Link>
+            <div>
+              <label
+                htmlFor="governmentAssetNo"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                รหัส GFMIS
+              </label>
 
-            <button
-              type="submit"
+              <input
+                id="governmentAssetNo"
+                name="governmentAssetNo"
+                type="text"
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="officeAssetNo"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                รหัสครุภัณฑ์
+              </label>
+
+              <input
+                id="officeAssetNo"
+                name="officeAssetNo"
+                type="text"
+                className="
+                  mt-2
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* =================================================
+            ผู้รับผิดชอบ
+        ================================================= */}
+
+        <div className="mt-6">
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+            "
+          >
+            👤 ผู้รับผิดชอบ
+          </h2>
+
+          <AssetResponsibleFields
+            sections={department.sections}
+            officers={department.officers}
+            departmentName={department.name}
+            departmentId={department.id}
+          />
+        </div>
+
+        {/* =================================================
+            หมายเหตุ
+        ================================================= */}
+
+        <div className="mt-6">
+          <h2
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+              text-lg
+              font-extrabold
+              !text-white
+            "
+          >
+            📝 หมายเหตุ
+          </h2>
+
+          <div className="mt-4">
+            <textarea
+              id="remark"
+              name="remark"
+              rows={4}
               className="
                 w-full
+                resize-y
                 rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-6
+                border
+                border-slate-300
+                bg-white
+                px-4
                 py-3
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:from-emerald-700
-                hover:to-green-600
-                active:scale-[0.98]
-                sm:w-auto
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-emerald-600
+                focus:ring-2
+                focus:ring-emerald-200
               "
-            >
-              💾 บันทึก
-            </button>
+            />
           </div>
+        </div>
+
+        {/* =================================================
+            ปุ่ม
+        ================================================= */}
+
+        <div
+          className="
+            mt-6
+            flex
+            flex-col-reverse
+            gap-3
+            border-t
+            border-slate-700
+            pt-5
+            sm:flex-row
+            sm:justify-end
+          "
+        >
+          <Link
+            href={`/assets/${department.id}/${category}`}
+            className="
+              w-full
+              rounded-xl
+              bg-slate-700
+              px-8
+              py-3
+              text-center
+              text-lg
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:bg-slate-800
+              sm:w-auto
+            "
+          >
+            ยกเลิก
+          </Link>
+
+          <button
+            type="submit"
+            className="
+              w-full
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-6
+              py-3
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              hover:from-emerald-700
+              hover:to-green-600
+              active:scale-[0.98]
+              sm:w-auto
+            "
+          >
+            💾 บันทึก
+          </button>
         </div>
       </form>
     </div>
