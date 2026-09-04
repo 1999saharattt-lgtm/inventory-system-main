@@ -68,7 +68,9 @@ export default function EditVendorForm({
     <form
       onSubmit={handleSubmit}
       className="
+        mx-auto
         w-full
+        max-w-4xl
         space-y-6
         rounded-3xl
         border
@@ -89,6 +91,21 @@ export default function EditVendorForm({
 
       <div
         className="
+          rounded-xl
+          bg-gradient-to-r
+          from-slate-800
+          to-slate-700
+          px-4
+          py-3
+        "
+      >
+        <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+          🏢 ข้อมูลผู้จำหน่าย
+        </h2>
+      </div>
+
+      <div
+        className="
           grid
           grid-cols-1
           gap-5
@@ -97,106 +114,121 @@ export default function EditVendorForm({
       >
         {/* ชื่อผู้จำหน่าย */}
 
-        <div>
+        <div className="min-w-0">
           <label
+            htmlFor="name"
             className="
-              mb-2
               block
-              text-lg
+              text-sm
               font-extrabold
-              text-white
+              !text-slate-200
             "
           >
-            ชื่อผู้จำหน่าย
+            ชื่อผู้จำหน่าย *
           </label>
 
           <input
+            id="name"
             name="name"
             defaultValue={vendor.name}
             required
             className="
+              mt-2
+              min-h-[50px]
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
               outline-none
               transition
-              focus:border-cyan-400
-              focus:outline-none
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
             "
           />
         </div>
 
         {/* เบอร์โทร */}
 
-        <div>
+        <div className="min-w-0">
           <label
+            htmlFor="phone"
             className="
-              mb-2
               block
-              text-lg
+              text-sm
               font-extrabold
-              text-white
+              !text-slate-200
             "
           >
             เบอร์โทร
           </label>
 
           <input
+            id="phone"
             name="phone"
             defaultValue={vendor.phone ?? ""}
             className="
+              mt-2
+              min-h-[50px]
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
               outline-none
               transition
-              focus:border-cyan-400
-              focus:outline-none
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
             "
           />
         </div>
 
         {/* เลขประจำตัวผู้เสียภาษี */}
 
-        <div>
+        <div className="min-w-0">
           <label
+            htmlFor="taxId"
             className="
-              mb-2
               block
-              text-lg
+              text-sm
               font-extrabold
-              text-white
+              !text-slate-200
             "
           >
             เลขประจำตัวผู้เสียภาษี
           </label>
 
           <input
+            id="taxId"
             name="taxId"
             defaultValue={vendor.taxId ?? ""}
             className="
+              mt-2
+              min-h-[50px]
               w-full
               rounded-xl
               border
-              border-slate-600
-              bg-slate-800
-              p-3
-              font-bold
-              text-white
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
               outline-none
               transition
-              focus:border-cyan-400
-              focus:outline-none
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
             "
           />
         </div>
@@ -207,37 +239,59 @@ export default function EditVendorForm({
       ===================================================== */}
 
       <div>
-        <label
+        <div
           className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-700
+            px-4
+            py-3
           "
         >
-          ที่อยู่
-        </label>
+          <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+            📍 ที่อยู่ผู้จำหน่าย
+          </h2>
+        </div>
 
-        <textarea
-          name="address"
-          rows={4}
-          defaultValue={vendor.address ?? ""}
-          className="
-            w-full
-            rounded-xl
-            border
-            border-slate-600
-            bg-slate-800
-            p-3
-            font-bold
-            text-white
-            outline-none
-            transition
-            focus:border-cyan-400
-            focus:outline-none
-          "
-        />
+        <div className="mt-4">
+          <label
+            htmlFor="address"
+            className="
+              block
+              text-sm
+              font-extrabold
+              !text-slate-200
+            "
+          >
+            ที่อยู่
+          </label>
+
+          <textarea
+            id="address"
+            name="address"
+            rows={4}
+            defaultValue={vendor.address ?? ""}
+            className="
+              mt-2
+              min-h-[120px]
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-3
+              font-semibold
+              text-slate-900
+              outline-none
+              transition
+              focus:border-emerald-600
+              focus:ring-2
+              focus:ring-emerald-200
+            "
+          />
+        </div>
       </div>
 
       {/* =====================================================
@@ -247,11 +301,14 @@ export default function EditVendorForm({
       <div
         className="
           flex
-          justify-end
+          w-full
+          flex-col
           gap-3
           border-t
           border-slate-700
           pt-5
+          sm:flex-row
+          sm:justify-end
         "
       >
         {/* ยกเลิก */}
@@ -259,15 +316,18 @@ export default function EditVendorForm({
         <a
           href="/vendors"
           className="
+            w-full
             rounded-xl
             bg-slate-700
             px-6
             py-3
+            text-center
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
             hover:bg-slate-800
+            sm:w-auto
           "
         >
           ยกเลิก
@@ -279,6 +339,7 @@ export default function EditVendorForm({
           type="submit"
           disabled={loading}
           className="
+            w-full
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
@@ -286,14 +347,16 @@ export default function EditVendorForm({
             px-7
             py-3
             font-extrabold
-            text-white
+            !text-white
             shadow-lg
             transition
-            hover:scale-105
+            hover:scale-[1.02]
             hover:from-emerald-700
             hover:to-green-600
+            active:scale-[0.98]
             disabled:cursor-not-allowed
             disabled:opacity-50
+            sm:w-auto
           "
         >
           {loading
