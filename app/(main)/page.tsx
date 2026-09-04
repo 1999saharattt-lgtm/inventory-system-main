@@ -53,14 +53,14 @@ export default async function Home() {
     }
   }
 
-  // สร้าง Filter สำหรับ prisma.issue
-  // หากเป็น ADMIN จะไม่มี Filter ({}) แต่ถ้าเป็น USER จะกรองเฉพาะ departmentId ของตนเอง
+  // Filter สำหรับ prisma.issue
+  // ADMIN = สิทธิ์ครบถ้วน, USER = เฉพาะ departmentId ของตนเอง, ไม่มี Session = ไม่ดึงข้อมูล
   const departmentWhere =
     session?.role === "ADMIN"
       ? {}
       : session?.departmentId
       ? { departmentId: session.departmentId }
-      : { id: -1 }; // ป้องกันกรณีหลุด Session/ไม่มี departmentId ให้ไม่ดึงข้อมูลมาเลย
+      : { id: -1 };
 
   const now = new Date();
 
@@ -71,10 +71,12 @@ export default async function Home() {
   const currentMonthStart = startOfMonth(now);
   const nextMonthStart = addMonths(currentMonthStart, 1);
 
-  // =====================================================
-  // Main dashboard data
-  // =====================================================
+  // คำนวณช่วงเวลาสำหรับการดึงข้อมูลย้อนหลัง 6 เดือน
+  const sixMonthsAgoStart = startOfMonth(addMonths(now, -5));
 
+  // =====================================================
+  // 2. Fetch Data (Optimized Queries)
+  // =====================================================
   const [
     totalMaterials,
     lowStock,
@@ -85,6 +87,8 @@ export default async function Home() {
     receiveThisMonth,
     issueThisMonth,
     pendingIssues,
+    receives6Months,
+    issues6Months,
   ] = await Promise.all([
     // จำนวนพัสดุทั้งหมด
     prisma.material.count(),
@@ -127,7 +131,7 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายวันนี้ (เพิ่ม departmentWhere)
+    // จำนวนใบเบิกจ่ายวันนี้
     prisma.issue.count({
       where: {
         ...departmentWhere,
@@ -148,7 +152,7 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายประจำเดือนนี้ (เพิ่ม departmentWhere)
+    // จำนวนใบเบิกจ่ายประจำเดือนนี้
     prisma.issue.count({
       where: {
         ...departmentWhere,
@@ -159,54 +163,64 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกที่รอดำเนินการ (เพิ่ม departmentWhere)
+    // จำนวนใบเบิกที่รอดำเนินการ
     prisma.issue.count({
       where: {
         ...departmentWhere,
         status: "PENDING",
       },
     }),
+
+    // ดึงข้อมูลการรับเข้าย้อนหลัง 6 เดือนทั้งหมดใน Query เดียว
+    prisma.receive.findMany({
+      where: {
+        receiveDate: {
+          gte: sixMonthsAgoStart,
+          lt: nextMonthStart,
+        },
+      },
+      select: {
+        receiveDate: true,
+      },
+    }),
+
+    // ดึงข้อมูลการเบิกจ่ายย้อนหลัง 6 เดือนทั้งหมดใน Query เดียว
+    prisma.issue.findMany({
+      where: {
+        ...departmentWhere,
+        issueDate: {
+          gte: sixMonthsAgoStart,
+          lt: nextMonthStart,
+        },
+      },
+      select: {
+        issueDate: true,
+      },
+    }),
   ]);
 
   // =====================================================
-  // 6 Months Movement
+  // 3. Process 6 Months Movement Data
   // =====================================================
+  const monthData = Array.from({ length: 6 }, (_, index) => {
+    const monthStart = startOfMonth(addMonths(now, index - 5));
+    const nextMonth = addMonths(monthStart, 1);
 
-  const monthData = await Promise.all(
-    Array.from({ length: 6 }, async (_, index) => {
-      const monthStart = startOfMonth(addMonths(now, index - 5));
-      const nextMonth = addMonths(monthStart, 1);
+    const receiveCount = receives6Months.filter(
+      (r) => r.receiveDate >= monthStart && r.receiveDate < nextMonth
+    ).length;
 
-      const [receiveCount, issueCount] = await Promise.all([
-        prisma.receive.count({
-          where: {
-            receiveDate: {
-              gte: monthStart,
-              lt: nextMonth,
-            },
-          },
-        }),
+    const issueCount = issues6Months.filter(
+      (i) => i.issueDate >= monthStart && i.issueDate < nextMonth
+    ).length;
 
-        // เพิ่ม departmentWhere ในการนับใบเบิกจ่ายย้อนหลัง 6 เดือน
-        prisma.issue.count({
-          where: {
-            ...departmentWhere,
-            issueDate: {
-              gte: monthStart,
-              lt: nextMonth,
-            },
-          },
-        }),
-      ]);
-
-      return {
-        label: thaiMonthsShort[monthStart.getMonth()],
-        year: monthStart.getFullYear() + 543,
-        receive: receiveCount,
-        issue: issueCount,
-      };
-    })
-  );
+    return {
+      label: thaiMonthsShort[monthStart.getMonth()],
+      year: monthStart.getFullYear() + 543,
+      receive: receiveCount,
+      issue: issueCount,
+    };
+  });
 
   const maxMovement = Math.max(
     1,
@@ -216,9 +230,8 @@ export default async function Home() {
   const totalStockStatus = outOfStock + lowStock + normalStock;
 
   // =====================================================
-  // Summary cards
+  // 4. Summary cards config
   // =====================================================
-
   const cards = [
     {
       title: "จำนวนพัสดุทั้งหมด",
