@@ -45,8 +45,6 @@ export default async function Home() {
   const currentMonthStart = startOfMonth(now);
   const nextMonthStart = addMonths(currentMonthStart, 1);
 
-  const sixMonthsAgo = startOfMonth(addMonths(now, -5));
-
   // =====================================================
   // Main dashboard data
   // =====================================================
@@ -57,10 +55,10 @@ export default async function Home() {
     outOfStock,
     normalStock,
     receiveToday,
-    issueToday,
+    issueTodayGroup,
     receiveThisMonth,
-    issueThisMonth,
-    pendingIssues,
+    issueThisMonthGroup,
+    pendingIssuesGroup,
   ] = await Promise.all([
     // จำนวนพัสดุทั้งหมด
     prisma.material.count(),
@@ -103,8 +101,9 @@ export default async function Home() {
       },
     }),
 
-    // เบิกจ่ายวันนี้
-    prisma.issue.count({
+    // เบิกจ่ายวันนี้ (จัดกลุ่มตามเลขที่ใบเบิก)
+    prisma.issue.groupBy({
+      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
       where: {
         issueDate: {
           gte: todayStart,
@@ -123,8 +122,9 @@ export default async function Home() {
       },
     }),
 
-    // เบิกจ่ายประจำเดือนนี้
-    prisma.issue.count({
+    // เบิกจ่ายประจำเดือนนี้ (จัดกลุ่มตามเลขที่ใบเบิก)
+    prisma.issue.groupBy({
+      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
       where: {
         issueDate: {
           gte: currentMonthStart,
@@ -133,13 +133,19 @@ export default async function Home() {
       },
     }),
 
-    // ใบเบิกที่รอดำเนินการ
-    prisma.issue.count({
+    // ใบเบิกที่รอดำเนินการ (จัดกลุ่มตามเลขที่ใบเบิก)
+    prisma.issue.groupBy({
+      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
       where: {
         status: "PENDING",
       },
     }),
   ]);
+
+  // นับจำนวนกลุ่ม (ใบเบิก)
+  const issueToday = issueTodayGroup.length;
+  const issueThisMonth = issueThisMonthGroup.length;
+  const pendingIssues = pendingIssuesGroup.length;
 
   // =====================================================
   // 6 Months Movement
@@ -150,7 +156,7 @@ export default async function Home() {
       const monthStart = startOfMonth(addMonths(now, index - 5));
       const nextMonth = addMonths(monthStart, 1);
 
-      const [receiveCount, issueCount] = await Promise.all([
+      const [receiveCount, issueGroup] = await Promise.all([
         prisma.receive.count({
           where: {
             receiveDate: {
@@ -160,7 +166,9 @@ export default async function Home() {
           },
         }),
 
-        prisma.issue.count({
+        // เบิกจ่ายรายเดือน (จัดกลุ่มตามเลขที่ใบเบิก)
+        prisma.issue.groupBy({
+          by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
           where: {
             issueDate: {
               gte: monthStart,
@@ -174,21 +182,17 @@ export default async function Home() {
         label: thaiMonthsShort[monthStart.getMonth()],
         year: monthStart.getFullYear() + 543,
         receive: receiveCount,
-        issue: issueCount,
+        issue: issueGroup.length, // จำนวนใบเบิกจริงหลังจัดกลุ่ม
       };
     })
   );
 
   const maxMovement = Math.max(
     1,
-    ...monthData.flatMap((item) => [
-      item.receive,
-      item.issue,
-    ])
+    ...monthData.flatMap((item) => [item.receive, item.issue])
   );
 
-  const totalStockStatus =
-    outOfStock + lowStock + normalStock;
+  const totalStockStatus = outOfStock + lowStock + normalStock;
 
   // =====================================================
   // Summary cards
@@ -235,7 +239,6 @@ export default async function Home() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
-
       {/* =====================================================
           Summary Cards
       ===================================================== */}
@@ -366,9 +369,7 @@ export default async function Home() {
               </p>
             </div>
 
-            <span className="shrink-0 text-3xl sm:text-4xl">
-              📥
-            </span>
+            <span className="shrink-0 text-3xl sm:text-4xl">📥</span>
           </div>
         </Link>
 
@@ -402,9 +403,7 @@ export default async function Home() {
               </p>
             </div>
 
-            <span className="shrink-0 text-3xl sm:text-4xl">
-              📤
-            </span>
+            <span className="shrink-0 text-3xl sm:text-4xl">📤</span>
           </div>
         </Link>
       </div>
@@ -414,7 +413,6 @@ export default async function Home() {
       ===================================================== */}
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-
         {/* ===================================================
             Pending Actions
         =================================================== */}
@@ -502,9 +500,7 @@ export default async function Home() {
               "
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="shrink-0 text-xl">
-                  🔴
-                </span>
+                <span className="shrink-0 text-xl">🔴</span>
 
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
@@ -541,9 +537,7 @@ export default async function Home() {
               "
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="shrink-0 text-xl">
-                  🟠
-                </span>
+                <span className="shrink-0 text-xl">🟠</span>
 
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
@@ -759,13 +753,9 @@ export default async function Home() {
             </div>
 
             <div className="flex gap-4 text-sm font-extrabold sm:text-base">
-              <span className="!text-emerald-300">
-                ● รับเข้า
-              </span>
+              <span className="!text-emerald-300">● รับเข้า</span>
 
-              <span className="!text-amber-300">
-                ● เบิกจ่าย
-              </span>
+              <span className="!text-amber-300">● เบิกจ่าย</span>
             </div>
           </div>
         </div>
@@ -775,18 +765,12 @@ export default async function Home() {
             {monthData.map((month) => {
               const receiveHeight =
                 month.receive > 0
-                  ? Math.max(
-                      8,
-                      (month.receive / maxMovement) * 100
-                    )
+                  ? Math.max(8, (month.receive / maxMovement) * 100)
                   : 0;
 
               const issueHeight =
                 month.issue > 0
-                  ? Math.max(
-                      8,
-                      (month.issue / maxMovement) * 100
-                    )
+                  ? Math.max(8, (month.issue / maxMovement) * 100)
                   : 0;
 
               return (
@@ -838,7 +822,7 @@ export default async function Home() {
                         style={{
                           height: `${issueHeight}%`,
                         }}
-                        title={`เบิกจ่าย ${month.issue} รายการ`}
+                        title={`เบิกจ่าย ${month.issue} ใบเบิก`}
                       />
                     </div>
                   </div>
