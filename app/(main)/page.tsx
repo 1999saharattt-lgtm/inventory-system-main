@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireLogin } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const thaiMonthsShort = [
@@ -37,25 +37,14 @@ function addMonths(date: Date, amount: number) {
 }
 
 export default async function Home() {
-  // =====================================================
-  // 1. Session & Role Authentication Check
-  // =====================================================
-  let session = null;
+  const user = await getCurrentUser();
 
-  try {
-    session = await requireLogin();
-  } catch {
-    session = null;
-  }
-
-  // Filter สำหรับ prisma.issue
-  // ADMIN = สิทธิ์ครบถ้วน, USER = เฉพาะ departmentId ของตนเอง, ไม่มี Session = ไม่ดึงข้อมูล
-  const departmentWhere =
-    session?.role === "ADMIN"
-      ? {}
-      : session?.departmentId
-      ? { departmentId: session.departmentId }
-      : { id: -1 };
+  const isUserAdmin = user?.role === "ADMIN";
+  const departmentWhere = isUserAdmin
+    ? {}
+    : user?.departmentId
+    ? { departmentId: user.departmentId }
+    : { id: -1 };
 
   const now = new Date();
 
@@ -66,12 +55,8 @@ export default async function Home() {
   const currentMonthStart = startOfMonth(now);
   const nextMonthStart = addMonths(currentMonthStart, 1);
 
-  // คำนวณช่วงเวลาสำหรับการดึงข้อมูลย้อนหลัง 6 เดือน
   const sixMonthsAgoStart = startOfMonth(addMonths(now, -5));
 
-  // =====================================================
-  // 2. Fetch Data (Optimized Queries)
-  // =====================================================
   const [
     totalMaterials,
     lowStock,
@@ -85,10 +70,8 @@ export default async function Home() {
     receives6Months,
     issues6Months,
   ] = await Promise.all([
-    // จำนวนพัสดุทั้งหมด
     prisma.material.count(),
 
-    // พัสดุใกล้หมด
     prisma.material.count({
       where: {
         balance: {
@@ -98,7 +81,6 @@ export default async function Home() {
       },
     }),
 
-    // พัสดุหมด
     prisma.material.count({
       where: {
         balance: {
@@ -107,7 +89,6 @@ export default async function Home() {
       },
     }),
 
-    // พัสดุคงเหลือปกติ
     prisma.material.count({
       where: {
         balance: {
@@ -116,7 +97,6 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบรับเข้าวันนี้
     prisma.receive.count({
       where: {
         receiveDate: {
@@ -126,7 +106,6 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายวันนี้
     prisma.issue.count({
       where: {
         ...departmentWhere,
@@ -137,7 +116,6 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบรับเข้าประจำเดือนนี้
     prisma.receive.count({
       where: {
         receiveDate: {
@@ -147,7 +125,6 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกจ่ายประจำเดือนนี้
     prisma.issue.count({
       where: {
         ...departmentWhere,
@@ -158,7 +135,6 @@ export default async function Home() {
       },
     }),
 
-    // จำนวนใบเบิกที่รอดำเนินการ
     prisma.issue.count({
       where: {
         ...departmentWhere,
@@ -166,7 +142,6 @@ export default async function Home() {
       },
     }),
 
-    // ดึงข้อมูลการรับเข้าย้อนหลัง 6 เดือนทั้งหมดใน Query เดียว
     prisma.receive.findMany({
       where: {
         receiveDate: {
@@ -179,7 +154,6 @@ export default async function Home() {
       },
     }),
 
-    // ดึงข้อมูลการเบิกจ่ายย้อนหลัง 6 เดือนทั้งหมดใน Query เดียว
     prisma.issue.findMany({
       where: {
         ...departmentWhere,
@@ -194,9 +168,6 @@ export default async function Home() {
     }),
   ]);
 
-  // =====================================================
-  // 3. Process 6 Months Movement Data
-  // =====================================================
   const monthData = Array.from({ length: 6 }, (_, index) => {
     const monthStart = startOfMonth(addMonths(now, index - 5));
     const nextMonth = addMonths(monthStart, 1);
@@ -224,9 +195,6 @@ export default async function Home() {
 
   const totalStockStatus = outOfStock + lowStock + normalStock;
 
-  // =====================================================
-  // 4. Summary cards config
-  // =====================================================
   const cards = [
     {
       title: "จำนวนพัสดุทั้งหมด",
@@ -268,7 +236,6 @@ export default async function Home() {
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
-      {/* Summary Cards */}
       <div className="grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <Link
@@ -290,7 +257,6 @@ export default async function Home() {
                     {card.unit}
                   </p>
                 </div>
-
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg backdrop-blur sm:h-12 sm:w-12 sm:text-xl">
                   {card.icon}
                 </div>
@@ -300,7 +266,6 @@ export default async function Home() {
         ))}
       </div>
 
-      {/* Monthly Summary */}
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         <Link
           href="/receive?period=month"
@@ -315,7 +280,6 @@ export default async function Home() {
                 {receiveThisMonth}
               </p>
             </div>
-
             <span className="shrink-0 text-3xl sm:text-4xl">📥</span>
           </div>
         </Link>
@@ -333,15 +297,12 @@ export default async function Home() {
                 {issueThisMonth}
               </p>
             </div>
-
             <span className="shrink-0 text-3xl sm:text-4xl">📤</span>
           </div>
         </Link>
       </div>
 
-      {/* Action + Stock Status */}
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Pending Actions */}
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
           <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
             <div className="flex items-center justify-between gap-3">
@@ -349,12 +310,10 @@ export default async function Home() {
                 <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                   🔔 รายการที่ต้องดำเนินการ
                 </h2>
-
                 <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                   รายการที่อยู่ระหว่างการดำเนินงาน
                 </p>
               </div>
-
               <span className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 px-3 text-lg font-extrabold !text-red-300">
                 {pendingIssues}
               </span>
@@ -368,18 +327,15 @@ export default async function Home() {
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="shrink-0 text-xl">🔴</span>
-
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     ใบเบิกที่รอดำเนินการ
                   </p>
-
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
                   </p>
                 </div>
               </div>
-
               <span className="shrink-0 text-lg font-extrabold !text-red-500">
                 {pendingIssues}
               </span>
@@ -391,18 +347,15 @@ export default async function Home() {
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="shrink-0 text-xl">🟠</span>
-
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     พัสดุที่ต้องตรวจสอบ
                   </p>
-
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     พัสดุหมดและพัสดุใกล้หมด
                   </p>
                 </div>
               </div>
-
               <span className="shrink-0 text-lg font-extrabold !text-amber-500">
                 {lowStock + outOfStock}
               </span>
@@ -410,13 +363,11 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Stock Status */}
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
           <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
             <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
               📊 สถานะพัสดุคงเหลือ
             </h2>
-
             <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
               สรุปจากจำนวนคงเหลือปัจจุบัน
             </p>
@@ -428,12 +379,10 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟢 คงเหลือปกติ
                 </span>
-
                 <span className="text-base font-extrabold !text-emerald-300 sm:text-lg">
                   {normalStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
@@ -453,12 +402,10 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟠 ใกล้หมด
                 </span>
-
                 <span className="text-base font-extrabold !text-amber-300 sm:text-lg">
                   {lowStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-amber-500 transition-all"
@@ -478,12 +425,10 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🔴 หมด
                 </span>
-
                 <span className="text-base font-extrabold !text-red-300 sm:text-lg">
                   {outOfStock}
                 </span>
               </div>
-
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-red-500 transition-all"
@@ -508,7 +453,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* 6 Months Movement */}
       <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
         <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -516,12 +460,10 @@ export default async function Home() {
               <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📈 การเคลื่อนไหวพัสดุ
               </h2>
-
               <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                 เปรียบเทียบการรับเข้าและเบิกจ่ายย้อนหลัง 6 เดือน
               </p>
             </div>
-
             <div className="flex gap-4 text-sm font-extrabold sm:text-base">
               <span className="!text-emerald-300">● รับเข้า</span>
               <span className="!text-amber-300">● เบิกจ่าย</span>
@@ -555,7 +497,6 @@ export default async function Home() {
                         title={`รับเข้า ${month.receive} ใบรับเข้า`}
                       />
                     </div>
-
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
                         className="w-full max-w-8 rounded-t-lg bg-amber-500 transition-all duration-300"
@@ -564,23 +505,15 @@ export default async function Home() {
                       />
                     </div>
                   </div>
-
                   <p className="text-center text-sm font-extrabold !text-white sm:text-base">
                     {month.label}
                   </p>
-
                   <p className="text-center text-xs font-bold !text-slate-400 sm:text-sm">
                     {month.year}
                   </p>
-
                   <div className="mt-1 space-y-0.5 text-center text-xs font-bold sm:text-sm">
-                    <p className="!text-emerald-300">
-                      รับ {month.receive}
-                    </p>
-
-                    <p className="!text-amber-300">
-                      เบิก {month.issue}
-                    </p>
+                    <p className="!text-emerald-300">รับ {month.receive}</p>
+                    <p className="!text-amber-300">เบิก {month.issue}</p>
                   </div>
                 </div>
               );
