@@ -234,7 +234,8 @@ export default async function Home() {
   ];
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
+
       {/* =====================================================
           Summary Cards
       ===================================================== */}
@@ -246,7 +247,6 @@ export default async function Home() {
           min-w-0
           grid-cols-1
           gap-3
-          sm:gap-4
           md:grid-cols-2
           xl:grid-cols-4
         "
@@ -278,18 +278,18 @@ export default async function Home() {
             >
               <div className={`h-1 ${card.color}`} />
 
-              <div className="p-4 sm:p-5">
+              <div className="p-4">
                 <div className="flex min-w-0 items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="break-words text-xl font-extrabold leading-tight !text-white sm:text-2xl">
+                    <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
                       {card.title}
                     </p>
 
-                    <p className="mt-1 text-4xl font-extrabold leading-none !text-white sm:text-5xl">
+                    <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
                       {card.value}
                     </p>
 
-                    <p className="mt-1 text-base font-bold !text-slate-200 sm:text-lg">
+                    <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
                       {card.unit}
                     </p>
                   </div>
@@ -297,8 +297,8 @@ export default async function Home() {
                   <div
                     className="
                       flex
-                      h-11
-                      w-11
+                      h-10
+                      w-10
                       shrink-0
                       items-center
                       justify-center
@@ -306,11 +306,11 @@ export default async function Home() {
                       border
                       border-white/20
                       bg-white/10
-                      text-xl
+                      text-lg
                       backdrop-blur
-                      sm:h-14
-                      sm:w-14
-                      sm:text-2xl
+                      sm:h-12
+                      sm:w-12
+                      sm:text-xl
                     "
                   >
                     {card.icon}
@@ -347,7 +347,7 @@ export default async function Home() {
             from-slate-950
             via-slate-900
             to-slate-800
-            p-5
+            p-4
             text-white
             shadow-xl
             transition-all
@@ -356,21 +356,19 @@ export default async function Home() {
           "
         >
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xl font-extrabold !text-white sm:text-2xl">
+            <div className="min-w-0">
+              <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📥 รับเข้าประจำเดือน
               </p>
 
-              <p className="mt-2 text-4xl font-extrabold !text-emerald-300 sm:text-5xl">
+              <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
                 {receiveThisMonth}
-              </p>
-
-              <p className="mt-1 text-base font-bold !text-slate-300">
-                ใบรับเข้าในเดือนนี้
               </p>
             </div>
 
-            <span className="text-4xl">📥</span>
+            <span className="shrink-0 text-3xl sm:text-4xl">
+              📥
+            </span>
           </div>
         </Link>
 
@@ -385,7 +383,7 @@ export default async function Home() {
             from-slate-950
             via-slate-900
             to-slate-800
-            p-5
+            p-4
             text-white
             shadow-xl
             transition-all
@@ -394,21 +392,19 @@ export default async function Home() {
           "
         >
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xl font-extrabold !text-white sm:text-2xl">
+            <div className="min-w-0">
+              <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📤 เบิกจ่ายประจำเดือน
               </p>
 
-              <p className="mt-2 text-4xl font-extrabold !text-amber-300 sm:text-5xl">
+              <p className="mt-1 text-4xl font-extrabold leading-none !text-amber-300 sm:text-5xl">
                 {issueThisMonth}
-              </p>
-
-              <p className="mt-1 text-base font-bold !text-slate-300">
-                ใบเบิกจ่ายในเดือนนี้
               </p>
             </div>
 
-            <span className="text-4xl">📤</span>
+            <span className="shrink-0 text-3xl sm:text-4xl">
+              📤
+            </span>
           </div>
         </Link>
       </div>
@@ -418,6 +414,7 @@ export default async function Home() {
       ===================================================== */}
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+
         {/* ===================================================
             Pending Actions
         =================================================== */}
@@ -446,18 +443,18 @@ export default async function Home() {
               via-slate-900
               to-slate-800
               px-4
-              py-4
+              py-3
               sm:px-5
-              sm:py-5
+              sm:py-4
             "
           >
             <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-extrabold leading-tight !text-white sm:text-3xl">
+              <div className="min-w-0">
+                <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                   🔔 รายการที่ต้องดำเนินการ
                 </h2>
 
-                <p className="mt-1 text-base font-bold !text-slate-300">
+                <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                   รายการที่อยู่ระหว่างการดำเนินงาน
                 </p>
               </div>
@@ -465,8 +462,8 @@ export default async function Home() {
               <span
                 className="
                   flex
-                  h-12
-                  min-w-12
+                  h-10
+                  min-w-10
                   shrink-0
                   items-center
                   justify-center
@@ -475,7 +472,7 @@ export default async function Home() {
                   border-red-400/30
                   bg-red-500/15
                   px-3
-                  text-xl
+                  text-lg
                   font-extrabold
                   !text-red-300
                 "
@@ -485,7 +482,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="space-y-3 p-4 sm:p-5">
+          <div className="space-y-3 p-4">
             <Link
               href="/notifications"
               className="
@@ -498,21 +495,23 @@ export default async function Home() {
                 border-slate-300
                 bg-white
                 px-4
-                py-4
+                py-3
                 transition-all
                 hover:border-red-400
                 hover:bg-slate-50
               "
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="text-xl">🔴</span>
+                <span className="shrink-0 text-xl">
+                  🔴
+                </span>
 
                 <div className="min-w-0">
-                  <p className="text-lg font-extrabold !text-black">
+                  <p className="text-lg font-extrabold leading-tight !text-black">
                     ใบเบิกที่รอดำเนินการ
                   </p>
 
-                  <p className="text-sm font-bold !text-slate-700 sm:text-base">
+                  <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
                   </p>
                 </div>
@@ -535,21 +534,23 @@ export default async function Home() {
                 border-slate-300
                 bg-white
                 px-4
-                py-4
+                py-3
                 transition-all
                 hover:border-amber-400
                 hover:bg-slate-50
               "
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="text-xl">🟠</span>
+                <span className="shrink-0 text-xl">
+                  🟠
+                </span>
 
                 <div className="min-w-0">
-                  <p className="text-lg font-extrabold !text-black">
+                  <p className="text-lg font-extrabold leading-tight !text-black">
                     พัสดุที่ต้องตรวจสอบ
                   </p>
 
-                  <p className="text-sm font-bold !text-slate-700 sm:text-base">
+                  <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     พัสดุหมดและพัสดุใกล้หมด
                   </p>
                 </div>
@@ -590,35 +591,35 @@ export default async function Home() {
               via-slate-900
               to-slate-800
               px-4
-              py-4
+              py-3
               sm:px-5
-              sm:py-5
+              sm:py-4
             "
           >
-            <h2 className="text-2xl font-extrabold leading-tight !text-white sm:text-3xl">
+            <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
               📊 สถานะพัสดุคงเหลือ
             </h2>
 
-            <p className="mt-1 text-base font-bold !text-slate-300">
+            <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
               สรุปจากจำนวนคงเหลือปัจจุบัน
             </p>
           </div>
 
-          <div className="space-y-4 p-4 sm:p-5">
+          <div className="space-y-3 p-4">
             {/* Normal */}
 
             <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-lg font-extrabold !text-white">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟢 คงเหลือปกติ
                 </span>
 
-                <span className="text-lg font-extrabold !text-emerald-300">
+                <span className="text-base font-extrabold !text-emerald-300 sm:text-lg">
                   {normalStock}
                 </span>
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-slate-700">
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
                   style={{
@@ -635,17 +636,17 @@ export default async function Home() {
             {/* Low */}
 
             <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-lg font-extrabold !text-white">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟠 ใกล้หมด
                 </span>
 
-                <span className="text-lg font-extrabold !text-amber-300">
+                <span className="text-base font-extrabold !text-amber-300 sm:text-lg">
                   {lowStock}
                 </span>
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-slate-700">
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-amber-500 transition-all"
                   style={{
@@ -662,17 +663,17 @@ export default async function Home() {
             {/* Out */}
 
             <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-lg font-extrabold !text-white">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="text-base font-extrabold !text-white sm:text-lg">
                   🔴 หมด
                 </span>
 
-                <span className="text-lg font-extrabold !text-red-300">
+                <span className="text-base font-extrabold !text-red-300 sm:text-lg">
                   {outOfStock}
                 </span>
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-slate-700">
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-red-500 transition-all"
                   style={{
@@ -689,7 +690,7 @@ export default async function Home() {
             <Link
               href="/materials/summary"
               className="
-                mt-2
+                mt-1
                 flex
                 items-center
                 justify-center
@@ -698,7 +699,7 @@ export default async function Home() {
                 border-slate-600
                 bg-slate-800
                 px-4
-                py-3
+                py-2.5
                 text-base
                 font-extrabold
                 !text-white
@@ -741,18 +742,18 @@ export default async function Home() {
             via-slate-900
             to-slate-800
             px-4
-            py-4
+            py-3
             sm:px-5
-            sm:py-5
+            sm:py-4
           "
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold leading-tight !text-white sm:text-3xl">
+            <div className="min-w-0">
+              <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📈 การเคลื่อนไหวพัสดุ
               </h2>
 
-              <p className="mt-1 text-base font-bold !text-slate-300">
+              <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                 เปรียบเทียบการรับเข้าและเบิกจ่ายย้อนหลัง 6 เดือน
               </p>
             </div>
@@ -769,7 +770,7 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="p-4 sm:p-6">
+        <div className="p-4 sm:p-5">
           <div className="grid grid-cols-6 gap-2 sm:gap-4">
             {monthData.map((month) => {
               const receiveHeight =
@@ -793,7 +794,20 @@ export default async function Home() {
                   key={`${month.label}-${month.year}`}
                   className="min-w-0"
                 >
-                  <div className="mb-2 flex h-40 items-end justify-center gap-1 border-b border-slate-700 sm:h-48 sm:gap-2">
+                  <div
+                    className="
+                      mb-2
+                      flex
+                      h-32
+                      items-end
+                      justify-center
+                      gap-1
+                      border-b
+                      border-slate-700
+                      sm:h-40
+                      sm:gap-2
+                    "
+                  >
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
                         className="
@@ -837,7 +851,7 @@ export default async function Home() {
                     {month.year}
                   </p>
 
-                  <div className="mt-2 space-y-1 text-center text-xs font-bold sm:text-sm">
+                  <div className="mt-1 space-y-0.5 text-center text-xs font-bold sm:text-sm">
                     <p className="!text-emerald-300">
                       รับ {month.receive}
                     </p>
