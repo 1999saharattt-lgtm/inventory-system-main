@@ -39,27 +39,46 @@ function addMonths(date: Date, amount: number) {
 export default async function Home() {
   const user = await getCurrentUser();
 
-  // แปลงค่า Role ให้เป็นตัวพิมพ์ใหญ่ และตรวจสอบทุกกรณีที่เป็น Admin
-  const userRoleUpper = user?.role ? String(user.role).toUpperCase() : "";
-  const isUserAdmin = userRoleUpper === "ADMIN" || userRoleUpper === "SUPERADMIN";
+  // =====================================================
+  // ตรวจสอบสิทธิ์
+  // ADMIN = เห็นข้อมูลทุกกลุ่ม
+  // STAFF / VIEWER = เห็นเฉพาะกลุ่มของตัวเอง
+  // =====================================================
 
-  // ADMIN = ไม่กรองแผนก ({}), STAFF/USER = กรองเฉพาะ departmentId
-  const departmentWhere = isUserAdmin
-    ? {}
-    : user?.departmentId
-    ? { departmentId: user.departmentId }
-    : { id: -1 };
+  const userRole = String(user?.role ?? "")
+    .trim()
+    .toUpperCase();
+
+  const isAdmin = userRole === "ADMIN";
+
+  const departmentWhere =
+    isAdmin
+      ? {}
+      : user?.departmentId
+        ? {
+            departmentId: user.departmentId,
+          }
+        : {
+            departmentId: -1,
+          };
 
   const now = new Date();
 
   const todayStart = startOfDay(now);
+
   const tomorrowStart = new Date(todayStart);
   tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
   const currentMonthStart = startOfMonth(now);
   const nextMonthStart = addMonths(currentMonthStart, 1);
 
-  const sixMonthsAgoStart = startOfMonth(addMonths(now, -5));
+  const sixMonthsAgoStart = startOfMonth(
+    addMonths(now, -5)
+  );
+
+  // =====================================================
+  // ดึงข้อมูล Dashboard
+  // =====================================================
 
   const [
     totalMaterials,
@@ -74,8 +93,10 @@ export default async function Home() {
     receives6Months,
     issues6Months,
   ] = await Promise.all([
+    // จำนวนพัสดุทั้งหมด
     prisma.material.count(),
 
+    // พัสดุใกล้หมด
     prisma.material.count({
       where: {
         balance: {
@@ -85,6 +106,7 @@ export default async function Home() {
       },
     }),
 
+    // พัสดุหมด
     prisma.material.count({
       where: {
         balance: {
@@ -93,6 +115,7 @@ export default async function Home() {
       },
     }),
 
+    // พัสดุปกติ
     prisma.material.count({
       where: {
         balance: {
@@ -101,14 +124,27 @@ export default async function Home() {
       },
     }),
 
+    // ===================================================
+    // รับเข้าวันนี้
+    // ADMIN = ทุกกลุ่ม
+    // STAFF / VIEWER = กลุ่มตัวเอง
+    // ===================================================
+
     prisma.receive.count({
       where: {
+        ...departmentWhere,
         receiveDate: {
           gte: todayStart,
           lt: tomorrowStart,
         },
       },
     }),
+
+    // ===================================================
+    // เบิกจ่ายวันนี้
+    // ADMIN = ทุกกลุ่ม
+    // STAFF / VIEWER = กลุ่มตัวเอง
+    // ===================================================
 
     prisma.issue.count({
       where: {
@@ -120,14 +156,23 @@ export default async function Home() {
       },
     }),
 
+    // ===================================================
+    // รับเข้าประจำเดือน
+    // ===================================================
+
     prisma.receive.count({
       where: {
+        ...departmentWhere,
         receiveDate: {
           gte: currentMonthStart,
           lt: nextMonthStart,
         },
       },
     }),
+
+    // ===================================================
+    // เบิกจ่ายประจำเดือน
+    // ===================================================
 
     prisma.issue.count({
       where: {
@@ -139,15 +184,26 @@ export default async function Home() {
       },
     }),
 
-    // ปรับการนับ PENDING ให้เหมือนกับ NotificationsPage (ดึงตามสิทธิ์ หรือนับ PENDING ทั้งหมด)
+    // ===================================================
+    // ใบเบิกที่รอดำเนินการ
+    // ADMIN = ทุกกลุ่ม
+    // STAFF / VIEWER = กลุ่มตัวเอง
+    // ===================================================
+
     prisma.issue.count({
       where: {
+        ...departmentWhere,
         status: "PENDING",
       },
     }),
 
+    // ===================================================
+    // รับเข้า 6 เดือนย้อนหลัง
+    // ===================================================
+
     prisma.receive.findMany({
       where: {
+        ...departmentWhere,
         receiveDate: {
           gte: sixMonthsAgoStart,
           lt: nextMonthStart,
@@ -157,6 +213,10 @@ export default async function Home() {
         receiveDate: true,
       },
     }),
+
+    // ===================================================
+    // เบิกจ่าย 6 เดือนย้อนหลัง
+    // ===================================================
 
     prisma.issue.findMany({
       where: {
@@ -172,32 +232,50 @@ export default async function Home() {
     }),
   ]);
 
-  const monthData = Array.from({ length: 6 }, (_, index) => {
-    const monthStart = startOfMonth(addMonths(now, index - 5));
-    const nextMonth = addMonths(monthStart, 1);
+  // =====================================================
+  // สร้างข้อมูลกราฟย้อนหลัง 6 เดือน
+  // =====================================================
 
-    const receiveCount = receives6Months.filter(
-      (r) => r.receiveDate >= monthStart && r.receiveDate < nextMonth
-    ).length;
+  const monthData = Array.from(
+    { length: 6 },
+    (_, index) => {
+      const monthStart = startOfMonth(
+        addMonths(now, index - 5)
+      );
 
-    const issueCount = issues6Months.filter(
-      (i) => i.issueDate >= monthStart && i.issueDate < nextMonth
-    ).length;
+      const nextMonth = addMonths(monthStart, 1);
 
-    return {
-      label: thaiMonthsShort[monthStart.getMonth()],
-      year: monthStart.getFullYear() + 543,
-      receive: receiveCount,
-      issue: issueCount,
-    };
-  });
+      const receiveCount = receives6Months.filter(
+        (receive) =>
+          receive.receiveDate >= monthStart &&
+          receive.receiveDate < nextMonth
+      ).length;
+
+      const issueCount = issues6Months.filter(
+        (issue) =>
+          issue.issueDate >= monthStart &&
+          issue.issueDate < nextMonth
+      ).length;
+
+      return {
+        label: thaiMonthsShort[monthStart.getMonth()],
+        year: monthStart.getFullYear() + 543,
+        receive: receiveCount,
+        issue: issueCount,
+      };
+    }
+  );
 
   const maxMovement = Math.max(
     1,
-    ...monthData.flatMap((item) => [item.receive, item.issue])
+    ...monthData.flatMap((item) => [
+      item.receive,
+      item.issue,
+    ])
   );
 
-  const totalStockStatus = outOfStock + lowStock + normalStock;
+  const totalStockStatus =
+    outOfStock + lowStock + normalStock;
 
   const cards = [
     {
@@ -248,19 +326,23 @@ export default async function Home() {
             className={`group min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.hover}`}
           >
             <div className={`h-1 ${card.color}`} />
+
             <div className="p-4">
               <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
                     {card.title}
                   </p>
+
                   <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
                     {card.value}
                   </p>
+
                   <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
                     {card.unit}
                   </p>
                 </div>
+
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg backdrop-blur sm:h-12 sm:w-12 sm:text-xl">
                   {card.icon}
                 </div>
@@ -269,6 +351,10 @@ export default async function Home() {
           </Link>
         ))}
       </div>
+
+      {/* =====================================================
+          รับเข้า / เบิกจ่ายประจำเดือน
+      ===================================================== */}
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         <Link
@@ -280,11 +366,15 @@ export default async function Home() {
               <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📥 รับเข้าประจำเดือน
               </p>
+
               <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
                 {receiveThisMonth}
               </p>
             </div>
-            <span className="shrink-0 text-3xl sm:text-4xl">📥</span>
+
+            <span className="shrink-0 text-3xl sm:text-4xl">
+              📥
+            </span>
           </div>
         </Link>
 
@@ -297,14 +387,22 @@ export default async function Home() {
               <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📤 เบิกจ่ายประจำเดือน
               </p>
+
               <p className="mt-1 text-4xl font-extrabold leading-none !text-amber-300 sm:text-5xl">
                 {issueThisMonth}
               </p>
             </div>
-            <span className="shrink-0 text-3xl sm:text-4xl">📤</span>
+
+            <span className="shrink-0 text-3xl sm:text-4xl">
+              📤
+            </span>
           </div>
         </Link>
       </div>
+
+      {/* =====================================================
+          รายการที่ต้องดำเนินการ / สถานะพัสดุ
+      ===================================================== */}
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
@@ -314,10 +412,12 @@ export default async function Home() {
                 <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                   🔔 รายการที่ต้องดำเนินการ
                 </h2>
+
                 <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                   รายการที่อยู่ระหว่างการดำเนินงาน
                 </p>
               </div>
+
               <span className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl border border-red-400/30 bg-red-500/15 px-3 text-lg font-extrabold !text-red-300">
                 {pendingIssues}
               </span>
@@ -330,16 +430,21 @@ export default async function Home() {
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 transition-all hover:border-red-400 hover:bg-slate-50"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="shrink-0 text-xl">🔴</span>
+                <span className="shrink-0 text-xl">
+                  🔴
+                </span>
+
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     ใบเบิกที่รอดำเนินการ
                   </p>
+
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
                   </p>
                 </div>
               </div>
+
               <span className="shrink-0 text-lg font-extrabold !text-red-500">
                 {pendingIssues}
               </span>
@@ -350,16 +455,21 @@ export default async function Home() {
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 transition-all hover:border-amber-400 hover:bg-slate-50"
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="shrink-0 text-xl">🟠</span>
+                <span className="shrink-0 text-xl">
+                  🟠
+                </span>
+
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold leading-tight !text-black">
                     พัสดุที่ต้องตรวจสอบ
                   </p>
+
                   <p className="mt-1 text-sm font-bold !text-slate-700 sm:text-base">
                     พัสดุหมดและพัสดุใกล้หมด
                   </p>
                 </div>
               </div>
+
               <span className="shrink-0 text-lg font-extrabold !text-amber-500">
                 {lowStock + outOfStock}
               </span>
@@ -372,6 +482,7 @@ export default async function Home() {
             <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
               📊 สถานะพัสดุคงเหลือ
             </h2>
+
             <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
               สรุปจากจำนวนคงเหลือปัจจุบัน
             </p>
@@ -383,10 +494,12 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟢 คงเหลือปกติ
                 </span>
+
                 <span className="text-base font-extrabold !text-emerald-300 sm:text-lg">
                   {normalStock}
                 </span>
               </div>
+
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all"
@@ -406,10 +519,12 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🟠 ใกล้หมด
                 </span>
+
                 <span className="text-base font-extrabold !text-amber-300 sm:text-lg">
                   {lowStock}
                 </span>
               </div>
+
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-amber-500 transition-all"
@@ -429,10 +544,12 @@ export default async function Home() {
                 <span className="text-base font-extrabold !text-white sm:text-lg">
                   🔴 หมด
                 </span>
+
                 <span className="text-base font-extrabold !text-red-300 sm:text-lg">
                   {outOfStock}
                 </span>
               </div>
+
               <div className="h-2.5 overflow-hidden rounded-full bg-slate-700">
                 <div
                   className="h-full rounded-full bg-red-500 transition-all"
@@ -457,6 +574,10 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* =====================================================
+          การเคลื่อนไหวพัสดุย้อนหลัง 6 เดือน
+      ===================================================== */}
+
       <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl">
         <div className="border-b border-slate-700 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -464,13 +585,20 @@ export default async function Home() {
               <h2 className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
                 📈 การเคลื่อนไหวพัสดุ
               </h2>
+
               <p className="mt-1 text-sm font-bold !text-slate-300 sm:text-base">
                 เปรียบเทียบการรับเข้าและเบิกจ่ายย้อนหลัง 6 เดือน
               </p>
             </div>
+
             <div className="flex gap-4 text-sm font-extrabold sm:text-base">
-              <span className="!text-emerald-300">● รับเข้า</span>
-              <span className="!text-amber-300">● เบิกจ่าย</span>
+              <span className="!text-emerald-300">
+                ● รับเข้า
+              </span>
+
+              <span className="!text-amber-300">
+                ● เบิกจ่าย
+              </span>
             </div>
           </div>
         </div>
@@ -480,12 +608,18 @@ export default async function Home() {
             {monthData.map((month) => {
               const receiveHeight =
                 month.receive > 0
-                  ? Math.max(8, (month.receive / maxMovement) * 100)
+                  ? Math.max(
+                      8,
+                      (month.receive / maxMovement) * 100
+                    )
                   : 0;
 
               const issueHeight =
                 month.issue > 0
-                  ? Math.max(8, (month.issue / maxMovement) * 100)
+                  ? Math.max(
+                      8,
+                      (month.issue / maxMovement) * 100
+                    )
                   : 0;
 
               return (
@@ -497,27 +631,40 @@ export default async function Home() {
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
                         className="w-full max-w-8 rounded-t-lg bg-emerald-500 transition-all duration-300"
-                        style={{ height: `${receiveHeight}%` }}
+                        style={{
+                          height: `${receiveHeight}%`,
+                        }}
                         title={`รับเข้า ${month.receive} ใบรับเข้า`}
                       />
                     </div>
+
                     <div className="flex h-full w-1/2 items-end justify-center">
                       <div
                         className="w-full max-w-8 rounded-t-lg bg-amber-500 transition-all duration-300"
-                        style={{ height: `${issueHeight}%` }}
+                        style={{
+                          height: `${issueHeight}%`,
+                        }}
                         title={`เบิกจ่าย ${month.issue} ใบเบิก`}
                       />
                     </div>
                   </div>
+
                   <p className="text-center text-sm font-extrabold !text-white sm:text-base">
                     {month.label}
                   </p>
+
                   <p className="text-center text-xs font-bold !text-slate-400 sm:text-sm">
                     {month.year}
                   </p>
+
                   <div className="mt-1 space-y-0.5 text-center text-xs font-bold sm:text-sm">
-                    <p className="!text-emerald-300">รับ {month.receive}</p>
-                    <p className="!text-amber-300">เบิก {month.issue}</p>
+                    <p className="!text-emerald-300">
+                      รับ {month.receive}
+                    </p>
+
+                    <p className="!text-amber-300">
+                      เบิก {month.issue}
+                    </p>
                   </div>
                 </div>
               );
