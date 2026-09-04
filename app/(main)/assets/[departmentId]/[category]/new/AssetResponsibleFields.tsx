@@ -122,6 +122,7 @@ export default function AssetResponsibleFields({
       className="
         mt-4
         grid
+        w-full
         gap-5
         sm:grid-cols-2
       "
