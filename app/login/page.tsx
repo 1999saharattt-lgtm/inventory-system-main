@@ -61,18 +61,18 @@ export default function LoginPage() {
               <div
                 className="
                   flex
-                  h-28
-                  w-28
+                  h-36
+                  w-36
                   items-center
                   justify-center
                   rounded-3xl
                   bg-white
                   p-3
                   shadow-2xl
-                  sm:h-32
-                  sm:w-32
-                  lg:h-36
-                  lg:w-36
+                  sm:h-40
+                  sm:w-40
+                  lg:h-48
+                  lg:w-48
                 "
               >
                 <img
