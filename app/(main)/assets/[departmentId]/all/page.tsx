@@ -515,6 +515,28 @@ export default async function DepartmentAllAssetsPage({
                   รายการครุภัณฑ์
                 </th>
 
+                {/* จำนวน */}
+
+                <th
+                  className="
+                    w-[80px]
+                    whitespace-nowrap
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-lg
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  จำนวน
+                </th>
+
                 {/* หน่วย */}
 
                 <th
@@ -583,7 +605,7 @@ export default async function DepartmentAllAssetsPage({
               {assets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="
                       border
                       border-black
@@ -694,6 +716,23 @@ export default async function DepartmentAllAssetsPage({
                           "
                         >
                           {asset.name}
+                        </td>
+
+                        {/* จำนวน */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-3
+                            py-3
+                            text-center
+                            align-middle
+                            font-extrabold
+                          "
+                        >
+                          1
                         </td>
 
                         {/* หน่วย */}
