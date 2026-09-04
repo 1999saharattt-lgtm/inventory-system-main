@@ -223,14 +223,13 @@ export default async function Home() {
       href: "/issue?date=today",
     },
     {
-      title: "พัสดุที่ต้องตรวจสอบ",
+      title: "รายการพัสดุที่ใกล้หมดทั้งหมด",
       value: lowStock + outOfStock,
       unit: "รายการ",
       icon: "⚠️",
       color: "bg-red-600",
       hover: "hover:border-red-300",
       href: "/materials/low-stock",
-      detail: `หมด ${outOfStock} · ใกล้หมด ${lowStock}`,
     },
   ];
 
@@ -293,12 +292,6 @@ export default async function Home() {
                     <p className="mt-1 text-base font-bold !text-slate-200 sm:text-lg">
                       {card.unit}
                     </p>
-
-                    {card.detail && (
-                      <p className="mt-2 break-words text-sm font-bold !text-slate-300 sm:text-base">
-                        {card.detail}
-                      </p>
-                    )}
                   </div>
 
                   <div
@@ -502,30 +495,30 @@ export default async function Home() {
                 gap-3
                 rounded-xl
                 border
-                border-slate-700
-                bg-slate-800/80
+                border-slate-300
+                bg-white
                 px-4
                 py-4
                 transition-all
-                hover:border-red-400/50
-                hover:bg-slate-700
+                hover:border-red-400
+                hover:bg-slate-50
               "
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="text-xl">🔴</span>
 
                 <div className="min-w-0">
-                  <p className="text-lg font-extrabold !text-white">
+                  <p className="text-lg font-extrabold !text-black">
                     ใบเบิกที่รอดำเนินการ
                   </p>
 
-                  <p className="text-sm font-bold !text-slate-300 sm:text-base">
+                  <p className="text-sm font-bold !text-slate-700 sm:text-base">
                     ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
                   </p>
                 </div>
               </div>
 
-              <span className="shrink-0 text-lg font-extrabold !text-red-300">
+              <span className="shrink-0 text-lg font-extrabold !text-red-500">
                 {pendingIssues}
               </span>
             </Link>
@@ -539,30 +532,30 @@ export default async function Home() {
                 gap-3
                 rounded-xl
                 border
-                border-slate-700
-                bg-slate-800/80
+                border-slate-300
+                bg-white
                 px-4
                 py-4
                 transition-all
-                hover:border-amber-400/50
-                hover:bg-slate-700
+                hover:border-amber-400
+                hover:bg-slate-50
               "
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="text-xl">🟠</span>
 
                 <div className="min-w-0">
-                  <p className="text-lg font-extrabold !text-white">
+                  <p className="text-lg font-extrabold !text-black">
                     พัสดุที่ต้องตรวจสอบ
                   </p>
 
-                  <p className="text-sm font-bold !text-slate-300 sm:text-base">
+                  <p className="text-sm font-bold !text-slate-700 sm:text-base">
                     พัสดุหมดและพัสดุใกล้หมด
                   </p>
                 </div>
               </div>
 
-              <span className="shrink-0 text-lg font-extrabold !text-amber-300">
+              <span className="shrink-0 text-lg font-extrabold !text-amber-500">
                 {lowStock + outOfStock}
               </span>
             </Link>
