@@ -20,7 +20,7 @@ export default async function Header() {
         py-2
         shadow-xl
         sm:px-5
-        sm:py-3
+        sm:py-2.5
         md:px-8
       "
     >
@@ -31,15 +31,21 @@ export default async function Header() {
           items-center
           justify-between
           gap-3
-          sm:gap-5
+          sm:gap-4
         "
       >
-        {/* Mobile Menu */}
+        {/* =====================================================
+            Mobile Menu
+        ===================================================== */}
+
         <div className="shrink-0 lg:hidden">
           <MobileMenu role={user.role} />
         </div>
 
-        {/* Logo + System Name */}
+        {/* =====================================================
+            Logo + System Name
+        ===================================================== */}
+
         <div className="min-w-0 flex-1">
           <div
             className="
@@ -50,20 +56,21 @@ export default async function Header() {
             "
           >
             {/* Logo */}
+
             <div
               className="
                 relative
-                h-14
-                w-14
+                h-12
+                w-12
                 shrink-0
                 overflow-hidden
                 rounded-lg
                 bg-white
                 shadow-lg
-                sm:h-16
-                sm:w-16
-                md:h-[72px]
-                md:w-[72px]
+                sm:h-14
+                sm:w-14
+                md:h-16
+                md:w-16
               "
             >
               <Image
@@ -72,20 +79,22 @@ export default async function Header() {
                 fill
                 priority
                 className="object-contain p-1"
-                sizes="72px"
+                sizes="64px"
               />
             </div>
 
             {/* System Name */}
+
             <h1
               className="
                 whitespace-nowrap
-                text-xl
+                text-lg
                 font-extrabold
                 tracking-tight
                 !text-white
-                sm:text-2xl
-                md:text-3xl
+                sm:text-xl
+                md:text-2xl
+                lg:text-3xl
               "
             >
               ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
@@ -93,7 +102,10 @@ export default async function Header() {
           </div>
         </div>
 
-        {/* User */}
+        {/* =====================================================
+            User
+        ===================================================== */}
+
         <div
           className="
             flex
@@ -103,6 +115,8 @@ export default async function Header() {
             sm:gap-3
           "
         >
+          {/* User Information */}
+
           <div
             className="
               rounded-xl
@@ -113,8 +127,8 @@ export default async function Header() {
               py-1.5
               text-right
               shadow-lg
-              sm:px-4
-              sm:py-2
+              sm:px-3.5
+              sm:py-1.5
             "
           >
             <div
@@ -125,7 +139,7 @@ export default async function Header() {
                 text-sm
                 font-extrabold
                 text-slate-800
-                sm:max-w-none
+                sm:max-w-[180px]
                 sm:text-base
               "
             >
@@ -145,6 +159,8 @@ export default async function Header() {
             </div>
           </div>
 
+          {/* Logout */}
+
           <form action={logout}>
             <button
               type="submit"
@@ -156,11 +172,12 @@ export default async function Header() {
                 py-2
                 text-sm
                 font-extrabold
-                text-white
+                !text-white
                 shadow-lg
                 transition
                 hover:bg-red-700
                 sm:px-4
+                sm:py-2
                 sm:text-sm
               "
             >

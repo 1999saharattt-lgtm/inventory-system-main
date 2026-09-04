@@ -126,10 +126,6 @@ export default function Sidebar({ role }: SidebarProps) {
 
     // =====================================================
     // ทะเบียนคุมพัสดุ
-    //
-    // ภายในมี 2 รายการ
-    // 1. ทะเบียนคุมบัญชีพัสดุ
-    // 2. ทะเบียนคุมบัญชีครุภัณฑ์
     // =====================================================
 
     {
@@ -171,8 +167,6 @@ export default function Sidebar({ role }: SidebarProps) {
 
     // =====================================================
     // เกี่ยวกับเรา
-    //
-    // เฉพาะ ADMIN
     // =====================================================
 
     {
@@ -243,15 +237,15 @@ export default function Sidebar({ role }: SidebarProps) {
       <div
         className="
           flex
-          min-h-[76px]
+          min-h-[68px]
           w-full
           items-center
           justify-center
           px-3
-          py-2
-          sm:min-h-[88px]
+          py-1.5
+          sm:min-h-[76px]
           sm:px-6
-          sm:py-3
+          sm:py-2
         "
       >
         <nav
@@ -272,8 +266,9 @@ export default function Sidebar({ role }: SidebarProps) {
             href="/"
             onClick={() => setOpenMenu(null)}
             className={`
+              group
               flex
-              h-[64px]
+              h-[56px]
               w-[220px]
               shrink-0
               items-center
@@ -281,15 +276,15 @@ export default function Sidebar({ role }: SidebarProps) {
               gap-2
               rounded-xl
               px-4
-              py-3
+              py-2
               text-2xl
               font-extrabold
               transition-all
               duration-200
-              sm:h-[72px]
+              sm:h-[64px]
               sm:w-[220px]
               sm:px-5
-              sm:py-4
+              sm:py-2.5
               sm:text-3xl
               ${
                 pathname === "/" && openMenu === null
@@ -327,7 +322,7 @@ export default function Sidebar({ role }: SidebarProps) {
             className={`
               relative
               flex
-              h-[64px]
+              h-[56px]
               w-[220px]
               shrink-0
               items-center
@@ -335,15 +330,15 @@ export default function Sidebar({ role }: SidebarProps) {
               gap-2
               rounded-xl
               px-4
-              py-3
+              py-2
               text-2xl
               font-extrabold
               transition-all
               duration-200
-              sm:h-[72px]
+              sm:h-[64px]
               sm:w-[220px]
               sm:px-5
-              sm:py-4
+              sm:py-2.5
               sm:text-3xl
               ${
                 pathname === "/notifications" &&
@@ -375,8 +370,8 @@ export default function Sidebar({ role }: SidebarProps) {
               <span
                 className="
                   flex
-                  min-w-7
                   h-7
+                  min-w-7
                   items-center
                   justify-center
                   rounded-full
@@ -427,23 +422,23 @@ export default function Sidebar({ role }: SidebarProps) {
                   }
                   className={`
                     flex
-                    h-[64px]
+                    h-[56px]
                     w-[220px]
                     items-center
                     justify-center
                     gap-2
                     rounded-xl
                     px-4
-                    py-3
+                    py-2
                     text-2xl
                     font-extrabold
                     !text-white
                     transition-all
                     duration-200
-                    sm:h-[72px]
+                    sm:h-[64px]
                     sm:w-[220px]
                     sm:px-5
-                    sm:py-4
+                    sm:py-2.5
                     sm:text-3xl
                     ${
                       (active && openMenu === null) ||
