@@ -109,9 +109,7 @@ export default function NewVendorPage() {
           border
           border-slate-300
           bg-white
-          p-4
           shadow-lg
-          sm:p-8
         "
       >
         <VendorForm />
