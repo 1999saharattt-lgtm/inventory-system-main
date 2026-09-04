@@ -170,15 +170,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
+        <label className="mb-2 block text-lg font-extrabold text-white">
           ผู้จำหน่าย
         </label>
 
@@ -192,9 +184,7 @@ export default function MaterialForm({
             border-slate-600
             bg-slate-800
             p-3
-            font-bold
             text-white
-            outline-none
             focus:border-cyan-400
             focus:outline-none
           "
@@ -219,15 +209,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
+        <label className="mb-2 block text-lg font-extrabold text-white">
           หมวดหมู่
         </label>
 
@@ -249,9 +231,7 @@ export default function MaterialForm({
             border-slate-600
             bg-slate-800
             p-3
-            font-bold
             text-white
-            outline-none
             focus:border-cyan-400
             focus:outline-none
           "
@@ -276,15 +256,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
+        <label className="mb-2 block text-lg font-extrabold text-white">
           รายการพัสดุ
         </label>
 
@@ -301,9 +273,7 @@ export default function MaterialForm({
             border-slate-600
             bg-slate-800
             p-3
-            font-bold
             text-white
-            outline-none
             focus:border-cyan-400
             focus:outline-none
           "
@@ -327,12 +297,7 @@ export default function MaterialForm({
         </select>
 
         {name === "__NEW__" && (
-          <div
-            className="
-              mt-4
-              space-y-3
-            "
-          >
+          <div className="mt-4 space-y-3">
             <input
               value={newName}
               onChange={(e) =>
@@ -347,10 +312,8 @@ export default function MaterialForm({
                 border-slate-600
                 bg-slate-800
                 p-3
-                font-bold
                 text-white
                 placeholder:text-slate-400
-                outline-none
                 focus:border-cyan-400
                 focus:outline-none
               "
@@ -370,10 +333,8 @@ export default function MaterialForm({
                 border-slate-600
                 bg-slate-800
                 p-3
-                font-bold
                 text-white
                 placeholder:text-slate-400
-                outline-none
                 focus:border-cyan-400
                 focus:outline-none
               "
@@ -395,15 +356,7 @@ export default function MaterialForm({
         "
       >
         <div>
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
+          <label className="mb-2 block text-lg font-extrabold text-white">
             จำนวน
           </label>
 
@@ -418,9 +371,7 @@ export default function MaterialForm({
               border-slate-600
               bg-slate-800
               p-3
-              font-bold
               text-white
-              outline-none
               focus:border-cyan-400
               focus:outline-none
             "
@@ -428,15 +379,7 @@ export default function MaterialForm({
         </div>
 
         <div>
-          <label
-            className="
-              mb-2
-              block
-              text-lg
-              font-extrabold
-              text-white
-            "
-          >
+          <label className="mb-2 block text-lg font-extrabold text-white">
             หน่วย
           </label>
 
@@ -450,7 +393,6 @@ export default function MaterialForm({
               border-slate-600
               bg-slate-700
               p-3
-              font-bold
               text-white
             "
           />
@@ -462,15 +404,7 @@ export default function MaterialForm({
       ===================================================== */}
 
       <div>
-        <label
-          className="
-            mb-2
-            block
-            text-lg
-            font-extrabold
-            text-white
-          "
-        >
+        <label className="mb-2 block text-lg font-extrabold text-white">
           ราคาล่าสุด
         </label>
 
@@ -488,9 +422,7 @@ export default function MaterialForm({
             bg-slate-800
             p-3
             text-right
-            font-bold
             text-white
-            outline-none
             focus:border-cyan-400
             focus:outline-none
           "
