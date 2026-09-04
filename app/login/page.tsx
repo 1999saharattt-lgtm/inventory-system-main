@@ -30,10 +30,7 @@ export default function LoginPage() {
           lg:grid-cols-[1.15fr_0.85fr]
         "
       >
-        {/* =====================================================
-            LEFT : BRANDING
-        ===================================================== */}
-
+        {/* LEFT : BRANDING */}
         <section
           className="
             relative
@@ -48,64 +45,19 @@ export default function LoginPage() {
             to-slate-700
             px-6
             py-10
+            text-center
             sm:px-10
             sm:py-12
             lg:min-h-[650px]
             lg:px-16
           "
         >
-          {/* Background Decoration */}
+          <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -left-24
-              -top-24
-              h-72
-              w-72
-              rounded-full
-              bg-blue-400/10
-              blur-3xl
-            "
-          />
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -bottom-32
-              -right-24
-              h-80
-              w-80
-              rounded-full
-              bg-cyan-400/10
-              blur-3xl
-            "
-          />
-
-          {/* Branding Content */}
-
-          <div
-            className="
-              relative
-              z-10
-              w-full
-              max-w-xl
-              text-center
-              lg:text-left
-            "
-          >
+          <div className="relative z-10 w-full max-w-xl">
             {/* Logo */}
-
-            <div
-              className="
-                mb-6
-                flex
-                justify-center
-                lg:justify-start
-              "
-            >
+            <div className="mb-6 flex justify-center">
               <div
                 className="
                   flex
@@ -126,17 +78,12 @@ export default function LoginPage() {
                 <img
                   src="/images/dohl-logo.png"
                   alt="โลโก้กรมอนามัย"
-                  className="
-                    h-full
-                    w-full
-                    object-contain
-                  "
+                  className="h-full w-full object-contain"
                 />
               </div>
             </div>
 
-            {/* System Name */}
-
+            {/* Organization Name */}
             <h1
               className="
                 text-3xl
@@ -150,8 +97,6 @@ export default function LoginPage() {
             >
               ระบบบริหารคลังพัสดุ
             </h1>
-
-            {/* Organization */}
 
             <p
               className="
@@ -179,42 +124,11 @@ export default function LoginPage() {
               กรมอนามัย
             </p>
 
-            {/* Divider */}
-
-            <div
-              className="
-                mx-auto
-                my-7
-                h-px
-                w-24
-                bg-slate-500
-                lg:mx-0
-              "
-            />
-
-            {/* Description */}
-
-            <p
-              className="
-                max-w-md
-                text-sm
-                font-normal
-                leading-relaxed
-                !text-slate-300
-                sm:text-base
-              "
-            >
-              ระบบสำหรับบริหารจัดการวัสดุ พัสดุ
-              <br className="hidden sm:block" />
-              และครุภัณฑ์ของหน่วยงาน
-            </p>
+            <div className="mx-auto my-7 h-px w-24 bg-slate-500" />
           </div>
         </section>
 
-        {/* =====================================================
-            RIGHT : LOGIN
-        ===================================================== */}
-
+        {/* RIGHT : LOGIN */}
         <section
           className="
             flex
@@ -229,42 +143,17 @@ export default function LoginPage() {
           "
         >
           <div className="mx-auto w-full max-w-md">
-            {/* Login Heading */}
-
             <div className="mb-7">
-              <h2
-                className="
-                  text-3xl
-                  font-bold
-                  text-slate-800
-                  sm:text-4xl
-                "
-              >
+              <h2 className="text-3xl font-bold text-slate-800 sm:text-4xl">
                 เข้าสู่ระบบ
               </h2>
 
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-normal
-                  leading-relaxed
-                  text-slate-500
-                  sm:text-base
-                "
-              >
+              <p className="mt-2 text-sm font-normal leading-relaxed text-slate-500 sm:text-base">
                 กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ
               </p>
             </div>
 
-            {/* Login Form */}
-
-            <form
-              action={login}
-              className="space-y-5"
-            >
-              {/* Username */}
-
+            <form action={login} className="space-y-5">
               <div>
                 <label
                   htmlFor="username"
@@ -308,8 +197,6 @@ export default function LoginPage() {
                   "
                 />
               </div>
-
-              {/* Password */}
 
               <div>
                 <label
@@ -355,8 +242,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Login Button */}
-
               <button
                 type="submit"
                 className="
@@ -386,44 +271,17 @@ export default function LoginPage() {
                   sm:text-lg
                 "
               >
-                <span className="mr-2 text-base">
-                  🔐
-                </span>
-
+                <span className="mr-2 text-base">🔐</span>
                 เข้าสู่ระบบ
               </button>
             </form>
 
-            {/* Footer */}
-
-            <div
-              className="
-                mt-8
-                border-t
-                border-slate-200
-                pt-5
-                text-center
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-normal
-                  text-slate-400
-                  sm:text-sm
-                "
-              >
+            <div className="mt-8 border-t border-slate-200 pt-5 text-center">
+              <p className="text-xs font-normal text-slate-400 sm:text-sm">
                 © {new Date().getFullYear()} ระบบบริหารคลังพัสดุ
               </p>
 
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  font-normal
-                  text-slate-400
-                "
-              >
+              <p className="mt-1 text-xs font-normal text-slate-400">
                 กลุ่มอำนวยการ (งานพัสดุ)
               </p>
             </div>
