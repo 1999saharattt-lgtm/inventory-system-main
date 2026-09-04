@@ -446,8 +446,6 @@ export default function MaterialForm({
           pt-5
         "
       >
-        {/* ปุ่มยกเลิก */}
-
         <a
           href="/materials"
           className="
@@ -464,8 +462,6 @@ export default function MaterialForm({
         >
           ยกเลิก
         </a>
-
-        {/* ปุ่มบันทึก */}
 
         <button
           type="submit"
