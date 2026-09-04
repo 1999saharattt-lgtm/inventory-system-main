@@ -683,8 +683,9 @@ export default function InspectionForm({
               table-fixed
               border-collapse
               text-[10px]
-              sm:text-xs
-              lg:text-sm
+              leading-tight
+              sm:text-[11px]
+              lg:text-xs
             "
           >
             <colgroup>
@@ -711,61 +712,168 @@ export default function InspectionForm({
               <tr>
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
                   ลำดับ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
-                  <span className="break-words">
-                    รหัส GFMIS
-                  </span>
+                  รหัส GFMIS
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
-                  <span className="break-words">
-                    รหัสครุภัณฑ์
-                  </span>
+                  รหัสครุภัณฑ์
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
                   ผู้รับผิดชอบ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
                   รายการ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
                   หน่วย
                 </th>
 
                 <th
                   colSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
                 >
-                  <div className="break-words">
+                  <div
+                    className="
+                      break-words
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="mt-1 break-words">
+                  <div
+                    className="
+                      mt-1
+                      break-words
+                      text-[9px]
+                      font-bold
+                      [overflow-wrap:anywhere]
+                      sm:text-[10px]
+                      lg:text-[11px]
+                    "
+                  >
                     ณ วันที่{" "}
-                    <span className="font-bold">
+                    <span className="font-extrabold">
                       {formatThaiShortDate(
                         accountStartDate
                       )}
@@ -775,15 +883,44 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
-                  <div className="break-words">
+                  <div
+                    className="
+                      break-words
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="mt-1 break-words">
+                  <div
+                    className="
+                      mt-1
+                      break-words
+                      text-[9px]
+                      font-bold
+                      [overflow-wrap:anywhere]
+                      sm:text-[10px]
+                      lg:text-[11px]
+                    "
+                  >
                     ณ วันที่{" "}
-                    <span className="font-bold">
+                    <span className="font-extrabold">
                       {formatThaiShortDate(
                         accountEndDate
                       )}
@@ -793,76 +930,268 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
-                  <span className="break-words">
-                    จำนวนที่ตรวจนับได้
-                  </span>
+                  จำนวนที่ตรวจนับได้
                 </th>
 
                 <th
                   colSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
                 >
-                  <div className="break-words">
+                  <div
+                    className="
+                      break-words
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     ผลการตรวจนับ
                   </div>
 
-                  <div className="mt-1 break-words">
+                  <div
+                    className="
+                      mt-1
+                      break-words
+                      text-[9px]
+                      font-bold
+                      [overflow-wrap:anywhere]
+                      sm:text-[10px]
+                      lg:text-[11px]
+                    "
+                  >
                     ถูกต้องตรงกับยอดคงเหลือตามบัญชี
                   </div>
                 </th>
 
                 <th
                   colSpan={4}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
                 >
-                  <span className="break-words">
+                  <span
+                    className="
+                      break-words
+                      [overflow-wrap:anywhere]
+                    "
+                  >
                     สภาพครุภัณฑ์ที่ตรวจนับ
                   </span>
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle font-extrabold text-white"
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
               <tr>
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   รับ
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   จ่าย
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
+                >
                   ถูกต้อง
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
+                >
                   ไม่ถูกต้อง
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ใช้งาน
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ชำรุด
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
+                >
                   เสื่อมสภาพ
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-1.5 text-center font-extrabold text-white">
-                  <span className="break-words">
-                    ไม่สามารถใช้งาน
-                  </span>
+                <th
+                  className="
+                    break-words
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-1.5
+                    text-center
+                    align-middle
+                    font-extrabold
+                    !text-white
+                    [overflow-wrap:anywhere]
+                  "
+                >
+                  ไม่สามารถใช้งาน
                 </th>
               </tr>
             </thead>
@@ -878,29 +1207,102 @@ export default function InspectionForm({
                     key={asset.id}
                     className="transition hover:bg-emerald-50"
                   >
-                    <td className="border border-black px-1 py-1.5 text-center font-bold text-slate-900">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-900
+                      "
+                    >
                       {index + 1}
                     </td>
 
-                    <td className="break-words border border-black px-1 py-1.5 text-center font-semibold text-slate-900">
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       {asset.governmentAssetNo || "-"}
                     </td>
 
-                    <td className="break-words border border-black px-1 py-1.5 text-center font-semibold text-slate-900">
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       {asset.officeAssetNo || "-"}
                     </td>
 
-                    <td className="break-words border border-black px-1 py-1.5 text-center font-semibold text-slate-900">
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       {officer
                         ? `${officer.firstName} ${officer.lastName}`
                         : "-"}
                     </td>
 
-                    <td className="break-words border border-black px-1 py-1.5 font-semibold text-slate-900">
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       {asset.name}
 
                       {(asset.brand || asset.model) && (
-                        <span className="ml-1 text-[9px] font-medium text-slate-500 sm:text-[10px] lg:text-xs">
+                        <span
+                          className="
+                            ml-1
+                            break-words
+                            text-[8px]
+                            font-medium
+                            text-slate-500
+                            [overflow-wrap:anywhere]
+                            sm:text-[9px]
+                            lg:text-[10px]
+                          "
+                        >
                           (
                           {asset.brand || ""}
 
@@ -914,23 +1316,78 @@ export default function InspectionForm({
                       )}
                     </td>
 
-                    <td className="break-words border border-black px-1 py-1.5 text-center font-semibold text-slate-900">
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-semibold
+                        text-slate-900
+                        [overflow-wrap:anywhere]
+                      "
+                    >
                       {getCategoryUnit(asset.category)}
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center font-bold text-slate-500">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
                       -
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center font-bold text-slate-500">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
                       -
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center font-bold text-slate-500">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
                       -
                     </td>
 
-                    <td className="border border-black px-1 py-1.5">
+                    <td
+                      className="
+                        min-w-0
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        align-middle
+                      "
+                    >
                       <input
                         type="number"
                         min="0"
@@ -942,11 +1399,42 @@ export default function InspectionForm({
                             e.target.value
                           )
                         }
-                        className="block w-full rounded-lg border border-slate-300 bg-white p-1 text-center text-[10px] font-bold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-1.5 sm:text-xs lg:text-sm"
+                        className="
+                          block
+                          min-w-0
+                          w-full
+                          rounded-md
+                          border
+                          border-slate-300
+                          bg-white
+                          px-0.5
+                          py-1
+                          text-center
+                          text-[10px]
+                          font-bold
+                          text-slate-900
+                          outline-none
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:rounded-lg
+                          sm:p-1
+                          sm:text-xs
+                          lg:text-xs
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
@@ -960,11 +1448,28 @@ export default function InspectionForm({
                             "CORRECT"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
@@ -978,11 +1483,28 @@ export default function InspectionForm({
                             "INCORRECT"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -996,11 +1518,28 @@ export default function InspectionForm({
                             "IN_USE"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1014,16 +1553,34 @@ export default function InspectionForm({
                             "DAMAGED"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
                         checked={
-                          row.status === "DETERIORATED"
+                          row.status ===
+                          "DETERIORATED"
                         }
                         onChange={() =>
                           updateRow(
@@ -1032,11 +1589,28 @@ export default function InspectionForm({
                             "DETERIORATED"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5 text-center">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        align-middle
+                      "
+                    >
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
@@ -1050,11 +1624,28 @@ export default function InspectionForm({
                             "UNUSABLE"
                           )
                         }
-                        className="h-3.5 w-3.5 cursor-pointer sm:h-4 sm:w-4"
+                        className="
+                          h-3
+                          w-3
+                          cursor-pointer
+                          sm:h-3.5
+                          sm:w-3.5
+                          lg:h-4
+                          lg:w-4
+                        "
                       />
                     </td>
 
-                    <td className="border border-black px-1 py-1.5">
+                    <td
+                      className="
+                        min-w-0
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        align-middle
+                      "
+                    >
                       <input
                         type="text"
                         value={row.remark}
@@ -1066,7 +1657,29 @@ export default function InspectionForm({
                           )
                         }
                         placeholder="หมายเหตุ"
-                        className="block w-full rounded-lg border border-slate-300 bg-white p-1 text-[10px] font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-1.5 sm:text-xs lg:text-sm"
+                        className="
+                          block
+                          min-w-0
+                          w-full
+                          rounded-md
+                          border
+                          border-slate-300
+                          bg-white
+                          px-0.5
+                          py-1
+                          text-[10px]
+                          font-semibold
+                          text-slate-900
+                          outline-none
+                          placeholder:text-slate-400
+                          focus:border-cyan-500
+                          focus:ring-2
+                          focus:ring-cyan-100
+                          sm:rounded-lg
+                          sm:p-1
+                          sm:text-xs
+                          lg:text-xs
+                        "
                       />
                     </td>
                   </tr>
@@ -1077,7 +1690,15 @@ export default function InspectionForm({
                 <tr>
                   <td
                     colSpan={17}
-                    className="border border-black px-4 py-10 text-center font-bold text-slate-500"
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-10
+                      text-center
+                      font-bold
+                      text-slate-500
+                    "
                   >
                     ไม่พบรายการครุภัณฑ์
                   </td>
