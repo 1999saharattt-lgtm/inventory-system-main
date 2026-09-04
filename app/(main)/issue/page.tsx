@@ -84,7 +84,9 @@ function getStatusLabel(status: string) {
   }
 }
 
-export default async function IssuePage({ searchParams }: IssuePageProps) {
+export default async function IssuePage({
+  searchParams,
+}: IssuePageProps) {
   // =====================================================
   // Search Params
   // =====================================================
@@ -109,15 +111,28 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
   }
 
   // =====================================================
-  // กรองรายการตามกลุ่มงาน (ADMIN เห็นทั้งหมด / กลุ่มงานเห็นเฉพาะของตัวเอง)
+  // ตรวจสอบสิทธิ์ตามกลุ่มงาน
+  //
+  // ADMIN
+  //   - เห็นข้อมูลทุกกลุ่ม
+  //
+  // STAFF / VIEWER
+  //   - เห็นเฉพาะกลุ่มงานของตัวเอง
+  //
+  // ไม่มี session หรือไม่มี departmentId
+  //   - ไม่ให้เห็นข้อมูล
   // =====================================================
 
-  const where =
+  const issueDepartmentWhere =
     session?.role === "ADMIN"
       ? {}
       : session?.departmentId
-      ? { departmentId: session.departmentId }
-      : { id: -1 }; // หากไม่มีสิทธิ์หรือไม่มี departmentId จะไม่เห็นข้อมูลใดๆ
+        ? {
+            departmentId: session.departmentId,
+          }
+        : {
+            departmentId: -1,
+          };
 
   // =====================================================
   // กำหนดช่วงวันที่สำหรับการกรอง
@@ -128,16 +143,60 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
   let startDate: Date | undefined;
   let endDate: Date | undefined;
 
-  // เบิกจ่ายวันนี้ (00:00:00 ถึง 23:59:59)
+  // =====================================================
+  // เบิกจ่ายวันนี้
+  // ตั้งแต่ 00:00:00 ของวันนี้
+  // ถึงก่อน 00:00:00 ของวันพรุ่งนี้
+  // =====================================================
+
   if (params.date === "today") {
-    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0,
+      0
+    );
   }
 
-  // เบิกจ่ายประจำเดือน (วันแรกของเดือน ถึง วันสุดท้ายของเดือน)
+  // =====================================================
+  // เบิกจ่ายประจำเดือน
+  // ตั้งแต่วันแรกของเดือน
+  // ถึงก่อนวันแรกของเดือนถัดไป
+  // =====================================================
+
   if (params.period === "month") {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+      0,
+      0,
+      0,
+      0
+    );
+
+    endDate = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1,
+      0,
+      0,
+      0,
+      0
+    );
   }
 
   // =====================================================
@@ -145,12 +204,13 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
   // =====================================================
 
   const issueWhere = {
-    ...where,
+    ...issueDepartmentWhere,
+
     ...(startDate && endDate
       ? {
           issueDate: {
             gte: startDate,
-            lte: endDate,
+            lt: endDate,
           },
         }
       : {}),
@@ -198,7 +258,10 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
         sm:space-y-6
       "
     >
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
       <div
         className="
           flex
@@ -281,7 +344,11 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
         </Link>
       </div>
 
-      {/* แจ้งเตือนรายการรอเบิกจ่าย (เฉพาะ ADMIN) */}
+      {/* =====================================================
+          แจ้งเตือนรายการรอเบิกจ่าย
+          เฉพาะ ADMIN
+      ===================================================== */}
+
       {session?.role === "ADMIN" && pendingCount > 0 && (
         <div
           className="
@@ -344,7 +411,10 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
         </div>
       )}
 
-      {/* Table */}
+      {/* =====================================================
+          Table
+      ===================================================== */}
+
       <div
         className="
           w-full
@@ -370,24 +440,31 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
                 <th className="w-[5%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   ลำดับ
                 </th>
+
                 <th className="w-[9%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   วันที่
                 </th>
+
                 <th className="w-[11%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   เลขที่เอกสาร
                 </th>
+
                 <th className="w-[17%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   หน่วยงาน / กลุ่มงาน
                 </th>
+
                 <th className="w-[13%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   ผู้ขอเบิก
                 </th>
+
                 <th className="w-[12%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   สถานะ
                 </th>
+
                 <th className="w-[15%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   รายละเอียด
                 </th>
+
                 <th className="w-[18%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
                   จัดการ
                 </th>
@@ -408,27 +485,41 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
                         hover:bg-blue-50
                       "
                     >
+                      {/* ลำดับ */}
+
                       <td className="whitespace-nowrap border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
                         {index + 1}
                       </td>
 
+                      {/* วันที่ */}
+
                       <td className="whitespace-nowrap border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue.issueDate ? formatThaiDate(issue.issueDate) : "-"}
+                        {issue.issueDate
+                          ? formatThaiDate(issue.issueDate)
+                          : "-"}
                       </td>
+
+                      {/* เลขที่เอกสาร */}
 
                       <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
                         {issue.documentNo}
                       </td>
 
+                      {/* หน่วยงาน / กลุ่มงาน */}
+
                       <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
                         {issue.department?.name ?? "-"}
                       </td>
+
+                      {/* ผู้ขอเบิก */}
 
                       <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
                         {issue.officer
                           ? `${issue.officer.firstName} ${issue.officer.lastName}`
                           : "-"}
                       </td>
+
+                      {/* สถานะ */}
 
                       <td className="border border-slate-900 px-2 py-3 text-center text-xs font-extrabold">
                         {issue.status === "PENDING" ? (
@@ -449,6 +540,8 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
                           </span>
                         )}
                       </td>
+
+                      {/* รายละเอียด */}
 
                       <td className="border border-slate-900 px-2 py-3 text-center">
                         <Link
@@ -471,11 +564,14 @@ export default async function IssuePage({ searchParams }: IssuePageProps) {
                             hover:bg-slate-700
                           "
                         >
-                          {session?.role === "ADMIN" && issue.status === "PENDING"
+                          {session?.role === "ADMIN" &&
+                          issue.status === "PENDING"
                             ? "ตรวจสอบ / เบิกจ่าย"
                             : "ดูรายการ"}
                         </Link>
                       </td>
+
+                      {/* จัดการ */}
 
                       <td className="border border-slate-900 px-2 py-3 text-center">
                         <div className="flex flex-wrap justify-center gap-1">

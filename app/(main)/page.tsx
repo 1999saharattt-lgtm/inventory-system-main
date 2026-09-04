@@ -41,8 +41,14 @@ export default async function Home() {
 
   // =====================================================
   // ตรวจสอบสิทธิ์
-  // ADMIN = เห็นข้อมูลทุกกลุ่ม
-  // STAFF / VIEWER = เห็นเฉพาะกลุ่มของตัวเอง
+  //
+  // ADMIN
+  // - เห็นข้อมูลเบิกจ่ายทุกกลุ่ม
+  // - สามารถกดดูข้อมูลรับเข้าได้
+  //
+  // STAFF / VIEWER
+  // - เห็นข้อมูลเบิกจ่ายเฉพาะกลุ่มตัวเอง
+  // - รับเข้ายังแสดงยอดรวม แต่ไม่สามารถกดเข้าไปดูได้
   // =====================================================
 
   const userRole = String(user?.role ?? "")
@@ -51,16 +57,16 @@ export default async function Home() {
 
   const isAdmin = userRole === "ADMIN";
 
-  const departmentWhere =
-    isAdmin
-      ? {}
-      : user?.departmentId
-        ? {
-            departmentId: user.departmentId,
-          }
-        : {
-            departmentId: -1,
-          };
+  // ใช้เฉพาะกับ Issue เพราะ Issue มี departmentId
+  const issueDepartmentWhere = isAdmin
+    ? {}
+    : user?.departmentId
+      ? {
+          departmentId: user.departmentId,
+        }
+      : {
+          departmentId: -1,
+        };
 
   const now = new Date();
 
@@ -93,10 +99,16 @@ export default async function Home() {
     receives6Months,
     issues6Months,
   ] = await Promise.all([
+    // ===================================================
     // จำนวนพัสดุทั้งหมด
+    // ===================================================
+
     prisma.material.count(),
 
+    // ===================================================
     // พัสดุใกล้หมด
+    // ===================================================
+
     prisma.material.count({
       where: {
         balance: {
@@ -106,7 +118,10 @@ export default async function Home() {
       },
     }),
 
+    // ===================================================
     // พัสดุหมด
+    // ===================================================
+
     prisma.material.count({
       where: {
         balance: {
@@ -115,7 +130,10 @@ export default async function Home() {
       },
     }),
 
+    // ===================================================
     // พัสดุปกติ
+    // ===================================================
+
     prisma.material.count({
       where: {
         balance: {
@@ -126,13 +144,16 @@ export default async function Home() {
 
     // ===================================================
     // รับเข้าวันนี้
-    // ADMIN = ทุกกลุ่ม
-    // STAFF / VIEWER = กลุ่มตัวเอง
+    //
+    // Receive ไม่มี departmentId
+    // จึงแสดงยอดรวมทั้งหมด
+    //
+    // สิทธิ์การ "กดเข้าไปดู" จะควบคุมแยกที่ UI
+    // โดย ADMIN เท่านั้นที่กดได้
     // ===================================================
 
     prisma.receive.count({
       where: {
-        ...departmentWhere,
         receiveDate: {
           gte: todayStart,
           lt: tomorrowStart,
@@ -142,13 +163,14 @@ export default async function Home() {
 
     // ===================================================
     // เบิกจ่ายวันนี้
+    //
     // ADMIN = ทุกกลุ่ม
     // STAFF / VIEWER = กลุ่มตัวเอง
     // ===================================================
 
     prisma.issue.count({
       where: {
-        ...departmentWhere,
+        ...issueDepartmentWhere,
         issueDate: {
           gte: todayStart,
           lt: tomorrowStart,
@@ -158,11 +180,16 @@ export default async function Home() {
 
     // ===================================================
     // รับเข้าประจำเดือน
+    //
+    // Receive ไม่มี departmentId
+    // จึงแสดงยอดรวมทั้งหมด
+    //
+    // สิทธิ์การ "กดเข้าไปดู" จะควบคุมแยกที่ UI
+    // โดย ADMIN เท่านั้นที่กดได้
     // ===================================================
 
     prisma.receive.count({
       where: {
-        ...departmentWhere,
         receiveDate: {
           gte: currentMonthStart,
           lt: nextMonthStart,
@@ -172,11 +199,14 @@ export default async function Home() {
 
     // ===================================================
     // เบิกจ่ายประจำเดือน
+    //
+    // ADMIN = ทุกกลุ่ม
+    // STAFF / VIEWER = กลุ่มตัวเอง
     // ===================================================
 
     prisma.issue.count({
       where: {
-        ...departmentWhere,
+        ...issueDepartmentWhere,
         issueDate: {
           gte: currentMonthStart,
           lt: nextMonthStart,
@@ -186,24 +216,27 @@ export default async function Home() {
 
     // ===================================================
     // ใบเบิกที่รอดำเนินการ
+    //
     // ADMIN = ทุกกลุ่ม
     // STAFF / VIEWER = กลุ่มตัวเอง
     // ===================================================
 
     prisma.issue.count({
       where: {
-        ...departmentWhere,
+        ...issueDepartmentWhere,
         status: "PENDING",
       },
     }),
 
     // ===================================================
     // รับเข้า 6 เดือนย้อนหลัง
+    //
+    // Receive ไม่มี departmentId
+    // จึงแสดงยอดรวมทั้งหมด
     // ===================================================
 
     prisma.receive.findMany({
       where: {
-        ...departmentWhere,
         receiveDate: {
           gte: sixMonthsAgoStart,
           lt: nextMonthStart,
@@ -216,11 +249,14 @@ export default async function Home() {
 
     // ===================================================
     // เบิกจ่าย 6 เดือนย้อนหลัง
+    //
+    // ADMIN = ทุกกลุ่ม
+    // STAFF / VIEWER = กลุ่มตัวเอง
     // ===================================================
 
     prisma.issue.findMany({
       where: {
-        ...departmentWhere,
+        ...issueDepartmentWhere,
         issueDate: {
           gte: sixMonthsAgoStart,
           lt: nextMonthStart,
@@ -277,6 +313,16 @@ export default async function Home() {
   const totalStockStatus =
     outOfStock + lowStock + normalStock;
 
+  // =====================================================
+  // การ์ดด้านบน
+  //
+  // ADMIN:
+  // - รับเข้าวันนี้ กดได้
+  //
+  // STAFF / VIEWER:
+  // - รับเข้าวันนี้ เห็นยอด แต่กดไม่ได้
+  // =====================================================
+
   const cards = [
     {
       title: "จำนวนพัสดุทั้งหมด",
@@ -286,6 +332,7 @@ export default async function Home() {
       color: "bg-blue-600",
       hover: "hover:border-blue-300",
       href: "/materials/summary",
+      clickable: true,
     },
     {
       title: "รับเข้าวันนี้",
@@ -295,6 +342,7 @@ export default async function Home() {
       color: "bg-emerald-600",
       hover: "hover:border-emerald-300",
       href: "/receive?date=today",
+      clickable: isAdmin,
     },
     {
       title: "เบิกจ่ายวันนี้",
@@ -304,6 +352,7 @@ export default async function Home() {
       color: "bg-amber-600",
       hover: "hover:border-amber-300",
       href: "/issue?date=today",
+      clickable: true,
     },
     {
       title: "รายการพัสดุที่ใกล้หมดทั้งหมด",
@@ -313,70 +362,128 @@ export default async function Home() {
       color: "bg-red-600",
       hover: "hover:border-red-300",
       href: "/materials/low-stock",
+      clickable: true,
     },
   ];
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
+      {/* =====================================================
+          การ์ดสรุปด้านบน
+      ===================================================== */}
+
       <div className="grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <Link
-            key={card.title}
-            href={card.href}
-            className={`group min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.hover}`}
-          >
-            <div className={`h-1 ${card.color}`} />
+        {cards.map((card) => {
+          const cardClassName = `group min-w-0 overflow-hidden rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white shadow-xl ${
+            card.clickable
+              ? `transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${card.hover}`
+              : ""
+          }`;
 
-            <div className="p-4">
-              <div className="flex min-w-0 items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
-                    {card.title}
-                  </p>
+          const cardContent = (
+            <>
+              <div className={`h-1 ${card.color}`} />
 
-                  <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
-                    {card.value}
-                  </p>
+              <div className="p-4">
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="break-words text-lg font-extrabold leading-tight !text-white sm:text-xl">
+                      {card.title}
+                    </p>
 
-                  <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
-                    {card.unit}
-                  </p>
-                </div>
+                    <p className="mt-2 text-3xl font-extrabold leading-none !text-white sm:text-4xl">
+                      {card.value}
+                    </p>
 
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg backdrop-blur sm:h-12 sm:w-12 sm:text-xl">
-                  {card.icon}
+                    <p className="mt-1 text-sm font-bold !text-slate-200 sm:text-base">
+                      {card.unit}
+                    </p>
+                  </div>
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg backdrop-blur sm:h-12 sm:w-12 sm:text-xl">
+                    {card.icon}
+                  </div>
                 </div>
               </div>
+            </>
+          );
+
+          if (card.clickable) {
+            return (
+              <Link
+                key={card.title}
+                href={card.href}
+                className={cardClassName}
+              >
+                {cardContent}
+              </Link>
+            );
+          }
+
+          return (
+            <div
+              key={card.title}
+              className={cardClassName}
+            >
+              {cardContent}
             </div>
-          </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* =====================================================
           รับเข้า / เบิกจ่ายประจำเดือน
+
+          ADMIN:
+          - รับเข้าประจำเดือน กดได้
+          - เบิกจ่ายประจำเดือน กดได้
+
+          STAFF / VIEWER:
+          - รับเข้าประจำเดือน กดไม่ได้
+          - เบิกจ่ายประจำเดือน กดได้
       ===================================================== */}
 
       <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-        <Link
-          href="/receive?period=month"
-          className="min-w-0 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
-                📥 รับเข้าประจำเดือน
-              </p>
+        {isAdmin ? (
+          <Link
+            href="/receive?period=month"
+            className="min-w-0 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 text-white shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-emerald-300"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
+                  📥 รับเข้าประจำเดือน
+                </p>
 
-              <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
-                {receiveThisMonth}
-              </p>
+                <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
+                  {receiveThisMonth}
+                </p>
+              </div>
+
+              <span className="shrink-0 text-3xl sm:text-4xl">
+                📥
+              </span>
             </div>
+          </Link>
+        ) : (
+          <div className="min-w-0 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 text-white shadow-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xl font-extrabold leading-tight !text-white sm:text-2xl">
+                  📥 รับเข้าประจำเดือน
+                </p>
 
-            <span className="shrink-0 text-3xl sm:text-4xl">
-              📥
-            </span>
+                <p className="mt-1 text-4xl font-extrabold leading-none !text-emerald-300 sm:text-5xl">
+                  {receiveThisMonth}
+                </p>
+              </div>
+
+              <span className="shrink-0 text-3xl sm:text-4xl">
+                📥
+              </span>
+            </div>
           </div>
-        </Link>
+        )}
 
         <Link
           href="/issue?period=month"
