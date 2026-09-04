@@ -376,6 +376,8 @@ export default async function NotificationsPage() {
 
   // =====================================================
   // STAFF / VIEWER / กลุ่มงาน
+  //
+  // เห็นเฉพาะการแจ้งเตือนที่ ADMIN ดำเนินการแล้ว
   // =====================================================
 
   if (!session.departmentId) {
@@ -496,6 +498,9 @@ export default async function NotificationsPage() {
 
   // =====================================================
   // ใบเบิกที่ ADMIN ดำเนินการแล้ว
+  //
+  // เฉพาะใบเบิกของกลุ่มงานของผู้ใช้งาน
+  // และต้องเป็นรายการที่มี ADMIN เป็นผู้ดำเนินการ
   // =====================================================
 
   const completedIssues = await prisma.issue.findMany({
@@ -505,6 +510,9 @@ export default async function NotificationsPage() {
       approvedAt: {
         not: null,
       },
+      approvedById: {
+        not: null,
+      },
     },
     include: {
       department: true,
@@ -512,6 +520,7 @@ export default async function NotificationsPage() {
       approvedBy: {
         select: {
           fullname: true,
+          role: true,
         },
       },
       items: {
@@ -525,7 +534,18 @@ export default async function NotificationsPage() {
     },
   });
 
-  const totalIssuedItems = completedIssues.reduce(
+  // =====================================================
+  // ป้องกันกรณี approvedBy ไม่ใช่ ADMIN
+  //
+  // แม้ approvedById จะมีค่า แต่การแจ้งเตือนของกลุ่มงาน
+  // ต้องมาจาก ADMIN เท่านั้น
+  // =====================================================
+
+  const adminCompletedIssues = completedIssues.filter(
+    (issue) => issue.approvedBy?.role === "ADMIN"
+  );
+
+  const totalIssuedItems = adminCompletedIssues.reduce(
     (total, issue) =>
       total +
       issue.items.reduce(
@@ -642,7 +662,7 @@ export default async function NotificationsPage() {
             </p>
 
             <p className="mt-1 text-3xl font-extrabold !text-white">
-              {completedIssues.length}
+              {adminCompletedIssues.length}
             </p>
 
             <p className="mt-1 text-sm font-semibold !text-white">
@@ -671,7 +691,7 @@ export default async function NotificationsPage() {
       {/* Notifications */}
 
       <div className="space-y-4">
-        {completedIssues.length === 0 ? (
+        {adminCompletedIssues.length === 0 ? (
           <div
             className="
               rounded-2xl
@@ -710,7 +730,7 @@ export default async function NotificationsPage() {
             </p>
           </div>
         ) : (
-          completedIssues.map((issue) => {
+          adminCompletedIssues.map((issue) => {
             const requestedTotal = issue.items.reduce(
               (total, item) => total + item.qty,
               0
