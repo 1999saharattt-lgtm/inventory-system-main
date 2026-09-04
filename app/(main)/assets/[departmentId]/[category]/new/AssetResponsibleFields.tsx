@@ -123,6 +123,7 @@ export default function AssetResponsibleFields({
         mt-4
         grid
         w-full
+        min-w-0
         gap-5
         sm:grid-cols-2
       "
