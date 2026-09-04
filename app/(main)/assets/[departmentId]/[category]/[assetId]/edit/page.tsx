@@ -202,7 +202,18 @@ export default async function EditAssetPage({
         </Link>
       </div>
 
-      <form action={submitUpdate}>
+      {/* =====================================================
+          Form
+      ===================================================== */}
+
+      <form
+        action={submitUpdate}
+        className="
+          mx-auto
+          w-full
+          max-w-4xl
+        "
+      >
         {/* =====================================================
             สถานะครุภัณฑ์
         ===================================================== */}
@@ -211,15 +222,16 @@ export default async function EditAssetPage({
           className="
             w-full
             min-w-0
-            rounded-2xl
+            rounded-3xl
             border
             border-slate-700
             bg-gradient-to-br
             from-slate-950
             via-slate-900
             to-slate-800
-            p-4
-            shadow-xl
+            p-6
+            text-white
+            shadow-2xl
             sm:p-8
           "
         >
@@ -330,15 +342,16 @@ export default async function EditAssetPage({
             mt-4
             w-full
             min-w-0
-            rounded-2xl
+            rounded-3xl
             border
             border-slate-700
             bg-gradient-to-br
             from-slate-950
             via-slate-900
             to-slate-800
-            p-4
-            shadow-xl
+            p-6
+            text-white
+            shadow-2xl
             sm:p-8
           "
         >
@@ -685,15 +698,16 @@ export default async function EditAssetPage({
             mt-4
             w-full
             min-w-0
-            rounded-2xl
+            rounded-3xl
             border
             border-slate-700
             bg-gradient-to-br
             from-slate-950
             via-slate-900
             to-slate-800
-            p-4
-            shadow-xl
+            p-6
+            text-white
+            shadow-2xl
             sm:p-8
           "
         >
@@ -738,15 +752,16 @@ export default async function EditAssetPage({
             mt-4
             w-full
             min-w-0
-            rounded-2xl
+            rounded-3xl
             border
             border-slate-700
             bg-gradient-to-br
             from-slate-950
             via-slate-900
             to-slate-800
-            p-4
-            shadow-xl
+            p-6
+            text-white
+            shadow-2xl
             sm:p-8
           "
         >
