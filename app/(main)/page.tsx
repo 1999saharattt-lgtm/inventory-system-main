@@ -55,10 +55,10 @@ export default async function Home() {
     outOfStock,
     normalStock,
     receiveToday,
-    issueTodayGroup,
+    issueToday,
     receiveThisMonth,
-    issueThisMonthGroup,
-    pendingIssuesGroup,
+    issueThisMonth,
+    pendingIssues,
   ] = await Promise.all([
     // จำนวนพัสดุทั้งหมด
     prisma.material.count(),
@@ -91,7 +91,7 @@ export default async function Home() {
       },
     }),
 
-    // รับเข้าวันนี้
+    // จำนวนใบรับเข้าวันนี้
     prisma.receive.count({
       where: {
         receiveDate: {
@@ -101,9 +101,8 @@ export default async function Home() {
       },
     }),
 
-    // เบิกจ่ายวันนี้ (จัดกลุ่มตามเลขที่ใบเบิก)
-    prisma.issue.groupBy({
-      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
+    // จำนวนใบเบิกจ่ายวันนี้ (นับจากตาราง Issue โดยตรง)
+    prisma.issue.count({
       where: {
         issueDate: {
           gte: todayStart,
@@ -112,7 +111,7 @@ export default async function Home() {
       },
     }),
 
-    // รับเข้าประจำเดือนนี้
+    // จำนวนใบรับเข้าประจำเดือนนี้
     prisma.receive.count({
       where: {
         receiveDate: {
@@ -122,9 +121,8 @@ export default async function Home() {
       },
     }),
 
-    // เบิกจ่ายประจำเดือนนี้ (จัดกลุ่มตามเลขที่ใบเบิก)
-    prisma.issue.groupBy({
-      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
+    // จำนวนใบเบิกจ่ายประจำเดือนนี้
+    prisma.issue.count({
       where: {
         issueDate: {
           gte: currentMonthStart,
@@ -133,19 +131,13 @@ export default async function Home() {
       },
     }),
 
-    // ใบเบิกที่รอดำเนินการ (จัดกลุ่มตามเลขที่ใบเบิก)
-    prisma.issue.groupBy({
-      by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
+    // จำนวนใบเบิกที่รอดำเนินการ (status = PENDING)
+    prisma.issue.count({
       where: {
         status: "PENDING",
       },
     }),
   ]);
-
-  // นับจำนวนกลุ่ม (ใบเบิก)
-  const issueToday = issueTodayGroup.length;
-  const issueThisMonth = issueThisMonthGroup.length;
-  const pendingIssues = pendingIssuesGroup.length;
 
   // =====================================================
   // 6 Months Movement
@@ -156,7 +148,7 @@ export default async function Home() {
       const monthStart = startOfMonth(addMonths(now, index - 5));
       const nextMonth = addMonths(monthStart, 1);
 
-      const [receiveCount, issueGroup] = await Promise.all([
+      const [receiveCount, issueCount] = await Promise.all([
         prisma.receive.count({
           where: {
             receiveDate: {
@@ -166,9 +158,7 @@ export default async function Home() {
           },
         }),
 
-        // เบิกจ่ายรายเดือน (จัดกลุ่มตามเลขที่ใบเบิก)
-        prisma.issue.groupBy({
-          by: ["issueNo"], // หากใช้ชื่อฟิลด์อื่น เช่น groupId ให้เปลี่ยนตรงนี้
+        prisma.issue.count({
           where: {
             issueDate: {
               gte: monthStart,
@@ -182,7 +172,7 @@ export default async function Home() {
         label: thaiMonthsShort[monthStart.getMonth()],
         year: monthStart.getFullYear() + 543,
         receive: receiveCount,
-        issue: issueGroup.length, // จำนวนใบเบิกจริงหลังจัดกลุ่ม
+        issue: issueCount,
       };
     })
   );
@@ -805,7 +795,7 @@ export default async function Home() {
                         style={{
                           height: `${receiveHeight}%`,
                         }}
-                        title={`รับเข้า ${month.receive} รายการ`}
+                        title={`รับเข้า ${month.receive} ใบรับเข้า`}
                       />
                     </div>
 
