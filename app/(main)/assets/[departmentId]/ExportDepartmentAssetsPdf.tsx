@@ -291,14 +291,12 @@ export default function ExportDepartmentAssetsPdf({
                 /*
                  * รหัส GFMIS
                  */
-                asset.governmentAssetNo ??
-                  "-",
+                asset.governmentAssetNo ?? "-",
 
                 /*
                  * รหัสครุภัณฑ์
                  */
-                asset.officeAssetNo ??
-                  "-",
+                asset.officeAssetNo ?? "-",
 
                 /*
                  * รายการครุภัณฑ์
@@ -412,14 +410,16 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * ฟ้อนข้อมูล 14 pt
+               * ลดจาก 14 pt เป็น 13 pt
+               * เพื่อให้ข้อความยาวอยู่ในบรรทัดเดียวได้มากขึ้น
                */
-              fontSize: 14,
+              fontSize: 13,
 
               /*
                * ระยะห่างภายในช่อง
+               * ลดลงเล็กน้อยเพื่อเพิ่มพื้นที่ข้อความ
                */
-              cellPadding: 1.5,
+              cellPadding: 1.2,
 
               /*
                * ทุกช่องกึ่งกลาง
@@ -439,8 +439,7 @@ export default function ExportDepartmentAssetsPdf({
               minCellHeight: 7.2,
 
               /*
-               * ใช้ linebreak
-               * เพื่อไม่ให้ข้อมูลหาย
+               * ให้ข้อความสามารถแสดงเต็มพื้นที่
                */
               overflow: "linebreak",
 
@@ -459,9 +458,9 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
 
               /*
-               * ฟ้อนหัวตาราง 14 pt
+               * ฟ้อนหัวตาราง 13 pt
                */
-              fontSize: 14,
+              fontSize: 13,
 
               /*
                * พื้นหลังสีขาว
@@ -488,7 +487,7 @@ export default function ExportDepartmentAssetsPdf({
               /*
                * ระยะห่างภายในหัวตาราง
                */
-              cellPadding: 1.7,
+              cellPadding: 1.3,
 
               /*
                * ความสูงหัวตาราง
@@ -508,7 +507,7 @@ export default function ExportDepartmentAssetsPdf({
             bodyStyles: {
               font: "2.3.2 THSarabunNew",
               fontStyle: "normal",
-              fontSize: 14,
+              fontSize: 13,
 
               textColor: [0, 0, 0],
 
@@ -517,12 +516,12 @@ export default function ExportDepartmentAssetsPdf({
                */
               valign: "middle",
 
-              cellPadding: 1.5,
+              cellPadding: 1.2,
 
               minCellHeight: 7.2,
 
               /*
-               * ไม่ตัดข้อมูลทิ้ง
+               * ให้ข้อความสามารถแสดงได้เต็มพื้นที่
                */
               overflow: "linebreak",
             },
@@ -534,16 +533,20 @@ export default function ExportDepartmentAssetsPdf({
 
             columnStyles: {
               /*
-               * ลำดับ
+               * 0 - ลำดับ
+               * เดิม 12
                */
               0: {
-                cellWidth: 12,
+                cellWidth: 10,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * ประเภท
+               * 1 - ประเภท
+               * รองรับคำว่า
+               * "เครื่องปรับอากาศ"
+               * และ "ไม่มีอยู่ในระบบ"
                */
               1: {
                 cellWidth: 29,
@@ -552,66 +555,73 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /*
-               * รหัส GFMIS
+               * 2 - รหัส GFMIS
                */
               2: {
-                cellWidth: 35,
+                cellWidth: 34,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * รหัสครุภัณฑ์
+               * 3 - รหัสครุภัณฑ์
                */
               3: {
-                cellWidth: 36,
+                cellWidth: 34,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * รายการครุภัณฑ์
+               * 4 - รายการครุภัณฑ์
                *
-               * เฉพาะข้อมูลคอลัมน์นี้ชิดซ้าย
+               * เพิ่มเป็น 62 mm
+               * เพื่อรองรับชื่อครุภัณฑ์ที่ยาว
                */
               4: {
-                cellWidth: 57,
+                cellWidth: 62,
                 halign: "left",
                 valign: "middle",
               },
 
               /*
-               * จำนวน
+               * 5 - จำนวน
                */
               5: {
-                cellWidth: 15,
+                cellWidth: 12,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * หน่วย
+               * 6 - หน่วย
                */
               6: {
-                cellWidth: 17,
+                cellWidth: 16,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * ผู้รับผิดชอบ
+               * 7 - ผู้รับผิดชอบ
+               *
+               * เพิ่มพื้นที่ให้ชื่อเจ้าหน้าที่
                */
               7: {
-                cellWidth: 44,
+                cellWidth: 45,
                 halign: "center",
                 valign: "middle",
               },
 
               /*
-               * สถานะ
+               * 8 - สถานะ
+               *
+               * เพิ่มพื้นที่ให้
+               * "จำหน่ายแล้ว"
+               * และ "รอจำหน่าย"
                */
               8: {
-                cellWidth: 25,
+                cellWidth: 28,
                 halign: "center",
                 valign: "middle",
               },
