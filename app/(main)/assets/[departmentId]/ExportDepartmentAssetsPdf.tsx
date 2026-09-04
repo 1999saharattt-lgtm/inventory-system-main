@@ -7,715 +7,727 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 type Asset = {
-  id: number;
-  name: string;
-  category: string;
-  brand: string | null;
-  model: string | null;
-  serialNumber: string | null;
-  governmentAssetNo: string | null;
-  officeAssetNo: string | null;
-  departmentName: string;
-  sectionName: string | null;
-  officerName: string | null;
-  status: string;
-  purchaseDate: string | null;
-  price: number | null;
-  location: string | null;
-  remark: string | null;
+id: number;
+name: string;
+category: string;
+brand: string | null;
+model: string | null;
+serialNumber: string | null;
+governmentAssetNo: string | null;
+officeAssetNo: string | null;
+departmentName: string;
+sectionName: string | null;
+officerName: string | null;
+status: string;
+purchaseDate: string | null;
+price: number | null;
+location: string | null;
+remark: string | null;
 };
 
 type Props = {
-  departmentName: string;
-  assets: Asset[];
+departmentName: string;
+assets: Asset[];
 };
 
 const categoryName: Record<string, string> = {
-  DESK: "โต๊ะ",
-  CHAIR: "เก้าอี้",
-  AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
-  COMPUTER: "คอมพิวเตอร์",
-  PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "เครื่องโทรศัพท์",
-  OTHER: "ทั่วไป",
-  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+DESK: "โต๊ะ",
+CHAIR: "เก้าอี้",
+AIR_CONDITIONER: "เครื่องปรับอากาศ",
+CABINET: "ตู้และชั้น",
+COMPUTER: "คอมพิวเตอร์",
+PRINTER: "เครื่องพิมพ์",
+TELEPHONE: "เครื่องโทรศัพท์",
+OTHER: "ทั่วไป",
+NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const categoryUnit: Record<string, string> = {
-  DESK: "ตัว",
-  CHAIR: "ตัว",
-  AIR_CONDITIONER: "เครื่อง",
-  CABINET: "ตัว",
-  COMPUTER: "เครื่อง",
-  PRINTER: "เครื่อง",
-  TELEPHONE: "เครื่อง",
-  OTHER: "รายการ",
-  NO_SYSTEM: "รายการ",
+DESK: "ตัว",
+CHAIR: "ตัว",
+AIR_CONDITIONER: "เครื่อง",
+CABINET: "ตัว",
+COMPUTER: "เครื่อง",
+PRINTER: "เครื่อง",
+TELEPHONE: "เครื่อง",
+OTHER: "รายการ",
+NO_SYSTEM: "รายการ",
 };
 
 /*
- * สถานะครุภัณฑ์
- * ให้ตรงกับสถานะที่แสดงในหน้า /assets/1/all
- */
-const statusName: Record<string, string> = {
+
+* สถานะครุภัณฑ์
+* ให้ตรงกับสถานะที่แสดงในหน้า /assets/1/all
+  */
+  const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
   DAMAGED: "ชำรุด",
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
-};
+  };
 
 /* =========================================================
-   ปีงบประมาณราชการ
-   ต.ค. - ก.ย.
-   ========================================================= */
+ปีงบประมาณราชการ
+ต.ค. - ก.ย.
+========================================================= */
 
 function getFiscalYear(date: Date) {
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
+const month = date.getMonth() + 1;
+const year = date.getFullYear();
 
-  return month >= 10
-    ? year + 1 + 543
-    : year + 543;
+return month >= 10
+? year + 1 + 543
+: year + 543;
 }
 
 /* =========================================================
-   รอบไตรมาสปัจจุบัน
-   ต.ค. - ธ.ค. = 1
-   ม.ค. - มี.ค. = 2
-   เม.ย. - มิ.ย. = 3
-   ก.ค. - ก.ย. = 4
-   ========================================================= */
+รอบไตรมาสปัจจุบัน
+ต.ค. - ธ.ค. = 1
+ม.ค. - มี.ค. = 2
+เม.ย. - มิ.ย. = 3
+ก.ค. - ก.ย. = 4
+========================================================= */
 
 function getCurrentQuarter(date: Date) {
-  const month = date.getMonth() + 1;
+const month = date.getMonth() + 1;
 
-  if (month >= 10 && month <= 12) {
-    return 1;
-  }
+if (month >= 10 && month <= 12) {
+return 1;
+}
 
-  if (month >= 1 && month <= 3) {
-    return 2;
-  }
+if (month >= 1 && month <= 3) {
+return 2;
+}
 
-  if (month >= 4 && month <= 6) {
-    return 3;
-  }
+if (month >= 4 && month <= 6) {
+return 3;
+}
 
-  return 4;
+return 4;
 }
 
 /* =========================================================
-   Component
-   ========================================================= */
+Component
+========================================================= */
 
 export default function ExportDepartmentAssetsPdf({
-  departmentName,
-  assets,
+departmentName,
+assets,
 }: Props) {
-  const [isExporting, setIsExporting] = useState(false);
+const [isExporting, setIsExporting] = useState(false);
 
-  /*
-   * A4 แนวนอน
-   *
-   * 297 x 210 mm
-   */
+/*
+
+* A4 แนวนอน
+*
+* 297 x 210 mm
+  */
   const pageWidth = 297;
 
-  /*
-   * ความกว้างตาราง
-   *
-   * ตารางอยู่กึ่งกลางหน้า A4
-   */
+/*
+
+* ความกว้างตาราง
+*
+* ตารางอยู่กึ่งกลางหน้า A4
+  */
   const tableWidth = 270;
 
-  const marginX =
-    (pageWidth - tableWidth) / 2;
+const marginX =
+(pageWidth - tableWidth) / 2;
 
-  /*
-   * 17 รายการต่อหน้า
-   *
-   * ดังนั้นรายการที่ 18 จะขึ้นหน้าใหม่
-   * พร้อมหัวกระดาษและหัวตารางใหม่ทั้งหมด
-   */
+/*
+
+* 17 รายการต่อหน้า
+*
+* รายการที่ 18 จะขึ้นหน้าใหม่
+  */
   const rowsPerPage = 17;
 
-  /* =========================================================
-     Export PDF
-     ========================================================= */
+/* =========================================================
+Export PDF
+========================================================= */
 
-  async function handleExportPdf() {
-    if (assets.length === 0) {
-      return;
-    }
+async function handleExportPdf() {
+if (assets.length === 0) {
+return;
+}
 
-    try {
-      setIsExporting(true);
+```
+try {
+  setIsExporting(true);
+
+  /*
+   * คำนวณรอบไตรมาสและปีงบประมาณปัจจุบัน
+   * ใหม่ทุกครั้งที่กด Export
+   */
+  const currentDate = new Date();
+
+  const currentQuarter =
+    getCurrentQuarter(currentDate);
+
+  const fiscalYear =
+    getFiscalYear(currentDate);
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
+
+  doc.setFont(
+    "2.3.2 THSarabunNew",
+    "normal"
+  );
+
+  /*
+   * แบ่งข้อมูลเป็นชุดละ 17 รายการ
+   */
+  const pages: Asset[][] = [];
+
+  for (
+    let i = 0;
+    i < assets.length;
+    i += rowsPerPage
+  ) {
+    pages.push(
+      assets.slice(
+        i,
+        i + rowsPerPage
+      )
+    );
+  }
+
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+
+  /* =====================================================
+     สร้าง PDF ทีละหน้า
+
+     สำคัญ:
+     ทุกหน้าจะสร้าง Header ใหม่
+     และสร้างตารางใหม่
+     ===================================================== */
+
+  pages.forEach(
+    (pageAssets, pageIndex) => {
+      /*
+       * หน้าแรกใช้หน้าที่สร้างไว้แล้ว
+       * หน้าที่ 2 เป็นต้นไปสร้างหน้าใหม่
+       */
+      if (pageIndex > 0) {
+        doc.addPage(
+          "a4",
+          "landscape"
+        );
+      }
+
+      const center =
+        pageWidth / 2;
+
+      /* =================================================
+         HEADER
+         ทุกหน้าจะมี Header ชุดนี้
+         ================================================= */
 
       /*
-       * คำนวณรอบไตรมาสและปีงบประมาณปัจจุบัน
-       * ใหม่ทุกครั้งที่กด Export
+       * บรรทัดที่ 1
        */
-      const currentDate = new Date();
-
-      const currentQuarter =
-        getCurrentQuarter(currentDate);
-
-      const fiscalYear =
-        getFiscalYear(currentDate);
-
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
       doc.setFont(
         "2.3.2 THSarabunNew",
         "normal"
       );
 
-      /*
-       * แบ่งข้อมูลเป็นชุดละ 17 รายการ
-       */
-      const pages: Asset[][] = [];
-
-      for (
-        let i = 0;
-        i < assets.length;
-        i += rowsPerPage
-      ) {
-        pages.push(
-          assets.slice(
-            i,
-            i + rowsPerPage
-          )
-        );
-      }
-
-      if (pages.length === 0) {
-        pages.push([]);
-      }
-
-      /* =====================================================
-         สร้าง PDF ทีละหน้า
-         ทุกหน้ามี Header ใหม่ทั้งหมด
-         ===================================================== */
-
-      pages.forEach(
-        (pageAssets, pageIndex) => {
-          /*
-           * หน้าแรกใช้หน้าที่สร้างไว้แล้ว
-           * หน้าถัดไปสร้างหน้าใหม่
-           */
-          if (pageIndex > 0) {
-            doc.addPage(
-              "a4",
-              "landscape"
-            );
-          }
-
-          const center =
-            pageWidth / 2;
-
-          /* =================================================
-             HEADER
-             ================================================= */
-
-          /*
-           * บรรทัดที่ 1
-           */
-          doc.setFontSize(26);
-
-          doc.text(
-            "ทะเบียนคุมครุภัณฑ์",
-            center,
-            15,
-            {
-              align: "center",
-            }
-          );
-
-          /*
-           * บรรทัดที่ 2
-           * กลุ่มงาน + สำนักอนามัยการเจริญพันธุ์
-           */
-          doc.setFontSize(16);
-
-          doc.text(
-            `${departmentName} สำนักอนามัยการเจริญพันธุ์`,
-            center,
-            23,
-            {
-              align: "center",
-            }
-          );
-
-          /*
-           * บรรทัดที่ 3
-           */
-          doc.text(
-            `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
-            center,
-            31,
-            {
-              align: "center",
-            }
-          );
-
-          /* =================================================
-             TABLE DATA
-             ================================================= */
-
-          const body = pageAssets.map(
-            (asset, index) => {
-              const globalIndex =
-                pageIndex *
-                  rowsPerPage +
-                index;
-
-              return [
-                /*
-                 * ลำดับ
-                 */
-                globalIndex + 1,
-
-                /*
-                 * ประเภท
-                 */
-                categoryName[
-                  asset.category
-                ] ?? asset.category,
-
-                /*
-                 * รหัส GFMIS
-                 */
-                asset.governmentAssetNo ?? "-",
-
-                /*
-                 * รหัสครุภัณฑ์
-                 */
-                asset.officeAssetNo ?? "-",
-
-                /*
-                 * รายการครุภัณฑ์
-                 */
-                asset.name || "-",
-
-                /*
-                 * จำนวน
-                 *
-                 * ครุภัณฑ์แต่ละรายการ
-                 * นับเป็น 1 รายการ
-                 */
-                "1",
-
-                /*
-                 * หน่วย
-                 */
-                categoryUnit[
-                  asset.category
-                ] ?? "รายการ",
-
-                /*
-                 * ผู้รับผิดชอบ
-                 */
-                asset.officerName ??
-                  asset.sectionName ??
-                  asset.departmentName ??
-                  "-",
-
-                /*
-                 * สถานะ
-                 */
-                statusName[
-                  asset.status
-                ] ?? asset.status,
-              ];
-            }
-          );
-
-          /*
-           * เติมแถวว่างให้ครบ 17 แถว
-           */
-          while (
-            body.length <
-            rowsPerPage
-          ) {
-            body.push([
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-            ]);
-          }
-
-          /* =================================================
-             TABLE
-             ================================================= */
-
-          autoTable(doc, {
-            /*
-             * ตารางเริ่มหลัง Header
-             */
-            startY: 37,
-
-            /*
-             * ตารางกว้าง 270 mm
-             * อยู่กึ่งกลางหน้า A4
-             */
-            margin: {
-              left: marginX,
-              right: marginX,
-            },
-
-            tableWidth,
-
-            /*
-             * หัวตาราง
-             */
-            head: [
-              [
-                "ลำดับ",
-                "ประเภท",
-                "รหัส GFMIS",
-                "รหัสครุภัณฑ์",
-                "รายการครุภัณฑ์",
-                "จำนวน",
-                "หน่วย",
-                "ผู้รับผิดชอบ",
-                "สถานะ",
-              ],
-            ],
-
-            body,
-
-            /*
-             * ตารางมีเส้นสีดำ
-             */
-            theme: "grid",
-
-            /* =================================================
-               รูปแบบพื้นฐานของตาราง
-               ================================================= */
-
-            styles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
-
-              /*
-               * ลดจาก 14 pt เป็น 13 pt
-               * เพื่อให้ข้อความยาวอยู่ในบรรทัดเดียวได้มากขึ้น
-               */
-              fontSize: 13,
-
-              /*
-               * ระยะห่างภายในช่อง
-               * ลดลงเล็กน้อยเพื่อเพิ่มพื้นที่ข้อความ
-               */
-              cellPadding: 1.2,
-
-              /*
-               * ทุกช่องกึ่งกลาง
-               */
-              halign: "center",
-              valign: "middle",
-
-              /*
-               * เส้นตารางสีดำ
-               */
-              lineColor: [0, 0, 0],
-              lineWidth: 0.25,
-
-              /*
-               * ความสูงแถว
-               */
-              minCellHeight: 7.2,
-
-              /*
-               * ให้ข้อความสามารถแสดงเต็มพื้นที่
-               */
-              overflow: "linebreak",
-
-              /*
-               * ตัวอักษรสีดำ
-               */
-              textColor: [0, 0, 0],
-            },
-
-            /* =================================================
-               หัวตาราง
-               ================================================= */
-
-            headStyles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
-
-              /*
-               * ฟ้อนหัวตาราง 13 pt
-               */
-              fontSize: 13,
-
-              /*
-               * พื้นหลังสีขาว
-               */
-              fillColor: [255, 255, 255],
-
-              /*
-               * ตัวอักษรสีดำ
-               */
-              textColor: [0, 0, 0],
-
-              /*
-               * กึ่งกลาง
-               */
-              halign: "center",
-              valign: "middle",
-
-              /*
-               * เส้นสีดำ
-               */
-              lineColor: [0, 0, 0],
-              lineWidth: 0.25,
-
-              /*
-               * ระยะห่างภายในหัวตาราง
-               */
-              cellPadding: 1.3,
-
-              /*
-               * ความสูงหัวตาราง
-               */
-              minCellHeight: 9,
-
-              /*
-               * ไม่ตัดข้อมูลทิ้ง
-               */
-              overflow: "linebreak",
-            },
-
-            /* =================================================
-               ข้อมูลในตาราง
-               ================================================= */
-
-            bodyStyles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
-              fontSize: 13,
-
-              textColor: [0, 0, 0],
-
-              /*
-               * กึ่งกลางแนวตั้ง
-               */
-              valign: "middle",
-
-              cellPadding: 1.2,
-
-              minCellHeight: 7.2,
-
-              /*
-               * ให้ข้อความสามารถแสดงได้เต็มพื้นที่
-               */
-              overflow: "linebreak",
-            },
-
-            /* =================================================
-               ความกว้างคอลัมน์
-               รวม = 270 mm
-               ================================================= */
-
-            columnStyles: {
-              /*
-               * 0 - ลำดับ
-               * เดิม 12
-               */
-              0: {
-                cellWidth: 10,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 1 - ประเภท
-               * รองรับคำว่า
-               * "เครื่องปรับอากาศ"
-               * และ "ไม่มีอยู่ในระบบ"
-               */
-              1: {
-                cellWidth: 29,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 2 - รหัส GFMIS
-               */
-              2: {
-                cellWidth: 34,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 3 - รหัสครุภัณฑ์
-               */
-              3: {
-                cellWidth: 34,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 4 - รายการครุภัณฑ์
-               *
-               * เพิ่มเป็น 62 mm
-               * เพื่อรองรับชื่อครุภัณฑ์ที่ยาว
-               */
-              4: {
-                cellWidth: 62,
-                halign: "left",
-                valign: "middle",
-              },
-
-              /*
-               * 5 - จำนวน
-               */
-              5: {
-                cellWidth: 12,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 6 - หน่วย
-               */
-              6: {
-                cellWidth: 16,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 7 - ผู้รับผิดชอบ
-               *
-               * เพิ่มพื้นที่ให้ชื่อเจ้าหน้าที่
-               */
-              7: {
-                cellWidth: 45,
-                halign: "center",
-                valign: "middle",
-              },
-
-              /*
-               * 8 - สถานะ
-               *
-               * เพิ่มพื้นที่ให้
-               * "จำหน่ายแล้ว"
-               * และ "รอจำหน่าย"
-               */
-              8: {
-                cellWidth: 28,
-                halign: "center",
-                valign: "middle",
-              },
-            },
-
-            /*
-             * เส้นกรอบตารางสีดำ
-             */
-            tableLineColor: [0, 0, 0],
-            tableLineWidth: 0.25,
-          });
+      doc.setFontSize(26);
+
+      doc.text(
+        "ทะเบียนคุมครุภัณฑ์",
+        center,
+        15,
+        {
+          align: "center",
         }
       );
 
-      /* =====================================================
-         เปิด PDF
-         ===================================================== */
+      /*
+       * บรรทัดที่ 2
+       *
+       * ตัวอย่าง:
+       * กลุ่มอำนวยการ สำนักอนามัยการเจริญพันธุ์
+       */
+      doc.setFontSize(16);
 
-      const pdfBlob =
-        doc.output("blob");
+      doc.text(
+        `${departmentName} สำนักอนามัยการเจริญพันธุ์`,
+        center,
+        23,
+        {
+          align: "center",
+        }
+      );
 
-      const pdfUrl =
-        URL.createObjectURL(pdfBlob);
+      /*
+       * บรรทัดที่ 3
+       *
+       * ตัวอย่าง:
+       * รอบไตรมาสที่ 4 ปีงบประมาณ พ.ศ. 2569
+       */
+      doc.text(
+        `รอบไตรมาสที่ ${currentQuarter} ปีงบประมาณ พ.ศ. ${fiscalYear}`,
+        center,
+        31,
+        {
+          align: "center",
+        }
+      );
 
-      const newWindow =
-        window.open(
-          pdfUrl,
-          "_blank",
-          "noopener,noreferrer"
-        );
+      /* =================================================
+         TABLE DATA
+         ================================================= */
 
-      if (!newWindow) {
-        const link =
-          document.createElement("a");
+      const body = pageAssets.map(
+        (asset, index) => {
+          const globalIndex =
+            pageIndex *
+              rowsPerPage +
+            index;
 
-        link.href = pdfUrl;
-        link.target = "_blank";
-        link.rel =
-          "noopener noreferrer";
+          return [
+            /*
+             * ลำดับ
+             */
+            globalIndex + 1,
 
-        link.click();
+            /*
+             * ประเภท
+             */
+            categoryName[
+              asset.category
+            ] ?? asset.category,
+
+            /*
+             * รหัส GFMIS
+             */
+            asset.governmentAssetNo ?? "-",
+
+            /*
+             * รหัสครุภัณฑ์
+             */
+            asset.officeAssetNo ?? "-",
+
+            /*
+             * รายการครุภัณฑ์
+             */
+            asset.name || "-",
+
+            /*
+             * จำนวน
+             *
+             * ครุภัณฑ์แต่ละรายการ
+             * นับเป็น 1 รายการ
+             */
+            "1",
+
+            /*
+             * หน่วย
+             */
+            categoryUnit[
+              asset.category
+            ] ?? "รายการ",
+
+            /*
+             * ผู้รับผิดชอบ
+             */
+            asset.officerName ??
+              asset.sectionName ??
+              asset.departmentName ??
+              "-",
+
+            /*
+             * สถานะ
+             */
+            statusName[
+              asset.status
+            ] ?? asset.status,
+          ];
+        }
+      );
+
+      /*
+       * เติมแถวว่างให้ครบ 17 แถว
+       *
+       * เพื่อให้ทุกหน้ามีความสูงของตารางเท่ากัน
+       */
+      while (
+        body.length <
+        rowsPerPage
+      ) {
+        body.push([
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]);
       }
 
-      setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
-      }, 60000);
-    } catch (error) {
-      console.error(
-        "ไม่สามารถสร้าง PDF ได้:",
-        error
-      );
+      /* =================================================
+         TABLE
+         ================================================= */
 
-      alert(
-        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
-      );
-    } finally {
-      setIsExporting(false);
+      autoTable(doc, {
+        /*
+         * ตารางเริ่มหลัง Header
+         */
+        startY: 37,
+
+        /*
+         * ตารางกว้าง 270 mm
+         * อยู่กึ่งกลางหน้า A4
+         */
+        margin: {
+          left: marginX,
+          right: marginX,
+        },
+
+        tableWidth,
+
+        /*
+         * หัวตาราง
+         */
+        head: [
+          [
+            "ลำดับ",
+            "ประเภท",
+            "รหัส GFMIS",
+            "รหัสครุภัณฑ์",
+            "รายการครุภัณฑ์",
+            "จำนวน",
+            "หน่วย",
+            "ผู้รับผิดชอบ",
+            "สถานะ",
+          ],
+        ],
+
+        body,
+
+        /*
+         * ตารางมีเส้นสีดำ
+         */
+        theme: "grid",
+
+        /* =================================================
+           รูปแบบพื้นฐานของตาราง
+           ================================================= */
+
+        styles: {
+          font: "2.3.2 THSarabunNew",
+          fontStyle: "normal",
+
+          /*
+           * ฟ้อนข้อมูล
+           */
+          fontSize: 13,
+
+          /*
+           * ระยะห่างภายในช่อง
+           */
+          cellPadding: 1.2,
+
+          /*
+           * ทุกช่องกึ่งกลาง
+           */
+          halign: "center",
+          valign: "middle",
+
+          /*
+           * เส้นตารางสีดำ
+           */
+          lineColor: [0, 0, 0],
+          lineWidth: 0.25,
+
+          /*
+           * ความสูงแถว
+           */
+          minCellHeight: 7.2,
+
+          /*
+           * ให้ข้อความสามารถตัดบรรทัด
+           * กรณีข้อความยาวเกินความกว้างช่อง
+           */
+          overflow: "linebreak",
+
+          /*
+           * ตัวอักษรสีดำ
+           */
+          textColor: [0, 0, 0],
+        },
+
+        /* =================================================
+           หัวตาราง
+           ================================================= */
+
+        headStyles: {
+          font: "2.3.2 THSarabunNew",
+          fontStyle: "normal",
+
+          /*
+           * ฟ้อนหัวตาราง
+           */
+          fontSize: 13,
+
+          /*
+           * พื้นหลังสีขาว
+           */
+          fillColor: [255, 255, 255],
+
+          /*
+           * ตัวอักษรสีดำ
+           */
+          textColor: [0, 0, 0],
+
+          /*
+           * กึ่งกลาง
+           */
+          halign: "center",
+          valign: "middle",
+
+          /*
+           * เส้นสีดำ
+           */
+          lineColor: [0, 0, 0],
+          lineWidth: 0.25,
+
+          /*
+           * ระยะห่างภายในหัวตาราง
+           */
+          cellPadding: 1.3,
+
+          /*
+           * ความสูงหัวตาราง
+           */
+          minCellHeight: 9,
+
+          /*
+           * ไม่ตัดข้อมูลทิ้ง
+           */
+          overflow: "linebreak",
+        },
+
+        /* =================================================
+           ข้อมูลในตาราง
+           ================================================= */
+
+        bodyStyles: {
+          font: "2.3.2 THSarabunNew",
+          fontStyle: "normal",
+          fontSize: 13,
+
+          textColor: [0, 0, 0],
+
+          /*
+           * กึ่งกลางแนวตั้ง
+           */
+          valign: "middle",
+
+          cellPadding: 1.2,
+
+          minCellHeight: 7.2,
+
+          /*
+           * ให้ข้อความสามารถแสดงได้เต็มพื้นที่
+           */
+          overflow: "linebreak",
+        },
+
+        /* =================================================
+           ความกว้างคอลัมน์
+           รวม = 270 mm
+           ================================================= */
+
+        columnStyles: {
+          /*
+           * 0 - ลำดับ
+           */
+          0: {
+            cellWidth: 10,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 1 - ประเภท
+           *
+           * รองรับ
+           * "เครื่องปรับอากาศ"
+           * "ไม่มีอยู่ในระบบ"
+           */
+          1: {
+            cellWidth: 29,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 2 - รหัส GFMIS
+           */
+          2: {
+            cellWidth: 34,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 3 - รหัสครุภัณฑ์
+           */
+          3: {
+            cellWidth: 34,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 4 - รายการครุภัณฑ์
+           *
+           * ให้พื้นที่มากที่สุด
+           * สำหรับชื่อครุภัณฑ์
+           */
+          4: {
+            cellWidth: 62,
+            halign: "left",
+            valign: "middle",
+          },
+
+          /*
+           * 5 - จำนวน
+           */
+          5: {
+            cellWidth: 12,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 6 - หน่วย
+           */
+          6: {
+            cellWidth: 16,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 7 - ผู้รับผิดชอบ
+           */
+          7: {
+            cellWidth: 45,
+            halign: "center",
+            valign: "middle",
+          },
+
+          /*
+           * 8 - สถานะ
+           */
+          8: {
+            cellWidth: 28,
+            halign: "center",
+            valign: "middle",
+          },
+        },
+
+        /*
+         * เส้นกรอบตารางสีดำ
+         */
+        tableLineColor: [0, 0, 0],
+        tableLineWidth: 0.25,
+      });
     }
+  );
+
+  /* =====================================================
+     เปิด PDF
+     ===================================================== */
+
+  const pdfBlob =
+    doc.output("blob");
+
+  const pdfUrl =
+    URL.createObjectURL(pdfBlob);
+
+  const newWindow =
+    window.open(
+      pdfUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  if (!newWindow) {
+    const link =
+      document.createElement("a");
+
+    link.href = pdfUrl;
+    link.target = "_blank";
+    link.rel =
+      "noopener noreferrer";
+
+    link.click();
   }
 
-  return (
-    <div className="shrink-0">
-      <button
-        type="button"
-        onClick={handleExportPdf}
-        disabled={
-          isExporting ||
-          assets.length === 0
-        }
-        className="
-          rounded-xl
-          bg-gradient-to-r
-          from-emerald-600
-          to-green-500
-          px-4
-          py-3
-          text-sm
-          font-extrabold
-          !text-white
-          shadow-lg
-          transition
-          hover:scale-[1.02]
-          hover:from-emerald-700
-          hover:to-green-600
-          active:scale-[0.98]
-          disabled:cursor-not-allowed
-          disabled:opacity-50
-          sm:px-6
-        "
-      >
-        {isExporting
-          ? "⏳ กำลังสร้าง PDF..."
-          : "📄 ส่งออก PDF"}
-      </button>
-    </div>
+  setTimeout(() => {
+    URL.revokeObjectURL(pdfUrl);
+  }, 60000);
+} catch (error) {
+  console.error(
+    "ไม่สามารถสร้าง PDF ได้:",
+    error
   );
+
+  alert(
+    "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
+  );
+} finally {
+  setIsExporting(false);
+}
+```
+
+}
+
+return ( <div className="shrink-0">
+<button
+type="button"
+onClick={handleExportPdf}
+disabled={
+isExporting ||
+assets.length === 0
+}
+className="
+rounded-xl
+bg-gradient-to-r
+from-emerald-600
+to-green-500
+px-4
+py-3
+text-sm
+font-extrabold
+!text-white
+shadow-lg
+transition
+hover:scale-[1.02]
+hover:from-emerald-700
+hover:to-green-600
+active:scale-[0.98]
+disabled:cursor-not-allowed
+disabled:opacity-50
+sm:px-6
+"
+>
+{isExporting
+? "⏳ กำลังสร้าง PDF..."
+: "📄 ส่งออก PDF"} </button> </div>
+);
 }
