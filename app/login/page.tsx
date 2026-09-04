@@ -4,112 +4,48 @@ export default function LoginPage() {
   return (
     <main
       className="
-        relative
         flex
         min-h-screen
         items-center
         justify-center
-        overflow-hidden
         bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
+        from-slate-100
+        via-blue-50
+        to-slate-200
         px-4
         py-6
         sm:px-6
-        sm:py-8
       "
     >
-      {/* Background Decoration */}
-
       <div
         className="
-          pointer-events-none
-          absolute
-          -left-24
-          -top-24
-          h-64
-          w-64
-          rounded-full
-          bg-blue-500/10
-          blur-3xl
-        "
-      />
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -bottom-24
-          -right-24
-          h-72
-          w-72
-          rounded-full
-          bg-cyan-400/10
-          blur-3xl
-        "
-      />
-
-      {/* Login Card */}
-
-      <div
-        className="
-          relative
-          z-10
           w-full
           max-w-[430px]
           overflow-hidden
-          rounded-2xl
+          rounded-3xl
           border
-          border-slate-700
-          bg-slate-900
+          border-slate-200
+          bg-white
           shadow-2xl
-          sm:rounded-3xl
         "
       >
-        {/* =====================================================
-            Header
-        ===================================================== */}
+        {/* Header */}
 
         <div
           className="
-            relative
-            overflow-hidden
-            border-b
-            border-slate-700
             bg-gradient-to-r
             from-slate-950
             via-slate-800
             to-slate-700
             px-5
-            py-6
+            py-7
             text-center
             sm:px-8
             sm:py-8
           "
         >
-          {/* Header Glow */}
-
           <div
             className="
-              pointer-events-none
-              absolute
-              left-1/2
-              top-0
-              h-32
-              w-32
-              -translate-x-1/2
-              rounded-full
-              bg-blue-400/10
-              blur-3xl
-            "
-          />
-
-          {/* Logo */}
-
-          <div
-            className="
-              relative
               mx-auto
               mb-4
               flex
@@ -118,8 +54,6 @@ export default function LoginPage() {
               items-center
               justify-center
               rounded-2xl
-              border
-              border-white/30
               bg-white
               p-2
               shadow-xl
@@ -139,18 +73,14 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* System Name */}
-
           <h1
             className="
-              relative
-              text-xl
-              font-extrabold
+              text-2xl
+              font-bold
               leading-tight
               tracking-tight
               !text-white
-              sm:text-2xl
-              md:text-3xl
+              sm:text-3xl
             "
           >
             ระบบบริหารคลังพัสดุ
@@ -158,48 +88,34 @@ export default function LoginPage() {
 
           <p
             className="
-              relative
               mt-2
               text-sm
-              font-semibold
+              font-medium
               leading-relaxed
               !text-slate-200
-              sm:mt-3
               sm:text-base
             "
           >
-            สำนักอนามัยการเจริญพันธุ์
-            <br className="sm:hidden" />
-            <span className="sm:ml-1">
-              กรมอนามัย
-            </span>
+            สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
           </p>
         </div>
 
-        {/* =====================================================
-            Form
-        ===================================================== */}
+        {/* Form */}
 
         <div
           className="
-            bg-gradient-to-b
-            from-slate-900
-            to-slate-950
             px-5
-            py-6
+            py-7
             sm:px-8
             sm:py-8
           "
         >
-          {/* Form Title */}
-
-          <div className="mb-5 text-center sm:mb-6">
+          <div className="mb-6 text-center">
             <h2
               className="
-                text-xl
-                font-extrabold
-                !text-white
-                sm:text-2xl
+                text-2xl
+                font-bold
+                text-slate-800
               "
             >
               เข้าสู่ระบบ
@@ -207,11 +123,10 @@ export default function LoginPage() {
 
             <p
               className="
-                mt-1
-                text-xs
-                font-medium
-                !text-slate-400
-                sm:text-sm
+                mt-1.5
+                text-sm
+                font-normal
+                text-slate-500
               "
             >
               กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ
@@ -220,7 +135,7 @@ export default function LoginPage() {
 
           <form
             action={login}
-            className="space-y-4 sm:space-y-5"
+            className="space-y-5"
           >
             {/* Username */}
 
@@ -231,9 +146,8 @@ export default function LoginPage() {
                   mb-2
                   block
                   text-sm
-                  font-extrabold
-                  !text-slate-200
-                  sm:text-base
+                  font-semibold
+                  text-slate-700
                 "
               >
                 รหัสผู้ใช้งาน
@@ -243,27 +157,27 @@ export default function LoginPage() {
                 id="username"
                 type="text"
                 name="username"
-                placeholder="กรุณากรอกรหัสผู้ใช้งาน"
+                placeholder="ชื่อผู้ใช้งาน"
                 autoComplete="username"
                 className="
                   w-full
                   rounded-xl
                   border
-                  border-slate-600
-                  bg-slate-800
+                  border-slate-300
+                  bg-slate-50
                   px-4
                   py-3
                   text-base
-                  font-medium
-                  !text-white
-                  placeholder:text-slate-500
+                  font-normal
+                  text-slate-900
                   outline-none
                   transition-all
                   duration-200
+                  placeholder:text-slate-400
                   focus:border-blue-500
-                  focus:bg-slate-800
+                  focus:bg-white
                   focus:ring-4
-                  focus:ring-blue-500/10
+                  focus:ring-blue-100
                 "
               />
             </div>
@@ -277,9 +191,8 @@ export default function LoginPage() {
                   mb-2
                   block
                   text-sm
-                  font-extrabold
-                  !text-slate-200
-                  sm:text-base
+                  font-semibold
+                  text-slate-700
                 "
               >
                 รหัสผ่าน
@@ -289,27 +202,27 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 name="password"
-                placeholder="กรุณากรอกรหัสผ่าน"
+                placeholder="รหัสผ่าน"
                 autoComplete="current-password"
                 className="
                   w-full
                   rounded-xl
                   border
-                  border-slate-600
-                  bg-slate-800
+                  border-slate-300
+                  bg-slate-50
                   px-4
                   py-3
                   text-base
-                  font-medium
-                  !text-white
-                  placeholder:text-slate-500
+                  font-normal
+                  text-slate-900
                   outline-none
                   transition-all
                   duration-200
+                  placeholder:text-slate-400
                   focus:border-blue-500
-                  focus:bg-slate-800
+                  focus:bg-white
                   focus:ring-4
-                  focus:ring-blue-500/10
+                  focus:ring-blue-100
                 "
               />
             </div>
@@ -331,10 +244,9 @@ export default function LoginPage() {
                 px-4
                 py-3
                 text-base
-                font-extrabold
+                font-bold
                 !text-white
                 shadow-lg
-                shadow-emerald-950/30
                 transition-all
                 duration-200
                 hover:-translate-y-0.5
@@ -346,33 +258,29 @@ export default function LoginPage() {
                 sm:text-lg
               "
             >
-              <span className="mr-2">
+              <span className="mr-2 text-base">
                 🔐
               </span>
               เข้าสู่ระบบ
             </button>
           </form>
 
-          {/* =====================================================
-              Footer
-          ===================================================== */}
+          {/* Footer */}
 
           <div
             className="
-              mt-6
+              mt-7
               border-t
-              border-slate-700
-              pt-4
+              border-slate-200
+              pt-5
               text-center
-              sm:mt-7
-              sm:pt-5
             "
           >
             <div
               className="
                 text-xs
-                font-semibold
-                !text-slate-500
+                font-medium
+                text-slate-400
                 sm:text-sm
               "
             >
@@ -382,10 +290,9 @@ export default function LoginPage() {
             <div
               className="
                 mt-1
-                text-[11px]
-                font-semibold
-                !text-slate-500
-                sm:text-xs
+                text-xs
+                font-normal
+                text-slate-400
               "
             >
               กลุ่มอำนวยการ (งานพัสดุ)
