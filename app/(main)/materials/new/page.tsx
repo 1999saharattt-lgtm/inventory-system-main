@@ -33,10 +33,12 @@ export default async function NewMaterialPage() {
   return (
     <div
       className="
+        min-h-screen
         w-full
         min-w-0
         space-y-4
         overflow-x-hidden
+        bg-white
         sm:space-y-6
       "
     >
@@ -127,29 +129,14 @@ export default async function NewMaterialPage() {
 
       {/* =====================================================
           Form
+          MaterialForm เป็นการ์ดสีเข้มเพียงใบเดียว
+          ไม่มีกรอบครอบซ้อนอีกชั้น
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-8
-        "
-      >
-        <MaterialForm
-          vendors={vendors}
-          materialMasters={materialMasters}
-        />
-      </div>
+      <MaterialForm
+        vendors={vendors}
+        materialMasters={materialMasters}
+      />
     </div>
   );
 }
