@@ -101,19 +101,7 @@ export default function NewVendorPage() {
           Form
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-lg
-        "
-      >
-        <VendorForm />
-      </div>
+      <VendorForm />
     </div>
   );
 }
