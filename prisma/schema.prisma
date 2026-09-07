@@ -424,20 +424,12 @@ officeAssetNo String? @unique
 
 departmentId Int
 
-department Department @relation(
-fields: [departmentId],
-references: [id],
-onDelete: Restrict
-)
+department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
 // กลุ่มงานย่อย
 sectionId Int?
 
-section Section? @relation(
-fields: [sectionId],
-references: [id],
-onDelete: SetNull
-)
+section Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
 
 // ======================
 // ผู้ครอบครอง
@@ -446,11 +438,7 @@ onDelete: SetNull
 // จะเลือกเฉพาะ Officer ที่อยู่ใน Department เดียวกับครุภัณฑ์
 officerId Int?
 
-officer Officer? @relation(
-fields: [officerId],
-references: [id],
-onDelete: SetNull
-)
+officer Officer? @relation(fields: [officerId], references: [id], onDelete: SetNull)
 
 // ======================
 // สถานะครุภัณฑ์
@@ -511,11 +499,7 @@ id Int @id @default(autoincrement())
 
 assetId Int
 
-asset Asset @relation(
-fields: [assetId],
-references: [id],
-onDelete: Cascade
-)
+asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
 // ======================
 // รอบการตรวจ
@@ -587,10 +571,7 @@ updatedAt DateTime @updatedAt
 @@unique([assetId, year, quarter])
 
 @@index([assetId])
-
 @@index([year])
-
 @@index([quarter])
-
 @@index([status])
 }
