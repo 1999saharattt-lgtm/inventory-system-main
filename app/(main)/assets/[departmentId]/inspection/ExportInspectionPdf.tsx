@@ -115,20 +115,13 @@ return new Date(NaN);
 
 const parts = value.split("-").map(Number);
 
-if (
-parts.length !== 3 ||
-parts.some(Number.isNaN)
-) {
+if (parts.length !== 3 || parts.some(Number.isNaN)) {
 return new Date(NaN);
 }
 
 const [year, month, day] = parts;
 
-return new Date(
-year,
-month - 1,
-day
-);
+return new Date(year, month - 1, day);
 }
 
 function formatDateOnly(date: Date) {
@@ -137,12 +130,8 @@ return "";
 }
 
 const year = date.getFullYear();
-const month = String(
-date.getMonth() + 1
-).padStart(2, "0");
-const day = String(
-date.getDate()
-).padStart(2, "0");
+const month = String(date.getMonth() + 1).padStart(2, "0");
+const day = String(date.getDate()).padStart(2, "0");
 
 return `${year}-${month}-${day}`;
 }
@@ -159,10 +148,8 @@ return "........";
 }
 
 const day = date.getDate();
-const month =
-thaiMonths[date.getMonth()];
-const year =
-date.getFullYear() + 543;
+const month = thaiMonths[date.getMonth()];
+const year = date.getFullYear() + 543;
 
 return `${day} ${month} ${year}`;
 }
@@ -205,9 +192,7 @@ if (Number.isNaN(date.getTime())) {
 return "";
 }
 
-date.setFullYear(
-date.getFullYear() - 1
-);
+date.setFullYear(date.getFullYear() - 1);
 
 return formatDateOnly(date);
 }
@@ -227,9 +212,7 @@ if (Number.isNaN(date.getTime())) {
 return "";
 }
 
-date.setDate(
-date.getDate() - 1
-);
+date.setDate(date.getDate() - 1);
 
 return formatDateOnly(date);
 }
@@ -239,29 +222,22 @@ return formatDateOnly(date);
 ========================================================= */
 
 function getCategoryUnit(category: string) {
-const categoryUnit: Record<
-string,
-string
+const categoryUnit: Record<string, string> = {
+COMPUTER: "เครื่อง",
+DESKTOP: "เครื่อง",
+LAPTOP: "เครื่อง",
+PRINTER: "เครื่อง",
+TELEPHONE: "เครื่อง",
+AIR_CONDITIONER: "เครื่อง",
+FAN: "เครื่อง",
+CHAIR: "ตัว",
+DESK: "ตัว",
+CABINET: "ตู้",
+TABLE: "ตัว",
+OTHER: "รายการ",
+};
 
-> = {
-> COMPUTER: "เครื่อง",
-> DESKTOP: "เครื่อง",
-> LAPTOP: "เครื่อง",
-> PRINTER: "เครื่อง",
-> TELEPHONE: "เครื่อง",
-> AIR_CONDITIONER: "เครื่อง",
-> FAN: "เครื่อง",
-> CHAIR: "ตัว",
-> DESK: "ตัว",
-> CABINET: "ตู้",
-> TABLE: "ตัว",
-> OTHER: "รายการ",
-> };
-
-return (
-categoryUnit[category] ||
-"รายการ"
-);
+return categoryUnit[category] || "รายการ";
 }
 
 /* =========================================================
@@ -278,8 +254,7 @@ return undefined;
 
 return officers.find(
 (officer) =>
-String(officer.id) ===
-officerId
+String(officer.id) === officerId
 );
 }
 
@@ -291,18 +266,14 @@ function getStatusChecked(
 row: InspectionRow,
 status: string
 ) {
-return row.status === status
-? "✓"
-: "";
+return row.status === status ? "✓" : "";
 }
 
 function getAccuracyChecked(
 row: InspectionRow,
 accuracy: string
 ) {
-return row.accuracy === accuracy
-? "✓"
-: "";
+return row.accuracy === accuracy ? "✓" : "";
 }
 
 /* =========================================================
@@ -318,17 +289,14 @@ inspectionEndDate,
 inspectorIds,
 officers,
 }: Props) {
-const pdfRef =
-useRef<HTMLDivElement>(null);
+const pdfRef = useRef<HTMLDivElement>(null);
 
-const [isExporting, setIsExporting] =
-useState(false);
+const [isExporting, setIsExporting] = useState(false);
 
 const totalPages = Math.max(
 1,
 Math.ceil(
-assets.length /
-ROWS_PER_PAGE
+assets.length / ROWS_PER_PAGE
 )
 );
 
@@ -341,7 +309,6 @@ if (!pdfRef.current) {
 return;
 }
 
-```
 if (assets.length === 0) {
   alert(
     "ไม่พบรายการครุภัณฑ์สำหรับสร้าง PDF"
@@ -459,7 +426,6 @@ try {
 } finally {
   setIsExporting(false);
 }
-```
 
 }
 
@@ -469,7 +435,7 @@ return (
 ปุ่ม Export
 ===================================================== */}
 
-```
+
   <button
     type="button"
     onClick={handleExportPdf}
@@ -502,7 +468,7 @@ return (
   </button>
 
   {/* =====================================================
-      พื้นที่สร้าง PDF
+  พื้นที่สร้าง PDF
   ===================================================== */}
 
   <div
@@ -554,7 +520,7 @@ return (
             }}
           >
             {/* =================================================
-                HEADER
+            HEADER
             ================================================= */}
 
             <div
@@ -608,7 +574,7 @@ return (
             </div>
 
             {/* =================================================
-                TABLE
+            TABLE
             ================================================= */}
 
             <table
@@ -622,170 +588,72 @@ return (
               }}
             >
               <colgroup>
-                <col
-                  style={{
-                    width: "3%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "6%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "7%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "10%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "14%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "7%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "7%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "4%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "5%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "5%",
-                  }}
-                />
-
-                <col
-                  style={{
-                    width: "9%",
-                  }}
-                />
+                <col style={{ width: "3%" }} />
+                <col style={{ width: "6%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "5%" }} />
+                <col style={{ width: "5%" }} />
+                <col style={{ width: "9%" }} />
               </colgroup>
 
               <thead>
                 <tr>
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     ลำดับ
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     รหัส GFMIS
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     รหัสครุภัณฑ์
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     ผู้รับผิดชอบ
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     รายการ
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     หน่วย
                   </th>
 
                   <th
                     colSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     <div>
                       รายการเคลื่อนไหวระหว่าง
@@ -794,8 +662,7 @@ return (
 
                     <div
                       style={{
-                        marginTop:
-                          "1mm",
+                        marginTop: "1mm",
                       }}
                     >
                       พ.ศ.{" "}
@@ -809,9 +676,7 @@ return (
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     <div>
                       ยอดคงเหลือตามบัญชี
@@ -819,8 +684,7 @@ return (
 
                     <div
                       style={{
-                        marginTop:
-                          "1mm",
+                        marginTop: "1mm",
                       }}
                     >
                       ณ วันที่{" "}
@@ -834,18 +698,14 @@ return (
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     จำนวนที่ตรวจนับได้
                   </th>
 
                   <th
                     colSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     <div>
                       ผลการตรวจนับ
@@ -853,8 +713,7 @@ return (
 
                     <div
                       style={{
-                        marginTop:
-                          "1mm",
+                        marginTop: "1mm",
                       }}
                     >
                       ถูกต้องตรงกับ
@@ -864,85 +723,49 @@ return (
 
                   <th
                     colSpan={4}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     สภาพครุภัณฑ์ที่ตรวจนับ
                   </th>
 
                   <th
                     rowSpan={2}
-                    style={
-                      headerStyle
-                    }
+                    style={headerStyle}
                   >
                     หมายเหตุ
                   </th>
                 </tr>
 
                 <tr>
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     รับ
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     จ่าย
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     ถูกต้อง
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     ไม่ถูกต้อง
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     ใช้งาน
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     ชำรุด
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     เสื่อมสภาพ
                   </th>
 
-                  <th
-                    style={
-                      headerStyle
-                    }
-                  >
+                  <th style={headerStyle}>
                     ไม่สามารถใช้งาน
                   </th>
                 </tr>
@@ -1107,8 +930,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                           }}
                         >
@@ -1121,8 +943,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                           }}
                         >
@@ -1135,8 +956,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                           }}
                         >
@@ -1149,8 +969,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                           }}
                         >
@@ -1163,8 +982,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                           }}
                         >
@@ -1177,8 +995,7 @@ return (
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize:
-                              "14px",
+                            fontSize: "14px",
                             fontWeight: 700,
                             whiteSpace:
                               "normal",
@@ -1216,7 +1033,7 @@ return (
             </table>
 
             {/* =================================================
-                SIGNATURE
+            SIGNATURE
             ================================================= */}
 
             <div
@@ -1309,7 +1126,7 @@ return (
             </div>
 
             {/* =================================================
-                PAGE NUMBER
+            PAGE NUMBER
             ================================================= */}
 
             <div
