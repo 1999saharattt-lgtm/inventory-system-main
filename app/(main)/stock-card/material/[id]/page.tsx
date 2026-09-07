@@ -479,9 +479,9 @@ export default async function StockCardPage({ params }: Props) {
               from-emerald-600
               to-green-500
               px-4
-              py-2
+              py-2.5
               text-center
-              text-sm
+              text-base
               font-extrabold
               !text-white
               shadow-lg
