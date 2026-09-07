@@ -327,7 +327,6 @@ if (!pdfRef.current) {
 return;
 }
 
-```
 if (assets.length === 0) {
   alert(
     "ไม่พบรายการครุภัณฑ์สำหรับสร้าง PDF"
@@ -443,7 +442,6 @@ try {
 } finally {
   setIsExporting(false);
 }
-```
 
 }
 
@@ -453,7 +451,6 @@ return (
 ปุ่ม Export
 ===================================================== */}
 
-```
   <button
     type="button"
     onClick={handleExportPdf}
@@ -1513,7 +1510,6 @@ return (
     )}
   </div>
 </>
-```
 
 );
 }
