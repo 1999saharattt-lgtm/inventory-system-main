@@ -319,42 +319,51 @@ export default function ExportPdf({
           },
 
           columnStyles: {
+            // วันที่ — ลดให้พอดีกับรูปแบบวันที่
             0: {
-              cellWidth: 28,
+              cellWidth: 23,
             },
 
+            // เลขที่เอกสาร — ลดความกว้างลง
             1: {
-              cellWidth: 38,
+              cellWidth: 29,
             },
 
+            // ผู้จำหน่าย / หน่วยงาน — เพิ่มพื้นที่ให้ข้อความ
             2: {
-              cellWidth: 72,
+              cellWidth: 68,
               halign: "left",
             },
 
+            // ราคาล่าสุด
             3: {
-              cellWidth: 28,
+              cellWidth: 27,
               halign: "right",
             },
 
+            // รับเข้า
             4: {
-              cellWidth: 18,
+              cellWidth: 17,
             },
 
+            // เบิกจ่าย
             5: {
-              cellWidth: 18,
+              cellWidth: 17,
             },
 
+            // คงเหลือ
             6: {
-              cellWidth: 18,
+              cellWidth: 17,
             },
 
+            // วันผลิต
             7: {
-              cellWidth: 28,
+              cellWidth: 25,
             },
 
+            // วันหมดอายุ
             8: {
-              cellWidth: 28,
+              cellWidth: 25,
             },
           },
         });
