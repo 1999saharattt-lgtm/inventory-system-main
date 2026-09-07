@@ -43,9 +43,6 @@ id: number;
 firstName: string;
 lastName: string;
 position: string | null;
-type: string;
-departmentId: number | null;
-sectionId: number | null;
 department: {
 id: number;
 name: string;
