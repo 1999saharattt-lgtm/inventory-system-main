@@ -103,6 +103,23 @@ label: "ไม่ถูกต้อง",
 },
 ];
 
+const INSPECTION_FISCAL_YEAR = "2569";
+
+const thaiMonths = [
+"มกราคม",
+"กุมภาพันธ์",
+"มีนาคม",
+"เมษายน",
+"พฤษภาคม",
+"มิถุนายน",
+"กรกฎาคม",
+"สิงหาคม",
+"กันยายน",
+"ตุลาคม",
+"พฤศจิกายน",
+"ธันวาคม",
+];
+
 function getCurrentDate() {
 const now = new Date();
 
@@ -119,9 +136,40 @@ return `${year}-${month}-${day}`;
 * เพื่อป้องกันปัญหา timezone
   */
   function parseDateOnly(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
+  if (!value) {
+  return new Date(NaN);
+  }
+
+const [year, month, day] = value.split("-").map(Number);
+
+if (
+!year ||
+!month ||
+!day ||
+Number.isNaN(year) ||
+Number.isNaN(month) ||
+Number.isNaN(day)
+) {
+return new Date(NaN);
+}
 
 return new Date(year, month - 1, day);
+}
+
+/**
+
+* แปลง Date เป็น YYYY-MM-DD
+  */
+  function formatDateInput(date: Date) {
+  if (Number.isNaN(date.getTime())) {
+  return "";
+  }
+
+const year = date.getFullYear();
+const month = String(date.getMonth() + 1).padStart(2, "0");
+const day = String(date.getDate()).padStart(2, "0");
+
+return `${year}-${month}-${day}`;
 }
 
 /**
@@ -134,6 +182,10 @@ return new Date(year, month - 1, day);
   }
 
 const date = parseDateOnly(value);
+
+if (Number.isNaN(date.getTime())) {
+return "";
+}
 
 date.setFullYear(date.getFullYear() - 1);
 
@@ -151,6 +203,10 @@ return formatDateInput(date);
 
 const date = parseDateOnly(value);
 
+if (Number.isNaN(date.getTime())) {
+return "";
+}
+
 date.setDate(date.getDate() - 1);
 
 return formatDateInput(date);
@@ -158,62 +214,39 @@ return formatDateInput(date);
 
 /**
 
-* แปลง Date เป็น YYYY-MM-DD
-  */
-  function formatDateInput(date: Date) {
-  const year = date.getFullYear();
-
-const month = String(date.getMonth() + 1).padStart(2, "0");
-
-const day = String(date.getDate()).padStart(2, "0");
-
-return `${year}-${month}-${day}`;
-}
-
-/**
-
-* แสดงวันที่เป็น วัน/เดือน/ปี ค.ศ.
+* แสดงวันที่เป็นภาษาไทย
 *
 * เช่น
 * 2026-08-30
-* -> 30/08/2026
+* -> 30 สิงหาคม 2569
   */
-  function formatThaiShortDate(value: string) {
+  function formatThaiDate(value: string) {
   if (!value) {
   return "........";
   }
 
 const date = parseDateOnly(value);
 
-const day = String(date.getDate()).padStart(2, "0");
+if (Number.isNaN(date.getTime())) {
+return "........";
+}
 
-const month = String(date.getMonth() + 1).padStart(2, "0");
+const day = date.getDate();
+const month = thaiMonths[date.getMonth()];
+const year = date.getFullYear() + 543;
 
-const year = date.getFullYear();
-
-return `${day}/${month}/${year}`;
+return `${day} ${month} ${year}`;
 }
 
 /**
 
-* ปีงบประมาณ
+* ปีงบประมาณสำหรับการตรวจสอบ
 *
-* เดือนตุลาคม - ธันวาคม
-* ให้นับเป็นปีงบประมาณถัดไป
+* รอบการตรวจครั้งนี้กำหนดเป็น พ.ศ. 2569
   */
-  function getFiscalYear(value: string) {
-  if (!value) {
-  return "........";
+  function getFiscalYear() {
+  return INSPECTION_FISCAL_YEAR;
   }
-
-const date = parseDateOnly(value);
-
-const year = date.getFullYear();
-
-return date.getMonth() >= 9
-? year + 1 + 543
-: year + 543;
-}
 
 /**
 
@@ -282,9 +315,7 @@ inspectionEndDate
 // ปีงบประมาณสำหรับรายการเคลื่อนไหว
 // =====================================================
 
-const movementFiscalYear = getFiscalYear(
-inspectionStartDate
-);
+const movementFiscalYear = getFiscalYear();
 
 // =====================================================
 // รายการตรวจสอบ
@@ -631,6 +662,18 @@ return ( <div
             focus:ring-cyan-100
           "
         />
+
+        <p
+          className="
+            mt-2
+            text-sm
+            font-semibold
+            text-slate-300
+          "
+        >
+          วันที่เลือก:{" "}
+          {formatThaiDate(inspectionStartDate)}
+        </p>
       </div>
 
       {/* วันที่ตรวจสอบแล้วเสร็จ */}
@@ -670,6 +713,18 @@ return ( <div
             focus:ring-cyan-100
           "
         />
+
+        <p
+          className="
+            mt-2
+            text-sm
+            font-semibold
+            text-slate-300
+          "
+        >
+          วันที่เลือก:{" "}
+          {formatThaiDate(inspectionEndDate)}
+        </p>
       </div>
     </div>
   </div>
@@ -842,7 +897,7 @@ return ( <div
               <div className="mt-1 whitespace-nowrap">
                 ณ วันที่{" "}
                 <span className="font-bold">
-                  {formatThaiShortDate(accountStartDate)}
+                  {formatThaiDate(accountStartDate)}
                 </span>
               </div>
             </th>
@@ -876,7 +931,7 @@ return ( <div
               <div className="mt-1 whitespace-nowrap">
                 ณ วันที่{" "}
                 <span className="font-bold">
-                  {formatThaiShortDate(accountEndDate)}
+                  {formatThaiDate(accountEndDate)}
                 </span>
               </div>
             </th>
@@ -1008,8 +1063,8 @@ return ( <div
 
                 {/* ยอดคงเหลือตามบัญชี ณ วันที่เริ่มย้อนหลัง 1 ปี */}
 
-                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
-                  -
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-900">
+                  1
                 </td>
 
                 {/* รายการเคลื่อนไหว - รับ */}
@@ -1026,8 +1081,8 @@ return ( <div
 
                 {/* ยอดคงเหลือตามบัญชี ณ วันก่อนตรวจเสร็จ */}
 
-                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
-                  -
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-900">
+                  1
                 </td>
 
                 <td className="border border-black px-3 py-2">
