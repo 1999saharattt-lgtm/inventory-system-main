@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+
 import html2canvas from "html2canvas";
+
 import jsPDF from "jspdf";
 
 type Department = {
@@ -86,11 +88,8 @@ const ROWS_PER_PAGE = 20;
 
 /* =========================================================
 ปีงบประมาณที่ตรวจสอบ
-รอบการตรวจนี้เป็นปีงบประมาณ พ.ศ. 2569
 
-กำหนดจากปีงบประมาณของวันตรวจเสร็จ
-เพื่อให้การตรวจในเดือน ก.ย. 2569
-อยู่ในปีงบประมาณ 2569 ไม่กลายเป็น 2570
+รอบการตรวจนี้เป็นปีงบประมาณ พ.ศ. 2569
 ========================================================= */
 
 const INSPECTION_FISCAL_YEAR = "2569";
@@ -121,7 +120,6 @@ A4 Landscape
 
 const PDF_WIDTH = 277;
 const PDF_HEIGHT = 190;
-
 const PDF_SCALE = 0.7;
 
 /* =========================================================
@@ -329,6 +327,7 @@ if (!pdfRef.current) {
 return;
 }
 
+```
 if (assets.length === 0) {
   alert(
     "ไม่พบรายการครุภัณฑ์สำหรับสร้าง PDF"
@@ -444,6 +443,7 @@ try {
 } finally {
   setIsExporting(false);
 }
+```
 
 }
 
@@ -453,6 +453,7 @@ return (
 ปุ่ม Export
 ===================================================== */}
 
+```
   <button
     type="button"
     onClick={handleExportPdf}
@@ -485,7 +486,7 @@ return (
   </button>
 
   {/* =====================================================
-  พื้นที่สร้าง PDF
+      พื้นที่สร้าง PDF
   ===================================================== */}
 
   <div
@@ -524,20 +525,22 @@ return (
               width: `${PDF_WIDTH}mm`,
               height: `${PDF_HEIGHT}mm`,
               boxSizing: "border-box",
-              padding: "0",
+              padding: 0,
               background: "#ffffff",
               fontFamily:
-                "TH Sarabun New, Tahoma, Arial, sans-serif",
+                "TH Sarabun New, Sarabun, Arial, sans-serif",
               color: "#000000",
               overflow: "hidden",
               transform: `scale(${PDF_SCALE})`,
               transformOrigin:
                 "top left",
               marginBottom: `${-PDF_HEIGHT * (1 - PDF_SCALE)}mm`,
+              fontSize: "16px",
+              lineHeight: 1,
             }}
           >
             {/* =================================================
-            HEADER
+                HEADER
             ================================================= */}
 
             <div
@@ -546,6 +549,8 @@ return (
                 textAlign: "center",
                 lineHeight: 1,
                 marginBottom: "2.5mm",
+                fontFamily:
+                  "TH Sarabun New, Sarabun, Arial, sans-serif",
               }}
             >
               <div
@@ -554,6 +559,7 @@ return (
                   fontWeight: 700,
                   marginBottom: "0.8mm",
                   whiteSpace: "nowrap",
+                  lineHeight: 1,
                 }}
               >
                 กระดาษทำการตรวจสอบพัสดุ
@@ -568,6 +574,7 @@ return (
                   fontWeight: 700,
                   marginBottom: "0.8mm",
                   whiteSpace: "nowrap",
+                  lineHeight: 1,
                 }}
               >
                 สำนักอนามัยการเจริญพันธุ์
@@ -578,6 +585,7 @@ return (
                   fontSize: "16px",
                   fontWeight: 600,
                   whiteSpace: "nowrap",
+                  lineHeight: 1,
                 }}
               >
                 เริ่มดำเนินการตรวจสอบวันที่{" "}
@@ -593,7 +601,7 @@ return (
             </div>
 
             {/* =================================================
-            TABLE
+                TABLE
             ================================================= */}
 
             <table
@@ -602,8 +610,13 @@ return (
                 borderCollapse:
                   "collapse",
                 tableLayout: "fixed",
-                fontSize: "8.2px",
-                lineHeight: 0.95,
+                fontFamily:
+                  "TH Sarabun New, Sarabun, Arial, sans-serif",
+                fontSize: "16px",
+                lineHeight: 1,
+                color: "#000000",
+                backgroundColor:
+                  "#ffffff",
               }}
             >
               <colgroup>
@@ -613,24 +626,17 @@ return (
                 <col style={{ width: "9%" }} />
                 <col style={{ width: "13%" }} />
                 <col style={{ width: "3.5%" }} />
-
                 <col style={{ width: "6%" }} />
-
                 <col style={{ width: "3.3%" }} />
                 <col style={{ width: "3.3%" }} />
-
                 <col style={{ width: "6%" }} />
-
                 <col style={{ width: "6%" }} />
-
                 <col style={{ width: "3.5%" }} />
                 <col style={{ width: "3.5%" }} />
-
                 <col style={{ width: "3.5%" }} />
                 <col style={{ width: "3.5%" }} />
                 <col style={{ width: "3.8%" }} />
                 <col style={{ width: "4.5%" }} />
-
                 <col style={{ width: "6.3%" }} />
               </colgroup>
 
@@ -640,47 +646,70 @@ return (
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    ลำดับ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ลำดับ
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    รหัส GFMIS
+                    <span
+                      style={headerTextStyle}
+                    >
+                      รหัส GFMIS
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    รหัสครุภัณฑ์
+                    <span
+                      style={headerTextStyle}
+                    >
+                      รหัสครุภัณฑ์
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    ผู้รับผิดชอบ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ผู้รับผิดชอบ
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    รายการ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      รายการ
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    หน่วย
+                    <span
+                      style={headerTextStyle}
+                    >
+                      หน่วย
+                    </span>
                   </th>
 
                   {/* =================================================
-                  ยอดคงเหลือตามบัญชีครั้งที่ 1
-                  นับ 1 ต่อเลขครุภัณฑ์
+                      ยอดคงเหลือตามบัญชีครั้งที่ 1
                   ================================================= */}
 
                   <th
@@ -689,6 +718,13 @@ return (
                   >
                     <div
                       style={{
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
                       }}
@@ -698,11 +734,17 @@ return (
 
                     <div
                       style={{
-                        marginTop: "0.8mm",
+                        marginTop:
+                          "0.8mm",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
-                        fontSize:
-                          "8.5px",
                       }}
                     >
                       ณ วันที่{" "}
@@ -720,6 +762,13 @@ return (
                   >
                     <div
                       style={{
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
                       }}
@@ -730,11 +779,17 @@ return (
 
                     <div
                       style={{
-                        marginTop: "0.8mm",
+                        marginTop:
+                          "0.8mm",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
-                        fontSize:
-                          "8.5px",
                       }}
                     >
                       พ.ศ.{" "}
@@ -743,8 +798,7 @@ return (
                   </th>
 
                   {/* =================================================
-                  ยอดคงเหลือตามบัญชีครั้งที่ 2
-                  นับ 1 ต่อเลขครุภัณฑ์
+                      ยอดคงเหลือตามบัญชีครั้งที่ 2
                   ================================================= */}
 
                   <th
@@ -753,6 +807,13 @@ return (
                   >
                     <div
                       style={{
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
                       }}
@@ -762,11 +823,17 @@ return (
 
                     <div
                       style={{
-                        marginTop: "0.8mm",
+                        marginTop:
+                          "0.8mm",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
-                        fontSize:
-                          "8.5px",
                       }}
                     >
                       ณ วันที่{" "}
@@ -782,7 +849,11 @@ return (
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    จำนวนที่ตรวจนับได้
+                    <span
+                      style={headerTextStyle}
+                    >
+                      จำนวนที่ตรวจนับได้
+                    </span>
                   </th>
 
                   <th
@@ -791,6 +862,13 @@ return (
                   >
                     <div
                       style={{
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
                       }}
@@ -800,11 +878,17 @@ return (
 
                     <div
                       style={{
-                        marginTop: "0.8mm",
+                        marginTop:
+                          "0.8mm",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
+                        fontSize:
+                          "16px",
+                        fontWeight:
+                          "normal",
+                        lineHeight: 1,
                         whiteSpace:
                           "nowrap",
-                        fontSize:
-                          "8.5px",
                       }}
                     >
                       ถูกต้องตรงกับ
@@ -816,55 +900,88 @@ return (
                     colSpan={4}
                     style={headerStyle}
                   >
-                    <div
-                      style={{
-                        whiteSpace:
-                          "nowrap",
-                      }}
+                    <span
+                      style={headerTextStyle}
                     >
                       สภาพครุภัณฑ์ที่ตรวจนับ
-                    </div>
+                    </span>
                   </th>
 
                   <th
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    หมายเหตุ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      หมายเหตุ
+                    </span>
                   </th>
                 </tr>
 
                 <tr>
                   <th style={headerStyle}>
-                    รับ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      รับ
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    จ่าย
+                    <span
+                      style={headerTextStyle}
+                    >
+                      จ่าย
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    ถูกต้อง
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ถูกต้อง
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    ไม่ถูกต้อง
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ไม่ถูกต้อง
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    ใช้งาน
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ใช้งาน
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    ชำรุด
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ชำรุด
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    เสื่อมสภาพ
+                    <span
+                      style={headerTextStyle}
+                    >
+                      เสื่อมสภาพ
+                    </span>
                   </th>
 
                   <th style={headerStyle}>
-                    ไม่สามารถใช้งาน
+                    <span
+                      style={headerTextStyle}
+                    >
+                      ไม่สามารถใช้งาน
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -897,40 +1014,68 @@ return (
 
                     return (
                       <tr
-                        key={
-                          asset.id
-                        }
+                        key={asset.id}
                       >
+                        {/* ลำดับ */}
+
                         <td
                           style={
                             bodyCellStyle
                           }
                         >
-                          {actualIndex +
-                            1}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {actualIndex +
+                              1}
+                          </span>
                         </td>
+
+                        {/* รหัส GFMIS */}
 
                         <td
                           style={{
                             ...bodyCellStyle,
+                            whiteSpace:
+                              "normal",
                             overflowWrap:
                               "anywhere",
                           }}
                         >
-                          {asset.governmentAssetNo ||
-                            ""}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {asset.governmentAssetNo ||
+                              ""}
+                          </span>
                         </td>
+
+                        {/* รหัสครุภัณฑ์ */}
 
                         <td
                           style={{
                             ...bodyCellStyle,
+                            whiteSpace:
+                              "normal",
                             overflowWrap:
                               "anywhere",
                           }}
                         >
-                          {asset.officeAssetNo ||
-                            ""}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {asset.officeAssetNo ||
+                              ""}
+                          </span>
                         </td>
+
+                        {/* ผู้รับผิดชอบ */}
 
                         <td
                           style={{
@@ -943,10 +1088,18 @@ return (
                               "break-word",
                           }}
                         >
-                          {officer
-                            ? `${officer.firstName} ${officer.lastName}`
-                            : ""}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {officer
+                              ? `${officer.firstName} ${officer.lastName}`
+                              : ""}
+                          </span>
                         </td>
+
+                        {/* รายการ */}
 
                         <td
                           style={{
@@ -963,181 +1116,252 @@ return (
                               "break-word",
                           }}
                         >
-                          {asset.name}
+                          <span
+                            style={
+                              materialNameTextStyle
+                            }
+                          >
+                            {asset.name}
 
-                          {(asset.brand ||
-                            asset.model) && (
-                            <span>
-                              {" "}
-                              (
-                              {asset.brand ||
-                                ""}
-                              {asset.brand &&
-                              asset.model
-                                ? " / "
-                                : ""}
-                              {asset.model ||
-                                ""})
-                            </span>
-                          )}
+                            {(asset.brand ||
+                              asset.model) && (
+                              <span>
+                                {" "}
+                                (
+                                {asset.brand ||
+                                  ""}
+                                {asset.brand &&
+                                asset.model
+                                  ? " / "
+                                  : ""}
+                                {asset.model ||
+                                  ""}
+                                )
+                              </span>
+                            )}
+                          </span>
                         </td>
+
+                        {/* หน่วย */}
 
                         <td
                           style={
                             bodyCellStyle
                           }
                         >
-                          {getCategoryUnit(
-                            asset.category
-                          )}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {getCategoryUnit(
+                              asset.category
+                            )}
+                          </span>
                         </td>
 
                         {/* =================================================
-                        ยอดคงเหลือตามบัญชี
-                        1 ต่อ 1 เลขครุภัณฑ์
+                            ยอดคงเหลือตามบัญชี
+                            1 ต่อ 1 เลขครุภัณฑ์
                         ================================================= */}
 
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontWeight: 600,
-                          }}
+                          style={
+                            bodyCellStyle
+                          }
                         >
-                          1
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            1
+                          </span>
                         </td>
 
                         {/* รับ */}
+
                         <td
                           style={
                             bodyCellStyle
                           }
                         >
-                          -
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            -
+                          </span>
                         </td>
 
                         {/* จ่าย */}
+
                         <td
                           style={
                             bodyCellStyle
                           }
                         >
-                          -
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            -
+                          </span>
                         </td>
 
                         {/* =================================================
-                        ยอดคงเหลือตามบัญชี
-                        1 ต่อ 1 เลขครุภัณฑ์
+                            ยอดคงเหลือตามบัญชี
+                            1 ต่อ 1 เลขครุภัณฑ์
                         ================================================= */}
 
-                        <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontWeight: 600,
-                          }}
-                        >
-                          1
-                        </td>
-
-                        {/* จำนวนที่ตรวจนับได้ */}
                         <td
                           style={
                             bodyCellStyle
                           }
                         >
-                          {row.countedQty}
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            1
+                          </span>
+                        </td>
+
+                        {/* จำนวนที่ตรวจนับได้ */}
+
+                        <td
+                          style={
+                            bodyCellStyle
+                          }
+                        >
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {row.countedQty}
+                          </span>
                         </td>
 
                         {/* ถูกต้อง */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getAccuracyChecked(
-                            row,
-                            "CORRECT"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getAccuracyChecked(
+                              row,
+                              "CORRECT"
+                            )}
+                          </span>
                         </td>
 
                         {/* ไม่ถูกต้อง */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getAccuracyChecked(
-                            row,
-                            "INCORRECT"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getAccuracyChecked(
+                              row,
+                              "INCORRECT"
+                            )}
+                          </span>
                         </td>
 
                         {/* ใช้งาน */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getStatusChecked(
-                            row,
-                            "IN_USE"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getStatusChecked(
+                              row,
+                              "IN_USE"
+                            )}
+                          </span>
                         </td>
 
                         {/* ชำรุด */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getStatusChecked(
-                            row,
-                            "DAMAGED"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getStatusChecked(
+                              row,
+                              "DAMAGED"
+                            )}
+                          </span>
                         </td>
 
                         {/* เสื่อมสภาพ */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getStatusChecked(
-                            row,
-                            "DETERIORATED"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getStatusChecked(
+                              row,
+                              "DETERIORATED"
+                            )}
+                          </span>
                         </td>
 
                         {/* ไม่สามารถใช้งาน */}
+
                         <td
-                          style={{
-                            ...bodyCellStyle,
-                            fontSize:
-                              "11px",
-                            fontWeight: 700,
-                          }}
+                          style={
+                            checkCellStyle
+                          }
                         >
-                          {getStatusChecked(
-                            row,
-                            "UNUSABLE"
-                          )}
+                          <span
+                            style={
+                              checkTextStyle
+                            }
+                          >
+                            {getStatusChecked(
+                              row,
+                              "UNUSABLE"
+                            )}
+                          </span>
                         </td>
 
                         {/* หมายเหตุ */}
+
                         <td
                           style={{
                             ...bodyCellStyle,
@@ -1153,8 +1377,14 @@ return (
                               "break-word",
                           }}
                         >
-                          {row.remark ||
-                            ""}
+                          <span
+                            style={
+                              materialNameTextStyle
+                            }
+                          >
+                            {row.remark ||
+                              ""}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -1164,7 +1394,7 @@ return (
             </table>
 
             {/* =================================================
-            SIGNATURE — ผู้ตรวจสอบ 5 คน
+                SIGNATURE — ผู้ตรวจสอบ 5 คน
             ================================================= */}
 
             <div
@@ -1175,6 +1405,8 @@ return (
                   "repeat(5, 1fr)",
                 columnGap: "3mm",
                 width: "100%",
+                fontFamily:
+                  "TH Sarabun New, Sarabun, Arial, sans-serif",
               }}
             >
               {Array.from(
@@ -1199,10 +1431,12 @@ return (
                       style={{
                         textAlign:
                           "center",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
                         fontSize:
-                          "10px",
+                          "16px",
                         lineHeight:
-                          1.02,
+                          1,
                         minWidth: 0,
                       }}
                     >
@@ -1257,15 +1491,16 @@ return (
             </div>
 
             {/* =================================================
-            PAGE NUMBER
+                PAGE NUMBER
             ================================================= */}
 
             <div
               style={{
-                textAlign:
-                  "right",
+                textAlign: "right",
                 marginTop: "1.5mm",
-                fontSize: "9px",
+                fontFamily:
+                  "TH Sarabun New, Sarabun, Arial, sans-serif",
+                fontSize: "16px",
                 lineHeight: 1,
               }}
             >
@@ -1278,6 +1513,7 @@ return (
     )}
   </div>
 </>
+```
 
 );
 }
@@ -1292,10 +1528,12 @@ background: "#ffffff",
 color: "#000000",
 textAlign: "center",
 verticalAlign: "middle",
-fontWeight: 700,
-fontSize: "8.5px",
-padding: "0.9mm 0.6mm",
-lineHeight: 0.95,
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontWeight: "normal",
+fontSize: "16px",
+padding: "0.65mm 0.5mm",
+lineHeight: 1,
 height: "7mm",
 overflowWrap: "break-word",
 wordBreak: "break-word",
@@ -1308,9 +1546,83 @@ background: "#ffffff",
 color: "#000000",
 textAlign: "center",
 verticalAlign: "middle",
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontSize: "16px",
+fontWeight: "normal",
 padding: "0.65mm 0.5mm",
-lineHeight: 0.95,
+lineHeight: 1,
 height: "5.4mm",
 minHeight: "5.4mm",
 boxSizing: "border-box",
+};
+
+const headerTextStyle: React.CSSProperties = {
+display: "inline-block",
+position: "relative",
+top: "-1.35mm",
+margin: 0,
+padding: 0,
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontSize: "16px",
+fontWeight: "normal",
+lineHeight: 1,
+whiteSpace: "nowrap",
+textAlign: "center",
+verticalAlign: "middle",
+};
+
+const dataTextStyle: React.CSSProperties = {
+display: "inline-block",
+position: "relative",
+top: "-1.35mm",
+margin: 0,
+padding: 0,
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontSize: "16px",
+fontWeight: "normal",
+lineHeight: 1,
+whiteSpace: "nowrap",
+verticalAlign: "middle",
+};
+
+const materialNameTextStyle: React.CSSProperties = {
+display: "block",
+position: "relative",
+top: "-1.35mm",
+margin: 0,
+padding: 0,
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontSize: "16px",
+fontWeight: "normal",
+lineHeight: 1,
+whiteSpace: "normal",
+overflowWrap: "break-word",
+wordBreak: "normal",
+verticalAlign: "middle",
+};
+
+const checkCellStyle: React.CSSProperties = {
+...bodyCellStyle,
+textAlign: "center",
+whiteSpace: "nowrap",
+overflow: "visible",
+};
+
+const checkTextStyle: React.CSSProperties = {
+display: "inline-block",
+position: "relative",
+top: "-1.35mm",
+margin: 0,
+padding: 0,
+fontFamily:
+"TH Sarabun New, Sarabun, Arial, sans-serif",
+fontSize: "16px",
+fontWeight: "normal",
+lineHeight: 1,
+whiteSpace: "nowrap",
+verticalAlign: "middle",
 };
