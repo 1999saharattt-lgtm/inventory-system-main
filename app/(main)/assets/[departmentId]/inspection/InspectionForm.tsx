@@ -197,6 +197,32 @@ function formatDateInput(date: Date) {
 }
 
 /**
+ * คำนวณปีงบประมาณไทย
+ *
+ * ตุลาคม - ธันวาคม
+ * = ปี ค.ศ. + 1 + 543
+ *
+ * มกราคม - กันยายน
+ * = ปี ค.ศ. + 543
+ */
+function getFiscalYear(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = parseDateOnly(value);
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  return String(
+    month >= 10
+      ? year + 1 + 543
+      : year + 543
+  );
+}
+
+/**
  * แสดงวันที่แบบภาษาไทย
  *
  * เช่น
@@ -296,9 +322,21 @@ export default function InspectionForm({
   // 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
   // =====================================================
 
-  const accountStartDate = getOneYearBefore(inspectionStartDate);
+  const accountStartDate = getOneYearBefore(
+    inspectionStartDate
+  );
 
-  const accountEndDate = getOneDayBefore(inspectionEndDate);
+  const accountEndDate = getOneDayBefore(
+    inspectionEndDate
+  );
+
+  // =====================================================
+  // ปีงบประมาณของรายการเคลื่อนไหวย้อนหลัง 1 ปี
+  // =====================================================
+
+  const movementFiscalYear = getFiscalYear(
+    accountStartDate
+  );
 
   // =====================================================
   // รายการตรวจสอบ
@@ -344,7 +382,10 @@ export default function InspectionForm({
   // เปลี่ยนผู้ตรวจสอบ
   // =====================================================
 
-  function updateInspector(index: number, value: string) {
+  function updateInspector(
+    index: number,
+    value: string
+  ) {
     const copy = [...inspectorIds];
 
     copy[index] = value;
@@ -358,7 +399,8 @@ export default function InspectionForm({
 
   function getOfficer(officerId: string) {
     return officers.find(
-      (officer) => String(officer.id) === officerId
+      (officer) =>
+        String(officer.id) === officerId
     );
   }
 
@@ -512,7 +554,9 @@ export default function InspectionForm({
                 type="date"
                 value={inspectionStartDate}
                 onChange={(e) =>
-                  setInspectionStartDate(e.target.value)
+                  setInspectionStartDate(
+                    e.target.value
+                  )
                 }
                 required
                 aria-label="เลือกวันเริ่มดำเนินการตรวจสอบ"
@@ -584,7 +628,9 @@ export default function InspectionForm({
                 type="date"
                 value={inspectionEndDate}
                 onChange={(e) =>
-                  setInspectionEndDate(e.target.value)
+                  setInspectionEndDate(
+                    e.target.value
+                  )
                 }
                 required
                 aria-label="เลือกวันตรวจสอบแล้วเสร็จ"
@@ -685,8 +731,13 @@ export default function InspectionForm({
             sm:text-sm
           "
         >
-          <span>📋 รายละเอียดการตรวจสอบครุภัณฑ์</span>
-          <span className="whitespace-nowrap text-slate-400">↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด</span>
+          <span>
+            📋 รายละเอียดการตรวจสอบครุภัณฑ์
+          </span>
+
+          <span className="whitespace-nowrap text-slate-400">
+            ↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด
+          </span>
         </div>
 
         <div
@@ -722,7 +773,7 @@ export default function InspectionForm({
               sm:text-[10px]
               lg:min-w-[1850px]
               lg:text-[11px]
-          "
+            "
           >
             <colgroup>
               <col style={{ width: "3%" }} />
@@ -749,7 +800,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -761,7 +812,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   ลำดับ
                 </th>
@@ -769,7 +820,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -781,7 +832,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   รหัส GFMIS
                 </th>
@@ -789,7 +840,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -801,7 +852,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   รหัสครุภัณฑ์
                 </th>
@@ -809,7 +860,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -821,7 +872,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   ผู้รับผิดชอบ
                 </th>
@@ -829,7 +880,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -841,7 +892,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   รายการ
                 </th>
@@ -849,7 +900,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -861,10 +912,14 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   หน่วย
                 </th>
+
+                {/* =================================================
+                    ยอดคงเหลือตามบัญชี ณ วันเริ่มต้นย้อนหลัง 1 ปี
+                ================================================= */}
 
                 <th
                   colSpan={2}
@@ -883,19 +938,16 @@ export default function InspectionForm({
                     !text-white
                   "
                 >
-                  <div
-                    className="
-                                                                "
-                  >
+                  <div>
                     ยอดคงเหลือตามบัญชี
                   </div>
 
                   <div
                     className="
                       mt-1
-                                            text-[9px]
+                      text-[9px]
                       font-bold
-                                            sm:text-[10px]
+                      sm:text-[10px]
                       lg:text-[11px]
                     "
                   >
@@ -908,10 +960,15 @@ export default function InspectionForm({
                   </div>
                 </th>
 
+                {/* =================================================
+                    รายการเคลื่อนไหวระหว่างปีงบประมาณ
+                    รับ / จ่าย อยู่ภายใต้หัวข้อนี้
+                ================================================= */}
+
                 <th
-                  rowSpan={2}
+                  colSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -923,21 +980,58 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
+                  <div>
+                    รายการเคลื่อนไหวระหว่างปีงบประมาณ พ.ศ.
+                    {" "}
+                    {movementFiscalYear}
+                  </div>
+
                   <div
                     className="
-                                                                "
+                      mt-1
+                      text-[9px]
+                      font-bold
+                      sm:text-[10px]
+                      lg:text-[11px]
+                    "
                   >
+                    (ย้อนหลัง 1 ปี)
+                  </div>
+                </th>
+
+                {/* =================================================
+                    ยอดคงเหลือตามบัญชี ณ วันสิ้นสุดย้อนหลัง 1 วัน
+                ================================================= */}
+
+                <th
+                  rowSpan={2}
+                  className="
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-0.5
+                    py-2
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  <div>
                     ยอดคงเหลือตามบัญชี
                   </div>
 
                   <div
                     className="
                       mt-1
-                                            text-[9px]
+                      text-[9px]
                       font-bold
-                                            sm:text-[10px]
+                      sm:text-[10px]
                       lg:text-[11px]
                     "
                   >
@@ -953,7 +1047,7 @@ export default function InspectionForm({
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -965,7 +1059,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   จำนวนที่ตรวจนับได้
                 </th>
@@ -987,19 +1081,16 @@ export default function InspectionForm({
                     !text-white
                   "
                 >
-                  <div
-                    className="
-                                                                "
-                  >
+                  <div>
                     ผลการตรวจนับ
                   </div>
 
                   <div
                     className="
                       mt-1
-                                            text-[9px]
+                      text-[9px]
                       font-bold
-                                            sm:text-[10px]
+                      sm:text-[10px]
                       lg:text-[11px]
                     "
                   >
@@ -1024,18 +1115,13 @@ export default function InspectionForm({
                     !text-white
                   "
                 >
-                  <span
-                    className="
-                                                                "
-                  >
-                    สภาพครุภัณฑ์ที่ตรวจนับ
-                  </span>
+                  สภาพครุภัณฑ์ที่ตรวจนับ
                 </th>
 
                 <th
                   rowSpan={2}
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1047,16 +1133,18 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
               <tr>
+                {/* รับ / จ่าย อยู่ใต้หัวข้อรายการเคลื่อนไหว */}
+
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1075,7 +1163,7 @@ export default function InspectionForm({
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1094,7 +1182,7 @@ export default function InspectionForm({
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1106,14 +1194,14 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   ถูกต้อง
                 </th>
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1125,14 +1213,14 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   ไม่ถูกต้อง
                 </th>
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1151,7 +1239,7 @@ export default function InspectionForm({
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1170,7 +1258,7 @@ export default function InspectionForm({
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1182,14 +1270,14 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   เสื่อมสภาพ
                 </th>
 
                 <th
                   className="
-                                        border
+                    border
                     border-black
                     bg-gradient-to-r
                     from-slate-800
@@ -1201,7 +1289,7 @@ export default function InspectionForm({
                     align-middle
                     font-extrabold
                     !text-white
-                                      "
+                  "
                 >
                   ไม่สามารถใช้งาน
                 </th>
@@ -1237,51 +1325,48 @@ export default function InspectionForm({
 
                     <td
                       className="
-                                                border
+                        border
                         border-black
                         px-0.5
                         py-1.5
                         text-center
                         whitespace-nowrap
                         align-middle
-                        whitespace-nowrap
                         font-semibold
                         text-slate-900
-                                              "
+                      "
                     >
                       {asset.governmentAssetNo || "-"}
                     </td>
 
                     <td
                       className="
-                                                border
+                        border
                         border-black
                         px-0.5
                         py-1.5
                         text-center
                         whitespace-nowrap
                         align-middle
-                        whitespace-nowrap
                         font-semibold
                         text-slate-900
-                                              "
+                      "
                     >
                       {asset.officeAssetNo || "-"}
                     </td>
 
                     <td
                       className="
-                                                border
+                        border
                         border-black
                         px-0.5
                         py-1.5
                         text-center
                         whitespace-nowrap
                         align-middle
-                        whitespace-nowrap
                         font-semibold
                         text-slate-900
-                                              "
+                      "
                     >
                       {officer
                         ? `${officer.firstName} ${officer.lastName}`
@@ -1290,7 +1375,7 @@ export default function InspectionForm({
 
                     <td
                       className="
-                                                border
+                        border
                         border-black
                         px-0.5
                         py-1.5
@@ -1298,7 +1383,7 @@ export default function InspectionForm({
                         whitespace-nowrap
                         font-semibold
                         text-slate-900
-                                              "
+                      "
                     >
                       {asset.name}
 
@@ -1310,7 +1395,7 @@ export default function InspectionForm({
                             text-[8px]
                             font-medium
                             text-slate-500
-                                                        sm:text-[8px]
+                            sm:text-[8px]
                             lg:text-[9px]
                           "
                         >
@@ -1329,20 +1414,23 @@ export default function InspectionForm({
 
                     <td
                       className="
-                                                border
+                        border
                         border-black
                         px-0.5
                         py-1.5
                         text-center
                         whitespace-nowrap
                         align-middle
-                        whitespace-nowrap
                         font-semibold
                         text-slate-900
-                                              "
+                      "
                     >
-                      {getCategoryUnit(asset.category)}
+                      {getCategoryUnit(
+                        asset.category
+                      )}
                     </td>
+
+                    {/* ยอดคงเหลือต้นงวด */}
 
                     <td
                       className="
@@ -1376,6 +1464,8 @@ export default function InspectionForm({
                       -
                     </td>
 
+                    {/* รับ */}
+
                     <td
                       className="
                         border
@@ -1391,6 +1481,26 @@ export default function InspectionForm({
                     >
                       -
                     </td>
+
+                    {/* จ่าย */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-0.5
+                        py-1.5
+                        text-center
+                        whitespace-nowrap
+                        align-middle
+                        font-bold
+                        text-slate-500
+                      "
+                    >
+                      -
+                    </td>
+
+                    {/* จำนวนที่ตรวจนับได้ */}
 
                     <td
                       className="
@@ -1439,6 +1549,8 @@ export default function InspectionForm({
                       />
                     </td>
 
+                    {/* ถูกต้อง */}
+
                     <td
                       className="
                         border
@@ -1454,7 +1566,8 @@ export default function InspectionForm({
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         checked={
-                          row.accuracy === "CORRECT"
+                          row.accuracy ===
+                          "CORRECT"
                         }
                         onChange={() =>
                           updateRow(
@@ -1475,6 +1588,8 @@ export default function InspectionForm({
                       />
                     </td>
 
+                    {/* ไม่ถูกต้อง */}
+
                     <td
                       className="
                         border
@@ -1490,7 +1605,8 @@ export default function InspectionForm({
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         checked={
-                          row.accuracy === "INCORRECT"
+                          row.accuracy ===
+                          "INCORRECT"
                         }
                         onChange={() =>
                           updateRow(
@@ -1511,6 +1627,8 @@ export default function InspectionForm({
                       />
                     </td>
 
+                    {/* ใช้งาน */}
+
                     <td
                       className="
                         border
@@ -1526,7 +1644,8 @@ export default function InspectionForm({
                         type="radio"
                         name={`status-${asset.id}`}
                         checked={
-                          row.status === "IN_USE"
+                          row.status ===
+                          "IN_USE"
                         }
                         onChange={() =>
                           updateRow(
@@ -1547,6 +1666,8 @@ export default function InspectionForm({
                       />
                     </td>
 
+                    {/* ชำรุด */}
+
                     <td
                       className="
                         border
@@ -1562,7 +1683,8 @@ export default function InspectionForm({
                         type="radio"
                         name={`status-${asset.id}`}
                         checked={
-                          row.status === "DAMAGED"
+                          row.status ===
+                          "DAMAGED"
                         }
                         onChange={() =>
                           updateRow(
@@ -1582,6 +1704,8 @@ export default function InspectionForm({
                         "
                       />
                     </td>
+
+                    {/* เสื่อมสภาพ */}
 
                     <td
                       className="
@@ -1620,6 +1744,8 @@ export default function InspectionForm({
                       />
                     </td>
 
+                    {/* ไม่สามารถใช้งาน */}
+
                     <td
                       className="
                         border
@@ -1635,7 +1761,8 @@ export default function InspectionForm({
                         type="radio"
                         name={`status-${asset.id}`}
                         checked={
-                          row.status === "UNUSABLE"
+                          row.status ===
+                          "UNUSABLE"
                         }
                         onChange={() =>
                           updateRow(
@@ -1655,6 +1782,8 @@ export default function InspectionForm({
                         "
                       />
                     </td>
+
+                    {/* หมายเหตุ */}
 
                     <td
                       className="
@@ -1788,93 +1917,34 @@ export default function InspectionForm({
             lg:grid-cols-2
           "
         >
-          {inspectorIds.map((inspectorId, index) => {
-            const selectedOfficer =
-              getOfficer(inspectorId);
+          {inspectorIds.map(
+            (inspectorId, index) => {
+              const selectedOfficer =
+                getOfficer(inspectorId);
 
-            return (
-              <div
-                key={index}
-                className="
-                  rounded-xl
-                  border
-                  border-slate-700
-                  bg-slate-900/70
-                  p-4
-                "
-              >
+              return (
                 <div
+                  key={index}
                   className="
-                    mb-3
-                    text-base
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  ผู้ตรวจสอบคนที่ {index + 1}
-                </div>
-
-                <label
-                  className="
-                    mb-2
-                    block
-                    text-sm
-                    font-bold
-                    text-slate-300
-                  "
-                >
-                  ลงชื่อ
-                </label>
-
-                <select
-                  value={inspectorId}
-                  onChange={(e) =>
-                    updateInspector(
-                      index,
-                      e.target.value
-                    )
-                  }
-                  className="
-                    w-full
-                    rounded-lg
+                    rounded-xl
                     border
-                    border-slate-300
-                    bg-white
-                    p-2.5
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-cyan-500
-                    focus:ring-2
-                    focus:ring-cyan-100
+                    border-slate-700
+                    bg-slate-900/70
+                    p-4
                   "
                 >
-                  <option value="">
-                    -- เลือกผู้ตรวจสอบ --
-                  </option>
+                  <div
+                    className="
+                      mb-3
+                      text-base
+                      font-extrabold
+                      text-white
+                    "
+                  >
+                    ผู้ตรวจสอบคนที่{" "}
+                    {index + 1}
+                  </div>
 
-                  {officers.map((officer) => (
-                    <option
-                      key={officer.id}
-                      value={officer.id}
-                      disabled={isOfficerSelected(
-                        officer.id,
-                        index
-                      )}
-                    >
-                      {officer.firstName}{" "}
-                      {officer.lastName}
-                      {officer.department
-                        ? ` — ${officer.department.name}`
-                        : ""}
-                      {officer.section
-                        ? ` / ${officer.section.name}`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="mt-3">
                   <label
                     className="
                       mb-2
@@ -1884,33 +1954,98 @@ export default function InspectionForm({
                       text-slate-300
                     "
                   >
-                    ตำแหน่ง
+                    ลงชื่อ
                   </label>
 
-                  <input
-                    type="text"
-                    readOnly
-                    value={
-                      selectedOfficer?.position || ""
+                  <select
+                    value={inspectorId}
+                    onChange={(e) =>
+                      updateInspector(
+                        index,
+                        e.target.value
+                      )
                     }
-                    placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
                     className="
                       w-full
                       rounded-lg
                       border
                       border-slate-300
-                      bg-slate-100
+                      bg-white
                       p-2.5
                       font-semibold
                       text-slate-900
                       outline-none
-                      placeholder:text-slate-400
+                      focus:border-cyan-500
+                      focus:ring-2
+                      focus:ring-cyan-100
                     "
-                  />
+                  >
+                    <option value="">
+                      -- เลือกผู้ตรวจสอบ --
+                    </option>
+
+                    {officers.map(
+                      (officer) => (
+                        <option
+                          key={officer.id}
+                          value={officer.id}
+                          disabled={isOfficerSelected(
+                            officer.id,
+                            index
+                          )}
+                        >
+                          {officer.firstName}{" "}
+                          {officer.lastName}
+                          {officer.department
+                            ? ` — ${officer.department.name}`
+                            : ""}
+                          {officer.section
+                            ? ` / ${officer.section.name}`
+                            : ""}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                  <div className="mt-3">
+                    <label
+                      className="
+                        mb-2
+                        block
+                        text-sm
+                        font-bold
+                        text-slate-300
+                      "
+                    >
+                      ตำแหน่ง
+                    </label>
+
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        selectedOfficer?.position ||
+                        ""
+                      }
+                      placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
+                      className="
+                        w-full
+                        rounded-lg
+                        border
+                        border-slate-300
+                        bg-slate-100
+                        p-2.5
+                        font-semibold
+                        text-slate-900
+                        outline-none
+                        placeholder:text-slate-400
+                      "
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
         </div>
       </div>
 
