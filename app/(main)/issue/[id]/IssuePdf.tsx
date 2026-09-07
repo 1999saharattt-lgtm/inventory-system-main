@@ -344,7 +344,7 @@ export default function IssuePdf({
       >
         {loading
           ? "กำลังสร้าง PDF..."
-          : "📄 Export PDF"}
+          : "📄 ส่งออก PDF"}
       </button>
 
       {/* =====================================================

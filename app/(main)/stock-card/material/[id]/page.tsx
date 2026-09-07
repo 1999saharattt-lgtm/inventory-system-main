@@ -18,31 +18,12 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
-];
-
-function formatThaiDate(date: Date | string | null) {
-  if (!date) return "-";
-
+function formatDateAD(date: Date | string) {
   const d = new Date(date);
 
-  if (Number.isNaN(d.getTime())) return "-";
-
-  return `${d.getDate()} ${
-    thaiMonths[d.getMonth()]
-  } ${d.getFullYear() + 543}`;
+  return `${String(d.getDate()).padStart(2, "0")}/${String(
+    d.getMonth() + 1
+  ).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
 export default async function StockCardPage({ params }: Props) {
@@ -104,7 +85,9 @@ export default async function StockCardPage({ params }: Props) {
 
   const latestReceiveItem =
     material.receiveItems.length > 0
-      ? material.receiveItems[material.receiveItems.length - 1]
+      ? material.receiveItems[
+          material.receiveItems.length - 1
+        ]
       : null;
 
   const latestVendor =
@@ -434,7 +417,7 @@ export default async function StockCardPage({ params }: Props) {
               font-extrabold
               leading-tight
               !text-white
-              sm:text-3xl
+              sm:text-4xl
             "
           >
             📒 บัญชีพัสดุ
@@ -444,46 +427,73 @@ export default async function StockCardPage({ params }: Props) {
             className="
               mt-2
               break-words
-              text-sm
+              text-base
               font-semibold
               leading-tight
               !text-slate-200
-              sm:mt-3
-              sm:text-base
+              sm:text-lg
             "
           >
             {material.name}
           </p>
         </div>
 
-        <Link
-          href={`/stock-card/${material.category}`}
+        <div
           className="
-            w-full
+            flex
             shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-            sm:px-5
-            sm:py-3
-            sm:text-lg
+            items-center
+            gap-2
+            sm:gap-3
           "
         >
-          ← กลับ
-        </Link>
+          <ExportPdf
+            material={{
+              ...material,
+              vendor:
+                latestReceiveItem?.receive.vendor ??
+                null,
+              latestPrice,
+            }}
+            rows={stockRows}
+          />
+
+          <ExportExcel
+            material={{
+              ...material,
+              vendor:
+                latestReceiveItem?.receive.vendor ??
+                null,
+              latestPrice,
+            }}
+            rows={stockRows}
+          />
+
+          <Link
+            href={`/stock-card/${material.category}`}
+            className="
+              shrink-0
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-3
+              py-2
+              text-center
+              text-sm
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              sm:px-5
+              sm:py-3
+              sm:text-lg
+            "
+          >
+            ← กลับ
+          </Link>
+        </div>
       </div>
 
       {/* =====================================================
@@ -798,7 +808,7 @@ export default async function StockCardPage({ params }: Props) {
                         sm:text-base
                       "
                     >
-                      {formatThaiDate(row.date)}
+                      {formatDateAD(row.date)}
                     </td>
 
                     <td
@@ -940,7 +950,7 @@ export default async function StockCardPage({ params }: Props) {
                       "
                     >
                       {row.manufacture
-                        ? formatThaiDate(
+                        ? formatDateAD(
                             row.manufacture
                           )
                         : "-"}
@@ -963,7 +973,7 @@ export default async function StockCardPage({ params }: Props) {
                       "
                     >
                       {row.expiry
-                        ? formatThaiDate(
+                        ? formatDateAD(
                             row.expiry
                           )
                         : "-"}
@@ -976,42 +986,7 @@ export default async function StockCardPage({ params }: Props) {
         </div>
       </div>
 
-      {/* =====================================================
-          Export
-      ===================================================== */}
 
-      <div
-        className="
-          flex
-          w-full
-          min-w-0
-          flex-wrap
-          gap-2
-          sm:gap-3
-        "
-      >
-        <ExportPdf
-          material={{
-            ...material,
-            vendor:
-              latestReceiveItem?.receive.vendor ??
-              null,
-            latestPrice,
-          }}
-          rows={stockRows}
-        />
-
-        <ExportExcel
-          material={{
-            ...material,
-            vendor:
-              latestReceiveItem?.receive.vendor ??
-              null,
-            latestPrice,
-          }}
-          rows={stockRows}
-        />
-      </div>
     </div>
   );
 }

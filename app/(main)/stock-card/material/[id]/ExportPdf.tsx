@@ -381,7 +381,7 @@ export default function ExportPdf({
         hover:bg-red-700
       "
     >
-      Export PDF
+      ส่งออก PDF
     </button>
   );
 }

@@ -559,7 +559,7 @@ export default function ExportExcel({
         hover:bg-emerald-700
       "
     >
-      Export Excel
+      ส่งออก Excel
     </button>
 
   );
