@@ -196,6 +196,27 @@ return `${day}/${month}/${year}`;
 
 /**
 
+* ปีงบประมาณ
+*
+* เดือนตุลาคม - ธันวาคม
+* ให้นับเป็นปีงบประมาณถัดไป
+  */
+  function getFiscalYear(value: string) {
+  if (!value) {
+  return "........";
+  }
+
+const date = parseDateOnly(value);
+
+const year = date.getFullYear();
+
+return date.getMonth() >= 9
+? year + 1 + 543
+: year + 543;
+}
+
+/**
+
 * หน่วยของครุภัณฑ์
   */
   function getCategoryUnit(category: string) {
@@ -249,9 +270,21 @@ useState(getCurrentDate());
 // 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
 // =====================================================
 
-const accountStartDate = getOneYearBefore(inspectionStartDate);
+const accountStartDate = getOneYearBefore(
+inspectionStartDate
+);
 
-const accountEndDate = getOneDayBefore(inspectionEndDate);
+const accountEndDate = getOneDayBefore(
+inspectionEndDate
+);
+
+// =====================================================
+// ปีงบประมาณสำหรับรายการเคลื่อนไหว
+// =====================================================
+
+const movementFiscalYear = getFiscalYear(
+inspectionStartDate
+);
 
 // =====================================================
 // รายการตรวจสอบ
@@ -352,7 +385,9 @@ return;
 // -----------------------------------------------------
 
 if (!inspectionStartDate || !inspectionEndDate) {
-  alert("กรุณาระบุวันที่เริ่มตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ");
+  alert(
+    "กรุณาระบุวันที่เริ่มตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ"
+  );
   return;
 }
 
@@ -714,7 +749,7 @@ return ( <div
       <table
         className="
           w-max
-          min-w-[2700px]
+          min-w-[2900px]
           border-collapse
           text-xs
           sm:text-sm
@@ -727,9 +762,17 @@ return ( <div
           <col className="w-[240px]" />
           <col className="w-[300px]" />
           <col className="w-[100px]" />
-          <col className="w-[100px]" />
-          <col className="w-[100px]" />
+
+          {/* ยอดคงเหลือตามบัญชี ณ วันที่เริ่มย้อนหลัง 1 ปี */}
+          <col className="w-[170px]" />
+
+          {/* รายการเคลื่อนไหว รับ / จ่าย */}
+          <col className="w-[110px]" />
+          <col className="w-[110px]" />
+
+          {/* ยอดคงเหลือตามบัญชี ณ วันก่อนตรวจเสร็จ */}
           <col className="w-[190px]" />
+
           <col className="w-[180px]" />
           <col className="w-[110px]" />
           <col className="w-[130px]" />
@@ -784,8 +827,12 @@ return ( <div
               หน่วย
             </th>
 
+            {/* =================================================
+                ยอดคงเหลือตามบัญชีช่วงเริ่มตรวจ
+            ================================================= */}
+
             <th
-              colSpan={2}
+              rowSpan={2}
               className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
               <div className="whitespace-nowrap">
@@ -799,6 +846,24 @@ return ( <div
                 </span>
               </div>
             </th>
+
+            {/* =================================================
+                รายการเคลื่อนไหวระหว่างปีงบประมาณ
+            ================================================= */}
+
+            <th
+              colSpan={2}
+              className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              <div className="whitespace-nowrap">
+                รายการเคลื่อนไหวระหว่างปีงบประมาณ พ.ศ.{" "}
+                {movementFiscalYear}
+              </div>
+            </th>
+
+            {/* =================================================
+                ยอดคงเหลือตามบัญชี ณ วันก่อนตรวจเสร็จ
+            ================================================= */}
 
             <th
               rowSpan={2}
@@ -941,13 +1006,25 @@ return ( <div
                   {getCategoryUnit(asset.category)}
                 </td>
 
-                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
-                  -
-                </td>
+                {/* ยอดคงเหลือตามบัญชี ณ วันที่เริ่มย้อนหลัง 1 ปี */}
 
                 <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                   -
                 </td>
+
+                {/* รายการเคลื่อนไหว - รับ */}
+
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
+                  -
+                </td>
+
+                {/* รายการเคลื่อนไหว - จ่าย */}
+
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
+                  -
+                </td>
+
+                {/* ยอดคงเหลือตามบัญชี ณ วันก่อนตรวจเสร็จ */}
 
                 <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                   -
@@ -973,7 +1050,9 @@ return ( <div
                   <input
                     type="radio"
                     name={`accuracy-${asset.id}`}
-                    checked={row.accuracy === "CORRECT"}
+                    checked={
+                      row.accuracy === "CORRECT"
+                    }
                     onChange={() =>
                       updateRow(
                         index,
@@ -989,7 +1068,9 @@ return ( <div
                   <input
                     type="radio"
                     name={`accuracy-${asset.id}`}
-                    checked={row.accuracy === "INCORRECT"}
+                    checked={
+                      row.accuracy === "INCORRECT"
+                    }
                     onChange={() =>
                       updateRow(
                         index,
@@ -1005,7 +1086,9 @@ return ( <div
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={row.status === "IN_USE"}
+                    checked={
+                      row.status === "IN_USE"
+                    }
                     onChange={() =>
                       updateRow(
                         index,
@@ -1021,7 +1104,9 @@ return ( <div
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={row.status === "DAMAGED"}
+                    checked={
+                      row.status === "DAMAGED"
+                    }
                     onChange={() =>
                       updateRow(
                         index,
@@ -1055,7 +1140,9 @@ return ( <div
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={row.status === "UNUSABLE"}
+                    checked={
+                      row.status === "UNUSABLE"
+                    }
                     onChange={() =>
                       updateRow(
                         index,
@@ -1089,7 +1176,7 @@ return ( <div
           {assets.length === 0 && (
             <tr>
               <td
-                colSpan={17}
+                colSpan={18}
                 className="border border-black px-4 py-10 text-center font-bold text-slate-500"
               >
                 ไม่พบรายการครุภัณฑ์

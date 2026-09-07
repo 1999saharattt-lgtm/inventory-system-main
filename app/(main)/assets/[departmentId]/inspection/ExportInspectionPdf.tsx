@@ -78,7 +78,15 @@ inspectorIds: string[];
 officers: Officer[];
 };
 
-const ROWS_PER_PAGE = 12;
+/* =========================================================
+จำนวนรายการต่อหน้า
+========================================================= */
+
+const ROWS_PER_PAGE = 20;
+
+/* =========================================================
+เดือนภาษาไทย
+========================================================= */
 
 const thaiMonths = [
 "มกราคม",
@@ -97,6 +105,7 @@ const thaiMonths = [
 
 /* =========================================================
 ขนาดพื้นที่ PDF
+A4 Landscape
 ========================================================= */
 
 const PDF_WIDTH = 277;
@@ -435,7 +444,6 @@ return (
 ปุ่ม Export
 ===================================================== */}
 
-
   <button
     type="button"
     onClick={handleExportPdf}
@@ -528,17 +536,19 @@ return (
                 width: "100%",
                 textAlign: "center",
                 lineHeight: 1,
-                marginBottom: "3mm",
+                marginBottom: "2.5mm",
               }}
             >
               <div
                 style={{
                   fontSize: "21px",
                   fontWeight: 700,
-                  marginBottom: "1mm",
+                  marginBottom: "0.8mm",
+                  whiteSpace: "nowrap",
                 }}
               >
                 กระดาษทำการตรวจสอบพัสดุ
+                {" "}
                 ประจำปีงบประมาณ พ.ศ.{" "}
                 {getFiscalYear(
                   inspectionStartDate
@@ -549,7 +559,8 @@ return (
                 style={{
                   fontSize: "19px",
                   fontWeight: 700,
-                  marginBottom: "1mm",
+                  marginBottom: "0.8mm",
+                  whiteSpace: "nowrap",
                 }}
               >
                 สำนักอนามัยการเจริญพันธุ์
@@ -559,6 +570,7 @@ return (
                 style={{
                   fontSize: "16px",
                   fontWeight: 600,
+                  whiteSpace: "nowrap",
                 }}
               >
                 เริ่มดำเนินการตรวจสอบวันที่{" "}
@@ -583,28 +595,36 @@ return (
                 borderCollapse:
                   "collapse",
                 tableLayout: "fixed",
-                fontSize: "10px",
-                lineHeight: 1,
+                fontSize: "8.2px",
+                lineHeight: 0.95,
               }}
             >
               <colgroup>
-                <col style={{ width: "3%" }} />
-                <col style={{ width: "6%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "5%" }} />
-                <col style={{ width: "5%" }} />
+                <col style={{ width: "2.8%" }} />
+                <col style={{ width: "5.6%" }} />
+                <col style={{ width: "6.4%" }} />
                 <col style={{ width: "9%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "3.5%" }} />
+
+                <col style={{ width: "6%" }} />
+
+                <col style={{ width: "3.3%" }} />
+                <col style={{ width: "3.3%" }} />
+
+                <col style={{ width: "6%" }} />
+
+                <col style={{ width: "6%" }} />
+
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.5%" }} />
+
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.5%" }} />
+                <col style={{ width: "3.8%" }} />
+                <col style={{ width: "4.5%" }} />
+
+                <col style={{ width: "6.3%" }} />
               </colgroup>
 
               <thead>
@@ -652,17 +672,57 @@ return (
                   </th>
 
                   <th
+                    rowSpan={2}
+                    style={headerStyle}
+                  >
+                    <div
+                      style={{
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      ยอดคงเหลือตามบัญชี
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "0.8mm",
+                        whiteSpace:
+                          "nowrap",
+                        fontSize:
+                          "8.5px",
+                      }}
+                    >
+                      ณ วันที่{" "}
+                      {formatThaiDate(
+                        getOneYearBefore(
+                          inspectionStartDate
+                        )
+                      )}
+                    </div>
+                  </th>
+
+                  <th
                     colSpan={2}
                     style={headerStyle}
                   >
-                    <div>
+                    <div
+                      style={{
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
                       รายการเคลื่อนไหวระหว่าง
                       ปีงบประมาณ
                     </div>
 
                     <div
                       style={{
-                        marginTop: "1mm",
+                        marginTop: "0.8mm",
+                        whiteSpace:
+                          "nowrap",
+                        fontSize:
+                          "8.5px",
                       }}
                     >
                       พ.ศ.{" "}
@@ -678,13 +738,22 @@ return (
                     rowSpan={2}
                     style={headerStyle}
                   >
-                    <div>
+                    <div
+                      style={{
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
                       ยอดคงเหลือตามบัญชี
                     </div>
 
                     <div
                       style={{
-                        marginTop: "1mm",
+                        marginTop: "0.8mm",
+                        whiteSpace:
+                          "nowrap",
+                        fontSize:
+                          "8.5px",
                       }}
                     >
                       ณ วันที่{" "}
@@ -707,13 +776,22 @@ return (
                     colSpan={2}
                     style={headerStyle}
                   >
-                    <div>
+                    <div
+                      style={{
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
                       ผลการตรวจนับ
                     </div>
 
                     <div
                       style={{
-                        marginTop: "1mm",
+                        marginTop: "0.8mm",
+                        whiteSpace:
+                          "nowrap",
+                        fontSize:
+                          "8.5px",
                       }}
                     >
                       ถูกต้องตรงกับ
@@ -725,7 +803,14 @@ return (
                     colSpan={4}
                     style={headerStyle}
                   >
-                    สภาพครุภัณฑ์ที่ตรวจนับ
+                    <div
+                      style={{
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      สภาพครุภัณฑ์ที่ตรวจนับ
+                    </div>
                   </th>
 
                   <th
@@ -856,7 +941,7 @@ return (
                             textAlign:
                               "left",
                             paddingLeft:
-                              "3px",
+                              "2px",
                             whiteSpace:
                               "normal",
                             overflowWrap:
@@ -895,6 +980,8 @@ return (
                           )}
                         </td>
 
+                        {/* ยอดคงเหลือตามบัญชี
+                            ณ วันที่ย้อนหลัง 1 ปี */}
                         <td
                           style={
                             bodyCellStyle
@@ -903,6 +990,7 @@ return (
                           -
                         </td>
 
+                        {/* รับ */}
                         <td
                           style={
                             bodyCellStyle
@@ -911,6 +999,7 @@ return (
                           -
                         </td>
 
+                        {/* จ่าย */}
                         <td
                           style={
                             bodyCellStyle
@@ -919,6 +1008,17 @@ return (
                           -
                         </td>
 
+                        {/* ยอดคงเหลือตามบัญชี
+                            ณ วันที่ก่อนวันตรวจ 1 วัน */}
+                        <td
+                          style={
+                            bodyCellStyle
+                          }
+                        >
+                          -
+                        </td>
+
+                        {/* จำนวนที่ตรวจนับได้ */}
                         <td
                           style={
                             bodyCellStyle
@@ -927,10 +1027,12 @@ return (
                           {row.countedQty}
                         </td>
 
+                        {/* ถูกต้อง */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
                           }}
                         >
@@ -940,10 +1042,12 @@ return (
                           )}
                         </td>
 
+                        {/* ไม่ถูกต้อง */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
                           }}
                         >
@@ -953,10 +1057,12 @@ return (
                           )}
                         </td>
 
+                        {/* ใช้งาน */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
                           }}
                         >
@@ -966,10 +1072,12 @@ return (
                           )}
                         </td>
 
+                        {/* ชำรุด */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
                           }}
                         >
@@ -979,10 +1087,12 @@ return (
                           )}
                         </td>
 
+                        {/* เสื่อมสภาพ */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
                           }}
                         >
@@ -992,13 +1102,13 @@ return (
                           )}
                         </td>
 
+                        {/* ไม่สามารถใช้งาน */}
                         <td
                           style={{
                             ...bodyCellStyle,
-                            fontSize: "14px",
+                            fontSize:
+                              "11px",
                             fontWeight: 700,
-                            whiteSpace:
-                              "normal",
                           }}
                         >
                           {getStatusChecked(
@@ -1007,13 +1117,14 @@ return (
                           )}
                         </td>
 
+                        {/* หมายเหตุ */}
                         <td
                           style={{
                             ...bodyCellStyle,
                             textAlign:
                               "left",
                             paddingLeft:
-                              "3px",
+                              "2px",
                             whiteSpace:
                               "normal",
                             overflowWrap:
@@ -1038,7 +1149,7 @@ return (
 
             <div
               style={{
-                marginTop: "3mm",
+                marginTop: "2.5mm",
                 display: "grid",
                 gridTemplateColumns:
                   "repeat(5, 1fr)",
@@ -1069,16 +1180,16 @@ return (
                         textAlign:
                           "center",
                         fontSize:
-                          "11px",
+                          "10px",
                         lineHeight:
-                          1.05,
+                          1.02,
                         minWidth: 0,
                       }}
                     >
                       <div
                         style={{
                           marginBottom:
-                            "2mm",
+                            "1.5mm",
                           whiteSpace:
                             "nowrap",
                         }}
@@ -1107,7 +1218,7 @@ return (
                       <div
                         style={{
                           marginTop:
-                            "1mm",
+                            "0.8mm",
                           whiteSpace:
                             "nowrap",
                           overflow:
@@ -1133,8 +1244,8 @@ return (
               style={{
                 textAlign:
                   "right",
-                marginTop: "2mm",
-                fontSize: "10px",
+                marginTop: "1.5mm",
+                fontSize: "9px",
                 lineHeight: 1,
               }}
             >
@@ -1162,11 +1273,13 @@ color: "#000000",
 textAlign: "center",
 verticalAlign: "middle",
 fontWeight: 700,
-padding: "1.5mm 1mm",
-lineHeight: 1,
-height: "8mm",
+fontSize: "8.5px",
+padding: "0.9mm 0.6mm",
+lineHeight: 0.95,
+height: "7mm",
 overflowWrap: "break-word",
 wordBreak: "break-word",
+boxSizing: "border-box",
 };
 
 const bodyCellStyle: React.CSSProperties = {
@@ -1175,8 +1288,9 @@ background: "#ffffff",
 color: "#000000",
 textAlign: "center",
 verticalAlign: "middle",
-padding: "1mm 0.8mm",
-lineHeight: 1,
-height: "8mm",
+padding: "0.65mm 0.5mm",
+lineHeight: 0.95,
+height: "5.4mm",
+minHeight: "5.4mm",
 boxSizing: "border-box",
 };
