@@ -444,7 +444,7 @@ export default function ExportInspectionPdf({
       >
         {isExporting
           ? "กำลังสร้าง PDF..."
-          : "📄 Export PDF"}
+          : "📄 ส่งออก PDF"}
       </button>
 
       {/* =====================================================
