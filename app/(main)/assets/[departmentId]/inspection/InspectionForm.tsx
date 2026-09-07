@@ -4,834 +4,1634 @@ import { useState } from "react";
 import ExportInspectionPdf from "./ExportInspectionPdf";
 
 type Department = {
-  id: number;
-  name: string;
+id: number;
+name: string;
 };
 
 type Asset = {
-  id: number;
-  name: string;
-  category: string;
-  brand: string | null;
-  model: string | null;
-  serialNumber: string | null;
-  governmentAssetNo: string | null;
-  officeAssetNo: string | null;
-  departmentId: number;
-  sectionId: number | null;
-  officerId: number | null;
-  status: string;
-  purchaseDate: Date | string | null;
-  price: number | null;
-  location: string | null;
-  remark: string | null;
+id: number;
+name: string;
+category: string;
+brand: string | null;
+model: string | null;
+serialNumber: string | null;
+governmentAssetNo: string | null;
+officeAssetNo: string | null;
+departmentId: number;
+sectionId: number | null;
+officerId: number | null;
+status: string;
+purchaseDate: Date | string | null;
+price: number | null;
+location: string | null;
+remark: string | null;
 
-  section: {
-    id: number;
-    name: string;
-  } | null;
+section: {
+id: number;
+name: string;
+} | null;
 
-  officer: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    position: string;
-  } | null;
+officer: {
+id: number;
+firstName: string;
+lastName: string;
+position: string;
+} | null;
 };
 
 type Officer = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  position: string;
-  type: string;
-  departmentId: number | null;
-  sectionId: number | null;
+id: number;
+firstName: string;
+lastName: string;
+position: string;
+type: string;
+departmentId: number | null;
+sectionId: number | null;
 
-  department: {
-    id: number;
-    name: string;
-  } | null;
+department: {
+id: number;
+name: string;
+} | null;
 
-  section: {
-    id: number;
-    name: string;
-  } | null;
+section: {
+id: number;
+name: string;
+} | null;
 };
 
 type Props = {
-  department: Department;
-  assets: Asset[];
-  officers: Officer[];
+department: Department;
+assets: Asset[];
+officers: Officer[];
 };
 
 type InspectionRow = {
-  assetId: number;
-  countedQty: string;
-  accuracy: string;
-  status: string;
-  remark: string;
+assetId: number;
+countedQty: string;
+accuracy: string;
+status: string;
+remark: string;
 };
 
+const inspectionStatuses = [
+{
+value: "IN_USE",
+label: "ใช้งาน",
+},
+{
+value: "DAMAGED",
+label: "ชำรุด",
+},
+{
+value: "DETERIORATED",
+label: "เสื่อมสภาพ",
+},
+{
+value: "UNUSABLE",
+label: "ไม่สามารถใช้งาน",
+},
+];
+
+const accuracyOptions = [
+{
+value: "CORRECT",
+label: "ถูกต้อง",
+},
+{
+value: "INCORRECT",
+label: "ไม่ถูกต้อง",
+},
+];
+
 const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
+"มกราคม",
+"กุมภาพันธ์",
+"มีนาคม",
+"เมษายน",
+"พฤษภาคม",
+"มิถุนายน",
+"กรกฎาคม",
+"สิงหาคม",
+"กันยายน",
+"ตุลาคม",
+"พฤศจิกายน",
+"ธันวาคม",
 ];
 
 const thaiMonthsShort = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
+"ม.ค.",
+"ก.พ.",
+"มี.ค.",
+"เม.ย.",
+"พ.ค.",
+"มิ.ย.",
+"ก.ค.",
+"ส.ค.",
+"ก.ย.",
+"ต.ค.",
+"พ.ย.",
+"ธ.ค.",
 ];
 
-const tableHeaderClass =
-  "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-0.5 py-2 text-center whitespace-normal break-words align-middle font-extrabold !text-white";
-
-const tableBodyClass =
-  "border border-black px-0.5 py-1.5 text-center whitespace-nowrap align-middle font-semibold text-slate-900";
-
-const tableDashClass =
-  "border border-black px-0.5 py-1.5 text-center whitespace-nowrap align-middle font-bold text-slate-500";
-
-const radioCellClass =
-  "border border-black px-0.5 py-1.5 text-center whitespace-nowrap align-middle";
-
-const radioClass =
-  "h-3 w-3 cursor-pointer sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4";
-
 function getCurrentDate(): string {
-  const now = new Date();
+const now = new Date();
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
+const day = String(now.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+return `${year}-${month}-${day}`;
 }
 
 function parseDateOnly(value: string): Date {
-  const [year, month, day] = value.split("-").map(Number);
+const [year, month, day] = value.split("-").map(Number);
 
-  return new Date(year, month - 1, day);
+return new Date(year, month - 1, day);
 }
 
 function formatDateInput(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+const year = date.getFullYear();
+const month = String(date.getMonth() + 1).padStart(2, "0");
+const day = String(date.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+return `${year}-${month}-${day}`;
 }
 
 function getOneYearBefore(value: string): string {
-  if (!value) {
-    return "";
-  }
+if (!value) {
+return "";
+}
 
-  const date = parseDateOnly(value);
+const date = parseDateOnly(value);
 
-  date.setFullYear(date.getFullYear() - 1);
+date.setFullYear(date.getFullYear() - 1);
 
-  return formatDateInput(date);
+return formatDateInput(date);
 }
 
 function getOneDayBefore(value: string): string {
-  if (!value) {
-    return "";
-  }
+if (!value) {
+return "";
+}
 
-  const date = parseDateOnly(value);
+const date = parseDateOnly(value);
 
-  date.setDate(date.getDate() - 1);
+date.setDate(date.getDate() - 1);
 
-  return formatDateInput(date);
+return formatDateInput(date);
 }
 
 function formatThaiDateDisplay(value: string): string {
-  if (!value) {
-    return "เลือกวันที่";
-  }
+if (!value) {
+return "เลือกวันที่";
+}
 
-  const date = parseDateOnly(value);
+const date = parseDateOnly(value);
 
-  const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
+const day = date.getDate();
+const month = thaiMonths[date.getMonth()];
+const year = date.getFullYear() + 543;
 
-  return `${day} ${month} ${year}`;
+return `${day} ${month} ${year}`;
 }
 
 function formatThaiShortDate(value: string): string {
-  if (!value) {
-    return "........";
-  }
+if (!value) {
+return "........";
+}
 
-  const date = parseDateOnly(value);
+const date = parseDateOnly(value);
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = thaiMonthsShort[date.getMonth()];
-  const year = date.getFullYear() + 543;
+const day = String(date.getDate()).padStart(2, "0");
+const month = thaiMonthsShort[date.getMonth()];
+const year = date.getFullYear() + 543;
 
-  return `${day} ${month} ${year}`;
+return `${day} ${month} ${year}`;
 }
 
 function getFiscalYear(value: string): number | "" {
-  if (!value) {
-    return "";
-  }
+if (!value) {
+return "";
+}
 
-  const date = parseDateOnly(value);
+const date = parseDateOnly(value);
+const year = date.getFullYear();
+const month = date.getMonth() + 1;
 
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+if (month >= 10) {
+return year + 1 + 543;
+}
 
-  if (month >= 10) {
-    return year + 1 + 543;
-  }
-
-  return year + 543;
+return year + 543;
 }
 
 function getPreviousFiscalYear(value: string): number | "" {
-  if (!value) {
-    return "";
-  }
+if (!value) {
+return "";
+}
 
-  const fiscalYear = getFiscalYear(value);
+const fiscalYear = getFiscalYear(value);
 
-  if (fiscalYear === "") {
-    return "";
-  }
+if (fiscalYear === "") {
+return "";
+}
 
-  return Number(fiscalYear) - 1;
+return Number(fiscalYear) - 1;
 }
 
 function getCategoryUnit(category: string): string {
-  const categoryUnit: Record<string, string> = {
-    COMPUTER: "เครื่อง",
-    DESKTOP: "เครื่อง",
-    LAPTOP: "เครื่อง",
-    PRINTER: "เครื่อง",
-    TELEPHONE: "เครื่อง",
-    AIR_CONDITIONER: "เครื่อง",
-    FAN: "เครื่อง",
-    CHAIR: "ตัว",
-    DESK: "ตัว",
-    TABLE: "ตัว",
-    CABINET: "ตู้",
-    OTHER: "รายการ",
-  };
+const categoryUnit: Record<string, string> = {
+COMPUTER: "เครื่อง",
+DESKTOP: "เครื่อง",
+LAPTOP: "เครื่อง",
+PRINTER: "เครื่อง",
+TELEPHONE: "เครื่อง",
+AIR_CONDITIONER: "เครื่อง",
+FAN: "เครื่อง",
+CHAIR: "ตัว",
+DESK: "ตัว",
+TABLE: "ตัว",
+CABINET: "ตู้",
+OTHER: "รายการ",
+};
 
-  return categoryUnit[category] || "รายการ";
+return categoryUnit[category] || "รายการ";
 }
 
 function createInitialRows(assets: Asset[]): InspectionRow[] {
-  return assets.map((asset) => ({
-    assetId: asset.id,
-    countedQty: "1",
-    accuracy: "",
-    status: "",
-    remark: "",
-  }));
+return assets.map((asset) => ({
+assetId: asset.id,
+countedQty: "1",
+accuracy: "",
+status: "",
+remark: "",
+}));
 }
 
 export default function InspectionForm({
-  department,
-  assets,
-  officers,
+department,
+assets,
+officers,
 }: Props) {
-  const [inspectionStartDate, setInspectionStartDate] =
-    useState<string>(getCurrentDate());
+const [inspectionStartDate, setInspectionStartDate] =
+useState<string>(getCurrentDate());
 
-  const [inspectionEndDate, setInspectionEndDate] =
-    useState<string>(getCurrentDate());
+const [inspectionEndDate, setInspectionEndDate] =
+useState<string>(getCurrentDate());
 
-  const accountStartDate = getOneYearBefore(inspectionStartDate);
-  const accountEndDate = getOneDayBefore(inspectionEndDate);
+const accountStartDate = getOneYearBefore(inspectionStartDate);
+const accountEndDate = getOneDayBefore(inspectionEndDate);
 
-  const [rows, setRows] = useState<InspectionRow[]>(
-    () => createInitialRows(assets)
-  );
+const [rows, setRows] = useState<InspectionRow[]>(
+() => createInitialRows(assets)
+);
 
-  const [inspectorIds, setInspectorIds] = useState<string[]>(
-    Array.from({ length: 5 }, () => "")
-  );
+const [inspectorIds, setInspectorIds] = useState<string[]>(
+Array.from({ length: 5 }, () => "")
+);
 
-  function updateRow(
-    index: number,
-    key: keyof InspectionRow,
-    value: string
-  ): void {
-    const copy = [...rows];
+function updateRow(
+index: number,
+key: keyof InspectionRow,
+value: string
+): void {
+const copy = [...rows];
 
-    copy[index] = {
-      ...copy[index],
-      [key]: value,
-    };
+```
+copy[index] = {
+  ...copy[index],
+  [key]: value,
+};
 
-    setRows(copy);
-  }
+setRows(copy);
+```
 
-  function updateInspector(index: number, value: string): void {
-    const copy = [...inspectorIds];
+}
 
-    copy[index] = value;
+function updateInspector(index: number, value: string): void {
+const copy = [...inspectorIds];
 
-    setInspectorIds(copy);
-  }
+```
+copy[index] = value;
 
-  function getOfficer(officerId: string): Officer | undefined {
-    return officers.find(
-      (officer) => String(officer.id) === officerId
-    );
-  }
+setInspectorIds(copy);
+```
 
-  function isOfficerSelected(
-    officerId: number,
-    currentIndex: number
-  ): boolean {
-    return inspectorIds.some(
-      (selectedId, index) =>
-        index !== currentIndex &&
-        selectedId === String(officerId)
-    );
-  }
+}
 
-  return (
-    <div className="w-full space-y-5">
-      <div className="w-full rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-3 text-white shadow-xl sm:p-5 lg:p-6">
-        <div className="mb-5 flex flex-col gap-4 border-b border-slate-700 pb-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold !text-white sm:text-2xl">
-              ข้อมูลการตรวจสอบ
-            </h2>
+function getOfficer(officerId: string): Officer | undefined {
+return officers.find(
+(officer) => String(officer.id) === officerId
+);
+}
 
-            <p className="mt-1 text-sm font-semibold text-slate-300">
-              {department.name}
-            </p>
+function isOfficerSelected(
+officerId: number,
+currentIndex: number
+): boolean {
+return inspectorIds.some(
+(selectedId, index) =>
+index !== currentIndex &&
+selectedId === String(officerId)
+);
+}
+
+return ( <div className="w-full space-y-5"> <div
+     className="
+       w-full
+       rounded-2xl
+       border
+       border-slate-700
+       bg-gradient-to-br
+       from-slate-950
+       via-slate-900
+       to-slate-800
+       p-3
+       text-white
+       shadow-xl
+       sm:p-5
+       lg:p-6
+     "
+   > <div
+       className="
+         mb-5
+         flex
+         flex-col
+         gap-4
+         border-b
+         border-slate-700
+         pb-4
+         sm:flex-row
+         sm:items-start
+         sm:justify-between
+       "
+     > <div> <h2
+           className="
+             text-xl
+             font-extrabold
+             !text-white
+             sm:text-2xl
+           "
+         >
+ข้อมูลการตรวจสอบ </h2>
+
+```
+        <p
+          className="
+            mt-1
+            text-sm
+            font-semibold
+            text-slate-300
+          "
+        >
+          {department.name}
+        </p>
+      </div>
+
+      <ExportInspectionPdf
+        department={department}
+        assets={assets}
+        rows={rows}
+        inspectionStartDate={inspectionStartDate}
+        inspectionEndDate={inspectionEndDate}
+        inspectorIds={inspectorIds}
+        officers={officers}
+      />
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+      <div>
+        <label
+          className="
+            mb-2
+            block
+            text-base
+            font-extrabold
+            text-white
+          "
+        >
+          เริ่มดำเนินการตรวจสอบวันที่
+        </label>
+
+        <div className="relative w-full">
+          <div
+            className="
+              flex
+              min-h-[46px]
+              w-full
+              items-center
+              justify-between
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              px-3
+              py-2.5
+              font-semibold
+              text-slate-900
+              transition
+            "
+          >
+            <span>
+              {formatThaiDateDisplay(inspectionStartDate)}
+            </span>
+
+            <span
+              className="
+                ml-3
+                text-xl
+                leading-none
+              "
+              aria-hidden="true"
+            >
+              📅
+            </span>
           </div>
 
-          <ExportInspectionPdf
-            department={department}
-            assets={assets}
-            rows={rows}
-            inspectionStartDate={inspectionStartDate}
-            inspectionEndDate={inspectionEndDate}
-            inspectorIds={inspectorIds}
-            officers={officers}
+          <input
+            type="date"
+            value={inspectionStartDate}
+            onChange={(e) =>
+              setInspectionStartDate(e.target.value)
+            }
+            required
+            aria-label="เลือกวันเริ่มดำเนินการตรวจสอบ"
+            className="
+              absolute
+              inset-0
+              h-full
+              w-full
+              cursor-pointer
+              opacity-0
+            "
           />
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-base font-extrabold text-white">
-              เริ่มดำเนินการตรวจสอบวันที่
-            </label>
-
-            <div className="relative w-full">
-              <div className="flex min-h-[46px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-semibold text-slate-900">
-                <span>
-                  {formatThaiDateDisplay(inspectionStartDate)}
-                </span>
-
-                <span
-                  className="ml-3 text-xl leading-none"
-                  aria-hidden="true"
-                >
-                  📅
-                </span>
-              </div>
-
-              <input
-                type="date"
-                value={inspectionStartDate}
-                onChange={(e) =>
-                  setInspectionStartDate(e.target.value)
-                }
-                required
-                aria-label="เลือกวันเริ่มดำเนินการตรวจสอบ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-base font-extrabold text-white">
-              ตรวจสอบแล้วเสร็จวันที่
-            </label>
-
-            <div className="relative w-full">
-              <div className="flex min-h-[46px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-semibold text-slate-900">
-                <span>
-                  {formatThaiDateDisplay(inspectionEndDate)}
-                </span>
-
-                <span
-                  className="ml-3 text-xl leading-none"
-                  aria-hidden="true"
-                >
-                  📅
-                </span>
-              </div>
-
-              <input
-                type="date"
-                value={inspectionEndDate}
-                onChange={(e) =>
-                  setInspectionEndDate(e.target.value)
-                }
-                required
-                aria-label="เลือกวันตรวจสอบแล้วเสร็จ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div className="w-full rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-2 text-white shadow-xl sm:p-3 lg:p-4">
-        <div className="mb-4 flex flex-col gap-2 border-b border-slate-700 pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold !text-white sm:text-2xl">
-              รายการครุภัณฑ์ที่ตรวจสอบ
-            </h2>
-
-            <p className="mt-1 text-sm font-semibold text-slate-300">
-              จำนวน {assets.length} รายการ
-            </p>
-          </div>
-        </div>
-
-        <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs font-semibold text-slate-300 sm:text-sm">
-          <span>📋 รายละเอียดการตรวจสอบครุภัณฑ์</span>
-
-          <span className="whitespace-nowrap text-slate-400">
-            ↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด
-          </span>
-        </div>
-
-        <div className="w-full min-w-0 overflow-x-auto overflow-y-visible rounded-2xl border border-slate-300 bg-slate-100 shadow-inner [scrollbar-color:#64748b_#e2e8f0] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-thumb]:hover:bg-slate-600">
-          <table className="min-w-[2200px] w-full table-fixed border-collapse text-[10px] leading-tight sm:min-w-[2400px] sm:text-[10px] lg:min-w-[2600px] lg:text-[11px]">
-            <colgroup>
-              <col style={{ width: "3%" }} />
-              <col style={{ width: "6%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "7%" }} />
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "4%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "10%" }} />
-            </colgroup>
-
-            <thead>
-              <tr>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ลำดับ
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  รหัส GFMIS
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  รหัสครุภัณฑ์
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ผู้รับผิดชอบ
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  รายการ
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  หน่วย
-                </th>
-
-                <th colSpan={2} className={tableHeaderClass}>
-                  <div className="leading-tight">
-                    รายการเคลื่อนไหวระหว่างปีงบประมาณ
-                  </div>
-
-                  <div className="mt-1 text-[9px] font-bold leading-tight sm:text-[10px] lg:text-[11px]">
-                    พ.ศ. {getPreviousFiscalYear(inspectionStartDate)}
-                  </div>
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  <div>ยอดคงเหลือตามบัญชี</div>
-
-                  <div className="mt-1 text-[9px] font-bold sm:text-[10px] lg:text-[11px]">
-                    ณ วันที่{" "}
-                    <span className="font-extrabold">
-                      {formatThaiShortDate(accountEndDate)}
-                    </span>
-                  </div>
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  จำนวนที่ตรวจนับได้
-                </th>
-
-                <th colSpan={2} className={tableHeaderClass}>
-                  <div>ผลการตรวจนับ</div>
-
-                  <div className="mt-1 text-[9px] font-bold sm:text-[10px] lg:text-[11px]">
-                    ถูกต้องตรงกับยอดคงเหลือตามบัญชี
-                  </div>
-                </th>
-
-                <th colSpan={4} className={tableHeaderClass}>
-                  สภาพครุภัณฑ์ที่ตรวจนับ
-                </th>
-
-                <th rowSpan={2} className={tableHeaderClass}>
-                  หมายเหตุ
-                </th>
-              </tr>
-
-              <tr>
-                <th className={tableHeaderClass}>รับ</th>
-                <th className={tableHeaderClass}>จ่าย</th>
-                <th className={tableHeaderClass}>ถูกต้อง</th>
-                <th className={tableHeaderClass}>ไม่ถูกต้อง</th>
-                <th className={tableHeaderClass}>ใช้งาน</th>
-                <th className={tableHeaderClass}>ชำรุด</th>
-                <th className={tableHeaderClass}>เสื่อมสภาพ</th>
-                <th className={tableHeaderClass}>
-                  ไม่สามารถใช้งาน
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {assets.map((asset, index) => {
-                const row = rows[index];
-                const officer = asset.officer;
-
-                return (
-                  <tr
-                    key={asset.id}
-                    className="transition hover:bg-emerald-50"
-                  >
-                    <td className={tableBodyClass}>
-                      {index + 1}
-                    </td>
-
-                    <td className={tableBodyClass}>
-                      {asset.governmentAssetNo || "-"}
-                    </td>
-
-                    <td className={tableBodyClass}>
-                      {asset.officeAssetNo || "-"}
-                    </td>
-
-                    <td className="border border-black px-0.5 py-1.5 text-center whitespace-normal break-words align-middle font-semibold text-slate-900">
-                      {officer
-                        ? `${officer.firstName} ${officer.lastName}`
-                        : "-"}
-                    </td>
-
-                    <td className="border border-black px-0.5 py-1.5 align-middle whitespace-normal break-words font-semibold text-slate-900">
-                      {asset.name}
-
-                      {(asset.brand || asset.model) && (
-                        <span className="ml-1 break-words text-[8px] font-medium text-slate-500 sm:text-[8px] lg:text-[9px]">
-                          ({asset.brand || ""}
-                          {asset.brand && asset.model ? " / " : ""}
-                          {asset.model || ""})
-                        </span>
-                      )}
-                    </td>
-
-                    <td className={tableBodyClass}>
-                      {getCategoryUnit(asset.category)}
-                    </td>
-
-                    <td className={tableDashClass}>-</td>
-
-                    <td className={tableDashClass}>-</td>
-
-                    <td className={tableDashClass}>-</td>
-
-                    <td className="min-w-0 border border-black px-0.5 py-1.5 align-middle">
-                      <input
-                        type="number"
-                        min="0"
-                        value={row.countedQty}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "countedQty",
-                            e.target.value
-                          )
-                        }
-                        className="block min-w-0 w-full rounded-md border border-slate-300 bg-white px-0.5 py-1 text-center text-[10px] font-bold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:rounded-lg sm:p-1 sm:text-xs lg:text-xs"
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`accuracy-${asset.id}`}
-                        checked={row.accuracy === "CORRECT"}
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "accuracy",
-                            "CORRECT"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`accuracy-${asset.id}`}
-                        checked={row.accuracy === "INCORRECT"}
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "accuracy",
-                            "INCORRECT"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        checked={row.status === "IN_USE"}
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "status",
-                            "IN_USE"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        checked={row.status === "DAMAGED"}
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "status",
-                            "DAMAGED"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        checked={
-                          row.status === "DETERIORATED"
-                        }
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "status",
-                            "DETERIORATED"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className={radioCellClass}>
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        checked={row.status === "UNUSABLE"}
-                        onChange={() =>
-                          updateRow(
-                            index,
-                            "status",
-                            "UNUSABLE"
-                          )
-                        }
-                        className={radioClass}
-                      />
-                    </td>
-
-                    <td className="min-w-0 border border-black px-0.5 py-1.5 align-middle">
-                      <input
-                        type="text"
-                        value={row.remark}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "remark",
-                            e.target.value
-                          )
-                        }
-                        placeholder="หมายเหตุ"
-                        className="block min-w-0 w-full rounded-md border border-slate-300 bg-white px-0.5 py-1 text-[10px] font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:rounded-lg sm:p-1 sm:text-xs lg:text-xs"
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {assets.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={17}
-                    className="border border-black px-4 py-10 text-center font-bold text-slate-500"
-                  >
-                    ไม่พบรายการครุภัณฑ์
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="w-full rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-3 text-white shadow-xl sm:p-5 lg:p-6">
-        <div className="mb-5 border-b border-slate-700 pb-4">
-          <h2 className="text-xl font-extrabold !text-white sm:text-2xl">
-            ผู้ตรวจสอบ
-          </h2>
-
-          <p className="mt-1 text-sm font-semibold text-slate-300">
-            เลือกรายชื่อจาก Officer ของทุกกลุ่มงาน
-          </p>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {inspectorIds.map((inspectorId, index) => {
-            const selectedOfficer = getOfficer(inspectorId);
-
-            return (
-              <div
-                key={index}
-                className="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
-              >
-                <div className="mb-3 text-base font-extrabold text-white">
-                  ผู้ตรวจสอบคนที่ {index + 1}
-                </div>
-
-                <label className="mb-2 block text-sm font-bold text-slate-300">
-                  ลงชื่อ
-                </label>
-
-                <select
-                  value={inspectorId}
-                  onChange={(e) =>
-                    updateInspector(index, e.target.value)
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                >
-                  <option value="">
-                    -- เลือกผู้ตรวจสอบ --
-                  </option>
-
-                  {officers.map((officer) => (
-                    <option
-                      key={officer.id}
-                      value={officer.id}
-                      disabled={isOfficerSelected(
-                        officer.id,
-                        index
-                      )}
-                    >
-                      {officer.firstName} {officer.lastName}
-                      {officer.department
-                        ? ` — ${officer.department.name}`
-                        : ""}
-                      {officer.section
-                        ? ` / ${officer.section.name}`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="mt-3">
-                  <label className="mb-2 block text-sm font-bold text-slate-300">
-                    ตำแหน่ง
-                  </label>
-
-                  <input
-                    type="text"
-                    readOnly
-                    value={selectedOfficer?.position || ""}
-                    placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
-                    className="w-full rounded-lg border border-slate-300 bg-slate-100 p-2.5 font-semibold text-slate-900 outline-none placeholder:text-slate-400"
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex flex-col justify-end gap-3 pt-1 sm:flex-row">
-        <button
-          type="button"
-          className="rounded-xl bg-slate-700 px-8 py-3 text-lg font-extrabold text-white shadow-lg transition hover:bg-slate-800"
-          onClick={() => {
-            window.history.back();
-          }}
+      <div>
+        <label
+          className="
+            mb-2
+            block
+            text-base
+            font-extrabold
+            text-white
+          "
         >
-          ยกเลิก
-        </button>
+          ตรวจสอบแล้วเสร็จวันที่
+        </label>
 
-        <button
-          type="button"
-          className="rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-500 px-8 py-3 text-lg font-extrabold text-white shadow-lg transition hover:scale-105"
-          onClick={() => {
-            alert(
-              "ขั้นตอนนี้เป็นการเตรียมแบบฟอร์ม ยังไม่ได้บันทึกข้อมูล"
-            );
-          }}
-        >
-          💾 บันทึกผลการตรวจสอบ
-        </button>
+        <div className="relative w-full">
+          <div
+            className="
+              flex
+              min-h-[46px]
+              w-full
+              items-center
+              justify-between
+              rounded-lg
+              border
+              border-slate-300
+              bg-white
+              px-3
+              py-2.5
+              font-semibold
+              text-slate-900
+              transition
+            "
+          >
+            <span>
+              {formatThaiDateDisplay(inspectionEndDate)}
+            </span>
+
+            <span
+              className="
+                ml-3
+                text-xl
+                leading-none
+              "
+              aria-hidden="true"
+            >
+              📅
+            </span>
+          </div>
+
+          <input
+            type="date"
+            value={inspectionEndDate}
+            onChange={(e) =>
+              setInspectionEndDate(e.target.value)
+            }
+            required
+            aria-label="เลือกวันตรวจสอบแล้วเสร็จ"
+            className="
+              absolute
+              inset-0
+              h-full
+              w-full
+              cursor-pointer
+              opacity-0
+            "
+          />
+        </div>
       </div>
     </div>
-  );
+  </div>
+
+  <div
+    className="
+      w-full
+      rounded-2xl
+      border
+      border-slate-700
+      bg-gradient-to-br
+      from-slate-950
+      via-slate-900
+      to-slate-800
+      p-2
+      text-white
+      shadow-xl
+      sm:p-3
+      lg:p-4
+    "
+  >
+    <div
+      className="
+        mb-4
+        flex
+        flex-col
+        gap-2
+        border-b
+        border-slate-700
+        pb-3
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+      "
+    >
+      <div>
+        <h2
+          className="
+            text-xl
+            font-extrabold
+            !text-white
+            sm:text-2xl
+          "
+        >
+          รายการครุภัณฑ์ที่ตรวจสอบ
+        </h2>
+
+        <p
+          className="
+            mt-1
+            text-sm
+            font-semibold
+            text-slate-300
+          "
+        >
+          จำนวน {assets.length} รายการ
+        </p>
+      </div>
+    </div>
+
+    <div
+      className="
+        mb-2
+        flex
+        items-center
+        justify-between
+        gap-3
+        rounded-xl
+        border
+        border-slate-700
+        bg-slate-900/70
+        px-3
+        py-2
+        text-xs
+        font-semibold
+        text-slate-300
+        sm:text-sm
+      "
+    >
+      <span>📋 รายละเอียดการตรวจสอบครุภัณฑ์</span>
+
+      <span className="whitespace-nowrap text-slate-400">
+        ↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด
+      </span>
+    </div>
+
+    <div
+      className="
+        w-full
+        min-w-0
+        overflow-x-auto
+        overflow-y-visible
+        rounded-2xl
+        border
+        border-slate-300
+        bg-slate-100
+        shadow-inner
+        [scrollbar-color:#64748b_#e2e8f0]
+        [scrollbar-width:thin]
+        [&::-webkit-scrollbar]:h-3
+        [&::-webkit-scrollbar-track]:rounded-full
+        [&::-webkit-scrollbar-track]:bg-slate-200
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        [&::-webkit-scrollbar-thumb]:bg-slate-500
+        [&::-webkit-scrollbar-thumb]:hover:bg-slate-600
+      "
+    >
+      <table
+        className="
+          min-w-[2200px]
+          w-full
+          table-fixed
+          border-collapse
+          text-[10px]
+          leading-tight
+          sm:min-w-[2400px]
+          sm:text-[10px]
+          lg:min-w-[2600px]
+          lg:text-[11px]
+        "
+      >
+        <colgroup>
+          <col style={{ width: "3%" }} />
+          <col style={{ width: "6%" }} />
+          <col style={{ width: "8%" }} />
+          <col style={{ width: "12%" }} />
+          <col style={{ width: "16%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "8%" }} />
+          <col style={{ width: "7%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "4%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "10%" }} />
+        </colgroup>
+
+        <thead>
+          <tr>
+            {[
+              "ลำดับ",
+              "รหัส GFMIS",
+              "รหัสครุภัณฑ์",
+              "ผู้รับผิดชอบ",
+              "รายการ",
+              "หน่วย",
+            ].map((title) => (
+              <th
+                key={title}
+                rowSpan={2}
+                className="
+                  border
+                  border-black
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  px-0.5
+                  py-2
+                  text-center
+                  whitespace-normal
+                  break-words
+                  align-middle
+                  font-extrabold
+                  !text-white
+                "
+              >
+                {title}
+              </th>
+            ))}
+
+            <th
+              colSpan={2}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-2
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              <div className="leading-tight">
+                รายการเคลื่อนไหวระหว่างปีงบประมาณ
+              </div>
+
+              <div className="mt-1 font-extrabold leading-tight">
+                พ.ศ. {getPreviousFiscalYear(inspectionStartDate)}
+              </div>
+            </th>
+
+            <th
+              rowSpan={2}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-0.5
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              <div>ยอดคงเหลือตามบัญชี</div>
+
+              <div className="mt-1 font-extrabold">
+                ณ วันที่{" "}
+                <span className="font-extrabold">
+                  {formatThaiShortDate(accountEndDate)}
+                </span>
+              </div>
+            </th>
+
+            <th
+              rowSpan={2}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-0.5
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              จำนวนที่ตรวจนับได้
+            </th>
+
+            <th
+              colSpan={2}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-0.5
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              <div>ผลการตรวจนับ</div>
+
+              <div className="mt-1 font-extrabold leading-tight">
+                ถูกต้องตรงกับยอดคงเหลือตามบัญชี
+              </div>
+            </th>
+
+            <th
+              colSpan={4}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-0.5
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              สภาพครุภัณฑ์ที่ตรวจนับ
+            </th>
+
+            <th
+              rowSpan={2}
+              className="
+                border
+                border-black
+                bg-gradient-to-r
+                from-slate-800
+                to-slate-700
+                px-0.5
+                py-2
+                text-center
+                whitespace-normal
+                break-words
+                align-middle
+                font-extrabold
+                !text-white
+              "
+            >
+              หมายเหตุ
+            </th>
+          </tr>
+
+          <tr>
+            {[
+              "รับ",
+              "จ่าย",
+              "ถูกต้อง",
+              "ไม่ถูกต้อง",
+              "ใช้งาน",
+              "ชำรุด",
+              "เสื่อมสภาพ",
+              "ไม่สามารถใช้งาน",
+            ].map((title) => (
+              <th
+                key={title}
+                className="
+                  border
+                  border-black
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  px-0.5
+                  py-1.5
+                  text-center
+                  whitespace-normal
+                  break-words
+                  align-middle
+                  font-extrabold
+                  !text-white
+                "
+              >
+                {title}
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+          {assets.map((asset, index) => {
+            const row = rows[index];
+            const officer = asset.officer;
+
+            return (
+              <tr
+                key={asset.id}
+                className="transition hover:bg-emerald-50"
+              >
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-bold
+                    text-slate-900
+                  "
+                >
+                  {index + 1}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-semibold
+                    text-slate-900
+                  "
+                >
+                  {asset.governmentAssetNo || "-"}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-semibold
+                    text-slate-900
+                  "
+                >
+                  {asset.officeAssetNo || "-"}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-normal
+                    break-words
+                    align-middle
+                    font-semibold
+                    text-slate-900
+                  "
+                >
+                  {officer
+                    ? `${officer.firstName} ${officer.lastName}`
+                    : "-"}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    align-middle
+                    whitespace-normal
+                    break-words
+                    font-semibold
+                    text-slate-900
+                  "
+                >
+                  {asset.name}
+
+                  {(asset.brand || asset.model) && (
+                    <span
+                      className="
+                        ml-1
+                        break-words
+                        text-[8px]
+                        font-medium
+                        text-slate-500
+                        sm:text-[8px]
+                        lg:text-[9px]
+                      "
+                    >
+                      (
+                      {asset.brand || ""}
+                      {asset.brand && asset.model
+                        ? " / "
+                        : ""}
+                      {asset.model || ""}
+                      )
+                    </span>
+                  )}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-semibold
+                    text-slate-900
+                  "
+                >
+                  {getCategoryUnit(asset.category)}
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-bold
+                    text-slate-500
+                  "
+                >
+                  -
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-bold
+                    text-slate-500
+                  "
+                >
+                  -
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                    font-bold
+                    text-slate-500
+                  "
+                >
+                  -
+                </td>
+
+                <td
+                  className="
+                    min-w-0
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    align-middle
+                  "
+                >
+                  <input
+                    type="number"
+                    min="0"
+                    value={row.countedQty}
+                    onChange={(e) =>
+                      updateRow(
+                        index,
+                        "countedQty",
+                        e.target.value
+                      )
+                    }
+                    className="
+                      block
+                      min-w-0
+                      w-full
+                      rounded-md
+                      border
+                      border-slate-300
+                      bg-white
+                      px-0.5
+                      py-1
+                      text-center
+                      text-[10px]
+                      font-bold
+                      text-slate-900
+                      outline-none
+                      focus:border-cyan-500
+                      focus:ring-2
+                      focus:ring-cyan-100
+                      sm:rounded-lg
+                      sm:p-1
+                      sm:text-xs
+                      lg:text-xs
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`accuracy-${asset.id}`}
+                    checked={
+                      row.accuracy === "CORRECT"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "accuracy",
+                        "CORRECT"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`accuracy-${asset.id}`}
+                    checked={
+                      row.accuracy === "INCORRECT"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "accuracy",
+                        "INCORRECT"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`status-${asset.id}`}
+                    checked={
+                      row.status === "IN_USE"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "status",
+                        "IN_USE"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`status-${asset.id}`}
+                    checked={
+                      row.status === "DAMAGED"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "status",
+                        "DAMAGED"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`status-${asset.id}`}
+                    checked={
+                      row.status === "DETERIORATED"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "status",
+                        "DETERIORATED"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    text-center
+                    whitespace-nowrap
+                    align-middle
+                  "
+                >
+                  <input
+                    type="radio"
+                    name={`status-${asset.id}`}
+                    checked={
+                      row.status === "UNUSABLE"
+                    }
+                    onChange={() =>
+                      updateRow(
+                        index,
+                        "status",
+                        "UNUSABLE"
+                      )
+                    }
+                    className="
+                      h-3
+                      w-3
+                      cursor-pointer
+                      sm:h-3.5
+                      sm:w-3.5
+                      lg:h-4
+                      lg:w-4
+                    "
+                  />
+                </td>
+
+                <td
+                  className="
+                    min-w-0
+                    border
+                    border-black
+                    px-0.5
+                    py-1.5
+                    align-middle
+                  "
+                >
+                  <input
+                    type="text"
+                    value={row.remark}
+                    onChange={(e) =>
+                      updateRow(
+                        index,
+                        "remark",
+                        e.target.value
+                      )
+                    }
+                    placeholder="หมายเหตุ"
+                    className="
+                      block
+                      min-w-0
+                      w-full
+                      rounded-md
+                      border
+                      border-slate-300
+                      bg-white
+                      px-0.5
+                      py-1
+                      text-[10px]
+                      font-semibold
+                      text-slate-900
+                      outline-none
+                      placeholder:text-slate-400
+                      focus:border-cyan-500
+                      focus:ring-2
+                      focus:ring-cyan-100
+                      sm:rounded-lg
+                      sm:p-1
+                      sm:text-xs
+                      lg:text-xs
+                    "
+                  />
+                </td>
+              </tr>
+            );
+          })}
+
+          {assets.length === 0 && (
+            <tr>
+              <td
+                colSpan={17}
+                className="
+                  border
+                  border-black
+                  px-4
+                  py-10
+                  text-center
+                  font-bold
+                  text-slate-500
+                "
+              >
+                ไม่พบรายการครุภัณฑ์
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div
+    className="
+      w-full
+      rounded-2xl
+      border
+      border-slate-700
+      bg-gradient-to-br
+      from-slate-950
+      via-slate-900
+      to-slate-800
+      p-3
+      text-white
+      shadow-xl
+      sm:p-5
+      lg:p-6
+    "
+  >
+    <div
+      className="
+        mb-5
+        border-b
+        border-slate-700
+        pb-4
+      "
+    >
+      <h2
+        className="
+          text-xl
+          font-extrabold
+          !text-white
+          sm:text-2xl
+        "
+      >
+        ผู้ตรวจสอบ
+      </h2>
+
+      <p
+        className="
+          mt-1
+          text-sm
+          font-semibold
+          text-slate-300
+        "
+      >
+        เลือกรายชื่อจาก Officer ของทุกกลุ่มงาน
+      </p>
+    </div>
+
+    <div className="grid gap-4 lg:grid-cols-2">
+      {inspectorIds.map((inspectorId, index) => {
+        const selectedOfficer = getOfficer(inspectorId);
+
+        return (
+          <div
+            key={index}
+            className="
+              rounded-xl
+              border
+              border-slate-700
+              bg-slate-900/70
+              p-4
+            "
+          >
+            <div
+              className="
+                mb-3
+                text-base
+                font-extrabold
+                text-white
+              "
+            >
+              ผู้ตรวจสอบคนที่ {index + 1}
+            </div>
+
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-bold
+                text-slate-300
+              "
+            >
+              ลงชื่อ
+            </label>
+
+            <select
+              value={inspectorId}
+              onChange={(e) =>
+                updateInspector(
+                  index,
+                  e.target.value
+                )
+              }
+              className="
+                w-full
+                rounded-lg
+                border
+                border-slate-300
+                bg-white
+                p-2.5
+                font-semibold
+                text-slate-900
+                outline-none
+                focus:border-cyan-500
+                focus:ring-2
+                focus:ring-cyan-100
+              "
+            >
+              <option value="">
+                -- เลือกผู้ตรวจสอบ --
+              </option>
+
+              {officers.map((officer) => (
+                <option
+                  key={officer.id}
+                  value={officer.id}
+                  disabled={isOfficerSelected(
+                    officer.id,
+                    index
+                  )}
+                >
+                  {officer.firstName}{" "}
+                  {officer.lastName}
+                  {officer.department
+                    ? ` — ${officer.department.name}`
+                    : ""}
+                  {officer.section
+                    ? ` / ${officer.section.name}`
+                    : ""}
+                </option>
+              ))}
+            </select>
+
+            <div className="mt-3">
+              <label
+                className="
+                  mb-2
+                  block
+                  text-sm
+                  font-bold
+                  text-slate-300
+                "
+              >
+                ตำแหน่ง
+              </label>
+
+              <input
+                type="text"
+                readOnly
+                value={selectedOfficer?.position || ""}
+                placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
+                className="
+                  w-full
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-slate-100
+                  p-2.5
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  placeholder:text-slate-400
+                "
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <div
+    className="
+      flex
+      flex-col
+      justify-end
+      gap-3
+      pt-1
+      sm:flex-row
+    "
+  >
+    <button
+      type="button"
+      className="
+        rounded-xl
+        bg-slate-700
+        px-8
+        py-3
+        text-lg
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:bg-slate-800
+      "
+      onClick={() => {
+        window.history.back();
+      }}
+    >
+      ยกเลิก
+    </button>
+
+    <button
+      type="button"
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-emerald-600
+        via-green-500
+        to-emerald-500
+        px-8
+        py-3
+        text-lg
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:scale-105
+      "
+      onClick={() => {
+        alert(
+          "ขั้นตอนนี้เป็นการเตรียมแบบฟอร์ม ยังไม่ได้บันทึกข้อมูล"
+        );
+      }}
+    >
+      💾 บันทึกผลการตรวจสอบ
+    </button>
+  </div>
+</div>
+
+);
 }
