@@ -688,22 +688,22 @@ export default function InspectionForm({
           >
             <colgroup>
               <col style={{ width: "3%" }} />
-              <col style={{ width: "5.5%" }} />
-              <col style={{ width: "6%" }} />
-              <col style={{ width: "8%" }} />
-              <col style={{ width: "10.5%" }} />
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "11.5%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "3%" }} />
+              <col style={{ width: "2.5%" }} />
+              <col style={{ width: "2.5%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "6.5%" }} />
               <col style={{ width: "3.5%" }} />
-              <col style={{ width: "3%" }} />
-              <col style={{ width: "3%" }} />
-              <col style={{ width: "6%" }} />
-              <col style={{ width: "6.5%" }} />
-              <col style={{ width: "4.5%" }} />
-              <col style={{ width: "6.5%" }} />
-              <col style={{ width: "4.5%" }} />
-              <col style={{ width: "4.5%" }} />
-              <col style={{ width: "6%" }} />
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "3.5%" }} />
+              <col style={{ width: "3.5%" }} />
+              <col style={{ width: "5%" }} />
               <col style={{ width: "8%" }} />
-              <col style={{ width: "11%" }} />
+              <col style={{ width: "11.5%" }} />
             </colgroup>
 
             <thead>
@@ -1207,7 +1207,6 @@ export default function InspectionForm({
                         whitespace-nowrap
                         align-middle
                         whitespace-nowrap
-                        overflow-hidden
                         font-semibold
                         text-slate-900
                                               "
@@ -1225,7 +1224,6 @@ export default function InspectionForm({
                         whitespace-nowrap
                         align-middle
                         whitespace-nowrap
-                        overflow-hidden
                         font-semibold
                         text-slate-900
                                               "
@@ -1243,7 +1241,6 @@ export default function InspectionForm({
                         whitespace-nowrap
                         align-middle
                         whitespace-nowrap
-                        overflow-hidden
                         font-semibold
                         text-slate-900
                                               "
@@ -1261,7 +1258,6 @@ export default function InspectionForm({
                         py-1.5
                         align-middle
                         whitespace-nowrap
-                        overflow-hidden
                         font-semibold
                         text-slate-900
                                               "
@@ -1272,7 +1268,8 @@ export default function InspectionForm({
                         <span
                           className="
                             ml-1
-                                                        text-[8px]
+                            whitespace-nowrap
+                            text-[8px]
                             font-medium
                             text-slate-500
                                                         sm:text-[8px]
@@ -1302,7 +1299,6 @@ export default function InspectionForm({
                         whitespace-nowrap
                         align-middle
                         whitespace-nowrap
-                        overflow-hidden
                         font-semibold
                         text-slate-900
                                               "
