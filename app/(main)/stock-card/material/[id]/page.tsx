@@ -469,6 +469,7 @@ export default async function StockCardPage({ params }: Props) {
             rows={stockRows}
           />
 
+          {/* ปุ่มกลับ - ปรับให้เป็นขนาดมาตรฐานเดียวกับหน้าอื่น */}
           <Link
             href={`/stock-card/${material.category}`}
             className="
@@ -477,7 +478,7 @@ export default async function StockCardPage({ params }: Props) {
               bg-gradient-to-r
               from-emerald-600
               to-green-500
-              px-3
+              px-4
               py-2
               text-center
               text-sm
@@ -486,9 +487,6 @@ export default async function StockCardPage({ params }: Props) {
               shadow-lg
               transition
               hover:scale-105
-              sm:px-5
-              sm:py-3
-              sm:text-lg
             "
           >
             ← กลับ
@@ -985,8 +983,6 @@ export default async function StockCardPage({ params }: Props) {
           </table>
         </div>
       </div>
-
-
     </div>
   );
 }
