@@ -661,13 +661,13 @@ return ( <div className="w-full space-y-5"> <div
           <col style={{ width: "5%" }} />
           <col style={{ width: "8%" }} />
           <col style={{ width: "7%" }} />
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "4%" }} />
+          <col style={{ width: "5%" }} />
+          <col style={{ width: "5%" }} />
           <col style={{ width: "4%" }} />
           <col style={{ width: "4%" }} />
           <col style={{ width: "5%" }} />
           <col style={{ width: "5%" }} />
-          <col style={{ width: "10%" }} />
+          <col style={{ width: "8%" }} />
         </colgroup>
 
         <thead>
