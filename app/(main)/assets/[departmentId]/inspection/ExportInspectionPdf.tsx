@@ -239,34 +239,23 @@ return categoryUnit[category] || "รายการ";
 ผู้ตรวจสอบ
 ========================================================= */
 
-function getOfficer(
-officerId: string,
-officers: Officer[]
-) {
+function getOfficer(officerId: string, officers: Officer[]) {
 if (!officerId) {
 return undefined;
 }
 
-return officers.find(
-(officer) => String(officer.id) === officerId
-);
+return officers.find((officer) => String(officer.id) === officerId);
 }
 
 /* =========================================================
 ผลการตรวจสอบ
 ========================================================= */
 
-function getStatusChecked(
-row: InspectionRow,
-status: string
-) {
+function getStatusChecked(row: InspectionRow, status: string) {
 return row.status === status ? "✓" : "";
 }
 
-function getAccuracyChecked(
-row: InspectionRow,
-accuracy: string
-) {
+function getAccuracyChecked(row: InspectionRow, accuracy: string) {
 return row.accuracy === accuracy ? "✓" : "";
 }
 
@@ -359,10 +348,7 @@ try {
       logging: false,
     });
 
-    const imageData = canvas.toDataURL(
-      "image/png",
-      1.0
-    );
+    const imageData = canvas.toDataURL("image/png", 1.0);
 
     if (i > 0) {
       pdf.addPage();
@@ -388,10 +374,7 @@ try {
     `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`
   );
 } catch (error) {
-  console.error(
-    "ไม่สามารถสร้าง PDF ได้:",
-    error
-  );
+  console.error("ไม่สามารถสร้าง PDF ได้:", error);
 
   alert(
     "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
@@ -413,10 +396,7 @@ return (
   <button
     type="button"
     onClick={handleExportPdf}
-    disabled={
-      isExporting ||
-      assets.length === 0
-    }
+    disabled={isExporting || assets.length === 0}
     className="
       rounded-xl
       bg-gradient-to-r
@@ -442,7 +422,7 @@ return (
   </button>
 
   {/* =====================================================
-      พื้นที่สร้าง PDF
+  พื้นที่สร้าง PDF
   ===================================================== */}
 
   <div
@@ -494,7 +474,7 @@ return (
             }}
           >
             {/* =================================================
-                HEADER
+            HEADER
             ================================================= */}
 
             <div
@@ -554,7 +534,7 @@ return (
             </div>
 
             {/* =================================================
-                TABLE
+            TABLE
             ================================================= */}
 
             <table
@@ -593,68 +573,45 @@ return (
 
               <thead>
                 <tr>
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       ลำดับ
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       รหัส GFMIS
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       รหัสครุภัณฑ์
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       ผู้รับผิดชอบ
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       รายการ
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       หน่วย
                     </span>
                   </th>
 
-                  {/* =================================================
-                      ยอดคงเหลือตามบัญชีครั้งที่ 1
-                  ================================================= */}
+                  {/* ยอดคงเหลือตามบัญชีครั้งที่ 1 */}
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <div
                       style={{
                         fontFamily:
@@ -721,14 +678,9 @@ return (
                     </div>
                   </th>
 
-                  {/* =================================================
-                      ยอดคงเหลือตามบัญชีครั้งที่ 2
-                  ================================================= */}
+                  {/* ยอดคงเหลือตามบัญชีครั้งที่ 2 */}
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <div
                       style={{
                         fontFamily:
@@ -762,10 +714,7 @@ return (
                     </div>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       จำนวนที่ตรวจนับได้
                     </span>
@@ -813,10 +762,7 @@ return (
                     </span>
                   </th>
 
-                  <th
-                    rowSpan={2}
-                    style={headerStyle}
-                  >
+                  <th rowSpan={2} style={headerStyle}>
                     <span style={headerTextStyle}>
                       หมายเหตุ
                     </span>
@@ -895,11 +841,7 @@ return (
 
                     return (
                       <tr key={asset.id}>
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1010,11 +952,7 @@ return (
                           </span>
                         </td>
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1028,11 +966,7 @@ return (
 
                         {/* ยอดคงเหลือตามบัญชีครั้งที่ 1 */}
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1044,11 +978,7 @@ return (
 
                         {/* รับ */}
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1060,11 +990,7 @@ return (
 
                         {/* จ่าย */}
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1076,11 +1002,7 @@ return (
 
                         {/* ยอดคงเหลือตามบัญชีครั้งที่ 2 */}
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1092,11 +1014,7 @@ return (
 
                         {/* จำนวนที่ตรวจนับได้ */}
 
-                        <td
-                          style={
-                            bodyCellStyle
-                          }
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={
                               dataTextStyle
@@ -1108,11 +1026,7 @@ return (
 
                         {/* ถูกต้อง */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1127,11 +1041,7 @@ return (
 
                         {/* ไม่ถูกต้อง */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1146,11 +1056,7 @@ return (
 
                         {/* ใช้งาน */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1165,11 +1071,7 @@ return (
 
                         {/* ชำรุด */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1184,11 +1086,7 @@ return (
 
                         {/* เสื่อมสภาพ */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1203,11 +1101,7 @@ return (
 
                         {/* ไม่สามารถใช้งาน */}
 
-                        <td
-                          style={
-                            checkCellStyle
-                          }
-                        >
+                        <td style={checkCellStyle}>
                           <span
                             style={
                               checkTextStyle
@@ -1251,7 +1145,7 @@ return (
             </table>
 
             {/* =================================================
-                SIGNATURE — ผู้ตรวจสอบ 5 คน
+            SIGNATURE — ผู้ตรวจสอบ 5 คน
             ================================================= */}
 
             <div
@@ -1341,7 +1235,7 @@ return (
             </div>
 
             {/* =================================================
-                PAGE NUMBER
+            PAGE NUMBER
             ================================================= */}
 
             <div
