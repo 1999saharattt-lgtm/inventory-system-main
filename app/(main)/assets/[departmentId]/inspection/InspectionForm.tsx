@@ -239,11 +239,13 @@ useState(getCurrentDate());
 const [inspectionEndDate, setInspectionEndDate] =
 useState(getCurrentDate());
 
-const [accountStartDate, setAccountStartDate] =
-useState(getOneYearBefore(getCurrentDate()));
+const [accountStartDate, setAccountStartDate] = useState(
+getOneYearBefore(getCurrentDate())
+);
 
-const [accountEndDate, setAccountEndDate] =
-useState(getOneDayBefore(getCurrentDate()));
+const [accountEndDate, setAccountEndDate] = useState(
+getOneDayBefore(getCurrentDate())
+);
 
 const [movementFiscalYear, setMovementFiscalYear] = useState(
 getFiscalYear(getCurrentDate())
@@ -285,7 +287,9 @@ return next;
 }
 
 function getOfficer(id: string) {
-return officers.find((officer) => String(officer.id) === id);
+return officers.find(
+(officer) => String(officer.id) === id
+);
 }
 
 function isOfficerSelected(
@@ -300,7 +304,9 @@ index !== currentIndex && id === officerId
 
 async function handleSave() {
 if (!inspectionStartDate || !inspectionEndDate) {
-alert("กรุณาระบุวันที่เริ่มและวันที่ตรวจสอบแล้วเสร็จ");
+alert(
+"กรุณาระบุวันที่เริ่มและวันที่ตรวจสอบแล้วเสร็จ"
+);
 return;
 }
 
@@ -313,24 +319,35 @@ if (!startDate || !endDate) {
 }
 
 if (endDate < startDate) {
-  alert("วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ");
+  alert(
+    "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ"
+  );
   return;
 }
 
 if (inspectorIds.some((id) => !id)) {
-  alert("กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน");
+  alert(
+    "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
+  );
   return;
 }
 
 const uniqueInspectorIds = new Set(inspectorIds);
 
-if (uniqueInspectorIds.size !== inspectorIds.length) {
-  alert("ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้");
+if (
+  uniqueInspectorIds.size !==
+  inspectorIds.length
+) {
+  alert(
+    "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้"
+  );
   return;
 }
 
 if (rows.length === 0) {
-  alert("ไม่พบรายการครุภัณฑ์สำหรับตรวจสอบ");
+  alert(
+    "ไม่พบรายการครุภัณฑ์สำหรับตรวจสอบ"
+  );
   return;
 }
 
@@ -341,17 +358,23 @@ for (const row of rows) {
     !Number.isInteger(countedQty) ||
     countedQty < 0
   ) {
-    alert("จำนวนที่ตรวจนับต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป");
+    alert(
+      "จำนวนที่ตรวจนับต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป"
+    );
     return;
   }
 
   if (!row.accuracy) {
-    alert("กรุณาระบุผลการตรวจสอบยอดคงเหลือให้ครบทุกรายการ");
+    alert(
+      "กรุณาระบุผลการตรวจสอบยอดคงเหลือให้ครบทุกรายการ"
+    );
     return;
   }
 
   if (!row.status) {
-    alert("กรุณาระบุสถานะครุภัณฑ์ให้ครบทุกรายการ");
+    alert(
+      "กรุณาระบุสถานะครุภัณฑ์ให้ครบทุกรายการ"
+    );
     return;
   }
 }
@@ -359,29 +382,35 @@ for (const row of rows) {
 try {
   setIsSaving(true);
 
-  const response = await fetch("/api/assets/inspection", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      departmentId: department.id,
-      inspectionStartDate,
-      inspectionEndDate,
-      inspectorIds: inspectorIds.map(Number),
-      rows,
-    }),
-  });
+  const response = await fetch(
+    "/api/assets/inspection",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        departmentId: department.id,
+        inspectionStartDate,
+        inspectionEndDate,
+        inspectorIds: inspectorIds.map(Number),
+        rows,
+      }),
+    }
+  );
 
   const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      data?.error || "ไม่สามารถบันทึกข้อมูลได้"
+      data?.error ||
+        "ไม่สามารถบันทึกข้อมูลได้"
     );
   }
 
-  alert("บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว");
+  alert(
+    "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
+  );
 } catch (error) {
   console.error(error);
 
@@ -412,7 +441,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
 
         <div className="relative">
           <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
-            {formatThaiDate(inspectionStartDate)}
+            {formatThaiDate(
+              inspectionStartDate
+            )}
           </div>
 
           <input
@@ -422,8 +453,12 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
               const value = e.target.value;
 
               setInspectionStartDate(value);
-              setAccountStartDate(getOneYearBefore(value));
-              setMovementFiscalYear(getFiscalYear(value));
+              setAccountStartDate(
+                getOneYearBefore(value)
+              );
+              setMovementFiscalYear(
+                getFiscalYear(value)
+              );
             }}
             required
             aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
@@ -439,7 +474,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
 
         <div className="relative">
           <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
-            {formatThaiDate(inspectionEndDate)}
+            {formatThaiDate(
+              inspectionEndDate
+            )}
           </div>
 
           <input
@@ -449,7 +486,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
               const value = e.target.value;
 
               setInspectionEndDate(value);
-              setAccountEndDate(getOneDayBefore(value));
+              setAccountEndDate(
+                getOneDayBefore(value)
+              );
             }}
             required
             aria-label="วันที่ตรวจสอบแล้วเสร็จ"
@@ -582,7 +621,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
             </th>
 
             <th className="border border-slate-900 px-3 py-3 text-center font-extrabold">
-              ณ วันที่ {formatThaiDate(accountStartDate)}
+              ณ วันที่{" "}
+              {formatThaiDate(
+                accountStartDate
+              )}
             </th>
 
             <th className="border border-slate-900 px-3 py-3 text-center font-extrabold">
@@ -602,7 +644,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
             </th>
 
             <th className="border border-slate-900 px-3 py-3 text-center font-extrabold">
-              ณ วันที่ {formatThaiDate(accountEndDate)}
+              ณ วันที่{" "}
+              {formatThaiDate(
+                accountEndDate
+              )}
             </th>
           </tr>
         </thead>
@@ -610,7 +655,8 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
         <tbody>
           {assets.map((asset, index) => {
             const row = rows.find(
-              (item) => item.assetId === asset.id
+              (item) =>
+                item.assetId === asset.id
             );
 
             const inspector = asset.officer
@@ -631,11 +677,13 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {asset.governmentAssetNo || "-"}
+                  {asset.governmentAssetNo ||
+                    "-"}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {asset.officeAssetNo || "-"}
+                  {asset.officeAssetNo ||
+                    "-"}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
@@ -647,11 +695,14 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {asset.serialNumber || "-"}
+                  {asset.serialNumber ||
+                    "-"}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {getCategoryUnit(asset.category)}
+                  {getCategoryUnit(
+                    asset.category
+                  )}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3">
@@ -663,7 +714,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {getCategoryUnit(asset.category)}
+                  {getCategoryUnit(
+                    asset.category
+                  )}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
@@ -683,7 +736,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
-                  {getCategoryUnit(asset.category)}
+                  {getCategoryUnit(
+                    asset.category
+                  )}
                 </td>
 
                 <td className="border border-slate-300 px-3 py-3 text-center">
@@ -697,7 +752,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         value="CORRECT"
-                        checked={row?.accuracy === "CORRECT"}
+                        checked={
+                          row?.accuracy ===
+                          "CORRECT"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -707,7 +765,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>ถูกต้อง</span>
+                      <span>
+                        ถูกต้อง
+                      </span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -715,7 +775,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         value="INCORRECT"
-                        checked={row?.accuracy === "INCORRECT"}
+                        checked={
+                          row?.accuracy ===
+                          "INCORRECT"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -725,7 +788,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>ไม่ถูกต้อง</span>
+                      <span>
+                        ไม่ถูกต้อง
+                      </span>
                     </label>
                   </div>
                 </td>
@@ -737,7 +802,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`status-${asset.id}`}
                         value="IN_USE"
-                        checked={row?.status === "IN_USE"}
+                        checked={
+                          row?.status ===
+                          "IN_USE"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -747,7 +815,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>ใช้งาน</span>
+                      <span>
+                        ใช้งาน
+                      </span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -755,7 +825,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`status-${asset.id}`}
                         value="DAMAGED"
-                        checked={row?.status === "DAMAGED"}
+                        checked={
+                          row?.status ===
+                          "DAMAGED"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -765,7 +838,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>ชำรุด</span>
+                      <span>
+                        ชำรุด
+                      </span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -773,7 +848,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`status-${asset.id}`}
                         value="DETERIORATED"
-                        checked={row?.status === "DETERIORATED"}
+                        checked={
+                          row?.status ===
+                          "DETERIORATED"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -783,7 +861,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>เสื่อมสภาพ</span>
+                      <span>
+                        เสื่อมสภาพ
+                      </span>
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -791,7 +871,10 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         type="radio"
                         name={`status-${asset.id}`}
                         value="UNUSABLE"
-                        checked={row?.status === "UNUSABLE"}
+                        checked={
+                          row?.status ===
+                          "UNUSABLE"
+                        }
                         onChange={(e) =>
                           updateRow(
                             asset.id,
@@ -801,7 +884,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                         }
                         className="h-4 w-4"
                       />
-                      <span>ไม่สามารถใช้งาน</span>
+                      <span>
+                        ไม่สามารถใช้งาน
+                      </span>
                     </label>
                   </div>
                 </td>
@@ -809,7 +894,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
                 <td className="border border-slate-300 px-3 py-3">
                   <input
                     type="text"
-                    value={row?.remark ?? ""}
+                    value={
+                      row?.remark ?? ""
+                    }
                     onChange={(e) =>
                       updateRow(
                         asset.id,
@@ -835,59 +922,78 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
     </h2>
 
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      {inspectorIds.map((inspectorId, index) => (
-        <div key={index}>
-          <label className="mb-2 block text-lg font-extrabold">
-            ผู้ตรวจสอบคนที่ {index + 1}
-          </label>
+      {inspectorIds.map(
+        (inspectorId, index) => (
+          <div key={index}>
+            <label className="mb-2 block text-lg font-extrabold">
+              ผู้ตรวจสอบคนที่{" "}
+              {index + 1}
+            </label>
 
-          <select
-            value={inspectorId}
-            onChange={(e) =>
-              updateInspector(index, e.target.value)
-            }
-            className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-          >
-            <option value="">
-              -- เลือกผู้ตรวจสอบ --
-            </option>
-
-            {officers.map((officer) => {
-              const value = String(officer.id);
-
-              if (
-                isOfficerSelected(
-                  value,
-                  index
+            <select
+              value={inspectorId}
+              onChange={(e) =>
+                updateInspector(
+                  index,
+                  e.target.value
                 )
-              ) {
-                return null;
               }
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            >
+              <option value="">
+                -- เลือกผู้ตรวจสอบ --
+              </option>
 
-              return (
-                <option
-                  key={officer.id}
-                  value={value}
-                >
-                  {officer.firstName}{" "}
-                  {officer.lastName}
-                  {officer.position
-                    ? ` (${officer.position})`
-                    : ""}
-                </option>
-              );
-            })}
-          </select>
+              {officers.map(
+                (officer) => {
+                  const value =
+                    String(
+                      officer.id
+                    );
 
-          {inspectorId && (
-            <p className="mt-2 text-sm font-semibold text-slate-300">
-              ตำแหน่ง:{" "}
-              {getOfficer(inspectorId)?.position ||
-                "-"}
-            </p>
-          )}
-        </div>
-      ))}
+                  if (
+                    isOfficerSelected(
+                      value,
+                      index
+                    )
+                  ) {
+                    return null;
+                  }
+
+                  return (
+                    <option
+                      key={
+                        officer.id
+                      }
+                      value={value}
+                    >
+                      {
+                        officer.firstName
+                      }{" "}
+                      {
+                        officer.lastName
+                      }
+                      {officer.position
+                        ? ` (${officer.position})`
+                        : ""}
+                    </option>
+                  );
+                }
+              )}
+            </select>
+
+            {inspectorId && (
+              <p className="mt-2 text-sm font-semibold text-slate-300">
+                ตำแหน่ง:{" "}
+                {getOfficer(
+                  inspectorId
+                )?.position ||
+                  "-"}
+              </p>
+            )}
+          </div>
+        )
+      )}
     </div>
   </div>
 
@@ -904,11 +1010,19 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
       assets={assets}
       rows={rows}
       inspectorIds={inspectorIds}
-      inspectionStartDate={inspectionStartDate}
-      inspectionEndDate={inspectionEndDate}
-      accountStartDate={accountStartDate}
+      inspectionStartDate={
+        inspectionStartDate
+      }
+      inspectionEndDate={
+        inspectionEndDate
+      }
+      accountStartDate={
+        accountStartDate
+      }
       accountEndDate={accountEndDate}
-      movementFiscalYear={movementFiscalYear}
+      movementFiscalYear={
+        movementFiscalYear
+      }
     />
 
     <button
@@ -917,7 +1031,9 @@ return ( <div className="mx-auto w-full max-w-[1800px] space-y-6"> <div classNam
       disabled={isSaving}
       className="rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {isSaving ? "กำลังบันทึก..." : "บันทึกผลการตรวจสอบ"}
+      {isSaving
+        ? "กำลังบันทึก..."
+        : "บันทึกผลการตรวจสอบ"}
     </button>
   </div>
 </div>
