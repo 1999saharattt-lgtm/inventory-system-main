@@ -668,42 +668,80 @@ export default function InspectionForm({
 
         <div
           className="
+            mb-2
+            flex
+            items-center
+            justify-between
+            gap-3
+            rounded-xl
+            border
+            border-slate-700
+            bg-slate-900/70
+            px-3
+            py-2
+            text-xs
+            font-semibold
+            text-slate-300
+            sm:text-sm
+          "
+        >
+          <span>📋 รายละเอียดการตรวจสอบครุภัณฑ์</span>
+          <span className="whitespace-nowrap text-slate-400">↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด</span>
+        </div>
+
+        <div
+          className="
             w-full
             min-w-0
-            overflow-hidden
-            rounded-xl
-            bg-white
+            overflow-x-auto
+            overflow-y-visible
+            rounded-2xl
+            border
+            border-slate-300
+            bg-slate-100
+            shadow-inner
+            [scrollbar-color:#64748b_#e2e8f0]
+            [scrollbar-width:thin]
+            [&::-webkit-scrollbar]:h-3
+            [&::-webkit-scrollbar-track]:rounded-full
+            [&::-webkit-scrollbar-track]:bg-slate-200
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-slate-500
+            [&::-webkit-scrollbar-thumb]:hover:bg-slate-600
           "
         >
           <table
             className="
+              min-w-[1550px]
               w-full
               table-fixed
               border-collapse
-              text-[9px]
-              leading-none
-              sm:text-[9px]
-              lg:text-[10px]
+              text-[10px]
+              leading-tight
+              sm:min-w-[1700px]
+              sm:text-[10px]
+              lg:min-w-[1850px]
+              lg:text-[11px]
           "
           >
             <colgroup>
               <col style={{ width: "3%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "7%" }} />
-              <col style={{ width: "11.5%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "3%" }} />
-              <col style={{ width: "2.5%" }} />
-              <col style={{ width: "2.5%" }} />
-              <col style={{ width: "7%" }} />
-              <col style={{ width: "6.5%" }} />
-              <col style={{ width: "3.5%" }} />
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "3.5%" }} />
-              <col style={{ width: "3.5%" }} />
-              <col style={{ width: "5%" }} />
+              <col style={{ width: "5.5%" }} />
               <col style={{ width: "8%" }} />
               <col style={{ width: "11.5%" }} />
+              <col style={{ width: "11.5%" }} />
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "3%" }} />
+              <col style={{ width: "3%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "6%" }} />
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "6%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "4.5%" }} />
             </colgroup>
 
             <thead>
