@@ -103,37 +103,7 @@ label: "ไม่ถูกต้อง",
 },
 ];
 
-const thaiMonths = [
-"มกราคม",
-"กุมภาพันธ์",
-"มีนาคม",
-"เมษายน",
-"พฤษภาคม",
-"มิถุนายน",
-"กรกฎาคม",
-"สิงหาคม",
-"กันยายน",
-"ตุลาคม",
-"พฤศจิกายน",
-"ธันวาคม",
-];
-
-const thaiMonthsShort = [
-"ม.ค.",
-"ก.พ.",
-"มี.ค.",
-"เม.ย.",
-"พ.ค.",
-"มิ.ย.",
-"ก.ค.",
-"ส.ค.",
-"ก.ย.",
-"ต.ค.",
-"พ.ย.",
-"ธ.ค.",
-];
-
-function getCurrentDate(): string {
+function getCurrentDate() {
 const now = new Date();
 
 const year = now.getFullYear();
@@ -143,24 +113,25 @@ const day = String(now.getDate()).padStart(2, "0");
 return `${year}-${month}-${day}`;
 }
 
-function parseDateOnly(value: string): Date {
-const [year, month, day] = value.split("-").map(Number);
+/**
+
+* แปลง YYYY-MM-DD เป็น Date แบบ local
+* เพื่อป้องกันปัญหา timezone
+  */
+  function parseDateOnly(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
 
 return new Date(year, month - 1, day);
 }
 
-function formatDateInput(date: Date): string {
-const year = date.getFullYear();
-const month = String(date.getMonth() + 1).padStart(2, "0");
-const day = String(date.getDate()).padStart(2, "0");
+/**
 
-return `${year}-${month}-${day}`;
-}
-
-function getOneYearBefore(value: string): string {
-if (!value) {
-return "";
-}
+* วันที่ย้อนหลัง 1 ปี
+  */
+  function getOneYearBefore(value: string) {
+  if (!value) {
+  return "";
+  }
 
 const date = parseDateOnly(value);
 
@@ -169,10 +140,14 @@ date.setFullYear(date.getFullYear() - 1);
 return formatDateInput(date);
 }
 
-function getOneDayBefore(value: string): string {
-if (!value) {
-return "";
-}
+/**
+
+* วันที่ย้อนหลัง 1 วัน
+  */
+  function getOneDayBefore(value: string) {
+  if (!value) {
+  return "";
+  }
 
 const date = parseDateOnly(value);
 
@@ -181,79 +156,63 @@ date.setDate(date.getDate() - 1);
 return formatDateInput(date);
 }
 
-function formatThaiDateDisplay(value: string): string {
-if (!value) {
-return "เลือกวันที่";
+/**
+
+* แปลง Date เป็น YYYY-MM-DD
+  */
+  function formatDateInput(date: Date) {
+  const year = date.getFullYear();
+
+const month = String(date.getMonth() + 1).padStart(2, "0");
+
+const day = String(date.getDate()).padStart(2, "0");
+
+return `${year}-${month}-${day}`;
 }
 
-const date = parseDateOnly(value);
+/**
 
-const day = date.getDate();
-const month = thaiMonths[date.getMonth()];
-const year = date.getFullYear() + 543;
-
-return `${day} ${month} ${year}`;
-}
-
-function formatThaiShortDate(value: string): string {
-if (!value) {
-return "........";
-}
+* แสดงวันที่เป็น วัน/เดือน/ปี ค.ศ.
+*
+* เช่น
+* 2026-08-30
+* -> 30/08/2026
+  */
+  function formatThaiShortDate(value: string) {
+  if (!value) {
+  return "........";
+  }
 
 const date = parseDateOnly(value);
 
 const day = String(date.getDate()).padStart(2, "0");
-const month = thaiMonthsShort[date.getMonth()];
-const year = date.getFullYear() + 543;
 
-return `${day} ${month} ${year}`;
-}
+const month = String(date.getMonth() + 1).padStart(2, "0");
 
-function getFiscalYear(value: string): number | "" {
-if (!value) {
-return "";
-}
-
-const date = parseDateOnly(value);
 const year = date.getFullYear();
-const month = date.getMonth() + 1;
 
-if (month >= 10) {
-return year + 1 + 543;
+return `${day}/${month}/${year}`;
 }
 
-return year + 543;
-}
+/**
 
-function getPreviousFiscalYear(value: string): number | "" {
-if (!value) {
-return "";
-}
-
-const fiscalYear = getFiscalYear(value);
-
-if (fiscalYear === "") {
-return "";
-}
-
-return Number(fiscalYear) - 1;
-}
-
-function getCategoryUnit(category: string): string {
-const categoryUnit: Record<string, string> = {
-COMPUTER: "เครื่อง",
-DESKTOP: "เครื่อง",
-LAPTOP: "เครื่อง",
-PRINTER: "เครื่อง",
-TELEPHONE: "เครื่อง",
-AIR_CONDITIONER: "เครื่อง",
-FAN: "เครื่อง",
-CHAIR: "ตัว",
-DESK: "ตัว",
-TABLE: "ตัว",
-CABINET: "ตู้",
-OTHER: "รายการ",
-};
+* หน่วยของครุภัณฑ์
+  */
+  function getCategoryUnit(category: string) {
+  const categoryUnit: Record<string, string> = {
+  COMPUTER: "เครื่อง",
+  DESKTOP: "เครื่อง",
+  LAPTOP: "เครื่อง",
+  PRINTER: "เครื่อง",
+  TELEPHONE: "เครื่อง",
+  AIR_CONDITIONER: "เครื่อง",
+  FAN: "เครื่อง",
+  CHAIR: "ตัว",
+  DESK: "ตัว",
+  CABINET: "ตู้",
+  TABLE: "ตัว",
+  OTHER: "รายการ",
+  };
 
 return categoryUnit[category] || "รายการ";
 }
@@ -273,28 +232,63 @@ department,
 assets,
 officers,
 }: Props) {
+// =====================================================
+// วันที่ตรวจสอบ
+// =====================================================
+
 const [inspectionStartDate, setInspectionStartDate] =
-useState<string>(getCurrentDate());
+useState(getCurrentDate());
 
 const [inspectionEndDate, setInspectionEndDate] =
-useState<string>(getCurrentDate());
+useState(getCurrentDate());
+
+// =====================================================
+// วันที่ที่ใช้แสดงในหัวตาราง
+//
+// 1. ย้อนหลัง 1 ปีจากวันเริ่มตรวจสอบ
+// 2. ย้อนหลัง 1 วันจากวันตรวจสอบแล้วเสร็จ
+// =====================================================
 
 const accountStartDate = getOneYearBefore(inspectionStartDate);
+
 const accountEndDate = getOneDayBefore(inspectionEndDate);
+
+// =====================================================
+// รายการตรวจสอบ
+// =====================================================
 
 const [rows, setRows] = useState<InspectionRow[]>(
 () => createInitialRows(assets)
 );
 
+// =====================================================
+// ผู้ตรวจสอบ 5 คน
+// =====================================================
+
 const [inspectorIds, setInspectorIds] = useState<string[]>(
-Array.from({ length: 5 }, () => "")
+Array.from(
+{
+length: 5,
+},
+() => ""
+)
 );
+
+// =====================================================
+// สถานะการบันทึก
+// =====================================================
+
+const [isSaving, setIsSaving] = useState(false);
+
+// =====================================================
+// อัปเดตข้อมูลรายการตรวจ
+// =====================================================
 
 function updateRow(
 index: number,
 key: keyof InspectionRow,
 value: string
-): void {
+) {
 const copy = [...rows];
 
 copy[index] = {
@@ -306,7 +300,11 @@ setRows(copy);
 
 }
 
-function updateInspector(index: number, value: string): void {
+// =====================================================
+// เปลี่ยนผู้ตรวจสอบ
+// =====================================================
+
+function updateInspector(index: number, value: string) {
 const copy = [...inspectorIds];
 
 copy[index] = value;
@@ -315,16 +313,24 @@ setInspectorIds(copy);
 
 }
 
-function getOfficer(officerId: string): Officer | undefined {
+// =====================================================
+// หาข้อมูล Officer จาก ID
+// =====================================================
+
+function getOfficer(inspectorId: string) {
 return officers.find(
-(officer) => String(officer.id) === officerId
+(officer) => String(officer.id) === inspectorId
 );
 }
+
+// =====================================================
+// ป้องกันเลือก Officer คนเดียวกันซ้ำ
+// =====================================================
 
 function isOfficerSelected(
 officerId: number,
 currentIndex: number
-): boolean {
+) {
 return inspectorIds.some(
 (selectedId, index) =>
 index !== currentIndex &&
@@ -332,44 +338,196 @@ selectedId === String(officerId)
 );
 }
 
-return ( <div className="w-full space-y-5"> <div
-     className="
-       w-full
-       rounded-2xl
-       border
-       border-slate-700
-       bg-gradient-to-br
-       from-slate-950
-       via-slate-900
-       to-slate-800
-       p-3
-       text-white
-       shadow-xl
-       sm:p-5
-       lg:p-6
-     "
-   > <div
-       className="
-         mb-5
-         flex
-         flex-col
-         gap-4
-         border-b
-         border-slate-700
-         pb-4
-         sm:flex-row
-         sm:items-start
-         sm:justify-between
-       "
-     > <div> <h2
-           className="
-             text-xl
-             font-extrabold
-             !text-white
-             sm:text-2xl
-           "
-         >
-ข้อมูลการตรวจสอบ </h2>
+// =====================================================
+// บันทึกผลการตรวจสอบ
+// =====================================================
+
+async function handleSave() {
+if (isSaving) {
+return;
+}
+
+// -----------------------------------------------------
+// ตรวจสอบวันที่
+// -----------------------------------------------------
+
+if (!inspectionStartDate || !inspectionEndDate) {
+  alert("กรุณาระบุวันที่เริ่มตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ");
+  return;
+}
+
+const startDate = parseDateOnly(inspectionStartDate);
+const endDate = parseDateOnly(inspectionEndDate);
+
+if (endDate < startDate) {
+  alert(
+    "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มตรวจสอบ"
+  );
+  return;
+}
+
+// -----------------------------------------------------
+// ตรวจสอบผู้ตรวจสอบ 5 คน
+// -----------------------------------------------------
+
+if (inspectorIds.length !== 5) {
+  alert("กรุณาระบุผู้ตรวจสอบจำนวน 5 คน");
+  return;
+}
+
+if (inspectorIds.some((id) => !id)) {
+  alert("กรุณาเลือกผู้ตรวจสอบให้ครบทั้ง 5 คน");
+  return;
+}
+
+const uniqueInspectorIds = new Set(inspectorIds);
+
+if (uniqueInspectorIds.size !== 5) {
+  alert("ไม่สามารถเลือกผู้ตรวจสอบคนเดียวกันซ้ำได้");
+  return;
+}
+
+// -----------------------------------------------------
+// ตรวจสอบรายการครุภัณฑ์
+// -----------------------------------------------------
+
+if (rows.length === 0) {
+  alert("ไม่พบรายการครุภัณฑ์ที่ต้องการบันทึก");
+  return;
+}
+
+for (const row of rows) {
+  const countedQty = Number(row.countedQty);
+
+  if (
+    !Number.isInteger(countedQty) ||
+    countedQty < 0
+  ) {
+    alert(
+      `จำนวนที่ตรวจนับของครุภัณฑ์รหัส ${row.assetId} ไม่ถูกต้อง`
+    );
+    return;
+  }
+
+  if (!row.accuracy) {
+    alert(
+      `กรุณาระบุผลการตรวจนับของครุภัณฑ์รหัส ${row.assetId}`
+    );
+    return;
+  }
+
+  if (!row.status) {
+    alert(
+      `กรุณาระบุสภาพครุภัณฑ์ของครุภัณฑ์รหัส ${row.assetId}`
+    );
+    return;
+  }
+}
+
+// -----------------------------------------------------
+// ส่งข้อมูลไป API
+// -----------------------------------------------------
+
+setIsSaving(true);
+
+try {
+  const response = await fetch(
+    "/api/assets/inspection",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        departmentId: department.id,
+        inspectionStartDate,
+        inspectionEndDate,
+        inspectorIds,
+        rows,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    alert(
+      result.message ||
+        "ไม่สามารถบันทึกผลการตรวจสอบได้"
+    );
+    return;
+  }
+
+  alert(
+    `บันทึกผลการตรวจสอบเรียบร้อยแล้ว\nจำนวน ${result.savedCount} รายการ`
+  );
+} catch (error) {
+  console.error(
+    "Save asset inspection error:",
+    error
+  );
+
+  alert(
+    "ไม่สามารถเชื่อมต่อระบบเพื่อบันทึกผลการตรวจสอบได้"
+  );
+} finally {
+  setIsSaving(false);
+}
+
+}
+
+return ( <div
+   className="
+     mx-auto
+     w-full
+     max-w-[1800px]
+     space-y-6
+   "
+ >
+{/* =====================================================
+ข้อมูลการตรวจสอบ
+===================================================== */}
+
+  <div
+    className="
+      rounded-2xl
+      border
+      border-slate-700
+      bg-gradient-to-br
+      from-slate-950
+      to-slate-800
+      p-4
+      text-white
+      shadow-xl
+      sm:p-6
+    "
+  >
+    <div
+      className="
+        mb-5
+        flex
+        flex-col
+        gap-4
+        border-b
+        border-slate-700
+        pb-4
+        sm:flex-row
+        sm:items-start
+        sm:justify-between
+      "
+    >
+      <div>
+        <h2
+          className="
+            text-xl
+            font-extrabold
+            !text-white
+            sm:text-2xl
+          "
+        >
+          ข้อมูลการตรวจสอบ
+        </h2>
 
         <p
           className="
@@ -394,7 +552,15 @@ return ( <div className="w-full space-y-5"> <div
       />
     </div>
 
-    <div className="grid gap-4 md:grid-cols-2">
+    <div
+      className="
+        grid
+        gap-4
+        md:grid-cols-2
+      "
+    >
+      {/* วันที่เริ่มตรวจสอบ */}
+
       <div>
         <label
           className="
@@ -408,60 +574,31 @@ return ( <div className="w-full space-y-5"> <div
           เริ่มดำเนินการตรวจสอบวันที่
         </label>
 
-        <div className="relative w-full">
-          <div
-            className="
-              flex
-              min-h-[46px]
-              w-full
-              items-center
-              justify-between
-              rounded-lg
-              border
-              border-slate-300
-              bg-white
-              px-3
-              py-2.5
-              font-semibold
-              text-slate-900
-              transition
-            "
-          >
-            <span>
-              {formatThaiDateDisplay(inspectionStartDate)}
-            </span>
-
-            <span
-              className="
-                ml-3
-                text-xl
-                leading-none
-              "
-              aria-hidden="true"
-            >
-              📅
-            </span>
-          </div>
-
-          <input
-            type="date"
-            value={inspectionStartDate}
-            onChange={(e) =>
-              setInspectionStartDate(e.target.value)
-            }
-            required
-            aria-label="เลือกวันเริ่มดำเนินการตรวจสอบ"
-            className="
-              absolute
-              inset-0
-              h-full
-              w-full
-              cursor-pointer
-              opacity-0
-            "
-          />
-        </div>
+        <input
+          type="date"
+          value={inspectionStartDate}
+          onChange={(e) =>
+            setInspectionStartDate(e.target.value)
+          }
+          required
+          className="
+            w-full
+            rounded-lg
+            border
+            border-slate-300
+            bg-white
+            p-2.5
+            font-semibold
+            text-slate-900
+            outline-none
+            focus:border-cyan-500
+            focus:ring-2
+            focus:ring-cyan-100
+          "
+        />
       </div>
+
+      {/* วันที่ตรวจสอบแล้วเสร็จ */}
 
       <div>
         <label
@@ -476,62 +613,35 @@ return ( <div className="w-full space-y-5"> <div
           ตรวจสอบแล้วเสร็จวันที่
         </label>
 
-        <div className="relative w-full">
-          <div
-            className="
-              flex
-              min-h-[46px]
-              w-full
-              items-center
-              justify-between
-              rounded-lg
-              border
-              border-slate-300
-              bg-white
-              px-3
-              py-2.5
-              font-semibold
-              text-slate-900
-              transition
-            "
-          >
-            <span>
-              {formatThaiDateDisplay(inspectionEndDate)}
-            </span>
-
-            <span
-              className="
-                ml-3
-                text-xl
-                leading-none
-              "
-              aria-hidden="true"
-            >
-              📅
-            </span>
-          </div>
-
-          <input
-            type="date"
-            value={inspectionEndDate}
-            onChange={(e) =>
-              setInspectionEndDate(e.target.value)
-            }
-            required
-            aria-label="เลือกวันตรวจสอบแล้วเสร็จ"
-            className="
-              absolute
-              inset-0
-              h-full
-              w-full
-              cursor-pointer
-              opacity-0
-            "
-          />
-        </div>
+        <input
+          type="date"
+          value={inspectionEndDate}
+          onChange={(e) =>
+            setInspectionEndDate(e.target.value)
+          }
+          required
+          className="
+            w-full
+            rounded-lg
+            border
+            border-slate-300
+            bg-white
+            p-2.5
+            font-semibold
+            text-slate-900
+            outline-none
+            focus:border-cyan-500
+            focus:ring-2
+            focus:ring-cyan-100
+          "
+        />
       </div>
     </div>
   </div>
+
+  {/* =====================================================
+      ตารางตรวจสอบครุภัณฑ์
+  ===================================================== */}
 
   <div
     className="
@@ -541,24 +651,23 @@ return ( <div className="w-full space-y-5"> <div
       border-slate-700
       bg-gradient-to-br
       from-slate-950
-      via-slate-900
       to-slate-800
-      p-2
+      p-3
       text-white
       shadow-xl
-      sm:p-3
-      lg:p-4
+      sm:p-4
+      lg:p-6
     "
   >
     <div
       className="
-        mb-4
+        mb-5
         flex
         flex-col
         gap-2
         border-b
         border-slate-700
-        pb-3
+        pb-4
         sm:flex-row
         sm:items-center
         sm:justify-between
@@ -589,170 +698,119 @@ return ( <div className="w-full space-y-5"> <div
       </div>
     </div>
 
-    <div
-      className="
-        mb-2
-        flex
-        items-center
-        justify-between
-        gap-3
-        rounded-xl
-        border
-        border-slate-700
-        bg-slate-900/70
-        px-3
-        py-2
-        text-xs
-        font-semibold
-        text-slate-300
-        sm:text-sm
-      "
-    >
-      <span>📋 รายละเอียดการตรวจสอบครุภัณฑ์</span>
-
-      <span className="whitespace-nowrap text-slate-400">
-        ↔ เลื่อนซ้าย–ขวาเพื่อดูข้อมูลทั้งหมด
-      </span>
-    </div>
+    {/* =====================================================
+        ตาราง
+    ===================================================== */}
 
     <div
       className="
         w-full
-        min-w-0
         overflow-x-auto
-        overflow-y-visible
-        rounded-2xl
-        border
-        border-slate-300
-        bg-slate-100
-        shadow-inner
-        [scrollbar-color:#64748b_#e2e8f0]
-        [scrollbar-width:thin]
-        [&::-webkit-scrollbar]:h-3
-        [&::-webkit-scrollbar-track]:rounded-full
-        [&::-webkit-scrollbar-track]:bg-slate-200
-        [&::-webkit-scrollbar-thumb]:rounded-full
-        [&::-webkit-scrollbar-thumb]:bg-slate-500
-        [&::-webkit-scrollbar-thumb]:hover:bg-slate-600
+        overflow-y-hidden
+        rounded-xl
+        bg-white
       "
     >
       <table
         className="
-          min-w-[2200px]
-          w-full
-          table-fixed
+          w-max
+          min-w-[2700px]
           border-collapse
-          text-[10px]
-          leading-tight
-          sm:min-w-[2400px]
-          sm:text-[10px]
-          lg:min-w-[2600px]
-          lg:text-[11px]
+          text-xs
+          sm:text-sm
         "
       >
         <colgroup>
-          <col style={{ width: "3%" }} />
-          <col style={{ width: "6%" }} />
-          <col style={{ width: "8%" }} />
-          <col style={{ width: "12%" }} />
-          <col style={{ width: "16%" }} />
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "8%" }} />
-          <col style={{ width: "7%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "4%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "8%" }} />
+          <col className="w-[60px]" />
+          <col className="w-[180px]" />
+          <col className="w-[190px]" />
+          <col className="w-[240px]" />
+          <col className="w-[300px]" />
+          <col className="w-[100px]" />
+          <col className="w-[100px]" />
+          <col className="w-[100px]" />
+          <col className="w-[190px]" />
+          <col className="w-[180px]" />
+          <col className="w-[110px]" />
+          <col className="w-[130px]" />
+          <col className="w-[110px]" />
+          <col className="w-[110px]" />
+          <col className="w-[140px]" />
+          <col className="w-[190px]" />
+          <col className="w-[240px]" />
         </colgroup>
 
         <thead>
           <tr>
-            {[
-              "ลำดับ",
-              "รหัส GFMIS",
-              "รหัสครุภัณฑ์",
-              "ผู้รับผิดชอบ",
-              "รายการ",
-              "หน่วย",
-            ].map((title) => (
-              <th
-                key={title}
-                rowSpan={2}
-                className="
-                  border
-                  border-black
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  px-0.5
-                  py-2
-                  text-center
-                  whitespace-normal
-                  break-words
-                  align-middle
-                  font-extrabold
-                  !text-white
-                "
-              >
-                {title}
-              </th>
-            ))}
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              ลำดับ
+            </th>
+
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              รหัส GFMIS
+            </th>
+
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              รหัสครุภัณฑ์
+            </th>
+
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              ผู้รับผิดชอบ
+            </th>
+
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              รายการ
+            </th>
+
+            <th
+              rowSpan={2}
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
+            >
+              หน่วย
+            </th>
 
             <th
               colSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-2
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
-              <div className="leading-tight">
-                รายการเคลื่อนไหวระหว่างปีงบประมาณ
+              <div className="whitespace-nowrap">
+                ยอดคงเหลือตามบัญชี
               </div>
 
-              <div className="mt-1 font-extrabold leading-tight">
-                พ.ศ. {getPreviousFiscalYear(inspectionStartDate)}
+              <div className="mt-1 whitespace-nowrap">
+                ณ วันที่{" "}
+                <span className="font-bold">
+                  {formatThaiShortDate(accountStartDate)}
+                </span>
               </div>
             </th>
 
             <th
               rowSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-0.5
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
-              <div>ยอดคงเหลือตามบัญชี</div>
+              <div className="whitespace-nowrap">
+                ยอดคงเหลือตามบัญชี
+              </div>
 
-              <div className="mt-1 font-extrabold">
+              <div className="mt-1 whitespace-nowrap">
                 ณ วันที่{" "}
-                <span className="font-extrabold">
+                <span className="font-bold">
                   {formatThaiShortDate(accountEndDate)}
                 </span>
               </div>
@@ -760,131 +818,82 @@ return ( <div className="w-full space-y-5"> <div
 
             <th
               rowSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-0.5
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
               จำนวนที่ตรวจนับได้
             </th>
 
             <th
               colSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-0.5
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
-              <div>ผลการตรวจนับ</div>
+              <div className="whitespace-nowrap">
+                ผลการตรวจนับ
+              </div>
 
-              <div className="mt-1 font-extrabold leading-tight">
+              <div className="mt-1 whitespace-nowrap">
                 ถูกต้องตรงกับยอดคงเหลือตามบัญชี
               </div>
             </th>
 
             <th
               colSpan={4}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-0.5
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
-              สภาพครุภัณฑ์ที่ตรวจนับ
+              <span className="whitespace-nowrap">
+                สภาพครุภัณฑ์ที่ตรวจนับ
+              </span>
             </th>
 
             <th
               rowSpan={2}
-              className="
-                border
-                border-black
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-0.5
-                py-2
-                text-center
-                whitespace-normal
-                break-words
-                align-middle
-                font-extrabold
-                !text-white
-              "
+              className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center align-middle font-extrabold text-white"
             >
               หมายเหตุ
             </th>
           </tr>
 
           <tr>
-            {[
-              "รับ",
-              "จ่าย",
-              "ถูกต้อง",
-              "ไม่ถูกต้อง",
-              "ใช้งาน",
-              "ชำรุด",
-              "เสื่อมสภาพ",
-              "ไม่สามารถใช้งาน",
-            ].map((title) => (
-              <th
-                key={title}
-                className="
-                  border
-                  border-black
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  px-0.5
-                  py-1.5
-                  text-center
-                  whitespace-normal
-                  break-words
-                  align-middle
-                  font-extrabold
-                  !text-white
-                "
-              >
-                {title}
-              </th>
-            ))}
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              รับ
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              จ่าย
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              ถูกต้อง
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              ไม่ถูกต้อง
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              ใช้งาน
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              ชำรุด
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              เสื่อมสภาพ
+            </th>
+
+            <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold text-white">
+              <span className="whitespace-nowrap">
+                ไม่สามารถใช้งาน
+              </span>
+            </th>
           </tr>
         </thead>
 
         <tbody>
           {assets.map((asset, index) => {
             const row = rows[index];
+
             const officer = asset.officer;
 
             return (
@@ -892,185 +901,59 @@ return ( <div className="w-full space-y-5"> <div
                 key={asset.id}
                 className="transition hover:bg-emerald-50"
               >
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-bold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-900">
                   {index + 1}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-semibold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                   {asset.governmentAssetNo || "-"}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-semibold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                   {asset.officeAssetNo || "-"}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-normal
-                    break-words
-                    align-middle
-                    font-semibold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                   {officer
                     ? `${officer.firstName} ${officer.lastName}`
                     : "-"}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    align-middle
-                    whitespace-normal
-                    break-words
-                    font-semibold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 font-semibold text-slate-900">
                   {asset.name}
 
                   {(asset.brand || asset.model) && (
-                    <span
-                      className="
-                        ml-1
-                        break-words
-                        text-[8px]
-                        font-medium
-                        text-slate-500
-                        sm:text-[8px]
-                        lg:text-[9px]
-                      "
-                    >
+                    <span className="ml-2 text-xs font-medium text-slate-500">
                       (
                       {asset.brand || ""}
+
                       {asset.brand && asset.model
                         ? " / "
                         : ""}
+
                       {asset.model || ""}
                       )
                     </span>
                   )}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-semibold
-                    text-slate-900
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-semibold text-slate-900">
                   {getCategoryUnit(asset.category)}
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-bold
-                    text-slate-500
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                   -
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-bold
-                    text-slate-500
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                   -
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                    font-bold
-                    text-slate-500
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center font-bold text-slate-500">
                   -
                 </td>
 
-                <td
-                  className="
-                    min-w-0
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    align-middle
-                  "
-                >
+                <td className="border border-black px-3 py-2">
                   <input
                     type="number"
                     min="0"
@@ -1082,49 +965,15 @@ return ( <div className="w-full space-y-5"> <div
                         e.target.value
                       )
                     }
-                    className="
-                      block
-                      min-w-0
-                      w-full
-                      rounded-md
-                      border
-                      border-slate-300
-                      bg-white
-                      px-0.5
-                      py-1
-                      text-center
-                      text-[10px]
-                      font-bold
-                      text-slate-900
-                      outline-none
-                      focus:border-cyan-500
-                      focus:ring-2
-                      focus:ring-cyan-100
-                      sm:rounded-lg
-                      sm:p-1
-                      sm:text-xs
-                      lg:text-xs
-                    "
+                    className="block w-full min-w-[100px] rounded-lg border border-slate-300 bg-white p-1.5 text-center text-xs font-bold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-2 sm:text-sm"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`accuracy-${asset.id}`}
-                    checked={
-                      row.accuracy === "CORRECT"
-                    }
+                    checked={row.accuracy === "CORRECT"}
                     onChange={() =>
                       updateRow(
                         index,
@@ -1132,35 +981,15 @@ return ( <div className="w-full space-y-5"> <div
                         "CORRECT"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`accuracy-${asset.id}`}
-                    checked={
-                      row.accuracy === "INCORRECT"
-                    }
+                    checked={row.accuracy === "INCORRECT"}
                     onChange={() =>
                       updateRow(
                         index,
@@ -1168,35 +997,15 @@ return ( <div className="w-full space-y-5"> <div
                         "INCORRECT"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={
-                      row.status === "IN_USE"
-                    }
+                    checked={row.status === "IN_USE"}
                     onChange={() =>
                       updateRow(
                         index,
@@ -1204,35 +1013,15 @@ return ( <div className="w-full space-y-5"> <div
                         "IN_USE"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={
-                      row.status === "DAMAGED"
-                    }
+                    checked={row.status === "DAMAGED"}
                     onChange={() =>
                       updateRow(
                         index,
@@ -1240,29 +1029,11 @@ return ( <div className="w-full space-y-5"> <div
                         "DAMAGED"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
@@ -1276,35 +1047,15 @@ return ( <div className="w-full space-y-5"> <div
                         "DETERIORATED"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    text-center
-                    whitespace-nowrap
-                    align-middle
-                  "
-                >
+                <td className="whitespace-nowrap border border-black px-3 py-2 text-center">
                   <input
                     type="radio"
                     name={`status-${asset.id}`}
-                    checked={
-                      row.status === "UNUSABLE"
-                    }
+                    checked={row.status === "UNUSABLE"}
                     onChange={() =>
                       updateRow(
                         index,
@@ -1312,28 +1063,11 @@ return ( <div className="w-full space-y-5"> <div
                         "UNUSABLE"
                       )
                     }
-                    className="
-                      h-3
-                      w-3
-                      cursor-pointer
-                      sm:h-3.5
-                      sm:w-3.5
-                      lg:h-4
-                      lg:w-4
-                    "
+                    className="h-4 w-4 cursor-pointer sm:h-5 sm:w-5"
                   />
                 </td>
 
-                <td
-                  className="
-                    min-w-0
-                    border
-                    border-black
-                    px-0.5
-                    py-1.5
-                    align-middle
-                  "
-                >
+                <td className="border border-black px-3 py-2">
                   <input
                     type="text"
                     value={row.remark}
@@ -1345,29 +1079,7 @@ return ( <div className="w-full space-y-5"> <div
                       )
                     }
                     placeholder="หมายเหตุ"
-                    className="
-                      block
-                      min-w-0
-                      w-full
-                      rounded-md
-                      border
-                      border-slate-300
-                      bg-white
-                      px-0.5
-                      py-1
-                      text-[10px]
-                      font-semibold
-                      text-slate-900
-                      outline-none
-                      placeholder:text-slate-400
-                      focus:border-cyan-500
-                      focus:ring-2
-                      focus:ring-cyan-100
-                      sm:rounded-lg
-                      sm:p-1
-                      sm:text-xs
-                      lg:text-xs
-                    "
+                    className="block w-full min-w-[150px] rounded-lg border border-slate-300 bg-white p-1.5 text-xs font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 sm:p-2 sm:text-sm"
                   />
                 </td>
               </tr>
@@ -1378,15 +1090,7 @@ return ( <div className="w-full space-y-5"> <div
             <tr>
               <td
                 colSpan={17}
-                className="
-                  border
-                  border-black
-                  px-4
-                  py-10
-                  text-center
-                  font-bold
-                  text-slate-500
-                "
+                className="border border-black px-4 py-10 text-center font-bold text-slate-500"
               >
                 ไม่พบรายการครุภัณฑ์
               </td>
@@ -1397,21 +1101,22 @@ return ( <div className="w-full space-y-5"> <div
     </div>
   </div>
 
+  {/* =====================================================
+      ผู้ตรวจสอบ 5 คน
+  ===================================================== */}
+
   <div
     className="
-      w-full
       rounded-2xl
       border
       border-slate-700
       bg-gradient-to-br
       from-slate-950
-      via-slate-900
       to-slate-800
-      p-3
+      p-4
       text-white
       shadow-xl
-      sm:p-5
-      lg:p-6
+      sm:p-6
     "
   >
     <div
@@ -1445,9 +1150,16 @@ return ( <div className="w-full space-y-5"> <div
       </p>
     </div>
 
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div
+      className="
+        grid
+        gap-4
+        lg:grid-cols-2
+      "
+    >
       {inspectorIds.map((inspectorId, index) => {
-        const selectedOfficer = getOfficer(inspectorId);
+        const selectedOfficer =
+          getOfficer(inspectorId);
 
         return (
           <div
@@ -1547,7 +1259,9 @@ return ( <div className="w-full space-y-5"> <div
               <input
                 type="text"
                 readOnly
-                value={selectedOfficer?.position || ""}
+                value={
+                  selectedOfficer?.position || ""
+                }
                 placeholder="ตำแหน่งจะแสดงอัตโนมัติ"
                 className="
                   w-full
@@ -1569,13 +1283,17 @@ return ( <div className="w-full space-y-5"> <div
     </div>
   </div>
 
+  {/* =====================================================
+      ปุ่ม
+  ===================================================== */}
+
   <div
     className="
       flex
       flex-col
       justify-end
       gap-3
-      pt-1
+      pt-2
       sm:flex-row
     "
   >
@@ -1602,6 +1320,7 @@ return ( <div className="w-full space-y-5"> <div
 
     <button
       type="button"
+      disabled={isSaving}
       className="
         rounded-xl
         bg-gradient-to-r
@@ -1616,14 +1335,15 @@ return ( <div className="w-full space-y-5"> <div
         shadow-lg
         transition
         hover:scale-105
+        disabled:cursor-not-allowed
+        disabled:opacity-60
+        disabled:hover:scale-100
       "
-      onClick={() => {
-        alert(
-          "ขั้นตอนนี้เป็นการเตรียมแบบฟอร์ม ยังไม่ได้บันทึกข้อมูล"
-        );
-      }}
+      onClick={handleSave}
     >
-      💾 บันทึกผลการตรวจสอบ
+      {isSaving
+        ? "⏳ กำลังบันทึก..."
+        : "💾 บันทึกผลการตรวจสอบ"}
     </button>
   </div>
 </div>

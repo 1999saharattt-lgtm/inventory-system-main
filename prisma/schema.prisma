@@ -1,31 +1,31 @@
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+provider = "postgresql"
 }
 
 enum Category {
-  OFFICE
-  COMPUTER
-  ELECTRIC
-  HOUSEHOLD
-  VEHICLE
-  PRINTING
+OFFICE
+COMPUTER
+ELECTRIC
+HOUSEHOLD
+VEHICLE
+PRINTING
 }
 
 enum OfficerType {
-  CIVIL_SERVANT
-  GOVERNMENT_EMPLOYEE
-  PERMANENT_EMPLOYEE
-  OUTSOURCE
+CIVIL_SERVANT
+GOVERNMENT_EMPLOYEE
+PERMANENT_EMPLOYEE
+OUTSOURCE
 }
 
 enum Role {
-  ADMIN
-  STAFF
-  VIEWER
+ADMIN
+STAFF
+VIEWER
 }
 
 // ======================
@@ -33,9 +33,9 @@ enum Role {
 // ======================
 
 enum IssueStatus {
-  PENDING
-  APPROVED
-  REJECTED
+PENDING
+APPROVED
+REJECTED
 }
 
 // =====================================================
@@ -45,15 +45,15 @@ enum IssueStatus {
 // ประเภทครุภัณฑ์
 // สามารถเพิ่มประเภทใหม่ภายหลังได้โดยไม่กระทบข้อมูลพัสดุ
 enum AssetCategory {
-  DESK
-  CHAIR
-  AIR_CONDITIONER
-  TELEPHONE
-  CABINET
-  COMPUTER
-  PRINTER
-  OTHER
-  NO_SYSTEM
+DESK
+CHAIR
+AIR_CONDITIONER
+TELEPHONE
+CABINET
+COMPUTER
+PRINTER
+OTHER
+NO_SYSTEM
 }
 
 // สถานะครุภัณฑ์
@@ -66,27 +66,29 @@ enum AssetCategory {
 // Admin และ STAFF ของกลุ่มงานที่รับผิดชอบ
 // สามารถเปลี่ยนสถานะได้ตามสิทธิ์ที่กำหนดในระบบ
 enum AssetStatus {
-  IN_USE
-  DAMAGED
-  WAITING_DISPOSAL
-  DISPOSED
+IN_USE
+DAMAGED
+WAITING_DISPOSAL
+DISPOSED
 }
 
 // สถานะจากการตรวจสอบของกลุ่มงาน
 enum AssetInspectionStatus {
-  IN_USE
-  RETURNED
-  DAMAGED
-  MISSING
-  NOT_FOUND
+IN_USE
+RETURNED
+DAMAGED
+MISSING
+NOT_FOUND
+DETERIORATED
+UNUSABLE
 }
 
 // รอบการตรวจสอบ
 enum InspectionQuarter {
-  Q1
-  Q2
-  Q3
-  Q4
+Q1
+Q2
+Q3
+Q4
 }
 
 // ======================
@@ -94,25 +96,25 @@ enum InspectionQuarter {
 // ======================
 
 model User {
-  id       Int     @id @default(autoincrement())
-  username String  @unique
-  password String
-  fullname String
-  role     Role    @default(STAFF)
-  active   Boolean @default(true)
+id       Int     @id @default(autoincrement())
+username String  @unique
+password String
+fullname String
+role     Role    @default(STAFF)
+active   Boolean @default(true)
 
-  departmentId Int?
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+departmentId Int?
+department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  // กลุ่มงานของผู้ใช้งาน
-  // ใช้สำหรับ STAFF เพื่อกำหนดกลุ่มงานอัตโนมัติ
-  sectionId Int?
-  section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+// กลุ่มงานของผู้ใช้งาน
+// ใช้สำหรับ STAFF เพื่อกำหนดกลุ่มงานอัตโนมัติ
+sectionId Int?
+section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
 
-  approvedIssues Issue[] @relation("IssueApprovedBy")
+approvedIssues Issue[] @relation("IssueApprovedBy")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
 
 // ======================
@@ -120,25 +122,25 @@ model User {
 // ======================
 
 model Material {
-  id           Int      @id @default(autoincrement())
-  code         String   @unique
-  name         String
-  category     Category
-  unit         String
-  latestPrice  Float    @default(0)
-  balance      Int      @default(0)
-  minimumStock Int      @default(0)
-  remark       String?
+id           Int      @id @default(autoincrement())
+code         String   @unique
+name         String
+category     Category
+unit         String
+latestPrice  Float    @default(0)
+balance      Int      @default(0)
+minimumStock Int      @default(0)
+remark       String?
 
-  vendorId Int?
-  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+vendorId Int?
+vendor   Vendor? @relation(fields: [vendorId], references: [id])
 
-  receiveItems ReceiveItem[]
-  issueItems   IssueItem[]
-  transactions Transaction[]
+receiveItems ReceiveItem[]
+issueItems   IssueItem[]
+transactions Transaction[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
 
 // ======================
@@ -146,14 +148,14 @@ model Material {
 // ======================
 
 model Vendor {
-  id      Int     @id @default(autoincrement())
-  name    String
-  address String?
-  phone   String?
-  taxId   String?
+id      Int     @id @default(autoincrement())
+name    String
+address String?
+phone   String?
+taxId   String?
 
-  materials Material[]
-  receives  Receive[]
+materials Material[]
+receives  Receive[]
 }
 
 // ======================
@@ -161,19 +163,19 @@ model Vendor {
 // ======================
 
 model Department {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+id   Int    @id @default(autoincrement())
+name String @unique
 
-  issues   Issue[]
-  sections Section[]
-  officers Officer[]
-  users    User[]
+issues   Issue[]
+sections Section[]
+officers Officer[]
+users    User[]
 
-  // ======================
-  // ทะเบียนคุมครุภัณฑ์
-  // ======================
+// ======================
+// ทะเบียนคุมครุภัณฑ์
+// ======================
 
-  assets Asset[]
+assets Asset[]
 }
 
 // ======================
@@ -181,22 +183,22 @@ model Department {
 // ======================
 
 model Section {
-  id   Int    @id @default(autoincrement())
-  name String
+id   Int    @id @default(autoincrement())
+name String
 
-  departmentId Int
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+departmentId Int
+department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
-  officers Officer[]
+officers Officer[]
 
-  // ผู้ใช้งานของกลุ่มงาน
-  users User[]
+// ผู้ใช้งานของกลุ่มงาน
+users User[]
 
-  // ======================
-  // ทะเบียนคุมครุภัณฑ์
-  // ======================
+// ======================
+// ทะเบียนคุมครุภัณฑ์
+// ======================
 
-  assets Asset[]
+assets Asset[]
 }
 
 // ======================
@@ -204,29 +206,29 @@ model Section {
 // ======================
 
 model Officer {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  firstName String
-  lastName  String
-  position  String
-  type      OfficerType
+firstName String
+lastName  String
+position  String
+type      OfficerType
 
-  sectionId Int?
-  section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+sectionId Int?
+section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
-  departmentId Int?
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+departmentId Int?
+department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
-  issues Issue[]
+issues Issue[]
 
-  // ======================
-  // ครุภัณฑ์ที่อยู่ในความครอบครอง
-  // ======================
+// ======================
+// ครุภัณฑ์ที่อยู่ในความครอบครอง
+// ======================
 
-  assets Asset[]
+assets Asset[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
 
 // ======================
@@ -234,42 +236,40 @@ model Officer {
 // ======================
 
 model Receive {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  documentNo String
+documentNo String
+receiveDate DateTime
 
-  receiveDate DateTime
+pdf String?
 
-  pdf String?
+remark String?
 
-  remark String?
+vendorId Int
+vendor   Vendor @relation(fields: [vendorId], references: [id])
 
-  vendorId Int
+items ReceiveItem[]
 
-  vendor Vendor @relation(fields: [vendorId], references: [id])
-
-  items ReceiveItem[]
-
-  createdAt DateTime @default(now())
+createdAt DateTime @default(now())
 }
 
 model ReceiveItem {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  receiveId Int
-  receive   Receive @relation(fields: [receiveId], references: [id])
+receiveId Int
+receive   Receive @relation(fields: [receiveId], references: [id])
 
-  materialId Int
-  material   Material @relation(fields: [materialId], references: [id])
+materialId Int
+material   Material @relation(fields: [materialId], references: [id])
 
-  qty     Int
-  balance Int @default(0)
+qty     Int
+balance Int @default(0)
 
-  unitPrice   Float
-  manufacture DateTime?
-  expiry      DateTime?
+unitPrice   Float
+manufacture DateTime?
+expiry      DateTime?
 
-  issueItems IssueItem[]
+issueItems IssueItem[]
 }
 
 // ======================
@@ -277,63 +277,62 @@ model ReceiveItem {
 // ======================
 
 model Issue {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  documentNo String
+documentNo String
+issueDate DateTime
 
-  issueDate DateTime
+pdf String?
 
-  pdf String?
+remark String?
 
-  remark String?
+departmentId Int
+department   Department @relation(fields: [departmentId], references: [id])
 
-  departmentId Int
-  department   Department @relation(fields: [departmentId], references: [id])
+officerId Int?
+officer   Officer? @relation(fields: [officerId], references: [id])
 
-  officerId Int?
-  officer   Officer? @relation(fields: [officerId], references: [id])
+// สถานะใบเบิก
+//
+// PENDING  = รอ Admin ตรวจสอบและลงจำนวนเบิกจ่าย
+// APPROVED = Admin ยืนยันการเบิกจ่ายแล้ว
+// REJECTED = Admin ไม่อนุมัติ
+status IssueStatus @default(PENDING)
 
-  // สถานะใบเบิก
-  //
-  // PENDING  = รอ Admin ตรวจสอบและลงจำนวนเบิกจ่าย
-  // APPROVED = Admin ยืนยันการเบิกจ่ายแล้ว
-  // REJECTED = Admin ไม่อนุมัติ
-  status IssueStatus @default(PENDING)
+// วันที่ Admin ยืนยันการเบิกจ่าย
+approvedAt DateTime?
 
-  // วันที่ Admin ยืนยันการเบิกจ่าย
-  approvedAt DateTime?
+// Admin ผู้ยืนยันการเบิกจ่าย
+approvedById Int?
+approvedBy   User? @relation("IssueApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
-  // Admin ผู้ยืนยันการเบิกจ่าย
-  approvedById Int?
-  approvedBy   User? @relation("IssueApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+items IssueItem[]
 
-  items IssueItem[]
-
-  createdAt DateTime @default(now())
+createdAt DateTime @default(now())
 }
 
 model IssueItem {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  issueId Int
-  issue   Issue @relation(fields: [issueId], references: [id])
+issueId Int
+issue   Issue @relation(fields: [issueId], references: [id])
 
-  materialId Int
-  material   Material @relation(fields: [materialId], references: [id])
+materialId Int
+material   Material @relation(fields: [materialId], references: [id])
 
-  receiveItemId Int?
-  receiveItem   ReceiveItem? @relation(fields: [receiveItemId], references: [id])
+receiveItemId Int?
+receiveItem   ReceiveItem? @relation(fields: [receiveItemId], references: [id])
 
-  // จำนวนที่กลุ่มงานขอเบิก
-  qty Int
+// จำนวนที่กลุ่มงานขอเบิก
+qty Int
 
-  // จำนวนที่ Admin เบิกจ่ายจริง
-  // ตอนสร้างใบเบิกจะเป็น 0
-  // จะเปลี่ยนเมื่อ Admin ยืนยันการเบิกจ่าย
-  issuedQty Int @default(0)
+// จำนวนที่ Admin เบิกจ่ายจริง
+// ตอนสร้างใบเบิกจะเป็น 0
+// จะเปลี่ยนเมื่อ Admin ยืนยันการเบิกจ่าย
+issuedQty Int @default(0)
 
-  manufacture DateTime?
-  expiry      DateTime?
+manufacture DateTime?
+expiry      DateTime?
 }
 
 // ======================
@@ -341,31 +340,31 @@ model IssueItem {
 // ======================
 
 model Transaction {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  materialId Int
+materialId Int
 
-  material Material @relation(fields: [materialId], references: [id])
+material Material @relation(fields: [materialId], references: [id])
 
-  date DateTime @default(now())
+date DateTime @default(now())
 
-  type String
+type String
 
-  documentNo String
+documentNo String
 
-  receiveQty Int @default(0)
+receiveQty Int @default(0)
 
-  issueQty Int @default(0)
+issueQty Int @default(0)
 
-  balance Int
+balance Int
 
-  unitPrice Float?
+unitPrice Float?
 
-  vendor String?
+vendor String?
 
-  department String?
+department String?
 
-  remark String?
+remark String?
 }
 
 // ======================
@@ -373,19 +372,19 @@ model Transaction {
 // ======================
 
 model MaterialMaster {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  category Category
+category Category
 
-  name String
+name String
 
-  unit String
+unit String
 
-  createdAt DateTime @default(now())
+createdAt DateTime @default(now())
 
-  updatedAt DateTime @updatedAt
+updatedAt DateTime @updatedAt
 
-  @@unique([category, name])
+@@unique([category, name])
 }
 
 // =====================================================
@@ -393,96 +392,110 @@ model MaterialMaster {
 // =====================================================
 
 model Asset {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  // ======================
-  // ข้อมูลครุภัณฑ์
-  // ======================
+// ======================
+// ข้อมูลครุภัณฑ์
+// ======================
 
-  name String
+name String
 
-  category AssetCategory
+category AssetCategory
 
-  brand String?
+brand String?
 
-  model String?
+model String?
 
-  serialNumber String?
+serialNumber String?
 
-  // ======================
-  // เลขทะเบียน
-  // ======================
+// ======================
+// เลขทะเบียน
+// ======================
 
-  // เลขครุภัณฑ์กรม
-  governmentAssetNo String? @unique
+// เลขครุภัณฑ์กรม
+governmentAssetNo String? @unique
 
-  // เลขครุภัณฑ์ประจำสำนัก
-  officeAssetNo String? @unique
+// เลขครุภัณฑ์ประจำสำนัก
+officeAssetNo String? @unique
 
-  // ======================
-  // หน่วยงานที่รับผิดชอบ
-  // ======================
+// ======================
+// หน่วยงานที่รับผิดชอบ
+// ======================
 
-  departmentId Int
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+departmentId Int
 
-  // กลุ่มงานย่อย
-  sectionId Int?
-  section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+department Department @relation(
+fields: [departmentId],
+references: [id],
+onDelete: Restrict
+)
 
-  // ======================
-  // ผู้ครอบครอง
-  // ======================
+// กลุ่มงานย่อย
+sectionId Int?
 
-  // จะเลือกเฉพาะ Officer ที่อยู่ใน Department เดียวกับครุภัณฑ์
-  officerId Int?
-  officer   Officer? @relation(fields: [officerId], references: [id], onDelete: SetNull)
+section Section? @relation(
+fields: [sectionId],
+references: [id],
+onDelete: SetNull
+)
 
-  // ======================
-  // สถานะครุภัณฑ์
-  // ======================
+// ======================
+// ผู้ครอบครอง
+// ======================
 
-  status AssetStatus @default(IN_USE)
+// จะเลือกเฉพาะ Officer ที่อยู่ใน Department เดียวกับครุภัณฑ์
+officerId Int?
 
-  // ======================
-  // ข้อมูลเพิ่มเติม
-  // ======================
+officer Officer? @relation(
+fields: [officerId],
+references: [id],
+onDelete: SetNull
+)
 
-  purchaseDate DateTime?
+// ======================
+// สถานะครุภัณฑ์
+// ======================
 
-  price Float?
+status AssetStatus @default(IN_USE)
 
-  location String?
+// ======================
+// ข้อมูลเพิ่มเติม
+// ======================
 
-  remark String?
+purchaseDate DateTime?
 
-  // ======================
-  // ข้อมูลการจำหน่าย
-  // ======================
-  //
-  // ใช้เฉพาะเมื่อ status = DISPOSED
-  // ข้อมูลเดิมที่ยังไม่เคยจำหน่ายจะเป็น null
-  //
+price Float?
 
-  disposalLocation String?
+location String?
 
-  disposalDate DateTime?
+remark String?
 
-  createdAt DateTime @default(now())
+// ======================
+// ข้อมูลการจำหน่าย
+// ======================
 
-  updatedAt DateTime @updatedAt
+// ใช้เฉพาะเมื่อ status = DISPOSED
+// ข้อมูลเดิมที่ยังไม่เคยจำหน่ายจะเป็น null
 
-  // ======================
-  // ประวัติการตรวจสอบ
-  // ======================
+disposalLocation String?
 
-  inspections AssetInspection[]
+disposalDate DateTime?
 
-  @@index([departmentId])
-  @@index([sectionId])
-  @@index([officerId])
-  @@index([category])
-  @@index([status])
+createdAt DateTime @default(now())
+
+updatedAt DateTime @updatedAt
+
+// ======================
+// ประวัติการตรวจสอบ
+// ======================
+
+inspections AssetInspection[]
+
+@@index([departmentId])
+@@index([sectionId])
+@@index([officerId])
+@@index([category])
+@@index([status])
 }
 
 // =====================================================
@@ -490,51 +503,94 @@ model Asset {
 // =====================================================
 
 model AssetInspection {
-  id Int @id @default(autoincrement())
+id Int @id @default(autoincrement())
 
-  // ======================
-  // ครุภัณฑ์ที่ตรวจ
-  // ======================
+// ======================
+// ครุภัณฑ์ที่ตรวจ
+// ======================
 
-  assetId Int
-  asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+assetId Int
 
-  // ======================
-  // รอบการตรวจ
-  // ======================
+asset Asset @relation(
+fields: [assetId],
+references: [id],
+onDelete: Cascade
+)
 
-  year Int
+// ======================
+// รอบการตรวจ
+// ======================
 
-  quarter InspectionQuarter
+year Int
 
-  inspectionDate DateTime @default(now())
+quarter InspectionQuarter
 
-  // ======================
-  // ผลการตรวจจากกลุ่มงาน
-  // ======================
+inspectionDate DateTime @default(now())
 
-  status AssetInspectionStatus
+// ======================
+// วันที่ดำเนินการตรวจสอบ
+// ======================
 
-  // ======================
-  // รายละเอียดการตรวจ
-  // ======================
+inspectionStartDate DateTime?
 
-  condition String?
+inspectionEndDate DateTime?
 
-  location String?
+// ======================
+// ผลการตรวจจากกลุ่มงาน
+// ======================
 
-  remark String?
+status AssetInspectionStatus
 
-  // ผู้ตรวจ
-  inspectorName String?
+// ======================
+// จำนวนที่ตรวจนับได้
+// ======================
 
-  createdAt DateTime @default(now())
+countedQty Int?
 
-  updatedAt DateTime @updatedAt
+// ======================
+// ผลการตรวจนับ
+//
+// CORRECT   = ถูกต้อง
+// INCORRECT = ไม่ถูกต้อง
+// ======================
 
-  @@unique([assetId, year, quarter])
-  @@index([assetId])
-  @@index([year])
-  @@index([quarter])
-  @@index([status])
+accuracy String?
+
+// ======================
+// ผู้ตรวจสอบทั้ง 5 คน
+//
+// เก็บเป็น JSON เพื่อรองรับ
+// รายชื่อ/รหัสผู้ตรวจสอบแต่ละคน
+// ======================
+
+inspectorIds Json?
+
+inspectorNames Json?
+
+// ชื่อผู้ตรวจสอบแบบเดิม
+inspectorName String?
+
+// ======================
+// รายละเอียดการตรวจ
+// ======================
+
+condition String?
+
+location String?
+
+remark String?
+
+createdAt DateTime @default(now())
+
+updatedAt DateTime @updatedAt
+
+@@unique([assetId, year, quarter])
+
+@@index([assetId])
+
+@@index([year])
+
+@@index([quarter])
+
+@@index([status])
 }
