@@ -297,25 +297,21 @@ value: string
 ): void {
 const copy = [...rows];
 
-```
 copy[index] = {
   ...copy[index],
   [key]: value,
 };
 
 setRows(copy);
-```
 
 }
 
 function updateInspector(index: number, value: string): void {
 const copy = [...inspectorIds];
 
-```
 copy[index] = value;
 
 setInspectorIds(copy);
-```
 
 }
 
@@ -375,7 +371,6 @@ return ( <div className="w-full space-y-5"> <div
          >
 ข้อมูลการตรวจสอบ </h2>
 
-```
         <p
           className="
             mt-1
