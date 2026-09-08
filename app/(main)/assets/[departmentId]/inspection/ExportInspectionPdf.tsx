@@ -95,6 +95,9 @@ const thaiMonths = [
 const PDF_MARGIN = 10;
 const PDF_WIDTH = 277;
 const PDF_HEIGHT = 190;
+const TABLE_HEADER_FONT_SIZE = "9px";
+const TABLE_BODY_FONT_SIZE = "10px";
+const CHECKMARK_FONT_SIZE = "12px";
 
 function parseDateOnly(value: string) {
   if (!value) {
@@ -544,11 +547,15 @@ export default function ExportInspectionPdf({
                         remark: "",
                       };
 
-                    const officer = asset.officer;
-
-                    const responsibleOfficer = officer
-                      ? `${officer.firstName} ${officer.lastName}`
-                      : "";
+                    const responsibleGroup =
+                      department.name === "กลุ่มอำนวยการ"
+                        ? [
+                            department.name,
+                            asset.section?.name || "",
+                          ]
+                            .filter(Boolean)
+                            .join(" / ")
+                        : department.name;
 
                     const assetName = [
                       asset.name,
@@ -559,18 +566,18 @@ export default function ExportInspectionPdf({
                       .join(" ");
 
                     return (
-                      <tr key={asset.id} style={{ height: "7.2mm" }}>
+                      <tr key={asset.id} style={{ height: "7.6mm" }}>
                         <td style={bodyCellStyle}>
-                          {actualIndex + 1}
+                          <span style={bodyTextStyle}>
+                            {actualIndex + 1}
+                          </span>
                         </td>
 
                         <td style={bodyCellStyle}>
                           <span
                             style={{
                               ...codeTextStyle,
-                              fontSize: getCodeFontSize(
-                                asset.governmentAssetNo || ""
-                              ),
+                              fontSize: TABLE_BODY_FONT_SIZE,
                             }}
                           >
                             {asset.governmentAssetNo || ""}
@@ -581,9 +588,7 @@ export default function ExportInspectionPdf({
                           <span
                             style={{
                               ...codeTextStyle,
-                              fontSize: getCodeFontSize(
-                                asset.officeAssetNo || ""
-                              ),
+                              fontSize: TABLE_BODY_FONT_SIZE,
                             }}
                           >
                             {asset.officeAssetNo || ""}
@@ -594,28 +599,27 @@ export default function ExportInspectionPdf({
                           <span
                             style={{
                               ...bodyTextStyle,
-                              fontSize: getCompactFontSize(
-                                responsibleOfficer,
-                                12,
-                                11,
-                                10
-                              ),
+                              fontSize: TABLE_BODY_FONT_SIZE,
                             }}
                           >
-                            {responsibleOfficer}
+                            {responsibleGroup}
                           </span>
                         </td>
 
-                        <td style={bodyCellStyle}>
+                        <td
+                          style={{
+                            ...bodyCellStyle,
+                            textAlign: "left",
+                          }}
+                        >
                           <span
                             style={{
                               ...bodyTextStyle,
-                              fontSize: getCompactFontSize(
-                                assetName,
-                                12,
-                                11,
-                                10
-                              ),
+                              textAlign: "left",
+                              justifyContent: "flex-start",
+                              paddingLeft: "0.8mm",
+                              paddingRight: "0.4mm",
+                              fontSize: TABLE_BODY_FONT_SIZE,
                             }}
                           >
                             {assetName}
@@ -623,49 +627,60 @@ export default function ExportInspectionPdf({
                         </td>
 
                         <td style={bodyCellStyle}>
-                          {getCategoryUnit(asset.category)}
+                          <span style={bodyTextStyle}>
+                            {getCategoryUnit(asset.category)}
+                          </span>
                         </td>
 
-                        <td style={bodyCellStyle}>1</td>
-                        <td style={bodyCellStyle}>-</td>
-                        <td style={bodyCellStyle}>-</td>
-                        <td style={bodyCellStyle}>1</td>
-                        <td style={bodyCellStyle}>{row.countedQty}</td>
-
-                        <td style={checkCellStyle}>
-                          {getAccuracyChecked(row, "CORRECT")}
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          {getAccuracyChecked(row, "INCORRECT")}
+                        <td style={bodyCellStyle}><span style={bodyTextStyle}>1</span></td>
+                        <td style={bodyCellStyle}><span style={bodyTextStyle}>-</span></td>
+                        <td style={bodyCellStyle}><span style={bodyTextStyle}>-</span></td>
+                        <td style={bodyCellStyle}><span style={bodyTextStyle}>1</span></td>
+                        <td style={bodyCellStyle}>
+                          <span style={bodyTextStyle}>{row.countedQty}</span>
                         </td>
 
                         <td style={checkCellStyle}>
-                          {getStatusChecked(row, "IN_USE")}
+                          <span style={checkTextStyle}>
+                            {getAccuracyChecked(row, "CORRECT")}
+                          </span>
                         </td>
 
                         <td style={checkCellStyle}>
-                          {getStatusChecked(row, "DAMAGED")}
+                          <span style={checkTextStyle}>
+                            {getAccuracyChecked(row, "INCORRECT")}
+                          </span>
                         </td>
 
                         <td style={checkCellStyle}>
-                          {getStatusChecked(row, "DETERIORATED")}
+                          <span style={checkTextStyle}>
+                            {getStatusChecked(row, "IN_USE")}
+                          </span>
                         </td>
 
                         <td style={checkCellStyle}>
-                          {getStatusChecked(row, "UNUSABLE")}
+                          <span style={checkTextStyle}>
+                            {getStatusChecked(row, "DAMAGED")}
+                          </span>
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          <span style={checkTextStyle}>
+                            {getStatusChecked(row, "DETERIORATED")}
+                          </span>
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          <span style={checkTextStyle}>
+                            {getStatusChecked(row, "UNUSABLE")}
+                          </span>
                         </td>
 
                         <td style={bodyCellStyle}>
                           <span
                             style={{
                               ...bodyTextStyle,
-                              fontSize: getCompactFontSize(
-                                row.remark || "",
-                                12,
-                                11,
-                                10
-                              ),
+                              fontSize: TABLE_BODY_FONT_SIZE,
                             }}
                           >
                             {row.remark || ""}
@@ -685,7 +700,7 @@ export default function ExportInspectionPdf({
                     (_, emptyIndex) => (
                       <tr
                         key={`empty-${emptyIndex}`}
-                        style={{ height: "7.2mm" }}
+                        style={{ height: "7.6mm" }}
                       >
                         {Array.from({ length: 18 }, (_, cellIndex) => (
                           <td key={cellIndex} style={bodyCellStyle} />
@@ -807,8 +822,8 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "10.5px",
-  padding: "0.55mm 0.35mm",
+  fontSize: TABLE_HEADER_FONT_SIZE,
+  padding: "0.6mm 0.3mm",
   margin: 0,
   lineHeight: 1.08,
   height: "10.5mm",
@@ -820,9 +835,9 @@ const headerStyle: React.CSSProperties = {
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
   height: "6.5mm",
-  fontSize: "9.5px",
-  padding: "0.4mm 0.25mm",
-  lineHeight: 1.05,
+  fontSize: TABLE_HEADER_FONT_SIZE,
+  padding: "0.45mm 0.25mm",
+  lineHeight: 1.08,
   overflow: "visible",
 };
 
@@ -837,7 +852,7 @@ const headerCenterStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "10.5px",
+  fontSize: TABLE_HEADER_FONT_SIZE,
   fontWeight: "normal",
   lineHeight: 1.08,
   whiteSpace: "normal",
@@ -855,29 +870,32 @@ const bodyCellStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "13px",
+  fontSize: TABLE_BODY_FONT_SIZE,
   fontWeight: "normal",
   padding: 0,
   margin: 0,
   lineHeight: 1,
-  height: "7.2mm",
-  minHeight: "7.2mm",
+  height: "7.6mm",
+  minHeight: "7.6mm",
   boxSizing: "border-box",
   overflow: "visible",
 };
 
 const bodyTextStyle: React.CSSProperties = {
-  display: "block",
+  display: "flex",
   position: "relative",
-  top: "-0.9mm",
+  top: "-1.15mm",
   width: "100%",
+  minHeight: "5.4mm",
   margin: 0,
-  padding: "0 0.35mm",
+  padding: "0 0.3mm",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "13px",
+  fontSize: TABLE_BODY_FONT_SIZE,
   fontWeight: "normal",
   lineHeight: 1,
   whiteSpace: "normal",
@@ -894,8 +912,8 @@ const headerNoWrapStyle: React.CSSProperties = {
   padding: 0,
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1.05,
-  fontSize: "9px",
+  lineHeight: 1.08,
+  fontSize: TABLE_HEADER_FONT_SIZE,
   overflow: "visible",
 };
 
@@ -905,22 +923,26 @@ const accountHeaderLineStyle: React.CSSProperties = {
   padding: 0,
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1.05,
-  fontSize: "9px",
+  lineHeight: 1.08,
+  fontSize: TABLE_HEADER_FONT_SIZE,
   overflow: "visible",
 };
 
 const codeTextStyle: React.CSSProperties = {
-  display: "inline-block",
+  display: "flex",
   position: "relative",
-  top: "-0.9mm",
+  top: "-1.15mm",
   width: "100%",
+  minHeight: "5.4mm",
   margin: 0,
-  padding: "0 0.2mm",
+  padding: "0 0.25mm",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
+  fontSize: TABLE_BODY_FONT_SIZE,
   fontWeight: "normal",
   lineHeight: 1,
   whiteSpace: "nowrap",
@@ -932,11 +954,26 @@ const codeTextStyle: React.CSSProperties = {
 
 const checkCellStyle: React.CSSProperties = {
   ...bodyCellStyle,
-  fontSize: "17px",
+  fontSize: CHECKMARK_FONT_SIZE,
   fontWeight: 700,
   textAlign: "center",
   verticalAlign: "middle",
   whiteSpace: "nowrap",
+  lineHeight: 1,
+};
+
+const checkTextStyle: React.CSSProperties = {
+  display: "flex",
+  position: "relative",
+  top: "-1.15mm",
+  width: "100%",
+  minHeight: "5.4mm",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: 0,
+  padding: 0,
+  fontSize: CHECKMARK_FONT_SIZE,
+  lineHeight: 1,
 };
 
 const signatureTitleStyle: React.CSSProperties = {
