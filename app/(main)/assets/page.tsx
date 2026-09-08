@@ -105,7 +105,7 @@ export default async function AssetsPage() {
             sm:text-base
           "
         >
-          📋 ประวัติการตรวจสอบครุภัณฑ์ประจำปี
+          📋 การตรวจสอบครุภัณฑ์ประจำปี
         </Link>
       </div>
 
