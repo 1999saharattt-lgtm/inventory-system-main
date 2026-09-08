@@ -68,25 +68,21 @@ type Props = {
   inspectionStartDate: string;
   inspectionEndDate: string;
   inspectorIds: string[];
-
-  // รับ props จาก InspectionForm.tsx
   accountStartDate: string;
   accountEndDate: string;
   movementFiscalYear: string;
-
-  // optional เพื่อไม่ให้กระทบการเรียกใช้งานเดิม
   officers?: Officer[];
 };
 
 /* =========================================================
 จำนวนรายการต่อหน้า
+A4 แนวนอน = 15 รายการต่อหน้า
 ========================================================= */
 
-const ROWS_PER_PAGE = 20;
+const ROWS_PER_PAGE = 15;
 
 /* =========================================================
 ปีงบประมาณที่ตรวจสอบ
-รอบการตรวจนี้เป็นปีงบประมาณ พ.ศ. 2569
 ========================================================= */
 
 const INSPECTION_FISCAL_YEAR = "2569";
@@ -111,13 +107,14 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-ขนาดพื้นที่ PDF
-A4 Landscape
+พื้นที่พิมพ์ A4 Landscape
+297 x 210 mm
+เว้นขอบรอบด้าน 10 mm
 ========================================================= */
 
+const PDF_MARGIN = 10;
 const PDF_WIDTH = 277;
 const PDF_HEIGHT = 190;
-const PDF_SCALE = 0.7;
 
 /* =========================================================
 วันที่
@@ -139,18 +136,6 @@ function parseDateOnly(value: string) {
   return new Date(year, month - 1, day);
 }
 
-function formatDateOnly(date: Date) {
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
 function formatThaiDate(value: string) {
   if (!value) {
     return "........";
@@ -167,46 +152,6 @@ function formatThaiDate(value: string) {
   const year = date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
-}
-
-/* =========================================================
-วันที่ย้อนหลัง 1 ปี
-========================================================= */
-
-function getOneYearBefore(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  const date = parseDateOnly(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  date.setFullYear(date.getFullYear() - 1);
-
-  return formatDateOnly(date);
-}
-
-/* =========================================================
-วันที่ย้อนหลัง 1 วัน
-========================================================= */
-
-function getOneDayBefore(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  const date = parseDateOnly(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  date.setDate(date.getDate() - 1);
-
-  return formatDateOnly(date);
 }
 
 /* =========================================================
@@ -267,6 +212,9 @@ export default function ExportInspectionPdf({
   inspectionStartDate,
   inspectionEndDate,
   inspectorIds,
+  accountStartDate,
+  accountEndDate,
+  movementFiscalYear,
   officers = [],
 }: Props) {
   const pdfRef = useRef<HTMLDivElement>(null);
@@ -276,10 +224,6 @@ export default function ExportInspectionPdf({
     1,
     Math.ceil(assets.length / ROWS_PER_PAGE)
   );
-
-  /* =======================================================
-  Export PDF
-  ======================================================= */
 
   async function handleExportPdf() {
     if (!pdfRef.current) {
@@ -300,9 +244,7 @@ export default function ExportInspectionPdf({
 
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            resolve();
-          });
+          requestAnimationFrame(() => resolve());
         });
       });
 
@@ -322,23 +264,14 @@ export default function ExportInspectionPdf({
         compress: true,
       });
 
-      const pdfMargin = 10;
-
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
-
-        const width = page.clientWidth;
-        const height = page.clientHeight;
 
         const canvas = await html2canvas(page, {
           scale: 2,
           useCORS: true,
           allowTaint: false,
           backgroundColor: "#ffffff",
-          width,
-          height,
-          windowWidth: width,
-          windowHeight: height,
           scrollX: 0,
           scrollY: 0,
           logging: false,
@@ -353,8 +286,8 @@ export default function ExportInspectionPdf({
         pdf.addImage(
           imageData,
           "PNG",
-          pdfMargin,
-          pdfMargin,
+          PDF_MARGIN,
+          PDF_MARGIN,
           PDF_WIDTH,
           PDF_HEIGHT,
           undefined,
@@ -372,9 +305,7 @@ export default function ExportInspectionPdf({
     } catch (error) {
       console.error("ไม่สามารถสร้าง PDF ได้:", error);
 
-      alert(
-        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
-      );
+      alert("ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsExporting(false);
     }
@@ -382,10 +313,6 @@ export default function ExportInspectionPdf({
 
   return (
     <>
-      {/* =====================================================
-      ปุ่ม Export
-      ===================================================== */}
-
       <button
         type="button"
         onClick={handleExportPdf}
@@ -410,14 +337,8 @@ export default function ExportInspectionPdf({
           disabled:hover:scale-100
         "
       >
-        {isExporting
-          ? "กำลังสร้าง PDF..."
-          : "📄 ส่งออก PDF"}
+        {isExporting ? "กำลังสร้าง PDF..." : "📄 ส่งออก PDF"}
       </button>
-
-      {/* =====================================================
-      พื้นที่สร้าง PDF
-      ===================================================== */}
 
       <div
         ref={pdfRef}
@@ -431,824 +352,390 @@ export default function ExportInspectionPdf({
           pointerEvents: "none",
         }}
       >
-        {Array.from(
-          {
-            length: totalPages,
-          },
-          (_, pageIndex) => {
-            const startIndex =
-              pageIndex * ROWS_PER_PAGE;
+        {Array.from({ length: totalPages }, (_, pageIndex) => {
+          const startIndex = pageIndex * ROWS_PER_PAGE;
 
-            const pageAssets = assets.slice(
-              startIndex,
-              startIndex + ROWS_PER_PAGE
-            );
+          const pageAssets = assets.slice(
+            startIndex,
+            startIndex + ROWS_PER_PAGE
+          );
 
-            return (
+          return (
+            <div
+              key={pageIndex}
+              className="inspection-pdf-page"
+              style={{
+                width: `${PDF_WIDTH}mm`,
+                height: `${PDF_HEIGHT}mm`,
+                boxSizing: "border-box",
+                padding: 0,
+                margin: 0,
+                background: "#ffffff",
+                fontFamily:
+                  "TH Sarabun New, Sarabun, Arial, sans-serif",
+                color: "#000000",
+                overflow: "hidden",
+                fontSize: "14px",
+                lineHeight: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {/* HEADER */}
               <div
-                key={pageIndex}
-                className="inspection-pdf-page"
                 style={{
-                  width: `${PDF_WIDTH}mm`,
-                  height: `${PDF_HEIGHT}mm`,
+                  height: "15mm",
                   boxSizing: "border-box",
-                  padding: 0,
-                  background: "#ffffff",
+                  width: "100%",
+                  textAlign: "center",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  color: "#000000",
-                  overflow: "hidden",
-                  transform: `scale(${PDF_SCALE})`,
-                  transformOrigin: "top left",
-                  marginBottom: `${
-                    -PDF_HEIGHT * (1 - PDF_SCALE)
-                  }mm`,
-                  fontSize: "16px",
                   lineHeight: 1,
+                  overflow: "hidden",
+                  marginBottom: "2mm",
                 }}
               >
-                {/* =================================================
-                HEADER
-                ================================================= */}
-
                 <div
                   style={{
-                    width: "100%",
-                    textAlign: "center",
-                    lineHeight: 1,
-                    marginBottom: "2.5mm",
-                    fontFamily:
-                      "TH Sarabun New, Sarabun, Arial, sans-serif",
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    height: "5mm",
+                    lineHeight: "5mm",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "21px",
-                      fontWeight: 700,
-                      marginBottom: "0.8mm",
-                      whiteSpace: "nowrap",
-                      lineHeight: 1,
-                    }}
-                  >
-                    กระดาษทำการตรวจสอบพัสดุ{" "}
-                    ประจำปีงบประมาณ พ.ศ.{" "}
-                    {INSPECTION_FISCAL_YEAR}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: "19px",
-                      fontWeight: 700,
-                      marginBottom: "0.8mm",
-                      whiteSpace: "nowrap",
-                      lineHeight: 1,
-                    }}
-                  >
-                    สำนักอนามัยการเจริญพันธุ์
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      whiteSpace: "nowrap",
-                      lineHeight: 1,
-                    }}
-                  >
-                    เริ่มดำเนินการตรวจสอบวันที่{" "}
-                    {formatThaiDate(
-                      inspectionStartDate
-                    )}
-                    {"     "}
-                    ตรวจสอบแล้วเสร็จวันที่{" "}
-                    {formatThaiDate(
-                      inspectionEndDate
-                    )}
-                  </div>
+                  กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ.{" "}
+                  {INSPECTION_FISCAL_YEAR}
                 </div>
 
-                {/* =================================================
-                TABLE
-                ================================================= */}
-
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    tableLayout: "fixed",
-                    fontFamily:
-                      "TH Sarabun New, Sarabun, Arial, sans-serif",
-                    fontSize: "16px",
-                    lineHeight: 1,
-                    color: "#000000",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <colgroup>
-                    <col style={{ width: "2.8%" }} />
-                    <col style={{ width: "5.6%" }} />
-                    <col style={{ width: "6.4%" }} />
-                    <col style={{ width: "9%" }} />
-                    <col style={{ width: "13%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "6%" }} />
-                    <col style={{ width: "3.3%" }} />
-                    <col style={{ width: "3.3%" }} />
-                    <col style={{ width: "6%" }} />
-                    <col style={{ width: "6%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "3.8%" }} />
-                    <col style={{ width: "4.5%" }} />
-                    <col style={{ width: "6.3%" }} />
-                  </colgroup>
-
-                  <thead>
-                    <tr>
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ลำดับ
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          รหัส GFMIS
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          รหัสครุภัณฑ์
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ผู้รับผิดชอบ
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          รายการ
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          หน่วย
-                        </span>
-                      </th>
-
-                      {/* ยอดคงเหลือตามบัญชีครั้งที่ 1 */}
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <div
-                          style={{
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ยอดคงเหลือตามบัญชี
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "0.8mm",
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ณ วันที่{" "}
-                          {formatThaiDate(
-                            getOneYearBefore(
-                              inspectionStartDate
-                            )
-                          )}
-                        </div>
-                      </th>
-
-                      <th
-                        colSpan={2}
-                        style={headerStyle}
-                      >
-                        <div
-                          style={{
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          รายการเคลื่อนไหวระหว่าง
-                          ปีงบประมาณ
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "0.8mm",
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          พ.ศ. {INSPECTION_FISCAL_YEAR}
-                        </div>
-                      </th>
-
-                      {/* ยอดคงเหลือตามบัญชีครั้งที่ 2 */}
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <div
-                          style={{
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ยอดคงเหลือตามบัญชี
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "0.8mm",
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ณ วันที่{" "}
-                          {formatThaiDate(
-                            getOneDayBefore(
-                              inspectionEndDate
-                            )
-                          )}
-                        </div>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          จำนวนที่ตรวจนับได้
-                        </span>
-                      </th>
-
-                      <th
-                        colSpan={2}
-                        style={headerStyle}
-                      >
-                        <div
-                          style={{
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ผลการตรวจนับ
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "0.8mm",
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            fontWeight: "normal",
-                            lineHeight: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          ถูกต้องตรงกับ
-                          ยอดคงเหลือตามบัญชี
-                        </div>
-                      </th>
-
-                      <th
-                        colSpan={4}
-                        style={headerStyle}
-                      >
-                        <span style={headerTextStyle}>
-                          สภาพครุภัณฑ์ที่ตรวจนับ
-                        </span>
-                      </th>
-
-                      <th rowSpan={2} style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          หมายเหตุ
-                        </span>
-                      </th>
-                    </tr>
-
-                    <tr>
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          รับ
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          จ่าย
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ถูกต้อง
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ไม่ถูกต้อง
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ใช้งาน
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ชำรุด
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          เสื่อมสภาพ
-                        </span>
-                      </th>
-
-                      <th style={headerStyle}>
-                        <span style={headerTextStyle}>
-                          ไม่สามารถใช้งาน
-                        </span>
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {pageAssets.map(
-                      (asset, localIndex) => {
-                        const actualIndex =
-                          startIndex +
-                          localIndex;
-
-                        const row =
-                          rows[actualIndex] || {
-                            assetId: asset.id,
-                            countedQty: "1",
-                            accuracy: "",
-                            status: "",
-                            remark: "",
-                          };
-
-                        const officer =
-                          asset.officer;
-
-                        return (
-                          <tr key={asset.id}>
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {actualIndex + 1}
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                whiteSpace:
-                                  "normal",
-                                overflowWrap:
-                                  "anywhere",
-                              }}
-                            >
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {
-                                  asset.governmentAssetNo
-                                }
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                whiteSpace:
-                                  "normal",
-                                overflowWrap:
-                                  "anywhere",
-                              }}
-                            >
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {
-                                  asset.officeAssetNo
-                                }
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                whiteSpace:
-                                  "normal",
-                                overflowWrap:
-                                  "break-word",
-                                wordBreak:
-                                  "break-word",
-                              }}
-                            >
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {officer
-                                  ? `${officer.firstName} ${officer.lastName}`
-                                  : ""}
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                textAlign: "left",
-                                paddingLeft: "2px",
-                                whiteSpace:
-                                  "normal",
-                                overflowWrap:
-                                  "break-word",
-                                wordBreak:
-                                  "break-word",
-                              }}
-                            >
-                              <span
-                                style={
-                                  materialNameTextStyle
-                                }
-                              >
-                                {asset.name}
-
-                                {(asset.brand ||
-                                  asset.model) && (
-                                  <span>
-                                    {" "}
-                                    (
-                                    {asset.brand ||
-                                      ""}
-                                    {asset.brand &&
-                                    asset.model
-                                      ? " / "
-                                      : ""}
-                                    {asset.model ||
-                                      ""}
-                                    )
-                                  </span>
-                                )}
-                              </span>
-                            </td>
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {getCategoryUnit(
-                                  asset.category
-                                )}
-                              </span>
-                            </td>
-
-                            {/* ยอดคงเหลือตามบัญชีครั้งที่ 1 */}
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                1
-                              </span>
-                            </td>
-
-                            {/* รับ */}
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                -
-                              </span>
-                            </td>
-
-                            {/* จ่าย */}
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                -
-                              </span>
-                            </td>
-
-                            {/* ยอดคงเหลือตามบัญชีครั้งที่ 2 */}
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                1
-                              </span>
-                            </td>
-
-                            {/* จำนวนที่ตรวจนับได้ */}
-
-                            <td style={bodyCellStyle}>
-                              <span
-                                style={
-                                  dataTextStyle
-                                }
-                              >
-                                {row.countedQty}
-                              </span>
-                            </td>
-
-                            {/* ถูกต้อง */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getAccuracyChecked(
-                                  row,
-                                  "CORRECT"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* ไม่ถูกต้อง */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getAccuracyChecked(
-                                  row,
-                                  "INCORRECT"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* ใช้งาน */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "IN_USE"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* ชำรุด */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "DAMAGED"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* เสื่อมสภาพ */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "DETERIORATED"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* ไม่สามารถใช้งาน */}
-
-                            <td style={checkCellStyle}>
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "UNUSABLE"
-                                )}
-                              </span>
-                            </td>
-
-                            {/* หมายเหตุ */}
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                textAlign: "left",
-                                paddingLeft: "2px",
-                                whiteSpace:
-                                  "normal",
-                                overflowWrap:
-                                  "break-word",
-                                wordBreak:
-                                  "break-word",
-                              }}
-                            >
-                              <span
-                                style={
-                                  materialNameTextStyle
-                                }
-                              >
-                                {row.remark || ""}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      }
-                    )}
-                  </tbody>
-                </table>
-
-                {/* =================================================
-                SIGNATURE — ผู้ตรวจสอบ 5 คน
-                ================================================= */}
-
                 <div
                   style={{
-                    marginTop: "2.5mm",
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(5, 1fr)",
-                    columnGap: "3mm",
-                    width: "100%",
-                    fontFamily:
-                      "TH Sarabun New, Sarabun, Arial, sans-serif",
+                    fontSize: "17px",
+                    fontWeight: 700,
+                    height: "5mm",
+                    lineHeight: "5mm",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {Array.from(
-                    {
-                      length: 5,
-                    },
-                    (_, index) => {
-                      const selectedInspectorId =
-                        inspectorIds[index] || "";
-
-                      const selectedOfficer =
-                        getOfficer(
-                          selectedInspectorId,
-                          officers
-                        );
-
-                      return (
-                        <div
-                          key={index}
-                          style={{
-                            textAlign: "center",
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                            fontSize: "16px",
-                            lineHeight: 1,
-                            minWidth: 0,
-                          }}
-                        >
-                          <div
-                            style={{
-                              marginBottom:
-                                "1.5mm",
-                              whiteSpace:
-                                "nowrap",
-                            }}
-                          >
-                            ลงชื่อ
-                            ................................
-                          </div>
-
-                          <div
-                            style={{
-                              whiteSpace:
-                                "nowrap",
-                              overflow: "hidden",
-                              textOverflow:
-                                "ellipsis",
-                            }}
-                          >
-                            (
-                            {selectedOfficer
-                              ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
-                              : "................................"}
-                            )
-                          </div>
-
-                          <div
-                            style={{
-                              marginTop:
-                                "0.8mm",
-                              whiteSpace:
-                                "nowrap",
-                              overflow: "hidden",
-                              textOverflow:
-                                "ellipsis",
-                            }}
-                          >
-                            {selectedOfficer?.position ||
-                              "................................"}
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
+                  สำนักอนามัยการเจริญพันธุ์
                 </div>
 
-                {/* =================================================
-                PAGE NUMBER
-                ================================================= */}
-
                 <div
                   style={{
-                    textAlign: "right",
-                    marginTop: "1.5mm",
-                    fontFamily:
-                      "TH Sarabun New, Sarabun, Arial, sans-serif",
-                    fontSize: "16px",
-                    lineHeight: 1,
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    height: "5mm",
+                    lineHeight: "5mm",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  หน้า {pageIndex + 1} /{" "}
-                  {totalPages}
+                  เริ่มดำเนินการตรวจสอบวันที่{" "}
+                  {formatThaiDate(inspectionStartDate)}
+                  {"     "}
+                  ตรวจสอบแล้วเสร็จวันที่{" "}
+                  {formatThaiDate(inspectionEndDate)}
                 </div>
               </div>
-            );
-          }
-        )}
+
+              {/* TABLE */}
+              <table
+                style={{
+                  width: "100%",
+                  height: "136mm",
+                  borderCollapse: "collapse",
+                  borderSpacing: 0,
+                  border: "1px solid #000000",
+                  borderRadius: 0,
+                  tableLayout: "fixed",
+                  fontFamily:
+                    "TH Sarabun New, Sarabun, Arial, sans-serif",
+                  fontSize: "13px",
+                  lineHeight: 1,
+                  color: "#000000",
+                  backgroundColor: "#ffffff",
+                }}
+              >
+                <colgroup>
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "9%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "3%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "4.5%" }} />
+                  <col style={{ width: "8%" }} />
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th rowSpan={2} style={headerStyle}>ลำดับ</th>
+                    <th rowSpan={2} style={headerStyle}>รหัส GFMIS</th>
+                    <th rowSpan={2} style={headerStyle}>รหัสครุภัณฑ์</th>
+                    <th rowSpan={2} style={headerStyle}>ผู้รับผิดชอบ</th>
+                    <th rowSpan={2} style={headerStyle}>รายการ</th>
+                    <th rowSpan={2} style={headerStyle}>หน่วยนับ</th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerOneLineStyle}>
+                        ยอดคงเหลือตามบัญชี
+                      </div>
+                      <div style={headerOneLineStyle}>
+                        ณ วันที่ {formatThaiDate(accountStartDate)}
+                      </div>
+                    </th>
+
+                    <th colSpan={2} style={headerStyle}>
+                      <div style={headerOneLineStyle}>
+                        รายการเคลื่อนไหวระหว่าง
+                      </div>
+                      <div style={headerOneLineStyle}>
+                        ปีงบประมาณ พ.ศ. {movementFiscalYear}
+                      </div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerOneLineStyle}>
+                        ยอดคงเหลือตามบัญชี
+                      </div>
+                      <div style={headerOneLineStyle}>
+                        ณ วันที่ {formatThaiDate(accountEndDate)}
+                      </div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      จำนวนที่ตรวจนับได้
+                    </th>
+
+                    <th colSpan={2} style={headerStyle}>
+                      <div style={headerOneLineStyle}>
+                        ผลการตรวจนับถูกต้องตรงกับ
+                      </div>
+                      <div style={headerOneLineStyle}>
+                        ยอดคงเหลือตามบัญชี
+                      </div>
+                    </th>
+
+                    <th colSpan={4} style={headerStyle}>
+                      สภาพครุภัณฑ์ที่ตรวจนับ
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      หมายเหตุ
+                    </th>
+                  </tr>
+
+                  <tr>
+                    <th style={subHeaderStyle}>รับ</th>
+                    <th style={subHeaderStyle}>จ่าย</th>
+                    <th style={subHeaderStyle}>ถูกต้อง</th>
+                    <th style={subHeaderStyle}>ไม่ถูกต้อง</th>
+                    <th style={subHeaderStyle}>ใช้งานปกติ</th>
+                    <th style={subHeaderStyle}>ชำรุด</th>
+                    <th style={subHeaderStyle}>เสื่อมสภาพ</th>
+                    <th style={subHeaderStyle}>ไม่จำเป็นต้องใช้</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pageAssets.map((asset, localIndex) => {
+                    const actualIndex = startIndex + localIndex;
+
+                    const row =
+                      rows.find((item) => item.assetId === asset.id) || {
+                        assetId: asset.id,
+                        countedQty: "1",
+                        accuracy: "",
+                        status: "",
+                        remark: "",
+                      };
+
+                    const officer = asset.officer;
+
+                    const assetName = [
+                      asset.name,
+                      asset.brand,
+                      asset.model,
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+
+                    return (
+                      <tr key={asset.id} style={{ height: "6.9mm" }}>
+                        <td style={bodyCellStyle}>{actualIndex + 1}</td>
+
+                        <td style={bodyCellStyle}>
+                          <span style={singleLineTextStyle}>
+                            {asset.governmentAssetNo || ""}
+                          </span>
+                        </td>
+
+                        <td style={bodyCellStyle}>
+                          <span style={singleLineTextStyle}>
+                            {asset.officeAssetNo || ""}
+                          </span>
+                        </td>
+
+                        <td style={bodyCellStyle}>
+                          <span style={singleLineTextStyle}>
+                            {officer
+                              ? `${officer.firstName} ${officer.lastName}`
+                              : ""}
+                          </span>
+                        </td>
+
+                        <td
+                          style={{
+                            ...bodyCellStyle,
+                            textAlign: "left",
+                          }}
+                        >
+                          <span style={singleLineTextStyle}>
+                            {assetName}
+                          </span>
+                        </td>
+
+                        <td style={bodyCellStyle}>
+                          {getCategoryUnit(asset.category)}
+                        </td>
+
+                        <td style={bodyCellStyle}>1</td>
+                        <td style={bodyCellStyle}>-</td>
+                        <td style={bodyCellStyle}>-</td>
+                        <td style={bodyCellStyle}>1</td>
+                        <td style={bodyCellStyle}>{row.countedQty}</td>
+
+                        <td style={checkCellStyle}>
+                          {getAccuracyChecked(row, "CORRECT")}
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          {getAccuracyChecked(row, "INCORRECT")}
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          {getStatusChecked(row, "IN_USE")}
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          {getStatusChecked(row, "DAMAGED")}
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          {getStatusChecked(row, "DETERIORATED")}
+                        </td>
+
+                        <td style={checkCellStyle}>
+                          {getStatusChecked(row, "UNUSABLE")}
+                        </td>
+
+                        <td
+                          style={{
+                            ...bodyCellStyle,
+                            textAlign: "left",
+                          }}
+                        >
+                          <span style={singleLineTextStyle}>
+                            {row.remark || ""}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {Array.from(
+                    {
+                      length: Math.max(
+                        0,
+                        ROWS_PER_PAGE - pageAssets.length
+                      ),
+                    },
+                    (_, emptyIndex) => (
+                      <tr
+                        key={`empty-${emptyIndex}`}
+                        style={{ height: "6.9mm" }}
+                      >
+                        {Array.from({ length: 18 }, (_, cellIndex) => (
+                          <td
+                            key={cellIndex}
+                            style={bodyCellStyle}
+                          />
+                        ))}
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+
+              {/* SIGNATURE */}
+              <div
+                style={{
+                  height: "33mm",
+                  boxSizing: "border-box",
+                  paddingTop: "3mm",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5, 1fr)",
+                  columnGap: "3mm",
+                  width: "100%",
+                  fontFamily:
+                    "TH Sarabun New, Sarabun, Arial, sans-serif",
+                  overflow: "hidden",
+                }}
+              >
+                {Array.from({ length: 5 }, (_, index) => {
+                  const selectedInspectorId =
+                    inspectorIds[index] || "";
+
+                  const selectedOfficer = getOfficer(
+                    selectedInspectorId,
+                    officers
+                  );
+
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        textAlign: "center",
+                        fontSize: "13px",
+                        lineHeight: 1.2,
+                        minWidth: 0,
+                      }}
+                    >
+                      <div style={signatureLineStyle}>
+                        ลงชื่อ ................................
+                      </div>
+
+                      <div style={signatureLineStyle}>
+                        (
+                        {selectedOfficer
+                          ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
+                          : "................................"}
+                        )
+                      </div>
+
+                      <div style={signatureLineStyle}>
+                        {selectedOfficer?.position ||
+                          "................................"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          );
+        })}
       </div>
     </>
   );
@@ -1260,6 +747,7 @@ Style ตาราง PDF
 
 const headerStyle: React.CSSProperties = {
   border: "1px solid #000000",
+  borderRadius: 0,
   background: "#ffffff",
   color: "#000000",
   textAlign: "center",
@@ -1267,98 +755,67 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "16px",
-  padding: "0.65mm 0.5mm",
-  lineHeight: 1,
-  height: "7mm",
-  overflowWrap: "break-word",
-  wordBreak: "break-word",
+  fontSize: "12px",
+  padding: "0.4mm 0.25mm",
+  lineHeight: 1.05,
+  height: "9mm",
   boxSizing: "border-box",
+  overflow: "hidden",
+};
+
+const subHeaderStyle: React.CSSProperties = {
+  ...headerStyle,
+  height: "6mm",
+  fontSize: "11.5px",
+  whiteSpace: "nowrap",
+};
+
+const headerOneLineStyle: React.CSSProperties = {
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "clip",
+  lineHeight: 1.1,
 };
 
 const bodyCellStyle: React.CSSProperties = {
   border: "1px solid #000000",
+  borderRadius: 0,
   background: "#ffffff",
   color: "#000000",
   textAlign: "center",
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
+  fontSize: "12.5px",
   fontWeight: "normal",
-  padding: "0.65mm 0.5mm",
+  padding: "0.35mm 0.35mm",
   lineHeight: 1,
-  height: "5.4mm",
-  minHeight: "5.4mm",
+  height: "6.9mm",
   boxSizing: "border-box",
-};
-
-const headerTextStyle: React.CSSProperties = {
-  display: "inline-block",
-  position: "relative",
-  top: "-1.35mm",
-  margin: 0,
-  padding: 0,
-  fontFamily:
-    "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
-  fontWeight: "normal",
-  lineHeight: 1,
+  overflow: "hidden",
   whiteSpace: "nowrap",
-  textAlign: "center",
-  verticalAlign: "middle",
 };
 
-const dataTextStyle: React.CSSProperties = {
-  display: "inline-block",
-  position: "relative",
-  top: "-1.35mm",
-  margin: 0,
-  padding: 0,
-  fontFamily:
-    "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
-  fontWeight: "normal",
-  lineHeight: 1,
-  whiteSpace: "nowrap",
-  verticalAlign: "middle",
-};
-
-const materialNameTextStyle: React.CSSProperties = {
+const singleLineTextStyle: React.CSSProperties = {
   display: "block",
-  position: "relative",
-  top: "-1.35mm",
-  margin: 0,
-  padding: 0,
-  fontFamily:
-    "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
-  fontWeight: "normal",
+  width: "100%",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
   lineHeight: 1,
-  whiteSpace: "normal",
-  overflowWrap: "break-word",
-  wordBreak: "normal",
-  verticalAlign: "middle",
 };
 
 const checkCellStyle: React.CSSProperties = {
   ...bodyCellStyle,
+  fontSize: "15px",
+  fontWeight: 700,
   textAlign: "center",
-  whiteSpace: "nowrap",
-  overflow: "visible",
 };
 
-const checkTextStyle: React.CSSProperties = {
-  display: "inline-block",
-  position: "relative",
-  top: "-1.35mm",
-  margin: 0,
-  padding: 0,
-  fontFamily:
-    "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
-  fontWeight: "normal",
-  lineHeight: 1,
+const signatureLineStyle: React.CSSProperties = {
+  height: "5.5mm",
+  lineHeight: "5.5mm",
   whiteSpace: "nowrap",
-  verticalAlign: "middle",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
 };
