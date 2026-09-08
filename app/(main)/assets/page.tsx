@@ -28,9 +28,10 @@ export default async function AssetsPage() {
           min-h-[110px]
           w-full
           min-w-0
-          items-center
+          flex-col
+          items-start
           justify-between
-          gap-3
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -41,6 +42,8 @@ export default async function AssetsPage() {
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
           sm:px-8
           sm:py-6
         "
@@ -74,6 +77,36 @@ export default async function AssetsPage() {
             เลือกกลุ่มงานเพื่อดูข้อมูลและทะเบียนครุภัณฑ์
           </p>
         </div>
+
+        <Link
+          href="/assets/inspection-history"
+          className="
+            inline-flex
+            shrink-0
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-white/20
+            bg-white
+            px-4
+            py-3
+            text-center
+            text-sm
+            font-extrabold
+            text-slate-900
+            shadow-lg
+            transition-all
+            duration-200
+            hover:-translate-y-0.5
+            hover:bg-slate-100
+            hover:shadow-xl
+            sm:px-5
+            sm:text-base
+          "
+        >
+          📋 ประวัติการตรวจสอบครุภัณฑ์ประจำปี
+        </Link>
       </div>
 
       {/* =====================================================
