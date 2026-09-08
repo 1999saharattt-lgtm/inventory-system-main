@@ -383,7 +383,7 @@ export default function ExportInspectionPdf({
                 style={{
                   width: "100%",
                   textAlign: "center",
-                  marginBottom: "2mm",
+                  marginBottom: "3.5mm",
                   flexShrink: 0,
                 }}
               >
@@ -410,6 +410,9 @@ export default function ExportInspectionPdf({
                   width: "100%",
                   borderCollapse: "collapse",
                   borderSpacing: 0,
+                  border: "1px solid #000000",
+                  borderRadius: 0,
+                  outline: "none",
                   tableLayout: "fixed",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
@@ -425,13 +428,13 @@ export default function ExportInspectionPdf({
                   <col style={{ width: "9%" }} />
                   <col style={{ width: "13%" }} />
                   <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "6.5%" }} />
                   <col style={{ width: "4%" }} />
                   <col style={{ width: "4%" }} />
-                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "6.5%" }} />
                   <col style={{ width: "5%" }} />
-                  <col style={{ width: "3.25%" }} />
-                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "4.75%" }} />
+                  <col style={{ width: "4.75%" }} />
                   <col style={{ width: "3.75%" }} />
                   <col style={{ width: "3.5%" }} />
                   <col style={{ width: "4%" }} />
@@ -506,8 +509,12 @@ export default function ExportInspectionPdf({
 
                     <th colSpan={2} style={headerStyle}>
                       <div style={headerCenterStyle}>
-                        <div>ผลการตรวจนับถูกต้อง</div>
-                        <div>ตรงกับยอดคงเหลือตามบัญชี</div>
+                        <div style={resultHeaderLineStyle}>
+                          ผลการตรวจนับถูกต้อง
+                        </div>
+                        <div style={resultHeaderLineStyle}>
+                          ตรงกับยอดคงเหลือตามบัญชี
+                        </div>
                       </div>
                     </th>
 
@@ -523,14 +530,30 @@ export default function ExportInspectionPdf({
                   </tr>
 
                   <tr>
-                    <th style={subHeaderStyle}>รับ</th>
-                    <th style={subHeaderStyle}>จ่าย</th>
-                    <th style={subHeaderStyle}>ถูกต้อง</th>
-                    <th style={subHeaderStyle}>ไม่ถูกต้อง</th>
-                    <th style={subHeaderStyle}>ใช้งานปกติ</th>
-                    <th style={subHeaderStyle}>ชำรุด</th>
-                    <th style={subHeaderStyle}>เสื่อมสภาพ</th>
-                    <th style={subHeaderStyle}>ไม่จำเป็นต้องใช้</th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>รับ</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>จ่าย</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>ถูกต้อง</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>ไม่ถูกต้อง</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>ใช้งานปกติ</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>ชำรุด</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>เสื่อมสภาพ</div>
+                    </th>
+                    <th style={subHeaderStyle}>
+                      <div style={subHeaderTextStyle}>ไม่จำเป็นต้องใช้</div>
+                    </th>
                   </tr>
                 </thead>
 
@@ -751,7 +774,7 @@ export default function ExportInspectionPdf({
                       }}
                     >
                       <div style={signatureTitleStyle}>
-                        ลงชื่อ ................................
+                        ลงชื่อ ....................................................
                       </div>
 
                       <div
@@ -806,7 +829,7 @@ const mainTitleStyle: React.CSSProperties = {
 const dateTitleStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "14px",
+  fontSize: "17px",
   fontWeight: 600,
   lineHeight: 1.15,
   whiteSpace: "nowrap",
@@ -814,7 +837,7 @@ const dateTitleStyle: React.CSSProperties = {
 
 const headerStyle: React.CSSProperties = {
   border: "1px solid #000000",
-  borderRadius: 0,
+  borderRadius: "0px",
   background: "#ffffff",
   color: "#000000",
   textAlign: "center",
@@ -863,7 +886,7 @@ const headerCenterStyle: React.CSSProperties = {
 
 const bodyCellStyle: React.CSSProperties = {
   border: "1px solid #000000",
-  borderRadius: 0,
+  borderRadius: "0px",
   background: "#ffffff",
   color: "#000000",
   textAlign: "center",
@@ -928,6 +951,35 @@ const accountHeaderLineStyle: React.CSSProperties = {
   overflow: "visible",
 };
 
+const resultHeaderLineStyle: React.CSSProperties = {
+  width: "100%",
+  margin: 0,
+  padding: 0,
+  textAlign: "center",
+  whiteSpace: "nowrap",
+  lineHeight: 1.08,
+  fontSize: TABLE_HEADER_FONT_SIZE,
+  overflow: "visible",
+};
+
+const subHeaderTextStyle: React.CSSProperties = {
+  display: "flex",
+  width: "100%",
+  height: "100%",
+  minHeight: "5.2mm",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
+  verticalAlign: "middle",
+  margin: 0,
+  padding: "0.35mm 0.15mm 0.55mm",
+  boxSizing: "border-box",
+  lineHeight: 1,
+  fontSize: TABLE_HEADER_FONT_SIZE,
+  whiteSpace: "nowrap",
+  overflow: "visible",
+};
+
 const codeTextStyle: React.CSSProperties = {
   display: "flex",
   position: "relative",
@@ -978,15 +1030,15 @@ const checkTextStyle: React.CSSProperties = {
 
 const signatureTitleStyle: React.CSSProperties = {
   fontSize: "12px",
-  lineHeight: 1.15,
-  minHeight: "5mm",
+  lineHeight: 1.05,
+  minHeight: "4mm",
   whiteSpace: "nowrap",
 };
 
 const signatureTextStyle: React.CSSProperties = {
-  minHeight: "6mm",
-  padding: "0.4mm 0",
-  lineHeight: 1.08,
+  minHeight: "4mm",
+  padding: "0.1mm 0",
+  lineHeight: 1.02,
   textAlign: "center",
   whiteSpace: "normal",
   wordBreak: "normal",
