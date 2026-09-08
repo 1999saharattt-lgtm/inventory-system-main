@@ -166,9 +166,9 @@ function getAccuracyChecked(row: InspectionRow, accuracy: string) {
 
 function getCompactFontSize(
   text: string,
-  normalSize = 11.5,
-  mediumSize = 10.5,
-  smallSize = 9.5
+  normalSize = 12,
+  mediumSize = 11,
+  smallSize = 10
 ) {
   const length = text.trim().length;
 
@@ -352,62 +352,29 @@ export default function ExportInspectionPdf({
                   "TH Sarabun New, Sarabun, Arial, sans-serif",
                 color: "#000000",
                 overflow: "hidden",
-                fontSize: "14px",
-                lineHeight: 1,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
                 justifyContent: "center",
               }}
             >
               <div
                 style={{
-                  height: "16mm",
-                  boxSizing: "border-box",
                   width: "100%",
                   textAlign: "center",
-                  fontFamily:
-                    "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  lineHeight: 1,
-                  overflow: "visible",
-                  marginBottom: "2mm",
+                  marginBottom: "3mm",
                   flexShrink: 0,
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "17px",
-                    fontWeight: 700,
-                    height: "5mm",
-                    lineHeight: "5mm",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div style={mainTitleStyle}>
                   กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ.{" "}
                   {INSPECTION_FISCAL_YEAR}
                 </div>
 
-                <div
-                  style={{
-                    fontSize: "17px",
-                    fontWeight: 700,
-                    height: "5mm",
-                    lineHeight: "5mm",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div style={mainTitleStyle}>
                   สำนักอนามัยการเจริญพันธุ์
                 </div>
 
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    minHeight: "5mm",
-                    lineHeight: "5mm",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <div style={dateTitleStyle}>
                   เริ่มดำเนินการตรวจสอบวันที่{" "}
                   {formatThaiDate(inspectionStartDate)}
                   {"     "}
@@ -421,94 +388,99 @@ export default function ExportInspectionPdf({
                   width: "100%",
                   borderCollapse: "collapse",
                   borderSpacing: 0,
-                  border: "1px solid #000000",
-                  borderRadius: 0,
                   tableLayout: "fixed",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  fontSize: "13px",
-                  lineHeight: 1,
                   color: "#000000",
                   backgroundColor: "#ffffff",
                   flexShrink: 0,
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "2.5%" }} />
-                  <col style={{ width: "6.5%" }} />
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "9.5%" }} />
-                  <col style={{ width: "15%" }} />
                   <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "2.75%" }} />
-                  <col style={{ width: "2.75%" }} />
-                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "11.5%" }} />
+                  <col style={{ width: "17%" }} />
                   <col style={{ width: "5%" }} />
-                  <col style={{ width: "3.25%" }} />
-                  <col style={{ width: "3.25%" }} />
-                  <col style={{ width: "3.75%" }} />
-                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "4.5%" }} />
                   <col style={{ width: "4%" }} />
                   <col style={{ width: "5%" }} />
-                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "6.5%" }} />
+                  <col style={{ width: "6%" }} />
                 </colgroup>
 
                 <thead>
                   <tr>
-                    <th rowSpan={2} style={headerStyle}>ลำดับ</th>
-                    <th rowSpan={2} style={headerStyle}>รหัส GFMIS</th>
-                    <th rowSpan={2} style={headerStyle}>รหัสครุภัณฑ์</th>
-                    <th rowSpan={2} style={headerStyle}>ผู้รับผิดชอบ</th>
-                    <th rowSpan={2} style={headerStyle}>รายการ</th>
-                    <th rowSpan={2} style={headerStyle}>หน่วยนับ</th>
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>ลำดับ</div>
+                    </th>
 
                     <th rowSpan={2} style={headerStyle}>
-                      <div style={headerWrapStyle}>
-                        ยอดคงเหลือตามบัญชี
-                      </div>
-                      <div style={headerWrapStyle}>
-                        ณ วันที่ {formatThaiDate(accountStartDate)}
+                      <div style={headerCenterStyle}>ผู้รับผิดชอบ</div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>รายการ</div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>หน่วยนับ</div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>
+                        <div>ยอดคงเหลือตามบัญชี</div>
+                        <div>
+                          ณ วันที่ {formatThaiDate(accountStartDate)}
+                        </div>
                       </div>
                     </th>
 
                     <th colSpan={2} style={headerStyle}>
-                      <div style={headerWrapStyle}>
-                        รายการเคลื่อนไหวระหว่าง
-                      </div>
-                      <div style={headerWrapStyle}>
-                        ปีงบประมาณ พ.ศ. {movementFiscalYear}
-                      </div>
-                    </th>
-
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerWrapStyle}>
-                        ยอดคงเหลือตามบัญชี
-                      </div>
-                      <div style={headerWrapStyle}>
-                        ณ วันที่ {formatThaiDate(accountEndDate)}
+                      <div style={headerCenterStyle}>
+                        <div>รายการเคลื่อนไหวระหว่าง</div>
+                        <div>
+                          ปีงบประมาณ พ.ศ. {movementFiscalYear}
+                        </div>
                       </div>
                     </th>
 
                     <th rowSpan={2} style={headerStyle}>
-                      จำนวนที่ตรวจนับได้
+                      <div style={headerCenterStyle}>
+                        <div>ยอดคงเหลือตามบัญชี</div>
+                        <div>
+                          ณ วันที่ {formatThaiDate(accountEndDate)}
+                        </div>
+                      </div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>
+                        จำนวนที่ตรวจนับได้
+                      </div>
                     </th>
 
                     <th colSpan={2} style={headerStyle}>
-                      <div style={headerWrapStyle}>
-                        ผลการตรวจนับถูกต้องตรงกับ
-                      </div>
-                      <div style={headerWrapStyle}>
-                        ยอดคงเหลือตามบัญชี
+                      <div style={headerCenterStyle}>
+                        <div>ผลการตรวจนับถูกต้อง</div>
+                        <div>ตรงกับยอดคงเหลือตามบัญชี</div>
                       </div>
                     </th>
 
                     <th colSpan={4} style={headerStyle}>
-                      สภาพครุภัณฑ์ที่ตรวจนับ
+                      <div style={headerCenterStyle}>
+                        สภาพครุภัณฑ์ที่ตรวจนับ
+                      </div>
                     </th>
 
                     <th rowSpan={2} style={headerStyle}>
-                      หมายเหตุ
+                      <div style={headerCenterStyle}>หมายเหตุ</div>
                     </th>
                   </tr>
 
@@ -553,49 +525,19 @@ export default function ExportInspectionPdf({
 
                     return (
                       <tr key={asset.id} style={{ height: "6.8mm" }}>
-                        <td style={bodyCellStyle}>{actualIndex + 1}</td>
-
                         <td style={bodyCellStyle}>
-                          <span
-                            style={{
-                              ...fullTextStyle,
-                              fontSize: getCompactFontSize(
-                                asset.governmentAssetNo || "",
-                                11.5,
-                                10.5,
-                                9.5
-                              ),
-                            }}
-                          >
-                            {asset.governmentAssetNo || ""}
-                          </span>
+                          {actualIndex + 1}
                         </td>
 
                         <td style={bodyCellStyle}>
                           <span
                             style={{
-                              ...fullTextStyle,
-                              fontSize: getCompactFontSize(
-                                asset.officeAssetNo || "",
-                                11.5,
-                                10.5,
-                                9.5
-                              ),
-                            }}
-                          >
-                            {asset.officeAssetNo || ""}
-                          </span>
-                        </td>
-
-                        <td style={bodyCellStyle}>
-                          <span
-                            style={{
-                              ...fullTextStyle,
+                              ...bodyTextStyle,
                               fontSize: getCompactFontSize(
                                 responsibleOfficer,
+                                12,
                                 11,
-                                10,
-                                9
+                                10
                               ),
                             }}
                           >
@@ -606,12 +548,12 @@ export default function ExportInspectionPdf({
                         <td style={bodyCellStyle}>
                           <span
                             style={{
-                              ...fullTextStyle,
+                              ...bodyTextStyle,
                               fontSize: getCompactFontSize(
                                 assetName,
+                                12,
                                 11,
-                                10,
-                                9
+                                10
                               ),
                             }}
                           >
@@ -656,12 +598,12 @@ export default function ExportInspectionPdf({
                         <td style={bodyCellStyle}>
                           <span
                             style={{
-                              ...fullTextStyle,
+                              ...bodyTextStyle,
                               fontSize: getCompactFontSize(
                                 row.remark || "",
+                                12,
                                 11,
-                                10,
-                                9
+                                10
                               ),
                             }}
                           >
@@ -684,7 +626,7 @@ export default function ExportInspectionPdf({
                         key={`empty-${emptyIndex}`}
                         style={{ height: "6.8mm" }}
                       >
-                        {Array.from({ length: 18 }, (_, cellIndex) => (
+                        {Array.from({ length: 16 }, (_, cellIndex) => (
                           <td key={cellIndex} style={bodyCellStyle} />
                         ))}
                       </tr>
@@ -695,16 +637,13 @@ export default function ExportInspectionPdf({
 
               <div
                 style={{
-                  minHeight: "36mm",
+                  width: "100%",
+                  minHeight: "35mm",
+                  paddingTop: "4mm",
                   boxSizing: "border-box",
-                  paddingTop: "3mm",
                   display: "grid",
                   gridTemplateColumns: "repeat(5, 1fr)",
-                  columnGap: "2mm",
-                  width: "100%",
-                  fontFamily:
-                    "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  overflow: "visible",
+                  columnGap: "3mm",
                   flexShrink: 0,
                 }}
               >
@@ -730,10 +669,9 @@ export default function ExportInspectionPdf({
                       key={index}
                       style={{
                         textAlign: "center",
-                        fontSize: "12px",
-                        lineHeight: 1.05,
                         minWidth: 0,
-                        overflow: "visible",
+                        fontFamily:
+                          "TH Sarabun New, Sarabun, Arial, sans-serif",
                       }}
                     >
                       <div style={signatureTitleStyle}>
@@ -742,7 +680,7 @@ export default function ExportInspectionPdf({
 
                       <div
                         style={{
-                          ...signatureFullTextStyle,
+                          ...signatureTextStyle,
                           fontSize: getCompactFontSize(
                             inspectorName,
                             12,
@@ -756,7 +694,7 @@ export default function ExportInspectionPdf({
 
                       <div
                         style={{
-                          ...signatureFullTextStyle,
+                          ...signatureTextStyle,
                           fontSize: getCompactFontSize(
                             inspectorPosition,
                             12,
@@ -779,6 +717,25 @@ export default function ExportInspectionPdf({
   );
 }
 
+const mainTitleStyle: React.CSSProperties = {
+  fontFamily:
+    "TH Sarabun New, Sarabun, Arial, sans-serif",
+  fontSize: "17px",
+  fontWeight: 700,
+  lineHeight: 1.15,
+  marginBottom: "0.8mm",
+  whiteSpace: "nowrap",
+};
+
+const dateTitleStyle: React.CSSProperties = {
+  fontFamily:
+    "TH Sarabun New, Sarabun, Arial, sans-serif",
+  fontSize: "14px",
+  fontWeight: 600,
+  lineHeight: 1.15,
+  whiteSpace: "nowrap",
+};
+
 const headerStyle: React.CSSProperties = {
   border: "1px solid #000000",
   borderRadius: 0,
@@ -789,32 +746,33 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "10px",
+  fontSize: "10.5px",
   padding: "0.8mm 0.45mm",
   lineHeight: 1.12,
   height: "12mm",
   boxSizing: "border-box",
-  overflow: "visible",
   whiteSpace: "normal",
-  wordBreak: "normal",
-  overflowWrap: "break-word",
+  overflow: "hidden",
 };
 
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
   height: "8mm",
-  fontSize: "9px",
-  padding: "0.65mm 0.35mm",
-  whiteSpace: "normal",
+  fontSize: "9.5px",
+  padding: "0.6mm 0.35mm",
   lineHeight: 1.08,
 };
 
-const headerWrapStyle: React.CSSProperties = {
+const headerCenterStyle: React.CSSProperties = {
   width: "100%",
+  minHeight: "100%",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
-  whiteSpace: "normal",
-  overflow: "visible",
   lineHeight: 1.12,
+  whiteSpace: "normal",
   wordBreak: "normal",
   overflowWrap: "break-word",
 };
@@ -828,22 +786,21 @@ const bodyCellStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "11.5px",
+  fontSize: "12px",
   fontWeight: "normal",
-  padding: "0.55mm 0.5mm",
+  padding: "0.65mm 0.55mm",
   lineHeight: 1.08,
   height: "6.8mm",
   boxSizing: "border-box",
-  overflow: "visible",
-  whiteSpace: "normal",
+  overflow: "hidden",
 };
 
-const fullTextStyle: React.CSSProperties = {
+const bodyTextStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
   textAlign: "center",
   whiteSpace: "normal",
-  overflow: "visible",
+  overflow: "hidden",
   textOverflow: "clip",
   lineHeight: 1.08,
   wordBreak: "normal",
@@ -852,26 +809,26 @@ const fullTextStyle: React.CSSProperties = {
 
 const checkCellStyle: React.CSSProperties = {
   ...bodyCellStyle,
-  fontSize: "15px",
+  fontSize: "16px",
   fontWeight: 700,
   textAlign: "center",
+  verticalAlign: "middle",
   whiteSpace: "nowrap",
 };
 
 const signatureTitleStyle: React.CSSProperties = {
+  fontSize: "12px",
+  lineHeight: 1.15,
   minHeight: "5mm",
-  lineHeight: "5mm",
   whiteSpace: "nowrap",
-  overflow: "visible",
 };
 
-const signatureFullTextStyle: React.CSSProperties = {
+const signatureTextStyle: React.CSSProperties = {
   minHeight: "6mm",
   padding: "0.4mm 0",
-  lineHeight: 1.05,
+  lineHeight: 1.08,
+  textAlign: "center",
   whiteSpace: "normal",
-  overflow: "visible",
-  textOverflow: "clip",
   wordBreak: "normal",
   overflowWrap: "break-word",
 };
