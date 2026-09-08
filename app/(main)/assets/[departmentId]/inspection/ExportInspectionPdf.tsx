@@ -397,11 +397,13 @@ export default function ExportInspectionPdf({
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "11.5%" }} />
-                  <col style={{ width: "17%" }} />
-                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "2.5%" }} />
+                  <col style={{ width: "6.5%" }} />
                   <col style={{ width: "8%" }} />
+                  <col style={{ width: "9.5%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "7.5%" }} />
                   <col style={{ width: "3.5%" }} />
                   <col style={{ width: "3.5%" }} />
                   <col style={{ width: "8%" }} />
@@ -419,6 +421,14 @@ export default function ExportInspectionPdf({
                   <tr>
                     <th rowSpan={2} style={headerStyle}>
                       <div style={headerCenterStyle}>ลำดับ</div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>รหัส GFMIS</div>
+                    </th>
+
+                    <th rowSpan={2} style={headerStyle}>
+                      <div style={headerCenterStyle}>รหัสครุภัณฑ์</div>
                     </th>
 
                     <th rowSpan={2} style={headerStyle}>
@@ -534,6 +544,38 @@ export default function ExportInspectionPdf({
                             style={{
                               ...bodyTextStyle,
                               fontSize: getCompactFontSize(
+                                asset.governmentAssetNo || "",
+                                11.5,
+                                10.5,
+                                9.5
+                              ),
+                            }}
+                          >
+                            {asset.governmentAssetNo || ""}
+                          </span>
+                        </td>
+
+                        <td style={bodyCellStyle}>
+                          <span
+                            style={{
+                              ...bodyTextStyle,
+                              fontSize: getCompactFontSize(
+                                asset.officeAssetNo || "",
+                                11.5,
+                                10.5,
+                                9.5
+                              ),
+                            }}
+                          >
+                            {asset.officeAssetNo || ""}
+                          </span>
+                        </td>
+
+                        <td style={bodyCellStyle}>
+                          <span
+                            style={{
+                              ...bodyTextStyle,
+                              fontSize: getCompactFontSize(
                                 responsibleOfficer,
                                 12,
                                 11,
@@ -626,7 +668,7 @@ export default function ExportInspectionPdf({
                         key={`empty-${emptyIndex}`}
                         style={{ height: "6.8mm" }}
                       >
-                        {Array.from({ length: 16 }, (_, cellIndex) => (
+                        {Array.from({ length: 18 }, (_, cellIndex) => (
                           <td key={cellIndex} style={bodyCellStyle} />
                         ))}
                       </tr>
