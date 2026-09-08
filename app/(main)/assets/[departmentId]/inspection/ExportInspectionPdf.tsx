@@ -183,6 +183,24 @@ function getCompactFontSize(
   return `${normalSize}px`;
 }
 
+function getCodeFontSize(text: string) {
+  const length = text.trim().length;
+
+  if (length > 26) {
+    return "8px";
+  }
+
+  if (length > 22) {
+    return "8.5px";
+  }
+
+  if (length > 18) {
+    return "9px";
+  }
+
+  return "10px";
+}
+
 export default function ExportInspectionPdf({
   department,
   assets,
@@ -400,21 +418,21 @@ export default function ExportInspectionPdf({
                   <col style={{ width: "2.5%" }} />
                   <col style={{ width: "6.5%" }} />
                   <col style={{ width: "8%" }} />
-                  <col style={{ width: "9.5%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "9%" }} />
+                  <col style={{ width: "13%" }} />
                   <col style={{ width: "3.5%" }} />
                   <col style={{ width: "8%" }} />
-                  <col style={{ width: "6%" }} />
                   <col style={{ width: "4%" }} />
                   <col style={{ width: "4%" }} />
-                  <col style={{ width: "4.5%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "3.75%" }} />
+                  <col style={{ width: "3.5%" }} />
                   <col style={{ width: "4%" }} />
                   <col style={{ width: "5%" }} />
-                  <col style={{ width: "6.5%" }} />
-                  <col style={{ width: "6%" }} />
+                  <col style={{ width: "5.75%" }} />
                 </colgroup>
 
                 <thead>
@@ -445,8 +463,10 @@ export default function ExportInspectionPdf({
 
                     <th rowSpan={2} style={headerStyle}>
                       <div style={headerCenterStyle}>
-                        <div>ยอดคงเหลือตามบัญชี</div>
-                        <div>
+                        <div style={accountHeaderLineStyle}>
+                          ยอดคงเหลือตามบัญชี
+                        </div>
+                        <div style={accountHeaderLineStyle}>
                           ณ วันที่ {formatThaiDate(accountStartDate)}
                         </div>
                       </div>
@@ -454,8 +474,10 @@ export default function ExportInspectionPdf({
 
                     <th colSpan={2} style={headerStyle}>
                       <div style={headerCenterStyle}>
-                        <div>รายการเคลื่อนไหวระหว่าง</div>
-                        <div>
+                        <div style={headerNoWrapStyle}>
+                          รายการเคลื่อนไหวระหว่าง
+                        </div>
+                        <div style={headerNoWrapStyle}>
                           ปีงบประมาณ พ.ศ. {movementFiscalYear}
                         </div>
                       </div>
@@ -463,8 +485,10 @@ export default function ExportInspectionPdf({
 
                     <th rowSpan={2} style={headerStyle}>
                       <div style={headerCenterStyle}>
-                        <div>ยอดคงเหลือตามบัญชี</div>
-                        <div>
+                        <div style={accountHeaderLineStyle}>
+                          ยอดคงเหลือตามบัญชี
+                        </div>
+                        <div style={accountHeaderLineStyle}>
                           ณ วันที่ {formatThaiDate(accountEndDate)}
                         </div>
                       </div>
@@ -542,12 +566,9 @@ export default function ExportInspectionPdf({
                         <td style={bodyCellStyle}>
                           <span
                             style={{
-                              ...bodyTextStyle,
-                              fontSize: getCompactFontSize(
-                                asset.governmentAssetNo || "",
-                                11.5,
-                                10.5,
-                                9.5
+                              ...codeTextStyle,
+                              fontSize: getCodeFontSize(
+                                asset.governmentAssetNo || ""
                               ),
                             }}
                           >
@@ -558,12 +579,9 @@ export default function ExportInspectionPdf({
                         <td style={bodyCellStyle}>
                           <span
                             style={{
-                              ...bodyTextStyle,
-                              fontSize: getCompactFontSize(
-                                asset.officeAssetNo || "",
-                                11.5,
-                                10.5,
-                                9.5
+                              ...codeTextStyle,
+                              fontSize: getCodeFontSize(
+                                asset.officeAssetNo || ""
                               ),
                             }}
                           >
@@ -789,7 +807,7 @@ const headerStyle: React.CSSProperties = {
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
   fontSize: "10.5px",
-  padding: "0.8mm 0.45mm",
+  padding: "0.45mm 0.45mm 1.15mm",
   lineHeight: 1.12,
   height: "12mm",
   boxSizing: "border-box",
@@ -801,7 +819,7 @@ const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
   height: "8mm",
   fontSize: "9.5px",
-  padding: "0.6mm 0.35mm",
+  padding: "0.35mm 0.35mm 0.9mm",
   lineHeight: 1.08,
 };
 
@@ -830,7 +848,7 @@ const bodyCellStyle: React.CSSProperties = {
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontSize: "12px",
   fontWeight: "normal",
-  padding: "0.65mm 0.55mm",
+  padding: "0.3mm 0.55mm 0.85mm",
   lineHeight: 1.08,
   height: "6.8mm",
   boxSizing: "border-box",
@@ -847,6 +865,33 @@ const bodyTextStyle: React.CSSProperties = {
   lineHeight: 1.08,
   wordBreak: "normal",
   overflowWrap: "break-word",
+};
+
+const headerNoWrapStyle: React.CSSProperties = {
+  width: "100%",
+  textAlign: "center",
+  whiteSpace: "nowrap",
+  lineHeight: 1.12,
+  fontSize: "9px",
+};
+
+const accountHeaderLineStyle: React.CSSProperties = {
+  width: "100%",
+  textAlign: "center",
+  whiteSpace: "nowrap",
+  lineHeight: 1.12,
+  fontSize: "9px",
+};
+
+const codeTextStyle: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  textAlign: "center",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "clip",
+  lineHeight: 1.05,
+  wordBreak: "normal",
 };
 
 const checkCellStyle: React.CSSProperties = {
