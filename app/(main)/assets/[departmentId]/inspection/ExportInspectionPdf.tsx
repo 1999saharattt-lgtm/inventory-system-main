@@ -376,7 +376,7 @@ export default function ExportInspectionPdf({
               >
                 <div
                   style={{
-                    fontSize: "18px",
+                    fontSize: "17px",
                     fontWeight: 700,
                     height: "5mm",
                     lineHeight: "5mm",
@@ -419,7 +419,6 @@ export default function ExportInspectionPdf({
               <table
                 style={{
                   width: "100%",
-                  height: "134mm",
                   borderCollapse: "collapse",
                   borderSpacing: 0,
                   border: "1px solid #000000",
@@ -435,24 +434,24 @@ export default function ExportInspectionPdf({
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "9%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "6%" }} />
-                  <col style={{ width: "5%" }} />
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "3%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "4.5%" }} />
+                  <col style={{ width: "2.5%" }} />
+                  <col style={{ width: "6.5%" }} />
                   <col style={{ width: "8%" }} />
+                  <col style={{ width: "9.5%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "3.5%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "2.75%" }} />
+                  <col style={{ width: "2.75%" }} />
+                  <col style={{ width: "7.5%" }} />
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "3.75%" }} />
+                  <col style={{ width: "3.25%" }} />
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "5%" }} />
+                  <col style={{ width: "7%" }} />
                 </colgroup>
 
                 <thead>
@@ -604,12 +603,7 @@ export default function ExportInspectionPdf({
                           </span>
                         </td>
 
-                        <td
-                          style={{
-                            ...bodyCellStyle,
-                            textAlign: "left",
-                          }}
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={{
                               ...fullTextStyle,
@@ -659,12 +653,7 @@ export default function ExportInspectionPdf({
                           {getStatusChecked(row, "UNUSABLE")}
                         </td>
 
-                        <td
-                          style={{
-                            ...bodyCellStyle,
-                            textAlign: "left",
-                          }}
-                        >
+                        <td style={bodyCellStyle}>
                           <span
                             style={{
                               ...fullTextStyle,
@@ -800,31 +789,34 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "10.5px",
-  padding: "0.35mm 0.2mm",
-  lineHeight: 1.02,
-  height: "9mm",
+  fontSize: "10px",
+  padding: "0.8mm 0.45mm",
+  lineHeight: 1.12,
+  height: "12mm",
   boxSizing: "border-box",
   overflow: "visible",
   whiteSpace: "normal",
   wordBreak: "normal",
-  overflowWrap: "normal",
+  overflowWrap: "break-word",
 };
 
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
-  height: "6mm",
-  fontSize: "9.5px",
+  height: "8mm",
+  fontSize: "9px",
+  padding: "0.65mm 0.35mm",
   whiteSpace: "normal",
-  lineHeight: 1,
+  lineHeight: 1.08,
 };
 
 const headerWrapStyle: React.CSSProperties = {
+  width: "100%",
+  textAlign: "center",
   whiteSpace: "normal",
   overflow: "visible",
-  lineHeight: 1.02,
+  lineHeight: 1.12,
   wordBreak: "normal",
-  overflowWrap: "normal",
+  overflowWrap: "break-word",
 };
 
 const bodyCellStyle: React.CSSProperties = {
@@ -838,8 +830,8 @@ const bodyCellStyle: React.CSSProperties = {
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontSize: "11.5px",
   fontWeight: "normal",
-  padding: "0.25mm 0.3mm",
-  lineHeight: 1.02,
+  padding: "0.55mm 0.5mm",
+  lineHeight: 1.08,
   height: "6.8mm",
   boxSizing: "border-box",
   overflow: "visible",
@@ -849,12 +841,13 @@ const bodyCellStyle: React.CSSProperties = {
 const fullTextStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
+  textAlign: "center",
   whiteSpace: "normal",
   overflow: "visible",
   textOverflow: "clip",
-  lineHeight: 1.02,
+  lineHeight: 1.08,
   wordBreak: "normal",
-  overflowWrap: "anywhere",
+  overflowWrap: "break-word",
 };
 
 const checkCellStyle: React.CSSProperties = {
