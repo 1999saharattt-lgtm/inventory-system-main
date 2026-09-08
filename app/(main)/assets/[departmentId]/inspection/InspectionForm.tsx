@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ExportInspectionPdf from "./ExportInspectionPdf";
 
 type Department = {
@@ -230,6 +230,22 @@ export default function InspectionForm({
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const inspectionStartDateRef = useRef<HTMLInputElement>(null);
+  const inspectionEndDateRef = useRef<HTMLInputElement>(null);
+
+  function openDatePicker(input: HTMLInputElement | null) {
+    if (!input) {
+      return;
+    }
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+
+    input.click();
+  }
+
   function updateRow(
     assetId: number,
     field: keyof InspectionRow,
@@ -365,15 +381,11 @@ export default function InspectionForm({
 
   return (
     <div className="mx-auto w-full max-w-[1800px] space-y-6">
-      <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
-        <div className="mb-6">
+      <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white shadow-xl">
+        <div className="mb-4">
           <h2 className="text-2xl font-extrabold !text-white">
             ข้อมูลการตรวจสอบ
           </h2>
-
-          <p className="mt-1 text-lg font-bold text-slate-300">
-            {department.name}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -383,11 +395,19 @@ export default function InspectionForm({
             </label>
 
             <div className="relative">
-              <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
+              <button
+                type="button"
+                onClick={() =>
+                  openDatePicker(inspectionStartDateRef.current)
+                }
+                className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                aria-label="เลือกวันที่เริ่มดำเนินการตรวจสอบ"
+              >
                 {formatThaiDate(inspectionStartDate)}
-              </div>
+              </button>
 
               <input
+                ref={inspectionStartDateRef}
                 type="date"
                 value={inspectionStartDate}
                 onChange={(e) => {
@@ -403,7 +423,7 @@ export default function InspectionForm({
                 }}
                 required
                 aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="absolute bottom-0 left-0 h-px w-px opacity-0"
               />
             </div>
           </div>
@@ -414,11 +434,19 @@ export default function InspectionForm({
             </label>
 
             <div className="relative">
-              <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
+              <button
+                type="button"
+                onClick={() =>
+                  openDatePicker(inspectionEndDateRef.current)
+                }
+                className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                aria-label="เลือกวันที่ตรวจสอบแล้วเสร็จ"
+              >
                 {formatThaiDate(inspectionEndDate)}
-              </div>
+              </button>
 
               <input
+                ref={inspectionEndDateRef}
                 type="date"
                 value={inspectionEndDate}
                 onChange={(e) => {
@@ -431,7 +459,7 @@ export default function InspectionForm({
                 }}
                 required
                 aria-label="วันที่ตรวจสอบแล้วเสร็จ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="absolute bottom-0 left-0 h-px w-px opacity-0"
               />
             </div>
           </div>
