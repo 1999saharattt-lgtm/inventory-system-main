@@ -558,7 +558,7 @@ export default function ExportInspectionPdf({
                       .join(" ");
 
                     return (
-                      <tr key={asset.id} style={{ height: "6.8mm" }}>
+                      <tr key={asset.id} style={{ height: "7.2mm" }}>
                         <td style={bodyCellStyle}>
                           {actualIndex + 1}
                         </td>
@@ -684,7 +684,7 @@ export default function ExportInspectionPdf({
                     (_, emptyIndex) => (
                       <tr
                         key={`empty-${emptyIndex}`}
-                        style={{ height: "6.8mm" }}
+                        style={{ height: "7.2mm" }}
                       >
                         {Array.from({ length: 18 }, (_, cellIndex) => (
                           <td key={cellIndex} style={bodyCellStyle} />
@@ -807,20 +807,21 @@ const headerStyle: React.CSSProperties = {
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
   fontSize: "10.5px",
-  padding: "0.45mm 0.45mm 1.15mm",
-  lineHeight: 1.12,
-  height: "12mm",
+  padding: "1mm 0.45mm",
+  lineHeight: 1.18,
+  height: "13mm",
   boxSizing: "border-box",
   whiteSpace: "normal",
-  overflow: "hidden",
+  overflow: "visible",
 };
 
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
-  height: "8mm",
+  height: "8.5mm",
   fontSize: "9.5px",
-  padding: "0.35mm 0.35mm 0.9mm",
-  lineHeight: 1.08,
+  padding: "0.8mm 0.35mm",
+  lineHeight: 1.14,
+  overflow: "visible",
 };
 
 const headerCenterStyle: React.CSSProperties = {
@@ -831,10 +832,12 @@ const headerCenterStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   textAlign: "center",
-  lineHeight: 1.12,
+  lineHeight: 1.18,
   whiteSpace: "normal",
   wordBreak: "normal",
   overflowWrap: "break-word",
+  overflow: "visible",
+  paddingTop: "0.5mm",
 };
 
 const bodyCellStyle: React.CSSProperties = {
@@ -848,50 +851,60 @@ const bodyCellStyle: React.CSSProperties = {
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontSize: "12px",
   fontWeight: "normal",
-  padding: "0.3mm 0.55mm 0.85mm",
-  lineHeight: 1.08,
-  height: "6.8mm",
+  padding: "0.9mm 0.55mm",
+  lineHeight: 1.18,
+  height: "7.2mm",
   boxSizing: "border-box",
-  overflow: "hidden",
+  overflow: "visible",
 };
 
 const bodyTextStyle: React.CSSProperties = {
-  display: "block",
+  display: "flex",
   width: "100%",
+  minHeight: "5.2mm",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
   whiteSpace: "normal",
-  overflow: "hidden",
+  overflow: "visible",
   textOverflow: "clip",
-  lineHeight: 1.08,
+  lineHeight: 1.18,
   wordBreak: "normal",
   overflowWrap: "break-word",
+  paddingTop: "0.35mm",
 };
 
 const headerNoWrapStyle: React.CSSProperties = {
   width: "100%",
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1.12,
+  lineHeight: 1.18,
   fontSize: "9px",
+  overflow: "visible",
 };
 
 const accountHeaderLineStyle: React.CSSProperties = {
   width: "100%",
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1.12,
+  lineHeight: 1.18,
   fontSize: "9px",
+  overflow: "visible",
 };
 
 const codeTextStyle: React.CSSProperties = {
-  display: "block",
+  display: "flex",
   width: "100%",
+  minHeight: "5.2mm",
+  alignItems: "center",
+  justifyContent: "center",
   textAlign: "center",
   whiteSpace: "nowrap",
-  overflow: "hidden",
+  overflow: "visible",
   textOverflow: "clip",
-  lineHeight: 1.05,
+  lineHeight: 1.18,
   wordBreak: "normal",
+  paddingTop: "0.35mm",
 };
 
 const checkCellStyle: React.CSSProperties = {
