@@ -367,7 +367,7 @@ export default function InspectionForm({
     <div className="mx-auto w-full max-w-[1800px] space-y-6">
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-extrabold">
+          <h2 className="text-2xl font-extrabold !text-white">
             ข้อมูลการตรวจสอบ
           </h2>
 
