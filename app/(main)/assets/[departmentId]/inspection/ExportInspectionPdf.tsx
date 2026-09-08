@@ -166,9 +166,9 @@ function getAccuracyChecked(row: InspectionRow, accuracy: string) {
 
 function getCompactFontSize(
   text: string,
-  normalSize = 16,
-  mediumSize = 14,
-  smallSize = 12
+  normalSize = 13,
+  mediumSize = 12,
+  smallSize = 11
 ) {
   const length = text.trim().length;
 
@@ -187,18 +187,18 @@ function getCodeFontSize(text: string) {
   const length = text.trim().length;
 
   if (length > 26) {
-    return "12px";
+    return "9px";
   }
 
   if (length > 22) {
-    return "12.5px";
+    return "9.5px";
   }
 
   if (length > 18) {
-    return "13px";
+    return "10px";
   }
 
-  return "14px";
+  return "10.5px";
 }
 
 export default function ExportInspectionPdf({
@@ -372,14 +372,15 @@ export default function ExportInspectionPdf({
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "center",
+                justifyContent: "flex-start",
+                paddingTop: "3mm",
               }}
             >
               <div
                 style={{
                   width: "100%",
                   textAlign: "center",
-                  marginBottom: "3mm",
+                  marginBottom: "2mm",
                   flexShrink: 0,
                 }}
               >
@@ -558,7 +559,7 @@ export default function ExportInspectionPdf({
                       .join(" ");
 
                     return (
-                      <tr key={asset.id} style={{ height: "8mm" }}>
+                      <tr key={asset.id} style={{ height: "7.2mm" }}>
                         <td style={bodyCellStyle}>
                           {actualIndex + 1}
                         </td>
@@ -684,7 +685,7 @@ export default function ExportInspectionPdf({
                     (_, emptyIndex) => (
                       <tr
                         key={`empty-${emptyIndex}`}
-                        style={{ height: "8mm" }}
+                        style={{ height: "7.2mm" }}
                       >
                         {Array.from({ length: 18 }, (_, cellIndex) => (
                           <td key={cellIndex} style={bodyCellStyle} />
@@ -698,8 +699,8 @@ export default function ExportInspectionPdf({
               <div
                 style={{
                   width: "100%",
-                  minHeight: "35mm",
-                  paddingTop: "4mm",
+                  minHeight: "27mm",
+                  paddingTop: "3mm",
                   boxSizing: "border-box",
                   display: "grid",
                   gridTemplateColumns: "repeat(5, 1fr)",
@@ -806,12 +807,11 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "16px",
-  padding: 0,
+  fontSize: "10.5px",
+  padding: "0.55mm 0.35mm",
   margin: 0,
-  lineHeight: 1,
-  height: "8mm",
-  minHeight: "8mm",
+  lineHeight: 1.08,
+  height: "10.5mm",
   boxSizing: "border-box",
   whiteSpace: "normal",
   overflow: "visible",
@@ -819,19 +819,17 @@ const headerStyle: React.CSSProperties = {
 
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
-  height: "8mm",
-  minHeight: "8mm",
-  fontSize: "16px",
-  padding: 0,
-  lineHeight: 1,
-  whiteSpace: "normal",
+  height: "6.5mm",
+  fontSize: "9.5px",
+  padding: "0.4mm 0.25mm",
+  lineHeight: 1.05,
   overflow: "visible",
 };
 
 const headerCenterStyle: React.CSSProperties = {
-  display: "inline-block",
+  display: "block",
   position: "relative",
-  top: "-1.35mm",
+  top: "-0.65mm",
   width: "100%",
   margin: 0,
   padding: 0,
@@ -839,9 +837,9 @@ const headerCenterStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
+  fontSize: "10.5px",
   fontWeight: "normal",
-  lineHeight: 1,
+  lineHeight: 1.08,
   whiteSpace: "normal",
   overflow: "visible",
   wordBreak: "normal",
@@ -857,30 +855,29 @@ const bodyCellStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
+  fontSize: "13px",
   fontWeight: "normal",
   padding: 0,
   margin: 0,
   lineHeight: 1,
-  height: "8mm",
-  minHeight: "8mm",
+  height: "7.2mm",
+  minHeight: "7.2mm",
   boxSizing: "border-box",
   overflow: "visible",
-  whiteSpace: "normal",
 };
 
 const bodyTextStyle: React.CSSProperties = {
   display: "block",
   position: "relative",
-  top: "-1.35mm",
+  top: "-0.9mm",
   width: "100%",
   margin: 0,
-  padding: 0,
+  padding: "0 0.35mm",
   textAlign: "center",
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
+  fontSize: "13px",
   fontWeight: "normal",
   lineHeight: 1,
   whiteSpace: "normal",
@@ -888,6 +885,7 @@ const bodyTextStyle: React.CSSProperties = {
   textOverflow: "clip",
   wordBreak: "normal",
   overflowWrap: "break-word",
+  boxSizing: "border-box",
 };
 
 const headerNoWrapStyle: React.CSSProperties = {
@@ -896,8 +894,8 @@ const headerNoWrapStyle: React.CSSProperties = {
   padding: 0,
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1,
-  fontSize: "16px",
+  lineHeight: 1.05,
+  fontSize: "9px",
   overflow: "visible",
 };
 
@@ -907,34 +905,34 @@ const accountHeaderLineStyle: React.CSSProperties = {
   padding: 0,
   textAlign: "center",
   whiteSpace: "nowrap",
-  lineHeight: 1,
-  fontSize: "16px",
+  lineHeight: 1.05,
+  fontSize: "9px",
   overflow: "visible",
 };
 
 const codeTextStyle: React.CSSProperties = {
   display: "inline-block",
   position: "relative",
-  top: "-1.35mm",
+  top: "-0.9mm",
   width: "100%",
   margin: 0,
-  padding: 0,
+  padding: "0 0.2mm",
   textAlign: "center",
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "16px",
   fontWeight: "normal",
   lineHeight: 1,
   whiteSpace: "nowrap",
   overflow: "visible",
   textOverflow: "clip",
   wordBreak: "normal",
+  boxSizing: "border-box",
 };
 
 const checkCellStyle: React.CSSProperties = {
   ...bodyCellStyle,
-  fontSize: "18px",
+  fontSize: "17px",
   fontWeight: 700,
   textAlign: "center",
   verticalAlign: "middle",
