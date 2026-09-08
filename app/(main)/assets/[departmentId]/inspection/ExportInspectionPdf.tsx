@@ -410,9 +410,10 @@ export default function ExportInspectionPdf({
                   width: "100%",
                   borderCollapse: "collapse",
                   borderSpacing: 0,
-                  border: "1px solid #000000",
+                  border: "0.6px solid #000000",
                   borderRadius: 0,
                   outline: "none",
+                  overflow: "visible",
                   tableLayout: "fixed",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
@@ -426,12 +427,12 @@ export default function ExportInspectionPdf({
                   <col style={{ width: "6.5%" }} />
                   <col style={{ width: "8%" }} />
                   <col style={{ width: "9%" }} />
-                  <col style={{ width: "13%" }} />
+                  <col style={{ width: "12%" }} />
                   <col style={{ width: "3.5%" }} />
                   <col style={{ width: "6.5%" }} />
                   <col style={{ width: "4%" }} />
                   <col style={{ width: "4%" }} />
-                  <col style={{ width: "6.5%" }} />
+                  <col style={{ width: "7.5%" }} />
                   <col style={{ width: "5%" }} />
                   <col style={{ width: "4.75%" }} />
                   <col style={{ width: "4.75%" }} />
@@ -836,7 +837,7 @@ const dateTitleStyle: React.CSSProperties = {
 };
 
 const headerStyle: React.CSSProperties = {
-  border: "1px solid #000000",
+  border: "0.6px solid #000000",
   borderRadius: "0px",
   background: "#ffffff",
   color: "#000000",
@@ -885,7 +886,7 @@ const headerCenterStyle: React.CSSProperties = {
 };
 
 const bodyCellStyle: React.CSSProperties = {
-  border: "1px solid #000000",
+  border: "0.6px solid #000000",
   borderRadius: "0px",
   background: "#ffffff",
   color: "#000000",
@@ -964,6 +965,8 @@ const resultHeaderLineStyle: React.CSSProperties = {
 
 const subHeaderTextStyle: React.CSSProperties = {
   display: "flex",
+  position: "relative",
+  top: "-0.8mm",
   width: "100%",
   height: "100%",
   minHeight: "5.2mm",
@@ -972,7 +975,7 @@ const subHeaderTextStyle: React.CSSProperties = {
   textAlign: "center",
   verticalAlign: "middle",
   margin: 0,
-  padding: "0.35mm 0.15mm 0.55mm",
+  padding: 0,
   boxSizing: "border-box",
   lineHeight: 1,
   fontSize: TABLE_HEADER_FONT_SIZE,
