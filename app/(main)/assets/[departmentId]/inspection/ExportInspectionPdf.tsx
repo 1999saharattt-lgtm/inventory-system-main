@@ -74,22 +74,8 @@ type Props = {
   officers?: Officer[];
 };
 
-/* =========================================================
-จำนวนรายการต่อหน้า
-A4 แนวนอน = 15 รายการต่อหน้า
-========================================================= */
-
 const ROWS_PER_PAGE = 15;
-
-/* =========================================================
-ปีงบประมาณที่ตรวจสอบ
-========================================================= */
-
 const INSPECTION_FISCAL_YEAR = "2569";
-
-/* =========================================================
-เดือนภาษาไทย
-========================================================= */
 
 const thaiMonths = [
   "มกราคม",
@@ -106,19 +92,9 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-/* =========================================================
-พื้นที่พิมพ์ A4 Landscape
-297 x 210 mm
-เว้นขอบรอบด้าน 10 mm
-========================================================= */
-
 const PDF_MARGIN = 10;
 const PDF_WIDTH = 277;
 const PDF_HEIGHT = 190;
-
-/* =========================================================
-วันที่
-========================================================= */
 
 function parseDateOnly(value: string) {
   if (!value) {
@@ -132,7 +108,6 @@ function parseDateOnly(value: string) {
   }
 
   const [year, month, day] = parts;
-
   return new Date(year, month - 1, day);
 }
 
@@ -154,10 +129,6 @@ function formatThaiDate(value: string) {
   return `${day} ${month} ${year}`;
 }
 
-/* =========================================================
-หน่วยครุภัณฑ์
-========================================================= */
-
 function getCategoryUnit(category: string) {
   const categoryUnit: Record<string, string> = {
     COMPUTER: "เครื่อง",
@@ -177,10 +148,6 @@ function getCategoryUnit(category: string) {
   return categoryUnit[category] || "รายการ";
 }
 
-/* =========================================================
-ผู้ตรวจสอบ
-========================================================= */
-
 function getOfficer(officerId: string, officers: Officer[]) {
   if (!officerId) {
     return undefined;
@@ -188,10 +155,6 @@ function getOfficer(officerId: string, officers: Officer[]) {
 
   return officers.find((officer) => String(officer.id) === officerId);
 }
-
-/* =========================================================
-ผลการตรวจสอบ
-========================================================= */
 
 function getStatusChecked(row: InspectionRow, status: string) {
   return row.status === status ? "✓" : "";
@@ -201,9 +164,24 @@ function getAccuracyChecked(row: InspectionRow, accuracy: string) {
   return row.accuracy === accuracy ? "✓" : "";
 }
 
-/* =========================================================
-Component
-========================================================= */
+function getCompactFontSize(
+  text: string,
+  normalSize = 11.5,
+  mediumSize = 10.5,
+  smallSize = 9.5
+) {
+  const length = text.trim().length;
+
+  if (length > 48) {
+    return `${smallSize}px`;
+  }
+
+  if (length > 30) {
+    return `${mediumSize}px`;
+  }
+
+  return `${normalSize}px`;
+}
 
 export default function ExportInspectionPdf({
   department,
@@ -304,7 +282,6 @@ export default function ExportInspectionPdf({
       );
     } catch (error) {
       console.error("ไม่สามารถสร้าง PDF ได้:", error);
-
       alert("ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsExporting(false);
@@ -383,18 +360,18 @@ export default function ExportInspectionPdf({
                 justifyContent: "center",
               }}
             >
-              {/* HEADER */}
               <div
                 style={{
-                  height: "15mm",
+                  height: "16mm",
                   boxSizing: "border-box",
                   width: "100%",
                   textAlign: "center",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
                   lineHeight: 1,
-                  overflow: "hidden",
+                  overflow: "visible",
                   marginBottom: "2mm",
+                  flexShrink: 0,
                 }}
               >
                 <div
@@ -426,7 +403,7 @@ export default function ExportInspectionPdf({
                   style={{
                     fontSize: "14px",
                     fontWeight: 600,
-                    height: "5mm",
+                    minHeight: "5mm",
                     lineHeight: "5mm",
                     whiteSpace: "nowrap",
                   }}
@@ -439,11 +416,10 @@ export default function ExportInspectionPdf({
                 </div>
               </div>
 
-              {/* TABLE */}
               <table
                 style={{
                   width: "100%",
-                  height: "136mm",
+                  height: "134mm",
                   borderCollapse: "collapse",
                   borderSpacing: 0,
                   border: "1px solid #000000",
@@ -455,6 +431,7 @@ export default function ExportInspectionPdf({
                   lineHeight: 1,
                   color: "#000000",
                   backgroundColor: "#ffffff",
+                  flexShrink: 0,
                 }}
               >
                 <colgroup>
@@ -488,28 +465,28 @@ export default function ExportInspectionPdf({
                     <th rowSpan={2} style={headerStyle}>หน่วยนับ</th>
 
                     <th rowSpan={2} style={headerStyle}>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ยอดคงเหลือตามบัญชี
                       </div>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ณ วันที่ {formatThaiDate(accountStartDate)}
                       </div>
                     </th>
 
                     <th colSpan={2} style={headerStyle}>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         รายการเคลื่อนไหวระหว่าง
                       </div>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ปีงบประมาณ พ.ศ. {movementFiscalYear}
                       </div>
                     </th>
 
                     <th rowSpan={2} style={headerStyle}>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ยอดคงเหลือตามบัญชี
                       </div>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ณ วันที่ {formatThaiDate(accountEndDate)}
                       </div>
                     </th>
@@ -519,10 +496,10 @@ export default function ExportInspectionPdf({
                     </th>
 
                     <th colSpan={2} style={headerStyle}>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ผลการตรวจนับถูกต้องตรงกับ
                       </div>
-                      <div style={headerOneLineStyle}>
+                      <div style={headerWrapStyle}>
                         ยอดคงเหลือตามบัญชี
                       </div>
                     </th>
@@ -563,6 +540,10 @@ export default function ExportInspectionPdf({
 
                     const officer = asset.officer;
 
+                    const responsibleOfficer = officer
+                      ? `${officer.firstName} ${officer.lastName}`
+                      : "";
+
                     const assetName = [
                       asset.name,
                       asset.brand,
@@ -572,26 +553,54 @@ export default function ExportInspectionPdf({
                       .join(" ");
 
                     return (
-                      <tr key={asset.id} style={{ height: "6.9mm" }}>
+                      <tr key={asset.id} style={{ height: "6.8mm" }}>
                         <td style={bodyCellStyle}>{actualIndex + 1}</td>
 
                         <td style={bodyCellStyle}>
-                          <span style={singleLineTextStyle}>
+                          <span
+                            style={{
+                              ...fullTextStyle,
+                              fontSize: getCompactFontSize(
+                                asset.governmentAssetNo || "",
+                                11.5,
+                                10.5,
+                                9.5
+                              ),
+                            }}
+                          >
                             {asset.governmentAssetNo || ""}
                           </span>
                         </td>
 
                         <td style={bodyCellStyle}>
-                          <span style={singleLineTextStyle}>
+                          <span
+                            style={{
+                              ...fullTextStyle,
+                              fontSize: getCompactFontSize(
+                                asset.officeAssetNo || "",
+                                11.5,
+                                10.5,
+                                9.5
+                              ),
+                            }}
+                          >
                             {asset.officeAssetNo || ""}
                           </span>
                         </td>
 
                         <td style={bodyCellStyle}>
-                          <span style={singleLineTextStyle}>
-                            {officer
-                              ? `${officer.firstName} ${officer.lastName}`
-                              : ""}
+                          <span
+                            style={{
+                              ...fullTextStyle,
+                              fontSize: getCompactFontSize(
+                                responsibleOfficer,
+                                11,
+                                10,
+                                9
+                              ),
+                            }}
+                          >
+                            {responsibleOfficer}
                           </span>
                         </td>
 
@@ -601,7 +610,17 @@ export default function ExportInspectionPdf({
                             textAlign: "left",
                           }}
                         >
-                          <span style={singleLineTextStyle}>
+                          <span
+                            style={{
+                              ...fullTextStyle,
+                              fontSize: getCompactFontSize(
+                                assetName,
+                                11,
+                                10,
+                                9
+                              ),
+                            }}
+                          >
                             {assetName}
                           </span>
                         </td>
@@ -646,7 +665,17 @@ export default function ExportInspectionPdf({
                             textAlign: "left",
                           }}
                         >
-                          <span style={singleLineTextStyle}>
+                          <span
+                            style={{
+                              ...fullTextStyle,
+                              fontSize: getCompactFontSize(
+                                row.remark || "",
+                                11,
+                                10,
+                                9
+                              ),
+                            }}
+                          >
                             {row.remark || ""}
                           </span>
                         </td>
@@ -664,13 +693,10 @@ export default function ExportInspectionPdf({
                     (_, emptyIndex) => (
                       <tr
                         key={`empty-${emptyIndex}`}
-                        style={{ height: "6.9mm" }}
+                        style={{ height: "6.8mm" }}
                       >
                         {Array.from({ length: 18 }, (_, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            style={bodyCellStyle}
-                          />
+                          <td key={cellIndex} style={bodyCellStyle} />
                         ))}
                       </tr>
                     )
@@ -678,19 +704,19 @@ export default function ExportInspectionPdf({
                 </tbody>
               </table>
 
-              {/* SIGNATURE */}
               <div
                 style={{
-                  height: "33mm",
+                  minHeight: "36mm",
                   boxSizing: "border-box",
                   paddingTop: "3mm",
                   display: "grid",
                   gridTemplateColumns: "repeat(5, 1fr)",
-                  columnGap: "3mm",
+                  columnGap: "2mm",
                   width: "100%",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  overflow: "hidden",
+                  overflow: "visible",
+                  flexShrink: 0,
                 }}
               >
                 {Array.from({ length: 5 }, (_, index) => {
@@ -702,37 +728,60 @@ export default function ExportInspectionPdf({
                     officers
                   );
 
+                  const inspectorName = selectedOfficer
+                    ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
+                    : "................................";
+
+                  const inspectorPosition =
+                    selectedOfficer?.position ||
+                    "................................";
+
                   return (
                     <div
                       key={index}
                       style={{
                         textAlign: "center",
-                        fontSize: "13px",
-                        lineHeight: 1.2,
+                        fontSize: "12px",
+                        lineHeight: 1.05,
                         minWidth: 0,
+                        overflow: "visible",
                       }}
                     >
-                      <div style={signatureLineStyle}>
+                      <div style={signatureTitleStyle}>
                         ลงชื่อ ................................
                       </div>
 
-                      <div style={signatureLineStyle}>
-                        (
-                        {selectedOfficer
-                          ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
-                          : "................................"}
-                        )
+                      <div
+                        style={{
+                          ...signatureFullTextStyle,
+                          fontSize: getCompactFontSize(
+                            inspectorName,
+                            12,
+                            11,
+                            10
+                          ),
+                        }}
+                      >
+                        ({inspectorName})
                       </div>
 
-                      <div style={signatureLineStyle}>
-                        {selectedOfficer?.position ||
-                          "................................"}
+                      <div
+                        style={{
+                          ...signatureFullTextStyle,
+                          fontSize: getCompactFontSize(
+                            inspectorPosition,
+                            12,
+                            11,
+                            10
+                          ),
+                        }}
+                      >
+                        {inspectorPosition}
                       </div>
                     </div>
                   );
                 })}
               </div>
-
             </div>
           );
         })}
@@ -740,10 +789,6 @@ export default function ExportInspectionPdf({
     </>
   );
 }
-
-/* =========================================================
-Style ตาราง PDF
-========================================================= */
 
 const headerStyle: React.CSSProperties = {
   border: "1px solid #000000",
@@ -755,26 +800,31 @@ const headerStyle: React.CSSProperties = {
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
   fontWeight: "normal",
-  fontSize: "12px",
-  padding: "0.4mm 0.25mm",
-  lineHeight: 1.05,
+  fontSize: "10.5px",
+  padding: "0.35mm 0.2mm",
+  lineHeight: 1.02,
   height: "9mm",
   boxSizing: "border-box",
-  overflow: "hidden",
+  overflow: "visible",
+  whiteSpace: "normal",
+  wordBreak: "normal",
+  overflowWrap: "normal",
 };
 
 const subHeaderStyle: React.CSSProperties = {
   ...headerStyle,
   height: "6mm",
-  fontSize: "11.5px",
-  whiteSpace: "nowrap",
+  fontSize: "9.5px",
+  whiteSpace: "normal",
+  lineHeight: 1,
 };
 
-const headerOneLineStyle: React.CSSProperties = {
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "clip",
-  lineHeight: 1.1,
+const headerWrapStyle: React.CSSProperties = {
+  whiteSpace: "normal",
+  overflow: "visible",
+  lineHeight: 1.02,
+  wordBreak: "normal",
+  overflowWrap: "normal",
 };
 
 const bodyCellStyle: React.CSSProperties = {
@@ -786,23 +836,25 @@ const bodyCellStyle: React.CSSProperties = {
   verticalAlign: "middle",
   fontFamily:
     "TH Sarabun New, Sarabun, Arial, sans-serif",
-  fontSize: "12.5px",
+  fontSize: "11.5px",
   fontWeight: "normal",
-  padding: "0.35mm 0.35mm",
-  lineHeight: 1,
-  height: "6.9mm",
+  padding: "0.25mm 0.3mm",
+  lineHeight: 1.02,
+  height: "6.8mm",
   boxSizing: "border-box",
-  overflow: "hidden",
-  whiteSpace: "nowrap",
+  overflow: "visible",
+  whiteSpace: "normal",
 };
 
-const singleLineTextStyle: React.CSSProperties = {
+const fullTextStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  lineHeight: 1,
+  whiteSpace: "normal",
+  overflow: "visible",
+  textOverflow: "clip",
+  lineHeight: 1.02,
+  wordBreak: "normal",
+  overflowWrap: "anywhere",
 };
 
 const checkCellStyle: React.CSSProperties = {
@@ -810,12 +862,23 @@ const checkCellStyle: React.CSSProperties = {
   fontSize: "15px",
   fontWeight: 700,
   textAlign: "center",
+  whiteSpace: "nowrap",
 };
 
-const signatureLineStyle: React.CSSProperties = {
-  height: "5.5mm",
-  lineHeight: "5.5mm",
+const signatureTitleStyle: React.CSSProperties = {
+  minHeight: "5mm",
+  lineHeight: "5mm",
   whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
+  overflow: "visible",
+};
+
+const signatureFullTextStyle: React.CSSProperties = {
+  minHeight: "6mm",
+  padding: "0.4mm 0",
+  lineHeight: 1.05,
+  whiteSpace: "normal",
+  overflow: "visible",
+  textOverflow: "clip",
+  wordBreak: "normal",
+  overflowWrap: "break-word",
 };
