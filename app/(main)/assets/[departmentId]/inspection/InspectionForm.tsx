@@ -442,147 +442,73 @@ export default function InspectionForm({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[2300px] border-collapse text-[13px] leading-tight">
             <thead>
-              <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 text-white">
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+              <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   ลำดับ
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   รหัส GFMIS
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   รหัสครุภัณฑ์
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   ผู้รับผิดชอบ
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   รายการ
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   หน่วยนับ
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   <div className="whitespace-nowrap">ยอดคงเหลือตามบัญชี</div>
                   <div className="whitespace-nowrap">
                     ณ วันที่ {formatThaiDate(accountStartDate)}
                   </div>
                 </th>
-
-                <th
-                  colSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
-                  <div className="whitespace-nowrap">
-                    รายการเคลื่อนไหวระหว่าง
-                  </div>
+                <th colSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
+                  <div className="whitespace-nowrap">รายการเคลื่อนไหวระหว่าง</div>
                   <div className="whitespace-nowrap">
                     ปีงบประมาณ พ.ศ. {movementFiscalYear}
                   </div>
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   <div className="whitespace-nowrap">ยอดคงเหลือตามบัญชี</div>
                   <div className="whitespace-nowrap">
                     ณ วันที่ {formatThaiDate(accountEndDate)}
                   </div>
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   <span className="whitespace-nowrap">จำนวนที่ตรวจนับได้</span>
                 </th>
-
-                <th
-                  colSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
-                  <div className="whitespace-nowrap">
-                    ผลการตรวจนับถูกต้องตรงกับ
-                  </div>
-                  <div className="whitespace-nowrap">
-                    ยอดคงเหลือตามบัญชี
-                  </div>
+                <th colSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
+                  <div className="whitespace-nowrap">ผลการตรวจนับถูกต้องตรงกับ</div>
+                  <div className="whitespace-nowrap">ยอดคงเหลือตามบัญชี</div>
                 </th>
-
-                <th
-                  colSpan={4}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
-                  <span className="whitespace-nowrap">
-                    สภาพครุภัณฑ์ที่ตรวจนับ
-                  </span>
+                <th colSpan={4} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
+                  <span className="whitespace-nowrap">สภาพครุภัณฑ์ที่ตรวจนับ</span>
                 </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-slate-950 px-2 py-2 text-center align-middle font-extrabold"
-                >
+                <th rowSpan={2} className="border border-black px-2 py-2 text-center align-middle font-extrabold">
                   หมายเหตุ
                 </th>
               </tr>
 
-              <tr className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 text-white">
-                <th className="border border-slate-950 px-3 py-2 text-center font-extrabold">
-                  รับ
-                </th>
-
-                <th className="border border-slate-950 px-3 py-2 text-center font-extrabold">
-                  จ่าย
-                </th>
-
-                <th className="border border-slate-950 px-3 py-2 text-center font-extrabold">
-                  ถูกต้อง
-                </th>
-
-                <th className="border border-slate-950 px-3 py-2 text-center font-extrabold">
-                  ไม่ถูกต้อง
-                </th>
-
-                <th className="min-w-[105px] border border-slate-950 px-3 py-2 text-center font-extrabold whitespace-nowrap">
+              <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+                <th className="border border-black px-3 py-2 text-center font-extrabold">รับ</th>
+                <th className="border border-black px-3 py-2 text-center font-extrabold">จ่าย</th>
+                <th className="border border-black px-3 py-2 text-center font-extrabold">ถูกต้อง</th>
+                <th className="border border-black px-3 py-2 text-center font-extrabold">ไม่ถูกต้อง</th>
+                <th className="min-w-[105px] border border-black px-3 py-2 text-center font-extrabold whitespace-nowrap">
                   ใช้งานปกติ
                 </th>
-
-                <th className="min-w-[70px] border border-slate-950 px-3 py-2 text-center font-extrabold whitespace-nowrap">
+                <th className="min-w-[70px] border border-black px-3 py-2 text-center font-extrabold whitespace-nowrap">
                   ชำรุด
                 </th>
-
-                <th className="min-w-[95px] border border-slate-950 px-3 py-2 text-center font-extrabold whitespace-nowrap">
+                <th className="min-w-[95px] border border-black px-3 py-2 text-center font-extrabold whitespace-nowrap">
                   เสื่อมสภาพ
                 </th>
-
-                <th className="min-w-[125px] border border-slate-950 px-3 py-2 text-center font-extrabold whitespace-nowrap">
+                <th className="min-w-[125px] border border-black px-3 py-2 text-center font-extrabold whitespace-nowrap">
                   ไม่จำเป็นต้องใช้
                 </th>
               </tr>
@@ -603,181 +529,132 @@ export default function InspectionForm({
                     key={asset.id}
                     className="bg-white text-sm font-medium text-slate-900"
                   >
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       {index + 1}
                     </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       {asset.governmentAssetNo || "-"}
                     </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       {asset.officeAssetNo || "-"}
                     </td>
-
-                    <td className="border border-slate-300 px-2 py-2 align-middle">
+                    <td className="border border-black px-2 py-2 align-middle">
                       {responsibleOfficer}
                     </td>
-
-                    <td className="border border-slate-300 px-2 py-2 align-middle">
+                    <td className="border border-black px-2 py-2 align-middle">
                       {asset.name}
                     </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       {getCategoryUnit(asset.category)}
                     </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">1</td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">-</td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">-</td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">1</td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
-                      1
-                    </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
-                      -
-                    </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
-                      -
-                    </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
-                      1
-                    </td>
-
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="number"
                         min="0"
                         step="1"
                         value={row?.countedQty ?? "1"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "countedQty",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "countedQty", e.target.value)
                         }
                         className="mx-auto h-8 w-16 rounded border border-slate-400 px-2 py-1 text-center"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         value="CORRECT"
                         checked={row?.accuracy === "CORRECT"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "accuracy",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "accuracy", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="ถูกต้อง"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`accuracy-${asset.id}`}
                         value="INCORRECT"
                         checked={row?.accuracy === "INCORRECT"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "accuracy",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "accuracy", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="ไม่ถูกต้อง"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
                         value="IN_USE"
                         checked={row?.status === "IN_USE"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "status", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="ใช้งานปกติ"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
                         value="DAMAGED"
                         checked={row?.status === "DAMAGED"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "status", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="ชำรุด"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
                         value="DETERIORATED"
                         checked={row?.status === "DETERIORATED"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "status", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="เสื่อมสภาพ"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 text-center align-middle">
+                    <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
                         name={`status-${asset.id}`}
                         value="UNUSABLE"
                         checked={row?.status === "UNUSABLE"}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "status", e.target.value)
                         }
                         className="h-4 w-4"
                         aria-label="ไม่จำเป็นต้องใช้"
                       />
                     </td>
 
-                    <td className="border border-slate-300 px-2 py-2 align-middle">
+                    <td className="border border-black px-2 py-2 align-middle">
                       <input
                         type="text"
                         value={row?.remark ?? ""}
                         onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "remark",
-                            e.target.value
-                          )
+                          updateRow(asset.id, "remark", e.target.value)
                         }
                         className="h-8 w-full rounded border border-slate-400 px-2 py-1"
                         placeholder=""
@@ -792,7 +669,7 @@ export default function InspectionForm({
       </div>
 
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
-        <h2 className="mb-6 text-2xl font-extrabold">
+        <h2 className="mb-6 text-2xl font-extrabold !text-white">
           รายชื่อผู้ตรวจสอบ
         </h2>
 
@@ -806,10 +683,7 @@ export default function InspectionForm({
               <select
                 value={inspectorId}
                 onChange={(e) =>
-                  updateInspector(
-                    index,
-                    e.target.value
-                  )
+                  updateInspector(index, e.target.value)
                 }
                 className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
               >
@@ -836,9 +710,6 @@ export default function InspectionForm({
                     >
                       {officer.firstName}{" "}
                       {officer.lastName}
-                      {officer.position
-                        ? ` (${officer.position})`
-                        : ""}
                     </option>
                   );
                 })}
@@ -847,8 +718,7 @@ export default function InspectionForm({
               {inspectorId && (
                 <p className="mt-2 text-sm font-semibold text-slate-300">
                   ตำแหน่ง:{" "}
-                  {getOfficer(inspectorId)?.position ||
-                    "-"}
+                  {getOfficer(inspectorId)?.position || "-"}
                 </p>
               )}
             </div>
