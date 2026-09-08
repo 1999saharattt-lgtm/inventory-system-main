@@ -382,30 +382,24 @@ export default function InspectionForm({
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <div className="relative">
-              <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
-                {formatThaiDate(inspectionStartDate)}
-              </div>
+            <input
+              type="date"
+              value={inspectionStartDate}
+              onChange={(e) => {
+                const value = e.target.value;
 
-              <input
-                type="date"
-                value={inspectionStartDate}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  setInspectionStartDate(value);
-                  setAccountStartDate(
-                    getOneYearBefore(value)
-                  );
-                  setMovementFiscalYear(
-                    getFiscalYear(value)
-                  );
-                }}
-                required
-                aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </div>
+                setInspectionStartDate(value);
+                setAccountStartDate(
+                  getOneYearBefore(value)
+                );
+                setMovementFiscalYear(
+                  getFiscalYear(value)
+                );
+              }}
+              required
+              aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            />
           </div>
 
           <div>
@@ -413,27 +407,21 @@ export default function InspectionForm({
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <div className="relative">
-              <div className="pointer-events-none flex min-h-[46px] w-full items-center rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
-                {formatThaiDate(inspectionEndDate)}
-              </div>
+            <input
+              type="date"
+              value={inspectionEndDate}
+              onChange={(e) => {
+                const value = e.target.value;
 
-              <input
-                type="date"
-                value={inspectionEndDate}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  setInspectionEndDate(value);
-                  setAccountEndDate(
-                    getOneDayBefore(value)
-                  );
-                }}
-                required
-                aria-label="วันที่ตรวจสอบแล้วเสร็จ"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </div>
+                setInspectionEndDate(value);
+                setAccountEndDate(
+                  getOneDayBefore(value)
+                );
+              }}
+              required
+              aria-label="วันที่ตรวจสอบแล้วเสร็จ"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            />
           </div>
         </div>
       </div>
