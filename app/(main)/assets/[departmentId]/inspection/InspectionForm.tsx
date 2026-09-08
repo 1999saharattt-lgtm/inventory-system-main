@@ -382,10 +382,23 @@ export default function InspectionForm({
   return (
     <div className="mx-auto w-full max-w-[1800px] space-y-6">
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white shadow-xl">
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-extrabold !text-white">
             ข้อมูลการตรวจสอบ
           </h2>
+
+          <ExportInspectionPdf
+            department={department}
+            assets={assets}
+            rows={rows}
+            inspectorIds={inspectorIds}
+            inspectionStartDate={inspectionStartDate}
+            inspectionEndDate={inspectionEndDate}
+            accountStartDate={accountStartDate}
+            accountEndDate={accountEndDate}
+            movementFiscalYear={movementFiscalYear}
+            officers={officers}
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -403,7 +416,22 @@ export default function InspectionForm({
                 className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
                 aria-label="เลือกวันที่เริ่มดำเนินการตรวจสอบ"
               >
-                {formatThaiDate(inspectionStartDate)}
+                <span>{formatThaiDate(inspectionStartDate)}</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-auto h-5 w-5 shrink-0 text-slate-500"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M16 3v4M8 3v4M3 11h18" />
+                </svg>
               </button>
 
               <input
@@ -442,7 +470,22 @@ export default function InspectionForm({
                 className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
                 aria-label="เลือกวันที่ตรวจสอบแล้วเสร็จ"
               >
-                {formatThaiDate(inspectionEndDate)}
+                <span>{formatThaiDate(inspectionEndDate)}</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-auto h-5 w-5 shrink-0 text-slate-500"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M16 3v4M8 3v4M3 11h18" />
+                </svg>
               </button>
 
               <input
@@ -757,23 +800,10 @@ export default function InspectionForm({
       <div className="flex flex-wrap items-center justify-end gap-3">
         <a
           href={`/assets/${department.id}`}
-          className="rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02]"
+          className="rounded-xl bg-gradient-to-r from-slate-600 to-slate-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02] hover:from-slate-700 hover:to-slate-600"
         >
           ยกเลิก
         </a>
-
-        <ExportInspectionPdf
-          department={department}
-          assets={assets}
-          rows={rows}
-          inspectorIds={inspectorIds}
-          inspectionStartDate={inspectionStartDate}
-          inspectionEndDate={inspectionEndDate}
-          accountStartDate={accountStartDate}
-          accountEndDate={accountEndDate}
-          movementFiscalYear={movementFiscalYear}
-          officers={officers}
-        />
 
         <button
           type="button"
