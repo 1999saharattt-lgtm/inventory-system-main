@@ -372,9 +372,36 @@ export default async function DepartmentAllAssetsPage({
             </p>
           </div>
 
-          {/* Export PDF ด้านขวาบน */}
+          {/* =================================================
+              Export PDF
+              ปุ่มสีแดง + ฟอนต์สีขาว
+          ================================================= */}
 
-          <div className="w-full shrink-0 sm:w-auto">
+          <div
+            className="
+              w-full
+              shrink-0
+              sm:w-auto
+
+              [&_button]:rounded-xl
+              [&_button]:border-0
+              [&_button]:bg-gradient-to-r
+              [&_button]:from-red-700
+              [&_button]:to-red-500
+              [&_button]:px-4
+              [&_button]:py-2.5
+              [&_button]:text-base
+              [&_button]:font-extrabold
+              [&_button]:!text-white
+              [&_button]:shadow-lg
+              [&_button]:transition
+              [&_button]:duration-200
+
+              hover:[&_button]:scale-105
+              hover:[&_button]:from-red-800
+              hover:[&_button]:to-red-600
+            "
+          >
             <ExportDepartmentAssetsPdf
               departmentName={department.name}
               assets={exportAssets}
@@ -385,7 +412,6 @@ export default async function DepartmentAllAssetsPage({
 
       {/* =====================================================
           ตารางรายการครุภัณฑ์
-          ไม่มีกรอบซ้อนรอบตาราง
       ===================================================== */}
 
       <div
@@ -409,8 +435,6 @@ export default async function DepartmentAllAssetsPage({
           >
             <thead>
               <tr>
-                {/* ลำดับ */}
-
                 <th
                   className="
                     w-[60px]
@@ -430,8 +454,6 @@ export default async function DepartmentAllAssetsPage({
                 >
                   ลำดับ
                 </th>
-
-                {/* ประเภท */}
 
                 <th
                   className="
@@ -453,8 +475,6 @@ export default async function DepartmentAllAssetsPage({
                   ประเภท
                 </th>
 
-                {/* รหัส GFMIS */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -473,8 +493,6 @@ export default async function DepartmentAllAssetsPage({
                 >
                   รหัส GFMIS
                 </th>
-
-                {/* รหัสครุภัณฑ์ */}
 
                 <th
                   className="
@@ -495,8 +513,6 @@ export default async function DepartmentAllAssetsPage({
                   รหัสครุภัณฑ์
                 </th>
 
-                {/* รายการครุภัณฑ์ */}
-
                 <th
                   className="
                     border
@@ -514,8 +530,6 @@ export default async function DepartmentAllAssetsPage({
                 >
                   รายการครุภัณฑ์
                 </th>
-
-                {/* จำนวน */}
 
                 <th
                   className="
@@ -537,8 +551,6 @@ export default async function DepartmentAllAssetsPage({
                   จำนวน
                 </th>
 
-                {/* หน่วย */}
-
                 <th
                   className="
                     whitespace-nowrap
@@ -558,8 +570,6 @@ export default async function DepartmentAllAssetsPage({
                   หน่วย
                 </th>
 
-                {/* ผู้รับผิดชอบ */}
-
                 <th
                   className="
                     border
@@ -577,8 +587,6 @@ export default async function DepartmentAllAssetsPage({
                 >
                   ผู้รับผิดชอบ
                 </th>
-
-                {/* สถานะ */}
 
                 <th
                   className="
@@ -636,135 +644,37 @@ export default async function DepartmentAllAssetsPage({
                           hover:bg-emerald-50
                         "
                       >
-                        {/* ลำดับ */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-                            px-2
-                            py-3
-                            text-center
-                            align-middle
-                            font-bold
-                          "
-                        >
+                        <td className="whitespace-nowrap border border-black px-2 py-3 text-center align-middle font-bold">
                           {index + 1}
                         </td>
 
-                        {/* ประเภท */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-2
-                            py-3
-                            text-center
-                            align-middle
-                            font-semibold
-                          "
-                        >
+                        <td className="border border-black px-2 py-3 text-center align-middle font-semibold">
                           {categoryName[asset.category] ??
                             asset.category}
                         </td>
 
-                        {/* รหัส GFMIS */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                            font-semibold
-                          "
-                        >
+                        <td className="border border-black px-3 py-3 text-center align-middle font-semibold">
                           {asset.governmentAssetNo ?? "-"}
                         </td>
 
-                        {/* รหัสครุภัณฑ์ */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                            font-semibold
-                          "
-                        >
+                        <td className="border border-black px-3 py-3 text-center align-middle font-semibold">
                           {asset.officeAssetNo ?? "-"}
                         </td>
 
-                        {/* รายการครุภัณฑ์ */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                            font-extrabold
-                          "
-                        >
+                        <td className="border border-black px-3 py-3 text-center align-middle font-extrabold">
                           {asset.name}
                         </td>
 
-                        {/* จำนวน */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                            font-extrabold
-                          "
-                        >
+                        <td className="whitespace-nowrap border border-black px-3 py-3 text-center align-middle font-extrabold">
                           1
                         </td>
 
-                        {/* หน่วย */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                            font-semibold
-                          "
-                        >
+                        <td className="whitespace-nowrap border border-black px-3 py-3 text-center align-middle font-semibold">
                           {categoryUnit[asset.category] ??
                             "รายการ"}
                         </td>
 
-                        {/* ผู้รับผิดชอบ */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                          "
-                        >
+                        <td className="border border-black px-3 py-3 text-center align-middle">
                           <p className="font-semibold">
                             {officerName}
                           </p>
@@ -784,18 +694,7 @@ export default async function DepartmentAllAssetsPage({
                           )}
                         </td>
 
-                        {/* สถานะ */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-                            px-3
-                            py-3
-                            text-center
-                            align-middle
-                          "
-                        >
+                        <td className="border border-black px-3 py-3 text-center align-middle">
                           <span
                             className={`
                               inline-flex
