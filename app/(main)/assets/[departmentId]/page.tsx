@@ -282,20 +282,19 @@ export default async function DepartmentAssetsPage({
               className="
                 block
                 rounded-xl
-                bg-gradient-to-r
-                from-blue-600
-                to-indigo-500
+                border
+                border-slate-200
+                bg-white
                 px-4
                 py-2.5
                 text-center
                 text-sm
                 font-extrabold
-                !text-white
+                !text-black
                 shadow-lg
                 transition
                 hover:scale-105
-                hover:from-blue-700
-                hover:to-indigo-600
+                hover:bg-slate-100
                 sm:px-6
                 sm:py-3
                 sm:text-base
@@ -314,20 +313,19 @@ export default async function DepartmentAssetsPage({
             className="
               block
               rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
+              border
+              border-slate-200
+              bg-white
               px-4
               py-2.5
               text-center
               text-sm
               font-extrabold
-              !text-white
+              !text-black
               shadow-lg
               transition
               hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
+              hover:bg-slate-100
               sm:px-6
               sm:py-3
               sm:text-base
