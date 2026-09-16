@@ -9,15 +9,21 @@ type PageProps = {
   }>;
 };
 
-function formatDateOnly(value: Date | string | null | undefined) {
+function formatDateOnly(
+  value: Date | string | null | undefined
+) {
   if (!value) return "";
 
-  const date = value instanceof Date ? value : new Date(value);
+  const date =
+    value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) return "";
 
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  );
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -48,109 +54,201 @@ function parseInspectorIds(value: unknown): string[] {
   return [];
 }
 
-function normalizeFiscalYear(value: string) {
-  const year = Number(value);
+function normalizeFiscalYear(
+  value: string | number
+): string {
+  const numericYear = Number(value);
 
-  if (!Number.isFinite(year)) return value;
+  if (!Number.isFinite(numericYear)) {
+    return String(value);
+  }
 
-  return year < 2400 ? String(year + 543) : String(year);
+  return numericYear < 2400
+    ? String(numericYear + 543)
+    : String(numericYear);
 }
 
 export default async function InspectionHistoryEditPage({
   params,
 }: PageProps) {
-  const { id, year } = await params;
-  const departmentId = Number(id);
+  // =====================================================
+  // Params
+  // =====================================================
 
-  if (!Number.isInteger(departmentId) || departmentId <= 0) {
+  const {
+    id: departmentIdParam,
+    year: yearParam,
+  } = await params;
+
+  const departmentId = Number(departmentIdParam);
+  const year = Number(yearParam);
+
+  if (
+    !Number.isInteger(departmentId) ||
+    departmentId <= 0 ||
+    !Number.isInteger(year) ||
+    year <= 0
+  ) {
     notFound();
   }
 
-  const department = await prisma.department.findUnique({
-    where: {
-      id: departmentId,
-    },
-  });
+  // =====================================================
+  // Department
+  // =====================================================
+
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: departmentId,
+      },
+    });
 
   if (!department) {
     notFound();
   }
 
-  const inspections = await prisma.assetInspection.findMany({
-    where: {
-      year,
-      asset: {
-        departmentId,
-      },
-    },
-    include: {
-      asset: {
-        include: {
-          section: true,
-          officer: true,
+  // =====================================================
+  // Inspection History
+  //
+  // IMPORTANT:
+  // AssetInspection.year ใน Prisma เป็น Int
+  // ดังนั้นต้องใช้ year ที่แปลงเป็น Number แล้ว
+  // =====================================================
+
+  const inspections =
+    await prisma.assetInspection.findMany({
+      where: {
+        year,
+        asset: {
+          departmentId,
         },
       },
-    },
-    orderBy: {
-      assetId: "asc",
-    },
-  });
+
+      include: {
+        asset: {
+          include: {
+            section: true,
+            officer: true,
+          },
+        },
+      },
+
+      orderBy: {
+        assetId: "asc",
+      },
+    });
 
   if (inspections.length === 0) {
     notFound();
   }
+
+  // =====================================================
+  // Officers
+  // =====================================================
 
   const officers = await prisma.officer.findMany({
     include: {
       department: true,
       section: true,
     },
+
     orderBy: {
       id: "asc",
     },
   });
 
+  // =====================================================
+  // Existing inspection data
+  // =====================================================
+
   const firstInspection = inspections[0];
 
-  const assets = inspections.map((inspection) => inspection.asset);
+  const assets = inspections.map(
+    (inspection) => inspection.asset
+  );
 
-  const initialRows = inspections.map((inspection) => ({
-    assetId: inspection.assetId,
-    countedQty: String(inspection.countedQty ?? ""),
-    accuracy: inspection.accuracy || "",
-    status: inspection.status || "",
-    remark: inspection.remark || "",
-  }));
+  const initialRows = inspections.map(
+    (inspection) => ({
+      assetId: inspection.assetId,
 
-  const initialInspectorIds = parseInspectorIds(
+      countedQty: String(
+        inspection.countedQty ?? ""
+      ),
+
+      accuracy: inspection.accuracy || "",
+
+      status: inspection.status || "",
+
+      remark: inspection.remark || "",
+    })
+  );
+
+  // =====================================================
+  // Inspector IDs
+  // =====================================================
+
+  const parsedInspectorIds = parseInspectorIds(
     firstInspection.inspectorIds
   );
+
+  /*
+   * InspectionForm เดิมใช้ผู้ตรวจสอบ 5 คน
+   * จึงทำให้ array มี 5 ช่องเสมอ
+   */
+  const initialInspectorIds = Array.from(
+    { length: 5 },
+    (_, index) => parsedInspectorIds[index] || ""
+  );
+
+  // =====================================================
+  // Initial Data
+  // =====================================================
 
   const initialData = {
     inspectionStartDate: formatDateOnly(
       firstInspection.inspectionStartDate
     ),
+
     inspectionEndDate: formatDateOnly(
       firstInspection.inspectionEndDate
     ),
+
     accountStartDate: formatDateOnly(
       firstInspection.accountStartDate
     ),
+
     accountEndDate: formatDateOnly(
       firstInspection.accountEndDate
     ),
+
     movementFiscalYear: normalizeFiscalYear(
-      String(
-        firstInspection.movementFiscalYear ||
-          firstInspection.year
-      )
+      firstInspection.movementFiscalYear ??
+        firstInspection.year
     ),
+
     rows: initialRows,
+
     inspectorIds: initialInspectorIds,
   };
 
+  // =====================================================
+  // Render
+  // =====================================================
+
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
+      {/* =================================================
+          Header
+      ================================================= */}
+
       <div
         className="
           rounded-2xl
@@ -166,25 +264,51 @@ export default async function InspectionHistoryEditPage({
           sm:py-6
         "
       >
-        <h1 className="text-2xl font-extrabold !text-white sm:text-3xl">
+        <h1
+          className="
+            text-2xl
+            font-extrabold
+            !text-white
+            sm:text-3xl
+          "
+        >
           ✏️ แก้ไขข้อมูลการตรวจสอบครุภัณฑ์ประจำปี
         </h1>
 
-        <p className="mt-2 text-sm font-semibold !text-slate-200 sm:text-base">
-          {department.name} · ประจำปีงบประมาณ พ.ศ. {normalizeFiscalYear(year)}
+        <p
+          className="
+            mt-2
+            text-sm
+            font-semibold
+            !text-slate-200
+            sm:text-base
+          "
+        >
+          {department.name}
+          {" · "}
+          ประจำปีงบประมาณ พ.ศ.{" "}
+          {normalizeFiscalYear(year)}
         </p>
       </div>
+
+      {/* =================================================
+          Inspection Form
+      ================================================= */}
 
       <InspectionForm
         department={department}
         assets={assets}
         officers={officers}
         initialData={initialData}
-        submitUrl={`/api/assets/inspection?departmentId=${department.id}&year=${encodeURIComponent(
-          year
+        submitUrl={`/api/assets/inspection?departmentId=${
+          department.id
+        }&year=${encodeURIComponent(
+          String(year)
         )}`}
         submitMethod="PUT"
-        cancelHref={`/assets/${department.id}/inspection-history/${year}`}
+        cancelHref={`/assets/${
+          department.id
+        }/inspection-history/${year}`}
         submitLabel="บันทึกการแก้ไข"
       />
     </div>
