@@ -49,6 +49,11 @@ type AssetItem = {
 
 /* =========================================================
    ชื่อประเภทครุภัณฑ์
+
+   หมายเหตุ:
+   - CABINET และ SHELF แสดงเป็น "ตู้และชั้นวาง"
+   - COMPUTER และ MONITOR แสดงเป็น "คอมพิวเตอร์"
+   - เก็บ SHELF / MONITOR ไว้เพื่อรองรับข้อมูลเดิมในฐานข้อมูล
    ========================================================= */
 
 const categoryName: Record<string, string> = {
@@ -56,11 +61,14 @@ const categoryName: Record<string, string> = {
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
   TELEPHONE: "เครื่องโทรศัพท์",
-  CABINET: "ตู้",
+
+  CABINET: "ตู้และชั้นวาง",
+  SHELF: "ตู้และชั้นวาง",
+
   COMPUTER: "คอมพิวเตอร์",
+  MONITOR: "คอมพิวเตอร์",
+
   PRINTER: "เครื่องพิมพ์",
-  MONITOR: "จอคอมพิวเตอร์",
-  SHELF: "ชั้นวาง",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
@@ -74,11 +82,14 @@ const categoryUnit: Record<string, string> = {
   CHAIR: "ตัว",
   AIR_CONDITIONER: "เครื่อง",
   TELEPHONE: "เครื่อง",
+
   CABINET: "ตู้",
-  COMPUTER: "เครื่อง",
-  PRINTER: "เครื่อง",
-  MONITOR: "เครื่อง",
   SHELF: "ตัว",
+
+  COMPUTER: "เครื่อง",
+  MONITOR: "เครื่อง",
+
+  PRINTER: "เครื่อง",
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 };
@@ -250,11 +261,6 @@ export default async function DepartmentAllAssetsPage({
 
      1. responsibleName
         ข้อมูลจากทะเบียนต้นฉบับ
-        เช่น
-        - นาย ก / งานการเงิน
-        - งานสารบรรณ
-        - ห้องประชุมชั้น 3
-        - ห้องผู้อำนวยการ
 
      2. ถ้าไม่มี responsibleName
         ใช้ Officer + Section
@@ -618,7 +624,7 @@ export default async function DepartmentAllAssetsPage({
 
                 <th
                   className="
-                    w-[120px]
+                    w-[140px]
                     whitespace-nowrap
                     border
                     border-black
@@ -876,7 +882,10 @@ export default async function DepartmentAllAssetsPage({
                           {asset.officeAssetNo ?? "-"}
                         </td>
 
-                        {/* รายการครุภัณฑ์ */}
+                        {/* =================================
+                            รายการครุภัณฑ์
+                            ข้อมูลชิดซ้าย
+                            ================================= */}
 
                         <td
                           className="
@@ -884,7 +893,7 @@ export default async function DepartmentAllAssetsPage({
                             border-black
                             px-3
                             py-3
-                            text-center
+                            text-left
                             align-middle
                             font-extrabold
                           "
