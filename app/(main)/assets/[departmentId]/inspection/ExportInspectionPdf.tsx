@@ -111,6 +111,7 @@ function parseDateOnly(value: string) {
   }
 
   const [year, month, day] = parts;
+
   return new Date(year, month - 1, day);
 }
 
@@ -156,14 +157,50 @@ function getOfficer(officerId: string, officers: Officer[]) {
     return undefined;
   }
 
-  return officers.find((officer) => String(officer.id) === officerId);
+  return officers.find(
+    (officer) => String(officer.id) === officerId
+  );
 }
 
-function getStatusChecked(row: InspectionRow, status: string) {
+/*
+ * ผู้รับผิดชอบใน PDF
+ *
+ * กลุ่มอำนวยการ
+ * แสดง: ชื่อผู้รับผิดชอบ / ชื่องาน
+ *
+ * กลุ่มอื่น
+ * แสดง: ชื่อผู้รับผิดชอบ
+ */
+function getResponsibleName(
+  asset: Asset,
+  department: Department
+) {
+  const officerName = asset.officer
+    ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+    : "-";
+
+  if (department.name === "กลุ่มอำนวยการ") {
+    const sectionName = asset.section?.name?.trim();
+
+    if (sectionName) {
+      return `${officerName} / ${sectionName}`;
+    }
+  }
+
+  return officerName;
+}
+
+function getStatusChecked(
+  row: InspectionRow,
+  status: string
+) {
   return row.status === status ? "✓" : "";
 }
 
-function getAccuracyChecked(row: InspectionRow, accuracy: string) {
+function getAccuracyChecked(
+  row: InspectionRow,
+  accuracy: string
+) {
   return row.accuracy === accuracy ? "✓" : "";
 }
 
@@ -276,7 +313,10 @@ export default function ExportInspectionPdf({
           logging: false,
         });
 
-        const imageData = canvas.toDataURL("image/png", 1.0);
+        const imageData = canvas.toDataURL(
+          "image/png",
+          1.0
+        );
 
         if (i > 0) {
           pdf.addPage();
@@ -294,16 +334,23 @@ export default function ExportInspectionPdf({
         );
       }
 
-      const safeDepartmentName = department.name
-        .replace(/[\/:*?"<>|]/g, "_")
-        .trim();
+      const safeDepartmentName =
+        department.name
+          .replace(/[\/:*?"<>|]/g, "_")
+          .trim();
 
       pdf.save(
         `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`
       );
     } catch (error) {
-      console.error("ไม่สามารถสร้าง PDF ได้:", error);
-      alert("ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง");
+      console.error(
+        "ไม่สามารถสร้าง PDF ได้:",
+        error
+      );
+
+      alert(
+        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
+      );
     } finally {
       setIsExporting(false);
     }
@@ -314,7 +361,10 @@ export default function ExportInspectionPdf({
       <button
         type="button"
         onClick={handleExportPdf}
-        disabled={isExporting || assets.length === 0}
+        disabled={
+          isExporting ||
+          assets.length === 0
+        }
         className="
           rounded-xl
           bg-gradient-to-r
@@ -335,7 +385,9 @@ export default function ExportInspectionPdf({
           disabled:hover:scale-100
         "
       >
-        {isExporting ? "กำลังสร้าง PDF..." : "📄 ส่งออก PDF"}
+        {isExporting
+          ? "กำลังสร้าง PDF..."
+          : "📄 ส่งออก PDF"}
       </button>
 
       <div
@@ -350,468 +402,639 @@ export default function ExportInspectionPdf({
           pointerEvents: "none",
         }}
       >
-        {Array.from({ length: totalPages }, (_, pageIndex) => {
-          const startIndex = pageIndex * ROWS_PER_PAGE;
+        {Array.from(
+          { length: totalPages },
+          (_, pageIndex) => {
+            const startIndex =
+              pageIndex * ROWS_PER_PAGE;
 
-          const pageAssets = assets.slice(
-            startIndex,
-            startIndex + ROWS_PER_PAGE
-          );
+            const pageAssets =
+              assets.slice(
+                startIndex,
+                startIndex +
+                  ROWS_PER_PAGE
+              );
 
-          return (
-            <div
-              key={pageIndex}
-              className="inspection-pdf-page"
-              style={{
-                width: `${PDF_WIDTH}mm`,
-                height: `${PDF_HEIGHT}mm`,
-                boxSizing: "border-box",
-                padding: 0,
-                margin: 0,
-                background: "#ffffff",
-                fontFamily:
-                  "TH Sarabun New, Sarabun, Arial, sans-serif",
-                color: "#000000",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-start",
-                paddingTop: "3mm",
-              }}
-            >
+            return (
               <div
+                key={pageIndex}
+                className="inspection-pdf-page"
                 style={{
-                  width: "100%",
-                  textAlign: "center",
-                  marginBottom: "3.5mm",
-                  flexShrink: 0,
-                }}
-              >
-                <div style={mainTitleStyle}>
-                  กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ.{" "}
-                  {INSPECTION_FISCAL_YEAR}
-                </div>
-
-                <div style={mainTitleStyle}>
-                  สำนักอนามัยการเจริญพันธุ์
-                </div>
-
-                <div style={dateTitleStyle}>
-                  เริ่มดำเนินการตรวจสอบวันที่{" "}
-                  {formatThaiDate(inspectionStartDate)}
-                  {"     "}
-                  ตรวจสอบแล้วเสร็จวันที่{" "}
-                  {formatThaiDate(inspectionEndDate)}
-                </div>
-              </div>
-
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  borderSpacing: 0,
-                  border: "0.6px solid #000000",
-                  borderRadius: 0,
-                  outline: "none",
-                  overflow: "visible",
-                  tableLayout: "fixed",
+                  width: `${PDF_WIDTH}mm`,
+                  height: `${PDF_HEIGHT}mm`,
+                  boxSizing: "border-box",
+                  padding: 0,
+                  margin: 0,
+                  background: "#ffffff",
                   fontFamily:
                     "TH Sarabun New, Sarabun, Arial, sans-serif",
                   color: "#000000",
-                  backgroundColor: "#ffffff",
-                  flexShrink: 0,
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent:
+                    "flex-start",
+                  paddingTop: "3mm",
                 }}
               >
-                <colgroup>
-                  <col style={{ width: "2.5%" }} />
-                  <col style={{ width: "6.5%" }} />
-                  <col style={{ width: "8%" }} />
-                  <col style={{ width: "9%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "6.5%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "7.5%" }} />
-                  <col style={{ width: "5%" }} />
-                  <col style={{ width: "4.75%" }} />
-                  <col style={{ width: "4.75%" }} />
-                  <col style={{ width: "3.75%" }} />
-                  <col style={{ width: "3.5%" }} />
-                  <col style={{ width: "4%" }} />
-                  <col style={{ width: "5%" }} />
-                  <col style={{ width: "5.75%" }} />
-                </colgroup>
+                <div
+                  style={{
+                    width: "100%",
+                    textAlign: "center",
+                    marginBottom:
+                      "3.5mm",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={
+                      mainTitleStyle
+                    }
+                  >
+                    กระดาษทำการตรวจสอบพัสดุ
+                    ประจำปีงบประมาณ พ.ศ.{" "}
+                    {
+                      INSPECTION_FISCAL_YEAR
+                    }
+                  </div>
 
-                <thead>
-                  <tr>
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>ลำดับ</div>
-                    </th>
+                  <div
+                    style={
+                      mainTitleStyle
+                    }
+                  >
+                    สำนักอนามัยการเจริญพันธุ์
+                  </div>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>รหัส GFMIS</div>
-                    </th>
+                  <div
+                    style={
+                      dateTitleStyle
+                    }
+                  >
+                    เริ่มดำเนินการตรวจสอบวันที่{" "}
+                    {formatThaiDate(
+                      inspectionStartDate
+                    )}
+                    {"     "}
+                    ตรวจสอบแล้วเสร็จวันที่{" "}
+                    {formatThaiDate(
+                      inspectionEndDate
+                    )}
+                  </div>
+                </div>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>รหัสครุภัณฑ์</div>
-                    </th>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse:
+                      "collapse",
+                    borderSpacing: 0,
+                    border:
+                      "0.6px solid #000000",
+                    borderRadius: 0,
+                    outline: "none",
+                    overflow: "visible",
+                    tableLayout:
+                      "fixed",
+                    fontFamily:
+                      "TH Sarabun New, Sarabun, Arial, sans-serif",
+                    color: "#000000",
+                    backgroundColor:
+                      "#ffffff",
+                    flexShrink: 0,
+                  }}
+                >
+                  <colgroup>
+                    <col style={{ width: "2.5%" }} />
+                    <col style={{ width: "6.5%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "6.5%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "7.5%" }} />
+                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "4.75%" }} />
+                    <col style={{ width: "4.75%" }} />
+                    <col style={{ width: "3.75%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "5.75%" }} />
+                  </colgroup>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>ผู้รับผิดชอบ</div>
-                    </th>
+                  <thead>
+                    <tr>
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>ลำดับ</div>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>รายการ</div>
-                    </th>
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>รหัส GFMIS</div>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>หน่วยนับ</div>
-                    </th>
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>รหัสครุภัณฑ์</div>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        <div style={accountHeaderLineStyle}>
-                          ยอดคงเหลือตามบัญชี
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>ผู้รับผิดชอบ</div>
+                      </th>
+
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>รายการ</div>
+                      </th>
+
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>หน่วยนับ</div>
+                      </th>
+
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          <div style={accountHeaderLineStyle}>
+                            ยอดคงเหลือตามบัญชี
+                          </div>
+                          <div style={accountHeaderLineStyle}>
+                            ณ วันที่{" "}
+                            {formatThaiDate(accountStartDate)}
+                          </div>
                         </div>
-                        <div style={accountHeaderLineStyle}>
-                          ณ วันที่ {formatThaiDate(accountStartDate)}
+                      </th>
+
+                      <th colSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          <div style={headerNoWrapStyle}>
+                            รายการเคลื่อนไหวระหว่าง
+                          </div>
+                          <div style={headerNoWrapStyle}>
+                            ปีงบประมาณ พ.ศ.{" "}
+                            {movementFiscalYear}
+                          </div>
                         </div>
-                      </div>
-                    </th>
+                      </th>
 
-                    <th colSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        <div style={headerNoWrapStyle}>
-                          รายการเคลื่อนไหวระหว่าง
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          <div style={accountHeaderLineStyle}>
+                            ยอดคงเหลือตามบัญชี
+                          </div>
+                          <div style={accountHeaderLineStyle}>
+                            ณ วันที่{" "}
+                            {formatThaiDate(accountEndDate)}
+                          </div>
                         </div>
-                        <div style={headerNoWrapStyle}>
-                          ปีงบประมาณ พ.ศ. {movementFiscalYear}
+                      </th>
+
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          จำนวนที่ตรวจนับได้
                         </div>
-                      </div>
-                    </th>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        <div style={accountHeaderLineStyle}>
-                          ยอดคงเหลือตามบัญชี
+                      <th colSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          <div style={resultHeaderLineStyle}>
+                            ผลการตรวจนับถูกต้อง
+                          </div>
+                          <div style={resultHeaderLineStyle}>
+                            ตรงกับยอดคงเหลือตามบัญชี
+                          </div>
                         </div>
-                        <div style={accountHeaderLineStyle}>
-                          ณ วันที่ {formatThaiDate(accountEndDate)}
+                      </th>
+
+                      <th colSpan={4} style={headerStyle}>
+                        <div style={headerCenterStyle}>
+                          สภาพครุภัณฑ์ที่ตรวจนับ
                         </div>
-                      </div>
-                    </th>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        จำนวนที่ตรวจนับได้
-                      </div>
-                    </th>
+                      <th rowSpan={2} style={headerStyle}>
+                        <div style={headerCenterStyle}>หมายเหตุ</div>
+                      </th>
+                    </tr>
 
-                    <th colSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        <div style={resultHeaderLineStyle}>
-                          ผลการตรวจนับถูกต้อง
-                        </div>
-                        <div style={resultHeaderLineStyle}>
-                          ตรงกับยอดคงเหลือตามบัญชี
-                        </div>
-                      </div>
-                    </th>
+                    <tr>
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>รับ</div>
+                      </th>
 
-                    <th colSpan={4} style={headerStyle}>
-                      <div style={headerCenterStyle}>
-                        สภาพครุภัณฑ์ที่ตรวจนับ
-                      </div>
-                    </th>
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>จ่าย</div>
+                      </th>
 
-                    <th rowSpan={2} style={headerStyle}>
-                      <div style={headerCenterStyle}>หมายเหตุ</div>
-                    </th>
-                  </tr>
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>ถูกต้อง</div>
+                      </th>
 
-                  <tr>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>รับ</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>จ่าย</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>ถูกต้อง</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>ไม่ถูกต้อง</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>ใช้งานปกติ</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>ชำรุด</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>เสื่อมสภาพ</div>
-                    </th>
-                    <th style={subHeaderStyle}>
-                      <div style={subHeaderTextStyle}>ไม่จำเป็นต้องใช้</div>
-                    </th>
-                  </tr>
-                </thead>
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>ไม่ถูกต้อง</div>
+                      </th>
 
-                <tbody>
-                  {pageAssets.map((asset, localIndex) => {
-                    const actualIndex = startIndex + localIndex;
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>ใช้งานปกติ</div>
+                      </th>
 
-                    const row =
-                      rows.find((item) => item.assetId === asset.id) || {
-                        assetId: asset.id,
-                        countedQty: "1",
-                        accuracy: "",
-                        status: "",
-                        remark: "",
-                      };
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>ชำรุด</div>
+                      </th>
 
-                    const responsibleGroup =
-                      department.name === "กลุ่มอำนวยการ"
-                        ? [
-                            department.name,
-                            asset.section?.name || "",
-                          ]
-                            .filter(Boolean)
-                            .join(" / ")
-                        : department.name;
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>เสื่อมสภาพ</div>
+                      </th>
 
-                    const assetName = [
-                      asset.name,
-                      asset.brand,
-                      asset.model,
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
+                      <th style={subHeaderStyle}>
+                        <div style={subHeaderTextStyle}>ไม่จำเป็นต้องใช้</div>
+                      </th>
+                    </tr>
+                  </thead>
 
-                    return (
-                      <tr key={asset.id} style={{ height: "7.6mm" }}>
-                        <td style={bodyCellStyle}>
-                          <span style={bodyTextStyle}>
-                            {actualIndex + 1}
-                          </span>
-                        </td>
+                  <tbody>
+                    {pageAssets.map(
+                      (
+                        asset,
+                        localIndex
+                      ) => {
+                        const actualIndex =
+                          startIndex +
+                          localIndex;
 
-                        <td style={bodyCellStyle}>
-                          <span
+                        const row =
+                          rows.find(
+                            (item) =>
+                              item.assetId ===
+                              asset.id
+                          ) || {
+                            assetId:
+                              asset.id,
+                            countedQty:
+                              "1",
+                            accuracy: "",
+                            status: "",
+                            remark: "",
+                          };
+
+                        /*
+                         * กลุ่มอำนวยการ:
+                         * ชื่อผู้รับผิดชอบ / งาน
+                         *
+                         * กลุ่มอื่น:
+                         * ชื่อผู้รับผิดชอบ
+                         */
+                        const responsibleName =
+                          getResponsibleName(
+                            asset,
+                            department
+                          );
+
+                        const assetName = [
+                          asset.name,
+                          asset.brand,
+                          asset.model,
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
+
+                        return (
+                          <tr
+                            key={
+                              asset.id
+                            }
                             style={{
-                              ...codeTextStyle,
-                              fontSize: TABLE_BODY_FONT_SIZE,
+                              height:
+                                "7.6mm",
                             }}
                           >
-                            {asset.governmentAssetNo || ""}
-                          </span>
-                        </td>
+                            <td
+                              style={
+                                bodyCellStyle
+                              }
+                            >
+                              <span
+                                style={
+                                  bodyTextStyle
+                                }
+                              >
+                                {actualIndex +
+                                  1}
+                              </span>
+                            </td>
 
-                        <td style={bodyCellStyle}>
-                          <span
-                            style={{
-                              ...codeTextStyle,
-                              fontSize: TABLE_BODY_FONT_SIZE,
-                            }}
-                          >
-                            {asset.officeAssetNo || ""}
-                          </span>
-                        </td>
+                            <td style={bodyCellStyle}>
+                              <span
+                                style={{
+                                  ...codeTextStyle,
+                                  fontSize:
+                                    TABLE_BODY_FONT_SIZE,
+                                }}
+                              >
+                                {asset.governmentAssetNo ||
+                                  ""}
+                              </span>
+                            </td>
 
-                        <td style={bodyCellStyle}>
-                          <span
-                            style={{
-                              ...bodyTextStyle,
-                              fontSize: TABLE_BODY_FONT_SIZE,
-                            }}
-                          >
-                            {responsibleGroup}
-                          </span>
-                        </td>
+                            <td style={bodyCellStyle}>
+                              <span
+                                style={{
+                                  ...codeTextStyle,
+                                  fontSize:
+                                    TABLE_BODY_FONT_SIZE,
+                                }}
+                              >
+                                {asset.officeAssetNo ||
+                                  ""}
+                              </span>
+                            </td>
 
-                        <td
+                            <td style={bodyCellStyle}>
+                              <span
+                                style={{
+                                  ...bodyTextStyle,
+                                  fontSize:
+                                    getCompactFontSize(
+                                      responsibleName,
+                                      10,
+                                      9,
+                                      8
+                                    ),
+                                }}
+                              >
+                                {
+                                  responsibleName
+                                }
+                              </span>
+                            </td>
+
+                            <td
+                              style={{
+                                ...bodyCellStyle,
+                                textAlign:
+                                  "left",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  ...bodyTextStyle,
+                                  textAlign:
+                                    "left",
+                                  justifyContent:
+                                    "flex-start",
+                                  paddingLeft:
+                                    "0.8mm",
+                                  paddingRight:
+                                    "0.4mm",
+                                  fontSize:
+                                    TABLE_BODY_FONT_SIZE,
+                                }}
+                              >
+                                {assetName}
+                              </span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>
+                                {getCategoryUnit(
+                                  asset.category
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>1</span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>-</span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>-</span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>1</span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span style={bodyTextStyle}>
+                                {row.countedQty}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getAccuracyChecked(
+                                  row,
+                                  "CORRECT"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getAccuracyChecked(
+                                  row,
+                                  "INCORRECT"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getStatusChecked(
+                                  row,
+                                  "IN_USE"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getStatusChecked(
+                                  row,
+                                  "DAMAGED"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getStatusChecked(
+                                  row,
+                                  "DETERIORATED"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={checkCellStyle}>
+                              <span style={checkTextStyle}>
+                                {getStatusChecked(
+                                  row,
+                                  "UNUSABLE"
+                                )}
+                              </span>
+                            </td>
+
+                            <td style={bodyCellStyle}>
+                              <span
+                                style={{
+                                  ...bodyTextStyle,
+                                  fontSize:
+                                    TABLE_BODY_FONT_SIZE,
+                                }}
+                              >
+                                {row.remark ||
+                                  ""}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      }
+                    )}
+
+                    {Array.from(
+                      {
+                        length: Math.max(
+                          0,
+                          ROWS_PER_PAGE -
+                            pageAssets.length
+                        ),
+                      },
+                      (_, emptyIndex) => (
+                        <tr
+                          key={`empty-${emptyIndex}`}
                           style={{
-                            ...bodyCellStyle,
-                            textAlign: "left",
+                            height:
+                              "7.6mm",
                           }}
                         >
-                          <span
-                            style={{
-                              ...bodyTextStyle,
-                              textAlign: "left",
-                              justifyContent: "flex-start",
-                              paddingLeft: "0.8mm",
-                              paddingRight: "0.4mm",
-                              fontSize: TABLE_BODY_FONT_SIZE,
-                            }}
-                          >
-                            {assetName}
-                          </span>
-                        </td>
+                          {Array.from(
+                            {
+                              length:
+                                18,
+                            },
+                            (
+                              _,
+                              cellIndex
+                            ) => (
+                              <td
+                                key={
+                                  cellIndex
+                                }
+                                style={
+                                  bodyCellStyle
+                                }
+                              />
+                            )
+                          )}
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
 
-                        <td style={bodyCellStyle}>
-                          <span style={bodyTextStyle}>
-                            {getCategoryUnit(asset.category)}
-                          </span>
-                        </td>
-
-                        <td style={bodyCellStyle}><span style={bodyTextStyle}>1</span></td>
-                        <td style={bodyCellStyle}><span style={bodyTextStyle}>-</span></td>
-                        <td style={bodyCellStyle}><span style={bodyTextStyle}>-</span></td>
-                        <td style={bodyCellStyle}><span style={bodyTextStyle}>1</span></td>
-                        <td style={bodyCellStyle}>
-                          <span style={bodyTextStyle}>{row.countedQty}</span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getAccuracyChecked(row, "CORRECT")}
-                          </span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getAccuracyChecked(row, "INCORRECT")}
-                          </span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getStatusChecked(row, "IN_USE")}
-                          </span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getStatusChecked(row, "DAMAGED")}
-                          </span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getStatusChecked(row, "DETERIORATED")}
-                          </span>
-                        </td>
-
-                        <td style={checkCellStyle}>
-                          <span style={checkTextStyle}>
-                            {getStatusChecked(row, "UNUSABLE")}
-                          </span>
-                        </td>
-
-                        <td style={bodyCellStyle}>
-                          <span
-                            style={{
-                              ...bodyTextStyle,
-                              fontSize: TABLE_BODY_FONT_SIZE,
-                            }}
-                          >
-                            {row.remark || ""}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
+                <div
+                  style={{
+                    width: "100%",
+                    minHeight: "27mm",
+                    paddingTop: "3mm",
+                    boxSizing:
+                      "border-box",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(5, 1fr)",
+                    columnGap: "3mm",
+                    flexShrink: 0,
+                  }}
+                >
                   {Array.from(
-                    {
-                      length: Math.max(
-                        0,
-                        ROWS_PER_PAGE - pageAssets.length
-                      ),
-                    },
-                    (_, emptyIndex) => (
-                      <tr
-                        key={`empty-${emptyIndex}`}
-                        style={{ height: "7.6mm" }}
-                      >
-                        {Array.from({ length: 18 }, (_, cellIndex) => (
-                          <td key={cellIndex} style={bodyCellStyle} />
-                        ))}
-                      </tr>
-                    )
+                    { length: 5 },
+                    (_, index) => {
+                      const selectedInspectorId =
+                        inspectorIds[
+                          index
+                        ] || "";
+
+                      const selectedOfficer =
+                        getOfficer(
+                          selectedInspectorId,
+                          officers
+                        );
+
+                      const inspectorName =
+                        selectedOfficer
+                          ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
+                          : "................................";
+
+                      const inspectorPosition =
+                        selectedOfficer?.position ||
+                        "................................";
+
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            textAlign:
+                              "center",
+                            minWidth: 0,
+                            fontFamily:
+                              "TH Sarabun New, Sarabun, Arial, sans-serif",
+                          }}
+                        >
+                          <div
+                            style={
+                              signatureTitleStyle
+                            }
+                          >
+                            ลงชื่อ
+                            ....................................................
+                          </div>
+
+                          <div
+                            style={{
+                              ...signatureTextStyle,
+                              fontSize:
+                                getCompactFontSize(
+                                  inspectorName,
+                                  12,
+                                  11,
+                                  10
+                                ),
+                            }}
+                          >
+                            (
+                            {
+                              inspectorName
+                            }
+                            )
+                          </div>
+
+                          <div
+                            style={{
+                              ...signatureTextStyle,
+                              fontSize:
+                                getCompactFontSize(
+                                  inspectorPosition,
+                                  12,
+                                  11,
+                                  10
+                                ),
+                            }}
+                          >
+                            {
+                              inspectorPosition
+                            }
+                          </div>
+                        </div>
+                      );
+                    }
                   )}
-                </tbody>
-              </table>
-
-              <div
-                style={{
-                  width: "100%",
-                  minHeight: "27mm",
-                  paddingTop: "3mm",
-                  boxSizing: "border-box",
-                  display: "grid",
-                  gridTemplateColumns: "repeat(5, 1fr)",
-                  columnGap: "3mm",
-                  flexShrink: 0,
-                }}
-              >
-                {Array.from({ length: 5 }, (_, index) => {
-                  const selectedInspectorId =
-                    inspectorIds[index] || "";
-
-                  const selectedOfficer = getOfficer(
-                    selectedInspectorId,
-                    officers
-                  );
-
-                  const inspectorName = selectedOfficer
-                    ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
-                    : "................................";
-
-                  const inspectorPosition =
-                    selectedOfficer?.position ||
-                    "................................";
-
-                  return (
-                    <div
-                      key={index}
-                      style={{
-                        textAlign: "center",
-                        minWidth: 0,
-                        fontFamily:
-                          "TH Sarabun New, Sarabun, Arial, sans-serif",
-                      }}
-                    >
-                      <div style={signatureTitleStyle}>
-                        ลงชื่อ ....................................................
-                      </div>
-
-                      <div
-                        style={{
-                          ...signatureTextStyle,
-                          fontSize: getCompactFontSize(
-                            inspectorName,
-                            12,
-                            11,
-                            10
-                          ),
-                        }}
-                      >
-                        ({inspectorName})
-                      </div>
-
-                      <div
-                        style={{
-                          ...signatureTextStyle,
-                          fontSize: getCompactFontSize(
-                            inspectorPosition,
-                            12,
-                            11,
-                            10
-                          ),
-                        }}
-                      >
-                        {inspectorPosition}
-                      </div>
-                    </div>
-                  );
-                })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }
+        )}
       </div>
     </>
   );
