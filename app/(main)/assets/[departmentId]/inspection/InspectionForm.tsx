@@ -75,7 +75,7 @@ type Props = {
   assets: Asset[];
   officers: Officer[];
 
-  // ใช้สำหรับหน้าแก้ไขประวัติ
+  // ข้อมูลเดิมสำหรับหน้าแก้ไข / หน้าดูรายละเอียด
   initialData?: InitialData;
 
   // ถ้าไม่ส่งมา จะใช้ API บันทึกใหม่ตามเดิม
@@ -89,6 +89,9 @@ type Props = {
 
   // ข้อความบนปุ่มบันทึก
   submitLabel?: string;
+
+  // true = แสดงข้อมูลอย่างเดียว ไม่สามารถแก้ไขได้
+  readOnly?: boolean;
 };
 
 const INSPECTION_FISCAL_YEAR = "2569";
@@ -288,6 +291,7 @@ export default function InspectionForm({
   submitMethod = "POST",
   cancelHref,
   submitLabel,
+  readOnly = false,
 }: Props) {
   const today = getCurrentDate();
 
@@ -374,7 +378,7 @@ export default function InspectionForm({
   function openDatePicker(
     input: HTMLInputElement | null
   ) {
-    if (!input) {
+    if (readOnly || !input) {
       return;
     }
 
@@ -391,6 +395,10 @@ export default function InspectionForm({
     field: keyof InspectionRow,
     value: string
   ) {
+    if (readOnly) {
+      return;
+    }
+
     setRows((currentRows) =>
       currentRows.map((row) =>
         row.assetId === assetId
@@ -407,6 +415,10 @@ export default function InspectionForm({
     index: number,
     value: string
   ) {
+    if (readOnly) {
+      return;
+    }
+
     setInspectorIds((current) => {
       const next = [...current];
 
@@ -435,6 +447,10 @@ export default function InspectionForm({
   }
 
   async function handleSave() {
+    if (readOnly) {
+      return;
+    }
+
     if (
       !inspectionStartDate ||
       !inspectionEndDate
@@ -465,11 +481,7 @@ export default function InspectionForm({
       return;
     }
 
-    if (
-      inspectorIds.some(
-        (id) => !id
-      )
-    ) {
+    if (inspectorIds.some((id) => !id)) {
       alert(
         "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
       );
@@ -529,31 +541,28 @@ export default function InspectionForm({
     try {
       setIsSaving(true);
 
-      const response =
-        await fetch(submitUrl, {
-          method: submitMethod,
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            departmentId:
-              department.id,
+      const response = await fetch(submitUrl, {
+        method: submitMethod,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          departmentId: department.id,
 
-            inspectionStartDate,
-            inspectionEndDate,
+          inspectionStartDate,
+          inspectionEndDate,
 
-            accountStartDate,
-            accountEndDate,
+          accountStartDate,
+          accountEndDate,
 
-            movementFiscalYear,
+          movementFiscalYear,
 
-            inspectorIds:
-              inspectorIds.map(Number),
+          inspectorIds:
+            inspectorIds.map(Number),
 
-            rows,
-          }),
-        });
+          rows,
+        }),
+      });
 
       let data: unknown = null;
 
@@ -656,12 +665,32 @@ export default function InspectionForm({
             <div className="relative">
               <button
                 type="button"
+                disabled={readOnly}
                 onClick={() =>
                   openDatePicker(
                     inspectionStartDateRef.current
                   )
                 }
-                className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                className={`
+                  flex
+                  min-h-[46px]
+                  w-full
+                  items-center
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  p-2.5
+                  text-left
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  ${
+                    readOnly
+                      ? "cursor-default"
+                      : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  }
+                `}
                 aria-label="เลือกวันที่เริ่มดำเนินการตรวจสอบ"
               >
                 <span>
@@ -670,61 +699,65 @@ export default function InspectionForm({
                   )}
                 </span>
 
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="3"
-                    y="5"
-                    width="18"
-                    height="16"
-                    rx="2"
-                  />
+                {!readOnly && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="ml-auto h-5 w-5 shrink-0 text-slate-500"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="16"
+                      rx="2"
+                    />
 
-                  <path d="M16 3v4M8 3v4M3 11h18" />
-                </svg>
+                    <path d="M16 3v4M8 3v4M3 11h18" />
+                  </svg>
+                )}
               </button>
 
-              <input
-                ref={
-                  inspectionStartDateRef
-                }
-                type="date"
-                value={
-                  inspectionStartDate
-                }
-                onChange={(e) => {
-                  const value =
-                    e.target.value;
+              {!readOnly && (
+                <input
+                  ref={
+                    inspectionStartDateRef
+                  }
+                  type="date"
+                  value={
+                    inspectionStartDate
+                  }
+                  onChange={(e) => {
+                    const value =
+                      e.target.value;
 
-                  setInspectionStartDate(
-                    value
-                  );
-
-                  setAccountStartDate(
-                    getOneYearBefore(
+                    setInspectionStartDate(
                       value
-                    )
-                  );
+                    );
 
-                  setMovementFiscalYear(
-                    getFiscalYear(
-                      value
-                    )
-                  );
-                }}
-                required
-                aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
-                className="absolute bottom-0 left-0 h-px w-px opacity-0"
-              />
+                    setAccountStartDate(
+                      getOneYearBefore(
+                        value
+                      )
+                    );
+
+                    setMovementFiscalYear(
+                      getFiscalYear(
+                        value
+                      )
+                    );
+                  }}
+                  required
+                  aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
+                  className="absolute bottom-0 left-0 h-px w-px opacity-0"
+                />
+              )}
             </div>
           </div>
 
@@ -738,12 +771,32 @@ export default function InspectionForm({
             <div className="relative">
               <button
                 type="button"
+                disabled={readOnly}
                 onClick={() =>
                   openDatePicker(
                     inspectionEndDateRef.current
                   )
                 }
-                className="flex min-h-[46px] w-full cursor-pointer items-center rounded-lg border border-slate-300 bg-white p-2.5 text-left font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                className={`
+                  flex
+                  min-h-[46px]
+                  w-full
+                  items-center
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-white
+                  p-2.5
+                  text-left
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  ${
+                    readOnly
+                      ? "cursor-default"
+                      : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  }
+                `}
                 aria-label="เลือกวันที่ตรวจสอบแล้วเสร็จ"
               >
                 <span>
@@ -752,55 +805,59 @@ export default function InspectionForm({
                   )}
                 </span>
 
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="3"
-                    y="5"
-                    width="18"
-                    height="16"
-                    rx="2"
-                  />
+                {!readOnly && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="ml-auto h-5 w-5 shrink-0 text-slate-500"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="16"
+                      rx="2"
+                    />
 
-                  <path d="M16 3v4M8 3v4M3 11h18" />
-                </svg>
+                    <path d="M16 3v4M8 3v4M3 11h18" />
+                  </svg>
+                )}
               </button>
 
-              <input
-                ref={
-                  inspectionEndDateRef
-                }
-                type="date"
-                value={
-                  inspectionEndDate
-                }
-                onChange={(e) => {
-                  const value =
-                    e.target.value;
+              {!readOnly && (
+                <input
+                  ref={
+                    inspectionEndDateRef
+                  }
+                  type="date"
+                  value={
+                    inspectionEndDate
+                  }
+                  onChange={(e) => {
+                    const value =
+                      e.target.value;
 
-                  setInspectionEndDate(
-                    value
-                  );
-
-                  setAccountEndDate(
-                    getOneDayBefore(
+                    setInspectionEndDate(
                       value
-                    )
-                  );
-                }}
-                required
-                aria-label="วันที่ตรวจสอบแล้วเสร็จ"
-                className="absolute bottom-0 left-0 h-px w-px opacity-0"
-              />
+                    );
+
+                    setAccountEndDate(
+                      getOneDayBefore(
+                        value
+                      )
+                    );
+                  }}
+                  required
+                  aria-label="วันที่ตรวจสอบแล้วเสร็จ"
+                  className="absolute bottom-0 left-0 h-px w-px opacity-0"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -978,258 +1035,286 @@ export default function InspectionForm({
             </thead>
 
             <tbody>
-              {assets.map(
-                (asset, index) => {
-                  const row =
-                    rows.find(
-                      (item) =>
-                        item.assetId ===
-                        asset.id
-                    );
+              {assets.map((asset, index) => {
+                const row = rows.find(
+                  (item) =>
+                    item.assetId === asset.id
+                );
 
-                  const responsibleGroup =
-                    department.name ===
-                    "กลุ่มอำนวยการ"
-                      ? [
-                          department.name,
-                          asset.section
-                            ?.name || "",
-                        ]
-                          .filter(Boolean)
-                          .join(" / ")
-                      : department.name;
+                const responsibleGroup =
+                  department.name ===
+                  "กลุ่มอำนวยการ"
+                    ? [
+                        department.name,
+                        asset.section?.name || "",
+                      ]
+                        .filter(Boolean)
+                        .join(" / ")
+                    : department.name;
 
-                  return (
-                    <tr
-                      key={asset.id}
-                      className="bg-white text-sm font-medium text-slate-900"
-                    >
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        {index + 1}
-                      </td>
+                return (
+                  <tr
+                    key={asset.id}
+                    className="bg-white text-sm font-medium text-slate-900"
+                  >
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      {index + 1}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        {asset.governmentAssetNo ||
-                          "-"}
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      {asset.governmentAssetNo ||
+                        "-"}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        {asset.officeAssetNo ||
-                          "-"}
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      {asset.officeAssetNo ||
+                        "-"}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        {responsibleGroup}
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      {responsibleGroup}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-left align-middle">
-                        {asset.name}
-                      </td>
+                    <td className="border border-black px-2 py-2 text-left align-middle">
+                      {asset.name}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        {getCategoryUnit(
-                          asset.category
-                        )}
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      {getCategoryUnit(
+                        asset.category
+                      )}
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        1
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      1
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        -
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      -
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        -
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      -
+                    </td>
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        1
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      1
+                    </td>
 
-                      {/* จำนวนที่ตรวจนับ */}
+                    {/* จำนวนที่ตรวจนับ */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={
-                            row?.countedQty ??
-                            "1"
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={
+                          row?.countedQty ?? "1"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "countedQty",
+                            e.target.value
+                          )
+                        }
+                        className={`
+                          mx-auto
+                          h-8
+                          w-16
+                          rounded
+                          border
+                          border-slate-400
+                          px-2
+                          py-1
+                          text-center
+                          ${
+                            readOnly
+                              ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                              : "bg-white"
                           }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "countedQty",
-                              e.target.value
-                            )
-                          }
-                          className="mx-auto h-8 w-16 rounded border border-slate-400 px-2 py-1 text-center"
-                        />
-                      </td>
+                        `}
+                      />
+                    </td>
 
-                      {/* ถูกต้อง */}
+                    {/* ถูกต้อง */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`accuracy-${asset.id}`}
-                          value="CORRECT"
-                          checked={
-                            row?.accuracy ===
-                            "CORRECT"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "accuracy",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="ถูกต้อง"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        value="CORRECT"
+                        checked={
+                          row?.accuracy ===
+                          "CORRECT"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "accuracy",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="ถูกต้อง"
+                      />
+                    </td>
 
-                      {/* ไม่ถูกต้อง */}
+                    {/* ไม่ถูกต้อง */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`accuracy-${asset.id}`}
-                          value="INCORRECT"
-                          checked={
-                            row?.accuracy ===
-                            "INCORRECT"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "accuracy",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="ไม่ถูกต้อง"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`accuracy-${asset.id}`}
+                        value="INCORRECT"
+                        checked={
+                          row?.accuracy ===
+                          "INCORRECT"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "accuracy",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="ไม่ถูกต้อง"
+                      />
+                    </td>
 
-                      {/* ใช้งานปกติ */}
+                    {/* ใช้งานปกติ */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          value="IN_USE"
-                          checked={
-                            row?.status ===
-                            "IN_USE"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "status",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="ใช้งานปกติ"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        value="IN_USE"
+                        checked={
+                          row?.status ===
+                          "IN_USE"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "status",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="ใช้งานปกติ"
+                      />
+                    </td>
 
-                      {/* ชำรุด */}
+                    {/* ชำรุด */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          value="DAMAGED"
-                          checked={
-                            row?.status ===
-                            "DAMAGED"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "status",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="ชำรุด"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        value="DAMAGED"
+                        checked={
+                          row?.status ===
+                          "DAMAGED"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "status",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="ชำรุด"
+                      />
+                    </td>
 
-                      {/* เสื่อมสภาพ */}
+                    {/* เสื่อมสภาพ */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          value="DETERIORATED"
-                          checked={
-                            row?.status ===
-                            "DETERIORATED"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "status",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="เสื่อมสภาพ"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        value="DETERIORATED"
+                        checked={
+                          row?.status ===
+                          "DETERIORATED"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "status",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="เสื่อมสภาพ"
+                      />
+                    </td>
 
-                      {/* ไม่จำเป็นต้องใช้ */}
+                    {/* ไม่จำเป็นต้องใช้ */}
 
-                      <td className="border border-black px-2 py-2 text-center align-middle">
-                        <input
-                          type="radio"
-                          name={`status-${asset.id}`}
-                          value="UNUSABLE"
-                          checked={
-                            row?.status ===
-                            "UNUSABLE"
-                          }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "status",
-                              e.target.value
-                            )
-                          }
-                          className="h-4 w-4"
-                          aria-label="ไม่จำเป็นต้องใช้"
-                        />
-                      </td>
+                    <td className="border border-black px-2 py-2 text-center align-middle">
+                      <input
+                        type="radio"
+                        name={`status-${asset.id}`}
+                        value="UNUSABLE"
+                        checked={
+                          row?.status ===
+                          "UNUSABLE"
+                        }
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "status",
+                            e.target.value
+                          )
+                        }
+                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                        aria-label="ไม่จำเป็นต้องใช้"
+                      />
+                    </td>
 
-                      {/* หมายเหตุ */}
+                    {/* หมายเหตุ */}
 
-                      <td className="border border-black px-2 py-2 align-middle">
-                        <input
-                          type="text"
-                          value={
-                            row?.remark ?? ""
+                    <td className="border border-black px-2 py-2 align-middle">
+                      <input
+                        type="text"
+                        value={row?.remark ?? ""}
+                        disabled={readOnly}
+                        onChange={(e) =>
+                          updateRow(
+                            asset.id,
+                            "remark",
+                            e.target.value
+                          )
+                        }
+                        className={`
+                          h-8
+                          w-full
+                          rounded
+                          border
+                          border-slate-400
+                          px-2
+                          py-1
+                          ${
+                            readOnly
+                              ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                              : "bg-white"
                           }
-                          onChange={(e) =>
-                            updateRow(
-                              asset.id,
-                              "remark",
-                              e.target.value
-                            )
-                          }
-                          className="h-8 w-full rounded border border-slate-400 px-2 py-1"
-                        />
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+                        `}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1246,71 +1331,70 @@ export default function InspectionForm({
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {inspectorIds.map(
-            (
-              inspectorId,
-              index
-            ) => (
+            (inspectorId, index) => (
               <div key={index}>
                 <label className="mb-2 block text-lg font-extrabold">
                   ผู้ตรวจสอบคนที่{" "}
                   {index + 1}
                 </label>
 
-                <select
-                  value={inspectorId}
-                  onChange={(e) =>
-                    updateInspector(
-                      index,
-                      e.target.value
-                    )
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                >
-                  <option value="">
-                    -- เลือกผู้ตรวจสอบ --
-                  </option>
+                {readOnly ? (
+                  <div className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
+                    {inspectorId
+                      ? `${getOfficer(inspectorId)?.firstName || ""} ${
+                          getOfficer(inspectorId)?.lastName || ""
+                        }`.trim() || "-"
+                      : "-"}
+                  </div>
+                ) : (
+                  <select
+                    value={inspectorId}
+                    onChange={(e) =>
+                      updateInspector(
+                        index,
+                        e.target.value
+                      )
+                    }
+                    className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                  >
+                    <option value="">
+                      -- เลือกผู้ตรวจสอบ --
+                    </option>
 
-                  {officers.map(
-                    (officer) => {
-                      const value =
-                        String(
+                    {officers.map(
+                      (officer) => {
+                        const value = String(
                           officer.id
                         );
 
-                      if (
-                        isOfficerSelected(
-                          value,
-                          index
-                        )
-                      ) {
-                        return null;
-                      }
+                        if (
+                          isOfficerSelected(
+                            value,
+                            index
+                          )
+                        ) {
+                          return null;
+                        }
 
-                      return (
-                        <option
-                          key={
-                            officer.id
-                          }
-                          value={value}
-                        >
-                          {
-                            officer.firstName
-                          }{" "}
-                          {
-                            officer.lastName
-                          }
-                        </option>
-                      );
-                    }
-                  )}
-                </select>
+                        return (
+                          <option
+                            key={officer.id}
+                            value={value}
+                          >
+                            {officer.firstName}{" "}
+                            {officer.lastName}
+                          </option>
+                        );
+                      }
+                    )}
+                  </select>
+                )}
 
                 {inspectorId && (
                   <p className="mt-2 text-sm font-semibold text-slate-300">
                     ตำแหน่ง:{" "}
-                    {getOfficer(
-                      inspectorId
-                    )?.position || "-"}
+                    {getOfficer(inspectorId)
+                      ?.position || "-"}
                   </p>
                 )}
               </div>
@@ -1321,66 +1405,73 @@ export default function InspectionForm({
 
       {/* =====================================================
           ปุ่มดำเนินการ
-          ไม่มีปุ่ม "กลับ" ด้านล่าง
+
+          readOnly = true
+          ไม่แสดงปุ่มยกเลิก / บันทึก
+
+          หน้าเพิ่มและหน้าแก้ไข
+          แสดงปุ่มตามปกติ
       ===================================================== */}
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        {/* ยกเลิก */}
+      {!readOnly && (
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {/* ยกเลิก */}
 
-        <a
-          href={finalCancelHref}
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-600
-            to-slate-500
-            px-4
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-slate-700
-            hover:to-slate-600
-          "
-        >
-          ยกเลิก
-        </a>
+          <a
+            href={finalCancelHref}
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-600
+              to-slate-500
+              px-4
+              py-2.5
+              text-base
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              hover:from-slate-700
+              hover:to-slate-600
+            "
+          >
+            ยกเลิก
+          </a>
 
-        {/* บันทึก */}
+          {/* บันทึก */}
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-          "
-        >
-          {isSaving
-            ? isEditMode
-              ? "กำลังบันทึกการแก้ไข..."
-              : "กำลังบันทึก..."
-            : finalSubmitLabel}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-4
+              py-2.5
+              text-base
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              hover:from-emerald-700
+              hover:to-green-600
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
+          >
+            {isSaving
+              ? isEditMode
+                ? "กำลังบันทึกการแก้ไข..."
+                : "กำลังบันทึก..."
+              : finalSubmitLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

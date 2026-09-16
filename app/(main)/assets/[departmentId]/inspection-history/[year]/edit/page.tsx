@@ -394,14 +394,18 @@ export default async function InspectionHistoryEditPage({
   };
 
   // ===================================================
-  // URL กลับไปหน้ารายละเอียด
+  // URL กลับ
   //
-  // ใช้ปีจาก URL เดิม
-  // เช่น /2570/edit -> กลับไป /2570
+  // หน้าแก้ไขประวัติ เมื่อกด:
+  // - กลับ
+  // - ยกเลิก
+  // - บันทึกการแก้ไขสำเร็จ
+  //
+  // ให้กลับหน้ารวมประวัติการตรวจสอบ
   // ===================================================
 
-  const detailHref =
-    `/assets/${department.id}/inspection-history/${year}`;
+  const historyHref =
+    "/assets/inspection-history";
 
   // ===================================================
   // Render
@@ -483,11 +487,11 @@ export default async function InspectionHistoryEditPage({
 
         {/* ===============================================
             ปุ่มกลับ
-            รูปแบบเดียวกับหน้า Department
+            กลับไปหน้ารวมประวัติ
         =============================================== */}
 
         <Link
-          href={detailHref}
+          href={historyHref}
           className="
             shrink-0
             rounded-xl
@@ -525,7 +529,7 @@ export default async function InspectionHistoryEditPage({
         initialData={initialData}
         submitUrl={`/api/assets/inspection?departmentId=${department.id}&year=${databaseYear}`}
         submitMethod="PUT"
-        cancelHref={detailHref}
+        cancelHref={historyHref}
         submitLabel="บันทึกการแก้ไข"
       />
     </div>
