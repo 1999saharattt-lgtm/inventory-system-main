@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-function formatThaiDate(value: Date | string | null | undefined) {
+function formatThaiDate(
+  value: Date | string | null | undefined
+) {
   if (!value) return "-";
 
-  const date = value instanceof Date ? value : new Date(value);
+  const date =
+    value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) return "-";
 
@@ -23,7 +26,9 @@ function formatThaiDate(value: Date | string | null | undefined) {
     "ธันวาคม",
   ];
 
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear() + 543}`;
+  return `${date.getDate()} ${
+    months[date.getMonth()]
+  } ${date.getFullYear() + 543}`;
 }
 
 function getInspectorCount(value: unknown) {
@@ -55,90 +60,159 @@ type HistoryItem = {
   departmentId: number;
   departmentName: string;
   year: string;
-  inspectionStartDate: Date | string | null;
-  inspectionEndDate: Date | string | null;
+  inspectionStartDate:
+    | Date
+    | string
+    | null;
+  inspectionEndDate:
+    | Date
+    | string
+    | null;
   assetIds: Set<number>;
   inspectorCount: number;
 };
 
 export default async function InspectionHistoryPage() {
-  const inspections = await prisma.assetInspection.findMany({
-    include: {
-      asset: {
-        include: {
-          department: true,
+  const inspections =
+    await prisma.assetInspection.findMany({
+      include: {
+        asset: {
+          include: {
+            department: true,
+          },
         },
       },
-    },
-    orderBy: {
-      year: "desc",
-    },
-  });
 
-  const historyMap = new Map<string, HistoryItem>();
+      orderBy: {
+        year: "desc",
+      },
+    });
+
+  const historyMap =
+    new Map<string, HistoryItem>();
 
   for (const inspection of inspections) {
-    const department = inspection.asset?.department;
+    const department =
+      inspection.asset?.department;
 
     if (!department) continue;
 
-    const year = String(inspection.year);
-    const key = `${department.id}-${year}`;
+    const year = String(
+      inspection.year
+    );
 
-    const existing = historyMap.get(key);
+    const key =
+      `${department.id}-${year}`;
+
+    const existing =
+      historyMap.get(key);
 
     if (!existing) {
       historyMap.set(key, {
-        departmentId: department.id,
-        departmentName: department.name,
+        departmentId:
+          department.id,
+
+        departmentName:
+          department.name,
+
         year,
-        inspectionStartDate: inspection.inspectionStartDate,
-        inspectionEndDate: inspection.inspectionEndDate,
-        assetIds: new Set([inspection.assetId]),
-        inspectorCount: getInspectorCount(inspection.inspectorIds),
+
+        inspectionStartDate:
+          inspection.inspectionStartDate,
+
+        inspectionEndDate:
+          inspection.inspectionEndDate,
+
+        assetIds: new Set([
+          inspection.assetId,
+        ]),
+
+        inspectorCount:
+          getInspectorCount(
+            inspection.inspectorIds
+          ),
       });
 
       continue;
     }
 
-    existing.assetIds.add(inspection.assetId);
+    existing.assetIds.add(
+      inspection.assetId
+    );
 
-    const inspectorCount = getInspectorCount(inspection.inspectorIds);
+    const inspectorCount =
+      getInspectorCount(
+        inspection.inspectorIds
+      );
 
-    if (inspectorCount > existing.inspectorCount) {
-      existing.inspectorCount = inspectorCount;
+    if (
+      inspectorCount >
+      existing.inspectorCount
+    ) {
+      existing.inspectorCount =
+        inspectorCount;
     }
 
     if (
       inspection.inspectionStartDate &&
       (!existing.inspectionStartDate ||
-        new Date(inspection.inspectionStartDate) <
-          new Date(existing.inspectionStartDate))
+        new Date(
+          inspection.inspectionStartDate
+        ) <
+          new Date(
+            existing.inspectionStartDate
+          ))
     ) {
-      existing.inspectionStartDate = inspection.inspectionStartDate;
+      existing.inspectionStartDate =
+        inspection.inspectionStartDate;
     }
 
     if (
       inspection.inspectionEndDate &&
       (!existing.inspectionEndDate ||
-        new Date(inspection.inspectionEndDate) >
-          new Date(existing.inspectionEndDate))
+        new Date(
+          inspection.inspectionEndDate
+        ) >
+          new Date(
+            existing.inspectionEndDate
+          ))
     ) {
-      existing.inspectionEndDate = inspection.inspectionEndDate;
+      existing.inspectionEndDate =
+        inspection.inspectionEndDate;
     }
   }
 
-  const history = Array.from(historyMap.values()).sort((a, b) => {
+  const history = Array.from(
+    historyMap.values()
+  ).sort((a, b) => {
     const yearCompare =
-      Number(b.year.replace(/\D/g, "")) - Number(a.year.replace(/\D/g, ""));
+      Number(
+        b.year.replace(/\D/g, "")
+      ) -
+      Number(
+        a.year.replace(/\D/g, "")
+      );
 
-    if (yearCompare !== 0) return yearCompare;
+    if (yearCompare !== 0) {
+      return yearCompare;
+    }
 
-    return a.departmentName.localeCompare(b.departmentName, "th");
+    return a.departmentName.localeCompare(
+      b.departmentName,
+      "th"
+    );
   });
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Header
       ===================================================== */}
@@ -170,33 +244,64 @@ export default async function InspectionHistoryPage() {
         "
       >
         <div className="min-w-0">
-          <h1 className="break-words text-2xl font-extrabold leading-tight !text-white sm:text-3xl">
+          <h1
+            className="
+              break-words
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-3xl
+            "
+          >
             📋 ประวัติการตรวจสอบครุภัณฑ์ประจำปี
           </h1>
 
-          <p className="mt-2 break-words text-sm font-semibold leading-tight !text-slate-200 sm:mt-3 sm:text-base">
+          <p
+            className="
+              mt-2
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:mt-3
+              sm:text-base
+            "
+          >
             แสดงประวัติการตรวจสอบครุภัณฑ์แยกตามกลุ่มงานและปีงบประมาณ
           </p>
         </div>
 
+        {/* =================================================
+            ปุ่มกลับ
+            สีเขียวมาตรฐานเดียวกับหน้าอื่น
+        ================================================= */}
+
         <Link
           href="/assets"
           className="
-            inline-flex
+            w-full
             shrink-0
-            items-center
-            justify-center
             rounded-xl
-            bg-slate-200
-            px-5
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-4
             py-2.5
-            text-base
+            text-center
+            text-sm
             font-extrabold
-            text-slate-800
+            !text-white
             shadow-lg
             transition
-            hover:scale-[1.02]
-            hover:bg-slate-300
+            hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
+            sm:w-auto
+            sm:px-5
+            sm:py-3
+            sm:text-base
           "
         >
           ← กลับ
@@ -207,172 +312,324 @@ export default async function InspectionHistoryPage() {
           History Table
       ===================================================== */}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-xl">
+      <div
+        className="
+          overflow-hidden
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          shadow-xl
+        "
+      >
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1400px] border-collapse text-sm">
+          <table
+            className="
+              w-full
+              min-w-[1250px]
+              border-collapse
+              text-sm
+            "
+          >
             <thead>
-              <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+              <tr
+                className="
+                  bg-gradient-to-r
+                  from-slate-800
+                  to-slate-700
+                  text-white
+                "
+              >
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ลำดับ
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ชื่อกลุ่มงาน
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ประจำปีงบประมาณ
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   วันที่เริ่มตรวจสอบ
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   วันที่ตรวจสอบแล้วเสร็จ
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   จำนวนครุภัณฑ์
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ผู้ตรวจสอบ
                 </th>
 
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th
+                  className="
+                    border
+                    border-black
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   รายละเอียดข้อมูล
-                </th>
-
-                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  จัดการ
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              {history.map((item, index) => (
-                <tr
-                  key={`${item.departmentId}-${item.year}`}
-                  className="bg-white transition hover:bg-slate-50"
-                >
-                  <td className="border border-black px-3 py-3 text-center font-semibold text-slate-800">
-                    {index + 1}
-                  </td>
-
-                  <td className="border border-black px-4 py-3 text-left font-extrabold text-slate-900">
-                    {item.departmentName}
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center font-extrabold text-slate-900">
-                    พ.ศ. {item.year}
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
-                    {formatThaiDate(item.inspectionStartDate)}
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
-                    {formatThaiDate(item.inspectionEndDate)}
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
-                    {item.assetIds.size.toLocaleString("th-TH")} รายการ
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
-                    {item.inspectorCount.toLocaleString("th-TH")} คน
-                  </td>
-
-                  <td className="border border-black px-3 py-3 text-center">
-                    <Link
-                      href={`/assets/${item.departmentId}/inspection-history/${item.year}`}
+              {history.map(
+                (item, index) => (
+                  <tr
+                    key={`${item.departmentId}-${item.year}`}
+                    className="
+                      bg-white
+                      transition
+                      hover:bg-slate-50
+                    "
+                  >
+                    <td
                       className="
-                        inline-flex
-                        items-center
-                        justify-center
-                        rounded-lg
-                        bg-gradient-to-r
-                        from-sky-700
-                        to-cyan-600
-                        px-5
-                        py-2
-                        text-sm
-                        font-extrabold
-                        !text-white
-                        shadow-md
-                        transition
-                        hover:scale-[1.03]
-                        hover:from-sky-800
-                        hover:to-cyan-700
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-semibold
+                        text-slate-800
                       "
                     >
-                      เปิด
-                    </Link>
-                  </td>
+                      {index + 1}
+                    </td>
 
-                  <td className="border border-black px-3 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-4
+                        py-3
+                        text-left
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
+                      {item.departmentName}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-extrabold
+                        text-slate-900
+                      "
+                    >
+                      พ.ศ. {item.year}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-semibold
+                        text-slate-700
+                      "
+                    >
+                      {formatThaiDate(
+                        item.inspectionStartDate
+                      )}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-semibold
+                        text-slate-700
+                      "
+                    >
+                      {formatThaiDate(
+                        item.inspectionEndDate
+                      )}
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-semibold
+                        text-slate-700
+                      "
+                    >
+                      {item.assetIds.size.toLocaleString(
+                        "th-TH"
+                      )}{" "}
+                      รายการ
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                        font-semibold
+                        text-slate-700
+                      "
+                    >
+                      {item.inspectorCount.toLocaleString(
+                        "th-TH"
+                      )}{" "}
+                      คน
+                    </td>
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-3
+                        text-center
+                      "
+                    >
+                      {/* =====================================
+                          ปุ่มเปิด
+                          สีเข้มแบบเดียวกับหัวตาราง
+                      ===================================== */}
+
                       <Link
-                        href={`/assets/${item.departmentId}/inspection-history/${item.year}/edit`}
+                        href={`/assets/${item.departmentId}/inspection-history/${item.year}`}
                         className="
                           inline-flex
                           items-center
                           justify-center
-                          rounded-lg
+                          rounded-xl
                           bg-gradient-to-r
-                          from-amber-500
-                          to-orange-500
-                          px-4
+                          from-slate-800
+                          to-slate-700
+                          px-5
                           py-2
                           text-sm
                           font-extrabold
                           !text-white
-                          shadow-md
+                          shadow-lg
                           transition
-                          hover:scale-[1.03]
-                          hover:from-amber-600
-                          hover:to-orange-600
+                          hover:scale-105
+                          hover:from-slate-900
+                          hover:to-slate-800
                         "
                       >
-                        แก้ไข
+                        เปิด
                       </Link>
-
-                      <button
-                        type="button"
-                        className="
-                          inline-flex
-                          items-center
-                          justify-center
-                          rounded-lg
-                          bg-gradient-to-r
-                          from-red-700
-                          to-red-500
-                          px-4
-                          py-2
-                          text-sm
-                          font-extrabold
-                          !text-white
-                          shadow-md
-                          transition
-                          hover:scale-[1.03]
-                          hover:from-red-800
-                          hover:to-red-600
-                        "
-                        title="ขั้นถัดไปจะเชื่อมการลบพร้อมกล่องยืนยัน"
-                      >
-                        ลบ
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                )
+              )}
 
               {history.length === 0 && (
                 <tr>
                   <td
-                    colSpan={9}
-                    className="border border-black px-4 py-12 text-center text-lg font-semibold text-slate-500"
+                    colSpan={8}
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-12
+                      text-center
+                      text-lg
+                      font-semibold
+                      text-slate-500
+                    "
                   >
                     ยังไม่มีประวัติการตรวจสอบครุภัณฑ์ประจำปี
                   </td>
