@@ -44,6 +44,43 @@ function formatDateOnly(value: Date | string | null | undefined) {
   return `${year}-${month}-${day}`;
 }
 
+function getOneYearBefore(value: Date | string | null | undefined) {
+  if (!value) return "";
+
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  date.setFullYear(date.getFullYear() - 1);
+
+  return formatDateOnly(date);
+}
+
+function getOneDayBefore(value: Date | string | null | undefined) {
+  if (!value) return "";
+
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  date.setDate(date.getDate() - 1);
+
+  return formatDateOnly(date);
+}
+
+function getFiscalYear(value: Date | string | null | undefined) {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  return String(month >= 10 ? year + 1 + 543 : year + 543);
+}
+
 function getCategoryUnit(category: string) {
   const categoryUnit: Record<string, string> = {
     COMPUTER: "เครื่อง",
@@ -67,9 +104,7 @@ function parseInspectorIds(value: unknown): string[] {
   if (!value) return [];
 
   if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item))
-      .filter(Boolean);
+    return value.map((item) => String(item)).filter(Boolean);
   }
 
   if (typeof value === "string") {
@@ -77,9 +112,7 @@ function parseInspectorIds(value: unknown): string[] {
       const parsed = JSON.parse(value);
 
       if (Array.isArray(parsed)) {
-        return parsed
-          .map((item) => String(item))
-          .filter(Boolean);
+        return parsed.map((item) => String(item)).filter(Boolean);
       }
     } catch {
       return value
@@ -92,11 +125,11 @@ function parseInspectorIds(value: unknown): string[] {
   return [];
 }
 
-function normalizeFiscalYear(value: string) {
+function normalizeFiscalYear(value: number | string) {
   const year = Number(value);
 
   if (!Number.isFinite(year)) {
-    return value;
+    return String(value);
   }
 
   return year < 2400 ? String(year + 543) : String(year);
@@ -104,7 +137,7 @@ function normalizeFiscalYear(value: string) {
 
 type PageProps = {
   params: Promise<{
-    id: string;
+    departmentId: string;
     year: string;
   }>;
 };
@@ -112,13 +145,31 @@ type PageProps = {
 export default async function InspectionHistoryDetailPage({
   params,
 }: PageProps) {
-  const { id, year } = await params;
+  const { departmentId: departmentIdParam, year: yearParam } =
+    await params;
 
-  const departmentId = Number(id);
+  const departmentId = Number(departmentIdParam);
+  const requestedYear = Number(yearParam);
 
-  if (!Number.isInteger(departmentId)) {
+  if (
+    !Number.isInteger(departmentId) ||
+    departmentId <= 0 ||
+    !Number.isInteger(requestedYear)
+  ) {
     notFound();
   }
+
+  /*
+   * รองรับ URL ได้ทั้ง
+   * /2569  -> แปลงเป็น 2026 สำหรับค้นฐานข้อมูล
+   * /2026  -> ใช้ 2026 ได้โดยตรง
+   */
+  const databaseYear =
+    requestedYear >= 2400
+      ? requestedYear - 543
+      : requestedYear;
+
+  const displayFiscalYear = normalizeFiscalYear(databaseYear);
 
   const department = await prisma.department.findUnique({
     where: {
@@ -132,7 +183,7 @@ export default async function InspectionHistoryDetailPage({
 
   const inspections = await prisma.assetInspection.findMany({
     where: {
-      year,
+      year: databaseYear,
       asset: {
         departmentId,
       },
@@ -156,24 +207,33 @@ export default async function InspectionHistoryDetailPage({
 
   const firstInspection = inspections[0];
 
-  const inspectionStartDate =
-    formatDateOnly(firstInspection.inspectionStartDate);
-
-  const inspectionEndDate =
-    formatDateOnly(firstInspection.inspectionEndDate);
-
-  const accountStartDate =
-    formatDateOnly(firstInspection.accountStartDate);
-
-  const accountEndDate =
-    formatDateOnly(firstInspection.accountEndDate);
-
-  const movementFiscalYear = normalizeFiscalYear(
-    String(
-      firstInspection.movementFiscalYear ||
-        firstInspection.year
-    )
+  /*
+   * ใน Prisma schema ปัจจุบัน AssetInspection ไม่มี
+   * accountStartDate
+   * accountEndDate
+   * movementFiscalYear
+   *
+   * จึงคำนวณจากวันที่ตรวจสอบตาม logic ของ InspectionForm
+   */
+  const inspectionStartDate = formatDateOnly(
+    firstInspection.inspectionStartDate
   );
+
+  const inspectionEndDate = formatDateOnly(
+    firstInspection.inspectionEndDate
+  );
+
+  const accountStartDate = getOneYearBefore(
+    firstInspection.inspectionStartDate
+  );
+
+  const accountEndDate = getOneDayBefore(
+    firstInspection.inspectionEndDate
+  );
+
+  const movementFiscalYear =
+    getFiscalYear(firstInspection.inspectionStartDate) ||
+    displayFiscalYear;
 
   const rawInspectorIds = parseInspectorIds(
     firstInspection.inspectorIds
@@ -203,10 +263,7 @@ export default async function InspectionHistoryDetailPage({
     : [];
 
   const officerMap = new Map(
-    officers.map((officer) => [
-      String(officer.id),
-      officer,
-    ])
+    officers.map((officer) => [String(officer.id), officer])
   );
 
   const assets = inspections.map(
@@ -236,7 +293,7 @@ export default async function InspectionHistoryDetailPage({
 
             <p className="mt-1 text-base font-semibold !text-slate-200">
               {department.name} · ประจำปีงบประมาณ พ.ศ.{" "}
-              {normalizeFiscalYear(String(year))}
+              {displayFiscalYear}
             </p>
           </div>
 
@@ -290,96 +347,152 @@ export default async function InspectionHistoryDetailPage({
           <table className="w-full min-w-[2300px] border-collapse text-[13px] leading-tight">
             <thead>
               <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   ลำดับ
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   รหัส GFMIS
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   รหัสครุภัณฑ์
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   ผู้รับผิดชอบ
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   รายการ
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   หน่วยนับ
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
-                  ยอดคงเหลือตามบัญชี ณ วันที่{" "}
-                  {formatThaiDate(
-                    firstInspection.accountStartDate
-                  )}
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ณ วันที่ {formatThaiDate(accountStartDate)}
+                  </div>
                 </th>
 
-                <th colSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
-                  รายการเคลื่อนไหวระหว่างปีงบประมาณ พ.ศ.{" "}
-                  {movementFiscalYear}
+                <th
+                  colSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
+                  <div className="whitespace-nowrap">
+                    รายการเคลื่อนไหวระหว่าง
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ปีงบประมาณ พ.ศ. {movementFiscalYear}
+                  </div>
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
-                  ยอดคงเหลือตามบัญชี ณ วันที่{" "}
-                  {formatThaiDate(
-                    firstInspection.accountEndDate
-                  )}
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ณ วันที่ {formatThaiDate(accountEndDate)}
+                  </div>
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   จำนวนที่ตรวจนับได้
                 </th>
 
-                <th colSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
-                  ผลการตรวจนับถูกต้องตรงกับยอดคงเหลือตามบัญชี
+                <th
+                  colSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
+                  <div className="whitespace-nowrap">
+                    ผลการตรวจนับถูกต้องตรงกับ
+                  </div>
+
+                  <div className="whitespace-nowrap">
+                    ยอดคงเหลือตามบัญชี
+                  </div>
                 </th>
 
-                <th colSpan={4} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  colSpan={4}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   สภาพครุภัณฑ์ที่ตรวจนับ
                 </th>
 
-                <th rowSpan={2} className="border border-black px-2 py-3 text-center font-extrabold !text-white">
+                <th
+                  rowSpan={2}
+                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                >
                   หมายเหตุ
                 </th>
               </tr>
 
               <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="border border-black px-2 py-2 text-center align-middle font-extrabold !text-white">
                   รับ
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="border border-black px-2 py-2 text-center align-middle font-extrabold !text-white">
                   จ่าย
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="border border-black px-2 py-2 text-center align-middle font-extrabold !text-white">
                   ถูกต้อง
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="border border-black px-2 py-2 text-center align-middle font-extrabold !text-white">
                   ไม่ถูกต้อง
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="min-w-[105px] border border-black px-2 py-2 text-center align-middle font-extrabold !text-white whitespace-nowrap">
                   ใช้งานปกติ
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="min-w-[70px] border border-black px-2 py-2 text-center align-middle font-extrabold !text-white whitespace-nowrap">
                   ชำรุด
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="min-w-[95px] border border-black px-2 py-2 text-center align-middle font-extrabold !text-white whitespace-nowrap">
                   เสื่อมสภาพ
                 </th>
 
-                <th className="border border-black px-2 py-2 text-center font-extrabold !text-white">
+                <th className="min-w-[125px] border border-black px-2 py-2 text-center align-middle font-extrabold !text-white whitespace-nowrap">
                   ไม่จำเป็นต้องใช้
                 </th>
               </tr>
@@ -389,94 +502,96 @@ export default async function InspectionHistoryDetailPage({
               {inspections.map((inspection, index) => {
                 const asset = inspection.asset;
 
-                const responsible =
-                  asset.officer
-                    ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                    : "-";
+                const responsible = asset.officer
+                  ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                  : "-";
 
                 return (
-                  <tr key={inspection.id} className="bg-white">
-                    <td className="border border-black px-2 py-3 text-center">
+                  <tr
+                    key={inspection.id}
+                    className="bg-white text-sm font-medium text-slate-900"
+                  >
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       {index + 1}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       {asset.governmentAssetNo || "-"}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       {asset.officeAssetNo || "-"}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       {responsible}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-left">
+                    <td className="border border-black px-2 py-3 text-left align-middle">
                       {asset.name}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       {getCategoryUnit(asset.category)}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       1
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       -
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       -
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center">
+                    <td className="border border-black px-2 py-3 text-center align-middle">
                       1
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center font-semibold">
+                    <td className="border border-black px-2 py-3 text-center align-middle font-semibold">
                       {inspection.countedQty ?? "-"}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.accuracy === "CORRECT"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.accuracy === "INCORRECT"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.status === "IN_USE"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.status === "DAMAGED"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.status === "DETERIORATED"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-center text-lg font-extrabold">
+                    <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                       {inspection.status === "UNUSABLE"
                         ? "✓"
                         : ""}
                     </td>
 
-                    <td className="border border-black px-2 py-3 text-left">
+                    <td className="border border-black px-2 py-3 text-left align-middle">
                       {inspection.remark || "-"}
                     </td>
                   </tr>
@@ -534,7 +649,7 @@ export default async function InspectionHistoryDetailPage({
         </Link>
 
         <Link
-          href={`/assets/${department.id}/inspection-history/${year}/edit`}
+          href={`/assets/${department.id}/inspection-history/${databaseYear}/edit`}
           className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02] hover:from-amber-600 hover:to-orange-600"
         >
           แก้ไข
