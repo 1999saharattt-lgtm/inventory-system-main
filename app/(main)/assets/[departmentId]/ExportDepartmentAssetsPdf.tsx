@@ -32,16 +32,33 @@ type Props = {
 
 /* =========================================================
    ชื่อประเภทครุภัณฑ์
+
+   หมวดที่ใช้แสดงผล
+
+   CABINET + SHELF
+   = ตู้และชั้นวาง
+
+   COMPUTER + MONITOR
+   = คอมพิวเตอร์
+
+   SHELF และ MONITOR ยังคงรองรับไว้
+   สำหรับข้อมูลเดิมในฐานข้อมูล
+   แต่จะไม่แสดงชื่อเป็นหมวดแยกใน PDF
    ========================================================= */
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
-  COMPUTER: "คอมพิวเตอร์",
-  PRINTER: "เครื่องพิมพ์",
   TELEPHONE: "เครื่องโทรศัพท์",
+
+  CABINET: "ตู้และชั้นวาง",
+  SHELF: "ตู้และชั้นวาง",
+
+  COMPUTER: "คอมพิวเตอร์",
+  MONITOR: "คอมพิวเตอร์",
+
+  PRINTER: "เครื่องพิมพ์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
@@ -54,10 +71,15 @@ const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
   AIR_CONDITIONER: "เครื่อง",
-  CABINET: "ตัว",
-  COMPUTER: "เครื่อง",
-  PRINTER: "เครื่อง",
   TELEPHONE: "เครื่อง",
+
+  CABINET: "ตัว",
+  SHELF: "ตัว",
+
+  COMPUTER: "เครื่อง",
+  MONITOR: "เครื่อง",
+
+  PRINTER: "เครื่อง",
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 };
@@ -68,13 +90,22 @@ const categoryUnit: Record<string, string> = {
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
+
+  // รองรับข้อมูลเดิม
+  ACTIVE: "ยังใช้งาน",
+  INACTIVE: "ไม่ใช้งาน",
+
   DAMAGED: "ชำรุด",
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
+
+  // รองรับข้อมูลเดิม
+  LOST: "สูญหาย",
 };
 
 /* =========================================================
    ปีงบประมาณราชการ
+
    ต.ค. - ก.ย.
    ========================================================= */
 
@@ -124,37 +155,106 @@ function getCurrentQuarter(date: Date) {
 
    กลุ่มอื่น
    = ชื่อ นามสกุล
+
+   หมายเหตุ:
+   หน้า /assets/[departmentId]/all
+   อาจส่ง officerName ที่เป็น responsibleName
+   จากทะเบียนต้นฉบับมาแล้ว
+
+   จึงต้องป้องกันการต่อ Section ซ้ำ
    ========================================================= */
 
 function getResponsibleName(asset: Asset) {
-  const officerName = asset.officerName?.trim() || "";
-  const sectionName = asset.sectionName?.trim() || "";
+  const officerName =
+    asset.officerName?.trim() || "";
+
+  const sectionName =
+    asset.sectionName?.trim() || "";
+
   const assetDepartmentName =
     asset.departmentName?.trim() || "";
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      กลุ่มอำนวยการ
-     --------------------------------------------------------- */
+     ======================================================= */
 
-  if (assetDepartmentName === "กลุ่มอำนวยการ") {
-    if (officerName && sectionName) {
+  if (
+    assetDepartmentName ===
+    "กลุ่มอำนวยการ"
+  ) {
+    /*
+     * มีทั้งข้อมูลผู้รับผิดชอบ
+     * และ Section
+     */
+
+    if (
+      officerName &&
+      sectionName
+    ) {
       /*
-       * ป้องกันกรณี page.tsx ส่ง officerName
-       * ที่รวม "/ ชื่องาน" มาแล้ว
+       * ป้องกันกรณี officerName
+       * มี "/ ชื่องาน" อยู่แล้ว
+       *
+       * เช่น
+       * นาย ก / งานการเงิน
        */
+
       if (
-        officerName.includes(` / ${sectionName}`) ||
-        officerName.endsWith(`/${sectionName}`)
+        officerName.includes(
+          ` / ${sectionName}`
+        ) ||
+        officerName.endsWith(
+          `/${sectionName}`
+        )
       ) {
         return officerName;
       }
 
+      /*
+       * กรณี responsibleName
+       * เป็นข้อความสถานที่
+       *
+       * เช่น
+       * ห้องประชุมชั้น 3
+       *
+       * ไม่ควรนำ Section มาต่อท้าย
+       */
+
+      if (
+        officerName.startsWith("ห้อง")
+      ) {
+        return officerName;
+      }
+
+      /*
+       * กรณีข้อความเป็นชื่องานอยู่แล้ว
+       */
+
+      if (
+        officerName.startsWith("งาน")
+      ) {
+        return officerName;
+      }
+
+      /*
+       * กรณีชื่อบุคคลจริง
+       * ต่อด้วย Section
+       */
+
       return `${officerName} / ${sectionName}`;
     }
+
+    /*
+     * มีเฉพาะผู้รับผิดชอบ
+     */
 
     if (officerName) {
       return officerName;
     }
+
+    /*
+     * มีเฉพาะ Section
+     */
 
     if (sectionName) {
       return sectionName;
@@ -163,10 +263,9 @@ function getResponsibleName(asset: Asset) {
     return assetDepartmentName || "-";
   }
 
-  /* ---------------------------------------------------------
+  /* =======================================================
      กลุ่มอื่น
-     แสดงชื่อผู้รับผิดชอบตามปกติ
-     --------------------------------------------------------- */
+     ======================================================= */
 
   if (officerName) {
     return officerName;
@@ -180,17 +279,19 @@ function getResponsibleName(asset: Asset) {
 }
 
 /* =========================================================
-   Component
+   COMPONENT
    ========================================================= */
 
 export default function ExportDepartmentAssetsPdf({
   departmentName,
   assets,
 }: Props) {
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExporting, setIsExporting] =
+    useState(false);
 
   /* =========================================================
      A4 แนวนอน
+
      297 x 210 mm
      ========================================================= */
 
@@ -206,7 +307,8 @@ export default function ExportDepartmentAssetsPdf({
      จัดตารางให้อยู่กึ่งกลางหน้า
      ========================================================= */
 
-  const marginX = (pageWidth - tableWidth) / 2;
+  const marginX =
+    (pageWidth - tableWidth) / 2;
 
   /* =========================================================
      จำนวนรายการต่อหน้า
@@ -215,7 +317,7 @@ export default function ExportDepartmentAssetsPdf({
   const rowsPerPage = 17;
 
   /* =========================================================
-     Export PDF
+     EXPORT PDF
      ========================================================= */
 
   async function handleExportPdf() {
@@ -230,16 +332,21 @@ export default function ExportDepartmentAssetsPdf({
          คำนวณไตรมาสและปีงบประมาณ
          ===================================================== */
 
-      const currentDate = new Date();
+      const currentDate =
+        new Date();
 
       const currentQuarter =
-        getCurrentQuarter(currentDate);
+        getCurrentQuarter(
+          currentDate
+        );
 
       const fiscalYear =
-        getFiscalYear(currentDate);
+        getFiscalYear(
+          currentDate
+        );
 
       /* =====================================================
-         สร้างเอกสาร PDF A4 แนวนอน
+         สร้าง PDF A4 แนวนอน
          ===================================================== */
 
       const doc = new jsPDF({
@@ -250,7 +357,7 @@ export default function ExportDepartmentAssetsPdf({
       });
 
       /* =====================================================
-         ตั้งฟอนต์ภาษาไทย
+         ฟอนต์ภาษาไทย
          ===================================================== */
 
       doc.setFont(
@@ -259,7 +366,7 @@ export default function ExportDepartmentAssetsPdf({
       );
 
       /* =====================================================
-         แบ่งข้อมูลเป็นหน้า ๆ
+         แบ่งข้อมูลเป็นหน้า
          ===================================================== */
 
       const pages: Asset[][] = [];
@@ -279,11 +386,13 @@ export default function ExportDepartmentAssetsPdf({
 
       /* =====================================================
          สร้าง PDF ทีละหน้า
-         Header จะถูกสร้างใหม่ทุกหน้า
          ===================================================== */
 
       pages.forEach(
-        (pageAssets, pageIndex) => {
+        (
+          pageAssets,
+          pageIndex
+        ) => {
           if (pageIndex > 0) {
             doc.addPage(
               "a4",
@@ -291,7 +400,8 @@ export default function ExportDepartmentAssetsPdf({
             );
           }
 
-          const center = pageWidth / 2;
+          const center =
+            pageWidth / 2;
 
           /* =================================================
              HEADER
@@ -359,62 +469,78 @@ export default function ExportDepartmentAssetsPdf({
              TABLE DATA
              ================================================= */
 
-          const body = pageAssets.map(
-            (asset, index) => {
-              const globalIndex =
-                pageIndex *
-                  rowsPerPage +
-                index;
+          const body =
+            pageAssets.map(
+              (
+                asset,
+                index
+              ) => {
+                const globalIndex =
+                  pageIndex *
+                    rowsPerPage +
+                  index;
 
-              /* ---------------------------------------------
-                 ผู้รับผิดชอบ
+                const responsibleName =
+                  getResponsibleName(
+                    asset
+                  );
 
-                 กลุ่มอำนวยการ:
-                 ชื่อ นามสกุล / ชื่องาน
+                return [
+                  /* ลำดับ */
+                  globalIndex + 1,
 
-                 กลุ่มอื่น:
-                 ชื่อ นามสกุล
-                 --------------------------------------------- */
+                  /* =========================================
+                     ประเภท
 
-              const responsibleName =
-                getResponsibleName(asset);
+                     CABINET / SHELF
+                     = ตู้และชั้นวาง
 
-              return [
-                /* ลำดับ */
-                globalIndex + 1,
+                     COMPUTER / MONITOR
+                     = คอมพิวเตอร์
+                     ========================================= */
 
-                /* ประเภท */
-                categoryName[
-                  asset.category
-                ] ?? asset.category,
+                  categoryName[
+                    asset.category
+                  ] ??
+                    asset.category,
 
-                /* รหัส GFMIS */
-                asset.governmentAssetNo ?? "-",
+                  /* รหัส GFMIS */
 
-                /* รหัสครุภัณฑ์ */
-                asset.officeAssetNo ?? "-",
+                  asset.governmentAssetNo ??
+                    "-",
 
-                /* รายการครุภัณฑ์ */
-                asset.name || "-",
+                  /* รหัสครุภัณฑ์ */
 
-                /* จำนวน */
-                "1",
+                  asset.officeAssetNo ??
+                    "-",
 
-                /* หน่วย */
-                categoryUnit[
-                  asset.category
-                ] ?? "รายการ",
+                  /* รายการครุภัณฑ์ */
 
-                /* ผู้รับผิดชอบ */
-                responsibleName,
+                  asset.name || "-",
 
-                /* สถานะ */
-                statusName[
-                  asset.status
-                ] ?? asset.status,
-              ];
-            }
-          );
+                  /* จำนวน */
+
+                  "1",
+
+                  /* หน่วย */
+
+                  categoryUnit[
+                    asset.category
+                  ] ?? "รายการ",
+
+                  /* ผู้รับผิดชอบ */
+
+                  responsibleName,
+
+                  /* สถานะ */
+
+                  statusName[
+                    asset.status
+                  ] ??
+                    asset.status,
+                ];
+              }
+            );
 
           /* =================================================
              เติมแถวว่างให้ครบ 17 แถว
@@ -449,7 +575,7 @@ export default function ExportDepartmentAssetsPdf({
             startY: 37,
 
             /* ------------------------------------------------
-               จัดตารางให้อยู่กึ่งกลางหน้า
+               ตารางอยู่กึ่งกลาง
                ------------------------------------------------ */
 
             margin: {
@@ -458,7 +584,7 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             /* ------------------------------------------------
-               ความกว้างรวม 270 mm
+               ความกว้างรวม
                ------------------------------------------------ */
 
             tableWidth,
@@ -490,23 +616,38 @@ export default function ExportDepartmentAssetsPdf({
                ================================================= */
 
             styles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
               fontSize: 13,
 
               cellPadding: 1.2,
 
               halign: "center",
+
               valign: "middle",
 
-              lineColor: [0, 0, 0],
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
               lineWidth: 0.25,
 
               minCellHeight: 7.2,
 
-              overflow: "linebreak",
+              overflow:
+                "linebreak",
 
-              textColor: [0, 0, 0],
+              textColor: [
+                0,
+                0,
+                0,
+              ],
             },
 
             /* =================================================
@@ -514,24 +655,46 @@ export default function ExportDepartmentAssetsPdf({
                ================================================= */
 
             headStyles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
               fontSize: 13,
 
-              fillColor: [255, 255, 255],
-              textColor: [0, 0, 0],
+              fillColor: [
+                255,
+                255,
+                255,
+              ],
 
-              halign: "center",
-              valign: "middle",
+              textColor: [
+                0,
+                0,
+                0,
+              ],
 
-              lineColor: [0, 0, 0],
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
               lineWidth: 0.25,
 
               cellPadding: 1.3,
 
               minCellHeight: 9,
 
-              overflow: "linebreak",
+              overflow:
+                "linebreak",
             },
 
             /* =================================================
@@ -539,19 +702,29 @@ export default function ExportDepartmentAssetsPdf({
                ================================================= */
 
             bodyStyles: {
-              font: "2.3.2 THSarabunNew",
-              fontStyle: "normal",
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
               fontSize: 13,
 
-              textColor: [0, 0, 0],
+              textColor: [
+                0,
+                0,
+                0,
+              ],
 
-              valign: "middle",
+              valign:
+                "middle",
 
               cellPadding: 1.2,
 
               minCellHeight: 7.2,
 
-              overflow: "linebreak",
+              overflow:
+                "linebreak",
             },
 
             /* =================================================
@@ -560,6 +733,7 @@ export default function ExportDepartmentAssetsPdf({
 
             columnStyles: {
               /* ลำดับ */
+
               0: {
                 cellWidth: 10,
                 halign: "center",
@@ -567,6 +741,7 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /* ประเภท */
+
               1: {
                 cellWidth: 29,
                 halign: "center",
@@ -574,6 +749,7 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /* รหัส GFMIS */
+
               2: {
                 cellWidth: 34,
                 halign: "center",
@@ -581,20 +757,34 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /* รหัสครุภัณฑ์ */
+
               3: {
                 cellWidth: 42,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* รายการครุภัณฑ์ */
+              /* =================================================
+                 รายการครุภัณฑ์
+
+                 ข้อมูลชิดซ้าย
+                 ================================================= */
+
               4: {
                 cellWidth: 62,
                 halign: "left",
                 valign: "middle",
+
+                cellPadding: {
+                  top: 1.2,
+                  right: 1.2,
+                  bottom: 1.2,
+                  left: 2,
+                },
               },
 
               /* จำนวน */
+
               5: {
                 cellWidth: 12,
                 halign: "center",
@@ -602,6 +792,7 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /* หน่วย */
+
               6: {
                 cellWidth: 16,
                 halign: "center",
@@ -611,8 +802,7 @@ export default function ExportDepartmentAssetsPdf({
               /* =================================================
                  ผู้รับผิดชอบ
 
-                 แก้ให้ข้อมูลชิดซ้าย
-                 แต่หัวตารางยังคงกึ่งกลาง
+                 ข้อมูลชิดซ้าย
                  ================================================= */
 
               7: {
@@ -629,6 +819,7 @@ export default function ExportDepartmentAssetsPdf({
               },
 
               /* สถานะ */
+
               8: {
                 cellWidth: 20,
                 halign: "center",
@@ -637,16 +828,26 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             /* =================================================
-               บังคับหัวคอลัมน์ผู้รับผิดชอบให้อยู่กึ่งกลาง
+               หัวตาราง
 
-               เนื่องจาก columnStyles ของคอลัมน์ 7 กำหนด
-               halign เป็น left จึงกำหนดหัวตารางกลับเป็น center
+               column 4 และ 7
+               ข้อมูลถูกกำหนดชิดซ้าย
+
+               แต่หัวตารางต้องอยู่กึ่งกลาง
                ================================================= */
 
-            didParseCell: (data) => {
+            didParseCell: (
+              data
+            ) => {
               if (
-                data.section === "head" &&
-                data.column.index === 7
+                data.section ===
+                  "head" &&
+                (
+                  data.column
+                    .index === 4 ||
+                  data.column
+                    .index === 7
+                )
               ) {
                 data.cell.styles.halign =
                   "center";
@@ -657,8 +858,14 @@ export default function ExportDepartmentAssetsPdf({
                เส้นกรอบตาราง
                ================================================= */
 
-            tableLineColor: [0, 0, 0],
-            tableLineWidth: 0.25,
+            tableLineColor: [
+              0,
+              0,
+              0,
+            ],
+
+            tableLineWidth:
+              0.25,
           });
         }
       );
@@ -671,7 +878,9 @@ export default function ExportDepartmentAssetsPdf({
         doc.output("blob");
 
       const pdfUrl =
-        URL.createObjectURL(pdfBlob);
+        URL.createObjectURL(
+          pdfBlob
+        );
 
       const newWindow =
         window.open(
@@ -682,10 +891,15 @@ export default function ExportDepartmentAssetsPdf({
 
       if (!newWindow) {
         const link =
-          document.createElement("a");
+          document.createElement(
+            "a"
+          );
 
         link.href = pdfUrl;
-        link.target = "_blank";
+
+        link.target =
+          "_blank";
+
         link.rel =
           "noopener noreferrer";
 
@@ -693,11 +907,13 @@ export default function ExportDepartmentAssetsPdf({
       }
 
       /* =====================================================
-         ล้าง Object URL หลังจากเปิดไฟล์
+         ล้าง Object URL
          ===================================================== */
 
       setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
+        URL.revokeObjectURL(
+          pdfUrl
+        );
       }, 60000);
     } catch (error) {
       console.error(
@@ -721,7 +937,9 @@ export default function ExportDepartmentAssetsPdf({
     <div className="shrink-0">
       <button
         type="button"
-        onClick={handleExportPdf}
+        onClick={
+          handleExportPdf
+        }
         disabled={
           isExporting ||
           assets.length === 0
