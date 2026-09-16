@@ -117,6 +117,69 @@ function getCurrentQuarter(date: Date) {
 }
 
 /* =========================================================
+   ผู้รับผิดชอบ
+
+   กลุ่มอำนวยการ
+   = ชื่อ นามสกุล / ชื่องาน
+
+   กลุ่มอื่น
+   = ชื่อ นามสกุล
+   ========================================================= */
+
+function getResponsibleName(asset: Asset) {
+  const officerName = asset.officerName?.trim() || "";
+  const sectionName = asset.sectionName?.trim() || "";
+  const assetDepartmentName =
+    asset.departmentName?.trim() || "";
+
+  /* ---------------------------------------------------------
+     กลุ่มอำนวยการ
+     --------------------------------------------------------- */
+
+  if (assetDepartmentName === "กลุ่มอำนวยการ") {
+    if (officerName && sectionName) {
+      /*
+       * ป้องกันกรณี page.tsx ส่ง officerName
+       * ที่รวม "/ ชื่องาน" มาแล้ว
+       */
+      if (
+        officerName.includes(` / ${sectionName}`) ||
+        officerName.endsWith(`/${sectionName}`)
+      ) {
+        return officerName;
+      }
+
+      return `${officerName} / ${sectionName}`;
+    }
+
+    if (officerName) {
+      return officerName;
+    }
+
+    if (sectionName) {
+      return sectionName;
+    }
+
+    return assetDepartmentName || "-";
+  }
+
+  /* ---------------------------------------------------------
+     กลุ่มอื่น
+     แสดงชื่อผู้รับผิดชอบตามปกติ
+     --------------------------------------------------------- */
+
+  if (officerName) {
+    return officerName;
+  }
+
+  if (assetDepartmentName) {
+    return assetDepartmentName;
+  }
+
+  return "-";
+}
+
+/* =========================================================
    Component
    ========================================================= */
 
@@ -313,6 +376,19 @@ export default function ExportDepartmentAssetsPdf({
                   rowsPerPage +
                 index;
 
+              /* ---------------------------------------------
+                 ผู้รับผิดชอบ
+
+                 กลุ่มอำนวยการ
+                 ชื่อ นามสกุล / ชื่องาน
+
+                 กลุ่มอื่น
+                 ชื่อ นามสกุล
+                 --------------------------------------------- */
+
+              const responsibleName =
+                getResponsibleName(asset);
+
               return [
                 /* ลำดับ */
                 globalIndex + 1,
@@ -340,10 +416,7 @@ export default function ExportDepartmentAssetsPdf({
                 ] ?? "รายการ",
 
                 /* ผู้รับผิดชอบ */
-                asset.officerName ??
-                  asset.sectionName ??
-                  asset.departmentName ??
-                  "-",
+                responsibleName,
 
                 /* สถานะ */
                 statusName[
@@ -463,10 +536,8 @@ export default function ExportDepartmentAssetsPdf({
               fontStyle: "normal",
               fontSize: 13,
 
-              /* พื้นหลังสีขาว */
               fillColor: [255, 255, 255],
 
-              /* ตัวอักษรสีดำ */
               textColor: [0, 0, 0],
 
               halign: "center",
@@ -504,106 +575,66 @@ export default function ExportDepartmentAssetsPdf({
 
             /* =================================================
                ความกว้างคอลัมน์
-
-               รวมทั้งหมด = 270 mm
-
-               10 + 29 + 34 + 42 + 62
-               + 12 + 16 + 45 + 20
-               = 270 mm
-
-               ปรับ:
-               รหัสครุภัณฑ์ 34 → 42 mm
-               สถานะ         28 → 20 mm
                ================================================= */
 
             columnStyles: {
-              /* ------------------------------------------------
-                 0 - ลำดับ
-                 ------------------------------------------------ */
-
+              /* ลำดับ */
               0: {
                 cellWidth: 10,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 1 - ประเภท
-                 ------------------------------------------------ */
-
+              /* ประเภท */
               1: {
                 cellWidth: 29,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 2 - รหัส GFMIS
-                 ------------------------------------------------ */
-
+              /* รหัส GFMIS */
               2: {
                 cellWidth: 34,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 3 - รหัสครุภัณฑ์
-                 เพิ่มจาก 34 เป็น 42 mm
-                 เพื่อไม่ให้รหัสตกบรรทัด
-                 ------------------------------------------------ */
-
+              /* รหัสครุภัณฑ์ */
               3: {
                 cellWidth: 42,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 4 - รายการครุภัณฑ์
-                 ------------------------------------------------ */
-
+              /* รายการครุภัณฑ์ */
               4: {
                 cellWidth: 62,
                 halign: "left",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 5 - จำนวน
-                 ------------------------------------------------ */
-
+              /* จำนวน */
               5: {
                 cellWidth: 12,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 6 - หน่วย
-                 ------------------------------------------------ */
-
+              /* หน่วย */
               6: {
                 cellWidth: 16,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 7 - ผู้รับผิดชอบ
-                 ------------------------------------------------ */
-
+              /* ผู้รับผิดชอบ */
               7: {
                 cellWidth: 45,
                 halign: "center",
                 valign: "middle",
               },
 
-              /* ------------------------------------------------
-                 8 - สถานะ
-                 ลดจาก 28 เป็น 20 mm
-                 ------------------------------------------------ */
-
+              /* สถานะ */
               8: {
                 cellWidth: 20,
                 halign: "center",
