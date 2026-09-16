@@ -314,8 +314,12 @@ export default async function IssuePage({
           </p>
         </div>
 
+        {/* =================================================
+            ปุ่มกลับหน้าแรก
+        ================================================= */}
+
         <Link
-          href="/issue/create"
+          href="/"
           className="
             shrink-0
             whitespace-nowrap
@@ -340,7 +344,7 @@ export default async function IssuePage({
             sm:text-base
           "
         >
-          + เพิ่มรายการเบิก
+          ← กลับ
         </Link>
       </div>
 

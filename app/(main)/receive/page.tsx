@@ -163,10 +163,15 @@ export default async function ReceivePage({
           </p>
         </div>
 
+        {/* =================================================
+            ปุ่มกลับหน้าแรก
+        ================================================= */}
+
         <Link
-          href="/receive/create"
+          href="/"
           className="
             shrink-0
+            whitespace-nowrap
             rounded-xl
             bg-gradient-to-r
             from-emerald-600
@@ -176,16 +181,19 @@ export default async function ReceivePage({
             text-center
             text-sm
             font-extrabold
+            leading-tight
             !text-white
             shadow-lg
             transition
             hover:scale-105
+            hover:from-emerald-700
+            hover:to-green-600
             sm:px-5
             sm:py-3
             sm:text-lg
           "
         >
-          + เพิ่มรายการรับ
+          ← กลับ
         </Link>
       </div>
 
