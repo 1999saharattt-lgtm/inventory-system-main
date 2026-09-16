@@ -11,17 +11,27 @@ type Props = {
   }>;
 };
 
+/* =========================================================
+   ชื่อหมวดครุภัณฑ์
+   ========================================================= */
+
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  CABINET: "ตู้",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "เครื่องโทรศัพท์",
+  MONITOR: "จอคอมพิวเตอร์",
+  SHELF: "ชั้นวาง",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
+
+/* =========================================================
+   Icon ของแต่ละหมวด
+   ========================================================= */
 
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
@@ -31,9 +41,15 @@ const categoryIcon: Record<string, string> = {
   CABINET: "🗄️",
   COMPUTER: "💻",
   PRINTER: "🖨️",
+  MONITOR: "🖥️",
+  SHELF: "🗃️",
   OTHER: "📦",
   NO_SYSTEM: "❓",
 };
+
+/* =========================================================
+   ลำดับการแสดงหมวด
+   ========================================================= */
 
 const categoryOrder = [
   "DESK",
@@ -41,16 +57,30 @@ const categoryOrder = [
   "AIR_CONDITIONER",
   "TELEPHONE",
   "CABINET",
+  "SHELF",
   "COMPUTER",
+  "MONITOR",
   "PRINTER",
   "OTHER",
   "NO_SYSTEM",
-];
+] as const;
+
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 export default async function DepartmentAssetsPage({
   params,
 }: Props) {
+  /* =======================================================
+     ตรวจสอบผู้ใช้งาน
+     ======================================================= */
+
   const user = await requireLogin();
+
+  /* =======================================================
+     อ่าน Department ID จาก URL
+     ======================================================= */
 
   const { departmentId } = await params;
 
@@ -60,10 +90,15 @@ export default async function DepartmentAssetsPage({
     notFound();
   }
 
+  /* =======================================================
+     โหลด Department
+     ======================================================= */
+
   const department = await prisma.department.findUnique({
     where: {
       id,
     },
+
     include: {
       _count: {
         select: {
@@ -77,48 +112,111 @@ export default async function DepartmentAssetsPage({
     notFound();
   }
 
+  /* =======================================================
+     โหลดครุภัณฑ์ทั้งหมดของ Department
+
+     responsibleName
+     = ผู้รับผิดชอบตามทะเบียนต้นฉบับ/PDF
+
+     officer
+     = ผู้ครอบครองที่ผูกกับ Officer ในระบบ
+
+     section
+     = งาน/กลุ่มงานย่อยที่ผูกในระบบ
+     ======================================================= */
+
   const assets = await prisma.asset.findMany({
     where: {
       departmentId: id,
     },
+
     orderBy: {
       id: "asc",
     },
+
     select: {
       id: true,
+
       name: true,
+
       category: true,
+
       brand: true,
+
       model: true,
+
       serialNumber: true,
+
       governmentAssetNo: true,
+
       officeAssetNo: true,
+
+      /* ===============================================
+         ผู้รับผิดชอบตามทะเบียนต้นฉบับ
+         =============================================== */
+
+      responsibleName: true,
+
+      /* ===============================================
+         Department
+         =============================================== */
+
       departmentId: true,
+
       department: {
         select: {
           name: true,
         },
       },
+
+      /* ===============================================
+         Section
+         =============================================== */
+
       sectionId: true,
+
       section: {
         select: {
           name: true,
         },
       },
+
+      /* ===============================================
+         Officer
+         =============================================== */
+
       officerId: true,
+
       officer: {
         select: {
           firstName: true,
           lastName: true,
         },
       },
+
+      /* ===============================================
+         สถานะ
+         =============================================== */
+
       status: true,
+
+      /* ===============================================
+         ข้อมูลเพิ่มเติม
+         =============================================== */
+
       purchaseDate: true,
+
       price: true,
+
       location: true,
+
       remark: true,
     },
   });
+
+  /* =======================================================
+     นับจำนวนครุภัณฑ์แยกตาม Category
+     ======================================================= */
 
   const categoryCounts = new Map<string, number>();
 
@@ -128,6 +226,10 @@ export default async function DepartmentAssetsPage({
       (categoryCounts.get(asset.category) ?? 0) + 1
     );
   }
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
 
   return (
     <div
@@ -139,9 +241,9 @@ export default async function DepartmentAssetsPage({
         sm:space-y-6
       "
     >
-      {/* =====================================================
+      {/* ===================================================
           Header
-      ===================================================== */}
+          =================================================== */}
 
       <div
         className="
@@ -226,9 +328,9 @@ export default async function DepartmentAssetsPage({
         </Link>
       </div>
 
-      {/* =====================================================
+      {/* ===================================================
           Summary
-      ===================================================== */}
+          =================================================== */}
 
       <div
         className="
@@ -271,10 +373,10 @@ export default async function DepartmentAssetsPage({
             sm:items-center
           "
         >
-          {/* =================================================
+          {/* ===============================================
               ปุ่มตรวจสอบรายการครุภัณฑ์
-              แสดงเฉพาะ ADMIN
-          ================================================= */}
+              เฉพาะ ADMIN
+              =============================================== */}
 
           {user.role === "ADMIN" && (
             <Link
@@ -304,9 +406,9 @@ export default async function DepartmentAssetsPage({
             </Link>
           )}
 
-          {/* =================================================
+          {/* ===============================================
               ปุ่มรวมรายการครุภัณฑ์
-          ================================================= */}
+              =============================================== */}
 
           <Link
             href={`/assets/${department.id}/all`}
@@ -336,9 +438,9 @@ export default async function DepartmentAssetsPage({
         </div>
       </div>
 
-      {/* =====================================================
+      {/* ===================================================
           Category Cards
-      ===================================================== */}
+          =================================================== */}
 
       <div
         className="
@@ -349,7 +451,8 @@ export default async function DepartmentAssetsPage({
         "
       >
         {categoryOrder.map((category) => {
-          const count = categoryCounts.get(category) ?? 0;
+          const count =
+            categoryCounts.get(category) ?? 0;
 
           return (
             <Link
@@ -369,7 +472,9 @@ export default async function DepartmentAssetsPage({
                 hover:shadow-2xl
               "
             >
-              {/* Top Bar */}
+              {/* ===========================================
+                  Top Bar
+                  =========================================== */}
 
               <div
                 className="
@@ -392,7 +497,9 @@ export default async function DepartmentAssetsPage({
                   text-center
                 "
               >
-                {/* Icon */}
+                {/* =========================================
+                    Icon
+                    ========================================= */}
 
                 <div
                   className="
@@ -415,7 +522,9 @@ export default async function DepartmentAssetsPage({
                   {categoryIcon[category]}
                 </div>
 
-                {/* Name / Count */}
+                {/* =========================================
+                    Name / Count
+                    ========================================= */}
 
                 <div>
                   <h2
@@ -440,7 +549,9 @@ export default async function DepartmentAssetsPage({
                   </p>
                 </div>
 
-                {/* Button */}
+                {/* =========================================
+                    Button
+                    ========================================= */}
 
                 <span
                   className="
