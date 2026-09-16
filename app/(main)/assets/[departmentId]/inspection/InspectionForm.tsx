@@ -248,14 +248,10 @@ function normalizeInitialRows(
     if (existingRow) {
       return {
         assetId: asset.id,
-        countedQty:
-          existingRow.countedQty ?? "1",
-        accuracy:
-          existingRow.accuracy ?? "",
-        status:
-          existingRow.status ?? "",
-        remark:
-          existingRow.remark ?? "",
+        countedQty: existingRow.countedQty ?? "1",
+        accuracy: existingRow.accuracy ?? "",
+        status: existingRow.status ?? "",
+        remark: existingRow.remark ?? "",
       };
     }
 
@@ -269,20 +265,16 @@ function normalizeInitialRows(
   });
 }
 
-function normalizeInspectorIds(
-  ids?: string[]
-) {
-  const result = Array(5).fill("");
+function normalizeInspectorIds(ids?: string[]) {
+  const result = Array<string>(5).fill("");
 
   if (!ids) {
     return result;
   }
 
-  ids.slice(0, 5).forEach(
-    (id, index) => {
-      result[index] = String(id ?? "");
-    }
-  );
+  ids.slice(0, 5).forEach((id, index) => {
+    result[index] = String(id ?? "");
+  });
 
   return result;
 }
@@ -303,16 +295,14 @@ export default function InspectionForm({
     inspectionStartDate,
     setInspectionStartDate,
   ] = useState(
-    initialData?.inspectionStartDate ||
-      today
+    initialData?.inspectionStartDate || today
   );
 
   const [
     inspectionEndDate,
     setInspectionEndDate,
   ] = useState(
-    initialData?.inspectionEndDate ||
-      today
+    initialData?.inspectionEndDate || today
   );
 
   const [
@@ -321,8 +311,7 @@ export default function InspectionForm({
   ] = useState(
     initialData?.accountStartDate ||
       getOneYearBefore(
-        initialData?.inspectionStartDate ||
-          today
+        initialData?.inspectionStartDate || today
       )
   );
 
@@ -332,8 +321,7 @@ export default function InspectionForm({
   ] = useState(
     initialData?.accountEndDate ||
       getOneDayBefore(
-        initialData?.inspectionEndDate ||
-          today
+        initialData?.inspectionEndDate || today
       )
   );
 
@@ -343,14 +331,11 @@ export default function InspectionForm({
   ] = useState(
     initialData?.movementFiscalYear ||
       getFiscalYear(
-        initialData?.inspectionStartDate ||
-          today
+        initialData?.inspectionStartDate || today
       )
   );
 
-  const [rows, setRows] = useState<
-    InspectionRow[]
-  >(() =>
+  const [rows, setRows] = useState<InspectionRow[]>(() =>
     normalizeInitialRows(
       assets,
       initialData?.rows
@@ -375,12 +360,10 @@ export default function InspectionForm({
   const inspectionEndDateRef =
     useRef<HTMLInputElement>(null);
 
-  const isEditMode =
-    submitMethod === "PUT";
+  const isEditMode = submitMethod === "PUT";
 
   const finalCancelHref =
-    cancelHref ||
-    `/assets/${department.id}`;
+    cancelHref || `/assets/${department.id}`;
 
   const finalSubmitLabel =
     submitLabel ||
@@ -395,10 +378,7 @@ export default function InspectionForm({
       return;
     }
 
-    if (
-      typeof input.showPicker ===
-      "function"
-    ) {
+    if (typeof input.showPicker === "function") {
       input.showPicker();
       return;
     }
@@ -522,9 +502,7 @@ export default function InspectionForm({
       );
 
       if (
-        !Number.isInteger(
-          countedQty
-        ) ||
+        !Number.isInteger(countedQty) ||
         countedQty < 0
       ) {
         alert(
@@ -577,22 +555,30 @@ export default function InspectionForm({
           }),
         });
 
-      let data: any = null;
+      let data: unknown = null;
 
       try {
-        data =
-          await response.json();
+        data = await response.json();
       } catch {
         data = null;
       }
 
       if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            (isEditMode
-              ? "ไม่สามารถแก้ไขข้อมูลได้"
-              : "ไม่สามารถบันทึกข้อมูลได้")
-        );
+        let errorMessage =
+          isEditMode
+            ? "ไม่สามารถแก้ไขข้อมูลได้"
+            : "ไม่สามารถบันทึกข้อมูลได้";
+
+        if (
+          data &&
+          typeof data === "object" &&
+          "error" in data &&
+          typeof data.error === "string"
+        ) {
+          errorMessage = data.error;
+        }
+
+        throw new Error(errorMessage);
       }
 
       alert(
@@ -639,9 +625,7 @@ export default function InspectionForm({
             department={department}
             assets={assets}
             rows={rows}
-            inspectorIds={
-              inspectorIds
-            }
+            inspectorIds={inspectorIds}
             inspectionStartDate={
               inspectionStartDate
             }
@@ -1035,9 +1019,7 @@ export default function InspectionForm({
                       </td>
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
-                        {
-                          responsibleGroup
-                        }
+                        {responsibleGroup}
                       </td>
 
                       <td className="border border-black px-2 py-2 text-left align-middle">
@@ -1066,6 +1048,8 @@ export default function InspectionForm({
                         1
                       </td>
 
+                      {/* จำนวนที่ตรวจนับ */}
+
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="number"
@@ -1085,6 +1069,8 @@ export default function InspectionForm({
                           className="mx-auto h-8 w-16 rounded border border-slate-400 px-2 py-1 text-center"
                         />
                       </td>
+
+                      {/* ถูกต้อง */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1107,6 +1093,8 @@ export default function InspectionForm({
                         />
                       </td>
 
+                      {/* ไม่ถูกต้อง */}
+
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1127,6 +1115,8 @@ export default function InspectionForm({
                           aria-label="ไม่ถูกต้อง"
                         />
                       </td>
+
+                      {/* ใช้งานปกติ */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1149,6 +1139,8 @@ export default function InspectionForm({
                         />
                       </td>
 
+                      {/* ชำรุด */}
+
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1169,6 +1161,8 @@ export default function InspectionForm({
                           aria-label="ชำรุด"
                         />
                       </td>
+
+                      {/* เสื่อมสภาพ */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1191,6 +1185,8 @@ export default function InspectionForm({
                         />
                       </td>
 
+                      {/* ไม่จำเป็นต้องใช้ */}
+
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1212,12 +1208,13 @@ export default function InspectionForm({
                         />
                       </td>
 
+                      {/* หมายเหตุ */}
+
                       <td className="border border-black px-2 py-2 align-middle">
                         <input
                           type="text"
                           value={
-                            row?.remark ??
-                            ""
+                            row?.remark ?? ""
                           }
                           onChange={(e) =>
                             updateRow(
@@ -1324,32 +1321,12 @@ export default function InspectionForm({
 
       {/* =====================================================
           ปุ่มดำเนินการ
+          ไม่มีปุ่ม "กลับ" ด้านล่าง
       ===================================================== */}
 
       <div className="flex flex-wrap items-center justify-end gap-3">
-        {/* กลับ - แสดงเฉพาะหน้าแก้ไข */}
-        {isEditMode && (
-          <a
-            href={`/assets/${department.id}/inspection-history`}
-            className="
-              rounded-xl
-              bg-slate-200
-              px-4
-              py-2.5
-              text-base
-              font-extrabold
-              text-slate-800
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:bg-slate-300
-            "
-          >
-            กลับ
-          </a>
-        )}
-
         {/* ยกเลิก */}
+
         <a
           href={finalCancelHref}
           className="
@@ -1373,6 +1350,7 @@ export default function InspectionForm({
         </a>
 
         {/* บันทึก */}
+
         <button
           type="button"
           onClick={handleSave}
