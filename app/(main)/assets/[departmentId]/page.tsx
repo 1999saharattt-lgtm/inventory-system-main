@@ -13,6 +13,10 @@ type Props = {
 
 /* =========================================================
    ชื่อหมวดครุภัณฑ์
+
+   หมายเหตุ:
+   - SHELF รวมแสดงกับ CABINET
+   - MONITOR รวมแสดงกับ COMPUTER
    ========================================================= */
 
 const categoryName: Record<string, string> = {
@@ -20,11 +24,9 @@ const categoryName: Record<string, string> = {
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
   TELEPHONE: "เครื่องโทรศัพท์",
-  CABINET: "ตู้",
+  CABINET: "ตู้และชั้นวาง",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  MONITOR: "จอคอมพิวเตอร์",
-  SHELF: "ชั้นวาง",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
@@ -41,14 +43,18 @@ const categoryIcon: Record<string, string> = {
   CABINET: "🗄️",
   COMPUTER: "💻",
   PRINTER: "🖨️",
-  MONITOR: "🖥️",
-  SHELF: "🗃️",
   OTHER: "📦",
   NO_SYSTEM: "❓",
 };
 
 /* =========================================================
    ลำดับการแสดงหมวด
+
+   ไม่แสดง SHELF แยก
+   ไม่แสดง MONITOR แยก
+
+   SHELF   -> รวมกับ CABINET
+   MONITOR -> รวมกับ COMPUTER
    ========================================================= */
 
 const categoryOrder = [
@@ -57,9 +63,7 @@ const categoryOrder = [
   "AIR_CONDITIONER",
   "TELEPHONE",
   "CABINET",
-  "SHELF",
   "COMPUTER",
-  "MONITOR",
   "PRINTER",
   "OTHER",
   "NO_SYSTEM",
@@ -216,14 +220,40 @@ export default async function DepartmentAssetsPage({
 
   /* =======================================================
      นับจำนวนครุภัณฑ์แยกตาม Category
+
+     กติกาการรวมหมวดบนหน้าเมนู
+
+     CABINET
+     = CABINET + SHELF
+
+     COMPUTER
+     = COMPUTER + MONITOR
      ======================================================= */
 
   const categoryCounts = new Map<string, number>();
 
   for (const asset of assets) {
+    let displayCategory = asset.category as string;
+
+    /*
+     * ชั้นวางรวมอยู่ในหมวดตู้และชั้นวาง
+     */
+
+    if (displayCategory === "SHELF") {
+      displayCategory = "CABINET";
+    }
+
+    /*
+     * จอคอมพิวเตอร์รวมอยู่ในหมวดคอมพิวเตอร์
+     */
+
+    if (displayCategory === "MONITOR") {
+      displayCategory = "COMPUTER";
+    }
+
     categoryCounts.set(
-      asset.category,
-      (categoryCounts.get(asset.category) ?? 0) + 1
+      displayCategory,
+      (categoryCounts.get(displayCategory) ?? 0) + 1
     );
   }
 
@@ -451,8 +481,7 @@ export default async function DepartmentAssetsPage({
         "
       >
         {categoryOrder.map((category) => {
-          const count =
-            categoryCounts.get(category) ?? 0;
+          const count = categoryCounts.get(category) ?? 0;
 
           return (
             <Link
