@@ -279,17 +279,11 @@ export default function ExportDepartmentAssetsPdf({
 
       /* =====================================================
          สร้าง PDF ทีละหน้า
-
          Header จะถูกสร้างใหม่ทุกหน้า
          ===================================================== */
 
       pages.forEach(
         (pageAssets, pageIndex) => {
-          /* =================================================
-             หน้าแรกใช้หน้าที่สร้างโดย jsPDF
-             หน้าถัดไปเพิ่มหน้าใหม่
-             ================================================= */
-
           if (pageIndex > 0) {
             doc.addPage(
               "a4",
@@ -367,10 +361,6 @@ export default function ExportDepartmentAssetsPdf({
 
           const body = pageAssets.map(
             (asset, index) => {
-              /* ---------------------------------------------
-                 คำนวณลำดับจริงของรายการ
-                 --------------------------------------------- */
-
               const globalIndex =
                 pageIndex *
                   rowsPerPage +
@@ -379,10 +369,10 @@ export default function ExportDepartmentAssetsPdf({
               /* ---------------------------------------------
                  ผู้รับผิดชอบ
 
-                 กลุ่มอำนวยการ
+                 กลุ่มอำนวยการ:
                  ชื่อ นามสกุล / ชื่องาน
 
-                 กลุ่มอื่น
+                 กลุ่มอื่น:
                  ชื่อ นามสกุล
                  --------------------------------------------- */
 
@@ -491,15 +481,7 @@ export default function ExportDepartmentAssetsPdf({
               ],
             ],
 
-            /* ------------------------------------------------
-               ข้อมูล
-               ------------------------------------------------ */
-
             body,
-
-            /* ------------------------------------------------
-               ตารางแบบมีเส้น
-               ------------------------------------------------ */
 
             theme: "grid",
 
@@ -537,7 +519,6 @@ export default function ExportDepartmentAssetsPdf({
               fontSize: 13,
 
               fillColor: [255, 255, 255],
-
               textColor: [0, 0, 0],
 
               halign: "center",
@@ -574,7 +555,7 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             /* =================================================
-               ความกว้างคอลัมน์
+               ความกว้างและตำแหน่งแต่ละคอลัมน์
                ================================================= */
 
             columnStyles: {
@@ -627,11 +608,24 @@ export default function ExportDepartmentAssetsPdf({
                 valign: "middle",
               },
 
-              /* ผู้รับผิดชอบ */
+              /* =================================================
+                 ผู้รับผิดชอบ
+
+                 แก้ให้ข้อมูลชิดซ้าย
+                 แต่หัวตารางยังคงกึ่งกลาง
+                 ================================================= */
+
               7: {
                 cellWidth: 45,
-                halign: "center",
+                halign: "left",
                 valign: "middle",
+
+                cellPadding: {
+                  top: 1.2,
+                  right: 1.2,
+                  bottom: 1.2,
+                  left: 2,
+                },
               },
 
               /* สถานะ */
@@ -640,6 +634,23 @@ export default function ExportDepartmentAssetsPdf({
                 halign: "center",
                 valign: "middle",
               },
+            },
+
+            /* =================================================
+               บังคับหัวคอลัมน์ผู้รับผิดชอบให้อยู่กึ่งกลาง
+
+               เนื่องจาก columnStyles ของคอลัมน์ 7 กำหนด
+               halign เป็น left จึงกำหนดหัวตารางกลับเป็น center
+               ================================================= */
+
+            didParseCell: (data) => {
+              if (
+                data.section === "head" &&
+                data.column.index === 7
+              ) {
+                data.cell.styles.halign =
+                  "center";
+              }
             },
 
             /* =================================================
