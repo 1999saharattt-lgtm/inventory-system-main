@@ -188,7 +188,11 @@ function getFiscalYear(value: string) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
 
-  return String(month >= 10 ? year + 1 + 543 : year + 543);
+  return String(
+    month >= 10
+      ? year + 1 + 543
+      : year + 543
+  );
 }
 
 function getCategoryUnit(category: string) {
@@ -216,7 +220,9 @@ function getCategoryUnit(category: string) {
   }
 }
 
-function createInitialRows(assets: Asset[]): InspectionRow[] {
+function createInitialRows(
+  assets: Asset[]
+): InspectionRow[] {
   return assets.map((asset) => ({
     assetId: asset.id,
     countedQty: "1",
@@ -242,10 +248,14 @@ function normalizeInitialRows(
     if (existingRow) {
       return {
         assetId: asset.id,
-        countedQty: existingRow.countedQty ?? "1",
-        accuracy: existingRow.accuracy ?? "",
-        status: existingRow.status ?? "",
-        remark: existingRow.remark ?? "",
+        countedQty:
+          existingRow.countedQty ?? "1",
+        accuracy:
+          existingRow.accuracy ?? "",
+        status:
+          existingRow.status ?? "",
+        remark:
+          existingRow.remark ?? "",
       };
     }
 
@@ -259,16 +269,20 @@ function normalizeInitialRows(
   });
 }
 
-function normalizeInspectorIds(ids?: string[]) {
+function normalizeInspectorIds(
+  ids?: string[]
+) {
   const result = Array(5).fill("");
 
   if (!ids) {
     return result;
   }
 
-  ids.slice(0, 5).forEach((id, index) => {
-    result[index] = String(id ?? "");
-  });
+  ids.slice(0, 5).forEach(
+    (id, index) => {
+      result[index] = String(id ?? "");
+    }
+  );
 
   return result;
 }
@@ -285,46 +299,88 @@ export default function InspectionForm({
 }: Props) {
   const today = getCurrentDate();
 
-  const [inspectionStartDate, setInspectionStartDate] = useState(
-    initialData?.inspectionStartDate || today
+  const [
+    inspectionStartDate,
+    setInspectionStartDate,
+  ] = useState(
+    initialData?.inspectionStartDate ||
+      today
   );
 
-  const [inspectionEndDate, setInspectionEndDate] = useState(
-    initialData?.inspectionEndDate || today
+  const [
+    inspectionEndDate,
+    setInspectionEndDate,
+  ] = useState(
+    initialData?.inspectionEndDate ||
+      today
   );
 
-  const [accountStartDate, setAccountStartDate] = useState(
+  const [
+    accountStartDate,
+    setAccountStartDate,
+  ] = useState(
     initialData?.accountStartDate ||
-      getOneYearBefore(initialData?.inspectionStartDate || today)
+      getOneYearBefore(
+        initialData?.inspectionStartDate ||
+          today
+      )
   );
 
-  const [accountEndDate, setAccountEndDate] = useState(
+  const [
+    accountEndDate,
+    setAccountEndDate,
+  ] = useState(
     initialData?.accountEndDate ||
-      getOneDayBefore(initialData?.inspectionEndDate || today)
+      getOneDayBefore(
+        initialData?.inspectionEndDate ||
+          today
+      )
   );
 
-  const [movementFiscalYear, setMovementFiscalYear] = useState(
+  const [
+    movementFiscalYear,
+    setMovementFiscalYear,
+  ] = useState(
     initialData?.movementFiscalYear ||
-      getFiscalYear(initialData?.inspectionStartDate || today)
+      getFiscalYear(
+        initialData?.inspectionStartDate ||
+          today
+      )
   );
 
-  const [rows, setRows] = useState<InspectionRow[]>(() =>
-    normalizeInitialRows(assets, initialData?.rows)
+  const [rows, setRows] = useState<
+    InspectionRow[]
+  >(() =>
+    normalizeInitialRows(
+      assets,
+      initialData?.rows
+    )
   );
 
-  const [inspectorIds, setInspectorIds] = useState<string[]>(() =>
-    normalizeInspectorIds(initialData?.inspectorIds)
+  const [
+    inspectorIds,
+    setInspectorIds,
+  ] = useState<string[]>(() =>
+    normalizeInspectorIds(
+      initialData?.inspectorIds
+    )
   );
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] =
+    useState(false);
 
-  const inspectionStartDateRef = useRef<HTMLInputElement>(null);
-  const inspectionEndDateRef = useRef<HTMLInputElement>(null);
+  const inspectionStartDateRef =
+    useRef<HTMLInputElement>(null);
 
-  const isEditMode = submitMethod === "PUT";
+  const inspectionEndDateRef =
+    useRef<HTMLInputElement>(null);
+
+  const isEditMode =
+    submitMethod === "PUT";
 
   const finalCancelHref =
-    cancelHref || `/assets/${department.id}`;
+    cancelHref ||
+    `/assets/${department.id}`;
 
   const finalSubmitLabel =
     submitLabel ||
@@ -332,12 +388,17 @@ export default function InspectionForm({
       ? "บันทึกการแก้ไข"
       : "บันทึกผลการตรวจสอบ");
 
-  function openDatePicker(input: HTMLInputElement | null) {
+  function openDatePicker(
+    input: HTMLInputElement | null
+  ) {
     if (!input) {
       return;
     }
 
-    if (typeof input.showPicker === "function") {
+    if (
+      typeof input.showPicker ===
+      "function"
+    ) {
       input.showPicker();
       return;
     }
@@ -362,9 +423,13 @@ export default function InspectionForm({
     );
   }
 
-  function updateInspector(index: number, value: string) {
+  function updateInspector(
+    index: number,
+    value: string
+  ) {
     setInspectorIds((current) => {
       const next = [...current];
+
       next[index] = value;
 
       return next;
@@ -373,7 +438,8 @@ export default function InspectionForm({
 
   function getOfficer(id: string) {
     return officers.find(
-      (officer) => String(officer.id) === id
+      (officer) =>
+        String(officer.id) === id
     );
   }
 
@@ -383,12 +449,16 @@ export default function InspectionForm({
   ) {
     return inspectorIds.some(
       (id, index) =>
-        index !== currentIndex && id === officerId
+        index !== currentIndex &&
+        id === officerId
     );
   }
 
   async function handleSave() {
-    if (!inspectionStartDate || !inspectionEndDate) {
+    if (
+      !inspectionStartDate ||
+      !inspectionEndDate
+    ) {
       alert(
         "กรุณาระบุวันที่เริ่มและวันที่ตรวจสอบแล้วเสร็จ"
       );
@@ -415,16 +485,19 @@ export default function InspectionForm({
       return;
     }
 
-    if (inspectorIds.some((id) => !id)) {
+    if (
+      inspectorIds.some(
+        (id) => !id
+      )
+    ) {
       alert(
         "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
       );
       return;
     }
 
-    const uniqueInspectorIds = new Set(
-      inspectorIds
-    );
+    const uniqueInspectorIds =
+      new Set(inspectorIds);
 
     if (
       uniqueInspectorIds.size !==
@@ -449,7 +522,9 @@ export default function InspectionForm({
       );
 
       if (
-        !Number.isInteger(countedQty) ||
+        !Number.isInteger(
+          countedQty
+        ) ||
         countedQty < 0
       ) {
         alert(
@@ -476,16 +551,16 @@ export default function InspectionForm({
     try {
       setIsSaving(true);
 
-      const response = await fetch(
-        submitUrl,
-        {
+      const response =
+        await fetch(submitUrl, {
           method: submitMethod,
           headers: {
             "Content-Type":
               "application/json",
           },
           body: JSON.stringify({
-            departmentId: department.id,
+            departmentId:
+              department.id,
 
             inspectionStartDate,
             inspectionEndDate,
@@ -500,13 +575,13 @@ export default function InspectionForm({
 
             rows,
           }),
-        }
-      );
+        });
 
       let data: any = null;
 
       try {
-        data = await response.json();
+        data =
+          await response.json();
       } catch {
         data = null;
       }
@@ -526,14 +601,10 @@ export default function InspectionForm({
           : "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
       );
 
-      /*
-       * หน้าแก้ไข:
-       * เมื่อบันทึกสำเร็จ ให้กลับไปหน้ารายละเอียดปีนั้น
-       *
-       * หน้าเพิ่มใหม่:
-       * คงพฤติกรรมเดิมไว้ ไม่ redirect
-       */
-      if (isEditMode && finalCancelHref) {
+      if (
+        isEditMode &&
+        finalCancelHref
+      ) {
         window.location.href =
           finalCancelHref;
       }
@@ -568,7 +639,9 @@ export default function InspectionForm({
             department={department}
             assets={assets}
             rows={rows}
-            inspectorIds={inspectorIds}
+            inspectorIds={
+              inspectorIds
+            }
             inspectionStartDate={
               inspectionStartDate
             }
@@ -631,6 +704,7 @@ export default function InspectionForm({
                     height="16"
                     rx="2"
                   />
+
                   <path d="M16 3v4M8 3v4M3 11h18" />
                 </svg>
               </button>
@@ -658,7 +732,9 @@ export default function InspectionForm({
                   );
 
                   setMovementFiscalYear(
-                    getFiscalYear(value)
+                    getFiscalYear(
+                      value
+                    )
                   );
                 }}
                 required
@@ -710,6 +786,7 @@ export default function InspectionForm({
                     height="16"
                     rx="2"
                   />
+
                   <path d="M16 3v4M8 3v4M3 11h18" />
                 </svg>
               </button>
@@ -926,11 +1003,6 @@ export default function InspectionForm({
                         asset.id
                     );
 
-                  /*
-                   * ผู้รับผิดชอบ:
-                   * กลุ่มอำนวยการ แสดง "กลุ่มอำนวยการ / ชื่องาน"
-                   * กลุ่มอื่น แสดงชื่อกลุ่มงาน
-                   */
                   const responsibleGroup =
                     department.name ===
                     "กลุ่มอำนวยการ"
@@ -994,8 +1066,6 @@ export default function InspectionForm({
                         1
                       </td>
 
-                      {/* จำนวนที่ตรวจนับ */}
-
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="number"
@@ -1015,8 +1085,6 @@ export default function InspectionForm({
                           className="mx-auto h-8 w-16 rounded border border-slate-400 px-2 py-1 text-center"
                         />
                       </td>
-
-                      {/* ถูกต้อง */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1039,8 +1107,6 @@ export default function InspectionForm({
                         />
                       </td>
 
-                      {/* ไม่ถูกต้อง */}
-
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1061,8 +1127,6 @@ export default function InspectionForm({
                           aria-label="ไม่ถูกต้อง"
                         />
                       </td>
-
-                      {/* ใช้งานปกติ */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1085,8 +1149,6 @@ export default function InspectionForm({
                         />
                       </td>
 
-                      {/* ชำรุด */}
-
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1107,8 +1169,6 @@ export default function InspectionForm({
                           aria-label="ชำรุด"
                         />
                       </td>
-
-                      {/* เสื่อมสภาพ */}
 
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
@@ -1131,8 +1191,6 @@ export default function InspectionForm({
                         />
                       </td>
 
-                      {/* ไม่จำเป็นต้องใช้ */}
-
                       <td className="border border-black px-2 py-2 text-center align-middle">
                         <input
                           type="radio"
@@ -1154,13 +1212,12 @@ export default function InspectionForm({
                         />
                       </td>
 
-                      {/* หมายเหตุ */}
-
                       <td className="border border-black px-2 py-2 align-middle">
                         <input
                           type="text"
                           value={
-                            row?.remark ?? ""
+                            row?.remark ??
+                            ""
                           }
                           onChange={(e) =>
                             updateRow(
@@ -1170,7 +1227,6 @@ export default function InspectionForm({
                             )
                           }
                           className="h-8 w-full rounded border border-slate-400 px-2 py-1"
-                          placeholder=""
                         />
                       </td>
                     </tr>
@@ -1183,7 +1239,7 @@ export default function InspectionForm({
       </div>
 
       {/* =====================================================
-          ผู้ตรวจสอบ
+          รายชื่อผู้ตรวจสอบ
       ===================================================== */}
 
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
@@ -1204,9 +1260,7 @@ export default function InspectionForm({
                 </label>
 
                 <select
-                  value={
-                    inspectorId
-                  }
+                  value={inspectorId}
                   onChange={(e) =>
                     updateInspector(
                       index,
@@ -1269,22 +1323,78 @@ export default function InspectionForm({
       </div>
 
       {/* =====================================================
-          ปุ่ม
+          ปุ่มดำเนินการ
       ===================================================== */}
 
       <div className="flex flex-wrap items-center justify-end gap-3">
+        {/* กลับ - แสดงเฉพาะหน้าแก้ไข */}
+        {isEditMode && (
+          <a
+            href={`/assets/${department.id}/inspection-history`}
+            className="
+              rounded-xl
+              bg-slate-200
+              px-4
+              py-2.5
+              text-base
+              font-extrabold
+              text-slate-800
+              shadow-lg
+              transition
+              hover:scale-[1.02]
+              hover:bg-slate-300
+            "
+          >
+            กลับ
+          </a>
+        )}
+
+        {/* ยกเลิก */}
         <a
           href={finalCancelHref}
-          className="rounded-xl bg-gradient-to-r from-slate-600 to-slate-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02] hover:from-slate-700 hover:to-slate-600"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-slate-600
+            to-slate-500
+            px-4
+            py-2.5
+            text-base
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-[1.02]
+            hover:from-slate-700
+            hover:to-slate-600
+          "
         >
           ยกเลิก
         </a>
 
+        {/* บันทึก */}
         <button
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 px-4 py-2.5 text-base font-extrabold !text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+          className="
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-4
+            py-2.5
+            text-base
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
         >
           {isSaving
             ? isEditMode
