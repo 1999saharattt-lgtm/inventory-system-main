@@ -4,20 +4,28 @@ import InspectionForm from "../../../inspection/InspectionForm";
 
 type PageProps = {
   params: Promise<{
-    id: string;
+    departmentId: string;
     year: string;
   }>;
 };
 
+// =====================================================
+// แปลง Date เป็น YYYY-MM-DD
+// =====================================================
+
 function formatDateOnly(
   value: Date | string | null | undefined
 ) {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
 
   const date =
     value instanceof Date ? value : new Date(value);
 
-  if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(
@@ -29,8 +37,14 @@ function formatDateOnly(
   return `${year}-${month}-${day}`;
 }
 
+// =====================================================
+// แปลง inspectorIds จาก Prisma Json
+// =====================================================
+
 function parseInspectorIds(value: unknown): string[] {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   if (Array.isArray(value)) {
     return value.map(String).filter(Boolean);
@@ -54,47 +68,129 @@ function parseInspectorIds(value: unknown): string[] {
   return [];
 }
 
-function normalizeFiscalYear(
-  value: string | number
-): string {
-  const numericYear = Number(value);
+// =====================================================
+// แปลงปี ค.ศ. / พ.ศ. ให้เป็น พ.ศ.
+// =====================================================
 
-  if (!Number.isFinite(numericYear)) {
+function normalizeFiscalYear(value: string | number) {
+  const year = Number(value);
+
+  if (!Number.isFinite(year)) {
     return String(value);
   }
 
-  return numericYear < 2400
-    ? String(numericYear + 543)
-    : String(numericYear);
+  return year < 2400
+    ? String(year + 543)
+    : String(year);
 }
+
+// =====================================================
+// แปลงปีที่อยู่ใน URL ให้ตรงกับ year ในฐานข้อมูล
+//
+// schema:
+// year Int
+//
+// รองรับ URL ได้ทั้ง:
+// /2569
+// /2026
+// =====================================================
+
+function getDatabaseYear(value: string) {
+  const year = Number(value);
+
+  if (!Number.isInteger(year)) {
+    return null;
+  }
+
+  // ถ้า URL เป็น พ.ศ.
+  // แปลงเป็น ค.ศ. สำหรับกรณีฐานข้อมูลเก็บ ค.ศ.
+  //
+  // แต่จากระบบเดิมอาจเก็บ พ.ศ. อยู่แล้ว
+  // การ query ด้านล่างจึงรองรับทั้งสองแบบ
+  return year;
+}
+
+// =====================================================
+// วันที่เริ่มต้นปีงบประมาณ
+//
+// ปีงบประมาณ 2569
+// = 1 ตุลาคม 2568
+// =====================================================
+
+function getFiscalYearStartDate(
+  fiscalYear: number
+) {
+  const buddhistYear =
+    fiscalYear < 2400
+      ? fiscalYear + 543
+      : fiscalYear;
+
+  const startBuddhistYear = buddhistYear - 1;
+  const startChristianYear =
+    startBuddhistYear - 543;
+
+  return `${startChristianYear}-10-01`;
+}
+
+// =====================================================
+// วันที่สิ้นสุดปีงบประมาณ
+//
+// ปีงบประมาณ 2569
+// = 30 กันยายน 2569
+// =====================================================
+
+function getFiscalYearEndDate(
+  fiscalYear: number
+) {
+  const buddhistYear =
+    fiscalYear < 2400
+      ? fiscalYear + 543
+      : fiscalYear;
+
+  const endChristianYear =
+    buddhistYear - 543;
+
+  return `${endChristianYear}-09-30`;
+}
+
+// =====================================================
+// ปีงบประมาณสำหรับรายการเคลื่อนไหว
+// =====================================================
+
+function getMovementFiscalYear(
+  fiscalYear: number
+) {
+  return normalizeFiscalYear(fiscalYear);
+}
+
+// =====================================================
+// Page
+// =====================================================
 
 export default async function InspectionHistoryEditPage({
   params,
 }: PageProps) {
-  // =====================================================
-  // Params
-  // =====================================================
-
-  const {
-    id: departmentIdParam,
-    year: yearParam,
-  } = await params;
+  const { departmentId: departmentIdParam, year } =
+    await params;
 
   const departmentId = Number(departmentIdParam);
-  const year = Number(yearParam);
+  const requestedYear = getDatabaseYear(year);
+
+  // ===================================================
+  // ตรวจสอบ parameter
+  // ===================================================
 
   if (
     !Number.isInteger(departmentId) ||
     departmentId <= 0 ||
-    !Number.isInteger(year) ||
-    year <= 0
+    requestedYear === null
   ) {
     notFound();
   }
 
-  // =====================================================
-  // Department
-  // =====================================================
+  // ===================================================
+  // กลุ่มงาน
+  // ===================================================
 
   const department =
     await prisma.department.findUnique({
@@ -107,18 +203,33 @@ export default async function InspectionHistoryEditPage({
     notFound();
   }
 
-  // =====================================================
-  // Inspection History
+  // ===================================================
+  // รองรับฐานข้อมูลที่ year อาจเก็บเป็น
   //
-  // IMPORTANT:
-  // AssetInspection.year ใน Prisma เป็น Int
-  // ดังนั้นต้องใช้ year ที่แปลงเป็น Number แล้ว
-  // =====================================================
+  // พ.ศ. 2569
+  // หรือ
+  // ค.ศ. 2026
+  // ===================================================
+
+  const buddhistYear =
+    requestedYear < 2400
+      ? requestedYear + 543
+      : requestedYear;
+
+  const christianYear =
+    buddhistYear - 543;
+
+  // ===================================================
+  // ดึงประวัติการตรวจสอบ
+  // ===================================================
 
   const inspections =
     await prisma.assetInspection.findMany({
       where: {
-        year,
+        year: {
+          in: [buddhistYear, christianYear],
+        },
+
         asset: {
           departmentId,
         },
@@ -142,9 +253,18 @@ export default async function InspectionHistoryEditPage({
     notFound();
   }
 
-  // =====================================================
-  // Officers
-  // =====================================================
+  // ===================================================
+  // ใช้ปีจริงที่พบในฐานข้อมูล
+  // ===================================================
+
+  const databaseYear = inspections[0].year;
+
+  const displayFiscalYear =
+    normalizeFiscalYear(databaseYear);
+
+  // ===================================================
+  // รายชื่อเจ้าหน้าที่
+  // ===================================================
 
   const officers = await prisma.officer.findMany({
     include: {
@@ -157,15 +277,26 @@ export default async function InspectionHistoryEditPage({
     },
   });
 
-  // =====================================================
-  // Existing inspection data
-  // =====================================================
+  // ===================================================
+  // Inspection แรก
+  //
+  // ใช้ข้อมูลส่วนกลาง เช่น
+  // วันที่เริ่มตรวจ / วันที่สิ้นสุด / ผู้ตรวจสอบ
+  // ===================================================
 
   const firstInspection = inspections[0];
+
+  // ===================================================
+  // Assets
+  // ===================================================
 
   const assets = inspections.map(
     (inspection) => inspection.asset
   );
+
+  // ===================================================
+  // Rows เดิม
+  // ===================================================
 
   const initialRows = inspections.map(
     (inspection) => ({
@@ -175,65 +306,82 @@ export default async function InspectionHistoryEditPage({
         inspection.countedQty ?? ""
       ),
 
-      accuracy: inspection.accuracy || "",
+      accuracy:
+        inspection.accuracy || "",
 
-      status: inspection.status || "",
+      status:
+        inspection.status || "",
 
-      remark: inspection.remark || "",
+      remark:
+        inspection.remark || "",
     })
   );
 
-  // =====================================================
-  // Inspector IDs
-  // =====================================================
+  // ===================================================
+  // ผู้ตรวจสอบเดิม
+  // ===================================================
 
-  const parsedInspectorIds = parseInspectorIds(
-    firstInspection.inspectorIds
-  );
+  const initialInspectorIds =
+    parseInspectorIds(
+      firstInspection.inspectorIds
+    );
 
-  /*
-   * InspectionForm เดิมใช้ผู้ตรวจสอบ 5 คน
-   * จึงทำให้ array มี 5 ช่องเสมอ
-   */
-  const initialInspectorIds = Array.from(
-    { length: 5 },
-    (_, index) => parsedInspectorIds[index] || ""
-  );
+  // ===================================================
+  // วันที่ตรวจ
+  // ===================================================
 
-  // =====================================================
-  // Initial Data
-  // =====================================================
+  const inspectionStartDate =
+    formatDateOnly(
+      firstInspection.inspectionStartDate
+    );
+
+  const inspectionEndDate =
+    formatDateOnly(
+      firstInspection.inspectionEndDate
+    );
+
+  // ===================================================
+  // IMPORTANT
+  //
+  // schema AssetInspection ไม่มี:
+  //
+  // accountStartDate
+  // accountEndDate
+  // movementFiscalYear
+  //
+  // ดังนั้นคำนวณจากปีงบประมาณ
+  // ===================================================
+
+  const accountStartDate =
+    getFiscalYearStartDate(databaseYear);
+
+  const accountEndDate =
+    getFiscalYearEndDate(databaseYear);
+
+  const movementFiscalYear =
+    getMovementFiscalYear(databaseYear);
+
+  // ===================================================
+  // Initial Data สำหรับ InspectionForm
+  // ===================================================
 
   const initialData = {
-    inspectionStartDate: formatDateOnly(
-      firstInspection.inspectionStartDate
-    ),
+    inspectionStartDate,
+    inspectionEndDate,
 
-    inspectionEndDate: formatDateOnly(
-      firstInspection.inspectionEndDate
-    ),
+    accountStartDate,
+    accountEndDate,
 
-    accountStartDate: formatDateOnly(
-      firstInspection.accountStartDate
-    ),
-
-    accountEndDate: formatDateOnly(
-      firstInspection.accountEndDate
-    ),
-
-    movementFiscalYear: normalizeFiscalYear(
-      firstInspection.movementFiscalYear ??
-        firstInspection.year
-    ),
+    movementFiscalYear,
 
     rows: initialRows,
 
     inspectorIds: initialInspectorIds,
   };
 
-  // =====================================================
+  // ===================================================
   // Render
-  // =====================================================
+  // ===================================================
 
   return (
     <div
@@ -287,7 +435,7 @@ export default async function InspectionHistoryEditPage({
           {department.name}
           {" · "}
           ประจำปีงบประมาณ พ.ศ.{" "}
-          {normalizeFiscalYear(year)}
+          {displayFiscalYear}
         </p>
       </div>
 
@@ -300,15 +448,9 @@ export default async function InspectionHistoryEditPage({
         assets={assets}
         officers={officers}
         initialData={initialData}
-        submitUrl={`/api/assets/inspection?departmentId=${
-          department.id
-        }&year=${encodeURIComponent(
-          String(year)
-        )}`}
+        submitUrl={`/api/assets/inspection?departmentId=${department.id}&year=${databaseYear}`}
         submitMethod="PUT"
-        cancelHref={`/assets/${
-          department.id
-        }/inspection-history/${year}`}
+        cancelHref={`/assets/${department.id}/inspection-history/${databaseYear}`}
         submitLabel="บันทึกการแก้ไข"
       />
     </div>
