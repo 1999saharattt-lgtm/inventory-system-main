@@ -75,22 +75,16 @@ type Props = {
   assets: Asset[];
   officers: Officer[];
 
-  // ข้อมูลเดิมสำหรับหน้าแก้ไข / หน้าดูรายละเอียด
   initialData?: InitialData;
 
-  // ถ้าไม่ส่งมา จะใช้ API บันทึกใหม่ตามเดิม
   submitUrl?: string;
 
-  // หน้าใหม่ = POST / หน้าแก้ไข = PUT
   submitMethod?: "POST" | "PUT";
 
-  // URL ปุ่มยกเลิก
   cancelHref?: string;
 
-  // ข้อความบนปุ่มบันทึก
   submitLabel?: string;
 
-  // true = แสดงข้อมูลอย่างเดียว ไม่สามารถแก้ไขได้
   readOnly?: boolean;
 };
 
@@ -251,10 +245,14 @@ function normalizeInitialRows(
     if (existingRow) {
       return {
         assetId: asset.id,
-        countedQty: existingRow.countedQty ?? "1",
-        accuracy: existingRow.accuracy ?? "",
-        status: existingRow.status ?? "",
-        remark: existingRow.remark ?? "",
+        countedQty:
+          existingRow.countedQty ?? "1",
+        accuracy:
+          existingRow.accuracy ?? "",
+        status:
+          existingRow.status ?? "",
+        remark:
+          existingRow.remark ?? "",
       };
     }
 
@@ -315,7 +313,8 @@ export default function InspectionForm({
   ] = useState(
     initialData?.accountStartDate ||
       getOneYearBefore(
-        initialData?.inspectionStartDate || today
+        initialData?.inspectionStartDate ||
+          today
       )
   );
 
@@ -325,7 +324,8 @@ export default function InspectionForm({
   ] = useState(
     initialData?.accountEndDate ||
       getOneDayBefore(
-        initialData?.inspectionEndDate || today
+        initialData?.inspectionEndDate ||
+          today
       )
   );
 
@@ -335,16 +335,18 @@ export default function InspectionForm({
   ] = useState(
     initialData?.movementFiscalYear ||
       getFiscalYear(
-        initialData?.inspectionStartDate || today
+        initialData?.inspectionStartDate ||
+          today
       )
   );
 
-  const [rows, setRows] = useState<InspectionRow[]>(() =>
-    normalizeInitialRows(
-      assets,
-      initialData?.rows
-    )
-  );
+  const [rows, setRows] =
+    useState<InspectionRow[]>(() =>
+      normalizeInitialRows(
+        assets,
+        initialData?.rows
+      )
+    );
 
   const [
     inspectorIds,
@@ -364,10 +366,12 @@ export default function InspectionForm({
   const inspectionEndDateRef =
     useRef<HTMLInputElement>(null);
 
-  const isEditMode = submitMethod === "PUT";
+  const isEditMode =
+    submitMethod === "PUT";
 
   const finalCancelHref =
-    cancelHref || `/assets/${department.id}`;
+    cancelHref ||
+    `/assets/${department.id}`;
 
   const finalSubmitLabel =
     submitLabel ||
@@ -382,7 +386,9 @@ export default function InspectionForm({
       return;
     }
 
-    if (typeof input.showPicker === "function") {
+    if (
+      typeof input.showPicker === "function"
+    ) {
       input.showPicker();
       return;
     }
@@ -481,7 +487,9 @@ export default function InspectionForm({
       return;
     }
 
-    if (inspectorIds.some((id) => !id)) {
+    if (
+      inspectorIds.some((id) => !id)
+    ) {
       alert(
         "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
       );
@@ -541,28 +549,33 @@ export default function InspectionForm({
     try {
       setIsSaving(true);
 
-      const response = await fetch(submitUrl, {
-        method: submitMethod,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          departmentId: department.id,
+      const response = await fetch(
+        submitUrl,
+        {
+          method: submitMethod,
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            departmentId:
+              department.id,
 
-          inspectionStartDate,
-          inspectionEndDate,
+            inspectionStartDate,
+            inspectionEndDate,
 
-          accountStartDate,
-          accountEndDate,
+            accountStartDate,
+            accountEndDate,
 
-          movementFiscalYear,
+            movementFiscalYear,
 
-          inspectorIds:
-            inspectorIds.map(Number),
+            inspectorIds:
+              inspectorIds.map(Number),
 
-          rows,
-        }),
-      });
+            rows,
+          }),
+        }
+      );
 
       let data: unknown = null;
 
@@ -573,10 +586,9 @@ export default function InspectionForm({
       }
 
       if (!response.ok) {
-        let errorMessage =
-          isEditMode
-            ? "ไม่สามารถแก้ไขข้อมูลได้"
-            : "ไม่สามารถบันทึกข้อมูลได้";
+        let errorMessage = isEditMode
+          ? "ไม่สามารถแก้ไขข้อมูลได้"
+          : "ไม่สามารถบันทึกข้อมูลได้";
 
         if (
           data &&
@@ -655,10 +667,8 @@ export default function InspectionForm({
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* วันที่เริ่ม */}
-
           <div>
-            <label className="mb-2 block text-lg font-extrabold text-white">
+            <label className="mb-2 block text-lg font-extrabold !text-white">
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
@@ -691,7 +701,6 @@ export default function InspectionForm({
                       : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
                   }
                 `}
-                aria-label="เลือกวันที่เริ่มดำเนินการตรวจสอบ"
               >
                 <span>
                   {formatThaiDate(
@@ -709,7 +718,6 @@ export default function InspectionForm({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                    aria-hidden="true"
                   >
                     <rect
                       x="3"
@@ -742,29 +750,22 @@ export default function InspectionForm({
                     );
 
                     setAccountStartDate(
-                      getOneYearBefore(
-                        value
-                      )
+                      getOneYearBefore(value)
                     );
 
                     setMovementFiscalYear(
-                      getFiscalYear(
-                        value
-                      )
+                      getFiscalYear(value)
                     );
                   }}
                   required
-                  aria-label="วันที่เริ่มดำเนินการตรวจสอบ"
                   className="absolute bottom-0 left-0 h-px w-px opacity-0"
                 />
               )}
             </div>
           </div>
 
-          {/* วันที่เสร็จ */}
-
           <div>
-            <label className="mb-2 block text-lg font-extrabold text-white">
+            <label className="mb-2 block text-lg font-extrabold !text-white">
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
@@ -797,7 +798,6 @@ export default function InspectionForm({
                       : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
                   }
                 `}
-                aria-label="เลือกวันที่ตรวจสอบแล้วเสร็จ"
               >
                 <span>
                   {formatThaiDate(
@@ -815,7 +815,6 @@ export default function InspectionForm({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                    aria-hidden="true"
                   >
                     <rect
                       x="3"
@@ -848,13 +847,10 @@ export default function InspectionForm({
                     );
 
                     setAccountEndDate(
-                      getOneDayBefore(
-                        value
-                      )
+                      getOneDayBefore(value)
                     );
                   }}
                   required
-                  aria-label="วันที่ตรวจสอบแล้วเสร็จ"
                   className="absolute bottom-0 left-0 h-px w-px opacity-0"
                 />
               )}
@@ -871,52 +867,52 @@ export default function InspectionForm({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[2300px] border-collapse text-[13px] leading-tight">
             <thead>
-              <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+              <tr>
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   ลำดับ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   รหัส GFMIS
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   รหัสครุภัณฑ์
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   ผู้รับผิดชอบ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   รายการ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   หน่วยนับ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
@@ -932,7 +928,7 @@ export default function InspectionForm({
 
                 <th
                   colSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     รายการเคลื่อนไหวระหว่าง
@@ -946,7 +942,7 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
@@ -962,7 +958,7 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <span className="whitespace-nowrap">
                     จำนวนที่ตรวจนับได้
@@ -971,7 +967,7 @@ export default function InspectionForm({
 
                 <th
                   colSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ผลการตรวจนับถูกต้องตรงกับ
@@ -984,7 +980,7 @@ export default function InspectionForm({
 
                 <th
                   colSpan={4}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   <span className="whitespace-nowrap">
                     สภาพครุภัณฑ์ที่ตรวจนับ
@@ -993,42 +989,42 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="border border-black px-2 py-2 text-center align-middle font-extrabold"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
-              <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-                <th className="border border-black px-3 py-2 text-center font-extrabold">
+              <tr>
+                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   รับ
                 </th>
 
-                <th className="border border-black px-3 py-2 text-center font-extrabold">
+                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   จ่าย
                 </th>
 
-                <th className="border border-black px-3 py-2 text-center font-extrabold">
+                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   ถูกต้อง
                 </th>
 
-                <th className="border border-black px-3 py-2 text-center font-extrabold">
+                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   ไม่ถูกต้อง
                 </th>
 
-                <th className="min-w-[105px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold">
+                <th className="min-w-[105px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   ใช้งานปกติ
                 </th>
 
-                <th className="min-w-[70px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold">
+                <th className="min-w-[70px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   ชำรุด
                 </th>
 
-                <th className="min-w-[95px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold">
+                <th className="min-w-[95px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   เสื่อมสภาพ
                 </th>
 
-                <th className="min-w-[125px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold">
+                <th className="min-w-[125px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
                   ไม่จำเป็นต้องใช้
                 </th>
               </tr>
@@ -1046,7 +1042,8 @@ export default function InspectionForm({
                   "กลุ่มอำนวยการ"
                     ? [
                         department.name,
-                        asset.section?.name || "",
+                        asset.section?.name ||
+                          "",
                       ]
                         .filter(Boolean)
                         .join(" / ")
@@ -1101,15 +1098,14 @@ export default function InspectionForm({
                       1
                     </td>
 
-                    {/* จำนวนที่ตรวจนับ */}
-
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="number"
                         min="0"
                         step="1"
                         value={
-                          row?.countedQty ?? "1"
+                          row?.countedQty ??
+                          "1"
                         }
                         disabled={readOnly}
                         onChange={(e) =>
@@ -1138,8 +1134,6 @@ export default function InspectionForm({
                       />
                     </td>
 
-                    {/* ถูกต้อง */}
-
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
                         type="radio"
@@ -1158,11 +1152,8 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="ถูกต้อง"
                       />
                     </td>
-
-                    {/* ไม่ถูกต้อง */}
 
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
@@ -1182,11 +1173,8 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="ไม่ถูกต้อง"
                       />
                     </td>
-
-                    {/* ใช้งานปกติ */}
 
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
@@ -1206,11 +1194,8 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="ใช้งานปกติ"
                       />
                     </td>
-
-                    {/* ชำรุด */}
 
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
@@ -1230,11 +1215,8 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="ชำรุด"
                       />
                     </td>
-
-                    {/* เสื่อมสภาพ */}
 
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
@@ -1254,11 +1236,8 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="เสื่อมสภาพ"
                       />
                     </td>
-
-                    {/* ไม่จำเป็นต้องใช้ */}
 
                     <td className="border border-black px-2 py-2 text-center align-middle">
                       <input
@@ -1278,16 +1257,15 @@ export default function InspectionForm({
                           )
                         }
                         className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                        aria-label="ไม่จำเป็นต้องใช้"
                       />
                     </td>
-
-                    {/* หมายเหตุ */}
 
                     <td className="border border-black px-2 py-2 align-middle">
                       <input
                         type="text"
-                        value={row?.remark ?? ""}
+                        value={
+                          row?.remark ?? ""
+                        }
                         disabled={readOnly}
                         onChange={(e) =>
                           updateRow(
@@ -1333,7 +1311,7 @@ export default function InspectionForm({
           {inspectorIds.map(
             (inspectorId, index) => (
               <div key={index}>
-                <label className="mb-2 block text-lg font-extrabold">
+                <label className="mb-2 block text-lg font-extrabold !text-white">
                   ผู้ตรวจสอบคนที่{" "}
                   {index + 1}
                 </label>
@@ -1363,9 +1341,8 @@ export default function InspectionForm({
 
                     {officers.map(
                       (officer) => {
-                        const value = String(
-                          officer.id
-                        );
+                        const value =
+                          String(officer.id);
 
                         if (
                           isOfficerSelected(
@@ -1381,8 +1358,12 @@ export default function InspectionForm({
                             key={officer.id}
                             value={value}
                           >
-                            {officer.firstName}{" "}
-                            {officer.lastName}
+                            {
+                              officer.firstName
+                            }{" "}
+                            {
+                              officer.lastName
+                            }
                           </option>
                         );
                       }
@@ -1391,7 +1372,7 @@ export default function InspectionForm({
                 )}
 
                 {inspectorId && (
-                  <p className="mt-2 text-sm font-semibold text-slate-300">
+                  <p className="mt-2 text-sm font-semibold !text-slate-300">
                     ตำแหน่ง:{" "}
                     {getOfficer(inspectorId)
                       ?.position || "-"}
@@ -1405,18 +1386,10 @@ export default function InspectionForm({
 
       {/* =====================================================
           ปุ่มดำเนินการ
-
-          readOnly = true
-          ไม่แสดงปุ่มยกเลิก / บันทึก
-
-          หน้าเพิ่มและหน้าแก้ไข
-          แสดงปุ่มตามปกติ
       ===================================================== */}
 
       {!readOnly && (
         <div className="flex flex-wrap items-center justify-end gap-3">
-          {/* ยกเลิก */}
-
           <a
             href={finalCancelHref}
             className="
@@ -1438,8 +1411,6 @@ export default function InspectionForm({
           >
             ยกเลิก
           </a>
-
-          {/* บันทึก */}
 
           <button
             type="button"
