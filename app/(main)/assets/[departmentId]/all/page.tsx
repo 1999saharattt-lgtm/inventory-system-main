@@ -183,31 +183,75 @@ export default async function DepartmentAllAssetsPage({
   });
 
   // =====================================================
-  // เตรียมข้อมูลสำหรับ Export PDF
+  // ฟังก์ชันแสดงผู้รับผิดชอบ
+  //
+  // กลุ่มอำนวยการ
+  // ชื่อ นามสกุล / ชื่องาน
+  //
+  // กลุ่มอื่น
+  // ชื่อ นามสกุล
   // =====================================================
 
-  const exportAssets = assets.map((asset) => ({
-    id: asset.id,
-    name: asset.name,
-    category: asset.category,
-    brand: asset.brand,
-    model: asset.model,
-    serialNumber: asset.serialNumber,
-    governmentAssetNo: asset.governmentAssetNo,
-    officeAssetNo: asset.officeAssetNo,
-    departmentName: asset.department.name,
-    sectionName: asset.section?.name ?? null,
-    officerName: asset.officer
-      ? `${asset.officer.firstName} ${asset.officer.lastName}`
-      : null,
-    status: asset.status,
-    purchaseDate: asset.purchaseDate
-      ? asset.purchaseDate.toISOString()
-      : null,
-    price: asset.price,
-    location: asset.location,
-    remark: asset.remark,
-  }));
+  const getResponsibleName = (asset: AssetItem) => {
+    const officerName = asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+      : "";
+
+    if (!officerName) {
+      return "-";
+    }
+
+    if (
+      department.name === "กลุ่มอำนวยการ" &&
+      asset.section?.name
+    ) {
+      return `${officerName} / ${asset.section.name}`;
+    }
+
+    return officerName;
+  };
+
+  // =====================================================
+  // เตรียมข้อมูลสำหรับ Export PDF
+  //
+  // ผู้รับผิดชอบ:
+  // กลุ่มอำนวยการ = ชื่อ / งาน
+  // กลุ่มอื่น = ชื่อ
+  // =====================================================
+
+  const exportAssets = assets.map((asset) => {
+    const officerName = asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+      : "";
+
+    const responsibleName =
+      officerName &&
+      department.name === "กลุ่มอำนวยการ" &&
+      asset.section?.name
+        ? `${officerName} / ${asset.section.name}`
+        : officerName || null;
+
+    return {
+      id: asset.id,
+      name: asset.name,
+      category: asset.category,
+      brand: asset.brand,
+      model: asset.model,
+      serialNumber: asset.serialNumber,
+      governmentAssetNo: asset.governmentAssetNo,
+      officeAssetNo: asset.officeAssetNo,
+      departmentName: asset.department.name,
+      sectionName: asset.section?.name ?? null,
+      officerName: responsibleName,
+      status: asset.status,
+      purchaseDate: asset.purchaseDate
+        ? asset.purchaseDate.toISOString()
+        : null,
+      price: asset.price,
+      location: asset.location,
+      remark: asset.remark,
+    };
+  });
 
   return (
     <div
@@ -629,98 +673,198 @@ export default async function DepartmentAllAssetsPage({
                   </td>
                 </tr>
               ) : (
-                assets.map(
-                  (asset: AssetItem, index: number) => {
-                    const officerName = asset.officer
-                      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-                      : "-";
+                assets.map((asset: AssetItem, index: number) => {
+                  const responsibleName =
+                    getResponsibleName(asset);
 
-                    return (
-                      <tr
-                        key={asset.id}
+                  return (
+                    <tr
+                      key={asset.id}
+                      className="
+                        text-slate-900
+                        transition
+                        hover:bg-emerald-50
+                      "
+                    >
+                      {/* ลำดับ */}
+
+                      <td
                         className="
-                          text-slate-900
-                          transition
-                          hover:bg-emerald-50
+                          whitespace-nowrap
+                          border
+                          border-black
+                          px-2
+                          py-3
+                          text-center
+                          align-middle
+                          font-bold
                         "
                       >
-                        <td className="whitespace-nowrap border border-black px-2 py-3 text-center align-middle font-bold">
-                          {index + 1}
-                        </td>
+                        {index + 1}
+                      </td>
 
-                        <td className="border border-black px-2 py-3 text-center align-middle font-semibold">
-                          {categoryName[asset.category] ??
-                            asset.category}
-                        </td>
+                      {/* ประเภท */}
 
-                        <td className="border border-black px-3 py-3 text-center align-middle font-semibold">
-                          {asset.governmentAssetNo ?? "-"}
-                        </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-2
+                          py-3
+                          text-center
+                          align-middle
+                          font-semibold
+                        "
+                      >
+                        {categoryName[asset.category] ??
+                          asset.category}
+                      </td>
 
-                        <td className="border border-black px-3 py-3 text-center align-middle font-semibold">
-                          {asset.officeAssetNo ?? "-"}
-                        </td>
+                      {/* รหัส GFMIS */}
 
-                        <td className="border border-black px-3 py-3 text-center align-middle font-extrabold">
-                          {asset.name}
-                        </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                          font-semibold
+                        "
+                      >
+                        {asset.governmentAssetNo ?? "-"}
+                      </td>
 
-                        <td className="whitespace-nowrap border border-black px-3 py-3 text-center align-middle font-extrabold">
-                          1
-                        </td>
+                      {/* รหัสครุภัณฑ์ */}
 
-                        <td className="whitespace-nowrap border border-black px-3 py-3 text-center align-middle font-semibold">
-                          {categoryUnit[asset.category] ??
-                            "รายการ"}
-                        </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                          font-semibold
+                        "
+                      >
+                        {asset.officeAssetNo ?? "-"}
+                      </td>
 
-                        <td className="border border-black px-3 py-3 text-center align-middle">
-                          <p className="font-semibold">
-                            {officerName}
-                          </p>
+                      {/* รายการครุภัณฑ์ */}
 
-                          {asset.section && (
-                            <p
-                              className="
-                                mt-1
-                                text-center
-                                text-sm
-                                font-semibold
-                                text-slate-600
-                              "
-                            >
-                              {asset.section.name}
-                            </p>
-                          )}
-                        </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                          font-extrabold
+                        "
+                      >
+                        {asset.name}
+                      </td>
 
-                        <td className="border border-black px-3 py-3 text-center align-middle">
-                          <span
-                            className={`
-                              inline-flex
-                              items-center
-                              justify-center
-                              rounded-full
-                              border
-                              px-4
-                              py-1.5
-                              text-sm
-                              font-extrabold
-                              shadow-sm
-                              ${
-                                statusClass[asset.status] ??
-                                "border-slate-300 bg-slate-100 text-slate-800"
-                              }
-                            `}
-                          >
-                            {statusName[asset.status] ??
-                              "ไม่ระบุสถานะ"}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  }
-                )
+                      {/* จำนวน */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                          font-extrabold
+                        "
+                      >
+                        1
+                      </td>
+
+                      {/* หน่วย */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                          font-semibold
+                        "
+                      >
+                        {categoryUnit[asset.category] ??
+                          "รายการ"}
+                      </td>
+
+                      {/* =================================================
+                          ผู้รับผิดชอบ
+
+                          กลุ่มอำนวยการ
+                          ชื่อ นามสกุล / ชื่องาน
+
+                          กลุ่มอื่น
+                          ชื่อ นามสกุล
+                      ================================================= */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                        "
+                      >
+                        <p className="font-semibold">
+                          {responsibleName}
+                        </p>
+                      </td>
+
+                      {/* สถานะ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          align-middle
+                        "
+                      >
+                        <span
+                          className={`
+                            inline-flex
+                            items-center
+                            justify-center
+                            rounded-full
+                            border
+                            px-4
+                            py-1.5
+                            text-sm
+                            font-extrabold
+                            shadow-sm
+                            ${
+                              statusClass[asset.status] ??
+                              "border-slate-300 bg-slate-100 text-slate-800"
+                            }
+                          `}
+                        >
+                          {statusName[asset.status] ??
+                            "ไม่ระบุสถานะ"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
