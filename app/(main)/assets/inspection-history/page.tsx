@@ -275,7 +275,6 @@ export default async function InspectionHistoryPage() {
 
         {/* =================================================
             ปุ่มกลับ
-            สีเขียวมาตรฐานเดียวกับหน้าอื่น
         ================================================= */}
 
         <Link
@@ -326,7 +325,7 @@ export default async function InspectionHistoryPage() {
           <table
             className="
               w-full
-              min-w-[1250px]
+              min-w-[1400px]
               border-collapse
               text-sm
             "
@@ -340,116 +339,40 @@ export default async function InspectionHistoryPage() {
                   text-white
                 "
               >
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   ลำดับ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   ชื่อกลุ่มงาน
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   ประจำปีงบประมาณ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   วันที่เริ่มตรวจสอบ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   วันที่ตรวจสอบแล้วเสร็จ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   จำนวนครุภัณฑ์
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   ผู้ตรวจสอบ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
                   รายละเอียดข้อมูล
+                </th>
+
+                <th className="border border-black px-3 py-4 text-center font-extrabold !text-white">
+                  จัดการ
                 </th>
               </tr>
             </thead>
@@ -465,135 +388,56 @@ export default async function InspectionHistoryPage() {
                       hover:bg-slate-50
                     "
                   >
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                        text-slate-800
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-semibold text-slate-800">
                       {index + 1}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-4
-                        py-3
-                        text-left
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
+                    <td className="border border-black px-4 py-3 text-left font-extrabold text-slate-900">
                       {item.departmentName}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-extrabold
-                        text-slate-900
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-extrabold text-slate-900">
                       พ.ศ. {item.year}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                        text-slate-700
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
                       {formatThaiDate(
                         item.inspectionStartDate
                       )}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                        text-slate-700
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
                       {formatThaiDate(
                         item.inspectionEndDate
                       )}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                        text-slate-700
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
                       {item.assetIds.size.toLocaleString(
                         "th-TH"
                       )}{" "}
                       รายการ
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                        text-slate-700
-                      "
-                    >
+                    <td className="border border-black px-3 py-3 text-center font-semibold text-slate-700">
                       {item.inspectorCount.toLocaleString(
                         "th-TH"
                       )}{" "}
                       คน
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                      "
-                    >
-                      {/* =====================================
-                          ปุ่มเปิด
-                          สีเข้มแบบเดียวกับหัวตาราง
-                      ===================================== */}
+                    {/* =========================================
+                        รายละเอียดข้อมูล
+                    ========================================= */}
 
+                    <td className="border border-black px-3 py-3 text-center">
                       <Link
                         href={`/assets/${item.departmentId}/inspection-history/${item.year}`}
                         className="
                           inline-flex
                           items-center
                           justify-center
-                          rounded-xl
+                          rounded-lg
                           bg-gradient-to-r
                           from-slate-800
                           to-slate-700
@@ -602,15 +446,79 @@ export default async function InspectionHistoryPage() {
                           text-sm
                           font-extrabold
                           !text-white
-                          shadow-lg
+                          shadow-md
                           transition
-                          hover:scale-105
+                          hover:scale-[1.03]
                           hover:from-slate-900
                           hover:to-slate-800
                         "
                       >
                         เปิด
                       </Link>
+                    </td>
+
+                    {/* =========================================
+                        จัดการ
+                    ========================================= */}
+
+                    <td className="border border-black px-3 py-3 text-center">
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-center
+                          gap-2
+                        "
+                      >
+                        {/* แก้ไข - น้ำเงินเข้มแบบในรูป */}
+
+                        <Link
+                          href={`/assets/${item.departmentId}/inspection-history/${item.year}/edit`}
+                          className="
+                            inline-flex
+                            items-center
+                            justify-center
+                            rounded-lg
+                            bg-slate-800
+                            px-4
+                            py-2
+                            text-sm
+                            font-extrabold
+                            !text-white
+                            shadow-md
+                            transition
+                            hover:scale-[1.03]
+                            hover:bg-slate-700
+                          "
+                        >
+                          แก้ไข
+                        </Link>
+
+                        {/* ลบ - สีแดงแบบในรูป */}
+
+                        <button
+                          type="button"
+                          className="
+                            inline-flex
+                            items-center
+                            justify-center
+                            rounded-lg
+                            bg-red-600
+                            px-4
+                            py-2
+                            text-sm
+                            font-extrabold
+                            !text-white
+                            shadow-md
+                            transition
+                            hover:scale-[1.03]
+                            hover:bg-red-700
+                          "
+                          title="ขั้นถัดไปจะเชื่อมการลบพร้อมกล่องยืนยัน"
+                        >
+                          ลบ
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -619,7 +527,7 @@ export default async function InspectionHistoryPage() {
               {history.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="
                       border
                       border-black
