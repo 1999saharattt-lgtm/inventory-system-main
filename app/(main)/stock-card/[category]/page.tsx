@@ -145,6 +145,8 @@ export default async function CategoryPage({
           </p>
         </div>
 
+        {/* ปุ่มกลับ */}
+
         <Link
           href="/stock-card"
           className="
@@ -186,9 +188,6 @@ export default async function CategoryPage({
 
       {/* =====================================================
           Table
-          ไม่มีกรอบ wrapper ซ้ำ
-          ไม่มีเส้น div แยกออกจาก table
-          เส้นล่างใช้ border ของ td แถวสุดท้าย
       ===================================================== */}
 
       <div
@@ -365,14 +364,19 @@ export default async function CategoryPage({
                         ${bottomBorder}
                       `}
                     >
+                      {/* =====================================
+                          ปุ่มเปิด
+                          ใช้โทน Slate เดียวกับระบบ
+                      ===================================== */}
+
                       <Link
                         href={`/stock-card/material/${material.id}`}
                         className="
                           inline-block
                           rounded-xl
                           bg-gradient-to-r
-                          from-emerald-600
-                          to-green-500
+                          from-slate-800
+                          to-slate-700
                           px-5
                           py-2
                           font-extrabold
@@ -380,6 +384,8 @@ export default async function CategoryPage({
                           shadow-lg
                           transition
                           hover:scale-105
+                          hover:from-slate-900
+                          hover:to-slate-800
                         "
                       >
                         เปิด
