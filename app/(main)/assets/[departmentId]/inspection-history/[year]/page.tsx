@@ -331,9 +331,7 @@ export default async function InspectionHistoryDetailPage({
 
   // ===================================================
   // ดึงข้อมูลการตรวจสอบ
-  //
-  // รองรับฐานข้อมูลที่เก็บ year เป็น
-  // พ.ศ. หรือ ค.ศ.
+  // รองรับฐานข้อมูลที่เก็บ year เป็น พ.ศ. หรือ ค.ศ.
   // ===================================================
 
   const inspections =
@@ -387,8 +385,6 @@ export default async function InspectionHistoryDetailPage({
 
   // ===================================================
   // Inspection แรก
-  //
-  // ใช้ข้อมูลส่วนกลาง
   // ===================================================
 
   const firstInspection =
@@ -410,7 +406,6 @@ export default async function InspectionHistoryDetailPage({
 
   // ===================================================
   // วันที่ยอดบัญชี
-  //
   // ใช้ Logic เดียวกับ InspectionForm
   // ===================================================
 
@@ -545,7 +540,97 @@ export default async function InspectionHistoryDetailPage({
       "
     >
       {/* =================================================
-          Header / ข้อมูลการตรวจสอบ
+          Header
+      ================================================= */}
+
+      <div
+        className="
+          flex
+          min-h-[110px]
+          w-full
+          min-w-0
+          flex-col
+          items-start
+          justify-between
+          gap-4
+          rounded-2xl
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-5
+          py-5
+          text-white
+          shadow-xl
+          sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:px-8
+          sm:py-6
+        "
+      >
+        <div className="min-w-0">
+          <h1
+            className="
+              break-words
+              text-2xl
+              font-extrabold
+              leading-tight
+              !text-white
+              sm:text-3xl
+            "
+          >
+            📋 ข้อมูลการตรวจสอบครุภัณฑ์ประจำปี
+          </h1>
+
+          <p
+            className="
+              mt-2
+              break-words
+              text-sm
+              font-semibold
+              leading-tight
+              !text-slate-200
+              sm:mt-3
+              sm:text-base
+            "
+          >
+            {department.name}
+            {" · "}
+            ประจำปีงบประมาณ พ.ศ.{" "}
+            {displayFiscalYear}
+          </p>
+        </div>
+
+        <Link
+          href="/assets/inspection-history"
+          className="
+            inline-flex
+            shrink-0
+            items-center
+            justify-center
+            rounded-xl
+            bg-gradient-to-r
+            from-emerald-600
+            to-green-500
+            px-5
+            py-2.5
+            text-base
+            font-extrabold
+            !text-white
+            shadow-lg
+            transition
+            hover:scale-[1.02]
+            hover:from-emerald-700
+            hover:to-green-600
+          "
+        >
+          ← กลับ
+        </Link>
+      </div>
+
+      {/* =================================================
+          ข้อมูลการตรวจสอบ
       ================================================= */}
 
       <div
@@ -571,31 +656,15 @@ export default async function InspectionHistoryDetailPage({
             gap-3
           "
         >
-          <div className="min-w-0">
-            <h1
-              className="
-                text-2xl
-                font-extrabold
-                !text-white
-              "
-            >
-              ข้อมูลการตรวจสอบ
-            </h1>
-
-            <p
-              className="
-                mt-1
-                text-base
-                font-semibold
-                !text-slate-200
-              "
-            >
-              {department.name}
-              {" · "}
-              ประจำปีงบประมาณ พ.ศ.{" "}
-              {displayFiscalYear}
-            </p>
-          </div>
+          <h2
+            className="
+              text-2xl
+              font-extrabold
+              !text-white
+            "
+          >
+            ข้อมูลการตรวจสอบ
+          </h2>
 
           <ExportInspectionPdf
             department={department}
@@ -908,7 +977,6 @@ export default async function InspectionHistoryDetailPage({
                   const asset =
                     inspection.asset;
 
-                  // ใช้รูปแบบเดียวกับ InspectionForm
                   const responsibleGroup =
                     department.name ===
                     "กลุ่มอำนวยการ"
@@ -1149,101 +1217,6 @@ export default async function InspectionHistoryDetailPage({
             }
           )}
         </div>
-      </div>
-
-      {/* =================================================
-          Actions
-      ================================================= */}
-
-      <div
-        className="
-          flex
-          flex-wrap
-          items-center
-          justify-end
-          gap-3
-        "
-      >
-        {/* ===============================================
-            กลับ
-        =============================================== */}
-
-        <Link
-          href="/assets/inspection-history"
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-          "
-        >
-          ← กลับ
-        </Link>
-
-        {/* ===============================================
-            แก้ไข
-            ใช้ yearParam เพื่อรักษา URL เป็น พ.ศ.
-            เช่น /2570/edit
-        =============================================== */}
-
-        <Link
-          href={`/assets/${department.id}/inspection-history/${yearParam}/edit`}
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-amber-500
-            to-orange-500
-            px-4
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-amber-600
-            hover:to-orange-600
-          "
-        >
-          แก้ไข
-        </Link>
-
-        {/* ===============================================
-            ลบ
-        =============================================== */}
-
-        <button
-          type="button"
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-red-700
-            to-red-500
-            px-4
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-red-800
-            hover:to-red-600
-          "
-          title="ขั้นถัดไปจะเชื่อมการลบพร้อมกล่องยืนยัน"
-        >
-          ลบ
-        </button>
       </div>
     </div>
   );
