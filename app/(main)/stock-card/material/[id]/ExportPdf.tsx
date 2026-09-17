@@ -51,14 +51,20 @@ function formatThaiDate(date: any) {
 function formatMoney(
   value: number | null | undefined
 ) {
-  if (value === null || value === undefined) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
     return "-";
   }
 
-  return Number(value).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return Number(value).toLocaleString(
+    "en-US",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
 }
 
 export default function ExportPdf({
@@ -66,52 +72,97 @@ export default function ExportPdf({
   rows,
 }: Props) {
   async function exportPdf() {
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    });
+    /* =====================================================
+       เปิดแท็บใหม่สำหรับ Preview
+       ===================================================== */
 
-    doc.setFont(
-      "2.3.2 THSarabunNew",
-      "normal"
+    const previewWindow = window.open(
+      "",
+      "_blank"
     );
 
-    const pageWidth =
-      doc.internal.pageSize.getWidth();
-
-    const center = pageWidth / 2;
-
-    const leftX = 14;
-    const rightX = 150;
-
-    const pageSize = 10;
-
-    const pages: any[][] = [];
-
-    for (
-      let i = 0;
-      i < rows.length;
-      i += pageSize
-    ) {
-      pages.push(
-        rows.slice(i, i + pageSize)
+    if (!previewWindow) {
+      alert(
+        "ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
       );
+      return;
     }
 
-    if (pages.length === 0) {
-      pages.push([]);
-    }
+    try {
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
 
-    pages.forEach(
-      (pageRows, pageIndex) => {
-        if (pageIndex > 0) {
-          doc.addPage();
-        }
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
 
-        // ==========================
-        // HEADER
-        // ==========================
+      const pageWidth =
+        doc.internal.pageSize.getWidth();
+
+      const center =
+        pageWidth / 2;
+
+      const leftX = 14;
+      const rightX = 150;
+
+      /*
+       * จำนวนรายการต่อหน้า
+       */
+      const pageSize = 10;
+
+      /*
+       * ความกว้างคอลัมน์รวม = 249 mm
+       *
+       * A4 แนวนอน = 297 mm
+       *
+       * จึงคำนวณ Margin ซ้าย
+       * เพื่อให้ตารางอยู่กึ่งกลางหน้ากระดาษ
+       */
+      const tableWidth = 249;
+
+      const tableLeft =
+        (pageWidth - tableWidth) /
+        2;
+
+      /* ===================================================
+         แบ่งข้อมูลออกเป็นหน้า
+         =================================================== */
+
+      const pages: any[][] = [];
+
+      for (
+        let i = 0;
+        i < rows.length;
+        i += pageSize
+      ) {
+        pages.push(
+          rows.slice(
+            i,
+            i + pageSize
+          )
+        );
+      }
+
+      if (pages.length === 0) {
+        pages.push([]);
+      }
+
+      /* ===================================================
+         FUNCTION: HEADER
+
+         เรียกใหม่ทุกหน้า
+         เพื่อให้ทุกแผ่นมีหัวกระดาษเหมือนกัน
+         =================================================== */
+
+      function drawPageHeader() {
+        doc.setFont(
+          "2.3.2 THSarabunNew",
+          "normal"
+        );
 
         doc.setFontSize(26);
 
@@ -146,7 +197,8 @@ export default function ExportPdf({
 
         doc.text(
           `รหัสพัสดุ : ${
-            material.code || "-"
+            material.code ||
+            "-"
           }`,
           leftX,
           38
@@ -154,7 +206,8 @@ export default function ExportPdf({
 
         doc.text(
           `รายการพัสดุ : ${
-            material.name || "-"
+            material.name ||
+            "-"
           }`,
           rightX,
           38
@@ -174,13 +227,13 @@ export default function ExportPdf({
 
         doc.text(
           `หน่วย : ${
-            material.unit || "-"
+            material.unit ||
+            "-"
           }`,
           rightX,
           46
         );
 
-        // ผู้จำหน่ายจากรายการรับเข้าล่าสุด
         doc.text(
           `ผู้จำหน่าย : ${
             material.vendor?.name ??
@@ -190,194 +243,390 @@ export default function ExportPdf({
           54
         );
 
-        // ราคาจากรายการรับเข้าล่าสุด
         doc.text(
-          `ราคาล่าสุด : ${
-            formatMoney(
-              material.latestPrice
-            )
-          } บาท`,
+          `ราคาล่าสุด : ${formatMoney(
+            material.latestPrice
+          )} บาท`,
           rightX,
           54
         );
+      }
 
-        // ==========================
-        // TABLE DATA
-        // ==========================
+      /* ===================================================
+         CREATE EACH PAGE
+         =================================================== */
 
-        const body = pageRows.map(
-          (r: any) => {
-            return [
-              // วันที่
-              formatThaiDate(r.date),
-
-              // เลขที่เอกสาร
-              r.documentNo || "-",
-
-              // ผู้จำหน่าย / หน่วยงาน
-              r.owner || "-",
-
-              // ราคาของรายการนั้น
-              formatMoney(r.unitPrice),
-
-              // รับเข้า
-              r.receiveQty === 0 ||
-              r.receiveQty === null ||
-              r.receiveQty === undefined ||
-              r.receiveQty === ""
-                ? "-"
-                : r.receiveQty,
-
-              // เบิกจ่าย
-              r.issueQty === 0 ||
-              r.issueQty === null ||
-              r.issueQty === undefined ||
-              r.issueQty === ""
-                ? "-"
-                : r.issueQty,
-
-              // คงเหลือ
-              r.balance === 0 ||
-              r.balance === null ||
-              r.balance === undefined ||
-              r.balance === ""
-                ? "-"
-                : r.balance,
-
-              // วันผลิต
-              formatThaiDate(
-                r.manufacture
-              ),
-
-              // วันหมดอายุ
-              formatThaiDate(
-                r.expiry
-              ),
-            ];
+      pages.forEach(
+        (
+          pageRows,
+          pageIndex
+        ) => {
+          if (
+            pageIndex > 0
+          ) {
+            doc.addPage(
+              "a4",
+              "landscape"
+            );
           }
+
+          /*
+           * หัวกระดาษ
+           * ต้องมีทุกหน้า
+           */
+          drawPageHeader();
+
+          /* ===============================================
+             TABLE DATA
+             =============================================== */
+
+          const body =
+            pageRows.map(
+              (r: any) => [
+                // วันที่
+                formatThaiDate(
+                  r.date
+                ),
+
+                // เลขที่เอกสาร
+                r.documentNo ||
+                  "-",
+
+                // ผู้จำหน่าย / หน่วยงาน
+                r.owner ||
+                  "-",
+
+                // ราคาล่าสุด
+                formatMoney(
+                  r.unitPrice
+                ),
+
+                // รับเข้า
+                r.receiveQty ===
+                  0 ||
+                r.receiveQty ===
+                  null ||
+                r.receiveQty ===
+                  undefined ||
+                r.receiveQty ===
+                  ""
+                  ? "-"
+                  : r.receiveQty,
+
+                // เบิกจ่าย
+                r.issueQty ===
+                  0 ||
+                r.issueQty ===
+                  null ||
+                r.issueQty ===
+                  undefined ||
+                r.issueQty ===
+                  ""
+                  ? "-"
+                  : r.issueQty,
+
+                // คงเหลือ
+                r.balance ===
+                  null ||
+                r.balance ===
+                  undefined ||
+                r.balance ===
+                  ""
+                  ? "-"
+                  : r.balance,
+
+                // วันผลิต
+                formatThaiDate(
+                  r.manufacture
+                ),
+
+                // วันหมดอายุ
+                formatThaiDate(
+                  r.expiry
+                ),
+              ]
+            );
+
+          /*
+           * เติมแถวเปล่า
+           * ให้ครบ 10 แถวทุกหน้า
+           */
+          while (
+            body.length <
+            pageSize
+          ) {
+            body.push([
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+            ]);
+          }
+
+          /* ===============================================
+             TABLE
+             =============================================== */
+
+          autoTable(doc, {
+            startY: 60,
+
+            /*
+             * กำหนดความกว้างตาราง
+             */
+            tableWidth,
+
+            /*
+             * จัดตารางอยู่กึ่งกลางหน้า
+             */
+            margin: {
+              left:
+                tableLeft,
+              right:
+                tableLeft,
+            },
+
+            head: [
+              [
+                "วันที่",
+                "เลขที่เอกสาร",
+                "ผู้จำหน่าย / หน่วยงาน",
+                "ราคาล่าสุด",
+                "รับเข้า",
+                "เบิกจ่าย",
+                "คงเหลือ",
+                "วันผลิต",
+                "วันหมดอายุ",
+              ],
+            ],
+
+            body,
+
+            theme: "grid",
+
+            styles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize: 16,
+
+              cellPadding: 2,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth:
+                0.25,
+
+              minCellHeight:
+                8,
+
+              /*
+               * สำคัญ:
+               * ไม่ให้ข้อความแตกเป็นหลายบรรทัด
+               *
+               * หากยาวเกินพื้นที่
+               * จะตัดด้วย ...
+               */
+              overflow:
+                "ellipsize",
+            },
+
+            headStyles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize: 16,
+
+              fillColor: [
+                255,
+                255,
+                255,
+              ],
+
+              textColor: 0,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth:
+                0.25,
+
+              /*
+               * หัวตาราง
+               * ไม่ตกบรรทัดเช่นกัน
+               */
+              overflow:
+                "ellipsize",
+            },
+
+            columnStyles: {
+              /*
+               * วันที่
+               * เพิ่มพื้นที่จาก 23 → 28
+               */
+              0: {
+                cellWidth: 28,
+                halign:
+                  "center",
+              },
+
+              /*
+               * เลขที่เอกสาร
+               */
+              1: {
+                cellWidth: 29,
+                halign:
+                  "center",
+              },
+
+              /*
+               * ผู้จำหน่าย / หน่วยงาน
+               */
+              2: {
+                cellWidth: 58,
+                halign:
+                  "left",
+              },
+
+              /*
+               * ราคาล่าสุด
+               */
+              3: {
+                cellWidth: 27,
+                halign:
+                  "right",
+              },
+
+              /*
+               * รับเข้า
+               */
+              4: {
+                cellWidth: 17,
+                halign:
+                  "center",
+              },
+
+              /*
+               * เบิกจ่าย
+               */
+              5: {
+                cellWidth: 17,
+                halign:
+                  "center",
+              },
+
+              /*
+               * คงเหลือ
+               */
+              6: {
+                cellWidth: 17,
+                halign:
+                  "center",
+              },
+
+              /*
+               * วันผลิต
+               */
+              7: {
+                cellWidth: 28,
+                halign:
+                  "center",
+              },
+
+              /*
+               * วันหมดอายุ
+               */
+              8: {
+                cellWidth: 28,
+                halign:
+                  "center",
+              },
+            },
+          });
+        }
+      );
+
+      /* ===================================================
+         PDF PREVIEW
+         =================================================== */
+
+      const pdfBlob =
+        doc.output("blob");
+
+      const pdfUrl =
+        URL.createObjectURL(
+          pdfBlob
         );
 
-        // เติมแถวเปล่าให้ครบ 10 แถว
-        // แถวที่ไม่มีรายการจริงจะไม่ใส่ "-"
-        while (body.length < 10) {
-          body.push([
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-          ]);
-        }
+      previewWindow.location.replace(
+        pdfUrl
+      );
 
-        autoTable(doc, {
-          startY: 60,
+      /*
+       * ให้ PDF Viewer มีเวลาอ่าน Blob
+       */
+      window.setTimeout(
+        () => {
+          URL.revokeObjectURL(
+            pdfUrl
+          );
+        },
+        5 * 60 * 1000
+      );
+    } catch (error) {
+      console.error(
+        "ไม่สามารถสร้าง PDF ได้:",
+        error
+      );
 
-          head: [
-            [
-              "วันที่",
-              "เลขที่เอกสาร",
-              "ผู้จำหน่าย / หน่วยงาน",
-              "ราคาล่าสุด",
-              "รับเข้า",
-              "เบิกจ่าย",
-              "คงเหลือ",
-              "วันผลิต",
-              "วันหมดอายุ",
-            ],
-          ],
-
-          body,
-
-          theme: "grid",
-
-          styles: {
-            font: "2.3.2 THSarabunNew",
-            fontStyle: "normal",
-            fontSize: 16,
-            cellPadding: 2.5,
-            halign: "center",
-            valign: "middle",
-            lineColor: [0, 0, 0],
-            lineWidth: 0.25,
-            minCellHeight: 8,
-          },
-
-          headStyles: {
-            font: "2.3.2 THSarabunNew",
-            fontStyle: "normal",
-            fontSize: 16,
-            fillColor: [255, 255, 255],
-            textColor: 0,
-            halign: "center",
-            valign: "middle",
-            lineColor: [0, 0, 0],
-            lineWidth: 0.25,
-          },
-
-          columnStyles: {
-            // วันที่ — ลดให้พอดีกับรูปแบบวันที่
-            0: {
-              cellWidth: 23,
-            },
-
-            // เลขที่เอกสาร — ลดความกว้างลง
-            1: {
-              cellWidth: 29,
-            },
-
-            // ผู้จำหน่าย / หน่วยงาน — เพิ่มพื้นที่ให้ข้อความ
-            2: {
-              cellWidth: 68,
-              halign: "left",
-            },
-
-            // ราคาล่าสุด
-            3: {
-              cellWidth: 27,
-              halign: "right",
-            },
-
-            // รับเข้า
-            4: {
-              cellWidth: 17,
-            },
-
-            // เบิกจ่าย
-            5: {
-              cellWidth: 17,
-            },
-
-            // คงเหลือ
-            6: {
-              cellWidth: 17,
-            },
-
-            // วันผลิต
-            7: {
-              cellWidth: 25,
-            },
-
-            // วันหมดอายุ
-            8: {
-              cellWidth: 25,
-            },
-          },
-        });
+      if (
+        previewWindow &&
+        !previewWindow.closed
+      ) {
+        previewWindow.close();
       }
-    );
 
-    doc.save(
-      `${material.code}-stock-card.pdf`
-    );
+      alert(
+        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
+      );
+    }
   }
 
   return (
     <button
-      onClick={exportPdf}
+      type="button"
+      onClick={
+        exportPdf
+      }
       className="
         rounded-xl
         bg-red-600
