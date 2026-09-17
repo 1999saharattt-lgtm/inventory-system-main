@@ -70,13 +70,7 @@ function formatMoney(
 }
 
 /* =========================================================
-   สร้างข้อมูล 1 แถวของตาราง
-
-   ใช้ Function เดียวกันทั้ง:
-   - คำนวณความกว้าง
-   - สร้าง PDF
-
-   เพื่อให้ความกว้างคอลัมน์ตรงกับข้อมูลจริง
+   TABLE ROW
    ========================================================= */
 
 function createTableRow(r: any) {
@@ -125,10 +119,7 @@ export default function ExportPdf({
 }: Props) {
   async function exportPdf() {
     /* =====================================================
-       เปิดหน้าต่าง Preview ก่อน
-
-       ต้องทำทันทีตอนผู้ใช้กดปุ่ม
-       เพื่อป้องกัน Popup Block
+       เปิด PDF Preview ก่อน
        ===================================================== */
 
     const previewWindow =
@@ -146,7 +137,7 @@ export default function ExportPdf({
 
     try {
       /* ===================================================
-         CREATE PDF
+         PDF
          =================================================== */
 
       const doc = new jsPDF({
@@ -166,8 +157,33 @@ export default function ExportPdf({
       const center =
         pageWidth / 2;
 
+      /* ===================================================
+         แนวข้อมูลด้านบน
+         =================================================== */
+
       const leftX = 14;
       const rightX = 150;
+
+      /* ===================================================
+         TABLE AREA
+
+         ขอบซ้ายตาราง = 14 mm
+         ขอบขวาตาราง = 14 mm
+
+         A4 Landscape ≈ 297 mm
+
+         ความกว้างตารางประมาณ:
+         297 - 14 - 14 = 269 mm
+         =================================================== */
+
+      const tableLeftX = 14;
+
+      const tableRightMargin = 14;
+
+      const maximumTableWidth =
+        pageWidth -
+        tableLeftX -
+        tableRightMargin;
 
       /* ===================================================
          จำนวนรายการต่อหน้า
@@ -176,7 +192,7 @@ export default function ExportPdf({
       const pageSize = 10;
 
       /* ===================================================
-         หัวตาราง
+         HEADER TABLE
          =================================================== */
 
       const tableHeaders = [
@@ -193,9 +209,6 @@ export default function ExportPdf({
 
       /* ===================================================
          ข้อมูลทั้งหมด
-
-         ใช้สำหรับหาข้อความที่ยาวที่สุดของแต่ละคอลัมน์
-         ก่อนแบ่งหน้า
          =================================================== */
 
       const allTableRows =
@@ -204,60 +217,33 @@ export default function ExportPdf({
         );
 
       /* ===================================================
-         TABLE MARGIN
+         ขนาดขั้นต่ำของแต่ละคอลัมน์
 
-         ให้สามารถขยายตารางออกไปใกล้ขอบกระดาษได้
-
-         A4 Landscape ≈ 297 mm
-
-         ซ้าย 2 mm
-         ขวา 2 mm
-
-         พื้นที่ตารางประมาณ 293 mm
-         =================================================== */
-
-      const minimumPageMargin = 2;
-
-      const maximumTableWidth =
-        pageWidth -
-        minimumPageMargin * 2;
-
-      /* ===================================================
-         MINIMUM COLUMN WIDTH
-
-         เป็นค่าขั้นต่ำเท่านั้น
-
-         หากข้อความยาวกว่า
-         ระบบจะขยายคอลัมน์ให้อัตโนมัติ
+         ใช้เป็นจุดเริ่มต้นเท่านั้น
          =================================================== */
 
       const minimumColumnWidths = [
-        21, // วันที่
-        24, // เลขที่เอกสาร
-        35, // ผู้จำหน่าย / หน่วยงาน
-        22, // ราคาล่าสุด
-        14, // รับเข้า
-        14, // เบิกจ่าย
-        14, // คงเหลือ
-        21, // วันผลิต
-        21, // วันหมดอายุ
+        20,
+        24,
+        35,
+        22,
+        14,
+        14,
+        14,
+        20,
+        20,
       ];
 
       /* ===================================================
-         CELL PADDING
+         Padding
+
+         ลดเล็กน้อยเพื่อให้ข้อความมีพื้นที่มากขึ้น
          =================================================== */
 
-      const tableCellPadding = 1.5;
+      const tableCellPadding = 1.1;
 
       /* ===================================================
-         คำนวณความกว้างจริงของแต่ละคอลัมน์
-
-         หลักการ:
-         1. วัด Header
-         2. วัดข้อมูลทุกแถว
-         3. เอาค่าที่ยาวที่สุด
-         4. บวก Padding
-         5. ห้ามต่ำกว่า Minimum Width
+         คำนวณความกว้างข้อความจริง
          =================================================== */
 
       function calculateColumnWidths(
@@ -277,7 +263,7 @@ export default function ExportPdf({
             header,
             columnIndex
           ) => {
-            let maximumTextWidth =
+            let longestTextWidth =
               doc.getTextWidth(
                 header
               );
@@ -293,30 +279,29 @@ export default function ExportPdf({
                   ] ?? ""
                 );
 
-              const textWidth =
+              const width =
                 doc.getTextWidth(
                   value
                 );
 
               if (
-                textWidth >
-                maximumTextWidth
+                width >
+                longestTextWidth
               ) {
-                maximumTextWidth =
-                  textWidth;
+                longestTextWidth =
+                  width;
               }
             }
 
             /*
-             * เผื่อพื้นที่ข้างข้อความเล็กน้อย
-             * ป้องกันตัวอักษรชนเส้นตาราง
+             * เพิ่มพื้นที่ซ้ายขวา
+             * เพื่อไม่ให้ตัวอักษรชนเส้นกรอบ
              */
 
             const requiredWidth =
-              maximumTextWidth +
-              tableCellPadding *
-                2 +
-              1.5;
+              longestTextWidth +
+              tableCellPadding * 2 +
+              1;
 
             return Math.max(
               minimumColumnWidths[
@@ -329,16 +314,14 @@ export default function ExportPdf({
       }
 
       /* ===================================================
-         GLOBAL TABLE FONT SIZE
+         FONT SIZE
 
-         เริ่มจาก 16 เหมือน PDF เดิม
+         เริ่มจาก 16 ตามต้นฉบับ
 
-         หากข้อความทั้งหมดไม่สามารถอยู่บรรทัดเดียว
-         ภายในหน้ากระดาษได้
+         ถ้าตารางกว้างเกิน:
+         ลดตัวอักษรทั้งตารางพร้อมกัน
 
-         → ลดขนาดตัวอักษรทั้งหมดพร้อมกัน
-
-         ไม่มีการลดเฉพาะบางช่อง
+         ไม่ลดเฉพาะบางช่อง
          =================================================== */
 
       let tableFontSize = 16;
@@ -356,17 +339,17 @@ export default function ExportPdf({
         );
 
       /*
-       * ลด Font ทีละ 0.5
+       * ลดทีละ 0.5
        *
-       * จนกว่าข้อความทั้งหมดจะพอดี
-       *
-       * ต่ำสุด 6
+       * ใช้ขนาดเดียวกันทั้ง:
+       * - Header
+       * - Body
        */
 
       while (
         calculatedTableWidth >
           maximumTableWidth &&
-        tableFontSize > 6
+        tableFontSize > 5
       ) {
         tableFontSize -= 0.5;
 
@@ -384,28 +367,22 @@ export default function ExportPdf({
       }
 
       /* ===================================================
-         หากตารางยังเกินหน้าแม้ลดถึง 6
+         ถ้ายังเกินหลังลดถึง 5
 
-         ให้ใช้ความกว้างเต็มพื้นที่กระดาษ
-         และกระจายพื้นที่ตามสัดส่วน
-
-         แต่จะไม่ใช้ ellipsize
-         ไม่ใส่ ...
-         ไม่ตัดข้อความ
+         ลดต่อแบบละเอียด
+         เพื่อพยายามรักษาข้อความให้อยู่บรรทัดเดียว
          =================================================== */
 
-      if (
+      while (
         calculatedTableWidth >
-        maximumTableWidth
+          maximumTableWidth &&
+        tableFontSize > 4
       ) {
-        const scale =
-          maximumTableWidth /
-          calculatedTableWidth;
+        tableFontSize -= 0.25;
 
         columnWidths =
-          columnWidths.map(
-            (width) =>
-              width * scale
+          calculateColumnWidths(
+            tableFontSize
           );
 
         calculatedTableWidth =
@@ -417,20 +394,62 @@ export default function ExportPdf({
       }
 
       /* ===================================================
-         ตารางต้องอยู่กึ่งกลางหน้ากระดาษ
+         ขยายตารางให้เต็มแนวซ้าย-ขวาเสมอ
+
+         กรณีตารางที่คำนวณได้แคบกว่า 269 mm:
+         → ขยายทุกคอลัมน์ตามสัดส่วน
+
+         ทำให้กรอบซ้ายและขวายาวเต็มพื้นที่
          =================================================== */
 
-      const tableLeftMargin =
-        Math.max(
-          minimumPageMargin,
-          (
-            pageWidth -
-            calculatedTableWidth
-          ) / 2
-        );
+      if (
+        calculatedTableWidth <
+          maximumTableWidth &&
+        calculatedTableWidth > 0
+      ) {
+        const expandScale =
+          maximumTableWidth /
+          calculatedTableWidth;
+
+        columnWidths =
+          columnWidths.map(
+            (width) =>
+              width *
+              expandScale
+          );
+
+        calculatedTableWidth =
+          maximumTableWidth;
+      }
 
       /* ===================================================
-         PAGE DATA
+         กรณียังเกินพื้นที่จริง
+
+         ปรับความกว้างลงตามสัดส่วน
+         หลังจากลด Font แล้ว
+         =================================================== */
+
+      if (
+        calculatedTableWidth >
+        maximumTableWidth
+      ) {
+        const shrinkScale =
+          maximumTableWidth /
+          calculatedTableWidth;
+
+        columnWidths =
+          columnWidths.map(
+            (width) =>
+              width *
+              shrinkScale
+          );
+
+        calculatedTableWidth =
+          maximumTableWidth;
+      }
+
+      /* ===================================================
+         แบ่งหน้า
          =================================================== */
 
       const pages: any[][] = [];
@@ -455,10 +474,7 @@ export default function ExportPdf({
       }
 
       /* ===================================================
-         HEADER FUNCTION
-
-         เรียกทุกหน้า
-         ดังนั้นทุกแผ่นจะมีหัวกระดาษเหมือนกัน
+         HEADER ทุกหน้า
          =================================================== */
 
       function drawPageHeader() {
@@ -483,7 +499,7 @@ export default function ExportPdf({
         );
 
         /* ===============================================
-           ส่วนราชการ / หน่วยงาน
+           ส่วนราชการ
            =============================================== */
 
         doc.setFontSize(16);
@@ -569,6 +585,80 @@ export default function ExportPdf({
       }
 
       /* ===================================================
+         COLUMN STYLE
+
+         ความกว้างมาจากข้อความจริง
+         =================================================== */
+
+      const columnStyles: Record<
+        number,
+        any
+      > = {
+        0: {
+          cellWidth:
+            columnWidths[0],
+          halign:
+            "center",
+        },
+
+        1: {
+          cellWidth:
+            columnWidths[1],
+          halign:
+            "center",
+        },
+
+        2: {
+          cellWidth:
+            columnWidths[2],
+          halign:
+            "left",
+        },
+
+        3: {
+          cellWidth:
+            columnWidths[3],
+          halign:
+            "right",
+        },
+
+        4: {
+          cellWidth:
+            columnWidths[4],
+          halign:
+            "center",
+        },
+
+        5: {
+          cellWidth:
+            columnWidths[5],
+          halign:
+            "center",
+        },
+
+        6: {
+          cellWidth:
+            columnWidths[6],
+          halign:
+            "center",
+        },
+
+        7: {
+          cellWidth:
+            columnWidths[7],
+          halign:
+            "center",
+        },
+
+        8: {
+          cellWidth:
+            columnWidths[8],
+          halign:
+            "center",
+        },
+      };
+
+      /* ===================================================
          สร้างแต่ละหน้า
          =================================================== */
 
@@ -578,7 +668,7 @@ export default function ExportPdf({
           pageIndex
         ) => {
           /* ===============================================
-             PAGE BREAK
+             PAGE ใหม่
              =============================================== */
 
           if (
@@ -591,13 +681,13 @@ export default function ExportPdf({
           }
 
           /* ===============================================
-             หัวกระดาษทุกหน้า
+             หัวกระดาษเหมือนกันทุกหน้า
              =============================================== */
 
           drawPageHeader();
 
           /* ===============================================
-             BODY DATA
+             ตาราง
              =============================================== */
 
           const body =
@@ -605,9 +695,9 @@ export default function ExportPdf({
               createTableRow
             );
 
-          /* ===============================================
-             เติมแถวว่างให้ครบ 10 แถว
-             =============================================== */
+          /*
+           * เติมแถวว่างให้ครบ 10
+           */
 
           while (
             body.length <
@@ -626,108 +716,23 @@ export default function ExportPdf({
             ]);
           }
 
-          /* ===============================================
-             COLUMN STYLE
-
-             ใช้ความกว้างที่คำนวณจากข้อความจริง
-             =============================================== */
-
-          const columnStyles: Record<
-            number,
-            {
-              cellWidth: number;
-              halign:
-                | "left"
-                | "center"
-                | "right";
-            }
-          > = {
-            0: {
-              cellWidth:
-                columnWidths[0],
-              halign:
-                "center",
-            },
-
-            1: {
-              cellWidth:
-                columnWidths[1],
-              halign:
-                "center",
-            },
-
-            2: {
-              cellWidth:
-                columnWidths[2],
-              halign:
-                "left",
-            },
-
-            3: {
-              cellWidth:
-                columnWidths[3],
-              halign:
-                "right",
-            },
-
-            4: {
-              cellWidth:
-                columnWidths[4],
-              halign:
-                "center",
-            },
-
-            5: {
-              cellWidth:
-                columnWidths[5],
-              halign:
-                "center",
-            },
-
-            6: {
-              cellWidth:
-                columnWidths[6],
-              halign:
-                "center",
-            },
-
-            7: {
-              cellWidth:
-                columnWidths[7],
-              halign:
-                "center",
-            },
-
-            8: {
-              cellWidth:
-                columnWidths[8],
-              halign:
-                "center",
-            },
-          };
-
-          /* ===============================================
-             TABLE
-             =============================================== */
-
           autoTable(doc, {
             startY: 60,
 
             /*
-             * ความกว้างตามข้อความจริง
+             * ตารางใช้ความกว้างเต็ม
+             * จาก x=14 ไปจนถึงขอบขวา 14 mm
              */
-            tableWidth:
-              calculatedTableWidth,
 
-            /*
-             * จัดกึ่งกลาง
-             */
+            tableWidth:
+              maximumTableWidth,
+
             margin: {
               left:
-                tableLeftMargin,
+                tableLeftX,
 
               right:
-                tableLeftMargin,
+                tableRightMargin,
             },
 
             head: [
@@ -738,6 +743,10 @@ export default function ExportPdf({
 
             theme: "grid",
 
+            /* =============================================
+               BODY + GLOBAL TABLE STYLE
+               ============================================= */
+
             styles: {
               font:
                 "2.3.2 THSarabunNew",
@@ -746,15 +755,16 @@ export default function ExportPdf({
                 "normal",
 
               /*
-               * ขนาดเท่ากันทั้งตาราง
+               * ขนาดเดียวกันทั้งตาราง
                */
+
               fontSize:
                 tableFontSize,
 
               /*
-               * ลด Padding เล็กน้อย
-               * เพื่อให้มีพื้นที่ข้อความมากขึ้น
+               * ลด Padding
                */
+
               cellPadding:
                 tableCellPadding,
 
@@ -777,19 +787,23 @@ export default function ExportPdf({
                 8,
 
               /*
-               * สำคัญ
+               * สำคัญ:
                *
-               * ไม่ใช้:
-               * ellipsize
-               * linebreak
-               * hidden
+               * ห้าม:
+               * - ellipsize
+               * - ...
+               * - linebreak
                *
-               * ข้อความจึงไม่ถูกใส่ ...
-               * และไม่ถูกตัด
+               * ให้แสดงข้อความเต็ม
                */
+
               overflow:
                 "visible",
             },
+
+            /* =============================================
+               HEADER TABLE
+               ============================================= */
 
             headStyles: {
               font:
@@ -799,9 +813,9 @@ export default function ExportPdf({
                 "normal",
 
               /*
-               * หัวตารางใช้ขนาดเดียวกับข้อมูล
-               * เพื่อให้ทุกคอลัมน์พอดี
+               * ใช้ Font Size เดียวกับ Body
                */
+
               fontSize:
                 tableFontSize,
 
@@ -836,12 +850,21 @@ export default function ExportPdf({
             },
 
             columnStyles,
+
+            /*
+             * ไม่ให้แถวเดียวถูกแยกข้ามหน้า
+             */
+
+            rowPageBreak:
+              "avoid",
           });
         }
       );
 
       /* ===================================================
-         PREVIEW PDF
+         PDF PREVIEW
+
+         ไม่ Download ทันที
          =================================================== */
 
       const pdfBlob =
@@ -857,8 +880,8 @@ export default function ExportPdf({
       );
 
       /*
-       * PDF Viewer ต้องใช้ URL ต่อ
-       * จึงไม่ revoke ทันที
+       * Browser PDF Viewer
+       * ยังต้องใช้ Blob URL
        */
 
       window.setTimeout(
