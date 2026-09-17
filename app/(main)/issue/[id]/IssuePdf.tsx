@@ -38,7 +38,10 @@ const categoryLabels: Record<string, string> = {
 };
 
 function formatThaiDate(value: Date | string) {
-  const date = value instanceof Date ? value : new Date(value);
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return "-";
@@ -59,12 +62,17 @@ export default function IssuePdf({
   requesterName,
   items,
 }: IssuePdfProps) {
-  const pdfRef = useRef<HTMLDivElement>(null);
+  const pdfRef =
+    useRef<HTMLDivElement>(null);
 
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] =
+    React.useState(false);
 
   // =====================================================
   // Export PDF
+  //
+  // เปลี่ยนจาก Download ทันที
+  // เป็นเปิด PDF ใน Tab ใหม่
   // =====================================================
 
   const handleExport = async () => {
@@ -72,68 +80,215 @@ export default function IssuePdf({
       return;
     }
 
+    // =================================================
+    // เปิด Tab ใหม่ทันทีจาก User Action
+    //
+    // ต้องทำก่อน await เพื่อป้องกัน
+    // Chrome / Edge Block Popup
+    // =================================================
+
+    const pdfWindow = window.open(
+      "",
+      "_blank"
+    );
+
+    if (!pdfWindow) {
+      alert(
+        "เบราว์เซอร์บล็อกการเปิด PDF กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
+      );
+
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const html2canvas =
-        (await import("html2canvas")).default;
+      // =================================================
+      // แสดงหน้ารอใน Tab ใหม่
+      // =================================================
 
-      const jsPDF =
-        (await import("jspdf")).default;
+      pdfWindow.document.open();
+
+      pdfWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="th">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1"
+            />
+            <title>กำลังสร้าง PDF...</title>
+
+            <style>
+              * {
+                box-sizing: border-box;
+              }
+
+              body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f8fafc;
+                color: #334155;
+                font-family: Arial, sans-serif;
+              }
+
+              .loading-box {
+                padding: 32px;
+                text-align: center;
+              }
+
+              .loading-title {
+                margin-bottom: 8px;
+                font-size: 20px;
+                font-weight: 700;
+              }
+
+              .loading-text {
+                font-size: 14px;
+                color: #64748b;
+              }
+            </style>
+          </head>
+
+          <body>
+            <div class="loading-box">
+              <div class="loading-title">
+                กำลังสร้างเอกสาร PDF...
+              </div>
+
+              <div class="loading-text">
+                กรุณารอสักครู่
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+
+      pdfWindow.document.close();
 
       // =================================================
-      // รอ font ให้พร้อมก่อนสร้าง canvas
+      // Import Library
+      // =================================================
+
+      const html2canvas =
+        (await import("html2canvas"))
+          .default;
+
+      const jsPDF =
+        (await import("jspdf"))
+          .default;
+
+      // =================================================
+      // รอ Font ให้พร้อม
       // =================================================
 
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
-      // รอ browser render 2 รอบ
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
+      // =================================================
+      // รอ Browser Render 2 รอบ
+      // =================================================
+
+      await new Promise<void>(
+        (resolve) => {
           requestAnimationFrame(() => {
-            resolve();
+            requestAnimationFrame(
+              () => {
+                resolve();
+              }
+            );
           });
-        });
-      });
-
-      const element = pdfRef.current;
-
-      const width = element.clientWidth;
-      const height = element.clientHeight;
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#ffffff",
-        width,
-        height,
-        windowWidth: width,
-        windowHeight: height,
-        scrollX: 0,
-        scrollY: 0,
-        logging: false,
-      });
-
-      const imageData = canvas.toDataURL(
-        "image/png",
-        1.0
+        }
       );
 
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
+      const element =
+        pdfRef.current;
+
+      if (!element) {
+        throw new Error(
+          "ไม่พบพื้นที่สำหรับสร้าง PDF"
+        );
+      }
+
+      const width =
+        element.clientWidth;
+
+      const height =
+        element.clientHeight;
+
+      // =================================================
+      // HTML -> Canvas
+      // =================================================
+
+      const canvas =
+        await html2canvas(
+          element,
+          {
+            scale: 2,
+
+            useCORS: true,
+
+            allowTaint: false,
+
+            backgroundColor:
+              "#ffffff",
+
+            width,
+
+            height,
+
+            windowWidth: width,
+
+            windowHeight: height,
+
+            scrollX: 0,
+
+            scrollY: 0,
+
+            logging: false,
+          }
+        );
+
+      // =================================================
+      // Canvas -> PNG
+      // =================================================
+
+      const imageData =
+        canvas.toDataURL(
+          "image/png",
+          1.0
+        );
+
+      // =================================================
+      // สร้าง PDF A4
+      // =================================================
+
+      const pdf =
+        new jsPDF({
+          orientation:
+            "portrait",
+
+          unit: "mm",
+
+          format: "a4",
+
+          compress: true,
+        });
 
       const pageWidth =
         pdf.internal.pageSize.getWidth();
 
       const pageHeight =
         pdf.internal.pageSize.getHeight();
+
+      // =================================================
+      // ใส่ภาพลง PDF
+      // =================================================
 
       pdf.addImage(
         imageData,
@@ -146,13 +301,115 @@ export default function IssuePdf({
         "FAST"
       );
 
-      pdf.save(
-        `ใบเบิกพัสดุ-${documentNo || issueId}.pdf`
+      // =================================================
+      // สร้าง Blob
+      //
+      // ไม่ใช้ pdf.save()
+      // เพราะ pdf.save() จะ Download ทันที
+      // =================================================
+
+      const pdfBlob =
+        pdf.output("blob");
+
+      // =================================================
+      // สร้าง URL ชั่วคราวสำหรับ PDF
+      // =================================================
+
+      const pdfUrl =
+        URL.createObjectURL(
+          pdfBlob
+        );
+
+      // =================================================
+      // เปิด PDF ใน Tab ที่เปิดรอไว้
+      // =================================================
+
+      pdfWindow.location.replace(
+        pdfUrl
       );
+
+      // =================================================
+      // คืน Memory ภายหลัง
+      //
+      // ไม่ revoke ทันที เพราะ PDF Viewer
+      // ต้องใช้ URL นี้ในการแสดงผล
+      // =================================================
+
+      window.setTimeout(() => {
+        URL.revokeObjectURL(
+          pdfUrl
+        );
+      }, 5 * 60 * 1000);
     } catch (error) {
       console.error(
         "ไม่สามารถสร้าง PDF ได้:",
         error
+      );
+
+      try {
+        pdfWindow.document.open();
+
+        pdfWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="th">
+            <head>
+              <meta charset="UTF-8" />
+
+              <title>
+                ไม่สามารถสร้าง PDF ได้
+              </title>
+
+              <style>
+                body {
+                  margin: 0;
+                  min-height: 100vh;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: #f8fafc;
+                  font-family: Arial, sans-serif;
+                }
+
+                .error-box {
+                  max-width: 500px;
+                  padding: 32px;
+                  text-align: center;
+                }
+
+                h1 {
+                  color: #b91c1c;
+                  font-size: 22px;
+                }
+
+                p {
+                  color: #475569;
+                }
+              </style>
+            </head>
+
+            <body>
+              <div class="error-box">
+                <h1>
+                  ไม่สามารถสร้าง PDF ได้
+                </h1>
+
+                <p>
+                  กรุณาปิดหน้าต่างนี้แล้วลองใหม่อีกครั้ง
+                </p>
+              </div>
+            </body>
+          </html>
+        `);
+
+        pdfWindow.document.close();
+      } catch {
+        // ไม่ต้องทำอะไรเพิ่มเติม
+      }
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "ไม่สามารถสร้าง PDF ได้"
       );
     } finally {
       setLoading(false);
@@ -165,27 +422,34 @@ export default function IssuePdf({
 
   const rows = Array.from(
     { length: 18 },
-    (_, index) => items[index] ?? null
+    (_, index) =>
+      items[index] ?? null
   );
 
-  const totalItems = items.length;
+  const totalItems =
+    items.length;
 
   // =====================================================
   // Base style ของ cell
   // =====================================================
 
-  const cellBaseStyle: React.CSSProperties = {
+  const cellBaseStyle:
+    React.CSSProperties = {
     minHeight: "8mm",
     padding: 0,
     margin: 0,
     backgroundColor: "#ffffff",
     color: "#000000",
+
     fontFamily:
       "TH Sarabun New, Sarabun, Arial, sans-serif",
+
     fontSize: "16px",
     fontWeight: "normal",
     lineHeight: "1",
+
     verticalAlign: "middle",
+
     boxSizing: "border-box",
   };
 
@@ -193,19 +457,28 @@ export default function IssuePdf({
   // ตัวข้อความหัวตาราง
   // =====================================================
 
-  const headerTextStyle: React.CSSProperties = {
+  const headerTextStyle:
+    React.CSSProperties = {
     display: "inline-block",
+
     position: "relative",
+
     top: "-1.35mm",
+
     margin: 0,
     padding: 0,
+
     fontFamily:
       "TH Sarabun New, Sarabun, Arial, sans-serif",
+
     fontSize: "16px",
     fontWeight: "normal",
     lineHeight: "1",
+
     whiteSpace: "nowrap",
+
     textAlign: "center",
+
     verticalAlign: "middle",
   };
 
@@ -213,10 +486,14 @@ export default function IssuePdf({
   // Cell หัวตาราง
   // =====================================================
 
-  const headerCellStyle: React.CSSProperties = {
+  const headerCellStyle:
+    React.CSSProperties = {
     ...cellBaseStyle,
+
     height: "8mm",
+
     textAlign: "center",
+
     whiteSpace: "nowrap",
   };
 
@@ -224,18 +501,26 @@ export default function IssuePdf({
   // ตัวข้อความข้อมูลทั่วไป
   // =====================================================
 
-  const dataTextStyle: React.CSSProperties = {
+  const dataTextStyle:
+    React.CSSProperties = {
     display: "inline-block",
+
     position: "relative",
+
     top: "-1.35mm",
+
     margin: 0,
     padding: 0,
+
     fontFamily:
       "TH Sarabun New, Sarabun, Arial, sans-serif",
+
     fontSize: "16px",
     fontWeight: "normal",
     lineHeight: "1",
+
     whiteSpace: "nowrap",
+
     verticalAlign: "middle",
   };
 
@@ -243,20 +528,31 @@ export default function IssuePdf({
   // ตัวข้อความรายการพัสดุ
   // =====================================================
 
-  const materialNameTextStyle: React.CSSProperties = {
+  const materialNameTextStyle:
+    React.CSSProperties = {
     display: "block",
+
     position: "relative",
+
     top: "-1.35mm",
+
     margin: 0,
     padding: 0,
+
     fontFamily:
       "TH Sarabun New, Sarabun, Arial, sans-serif",
+
     fontSize: "16px",
     fontWeight: "normal",
     lineHeight: "1",
+
     whiteSpace: "normal",
-    overflowWrap: "break-word",
+
+    overflowWrap:
+      "break-word",
+
     wordBreak: "normal",
+
     verticalAlign: "middle",
   };
 
@@ -264,10 +560,14 @@ export default function IssuePdf({
   // Cell ข้อมูลทั่วไป
   // =====================================================
 
-  const centerCellStyle: React.CSSProperties = {
+  const centerCellStyle:
+    React.CSSProperties = {
     ...cellBaseStyle,
+
     textAlign: "center",
+
     whiteSpace: "nowrap",
+
     overflow: "visible",
   };
 
@@ -275,13 +575,20 @@ export default function IssuePdf({
   // Cell ข้อมูลรายการพัสดุ
   // =====================================================
 
-  const leftCellStyle: React.CSSProperties = {
+  const leftCellStyle:
+    React.CSSProperties = {
     ...cellBaseStyle,
+
     textAlign: "left",
+
     whiteSpace: "normal",
+
     overflow: "visible",
+
     paddingLeft: "1mm",
+
     paddingRight: "0.5mm",
+
     verticalAlign: "middle",
   };
 
@@ -293,17 +600,22 @@ export default function IssuePdf({
     item: IssueItem | null,
     index: number
   ): React.CSSProperties {
-    const baseHeight = !item
-      ? "8mm"
-      : item.material.name.length > 32
-        ? "10mm"
-        : "8mm";
+    const baseHeight =
+      !item
+        ? "8mm"
+        : item.material.name
+              .length > 32
+          ? "10mm"
+          : "8mm";
 
     // บังคับเส้นปิดด้านล่างของแถวที่ 18
+
     if (index === 17) {
       return {
         height: baseHeight,
-        borderBottom: "2px solid #000000",
+
+        borderBottom:
+          "2px solid #000000",
       };
     }
 
@@ -315,7 +627,7 @@ export default function IssuePdf({
   return (
     <div>
       {/* =====================================================
-          ปุ่ม Export PDF
+          ปุ่มเปิด PDF
       ===================================================== */}
 
       <button
@@ -354,13 +666,21 @@ export default function IssuePdf({
       <div
         style={{
           position: "fixed",
+
           left: "-10000px",
+
           top: "0",
+
           width: "210mm",
+
           height: "297mm",
+
           overflow: "hidden",
+
           pointerEvents: "none",
+
           opacity: 1,
+
           zIndex: -1,
         }}
         aria-hidden="true"
@@ -381,9 +701,14 @@ export default function IssuePdf({
           style={{
             fontFamily:
               "TH Sarabun New, Sarabun, Arial, sans-serif",
+
             fontSize: "16px",
+
             lineHeight: "1",
-            backgroundColor: "#ffffff",
+
+            backgroundColor:
+              "#ffffff",
+
             color: "#000000",
           }}
         >
@@ -405,7 +730,8 @@ export default function IssuePdf({
                 text-black
               "
             >
-              เลขที่เอกสาร {documentNo || "-"}
+              เลขที่เอกสาร{" "}
+              {documentNo || "-"}
             </div>
 
             {/* พอ.101 */}
@@ -454,7 +780,10 @@ export default function IssuePdf({
               <span className="inline-block w-[18mm]">
                 วันที่ :
               </span>
-              {formatThaiDate(issueDate)}
+
+              {formatThaiDate(
+                issueDate
+              )}
             </div>
 
             {/* กลุ่มงาน */}
@@ -476,11 +805,13 @@ export default function IssuePdf({
               </span>
 
               <span>
-                {departmentName || "-"}
+                {departmentName ||
+                  "-"}
               </span>
 
               <span className="ml-[3mm]">
-                สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
+                สำนักอนามัยการเจริญพันธุ์
+                กรมอนามัย
               </span>
             </div>
 
@@ -501,6 +832,7 @@ export default function IssuePdf({
               <span className="inline-block w-[18mm]">
                 ผู้ขอ :
               </span>
+
               {requesterName || "-"}
             </div>
           </div>
@@ -517,7 +849,8 @@ export default function IssuePdf({
               text-black
             "
           >
-            ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
+            ประสงค์จะขอเบิกสิ่งของต่างๆ
+            สำหรับใช้ในราชการ
             ดังมีรายการต่อไปนี้
           </div>
 
@@ -538,13 +871,23 @@ export default function IssuePdf({
               "
               style={{
                 width: "190mm",
-                tableLayout: "fixed",
+
+                tableLayout:
+                  "fixed",
+
                 borderSpacing: 0,
+
                 borderRadius: 0,
-                border: "1px solid #000000",
+
+                border:
+                  "1px solid #000000",
+
                 fontSize: "16px",
+
                 color: "#000000",
-                backgroundColor: "#ffffff",
+
+                backgroundColor:
+                  "#ffffff",
               }}
             >
               <thead>
@@ -564,9 +907,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       ลำดับ
                     </span>
                   </th>
@@ -582,9 +931,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       หมวดหมู่
                     </span>
                   </th>
@@ -600,9 +955,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       รายการพัสดุ
                     </span>
                   </th>
@@ -618,9 +979,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       จำนวนที่ขอเบิก
                     </span>
                   </th>
@@ -636,9 +1003,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       จำนวนที่เบิกจ่าย
                     </span>
                   </th>
@@ -654,9 +1027,15 @@ export default function IssuePdf({
                       p-0
                       text-black
                     "
-                    style={headerCellStyle}
+                    style={
+                      headerCellStyle
+                    }
                   >
-                    <span style={headerTextStyle}>
+                    <span
+                      style={
+                        headerTextStyle
+                      }
+                    >
                       หน่วย
                     </span>
                   </th>
@@ -664,166 +1043,218 @@ export default function IssuePdf({
               </thead>
 
               <tbody>
-                {rows.map((item, index) => {
-                  const isLastRow = index === 17;
+                {rows.map(
+                  (
+                    item,
+                    index
+                  ) => {
+                    const isLastRow =
+                      index === 17;
 
-                  const lastRowBorderStyle =
-                    isLastRow
-                      ? {
-                          borderBottom:
-                            "2px solid #000000",
+                    const lastRowBorderStyle =
+                      isLastRow
+                        ? {
+                            borderBottom:
+                              "2px solid #000000",
+                          }
+                        : {};
+
+                    return (
+                      <tr
+                        key={
+                          item?.id ??
+                          `empty-${index}`
                         }
-                      : {};
-
-                  return (
-                    <tr
-                      key={
-                        item?.id ??
-                        `empty-${index}`
-                      }
-                      style={getRowStyle(
-                        item,
-                        index
-                      )}
-                    >
-                      {/* ลำดับ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...centerCellStyle,
-                          ...lastRowBorderStyle,
-                        }}
+                        style={getRowStyle(
+                          item,
+                          index
+                        )}
                       >
-                        <span style={dataTextStyle}>
-                          {index + 1}
-                        </span>
-                      </td>
+                        {/* ลำดับ */}
 
-                      {/* หมวดหมู่ */}
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...centerCellStyle,
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...centerCellStyle,
-                          paddingLeft: "0.5mm",
-                          paddingRight: "0.5mm",
-                          ...lastRowBorderStyle,
-                        }}
-                      >
-                        <span style={dataTextStyle}>
-                          {item
-                            ? categoryLabels[
-                                item.material.category
-                              ] ??
-                              item.material
-                                .category
-                            : ""}
-                        </span>
-                      </td>
-
-                      {/* รายการพัสดุ */}
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...leftCellStyle,
-                          ...lastRowBorderStyle,
-                        }}
-                      >
-                        {item ? (
+                            ...lastRowBorderStyle,
+                          }}
+                        >
                           <span
                             style={
-                              materialNameTextStyle
+                              dataTextStyle
                             }
                           >
-                            {item.material.name}
+                            {index +
+                              1}
                           </span>
-                        ) : null}
-                      </td>
+                        </td>
 
-                      {/* จำนวนที่ขอเบิก */}
+                        {/* หมวดหมู่ */}
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...centerCellStyle,
-                          ...lastRowBorderStyle,
-                        }}
-                      >
-                        <span style={dataTextStyle}>
-                          {item?.qty ?? ""}
-                        </span>
-                      </td>
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...centerCellStyle,
 
-                      {/* จำนวนที่เบิกจ่ายจริง */}
+                            paddingLeft:
+                              "0.5mm",
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...centerCellStyle,
-                          ...lastRowBorderStyle,
-                        }}
-                      >
-                        <span style={dataTextStyle}>
-                          {""}
-                        </span>
-                      </td>
+                            paddingRight:
+                              "0.5mm",
 
-                      {/* หน่วย */}
+                            ...lastRowBorderStyle,
+                          }}
+                        >
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {item
+                              ? categoryLabels[
+                                  item
+                                    .material
+                                    .category
+                                ] ??
+                                item
+                                  .material
+                                  .category
+                              : ""}
+                          </span>
+                        </td>
 
-                      <td
-                        className="
-                          border
-                          border-black
-                          bg-white
-                          p-0
-                          text-black
-                        "
-                        style={{
-                          ...centerCellStyle,
-                          paddingLeft: "0.5mm",
-                          paddingRight: "0.5mm",
-                          ...lastRowBorderStyle,
-                        }}
-                      >
-                        <span style={dataTextStyle}>
-                          {item?.material.unit ?? ""}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        {/* รายการพัสดุ */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...leftCellStyle,
+
+                            ...lastRowBorderStyle,
+                          }}
+                        >
+                          {item ? (
+                            <span
+                              style={
+                                materialNameTextStyle
+                              }
+                            >
+                              {
+                                item
+                                  .material
+                                  .name
+                              }
+                            </span>
+                          ) : null}
+                        </td>
+
+                        {/* จำนวนที่ขอเบิก */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...centerCellStyle,
+
+                            ...lastRowBorderStyle,
+                          }}
+                        >
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {item?.qty ??
+                              ""}
+                          </span>
+                        </td>
+
+                        {/* จำนวนที่เบิกจ่ายจริง */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...centerCellStyle,
+
+                            ...lastRowBorderStyle,
+                          }}
+                        >
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {""}
+                          </span>
+                        </td>
+
+                        {/* หน่วย */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+                            bg-white
+                            p-0
+                            text-black
+                          "
+                          style={{
+                            ...centerCellStyle,
+
+                            paddingLeft:
+                              "0.5mm",
+
+                            paddingRight:
+                              "0.5mm",
+
+                            ...lastRowBorderStyle,
+                          }}
+                        >
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {item
+                              ?.material
+                              .unit ??
+                              ""}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )}
               </tbody>
             </table>
           </div>
@@ -848,7 +1279,8 @@ export default function IssuePdf({
             </div>
 
             <div>
-              รวมทั้งสิ้น {totalItems} รายการ
+              รวมทั้งสิ้น{" "}
+              {totalItems} รายการ
             </div>
           </div>
 
@@ -894,7 +1326,8 @@ export default function IssuePdf({
                 <div className="whitespace-nowrap">
                   ลงชื่อ{" "}
                   ...............................................................
-                  {" "}ผู้รับของ
+                  {" "}
+                  ผู้รับของ
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
@@ -902,7 +1335,8 @@ export default function IssuePdf({
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่ ................................................
+                  วันที่
+                  ................................................
                 </div>
               </div>
 
@@ -912,7 +1346,8 @@ export default function IssuePdf({
                 <div className="whitespace-nowrap">
                   ลงชื่อ{" "}
                   ...............................................................
-                  {" "}ผู้จ่าย
+                  {" "}
+                  ผู้จ่าย
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
@@ -920,7 +1355,8 @@ export default function IssuePdf({
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่ ................................................
+                  วันที่
+                  ................................................
                 </div>
               </div>
             </div>
@@ -934,7 +1370,8 @@ export default function IssuePdf({
                 <div className="whitespace-nowrap">
                   ลงชื่อ{" "}
                   ...............................................................
-                  {" "}หัวหน้ากลุ่ม
+                  {" "}
+                  หัวหน้ากลุ่ม
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
@@ -942,7 +1379,8 @@ export default function IssuePdf({
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่ ................................................
+                  วันที่
+                  ................................................
                 </div>
               </div>
 
@@ -952,7 +1390,8 @@ export default function IssuePdf({
                 <div className="whitespace-nowrap">
                   ลงชื่อ{" "}
                   ...............................................................
-                  {" "}ผู้อนุญาต
+                  {" "}
+                  ผู้อนุญาต
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
@@ -960,7 +1399,8 @@ export default function IssuePdf({
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่ ................................................
+                  วันที่
+                  ................................................
                 </div>
               </div>
             </div>
