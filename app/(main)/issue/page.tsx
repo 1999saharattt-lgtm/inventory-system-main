@@ -370,7 +370,7 @@ export default async function IssuePage({
           =============================================== */}
 
           <Link
-            href="/issue/new"
+            href="/issue/create"
             className="
               w-full
               shrink-0
