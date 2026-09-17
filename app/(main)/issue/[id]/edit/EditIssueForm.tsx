@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-
 import { updateIssue } from "./action";
 
 type Department = {
@@ -34,39 +33,10 @@ type Props = {
   receiveItems: ReceiveItem[];
 };
 
-const categories = [
-  {
-    value: "OFFICE",
-    label: "วัสดุสำนักงาน",
-  },
-  {
-    value: "COMPUTER",
-    label: "วัสดุคอมพิวเตอร์",
-  },
-  {
-    value: "ELECTRIC",
-    label: "วัสดุไฟฟ้าและวิทยุ",
-  },
-  {
-    value: "HOUSEHOLD",
-    label: "วัสดุงานบ้านและงานครัว",
-  },
-  {
-    value: "VEHICLE",
-    label: "วัสดุยานพาหนะ",
-  },
-  {
-    value: "PRINTING",
-    label: "วัสดุสื่อสิ่งพิมพ์",
-  },
-];
-
 type IssueRow = {
-  category: string;
   materialId: string;
   qty: string;
-  manufacture: string;
-  expiry: string;
+  remark: string;
   receiveItemId: string;
 };
 
@@ -79,8 +49,10 @@ const statusName: Record<string, string> = {
 const statusClass: Record<string, string> = {
   PENDING:
     "border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800",
+
   APPROVED:
     "border-emerald-600 bg-gradient-to-r from-emerald-600 to-green-500 text-white",
+
   REJECTED:
     "border-red-300 bg-gradient-to-r from-red-50 to-rose-50 text-red-800",
 };
@@ -106,13 +78,14 @@ const thaiMonths = [
 
 // =====================================================
 // แปลง Date / string เป็น YYYY-MM-DD
-// ป้องกันปัญหา timezone ทำให้วันที่เหลื่อม
 // =====================================================
 
 function toDateInputValue(
   value: Date | string | null | undefined
 ) {
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
 
   if (typeof value === "string") {
     const match = value.match(
@@ -179,69 +152,71 @@ export default function EditIssueForm({
   issue,
   departments,
   materials,
-  receiveItems,
 }: Props) {
-  const isPending = issue.status === "PENDING";
+  const isPending =
+    issue.status === "PENDING";
 
   // =====================================================
   // วันที่เบิกจ่าย
   // =====================================================
 
-  const [issueDate, setIssueDate] = useState(
-    toDateInputValue(issue.issueDate)
-  );
+  const [issueDate, setIssueDate] =
+    useState(
+      toDateInputValue(
+        issue.issueDate
+      )
+    );
 
   // =====================================================
   // รายการเบิก
   // =====================================================
 
-  const [items, setItems] = useState<IssueRow[]>(() => {
-    const rows = issue.items.map((item: any) => {
-      const receiveItemId =
-        item.receiveItemId != null
-          ? String(item.receiveItemId)
-          : "";
+  const [items, setItems] =
+    useState<IssueRow[]>(() => {
+      const rows: IssueRow[] =
+        issue.items.map(
+          (item: any) => ({
+            materialId:
+              String(
+                item.materialId
+              ),
 
-      const lot =
-        receiveItemId !== ""
-          ? receiveItems.find(
-              (r) => r.id === Number(receiveItemId)
-            )
-          : null;
+            qty:
+              String(
+                item.qty
+              ),
 
-      return {
-        category: item.material.category,
-        materialId: String(item.materialId),
-        qty: String(item.qty),
-        receiveItemId,
+            remark:
+              item.remark ?? "",
 
-        manufacture: lot?.manufacture
-          ? toDateInputValue(lot.manufacture)
-          : item.manufacture
-            ? toDateInputValue(item.manufacture)
-            : "",
+            receiveItemId:
+              item.receiveItemId != null
+                ? String(
+                    item.receiveItemId
+                  )
+                : "",
+          })
+        );
 
-        expiry: lot?.expiry
-          ? toDateInputValue(lot.expiry)
-          : item.expiry
-            ? toDateInputValue(item.expiry)
-            : "",
-      };
+      // =================================================
+      // คงจำนวนแถวไว้ 15 แถว
+      // =================================================
+
+      while (rows.length < 15) {
+        rows.push({
+          materialId: "",
+          qty: "",
+          remark: "",
+          receiveItemId: "",
+        });
+      }
+
+      return rows;
     });
 
-    while (rows.length < 15) {
-      rows.push({
-        category: "",
-        materialId: "",
-        qty: "",
-        manufacture: "",
-        expiry: "",
-        receiveItemId: "",
-      });
-    }
-
-    return rows;
-  });
+  // =====================================================
+  // Update Row
+  // =====================================================
 
   function updateRow(
     index: number,
@@ -252,24 +227,42 @@ export default function EditIssueForm({
       return;
     }
 
-    const copy = [...items];
-    copy[index][key] = value;
+    setItems(
+      (currentItems) => {
+        const copy =
+          currentItems.map(
+            (item) => ({
+              ...item,
+            })
+          );
 
-    if (key === "category") {
-      copy[index].materialId = "";
-      copy[index].receiveItemId = "";
-      copy[index].manufacture = "";
-      copy[index].expiry = "";
-    }
+        copy[index][key] =
+          value;
 
-    if (key === "materialId") {
-      copy[index].receiveItemId = "";
-      copy[index].manufacture = "";
-      copy[index].expiry = "";
-    }
+        // ===============================================
+        // เปลี่ยนรายการพัสดุ
+        // ล้าง receiveItemId เดิม
+        // เพื่อไม่ให้ผูกกับล็อตเก่าผิดรายการ
+        // ===============================================
 
-    setItems(copy);
+        if (
+          key ===
+          "materialId"
+        ) {
+          copy[
+            index
+          ].receiveItemId =
+            "";
+        }
+
+        return copy;
+      }
+    );
   }
+
+  // =====================================================
+  // Style Input ทั่วไป
+  // =====================================================
 
   const inputClass = `
     w-full
@@ -290,13 +283,18 @@ export default function EditIssueForm({
     disabled:text-slate-500
   `;
 
+  // =====================================================
+  // Style Input ในตาราง
+  // =====================================================
+
   const tableInputClass = `
     w-full
     rounded-lg
     border
     border-slate-300
     bg-white
-    p-2
+    px-3
+    py-2.5
     font-bold
     text-black
     outline-none
@@ -371,18 +369,31 @@ export default function EditIssueForm({
               sm:py-2.5
               sm:text-base
               ${
-                statusClass[issue.status] ??
+                statusClass[
+                  issue.status
+                ] ??
                 "border-slate-300 bg-slate-100 text-slate-700"
               }
             `}
           >
-            {statusName[issue.status] ?? issue.status}
+            {statusName[
+              issue.status
+            ] ??
+              issue.status}
           </span>
         </div>
       </div>
 
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
       <form
-        action={isPending ? updateIssue : undefined}
+        action={
+          isPending
+            ? updateIssue
+            : undefined
+        }
         className="space-y-6"
       >
         <input
@@ -441,8 +452,16 @@ export default function EditIssueForm({
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {/* วันที่เบิกจ่าย */}
+          <div
+            className="
+              grid
+              gap-4
+              md:grid-cols-3
+            "
+          >
+            {/* ===============================================
+                วันที่เบิกจ่าย
+            =============================================== */}
 
             <div>
               <label
@@ -462,11 +481,20 @@ export default function EditIssueForm({
                 <input
                   type="date"
                   name="issueDate"
-                  value={issueDate}
-                  onChange={(e) =>
-                    setIssueDate(e.target.value)
+                  value={
+                    issueDate
                   }
-                  disabled={!isPending}
+                  onChange={(
+                    e
+                  ) =>
+                    setIssueDate(
+                      e.target
+                        .value
+                    )
+                  }
+                  disabled={
+                    !isPending
+                  }
                   required
                   className="
                     absolute
@@ -502,7 +530,9 @@ export default function EditIssueForm({
                   `}
                 >
                   <span>
-                    {formatThaiDate(issueDate)}
+                    {formatThaiDate(
+                      issueDate
+                    )}
                   </span>
 
                   <span className="text-xl">
@@ -512,7 +542,9 @@ export default function EditIssueForm({
               </div>
             </div>
 
-            {/* เลขที่เอกสาร */}
+            {/* ===============================================
+                เลขที่เอกสาร
+            =============================================== */}
 
             <div>
               <label
@@ -531,13 +563,21 @@ export default function EditIssueForm({
               <input
                 type="text"
                 name="documentNo"
-                defaultValue={issue.documentNo}
-                disabled={!isPending}
-                className={inputClass}
+                defaultValue={
+                  issue.documentNo
+                }
+                disabled={
+                  !isPending
+                }
+                className={
+                  inputClass
+                }
               />
             </div>
 
-            {/* หน่วยงาน */}
+            {/* ===============================================
+                หน่วยงาน
+            =============================================== */}
 
             <div>
               <label
@@ -555,25 +595,48 @@ export default function EditIssueForm({
 
               <select
                 name="departmentId"
-                defaultValue={issue.departmentId}
-                disabled={!isPending}
-                className={inputClass}
+                defaultValue={
+                  issue.departmentId
+                }
+                disabled={
+                  !isPending
+                }
+                className={
+                  inputClass
+                }
               >
-                {departments.map((department) => (
-                  <option
-                    key={department.id}
-                    value={department.id}
-                  >
-                    {department.name}
-                  </option>
-                ))}
+                {departments.map(
+                  (
+                    department
+                  ) => (
+                    <option
+                      key={
+                        department.id
+                      }
+                      value={
+                        department.id
+                      }
+                    >
+                      {
+                        department.name
+                      }
+                    </option>
+                  )
+                )}
               </select>
             </div>
           </div>
         </div>
 
         {/* =====================================================
-            ตารางรายการ
+            ตารางรายการพัสดุ
+
+            โครงสร้างใหม่:
+            1. ลำดับ
+            2. รายการพัสดุ
+            3. จำนวนที่ขอเบิก
+            4. หน่วย
+            5. หมายเหตุ
         ===================================================== */}
 
         <div
@@ -582,230 +645,320 @@ export default function EditIssueForm({
             min-w-0
             overflow-hidden
             rounded-2xl
+            border
+            border-slate-300
             bg-white
             shadow-xl
           "
         >
-          <div className="w-full overflow-x-auto">
+          <div
+            className="
+              w-full
+              overflow-x-auto
+            "
+          >
             <table
               className="
                 w-full
-                min-w-[1100px]
+                min-w-[900px]
+                table-fixed
                 border-collapse
               "
             >
+              {/* =================================================
+                  กำหนดความกว้างแต่ละคอลัมน์
+              ================================================= */}
+
+              <colgroup>
+                <col
+                  style={{
+                    width: "7%",
+                  }}
+                />
+
+                <col
+                  style={{
+                    width: "43%",
+                  }}
+                />
+
+                <col
+                  style={{
+                    width: "14%",
+                  }}
+                />
+
+                <col
+                  style={{
+                    width: "12%",
+                  }}
+                />
+
+                <col
+                  style={{
+                    width: "24%",
+                  }}
+                />
+              </colgroup>
+
+              {/* =================================================
+                  หัวตาราง
+              ================================================= */}
+
               <thead>
                 <tr>
-                  {[
-                    "ลำดับ",
-                    "หมวดหมู่",
-                    "รายการพัสดุ",
-                    "หน่วย",
-                    "จำนวน",
-                    "ราคาต่อหน่วย",
-                    "วันผลิต",
-                    "วันหมดอายุ",
-                  ].map((header) => (
-                    <th
-                      key={header}
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-3
-                        py-3
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      {header}
-                    </th>
-                  ))}
+                  <th
+                    className="
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    ลำดับ
+                  </th>
+
+                  <th
+                    className="
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    รายการพัสดุ
+                  </th>
+
+                  <th
+                    className="
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    จำนวนที่ขอเบิก
+                  </th>
+
+                  <th
+                    className="
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    หน่วย
+                  </th>
+
+                  <th
+                    className="
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    หมายเหตุ
+                  </th>
                 </tr>
               </thead>
 
+              {/* =================================================
+                  รายการ
+              ================================================= */}
+
               <tbody>
                 {items.map(
-                  (row: IssueRow, index: number) => {
-                    const filteredMaterials =
-                      materials.filter(
-                        (material) =>
-                          material.category ===
-                          row.category
-                      );
-
+                  (
+                    row,
+                    index
+                  ) => {
                     const selectedMaterial =
                       materials.find(
-                        (material) =>
+                        (
+                          material
+                        ) =>
                           material.id ===
-                          Number(row.materialId)
+                          Number(
+                            row.materialId
+                          )
                       );
 
                     return (
                       <tr
-                        key={index}
+                        key={
+                          index
+                        }
                         className="
                           text-slate-900
                           transition
                           hover:bg-emerald-50
                         "
                       >
-                        {/* ลำดับ */}
+                        {/* =======================================
+                            ลำดับ
+                        ======================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
-                            border-slate-900
+                            border-slate-400
+                            bg-white
                             px-3
                             py-3
                             text-center
+                            align-middle
                             font-bold
                           "
                         >
-                          {index + 1}
+                          {index +
+                            1}
                         </td>
 
-                        {/* หมวดหมู่ */}
+                        {/* =======================================
+                            รายการพัสดุ
+                        ======================================= */}
 
                         <td
                           className="
                             border
-                            border-slate-900
+                            border-slate-400
+                            bg-white
                             px-3
                             py-3
-                          "
-                        >
-                          <select
-                            value={row.category}
-                            disabled={!isPending}
-                            onChange={(e) =>
-                              updateRow(
-                                index,
-                                "category",
-                                e.target.value
-                              )
-                            }
-                            className={tableInputClass}
-                          >
-                            <option value="">
-                              เลือกหมวดหมู่
-                            </option>
-
-                            {categories.map(
-                              (category) => (
-                                <option
-                                  key={
-                                    category.value
-                                  }
-                                  value={
-                                    category.value
-                                  }
-                                >
-                                  {category.label}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </td>
-
-                        {/* รายการพัสดุ */}
-
-                        <td
-                          className="
-                            border
-                            border-slate-900
-                            px-3
-                            py-3
+                            align-middle
                           "
                         >
                           <select
                             name={`items[${index}].materialId`}
-                            value={row.materialId}
-                            disabled={!isPending}
-                            onChange={(e) =>
+                            value={
+                              row.materialId
+                            }
+                            disabled={
+                              !isPending
+                            }
+                            onChange={(
+                              e
+                            ) =>
                               updateRow(
                                 index,
                                 "materialId",
-                                e.target.value
+                                e.target
+                                  .value
                               )
                             }
-                            className={tableInputClass}
+                            className={
+                              tableInputClass
+                            }
                           >
                             <option value="">
                               เลือกรายการพัสดุ
                             </option>
 
-                            {filteredMaterials.map(
-                              (material) => (
+                            {materials.map(
+                              (
+                                material
+                              ) => (
                                 <option
-                                  key={material.id}
-                                  value={material.id}
+                                  key={
+                                    material.id
+                                  }
+                                  value={
+                                    material.id
+                                  }
                                 >
-                                  {material.code} -{" "}
-                                  {material.name}
+                                  {
+                                    material.code
+                                  }{" "}
+                                  -{" "}
+                                  {
+                                    material.name
+                                  }
                                 </option>
                               )
                             )}
                           </select>
 
+                          {/* =====================================
+                              receiveItemId เดิม
+                          ===================================== */}
+
                           <input
                             type="hidden"
                             name={`items[${index}].receiveItemId`}
-                            value={row.receiveItemId}
-                          />
-                        </td>
-
-                        {/* หน่วย */}
-
-                        <td
-                          className="
-                            border
-                            border-slate-900
-                            px-3
-                            py-3
-                          "
-                        >
-                          <input
-                            type="text"
-                            readOnly
                             value={
-                              selectedMaterial?.unit ??
-                              ""
+                              row.receiveItemId
                             }
-                            className={`
-                              ${tableInputClass}
-                              text-center
-                              bg-slate-50
-                            `}
                           />
                         </td>
 
-                        {/* จำนวน */}
+                        {/* =======================================
+                            จำนวนที่ขอเบิก
+                        ======================================= */}
 
                         <td
                           className="
                             border
-                            border-slate-900
+                            border-slate-400
+                            bg-white
                             px-3
                             py-3
+                            align-middle
                           "
                         >
                           <input
                             type="number"
                             name={`items[${index}].qty`}
-                            value={row.qty}
-                            disabled={!isPending}
-                            onChange={(e) =>
+                            value={
+                              row.qty
+                            }
+                            disabled={
+                              !isPending
+                            }
+                            onChange={(
+                              e
+                            ) =>
                               updateRow(
                                 index,
                                 "qty",
-                                e.target.value
+                                e.target
+                                  .value
                               )
                             }
                             min={1}
@@ -816,137 +969,81 @@ export default function EditIssueForm({
                           />
                         </td>
 
-                        {/* ราคาต่อหน่วย */}
+                        {/* =======================================
+                            หน่วย
+                        ======================================= */}
 
                         <td
                           className="
                             border
-                            border-slate-900
+                            border-slate-400
+                            bg-white
                             px-3
                             py-3
-                            text-center
+                            align-middle
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              min-h-[46px]
+                              w-full
+                              items-center
+                              justify-center
+                              rounded-lg
+                              border
+                              border-slate-300
+                              bg-slate-50
+                              px-3
+                              py-2
+                              text-center
+                              font-bold
+                              text-slate-700
+                            "
+                          >
+                            {selectedMaterial?.unit ??
+                              ""}
+                          </div>
+                        </td>
+
+                        {/* =======================================
+                            หมายเหตุ
+                        ======================================= */}
+
+                        <td
+                          className="
+                            border
+                            border-slate-400
+                            bg-white
+                            px-3
+                            py-3
+                            align-middle
                           "
                         >
                           <input
                             type="text"
-                            readOnly
+                            name={`items[${index}].remark`}
                             value={
-                              selectedMaterial
-                                ? Number(
-                                    selectedMaterial.latestPrice
-                                  ).toFixed(2)
-                                : ""
+                              row.remark
                             }
-                            className={`
-                              ${tableInputClass}
-                              bg-slate-50
-                              text-center
-                            `}
+                            disabled={
+                              !isPending
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                index,
+                                "remark",
+                                e.target
+                                  .value
+                              )
+                            }
+                            placeholder="ระบุหมายเหตุ"
+                            className={
+                              tableInputClass
+                            }
                           />
-                        </td>
-
-                        {/* วันผลิต */}
-
-                        <td
-                          className="
-                            border
-                            border-slate-900
-                            px-3
-                            py-3
-                          "
-                        >
-                          <div className="relative">
-                            <input
-                              type="date"
-                              value={row.manufacture}
-                              readOnly
-                              tabIndex={-1}
-                              className="
-                                absolute
-                                inset-0
-                                z-10
-                                h-full
-                                w-full
-                                opacity-0
-                              "
-                            />
-
-                            <div
-                              className={`
-                                flex
-                                min-h-[42px]
-                                w-full
-                                items-center
-                                justify-center
-                                rounded-lg
-                                border
-                                border-slate-300
-                                bg-slate-100
-                                p-2
-                                text-center
-                                font-bold
-                                text-slate-700
-                              `}
-                            >
-                              <span>
-                                {formatThaiDate(
-                                  row.manufacture
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* วันหมดอายุ */}
-
-                        <td
-                          className="
-                            border
-                            border-slate-900
-                            px-3
-                            py-3
-                          "
-                        >
-                          <div className="relative">
-                            <input
-                              type="date"
-                              value={row.expiry}
-                              readOnly
-                              tabIndex={-1}
-                              className="
-                                absolute
-                                inset-0
-                                z-10
-                                h-full
-                                w-full
-                                opacity-0
-                              "
-                            />
-
-                            <div
-                              className="
-                                flex
-                                min-h-[42px]
-                                w-full
-                                items-center
-                                justify-center
-                                rounded-lg
-                                border
-                                border-slate-300
-                                bg-slate-100
-                                p-2
-                                text-center
-                                font-bold
-                                text-slate-700
-                              "
-                            >
-                              <span>
-                                {formatThaiDate(
-                                  row.expiry
-                                )}
-                              </span>
-                            </div>
-                          </div>
                         </td>
                       </tr>
                     );
@@ -987,6 +1084,8 @@ export default function EditIssueForm({
                 shadow-lg
                 transition
                 hover:scale-[1.02]
+                hover:from-emerald-700
+                hover:to-green-600
                 sm:w-auto
                 sm:text-lg
               "
