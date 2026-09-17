@@ -66,26 +66,6 @@ export default function ExportPdf({
   rows,
 }: Props) {
   async function exportPdf() {
-    /* =====================================================
-       เปิดแท็บใหม่ก่อนสร้าง PDF
-       ===================================================== */
-
-    const previewWindow = window.open(
-      "",
-      "_blank"
-    );
-
-    if (!previewWindow) {
-      alert(
-        "ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
-      );
-      return;
-    }
-
-    /* =====================================================
-       สร้าง PDF
-       ===================================================== */
-
     const doc = new jsPDF({
       orientation: "landscape",
       unit: "mm",
@@ -390,41 +370,8 @@ export default function ExportPdf({
       }
     );
 
-    /* =====================================================
-       เปิด PDF Preview ในแท็บใหม่
-
-       เดิม:
-       doc.save(...)
-
-       ใหม่:
-       แสดง PDF ก่อน แล้วให้ผู้ใช้กด
-       Download / Print จาก Browser PDF Viewer เอง
-       ===================================================== */
-
-    const pdfBlob =
-      doc.output("blob");
-
-    const pdfUrl =
-      URL.createObjectURL(
-        pdfBlob
-      );
-
-    previewWindow.location.replace(
-      pdfUrl
-    );
-
-    /*
-     * ไม่ revoke ทันที
-     * เพราะ Browser PDF Viewer
-     * ยังต้องใช้ Blob URL
-     */
-    window.setTimeout(
-      () => {
-        URL.revokeObjectURL(
-          pdfUrl
-        );
-      },
-      5 * 60 * 1000
+    doc.save(
+      `${material.code}-stock-card.pdf`
     );
   }
 
