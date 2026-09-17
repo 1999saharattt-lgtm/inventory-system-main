@@ -34,11 +34,39 @@ type Props = {
 };
 
 type IssueRow = {
+  category: string;
   materialId: string;
   qty: string;
   remark: string;
   receiveItemId: string;
 };
+
+const categories = [
+  {
+    value: "OFFICE",
+    label: "วัสดุสำนักงาน",
+  },
+  {
+    value: "COMPUTER",
+    label: "วัสดุคอมพิวเตอร์",
+  },
+  {
+    value: "ELECTRIC",
+    label: "วัสดุไฟฟ้าและวิทยุ",
+  },
+  {
+    value: "HOUSEHOLD",
+    label: "วัสดุงานบ้านและงานครัว",
+  },
+  {
+    value: "VEHICLE",
+    label: "วัสดุยานพาหนะ",
+  },
+  {
+    value: "PRINTING",
+    label: "วัสดุสื่อสิ่งพิมพ์",
+  },
+];
 
 const statusName: Record<string, string> = {
   PENDING: "รอ Admin ตรวจสอบ",
@@ -77,7 +105,7 @@ const thaiMonths = [
 ];
 
 // =====================================================
-// แปลง Date / string เป็น YYYY-MM-DD
+// Date -> YYYY-MM-DD
 // =====================================================
 
 function toDateInputValue(
@@ -111,7 +139,7 @@ function toDateInputValue(
 }
 
 // =====================================================
-// แปลง YYYY-MM-DD เป็น วัน เดือน ปี พ.ศ.
+// YYYY-MM-DD -> วัน เดือน ปี พ.ศ.
 // =====================================================
 
 function formatThaiDate(
@@ -157,7 +185,7 @@ export default function EditIssueForm({
     issue.status === "PENDING";
 
   // =====================================================
-  // วันที่เบิกจ่าย
+  // วันที่เบิก
   // =====================================================
 
   const [issueDate, setIssueDate] =
@@ -176,6 +204,9 @@ export default function EditIssueForm({
       const rows: IssueRow[] =
         issue.items.map(
           (item: any) => ({
+            category:
+              item.material.category ?? "",
+
             materialId:
               String(
                 item.materialId
@@ -198,12 +229,9 @@ export default function EditIssueForm({
           })
         );
 
-      // =================================================
-      // คงจำนวนแถวไว้ 15 แถว
-      // =================================================
-
       while (rows.length < 15) {
         rows.push({
+          category: "",
           materialId: "",
           qty: "",
           remark: "",
@@ -240,19 +268,22 @@ export default function EditIssueForm({
           value;
 
         // ===============================================
-        // เปลี่ยนรายการพัสดุ
-        // ล้าง receiveItemId เดิม
-        // เพื่อไม่ให้ผูกกับล็อตเก่าผิดรายการ
+        // เปลี่ยนหมวดหมู่
+        // ล้างรายการเดิม
         // ===============================================
 
-        if (
-          key ===
-          "materialId"
-        ) {
-          copy[
-            index
-          ].receiveItemId =
-            "";
+        if (key === "category") {
+          copy[index].materialId = "";
+          copy[index].receiveItemId = "";
+        }
+
+        // ===============================================
+        // เปลี่ยนพัสดุ
+        // ล้างล็อตเดิม
+        // ===============================================
+
+        if (key === "materialId") {
+          copy[index].receiveItemId = "";
         }
 
         return copy;
@@ -261,7 +292,7 @@ export default function EditIssueForm({
   }
 
   // =====================================================
-  // Style Input ทั่วไป
+  // Input
   // =====================================================
 
   const inputClass = `
@@ -283,10 +314,6 @@ export default function EditIssueForm({
     disabled:text-slate-500
   `;
 
-  // =====================================================
-  // Style Input ในตาราง
-  // =====================================================
-
   const tableInputClass = `
     w-full
     rounded-lg
@@ -307,6 +334,37 @@ export default function EditIssueForm({
     disabled:text-slate-500
   `;
 
+  // =====================================================
+  // Header ตาราง
+  // =====================================================
+
+  const tableHeaderClass = `
+    border
+    border-black
+    bg-gradient-to-r
+    from-slate-800
+    to-slate-700
+    px-3
+    py-4
+    text-center
+    text-base
+    font-extrabold
+    !text-white
+  `;
+
+  // =====================================================
+  // Cell ตาราง
+  // =====================================================
+
+  const tableCellClass = `
+    border
+    border-black
+    bg-white
+    px-3
+    py-3
+    align-middle
+  `;
+
   return (
     <div
       className="
@@ -322,7 +380,7 @@ export default function EditIssueForm({
       "
     >
       {/* =====================================================
-          สถานะใบเบิก
+          สถานะ
       ===================================================== */}
 
       <div
@@ -385,7 +443,7 @@ export default function EditIssueForm({
       </div>
 
       {/* =====================================================
-          FORM
+          Form
       ===================================================== */}
 
       <form
@@ -459,9 +517,7 @@ export default function EditIssueForm({
               md:grid-cols-3
             "
           >
-            {/* ===============================================
-                วันที่เบิกจ่าย
-            =============================================== */}
+            {/* วันที่ */}
 
             <div>
               <label
@@ -481,20 +537,13 @@ export default function EditIssueForm({
                 <input
                   type="date"
                   name="issueDate"
-                  value={
-                    issueDate
-                  }
-                  onChange={(
-                    e
-                  ) =>
+                  value={issueDate}
+                  onChange={(e) =>
                     setIssueDate(
-                      e.target
-                        .value
+                      e.target.value
                     )
                   }
-                  disabled={
-                    !isPending
-                  }
+                  disabled={!isPending}
                   required
                   className="
                     absolute
@@ -542,9 +591,7 @@ export default function EditIssueForm({
               </div>
             </div>
 
-            {/* ===============================================
-                เลขที่เอกสาร
-            =============================================== */}
+            {/* เลขเอกสาร */}
 
             <div>
               <label
@@ -566,18 +613,14 @@ export default function EditIssueForm({
                 defaultValue={
                   issue.documentNo
                 }
-                disabled={
-                  !isPending
-                }
+                disabled={!isPending}
                 className={
                   inputClass
                 }
               />
             </div>
 
-            {/* ===============================================
-                หน่วยงาน
-            =============================================== */}
+            {/* หน่วยงาน */}
 
             <div>
               <label
@@ -598,17 +641,13 @@ export default function EditIssueForm({
                 defaultValue={
                   issue.departmentId
                 }
-                disabled={
-                  !isPending
-                }
+                disabled={!isPending}
                 className={
                   inputClass
                 }
               >
                 {departments.map(
-                  (
-                    department
-                  ) => (
+                  (department) => (
                     <option
                       key={
                         department.id
@@ -629,14 +668,14 @@ export default function EditIssueForm({
         </div>
 
         {/* =====================================================
-            ตารางรายการพัสดุ
+            ตาราง
 
-            โครงสร้างใหม่:
-            1. ลำดับ
-            2. รายการพัสดุ
-            3. จำนวนที่ขอเบิก
-            4. หน่วย
-            5. หมายเหตุ
+            ลำดับ
+            หมวดหมู่
+            รายการพัสดุ
+            จำนวนที่ขอเบิก
+            หน่วย
+            หมายเหตุ
         ===================================================== */}
 
         <div
@@ -646,7 +685,7 @@ export default function EditIssueForm({
             overflow-hidden
             rounded-2xl
             border
-            border-slate-300
+            border-black
             bg-white
             shadow-xl
           "
@@ -660,148 +699,112 @@ export default function EditIssueForm({
             <table
               className="
                 w-full
-                min-w-[900px]
+                min-w-[1100px]
                 table-fixed
                 border-collapse
               "
             >
-              {/* =================================================
-                  กำหนดความกว้างแต่ละคอลัมน์
-              ================================================= */}
+              {/* ===============================================
+                  ความกว้างคอลัมน์
+              =============================================== */}
 
               <colgroup>
                 <col
                   style={{
-                    width: "7%",
+                    width: "6%",
                   }}
                 />
 
                 <col
                   style={{
-                    width: "43%",
+                    width: "17%",
                   }}
                 />
 
                 <col
                   style={{
-                    width: "14%",
+                    width: "35%",
                   }}
                 />
 
                 <col
                   style={{
-                    width: "12%",
+                    width: "13%",
                   }}
                 />
 
                 <col
                   style={{
-                    width: "24%",
+                    width: "10%",
+                  }}
+                />
+
+                <col
+                  style={{
+                    width: "19%",
                   }}
                 />
               </colgroup>
 
-              {/* =================================================
-                  หัวตาราง
-              ================================================= */}
+              {/* ===============================================
+                  Header
+              =============================================== */}
 
               <thead>
                 <tr>
                   <th
-                    className="
-                      border
-                      border-slate-600
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-3
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                    "
+                    className={
+                      tableHeaderClass
+                    }
                   >
                     ลำดับ
                   </th>
 
                   <th
-                    className="
-                      border
-                      border-slate-600
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-3
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                    "
+                    className={
+                      tableHeaderClass
+                    }
+                  >
+                    หมวดหมู่
+                  </th>
+
+                  <th
+                    className={
+                      tableHeaderClass
+                    }
                   >
                     รายการพัสดุ
                   </th>
 
                   <th
-                    className="
-                      border
-                      border-slate-600
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-3
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                    "
+                    className={
+                      tableHeaderClass
+                    }
                   >
                     จำนวนที่ขอเบิก
                   </th>
 
                   <th
-                    className="
-                      border
-                      border-slate-600
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-3
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                    "
+                    className={
+                      tableHeaderClass
+                    }
                   >
                     หน่วย
                   </th>
 
                   <th
-                    className="
-                      border
-                      border-slate-600
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-3
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                    "
+                    className={
+                      tableHeaderClass
+                    }
                   >
                     หมายเหตุ
                   </th>
                 </tr>
               </thead>
 
-              {/* =================================================
-                  รายการ
-              ================================================= */}
+              {/* ===============================================
+                  Body
+              =============================================== */}
 
               <tbody>
                 {items.map(
@@ -809,6 +812,21 @@ export default function EditIssueForm({
                     row,
                     index
                   ) => {
+                    // =========================================
+                    // แสดงเฉพาะ Material ในหมวดที่เลือก
+                    // =========================================
+
+                    const filteredMaterials =
+                      row.category
+                        ? materials.filter(
+                            (
+                              material
+                            ) =>
+                              material.category ===
+                              row.category
+                          )
+                        : [];
+
                     const selectedMaterial =
                       materials.find(
                         (
@@ -822,48 +840,90 @@ export default function EditIssueForm({
 
                     return (
                       <tr
-                        key={
-                          index
-                        }
+                        key={index}
                         className="
                           text-slate-900
                           transition
                           hover:bg-emerald-50
                         "
                       >
-                        {/* =======================================
+                        {/* =====================================
                             ลำดับ
-                        ======================================= */}
+                        ===================================== */}
 
                         <td
-                          className="
-                            border
-                            border-slate-400
-                            bg-white
-                            px-3
-                            py-3
+                          className={`
+                            ${tableCellClass}
                             text-center
-                            align-middle
                             font-bold
-                          "
+                          `}
                         >
-                          {index +
-                            1}
+                          {index + 1}
                         </td>
 
-                        {/* =======================================
-                            รายการพัสดุ
-                        ======================================= */}
+                        {/* =====================================
+                            หมวดหมู่
+                        ===================================== */}
 
                         <td
-                          className="
-                            border
-                            border-slate-400
-                            bg-white
-                            px-3
-                            py-3
-                            align-middle
-                          "
+                          className={
+                            tableCellClass
+                          }
+                        >
+                          <select
+                            value={
+                              row.category
+                            }
+                            disabled={
+                              !isPending
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                index,
+                                "category",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className={
+                              tableInputClass
+                            }
+                          >
+                            <option value="">
+                              เลือกหมวดหมู่
+                            </option>
+
+                            {categories.map(
+                              (
+                                category
+                              ) => (
+                                <option
+                                  key={
+                                    category.value
+                                  }
+                                  value={
+                                    category.value
+                                  }
+                                >
+                                  {
+                                    category.label
+                                  }
+                                </option>
+                              )
+                            )}
+                          </select>
+                        </td>
+
+                        {/* =====================================
+                            รายการพัสดุ
+                        ===================================== */}
+
+                        <td
+                          className={
+                            tableCellClass
+                          }
                         >
                           <select
                             name={`items[${index}].materialId`}
@@ -871,7 +931,8 @@ export default function EditIssueForm({
                               row.materialId
                             }
                             disabled={
-                              !isPending
+                              !isPending ||
+                              !row.category
                             }
                             onChange={(
                               e
@@ -888,10 +949,12 @@ export default function EditIssueForm({
                             }
                           >
                             <option value="">
-                              เลือกรายการพัสดุ
+                              {row.category
+                                ? "เลือกรายการพัสดุ"
+                                : "เลือกหมวดหมู่ก่อน"}
                             </option>
 
-                            {materials.map(
+                            {filteredMaterials.map(
                               (
                                 material
                               ) => (
@@ -915,10 +978,6 @@ export default function EditIssueForm({
                             )}
                           </select>
 
-                          {/* =====================================
-                              receiveItemId เดิม
-                          ===================================== */}
-
                           <input
                             type="hidden"
                             name={`items[${index}].receiveItemId`}
@@ -928,19 +987,14 @@ export default function EditIssueForm({
                           />
                         </td>
 
-                        {/* =======================================
+                        {/* =====================================
                             จำนวนที่ขอเบิก
-                        ======================================= */}
+                        ===================================== */}
 
                         <td
-                          className="
-                            border
-                            border-slate-400
-                            bg-white
-                            px-3
-                            py-3
-                            align-middle
-                          "
+                          className={
+                            tableCellClass
+                          }
                         >
                           <input
                             type="number"
@@ -969,19 +1023,14 @@ export default function EditIssueForm({
                           />
                         </td>
 
-                        {/* =======================================
+                        {/* =====================================
                             หน่วย
-                        ======================================= */}
+                        ===================================== */}
 
                         <td
-                          className="
-                            border
-                            border-slate-400
-                            bg-white
-                            px-3
-                            py-3
-                            align-middle
-                          "
+                          className={
+                            tableCellClass
+                          }
                         >
                           <div
                             className="
@@ -994,7 +1043,7 @@ export default function EditIssueForm({
                               border
                               border-slate-300
                               bg-slate-50
-                              px-3
+                              px-2
                               py-2
                               text-center
                               font-bold
@@ -1006,19 +1055,14 @@ export default function EditIssueForm({
                           </div>
                         </td>
 
-                        {/* =======================================
+                        {/* =====================================
                             หมายเหตุ
-                        ======================================= */}
+                        ===================================== */}
 
                         <td
-                          className="
-                            border
-                            border-slate-400
-                            bg-white
-                            px-3
-                            py-3
-                            align-middle
-                          "
+                          className={
+                            tableCellClass
+                          }
                         >
                           <input
                             type="text"
