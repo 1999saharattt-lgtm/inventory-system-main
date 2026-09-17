@@ -12,133 +12,258 @@ type Props = {
   }>;
 };
 
+/* =========================================================
+   SOURCE ORDER
+
+   ใช้ลำดับเดียวกับหน้า /assets/[departmentId]/all
+
+   รูปแบบใน remark:
+   SOURCE:DEPARTMENT_1:1
+   SOURCE:DEPARTMENT_1:2
+   SOURCE:DEPARTMENT_1:3
+   ...
+
+   มี SourceOrder
+   → เรียงตาม SourceOrder
+
+   ไม่มี SourceOrder
+   → อยู่ท้ายรายการ
+   → เรียงตาม Asset.id
+   ========================================================= */
+
+function getSourceOrder(
+  remark: string | null
+): number | null {
+  if (!remark) {
+    return null;
+  }
+
+  const match = remark.match(
+    /SOURCE:DEPARTMENT_1:(\d+)/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const sourceOrder = Number(match[1]);
+
+  if (
+    !Number.isInteger(sourceOrder) ||
+    sourceOrder <= 0
+  ) {
+    return null;
+  }
+
+  return sourceOrder;
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
 export default async function AssetInspectionPage({
   params,
 }: Props) {
   const user = await requireLogin();
 
-  // =====================================================
-  // รับ departmentId
-  // =====================================================
+  /* =======================================================
+     รับ departmentId
+     ======================================================= */
 
   const { departmentId } = await params;
 
   const id = Number(departmentId);
 
-  if (!Number.isInteger(id) || id <= 0) {
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
     notFound();
   }
 
-  // =====================================================
-  // หน้านี้สำหรับ ADMIN เท่านั้น
-  // =====================================================
+  /* =======================================================
+     หน้านี้สำหรับ ADMIN เท่านั้น
+     ======================================================= */
 
   if (user.role !== "ADMIN") {
     notFound();
   }
 
-  // =====================================================
-  // ข้อมูลกลุ่มงาน
-  // =====================================================
+  /* =======================================================
+     ข้อมูลกลุ่มงาน
+     ======================================================= */
 
-  const department = await prisma.department.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
   if (!department) {
     notFound();
   }
 
-  // =====================================================
-  // ครุภัณฑ์ของกลุ่มงาน
-  // =====================================================
+  /* =======================================================
+     ครุภัณฑ์ของกลุ่มงาน
 
-  const assets = await prisma.asset.findMany({
-    where: {
-      departmentId: id,
-    },
-    orderBy: {
-      id: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      brand: true,
-      model: true,
-      serialNumber: true,
-      governmentAssetNo: true,
-      officeAssetNo: true,
-      departmentId: true,
-      sectionId: true,
-      officerId: true,
-      status: true,
-      purchaseDate: true,
-      price: true,
-      location: true,
-      remark: true,
-      section: {
-        select: {
-          id: true,
-          name: true,
+     สำคัญ:
+     ไม่ใช้ orderBy id
+
+     เพราะหน้า /assets/[departmentId]/all
+     ใช้ SourceOrder จาก remark เป็นลำดับหลัก
+
+     ดังนั้นหน้านี้ต้องดึง remark มาด้วย
+     แล้วค่อย sort หลัง Query
+     ======================================================= */
+
+  const assetsFromDatabase =
+    await prisma.asset.findMany({
+      where: {
+        departmentId: id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+        category: true,
+
+        brand: true,
+        model: true,
+        serialNumber: true,
+
+        governmentAssetNo: true,
+        officeAssetNo: true,
+
+        departmentId: true,
+        sectionId: true,
+        officerId: true,
+
+        status: true,
+
+        purchaseDate: true,
+        price: true,
+        location: true,
+
+        /*
+         * จำเป็นสำหรับ SourceOrder
+         */
+        remark: true,
+
+        section: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        officer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            position: true,
+          },
         },
       },
-      officer: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          position: true,
-        },
-      },
-    },
+    });
+
+  /* =======================================================
+     เรียงรายการเหมือน /assets/[departmentId]/all
+
+     1. มี SourceOrder ทั้งคู่
+        → เรียง SourceOrder จากน้อยไปมาก
+
+     2. A มี SourceOrder แต่ B ไม่มี
+        → A อยู่ก่อน
+
+     3. B มี SourceOrder แต่ A ไม่มี
+        → B อยู่ก่อน
+
+     4. ไม่มี SourceOrder ทั้งคู่
+        → เรียง Asset.id
+     ======================================================= */
+
+  const assets = [
+    ...assetsFromDatabase,
+  ].sort((a, b) => {
+    const orderA =
+      getSourceOrder(a.remark);
+
+    const orderB =
+      getSourceOrder(b.remark);
+
+    if (
+      orderA !== null &&
+      orderB !== null
+    ) {
+      return orderA - orderB;
+    }
+
+    if (orderA !== null) {
+      return -1;
+    }
+
+    if (orderB !== null) {
+      return 1;
+    }
+
+    return a.id - b.id;
   });
 
-  // =====================================================
-  // Officer
-  //
-  // สำคัญ:
-  // ดึง Officer จากทุกกลุ่ม
-  // ไม่กรองด้วย departmentId
-  // =====================================================
+  /* =======================================================
+     OFFICER
 
-  const officers = await prisma.officer.findMany({
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      position: true,
-      type: true,
-      departmentId: true,
-      sectionId: true,
-      department: {
-        select: {
-          id: true,
-          name: true,
+     สำคัญ:
+     ดึง Officer จากทุกกลุ่ม
+     ไม่กรองด้วย departmentId
+     ======================================================= */
+
+  const officers =
+    await prisma.officer.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        position: true,
+        type: true,
+        departmentId: true,
+        sectionId: true,
+
+        department: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        section: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-      section: {
-        select: {
-          id: true,
-          name: true,
+
+      orderBy: [
+        {
+          firstName: "asc",
         },
-      },
-    },
-    orderBy: [
-      {
-        firstName: "asc",
-      },
-      {
-        lastName: "asc",
-      },
-    ],
-  });
+        {
+          lastName: "asc",
+        },
+      ],
+    });
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
 
   return (
     <div
@@ -150,9 +275,9 @@ export default async function AssetInspectionPage({
         sm:space-y-6
       "
     >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+      {/* ===================================================
+          HEADER
+          =================================================== */}
 
       <div
         className="
@@ -236,12 +361,19 @@ export default async function AssetInspectionPage({
         </Link>
       </div>
 
-      {/* =====================================================
-          Form
-          
-          เอาการ์ดสีขาวด้านนอกออก
-          เพื่อให้ InspectionForm ใช้พื้นที่เต็มความกว้าง
-      ===================================================== */}
+      {/* ===================================================
+          FORM
+
+          assets ที่ส่งเข้า InspectionForm
+          ถูกเรียงตาม SourceOrder แล้ว
+
+          ดังนั้น:
+          - ตารางตรวจสอบ
+          - index
+          - ข้อมูลที่ส่งต่อไป PDF
+
+          จะได้รับลำดับเดียวกับหน้า /all
+          =================================================== */}
 
       <InspectionForm
         department={department}

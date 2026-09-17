@@ -283,6 +283,20 @@ export default function ExportInspectionPdf({
     )
   );
 
+  /* =======================================================
+     PDF PREVIEW
+
+     เดิม:
+     pdf.save() -> ดาวน์โหลดทันที
+
+     ใหม่:
+     1. เปิดแท็บใหม่ทันทีจาก click
+     2. สร้าง PDF
+     3. สร้าง Blob URL
+     4. เปิด PDF ใน Browser PDF Viewer
+     5. ผู้ใช้เลือก Download / Print เอง
+     ======================================================= */
+
   async function handleExportPdf() {
     if (!pdfRef.current) {
       return;
@@ -295,13 +309,143 @@ export default function ExportInspectionPdf({
       return;
     }
 
+    /*
+     * เปิดแท็บใหม่ทันทีจาก user click
+     *
+     * สำคัญ:
+     * ต้องเปิดก่อน await html2canvas
+     * เพื่อป้องกัน Browser มองว่าเป็น Popup
+     * ที่ไม่ได้เกิดจากการคลิกของผู้ใช้
+     */
+    const previewWindow =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (!previewWindow) {
+      alert(
+        "ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
+      );
+      return;
+    }
+
+    /*
+     * แสดงหน้ารอระหว่างสร้าง PDF
+     */
+    previewWindow.document.open();
+
+    previewWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="th">
+        <head>
+          <meta charset="UTF-8" />
+
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+          />
+
+          <title>กำลังสร้าง PDF...</title>
+
+          <style>
+            * {
+              box-sizing: border-box;
+            }
+
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+            }
+
+            body {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #f8fafc;
+              font-family:
+                "Sarabun",
+                Arial,
+                sans-serif;
+              color: #0f172a;
+            }
+
+            .loading-card {
+              width: min(
+                90%,
+                420px
+              );
+              padding: 32px;
+              border: 1px solid #cbd5e1;
+              border-radius: 20px;
+              background: #ffffff;
+              text-align: center;
+              box-shadow:
+                0 20px 40px
+                rgba(
+                  15,
+                  23,
+                  42,
+                  0.12
+                );
+            }
+
+            .icon {
+              margin-bottom: 16px;
+              font-size: 42px;
+            }
+
+            h2 {
+              margin: 0;
+              font-size: 22px;
+              font-weight: 800;
+            }
+
+            p {
+              margin:
+                10px 0 0;
+              color: #64748b;
+              font-size: 15px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="loading-card">
+            <div class="icon">
+              📄
+            </div>
+
+            <h2>
+              กำลังสร้าง PDF
+            </h2>
+
+            <p>
+              กรุณารอสักครู่...
+            </p>
+          </div>
+        </body>
+      </html>
+    `);
+
+    previewWindow.document.close();
+
     try {
       setIsExporting(true);
 
+      /*
+       * รอ Font โหลดให้ครบ
+       */
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
+      /*
+       * รอ Browser render DOM ให้เรียบร้อย
+       */
       await new Promise<void>(
         (resolve) => {
           requestAnimationFrame(
@@ -320,9 +464,13 @@ export default function ExportInspectionPdf({
         );
 
       if (pages.length === 0) {
+        previewWindow.close();
         return;
       }
 
+      /*
+       * สร้าง A4 แนวนอน
+       */
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "mm",
@@ -330,6 +478,10 @@ export default function ExportInspectionPdf({
         compress: true,
       });
 
+      /*
+       * แปลงแต่ละหน้า HTML เป็นรูป
+       * แล้วใส่ลง PDF
+       */
       for (
         let i = 0;
         i < pages.length;
@@ -374,6 +526,9 @@ export default function ExportInspectionPdf({
         );
       }
 
+      /*
+       * ชื่อไฟล์
+       */
       const safeDepartmentName =
         department.name
           .replace(
@@ -382,14 +537,83 @@ export default function ExportInspectionPdf({
           )
           .trim();
 
-      pdf.save(
-        `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`
+      const fileName =
+        `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`;
+
+      /*
+       * ไม่ใช้:
+       *
+       * pdf.save(...)
+       *
+       * เพราะจะ Download ทันที
+       */
+
+      const pdfBlob =
+        pdf.output("blob");
+
+      /*
+       * สร้าง URL ชั่วคราว
+       * สำหรับ PDF Viewer
+       */
+      const pdfUrl =
+        URL.createObjectURL(
+          pdfBlob
+        );
+
+      /*
+       * ตั้งชื่อแท็บก่อนเปลี่ยนไป PDF
+       *
+       * Browser PDF Viewer บางตัวอาจแสดง
+       * blob URL เป็นชื่อเอกสารแทน
+       * แต่ไม่กระทบการ Preview
+       */
+      try {
+        previewWindow.document.title =
+          fileName;
+      } catch {
+        // ไม่ต้องทำอะไร
+      }
+
+      /*
+       * เปิด PDF ในแท็บที่สร้างไว้
+       *
+       * Chrome / Edge / Browser ที่รองรับ PDF
+       * จะแสดง PDF Viewer โดยอัตโนมัติ
+       */
+      previewWindow.location.replace(
+        pdfUrl
+      );
+
+      /*
+       * อย่า revoke ทันที
+       *
+       * Browser PDF Viewer ยังต้องใช้ Blob URL
+       * สำหรับอ่านเอกสาร
+       */
+      window.setTimeout(
+        () => {
+          URL.revokeObjectURL(
+            pdfUrl
+          );
+        },
+        5 * 60 * 1000
       );
     } catch (error) {
       console.error(
         "ไม่สามารถสร้าง PDF ได้:",
         error
       );
+
+      /*
+       * ปิดแท็บ Preview
+       * หากสร้าง PDF ไม่สำเร็จ
+       */
+      if (
+        previewWindow &&
+        !previewWindow.closed
+      ) {
+        previewWindow.close();
+      }
 
       alert(
         "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
@@ -432,6 +656,13 @@ export default function ExportInspectionPdf({
           ? "กำลังสร้าง PDF..."
           : "📄 ส่งออก PDF"}
       </button>
+
+      {/* ===================================================
+          DOM สำหรับสร้าง PDF
+
+          ซ่อนไว้นอกหน้าจอ
+          html2canvas จะนำ DOM ส่วนนี้ไปสร้าง PDF
+          =================================================== */}
 
       <div
         ref={pdfRef}
@@ -488,7 +719,7 @@ export default function ExportInspectionPdf({
               >
                 {/* ==============================
                     หัวเอกสาร
-                ============================== */}
+                    ============================== */}
 
                 <div
                   style={{
@@ -540,7 +771,7 @@ export default function ExportInspectionPdf({
 
                 {/* ==============================
                     ตาราง
-                ============================== */}
+                    ============================== */}
 
                 <table
                   style={{
@@ -565,96 +796,24 @@ export default function ExportInspectionPdf({
                   }}
                 >
                   <colgroup>
-                    <col
-                      style={{
-                        width: "2.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "6.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "8%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "9%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "12%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "3.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "6.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "4%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "4%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "7.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "4.75%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "4.75%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "3.75%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "3.5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "4%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "5%",
-                      }}
-                    />
-                    <col
-                      style={{
-                        width: "5.75%",
-                      }}
-                    />
+                    <col style={{ width: "2.5%" }} />
+                    <col style={{ width: "6.5%" }} />
+                    <col style={{ width: "8%" }} />
+                    <col style={{ width: "9%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "6.5%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "7.5%" }} />
+                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "4.75%" }} />
+                    <col style={{ width: "4.75%" }} />
+                    <col style={{ width: "3.75%" }} />
+                    <col style={{ width: "3.5%" }} />
+                    <col style={{ width: "4%" }} />
+                    <col style={{ width: "5%" }} />
+                    <col style={{ width: "5.75%" }} />
                   </colgroup>
 
                   <thead>
@@ -1088,8 +1247,6 @@ export default function ExportInspectionPdf({
                                 "7.6mm",
                             }}
                           >
-                            {/* ลำดับ */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1104,8 +1261,6 @@ export default function ExportInspectionPdf({
                                   1}
                               </span>
                             </td>
-
-                            {/* GFMIS */}
 
                             <td
                               style={
@@ -1122,8 +1277,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* รหัสครุภัณฑ์ */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1139,11 +1292,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ==============================
-                                ผู้รับผิดชอบ
-                                ข้อมูลชิดซ้าย
-                            ============================== */}
-
                             <td
                               style={{
                                 ...bodyCellStyle,
@@ -1154,19 +1302,14 @@ export default function ExportInspectionPdf({
                               <span
                                 style={{
                                   ...bodyTextStyle,
-
                                   textAlign:
                                     "left",
-
                                   justifyContent:
                                     "flex-start",
-
                                   paddingLeft:
                                     "0.8mm",
-
                                   paddingRight:
                                     "0.4mm",
-
                                   fontSize:
                                     getCompactFontSize(
                                       responsibleName,
@@ -1181,8 +1324,6 @@ export default function ExportInspectionPdf({
                                 }
                               </span>
                             </td>
-
-                            {/* รายการ */}
 
                             <td
                               style={{
@@ -1210,8 +1351,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* หน่วย */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1228,8 +1367,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ยอดต้นงวด */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1243,8 +1380,6 @@ export default function ExportInspectionPdf({
                                 1
                               </span>
                             </td>
-
-                            {/* รับ */}
 
                             <td
                               style={
@@ -1260,8 +1395,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* จ่าย */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1276,8 +1409,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ยอดปลายงวด */}
-
                             <td
                               style={
                                 bodyCellStyle
@@ -1291,8 +1422,6 @@ export default function ExportInspectionPdf({
                                 1
                               </span>
                             </td>
-
-                            {/* ตรวจนับ */}
 
                             <td
                               style={
@@ -1309,8 +1438,6 @@ export default function ExportInspectionPdf({
                                 }
                               </span>
                             </td>
-
-                            {/* ถูกต้อง */}
 
                             <td
                               style={
@@ -1329,8 +1456,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ไม่ถูกต้อง */}
-
                             <td
                               style={
                                 checkCellStyle
@@ -1347,8 +1472,6 @@ export default function ExportInspectionPdf({
                                 )}
                               </span>
                             </td>
-
-                            {/* ใช้งานปกติ */}
 
                             <td
                               style={
@@ -1367,8 +1490,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ชำรุด */}
-
                             <td
                               style={
                                 checkCellStyle
@@ -1385,8 +1506,6 @@ export default function ExportInspectionPdf({
                                 )}
                               </span>
                             </td>
-
-                            {/* เสื่อมสภาพ */}
 
                             <td
                               style={
@@ -1405,8 +1524,6 @@ export default function ExportInspectionPdf({
                               </span>
                             </td>
 
-                            {/* ไม่จำเป็นต้องใช้ */}
-
                             <td
                               style={
                                 checkCellStyle
@@ -1423,8 +1540,6 @@ export default function ExportInspectionPdf({
                                 )}
                               </span>
                             </td>
-
-                            {/* หมายเหตุ */}
 
                             <td
                               style={
@@ -1444,8 +1559,6 @@ export default function ExportInspectionPdf({
                         );
                       }
                     )}
-
-                    {/* แถวว่าง */}
 
                     {Array.from(
                       {
@@ -1493,7 +1606,7 @@ export default function ExportInspectionPdf({
 
                 {/* ==============================
                     ผู้ตรวจสอบ
-                ============================== */}
+                    ============================== */}
 
                 <div
                   style={{
@@ -1605,8 +1718,8 @@ export default function ExportInspectionPdf({
 }
 
 /* =========================================================
-   Styles
-========================================================= */
+   STYLES
+   ========================================================= */
 
 const mainTitleStyle: React.CSSProperties =
   {

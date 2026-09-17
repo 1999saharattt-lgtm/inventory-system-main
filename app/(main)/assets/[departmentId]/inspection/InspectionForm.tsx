@@ -900,14 +900,14 @@ export default function InspectionForm({
                   rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
-                  รายการ
+                  รายการครุภัณฑ์
                 </th>
 
                 <th
                   rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
-                  หน่วยนับ
+                  หน่วย
                 </th>
 
                 <th
