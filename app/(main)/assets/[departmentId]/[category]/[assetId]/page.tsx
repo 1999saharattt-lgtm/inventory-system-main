@@ -126,21 +126,13 @@ function formatThaiDate(
 
   const parsedDate = new Date(date);
 
-  if (
-    Number.isNaN(
-      parsedDate.getTime()
-    )
-  ) {
+  if (Number.isNaN(parsedDate.getTime())) {
     return "-";
   }
 
   return `${parsedDate.getDate()} ${
-    thaiMonths[
-      parsedDate.getMonth()
-    ]
-  } ${
-    parsedDate.getFullYear() + 543
-  }`;
+    thaiMonths[parsedDate.getMonth()]
+  } ${parsedDate.getFullYear() + 543}`;
 }
 
 /* =========================================================
@@ -154,10 +146,7 @@ function formatQuarter(
     return "-";
   }
 
-  const quarterMap: Record<
-    string,
-    string
-  > = {
+  const quarterMap: Record<string, string> = {
     Q1: "ไตรมาสที่ 1",
     Q2: "ไตรมาสที่ 2",
     Q3: "ไตรมาสที่ 3",
@@ -169,10 +158,7 @@ function formatQuarter(
     "4": "ไตรมาสที่ 4",
   };
 
-  return (
-    quarterMap[quarter] ??
-    quarter
-  );
+  return quarterMap[quarter] ?? quarter;
 }
 
 /* =========================================================
@@ -202,13 +188,9 @@ export default async function AssetDetailPage({
     category.toUpperCase();
 
   if (
-    !Number.isInteger(
-      departmentIdNumber
-    ) ||
+    !Number.isInteger(departmentIdNumber) ||
     departmentIdNumber <= 0 ||
-    !Number.isInteger(
-      assetIdNumber
-    ) ||
+    !Number.isInteger(assetIdNumber) ||
     assetIdNumber <= 0 ||
     !validCategories.includes(
       normalizedCategory as AssetCategoryValue
@@ -222,24 +204,14 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      ASSET
-
-     responsibleName
-     = ข้อมูลเดิมจาก Excel / ทะเบียนเดิม
-
-     officer
-     = ผู้ครอบครองที่เลือกจากระบบ
-
-     ทั้งสองข้อมูลแยกจากกัน
      ======================================================= */
 
   const asset =
     await prisma.asset.findFirst({
       where: {
         id: assetIdNumber,
-
         departmentId:
           departmentIdNumber,
-
         category:
           assetCategory,
       },
@@ -251,8 +223,7 @@ export default async function AssetDetailPage({
 
         inspections: {
           orderBy: {
-            inspectionDate:
-              "desc",
+            inspectionDate: "desc",
           },
 
           take: 4,
@@ -272,12 +243,8 @@ export default async function AssetDetailPage({
     asset.inspections[0] ?? null;
 
   /* =======================================================
-     RESPONSIBLE DATA
+     OFFICER DATA
      ======================================================= */
-
-  const responsibleName =
-    asset.responsibleName?.trim() ||
-    "-";
 
   const officerFullName =
     asset.officer
@@ -290,8 +257,6 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      ROUTES
-
-     ใช้ค่าที่ผ่านการตรวจสอบแล้ว
      ======================================================= */
 
   const assetBasePath =
@@ -525,16 +490,13 @@ export default async function AssetDetailPage({
                 text-sm
                 font-extrabold
                 ${
-                  statusClass[
-                    asset.status
-                  ] ??
+                  statusClass[asset.status] ??
                   "border-slate-300 bg-slate-100 text-slate-700"
                 }
               `}
             >
-              {statusName[
-                asset.status
-              ] ?? asset.status}
+              {statusName[asset.status] ??
+                asset.status}
             </span>
           </div>
         </div>
@@ -740,8 +702,7 @@ export default async function AssetDetailPage({
                   text-slate-900
                 "
               >
-                {asset.serialNumber ??
-                  "-"}
+                {asset.serialNumber ?? "-"}
               </p>
             </div>
           </div>
@@ -864,8 +825,7 @@ export default async function AssetDetailPage({
                   text-slate-900
                 "
               >
-                {asset.officeAssetNo ??
-                  "-"}
+                {asset.officeAssetNo ?? "-"}
               </p>
             </div>
           </div>
@@ -874,12 +834,6 @@ export default async function AssetDetailPage({
 
       {/* ===================================================
           หน่วยงานและผู้รับผิดชอบ
-
-          responsibleName
-          = ข้อมูลเดิมจาก Excel
-
-          officer
-          = ผู้ครอบครองที่เลือกในระบบ
           =================================================== */}
 
       <div
@@ -922,6 +876,7 @@ export default async function AssetDetailPage({
           className="
             mt-4
             grid
+            items-start
             gap-4
             sm:grid-cols-2
           "
@@ -955,7 +910,9 @@ export default async function AssetDetailPage({
                 shadow-md
               "
             >
-              {asset.department.name}
+              <p className="break-words">
+                {asset.department.name}
+              </p>
             </div>
           </div>
 
@@ -988,62 +945,13 @@ export default async function AssetDetailPage({
                 shadow-md
               "
             >
-              {asset.section?.name ??
-                "-"}
-            </div>
-          </div>
-
-          {/* ===============================================
-              responsibleName เดิมจาก Excel
-
-              แสดงแยกจาก Officer
-              =============================================== */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              ผู้รับผิดชอบเดิม / ตำแหน่งจัดเก็บ
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-slate-100
-                px-4
-                py-3
-                font-extrabold
-                text-slate-900
-                shadow-md
-              "
-            >
               <p className="break-words">
-                {responsibleName}
+                {asset.section?.name ?? "-"}
               </p>
             </div>
-
-            <p
-              className="
-                mt-2
-                text-sm
-                font-semibold
-                !text-slate-400
-              "
-            >
-              ข้อมูลเดิมจากทะเบียน/Excel
-            </p>
           </div>
 
-          {/* ผู้ครอบครองในระบบ */}
+          {/* ผู้ครอบครอง */}
 
           <div className="min-w-0">
             <p
@@ -1089,9 +997,9 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
-          {/* ตำแหน่ง Officer */}
+          {/* ตำแหน่ง */}
 
-          <div className="min-w-0 sm:col-start-2">
+          <div className="min-w-0">
             <p
               className="
                 text-sm
@@ -1139,7 +1047,7 @@ export default async function AssetDetailPage({
         {/* หมายเหตุ */}
 
         {asset.remark && (
-          <div className="mt-4">
+          <div className="mt-6">
             <p
               className="
                 text-sm
@@ -1265,7 +1173,7 @@ export default async function AssetDetailPage({
                 lg:grid-cols-4
               "
             >
-              {/* รอบ */}
+              {/* รอบการตรวจสอบ */}
 
               <div className="min-w-0">
                 <p
@@ -1304,9 +1212,7 @@ export default async function AssetDetailPage({
                     "
                   >
                     ปี{" "}
-                    {
-                      latestInspection.year
-                    }{" "}
+                    {latestInspection.year}{" "}
                     /{" "}
                     {formatQuarter(
                       latestInspection.quarter
@@ -1315,7 +1221,7 @@ export default async function AssetDetailPage({
                 </div>
               </div>
 
-              {/* วันที่ */}
+              {/* วันที่ตรวจสอบ */}
 
               <div className="min-w-0">
                 <p
@@ -1360,7 +1266,7 @@ export default async function AssetDetailPage({
                 </div>
               </div>
 
-              {/* ผล */}
+              {/* ผลการตรวจสอบ */}
 
               <div className="min-w-0">
                 <p
@@ -1416,7 +1322,7 @@ export default async function AssetDetailPage({
                 </div>
               </div>
 
-              {/* ผู้ตรวจ */}
+              {/* ผู้ตรวจครุภัณฑ์ */}
 
               <div className="min-w-0">
                 <p
@@ -1460,7 +1366,7 @@ export default async function AssetDetailPage({
                 </div>
               </div>
 
-              {/* สภาพ */}
+              {/* สภาพครุภัณฑ์ */}
 
               {latestInspection.condition && (
                 <div
@@ -1505,9 +1411,7 @@ export default async function AssetDetailPage({
                         text-slate-900
                       "
                     >
-                      {
-                        latestInspection.condition
-                      }
+                      {latestInspection.condition}
                     </p>
                   </div>
                 </div>
@@ -1559,9 +1463,7 @@ export default async function AssetDetailPage({
                         text-slate-900
                       "
                     >
-                      {
-                        latestInspection.remark
-                      }
+                      {latestInspection.remark}
                     </p>
                   </div>
                 </div>
@@ -1603,14 +1505,16 @@ export default async function AssetDetailPage({
           sm:justify-end
         "
       >
+        {/* บันทึกผลการตรวจ - สีเขียว */}
+
         <Link
           href={`${assetBasePath}/inspection/new`}
           className="
             w-full
             rounded-xl
             bg-gradient-to-r
-            from-blue-600
-            to-blue-500
+            from-emerald-600
+            to-green-500
             px-6
             py-3
             text-center
@@ -1619,13 +1523,16 @@ export default async function AssetDetailPage({
             shadow-lg
             transition
             hover:scale-[1.02]
-            hover:from-blue-700
-            hover:to-blue-600
+            hover:from-emerald-700
+            hover:to-green-600
+            active:scale-[0.98]
             sm:w-auto
           "
         >
           🔍 บันทึกผลการตรวจ
         </Link>
+
+        {/* การจำหน่าย - สีแดง */}
 
         <Link
           href={`${assetBasePath}/disposal`}
@@ -1633,8 +1540,8 @@ export default async function AssetDetailPage({
             w-full
             rounded-xl
             bg-gradient-to-r
-            from-amber-600
-            to-orange-500
+            from-red-600
+            to-red-500
             px-6
             py-3
             text-center
@@ -1643,8 +1550,9 @@ export default async function AssetDetailPage({
             shadow-lg
             transition
             hover:scale-[1.02]
-            hover:from-amber-700
-            hover:to-amber-600
+            hover:from-red-700
+            hover:to-red-600
+            active:scale-[0.98]
             sm:w-auto
           "
         >
