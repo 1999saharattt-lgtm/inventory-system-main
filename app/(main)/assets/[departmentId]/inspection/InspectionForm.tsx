@@ -1790,7 +1790,7 @@ export default function InspectionForm({
             <div
               className="
                 relative
-                h-[54px]
+                h-[50px]
                 min-w-full
                 border-b
                 border-slate-300
@@ -1813,23 +1813,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .correct.left,
+                        .correct.left + 2,
                     width:
-                      quickActionPositions
-                        .correct.width,
+                      Math.max(
+                        quickActionPositions
+                          .correct.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-emerald-600
                     to-green-500
                     px-1
-                    text-[11px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -1852,23 +1861,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .incorrect.left,
+                        .incorrect.left + 2,
                     width:
-                      quickActionPositions
-                        .incorrect.width,
+                      Math.max(
+                        quickActionPositions
+                          .incorrect.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-red-700
                     to-red-500
                     px-1
-                    text-[11px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -1891,23 +1909,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .inUse.left,
+                        .inUse.left + 2,
                     width:
-                      quickActionPositions
-                        .inUse.width,
+                      Math.max(
+                        quickActionPositions
+                          .inUse.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-emerald-600
                     to-green-500
                     px-1
-                    text-[11px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -1930,23 +1957,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .damaged.left,
+                        .damaged.left + 2,
                     width:
-                      quickActionPositions
-                        .damaged.width,
+                      Math.max(
+                        quickActionPositions
+                          .damaged.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-orange-600
                     to-orange-500
                     px-1
-                    text-[11px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -1969,23 +2005,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .deteriorated.left,
+                        .deteriorated.left + 2,
                     width:
-                      quickActionPositions
-                        .deteriorated.width,
+                      Math.max(
+                        quickActionPositions
+                          .deteriorated.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-amber-600
                     to-yellow-500
                     px-1
-                    text-[11px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -2008,23 +2053,32 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .unusable.left,
+                        .unusable.left + 2,
                     width:
-                      quickActionPositions
-                        .unusable.width,
+                      Math.max(
+                        quickActionPositions
+                          .unusable.width - 4,
+                        0
+                      ),
                   }}
                   className="
                     absolute
                     top-2
-                    h-[38px]
-                    whitespace-nowrap
+                    flex
+                    h-[34px]
+                    items-center
+                    justify-center
+                    overflow-hidden
                     rounded-lg
                     bg-gradient-to-r
                     from-red-700
                     to-red-500
                     px-1
-                    text-[10px]
+                    text-center
+                    text-[9px]
                     font-extrabold
+                    leading-[1.05]
+                    whitespace-normal
                     !text-white
                     shadow
                     transition
@@ -2191,12 +2245,6 @@ export default function InspectionForm({
                   ref={correctHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
-                  >
-                    ✓ ถูกต้องทั้งหมด
-                  </span>
 
                   ถูกต้อง
                 </th>
@@ -2205,12 +2253,6 @@ export default function InspectionForm({
                   ref={incorrectHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
-                  >
-                    ✕ ไม่ถูกต้องทั้งหมด
-                  </span>
 
                   ไม่ถูกต้อง
                 </th>
@@ -2219,12 +2261,6 @@ export default function InspectionForm({
                   ref={inUseHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
-                  >
-                    ✓ ใช้งานปกติทั้งหมด
-                  </span>
 
                   ใช้งานปกติ
                 </th>
@@ -2233,12 +2269,6 @@ export default function InspectionForm({
                   ref={damagedHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
-                  >
-                    ชำรุดทั้งหมด
-                  </span>
 
                   ชำรุด
                 </th>
@@ -2247,12 +2277,6 @@ export default function InspectionForm({
                   ref={deterioratedHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
-                  >
-                    เสื่อมสภาพทั้งหมด
-                  </span>
 
                   เสื่อมสภาพ
                 </th>
@@ -2261,12 +2285,6 @@ export default function InspectionForm({
                   ref={unusableHeaderRef}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[10px] font-extrabold"
-                  >
-                    ไม่จำเป็นต้องใช้ทั้งหมด
-                  </span>
 
                   ไม่จำเป็นต้องใช้
                 </th>

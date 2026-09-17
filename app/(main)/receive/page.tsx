@@ -38,7 +38,10 @@ export default async function ReceivePage({
   let startDate: Date | undefined;
   let endDate: Date | undefined;
 
+  // =====================================================
   // รับเข้าวันนี้
+  // =====================================================
+
   if (params.date === "today") {
     startDate = new Date(
       now.getFullYear(),
@@ -61,7 +64,10 @@ export default async function ReceivePage({
     );
   }
 
+  // =====================================================
   // รับเข้าประจำเดือน
+  // =====================================================
+
   if (params.period === "month") {
     startDate = new Date(
       now.getFullYear(),
@@ -83,6 +89,10 @@ export default async function ReceivePage({
       0
     );
   }
+
+  // =====================================================
+  // ดึงรายการรับเข้า
+  // =====================================================
 
   const receives = await prisma.receive.findMany({
     where:
@@ -106,9 +116,17 @@ export default async function ReceivePage({
   });
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-4
+        overflow-x-hidden
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
       <div
@@ -134,6 +152,10 @@ export default async function ReceivePage({
           sm:py-6
         "
       >
+        {/* =================================================
+            ชื่อหน้า
+        ================================================= */}
+
         <div className="min-w-0">
           <h1
             className="
@@ -164,41 +186,88 @@ export default async function ReceivePage({
         </div>
 
         {/* =================================================
-            ปุ่มกลับหน้าแรก
+            ปุ่มด้านขวา
         ================================================= */}
 
-        <Link
-          href="/"
+        <div
           className="
+            flex
             shrink-0
-            whitespace-nowrap
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            leading-tight
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-lg
+            items-center
+            gap-2
+            sm:gap-3
           "
         >
-          ← กลับ
-        </Link>
+          {/* ===============================================
+              เพิ่มรายการ
+          =============================================== */}
+
+          <Link
+            href="/receive/new"
+            className="
+              shrink-0
+              whitespace-nowrap
+              rounded-xl
+              bg-gradient-to-r
+              from-blue-600
+              to-blue-500
+              px-3
+              py-2
+              text-center
+              text-sm
+              font-extrabold
+              leading-tight
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              hover:from-blue-700
+              hover:to-blue-600
+              sm:px-5
+              sm:py-3
+              sm:text-lg
+            "
+          >
+            + เพิ่มรายการ
+          </Link>
+
+          {/* ===============================================
+              กลับหน้าแรก
+          =============================================== */}
+
+          <Link
+            href="/"
+            className="
+              shrink-0
+              whitespace-nowrap
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-3
+              py-2
+              text-center
+              text-sm
+              font-extrabold
+              leading-tight
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              hover:from-emerald-700
+              hover:to-green-600
+              sm:px-5
+              sm:py-3
+              sm:text-lg
+            "
+          >
+            ← กลับ
+          </Link>
+        </div>
       </div>
 
       {/* =====================================================
-          Table
+          TABLE
       ===================================================== */}
 
       <div
@@ -213,7 +282,13 @@ export default async function ReceivePage({
           shadow-lg
         "
       >
-        <div className="w-full min-w-0 overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+          "
+        >
           <table
             className="
               w-full
@@ -223,6 +298,10 @@ export default async function ReceivePage({
               border-black
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr
                 className="
@@ -266,10 +345,17 @@ export default async function ReceivePage({
               </tr>
             </thead>
 
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
             <tbody className="text-slate-900">
               {receives.length > 0 ? (
                 receives.map(
-                  (receive: Receive, index: number) => (
+                  (
+                    receive: Receive,
+                    index: number
+                  ) => (
                     <tr
                       key={receive.id}
                       className="
@@ -278,7 +364,9 @@ export default async function ReceivePage({
                         hover:bg-emerald-50
                       "
                     >
-                      {/* ลำดับ */}
+                      {/* =======================================
+                          ลำดับ
+                      ======================================= */}
 
                       <td
                         className="
@@ -295,7 +383,9 @@ export default async function ReceivePage({
                         {index + 1}
                       </td>
 
-                      {/* วันที่รับเข้า */}
+                      {/* =======================================
+                          วันที่รับเข้า
+                      ======================================= */}
 
                       <td
                         className="
@@ -310,10 +400,14 @@ export default async function ReceivePage({
                       >
                         {new Date(
                           receive.receiveDate
-                        ).toLocaleDateString("th-TH")}
+                        ).toLocaleDateString(
+                          "th-TH"
+                        )}
                       </td>
 
-                      {/* เลขที่เอกสาร */}
+                      {/* =======================================
+                          เลขที่เอกสาร
+                      ======================================= */}
 
                       <td
                         className="
@@ -329,7 +423,9 @@ export default async function ReceivePage({
                         {receive.documentNo}
                       </td>
 
-                      {/* ผู้จำหน่าย */}
+                      {/* =======================================
+                          ผู้จำหน่าย
+                      ======================================= */}
 
                       <td
                         className="
@@ -343,7 +439,9 @@ export default async function ReceivePage({
                         {receive.vendor.name}
                       </td>
 
-                      {/* รายละเอียด */}
+                      {/* =======================================
+                          รายละเอียด
+                      ======================================= */}
 
                       <td
                         className="
@@ -366,7 +464,7 @@ export default async function ReceivePage({
                             py-2
                             text-sm
                             font-extrabold
-                            text-white
+                            !text-white
                             shadow
                             transition
                             hover:bg-slate-700
@@ -378,7 +476,9 @@ export default async function ReceivePage({
                         </Link>
                       </td>
 
-                      {/* หมายเหตุ */}
+                      {/* =======================================
+                          หมายเหตุ
+                      ======================================= */}
 
                       <td
                         className="
@@ -393,7 +493,9 @@ export default async function ReceivePage({
                         {receive.remark ?? "-"}
                       </td>
 
-                      {/* จัดการ */}
+                      {/* =======================================
+                          จัดการ
+                      ======================================= */}
 
                       <td
                         className="
@@ -408,10 +510,15 @@ export default async function ReceivePage({
                         <div
                           className="
                             flex
+                            items-center
                             justify-center
                             gap-2
                           "
                         >
+                          {/* =================================
+                              แก้ไข
+                          ================================= */}
+
                           <Link
                             href={`/receive/${receive.id}/edit`}
                             className="
@@ -421,7 +528,7 @@ export default async function ReceivePage({
                               py-2
                               text-sm
                               font-extrabold
-                              text-white
+                              !text-white
                               shadow
                               transition
                               hover:bg-slate-700
@@ -432,13 +539,23 @@ export default async function ReceivePage({
                             แก้ไข
                           </Link>
 
-                          <DeleteButton id={receive.id} />
+                          {/* =================================
+                              ลบ
+                          ================================= */}
+
+                          <DeleteButton
+                            id={receive.id}
+                          />
                         </div>
                       </td>
                     </tr>
                   )
                 )
               ) : (
+                /* =============================================
+                   ไม่มีข้อมูล
+                ============================================= */
+
                 <tr>
                   <td
                     colSpan={7}
