@@ -114,13 +114,10 @@ export default async function AssetInspectionPage({
      ครุภัณฑ์ของกลุ่มงาน
 
      สำคัญ:
-     ไม่ใช้ orderBy id
-
-     เพราะหน้า /assets/[departmentId]/all
-     ใช้ SourceOrder จาก remark เป็นลำดับหลัก
-
-     ดังนั้นหน้านี้ต้องดึง remark มาด้วย
-     แล้วค่อย sort หลัง Query
+     1. ใช้ข้อมูลเดียวกับหน้า /all
+     2. ดึง quantity / unit / responsibleName
+     3. ไม่ orderBy id ที่ Prisma
+     4. เรียง SourceOrder หลัง Query
      ======================================================= */
 
   const assetsFromDatabase =
@@ -141,6 +138,25 @@ export default async function AssetInspectionPage({
         governmentAssetNo: true,
         officeAssetNo: true,
 
+        /* ===============================================
+           จำนวน / หน่วย จากทะเบียนต้นฉบับ
+           =============================================== */
+
+        quantity: true,
+        unit: true,
+
+        /* ===============================================
+           ผู้รับผิดชอบจากทะเบียนต้นฉบับ
+
+           ตัวนี้สำคัญมาก เพราะอาจเป็นข้อความ เช่น
+           - หน้าห้องผู้อำนวยการ
+           - หลังห้องชั้น 4
+           - ห้องประชุม
+           - จุดอื่น ๆ ตามทะเบียนเดิม
+           =============================================== */
+
+        responsibleName: true,
+
         departmentId: true,
         sectionId: true,
         officerId: true,
@@ -151,9 +167,10 @@ export default async function AssetInspectionPage({
         price: true,
         location: true,
 
-        /*
-         * จำเป็นสำหรับ SourceOrder
-         */
+        /* ===============================================
+           จำเป็นสำหรับ SourceOrder
+           =============================================== */
+
         remark: true,
 
         section: {
@@ -220,9 +237,12 @@ export default async function AssetInspectionPage({
   /* =======================================================
      OFFICER
 
-     สำคัญ:
      ดึง Officer จากทุกกลุ่ม
      ไม่กรองด้วย departmentId
+
+     ใช้สำหรับ:
+     - เลือกผู้ตรวจสอบ 5 คน
+     - fallback ผู้รับผิดชอบกรณีไม่มี responsibleName
      ======================================================= */
 
   const officers =
@@ -367,12 +387,13 @@ export default async function AssetInspectionPage({
           assets ที่ส่งเข้า InspectionForm
           ถูกเรียงตาม SourceOrder แล้ว
 
-          ดังนั้น:
-          - ตารางตรวจสอบ
-          - index
-          - ข้อมูลที่ส่งต่อไป PDF
+          และตอนนี้มีข้อมูลเพิ่มเติม:
+          - quantity
+          - unit
+          - responsibleName
 
-          จะได้รับลำดับเดียวกับหน้า /all
+          ทำให้ InspectionForm สามารถแสดงข้อมูล
+          ให้ตรงกับหน้า /assets/[departmentId]/all
           =================================================== */}
 
       <InspectionForm
