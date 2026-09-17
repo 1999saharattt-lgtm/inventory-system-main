@@ -212,7 +212,7 @@ export default async function ReceivePage({
           =============================================== */}
 
           <Link
-            href="/receive/new"
+            href="/receive/create"
             className="
               w-full
               shrink-0
