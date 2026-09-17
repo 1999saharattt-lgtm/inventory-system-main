@@ -230,72 +230,131 @@ function getAssetUnit(
    3. Officer
    4. Section
    5. -
+
+   สำหรับ "กลุ่มอำนวยการ"
+   ให้แสดงชื่อกลุ่มนำหน้าผู้รับผิดชอบเดิม
+
+   ตัวอย่าง:
+   หน้าห้องหัวหน้าอำนวยการ
+   ->
+   กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
    ========================================================= */
 
-function getResponsibleName(asset: {
-  responsibleName: string | null;
+function getResponsibleName(
+  asset: {
+    responsibleName: string | null;
 
-  officer: {
-    firstName: string;
-    lastName: string;
-  } | null;
+    officer: {
+      firstName: string;
+      lastName: string;
+    } | null;
 
-  section: {
-    name: string;
-  } | null;
-}): string {
+    section: {
+      name: string;
+    } | null;
+  },
+  departmentName: string
+): string {
   /* -------------------------------------------------------
      1. responsibleName
      ------------------------------------------------------- */
 
   const original =
-    normalizeText(asset.responsibleName);
+    normalizeText(
+      asset.responsibleName
+    );
+
+  let responsibleName = "";
 
   if (
     original &&
     original !== "-"
   ) {
-    return original;
+    responsibleName =
+      original;
+  } else {
+    /* -----------------------------------------------------
+       2. Officer
+       ----------------------------------------------------- */
+
+    const officerName =
+      asset.officer
+        ? normalizeText(
+            `${asset.officer.firstName} ${asset.officer.lastName}`
+          )
+        : "";
+
+    /* -----------------------------------------------------
+       3. Section
+       ----------------------------------------------------- */
+
+    const sectionName =
+      asset.section
+        ? normalizeText(
+            asset.section.name
+          )
+        : "";
+
+    /* -----------------------------------------------------
+       4. Officer + Section
+       ----------------------------------------------------- */
+
+    if (
+      officerName &&
+      sectionName
+    ) {
+      responsibleName =
+        `${officerName} / ${sectionName}`;
+    } else if (officerName) {
+      responsibleName =
+        officerName;
+    } else if (sectionName) {
+      responsibleName =
+        sectionName;
+    } else {
+      responsibleName = "-";
+    }
   }
 
   /* -------------------------------------------------------
-     2. Officer
+     กลุ่มอำนวยการ
+
+     เพิ่มชื่อกลุ่มด้านหน้า
+     แต่ป้องกันไม่ให้ซ้ำ
      ------------------------------------------------------- */
 
-  const officerName = asset.officer
-    ? normalizeText(
-        `${asset.officer.firstName} ${asset.officer.lastName}`
-      )
-    : "";
-
-  /* -------------------------------------------------------
-     3. Section
-     ------------------------------------------------------- */
-
-  const sectionName = asset.section
-    ? normalizeText(asset.section.name)
-    : "";
-
-  /* -------------------------------------------------------
-     4. Officer + Section
-     ------------------------------------------------------- */
+  const normalizedDepartmentName =
+    normalizeText(
+      departmentName
+    );
 
   if (
-    officerName &&
-    sectionName
+    normalizedDepartmentName ===
+      "กลุ่มอำนวยการ" &&
+    responsibleName !== "-"
   ) {
-    return `${officerName} / ${sectionName}`;
+    const prefix =
+      `${normalizedDepartmentName} / `;
+
+    if (
+      responsibleName ===
+      normalizedDepartmentName
+    ) {
+      return responsibleName;
+    }
+
+    if (
+      responsibleName.startsWith(
+        prefix
+      )
+    ) {
+      return responsibleName;
+    }
+
+    return `${normalizedDepartmentName} / ${responsibleName}`;
   }
 
-  if (officerName) {
-    return officerName;
-  }
-
-  if (sectionName) {
-    return sectionName;
-  }
-
-  return "-";
+  return responsibleName;
 }
 
 /* =========================================================
@@ -936,7 +995,10 @@ export default async function AssetCategoryPage({
                      ======================================= */
 
                   const responsible =
-                    getResponsibleName(asset);
+                    getResponsibleName(
+                      asset,
+                      department.name
+                    );
 
                   return (
                     <tr
