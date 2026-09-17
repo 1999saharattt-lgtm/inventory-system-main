@@ -52,18 +52,19 @@ type AssetItem = {
   status: string;
 
   purchaseDate: Date | null;
+
+  /*
+   * Prisma อาจคืน Decimal
+   * จึงยังไม่บังคับเป็น number ตรงนี้
+   */
   price: unknown;
+
   location: string | null;
   remark: string | null;
 };
 
 /* =========================================================
    ชื่อประเภทครุภัณฑ์
-
-   หมายเหตุ:
-   - CABINET และ SHELF แสดงเป็น "ตู้และชั้นวาง"
-   - COMPUTER และ MONITOR แสดงเป็น "คอมพิวเตอร์"
-   - เก็บ SHELF / MONITOR ไว้เพื่อรองรับข้อมูลเดิม
    ========================================================= */
 
 const categoryName: Record<string, string> = {
@@ -86,10 +87,8 @@ const categoryName: Record<string, string> = {
 /* =========================================================
    หน่วยนับสำรอง
 
-   สำคัญ:
-   หน้าเว็บจะใช้ asset.unit จากทะเบียนต้นฉบับก่อน
-
-   ตารางนี้ใช้เฉพาะกรณีข้อมูลเก่าไม่มี unit
+   ใช้ asset.unit ก่อน
+   หากไม่มีจึง fallback ตาม category
    ========================================================= */
 
 const categoryUnit: Record<string, string> = {
@@ -158,14 +157,10 @@ const statusClass: Record<string, string> = {
 /* =========================================================
    อ่าน SourceOrder จาก Remark
 
-   Department 1 Import เก็บ marker รูปแบบ:
-
+   รูปแบบ:
    SOURCE:DEPARTMENT_1:1
    SOURCE:DEPARTMENT_1:2
    ...
-   SOURCE:DEPARTMENT_1:446
-
-   ตัวเลขนี้คือลำดับของรายการตามทะเบียนต้นฉบับ
    ========================================================= */
 
 function getSourceOrder(
@@ -193,6 +188,35 @@ function getSourceOrder(
   }
 
   return sourceOrder;
+}
+
+/* =========================================================
+   แปลง Price สำหรับ Export PDF
+
+   ExportDepartmentAssetsPdf ต้องการ:
+   number | null
+
+   Prisma อาจคืน Decimal หรือค่าอื่น
+   จึงแปลงให้เรียบร้อยก่อนส่งเข้า Component
+   ========================================================= */
+
+function normalizePrice(
+  value: unknown
+): number | null {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return null;
+  }
+
+  const price = Number(value);
+
+  if (!Number.isFinite(price)) {
+    return null;
+  }
+
+  return price;
 }
 
 /* =========================================================
@@ -237,10 +261,10 @@ export default async function DepartmentAllAssetsPage({
   }
 
   /* =======================================================
-     ดึงครุภัณฑ์ทั้งหมดของกลุ่มงาน
+     ดึงครุภัณฑ์ทั้งหมด
 
-     ไม่ใช้ orderBy id เพราะ id ในฐานข้อมูล
-     ไม่ใช่ลำดับตามทะเบียนต้นฉบับ Excel
+     ไม่ orderBy id ตรงนี้
+     เพราะต้องเรียงตาม SourceOrder จาก Excel
      ======================================================= */
 
   const assetsFromDatabase =
@@ -261,22 +285,10 @@ export default async function DepartmentAllAssetsPage({
         governmentAssetNo: true,
         officeAssetNo: true,
 
-        /* ===============================================
-           จำนวน / หน่วย ตามทะเบียนต้นฉบับ
-           =============================================== */
-
         quantity: true,
         unit: true,
 
-        /* ===============================================
-           ผู้รับผิดชอบตามทะเบียนต้นฉบับ
-           =============================================== */
-
         responsibleName: true,
-
-        /* ===============================================
-           Department
-           =============================================== */
 
         departmentId: true,
 
@@ -286,10 +298,6 @@ export default async function DepartmentAllAssetsPage({
           },
         },
 
-        /* ===============================================
-           Section
-           =============================================== */
-
         sectionId: true,
 
         section: {
@@ -297,10 +305,6 @@ export default async function DepartmentAllAssetsPage({
             name: true,
           },
         },
-
-        /* ===============================================
-           Officer
-           =============================================== */
 
         officerId: true,
 
@@ -316,32 +320,15 @@ export default async function DepartmentAllAssetsPage({
         purchaseDate: true,
         price: true,
         location: true,
-
-        /*
-         * ต้องดึง remark เพราะมี SourceOrder
-         * สำหรับเรียงตาม Excel
-         */
-
         remark: true,
       },
     });
 
   /* =======================================================
-     เรียงข้อมูลตามทะเบียนต้นฉบับ Excel
+     เรียงตามลำดับ Excel
 
-     สำหรับ Department 1:
-     SOURCE:DEPARTMENT_1:<sourceOrder>
-
-     เช่น:
-     1
-     2
-     3
-     ...
-     446
-
-     กรณีรายการไม่มี SourceOrder:
-     - ให้อยู่ท้ายตาราง
-     - เรียงด้วย id
+     มี SourceOrder -> เรียง SourceOrder
+     ไม่มี SourceOrder -> อยู่ท้ายตารางและเรียง id
      ======================================================= */
 
   const assets: AssetItem[] =
@@ -353,10 +340,6 @@ export default async function DepartmentAllAssetsPage({
         const orderB =
           getSourceOrder(b.remark);
 
-        /*
-         * ทั้งสองรายการมี SourceOrder
-         */
-
         if (
           orderA !== null &&
           orderB !== null
@@ -364,60 +347,33 @@ export default async function DepartmentAllAssetsPage({
           return orderA - orderB;
         }
 
-        /*
-         * A มี SourceOrder
-         * แต่ B ไม่มี
-         */
-
         if (orderA !== null) {
           return -1;
         }
 
-        /*
-         * B มี SourceOrder
-         * แต่ A ไม่มี
-         */
-
         if (orderB !== null) {
           return 1;
         }
-
-        /*
-         * ไม่มี SourceOrder ทั้งคู่
-         * fallback ใช้ id
-         */
 
         return a.id - b.id;
       }
     );
 
   /* =======================================================
-     ฟังก์ชันแสดงผู้รับผิดชอบ
+     ผู้รับผิดชอบ
 
-     ลำดับความสำคัญ:
-
-     1. responsibleName
-        ข้อมูลจากทะเบียนต้นฉบับ
-
+     1. responsibleName จาก Excel
      2. Officer + Section
-
      3. Officer
-
      4. Section
-
      5. -
      ======================================================= */
 
   const getResponsibleName = (
     asset: AssetItem
-  ) => {
+  ): string => {
     const originalResponsibleName =
       asset.responsibleName?.trim();
-
-    /*
-     * ใช้ข้อมูลทะเบียนต้นฉบับ
-     * เป็นอันดับแรก
-     */
 
     if (
       originalResponsibleName &&
@@ -426,18 +382,10 @@ export default async function DepartmentAllAssetsPage({
       return originalResponsibleName;
     }
 
-    /*
-     * fallback ไปยัง Officer
-     */
-
     const officerName =
       asset.officer
         ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
         : "";
-
-    /*
-     * มีทั้ง Officer และ Section
-     */
 
     if (
       officerName &&
@@ -446,17 +394,9 @@ export default async function DepartmentAllAssetsPage({
       return `${officerName} / ${asset.section.name}`;
     }
 
-    /*
-     * มีเฉพาะ Officer
-     */
-
     if (officerName) {
       return officerName;
     }
-
-    /*
-     * มีเฉพาะ Section
-     */
 
     if (asset.section?.name) {
       return asset.section.name;
@@ -466,16 +406,15 @@ export default async function DepartmentAllAssetsPage({
   };
 
   /* =======================================================
-     ฟังก์ชันแสดงหน่วย
+     หน่วย
 
-     ใช้ unit จากทะเบียนต้นฉบับก่อน
-
-     หากไม่มีจึง fallback ตาม category
+     1. unit จากฐานข้อมูล / Excel
+     2. fallback ตามประเภท
      ======================================================= */
 
   const getAssetUnit = (
     asset: AssetItem
-  ) => {
+  ): string => {
     const originalUnit =
       asset.unit?.trim();
 
@@ -493,17 +432,19 @@ export default async function DepartmentAllAssetsPage({
   };
 
   /* =======================================================
-     เตรียมข้อมูลสำหรับ Export PDF
+     เตรียมข้อมูล Export PDF
 
-     สำคัญ:
-     assets ถูก Sort ตาม Excel แล้ว
-     ดังนั้น PDF จะได้รับข้อมูลตามลำดับเดียวกัน
+     จุดสำคัญ:
+     price ต้องแปลงเป็น number | null
      ======================================================= */
 
   const exportAssets = assets.map(
     (asset) => {
       const responsibleName =
         getResponsibleName(asset);
+
+      const price =
+        normalizePrice(asset.price);
 
       return {
         id: asset.id,
@@ -528,11 +469,6 @@ export default async function DepartmentAllAssetsPage({
         sectionName:
           asset.section?.name ?? null,
 
-        /*
-         * Export PDF ใช้ผู้รับผิดชอบ
-         * แบบเดียวกับหน้าเว็บ
-         */
-
         officerName:
           responsibleName === "-"
             ? null
@@ -545,11 +481,18 @@ export default async function DepartmentAllAssetsPage({
             ? asset.purchaseDate.toISOString()
             : null,
 
-        price: asset.price,
+        /*
+         * number | null
+         * ตรงกับ Type ของ
+         * ExportDepartmentAssetsPdf
+         */
+        price,
 
-        location: asset.location,
+        location:
+          asset.location,
 
-        remark: asset.remark,
+        remark:
+          asset.remark,
       };
     }
   );
@@ -569,7 +512,7 @@ export default async function DepartmentAllAssetsPage({
       "
     >
       {/* ===================================================
-          Header
+          HEADER
           =================================================== */}
 
       <div
@@ -780,6 +723,8 @@ export default async function DepartmentAllAssetsPage({
           >
             <thead>
               <tr>
+                {/* ลำดับ */}
+
                 <th
                   className="
                     w-[60px]
@@ -799,6 +744,8 @@ export default async function DepartmentAllAssetsPage({
                 >
                   ลำดับ
                 </th>
+
+                {/* ประเภท */}
 
                 <th
                   className="
@@ -820,6 +767,8 @@ export default async function DepartmentAllAssetsPage({
                   ประเภท
                 </th>
 
+                {/* GFMIS */}
+
                 <th
                   className="
                     whitespace-nowrap
@@ -838,6 +787,8 @@ export default async function DepartmentAllAssetsPage({
                 >
                   รหัส GFMIS
                 </th>
+
+                {/* รหัสครุภัณฑ์ */}
 
                 <th
                   className="
@@ -858,6 +809,8 @@ export default async function DepartmentAllAssetsPage({
                   รหัสครุภัณฑ์
                 </th>
 
+                {/* รายการครุภัณฑ์ */}
+
                 <th
                   className="
                     border
@@ -875,6 +828,8 @@ export default async function DepartmentAllAssetsPage({
                 >
                   รายการครุภัณฑ์
                 </th>
+
+                {/* จำนวน */}
 
                 <th
                   className="
@@ -896,6 +851,8 @@ export default async function DepartmentAllAssetsPage({
                   จำนวน
                 </th>
 
+                {/* หน่วย */}
+
                 <th
                   className="
                     whitespace-nowrap
@@ -915,6 +872,8 @@ export default async function DepartmentAllAssetsPage({
                   หน่วย
                 </th>
 
+                {/* ผู้รับผิดชอบ */}
+
                 <th
                   className="
                     min-w-[220px]
@@ -933,6 +892,8 @@ export default async function DepartmentAllAssetsPage({
                 >
                   ผู้รับผิดชอบ
                 </th>
+
+                {/* สถานะ */}
 
                 <th
                   className="
@@ -988,11 +949,6 @@ export default async function DepartmentAllAssetsPage({
                     const assetUnit =
                       getAssetUnit(asset);
 
-                    /*
-                     * ใช้ SourceOrder เป็นลำดับ
-                     * หากไม่มีจึง fallback index + 1
-                     */
-
                     const sourceOrder =
                       getSourceOrder(
                         asset.remark
@@ -1007,9 +963,7 @@ export default async function DepartmentAllAssetsPage({
                           hover:bg-emerald-50
                         "
                       >
-                        {/* ===============================
-                            ลำดับตาม Excel
-                            =============================== */}
+                        {/* ลำดับตาม Excel */}
 
                         <td
                           className="
@@ -1082,9 +1036,7 @@ export default async function DepartmentAllAssetsPage({
                             : "-"}
                         </td>
 
-                        {/* ===============================
-                            รายการครุภัณฑ์
-                            =============================== */}
+                        {/* รายการครุภัณฑ์ */}
 
                         <td
                           className="
@@ -1100,9 +1052,7 @@ export default async function DepartmentAllAssetsPage({
                           {asset.name}
                         </td>
 
-                        {/* ===============================
-                            จำนวนจากฐานข้อมูล
-                            =============================== */}
+                        {/* จำนวน */}
 
                         <td
                           className="
@@ -1119,9 +1069,7 @@ export default async function DepartmentAllAssetsPage({
                           {asset.quantity}
                         </td>
 
-                        {/* ===============================
-                            หน่วยจากทะเบียนต้นฉบับ
-                            =============================== */}
+                        {/* หน่วย */}
 
                         <td
                           className="
@@ -1138,12 +1086,7 @@ export default async function DepartmentAllAssetsPage({
                           {assetUnit}
                         </td>
 
-                        {/* ===============================
-                            ผู้รับผิดชอบ
-
-                            ใช้ responsibleName
-                            จากทะเบียนต้นฉบับก่อน
-                            =============================== */}
+                        {/* ผู้รับผิดชอบ */}
 
                         <td
                           className="

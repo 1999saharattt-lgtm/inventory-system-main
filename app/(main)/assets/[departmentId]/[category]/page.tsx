@@ -16,17 +16,25 @@ type Props = {
   }>;
 };
 
+/* =========================================================
+   CATEGORY NAME
+   ========================================================= */
+
 const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
+  CABINET: "ตู้และชั้นวาง",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
   TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 } as const;
+
+/* =========================================================
+   CATEGORY ICON
+   ========================================================= */
 
 const categoryIcon = {
   DESK: "🪑",
@@ -40,11 +48,18 @@ const categoryIcon = {
   NO_SYSTEM: "📋",
 } as const;
 
-/*
- * ใช้เป็นค่า fallback เท่านั้น
- * ถ้ามีหน่วยจากต้นฉบับใน remark
- * จะใช้ค่าจากต้นฉบับก่อน
- */
+/* =========================================================
+   CATEGORY UNIT
+
+   ใช้เป็น fallback เท่านั้น
+
+   ลำดับ:
+   1. Asset.unit
+   2. UNIT:xxx ใน remark
+   3. หน่วยนับ xxx ใน remark
+   4. categoryUnit
+   ========================================================= */
+
 const categoryUnit = {
   DESK: "ตัว",
   CHAIR: "ตัว",
@@ -56,6 +71,10 @@ const categoryUnit = {
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 } as const;
+
+/* =========================================================
+   VALID CATEGORIES
+   ========================================================= */
 
 const validCategories = [
   "DESK",
@@ -85,97 +104,132 @@ function normalizeText(
 }
 
 /* =========================================================
-   อ่านหน่วยจาก Remark
+   SOURCE ORDER
 
-   รองรับ:
+   Import ของ Department 1 เก็บ marker:
 
-   UNIT:ตัว
-   UNIT:เครื่อง
+   SOURCE:DEPARTMENT_1:1
+   SOURCE:DEPARTMENT_1:2
+   ...
+   SOURCE:DEPARTMENT_1:446
 
-   และ
-
-   หน่วยนับ ตัว
-   หน่วยนับ เครื่อง
+   ใช้ค่านี้เพื่อเรียงหน้าเว็บตาม Excel ต้นฉบับจริง
    ========================================================= */
 
-function getAssetUnit(
-  remark: string | null | undefined,
-  fallback: string
-): string {
+function getSourceOrder(
+  remark: string | null | undefined
+): number {
   if (!remark) {
-    return fallback;
+    return Number.MAX_SAFE_INTEGER;
   }
 
-  /*
-   * รูปแบบ:
-   * UNIT:ตัว
-   */
-  const unitMarker = remark.match(
-    /(?:^|\|)\s*UNIT:\s*([^|]+)/i
+  const match = remark.match(
+    /SOURCE:DEPARTMENT_1:(\d+)/i
   );
 
-  if (unitMarker?.[1]) {
-    const value = normalizeText(
-      unitMarker[1]
-    );
-
-    if (
-      value &&
-      value !== "-"
-    ) {
-      return value;
-    }
+  if (!match?.[1]) {
+    return Number.MAX_SAFE_INTEGER;
   }
 
-  /*
-   * รูปแบบ:
-   * หน่วยนับ ตัว
-   */
-  const thaiUnit = remark.match(
-    /(?:^|\|)\s*หน่วยนับ\s+([^|]+)/i
-  );
+  const sourceOrder = Number(match[1]);
 
-  if (thaiUnit?.[1]) {
-    const value = normalizeText(
-      thaiUnit[1]
-    );
-
-    if (
-      value &&
-      value !== "-"
-    ) {
-      return value;
-    }
+  if (
+    !Number.isInteger(sourceOrder) ||
+    sourceOrder <= 0
+  ) {
+    return Number.MAX_SAFE_INTEGER;
   }
 
-  return fallback;
+  return sourceOrder;
 }
 
 /* =========================================================
-   อ่านจำนวน
+   อ่านหน่วย
 
-   ปัจจุบันทะเบียน Asset เป็น 1 Record ต่อ 1 ครุภัณฑ์
-   และจากโครงสร้างที่มีอยู่ยังไม่มี quantity column
-
-   จึงแสดงจำนวน = 1 ต่อรายการ
-
-   หากภายหลังเพิ่ม quantity ใน Asset
-   ให้เปลี่ยนฟังก์ชันนี้ไปอ่าน quantity โดยตรง
+   ลำดับ:
+   1. unit จาก Asset
+   2. UNIT:xxx ใน remark
+   3. หน่วยนับ xxx ใน remark
+   4. fallback ตามหมวด
    ========================================================= */
 
-function getAssetQuantity(): number {
-  return 1;
+function getAssetUnit(
+  unit: string | null | undefined,
+  remark: string | null | undefined,
+  fallback: string
+): string {
+  /* -------------------------------------------------------
+     1. Asset.unit
+     ------------------------------------------------------- */
+
+  const databaseUnit =
+    normalizeText(unit);
+
+  if (
+    databaseUnit &&
+    databaseUnit !== "-"
+  ) {
+    return databaseUnit;
+  }
+
+  if (remark) {
+    /* -----------------------------------------------------
+       2. UNIT:xxx
+       ----------------------------------------------------- */
+
+    const unitMarker = remark.match(
+      /(?:^|\|)\s*UNIT:\s*([^|]+)/i
+    );
+
+    if (unitMarker?.[1]) {
+      const value =
+        normalizeText(unitMarker[1]);
+
+      if (
+        value &&
+        value !== "-"
+      ) {
+        return value;
+      }
+    }
+
+    /* -----------------------------------------------------
+       3. หน่วยนับ xxx
+       ----------------------------------------------------- */
+
+    const thaiUnit = remark.match(
+      /(?:^|\|)\s*หน่วยนับ\s+([^|]+)/i
+    );
+
+    if (thaiUnit?.[1]) {
+      const value =
+        normalizeText(thaiUnit[1]);
+
+      if (
+        value &&
+        value !== "-"
+      ) {
+        return value;
+      }
+    }
+  }
+
+  /* -------------------------------------------------------
+     4. fallback
+     ------------------------------------------------------- */
+
+  return fallback;
 }
 
 /* =========================================================
    ผู้รับผิดชอบ
 
    ลำดับ:
-
-   1. responsibleName จากต้นฉบับ
-   2. Officer
-   3. Section
-   4. -
+   1. responsibleName จากทะเบียนต้นฉบับ
+   2. Officer + Section
+   3. Officer
+   4. Section
+   5. -
    ========================================================= */
 
 function getResponsibleName(asset: {
@@ -190,13 +244,12 @@ function getResponsibleName(asset: {
     name: string;
   } | null;
 }): string {
-  /*
-   * ใช้ responsibleName ก่อน
-   * เพราะเป็นข้อมูลที่ Import จากต้นฉบับ
-   */
-  const original = normalizeText(
-    asset.responsibleName
-  );
+  /* -------------------------------------------------------
+     1. responsibleName
+     ------------------------------------------------------- */
+
+  const original =
+    normalizeText(asset.responsibleName);
 
   if (
     original &&
@@ -205,34 +258,41 @@ function getResponsibleName(asset: {
     return original;
   }
 
-  /*
-   * ถ้าไม่มี responsibleName
-   * ใช้ Officer
-   */
-  if (asset.officer) {
-    const officerName =
-      normalizeText(
-        `${asset.officer.firstName} ${asset.officer.lastName}`
-      );
+  /* -------------------------------------------------------
+     2. Officer
+     ------------------------------------------------------- */
 
-    if (officerName) {
-      return officerName;
-    }
+  const officerName = asset.officer
+    ? normalizeText(
+        `${asset.officer.firstName} ${asset.officer.lastName}`
+      )
+    : "";
+
+  /* -------------------------------------------------------
+     3. Section
+     ------------------------------------------------------- */
+
+  const sectionName = asset.section
+    ? normalizeText(asset.section.name)
+    : "";
+
+  /* -------------------------------------------------------
+     4. Officer + Section
+     ------------------------------------------------------- */
+
+  if (
+    officerName &&
+    sectionName
+  ) {
+    return `${officerName} / ${sectionName}`;
   }
 
-  /*
-   * ถ้าไม่มี Officer
-   * ใช้ Section
-   */
-  if (asset.section) {
-    const sectionName =
-      normalizeText(
-        asset.section.name
-      );
+  if (officerName) {
+    return officerName;
+  }
 
-    if (sectionName) {
-      return sectionName;
-    }
+  if (sectionName) {
+    return sectionName;
   }
 
   return "-";
@@ -260,9 +320,7 @@ export default async function AssetCategoryPage({
     Number(departmentId);
 
   if (
-    !Number.isInteger(
-      departmentIdNumber
-    ) ||
+    !Number.isInteger(departmentIdNumber) ||
     departmentIdNumber <= 0
   ) {
     notFound();
@@ -375,9 +433,17 @@ export default async function AssetCategoryPage({
 
   /* =======================================================
      ASSETS
+
+     ดึง:
+     - quantity
+     - unit
+     - responsibleName
+     - remark
+
+     โดยตรงจาก Asset
      ======================================================= */
 
-  const assets =
+  const assetsFromDatabase =
     await prisma.asset.findMany({
       where: {
         departmentId:
@@ -389,9 +455,8 @@ export default async function AssetCategoryPage({
         ...(search
           ? {
               OR: [
-                /*
-                 * รายการ
-                 */
+                /* รายการ */
+
                 {
                   name: {
                     contains: search,
@@ -399,9 +464,8 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * GFMIS
-                 */
+                /* GFMIS */
+
                 {
                   governmentAssetNo: {
                     contains: search,
@@ -409,9 +473,8 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * รหัสครุภัณฑ์
-                 */
+                /* รหัสครุภัณฑ์ */
+
                 {
                   officeAssetNo: {
                     contains: search,
@@ -419,9 +482,8 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * ผู้รับผิดชอบต้นฉบับ
-                 */
+                /* ผู้รับผิดชอบต้นฉบับ */
+
                 {
                   responsibleName: {
                     contains: search,
@@ -429,9 +491,17 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * Section
-                 */
+                /* หน่วย */
+
+                {
+                  unit: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+
+                /* Section */
+
                 {
                   section: {
                     is: {
@@ -443,9 +513,8 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * Officer ชื่อ
-                 */
+                /* Officer ชื่อ */
+
                 {
                   officer: {
                     is: {
@@ -457,9 +526,8 @@ export default async function AssetCategoryPage({
                   },
                 },
 
-                /*
-                 * Officer นามสกุล
-                 */
+                /* Officer นามสกุล */
+
                 {
                   officer: {
                     is: {
@@ -476,14 +544,56 @@ export default async function AssetCategoryPage({
       },
 
       include: {
-        section: true,
-        officer: true,
+        section: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        officer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
 
+      /*
+       * ใช้ ID เป็นลำดับสำรอง
+       *
+       * ลำดับจริงจะ sort ด้วย sourceOrder
+       * หลังจากดึงข้อมูลแล้ว
+       */
       orderBy: {
         id: "asc",
       },
     });
+
+  /* =======================================================
+     SORT ตาม Excel
+
+     1. sourceOrder จาก SOURCE:DEPARTMENT_1:x
+     2. ถ้าไม่มี sourceOrder ให้ไว้ท้ายรายการ
+     3. ถ้า sourceOrder เท่ากัน ใช้ id
+     ======================================================= */
+
+  const assets = [...assetsFromDatabase].sort(
+    (a, b) => {
+      const orderA =
+        getSourceOrder(a.remark);
+
+      const orderB =
+        getSourceOrder(b.remark);
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      return a.id - b.id;
+    }
+  );
 
   /* =======================================================
      UI
@@ -491,7 +601,6 @@ export default async function AssetCategoryPage({
 
   return (
     <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-
       {/* ===================================================
           HEADER
           =================================================== */}
@@ -533,12 +642,8 @@ export default async function AssetCategoryPage({
               sm:text-3xl
             "
           >
-            {categoryIcon[
-              assetCategory
-            ]}{" "}
-            {categoryName[
-              assetCategory
-            ]}
+            {categoryIcon[assetCategory]}{" "}
+            {categoryName[assetCategory]}
           </h1>
 
           <p
@@ -707,10 +812,7 @@ export default async function AssetCategoryPage({
       >
         <div>
           <p className="text-lg font-extrabold !text-white">
-            รายการ
-            {categoryName[
-              assetCategory
-            ]}
+            รายการ{categoryName[assetCategory]}
           </p>
 
           <p className="mt-1 text-sm font-semibold !text-slate-200">
@@ -768,56 +870,37 @@ export default async function AssetCategoryPage({
           >
             <thead>
               <tr>
-
-                {/* ลำดับ */}
-
                 <th className="w-[5%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   ลำดับ
                 </th>
-
-                {/* GFMIS */}
 
                 <th className="w-[13%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   รหัส GFMIS
                 </th>
 
-                {/* รหัสครุภัณฑ์ */}
-
                 <th className="w-[15%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   รหัสครุภัณฑ์
                 </th>
-
-                {/* รายการ */}
 
                 <th className="w-[19%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   รายการครุภัณฑ์
                 </th>
 
-                {/* จำนวน */}
-
                 <th className="w-[7%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   จำนวน
                 </th>
-
-                {/* หน่วย */}
 
                 <th className="w-[7%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   หน่วย
                 </th>
 
-                {/* ผู้รับผิดชอบ */}
-
                 <th className="w-[16%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   ผู้รับผิดชอบ
                 </th>
 
-                {/* สถานะ */}
-
                 <th className="w-[9%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   สถานะ
                 </th>
-
-                {/* จัดการ */}
 
                 <th className="w-[9%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
                   จัดการ
@@ -826,33 +909,34 @@ export default async function AssetCategoryPage({
             </thead>
 
             <tbody className="text-slate-900">
-
               {assets.map(
                 (asset, index) => {
-                  /*
-                   * หน่วยจากต้นฉบับ
-                   */
+                  /* =======================================
+                     จำนวนจริงจากฐานข้อมูล
+                     ======================================= */
+
+                  const quantity =
+                    asset.quantity ?? 1;
+
+                  /* =======================================
+                     หน่วยจริงจากฐานข้อมูล / Excel
+                     ======================================= */
+
                   const unit =
                     getAssetUnit(
+                      asset.unit,
                       asset.remark,
                       categoryUnit[
                         assetCategory
                       ]
                     );
 
-                  /*
-                   * จำนวน
-                   */
-                  const quantity =
-                    getAssetQuantity();
+                  /* =======================================
+                     ผู้รับผิดชอบ
+                     ======================================= */
 
-                  /*
-                   * ผู้รับผิดชอบ
-                   */
                   const responsible =
-                    getResponsibleName(
-                      asset
-                    );
+                    getResponsibleName(asset);
 
                   return (
                     <tr
@@ -863,14 +947,13 @@ export default async function AssetCategoryPage({
                         hover:bg-emerald-50
                       "
                     >
-
                       {/* ลำดับ */}
 
                       <td className="border border-black px-4 py-3 text-center font-extrabold text-slate-900">
                         {index + 1}
                       </td>
 
-                      {/* รหัส GFMIS */}
+                      {/* GFMIS */}
 
                       <td className="break-all border border-black px-4 py-3 text-center font-extrabold text-slate-900">
                         {asset.governmentAssetNo ||
@@ -884,7 +967,7 @@ export default async function AssetCategoryPage({
                           "-"}
                       </td>
 
-                      {/* รายการครุภัณฑ์ */}
+                      {/* รายการ */}
 
                       <td className="border border-black px-4 py-3 font-extrabold text-slate-900">
                         <div className="font-extrabold">
@@ -971,7 +1054,6 @@ export default async function AssetCategoryPage({
 
                       <td className="border border-black px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-
                           <Link
                             href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
                             className="
@@ -997,17 +1079,11 @@ export default async function AssetCategoryPage({
                             ดูรายละเอียด
                           </Link>
 
-                          <form
-                            action={
-                              deleteAsset
-                            }
-                          >
+                          <form action={deleteAsset}>
                             <input
                               type="hidden"
                               name="assetId"
-                              value={
-                                asset.id
-                              }
+                              value={asset.id}
                             />
 
                             <button
@@ -1061,7 +1137,6 @@ export default async function AssetCategoryPage({
                   </td>
                 </tr>
               )}
-
             </tbody>
           </table>
         </div>

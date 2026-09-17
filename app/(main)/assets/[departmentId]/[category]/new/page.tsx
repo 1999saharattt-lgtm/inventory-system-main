@@ -13,19 +13,23 @@ type Props = {
   }>;
 };
 
-const categoryName: Record<string, string> = {
+/* =========================================================
+   CATEGORY
+   ========================================================= */
+
+const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
+  CABINET: "ตู้และชั้นวาง",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
   TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
-};
+} as const;
 
-const categoryIcon: Record<string, string> = {
+const categoryIcon = {
   DESK: "🪑",
   CHAIR: "💺",
   AIR_CONDITIONER: "❄️",
@@ -34,8 +38,20 @@ const categoryIcon: Record<string, string> = {
   PRINTER: "🖨️",
   TELEPHONE: "☎️",
   OTHER: "📦",
-  NO_SYSTEM: "❓",
-};
+  NO_SYSTEM: "📋",
+} as const;
+
+const categoryUnit = {
+  DESK: "ตัว",
+  CHAIR: "ตัว",
+  AIR_CONDITIONER: "เครื่อง",
+  CABINET: "ตู้",
+  COMPUTER: "เครื่อง",
+  PRINTER: "เครื่อง",
+  TELEPHONE: "เครื่อง",
+  OTHER: "รายการ",
+  NO_SYSTEM: "รายการ",
+} as const;
 
 const validCategories = [
   "DESK",
@@ -52,47 +68,73 @@ const validCategories = [
 type AssetCategoryValue =
   (typeof validCategories)[number];
 
+/* =========================================================
+   NORMALIZE TEXT
+   ========================================================= */
+
+function normalizeText(
+  value: string | null | undefined
+): string {
+  return (value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
 export default async function NewAssetPage({
   params,
 }: Props) {
   const user = await requireLogin();
 
-  const { departmentId, category } = await params;
+  const {
+    departmentId,
+    category,
+  } = await params;
 
-  const departmentIdNumber = Number(departmentId);
+  const departmentIdNumber =
+    Number(departmentId);
+
+  const normalizedCategory =
+    category.toUpperCase();
 
   if (
     !Number.isInteger(departmentIdNumber) ||
+    departmentIdNumber <= 0 ||
     !validCategories.includes(
-      category as AssetCategoryValue
+      normalizedCategory as AssetCategoryValue
     )
   ) {
     notFound();
   }
 
   const assetCategory =
-    category as AssetCategoryValue;
+    normalizedCategory as AssetCategoryValue;
 
-  // =====================================================
-  // สิทธิ์ผู้ใช้งาน
-  // =====================================================
+  /* =======================================================
+     สิทธิ์ผู้ใช้งาน
+     ======================================================= */
 
   if (
     user.role === "STAFF" &&
-    user.departmentId !== departmentIdNumber
+    user.departmentId !==
+      departmentIdNumber
   ) {
     redirect("/");
   }
 
-  // =====================================================
-  // ดึงข้อมูลหน่วยงาน
-  // =====================================================
+  /* =======================================================
+     ดึงข้อมูลหน่วยงาน
+     ======================================================= */
 
   const department =
     await prisma.department.findUnique({
       where: {
         id: departmentIdNumber,
       },
+
       include: {
         officers: {
           orderBy: [
@@ -104,10 +146,12 @@ export default async function NewAssetPage({
             },
           ],
         },
+
         sections: {
           orderBy: {
             id: "asc",
           },
+
           include: {
             officers: {
               orderBy: [
@@ -128,64 +172,118 @@ export default async function NewAssetPage({
     notFound();
   }
 
+  /* =======================================================
+     CREATE ASSET
+     ======================================================= */
+
   async function createAsset(
     formData: FormData
   ) {
     "use server";
 
-    const currentUser = await requireLogin();
+    const currentUser =
+      await requireLogin();
 
-    const name = String(
-      formData.get("name") ?? ""
-    ).trim();
+    /* =====================================================
+       อ่านข้อมูลจาก Form
+       ===================================================== */
 
-    const brand = String(
-      formData.get("brand") ?? ""
-    ).trim();
+    const name =
+      normalizeText(
+        String(
+          formData.get("name") ?? ""
+        )
+      );
 
-    const model = String(
-      formData.get("model") ?? ""
-    ).trim();
+    const brand =
+      normalizeText(
+        String(
+          formData.get("brand") ?? ""
+        )
+      );
 
-    const serialNumber = String(
-      formData.get("serialNumber") ?? ""
-    ).trim();
+    const model =
+      normalizeText(
+        String(
+          formData.get("model") ?? ""
+        )
+      );
 
-    const governmentAssetNo = String(
-      formData.get("governmentAssetNo") ?? ""
-    ).trim();
+    const serialNumber =
+      normalizeText(
+        String(
+          formData.get("serialNumber") ??
+            ""
+        )
+      );
 
-    const officeAssetNo = String(
-      formData.get("officeAssetNo") ?? ""
-    ).trim();
+    const governmentAssetNo =
+      normalizeText(
+        String(
+          formData.get(
+            "governmentAssetNo"
+          ) ?? ""
+        )
+      );
 
-    const sectionIdRaw = String(
-      formData.get("sectionId") ?? ""
-    ).trim();
+    const officeAssetNo =
+      normalizeText(
+        String(
+          formData.get(
+            "officeAssetNo"
+          ) ?? ""
+        )
+      );
 
-    const officerIdRaw = String(
-      formData.get("officerId") ?? ""
-    ).trim();
+    const quantityRaw =
+      String(
+        formData.get("quantity") ?? "1"
+      ).trim();
 
-    const purchaseDateRaw = String(
-      formData.get("purchaseDate") ?? ""
-    ).trim();
+    const unit =
+      normalizeText(
+        String(
+          formData.get("unit") ?? ""
+        )
+      );
 
-    const priceRaw = String(
-      formData.get("price") ?? ""
-    ).trim();
+    const sectionIdRaw =
+      String(
+        formData.get("sectionId") ?? ""
+      ).trim();
 
-    const location = String(
-      formData.get("location") ?? ""
-    ).trim();
+    const officerIdRaw =
+      String(
+        formData.get("officerId") ?? ""
+      ).trim();
 
-    const remark = String(
-      formData.get("remark") ?? ""
-    ).trim();
+    const purchaseDateRaw =
+      String(
+        formData.get("purchaseDate") ?? ""
+      ).trim();
 
-    // =====================================================
-    // ชื่อครุภัณฑ์
-    // =====================================================
+    const priceRaw =
+      String(
+        formData.get("price") ?? ""
+      ).trim();
+
+    const location =
+      normalizeText(
+        String(
+          formData.get("location") ?? ""
+        )
+      );
+
+    const remark =
+      normalizeText(
+        String(
+          formData.get("remark") ?? ""
+        )
+      );
+
+    /* =====================================================
+       ตรวจชื่อครุภัณฑ์
+       ===================================================== */
 
     if (!name) {
       throw new Error(
@@ -193,9 +291,9 @@ export default async function NewAssetPage({
       );
     }
 
-    // =====================================================
-    // ตรวจสอบสิทธิ์ STAFF
-    // =====================================================
+    /* =====================================================
+       ตรวจสิทธิ์
+       ===================================================== */
 
     if (
       currentUser.role === "STAFF" &&
@@ -207,17 +305,43 @@ export default async function NewAssetPage({
       );
     }
 
-    // =====================================================
-    // ดึงข้อมูลหน่วยงานจากฐานข้อมูลอีกครั้ง
-    // =====================================================
+    /* =====================================================
+       QUANTITY
+       ===================================================== */
+
+    const quantity =
+      Number(quantityRaw);
+
+    if (
+      !Number.isInteger(quantity) ||
+      quantity <= 0
+    ) {
+      throw new Error(
+        "จำนวนครุภัณฑ์ต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป"
+      );
+    }
+
+    /* =====================================================
+       UNIT
+       ===================================================== */
+
+    const assetUnit =
+      unit ||
+      categoryUnit[assetCategory];
+
+    /* =====================================================
+       ตรวจ Department
+       ===================================================== */
 
     const targetDepartment =
       await prisma.department.findUnique({
         where: {
           id: departmentIdNumber,
         },
+
         select: {
           id: true,
+
           sections: {
             select: {
               id: true,
@@ -235,20 +359,26 @@ export default async function NewAssetPage({
     const hasTargetSections =
       targetDepartment.sections.length > 0;
 
-    // =====================================================
-    // sectionId จาก form
-    //
-    // ใช้สำหรับกรณีที่ไม่ได้เลือกผู้ครอบครอง
-    // เท่านั้น
-    // =====================================================
+    /* =====================================================
+       SECTION
+       ===================================================== */
 
-    let selectedSectionId: number | null = null;
+    let selectedSectionId:
+      | number
+      | null = null;
 
-    if (hasTargetSections && sectionIdRaw) {
-      selectedSectionId = Number(sectionIdRaw);
+    if (
+      hasTargetSections &&
+      sectionIdRaw
+    ) {
+      selectedSectionId =
+        Number(sectionIdRaw);
 
       if (
-        !Number.isInteger(selectedSectionId)
+        !Number.isInteger(
+          selectedSectionId
+        ) ||
+        selectedSectionId <= 0
       ) {
         throw new Error(
           "กลุ่มงานไม่ถูกต้อง"
@@ -259,9 +389,11 @@ export default async function NewAssetPage({
         await prisma.section.findFirst({
           where: {
             id: selectedSectionId,
+
             departmentId:
               departmentIdNumber,
           },
+
           select: {
             id: true,
           },
@@ -274,67 +406,72 @@ export default async function NewAssetPage({
       }
     }
 
-    // =====================================================
-    // officerId
-    // =====================================================
+    /* =====================================================
+       OFFICER
+       ===================================================== */
 
-    const officerId = officerIdRaw
-      ? Number(officerIdRaw)
-      : null;
+    const officerId =
+      officerIdRaw
+        ? Number(officerIdRaw)
+        : null;
 
     if (
       officerId !== null &&
-      !Number.isInteger(officerId)
+      (!Number.isInteger(officerId) ||
+        officerId <= 0)
     ) {
       throw new Error(
         "ผู้ครอบครองไม่ถูกต้อง"
       );
     }
 
-    // =====================================================
-    // ตรวจสอบผู้ครอบครอง
-    //
-    // Officer สามารถสังกัดหน่วยงานได้ 2 รูปแบบ
-    //
-    // 1. Officer.departmentId ตรงกับหน่วยงาน
-    // 2. Officer.departmentId เป็น null
-    //    แต่ Officer มี section ที่อยู่ในหน่วยงานนั้น
-    //
-    // รองรับโครงสร้าง Prisma:
-    //
-    // Officer.departmentId Int?
-    // Officer.sectionId    Int?
-    // Section.departmentId Int
-    // =====================================================
-
-    let sectionId: number | null =
+    let sectionId:
+      | number
+      | null =
       selectedSectionId;
+
+    let responsibleName:
+      | string
+      | null = null;
+
+    /* =====================================================
+       ตรวจ Officer
+       ===================================================== */
 
     if (officerId !== null) {
       const officer =
         await prisma.officer.findFirst({
           where: {
             id: officerId,
+
             OR: [
               {
                 departmentId:
                   departmentIdNumber,
               },
+
               {
                 section: {
-                  departmentId:
-                    departmentIdNumber,
+                  is: {
+                    departmentId:
+                      departmentIdNumber,
+                  },
                 },
               },
             ],
           },
+
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
             departmentId: true,
             sectionId: true,
+
             section: {
               select: {
                 id: true,
+                name: true,
                 departmentId: true,
               },
             },
@@ -347,94 +484,112 @@ export default async function NewAssetPage({
         );
       }
 
-      // ===================================================
-      // ถ้าหน่วยงานมี section
-      // ===================================================
+      /* ===================================================
+         ใช้ Section จริงของ Officer
+         =================================================== */
 
       if (hasTargetSections) {
-        // ผู้ครอบครองต้องมี section
-        if (officer.sectionId === null) {
-          throw new Error(
-            "ผู้ครอบครองยังไม่ได้ระบุกลุ่มงาน"
-          );
+        if (
+          officer.sectionId !== null
+        ) {
+          const officerSectionExists =
+            targetDepartment.sections.some(
+              (section) =>
+                section.id ===
+                officer.sectionId
+            );
+
+          if (!officerSectionExists) {
+            throw new Error(
+              "กลุ่มงานของผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+            );
+          }
+
+          sectionId =
+            officer.sectionId;
         }
-
-        // ตรวจ section ของผู้ครอบครองจากฐานข้อมูล
-        const officerSection =
-          targetDepartment.sections.some(
-            (section) =>
-              section.id ===
-              officer.sectionId
-          );
-
-        if (!officerSection) {
-          throw new Error(
-            "กลุ่มงานของผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
-          );
-        }
-
-        // ใช้ sectionId จริงจาก Officer
-        sectionId = officer.sectionId;
       } else {
-        // =================================================
-        // หน่วยงานไม่มี section
-        // =================================================
-
         sectionId = null;
       }
-    }
 
-    // =====================================================
-    // ตรวจสอบเลขครุภัณฑ์กรม
-    // =====================================================
+      /* ===================================================
+         เก็บ responsibleName
 
-    if (governmentAssetNo) {
-      const existingGovernment =
-        await prisma.asset.findUnique({
-          where: {
-            governmentAssetNo:
-              governmentAssetNo,
-          },
-          select: {
-            id: true,
-          },
-        });
+         ทำให้หน้ารายการที่อ่าน responsibleName ก่อน
+         สามารถแสดงชื่อผู้รับผิดชอบได้ทันที
+         =================================================== */
 
-      if (existingGovernment) {
-        throw new Error(
-          `เลขครุภัณฑ์กรม "${governmentAssetNo}" มีอยู่แล้ว`
+      const officerName =
+        normalizeText(
+          `${officer.firstName} ${officer.lastName}`
         );
+
+      if (
+        officerName &&
+        officer.section?.name
+      ) {
+        responsibleName =
+          `${officerName} / ${normalizeText(
+            officer.section.name
+          )}`;
+      } else if (officerName) {
+        responsibleName =
+          officerName;
       }
     }
 
-    // =====================================================
-    // ตรวจสอบเลขครุภัณฑ์ประจำสำนัก
-    // =====================================================
+    /* =====================================================
+       ถ้าไม่ได้เลือก Officer แต่เลือก Section
+       ใช้ชื่อ Section เป็น responsibleName
+       ===================================================== */
 
-    if (officeAssetNo) {
-      const existingOffice =
-        await prisma.asset.findUnique({
+    if (
+      !responsibleName &&
+      sectionId !== null
+    ) {
+      const section =
+        await prisma.section.findFirst({
           where: {
-            officeAssetNo:
-              officeAssetNo,
+            id: sectionId,
+            departmentId:
+              departmentIdNumber,
           },
+
           select: {
-            id: true,
+            name: true,
           },
         });
 
-      if (existingOffice) {
-        throw new Error(
-          `เลขครุภัณฑ์ประจำสำนัก "${officeAssetNo}" มีอยู่แล้ว`
-        );
+      if (section?.name) {
+        responsibleName =
+          normalizeText(
+            section.name
+          );
       }
     }
 
-    // =====================================================
-    // ราคา
-    // =====================================================
+    /* =====================================================
+       GFMIS / OFFICE ASSET NO
 
-    let price: number | null = null;
+       สำคัญ:
+       governmentAssetNo และ officeAssetNo
+       ไม่ใช่ @unique ใน Prisma
+
+       ข้อมูลทะเบียนต้นฉบับสามารถมีรหัสซ้ำได้
+
+       ดังนั้น:
+       - ไม่ใช้ findUnique()
+       - ไม่ Reject เมื่อพบเลขซ้ำ
+       - บันทึกค่าตามที่ผู้ใช้กรอก
+       ===================================================== */
+
+    /* =====================================================
+       PRICE
+       ===================================================== */
+
+    let price:
+      | number
+      | null = null;
 
     if (priceRaw) {
       price = Number(priceRaw);
@@ -449,16 +604,19 @@ export default async function NewAssetPage({
       }
     }
 
-    // =====================================================
-    // วันที่ได้มา
-    // =====================================================
+    /* =====================================================
+       PURCHASE DATE
+       ===================================================== */
 
-    let purchaseDate: Date | null = null;
+    let purchaseDate:
+      | Date
+      | null = null;
 
     if (purchaseDateRaw) {
-      const parsedDate = new Date(
-        `${purchaseDateRaw}T00:00:00`
-      );
+      const parsedDate =
+        new Date(
+          `${purchaseDateRaw}T00:00:00`
+        );
 
       if (
         Number.isNaN(
@@ -470,50 +628,70 @@ export default async function NewAssetPage({
         );
       }
 
-      purchaseDate = parsedDate;
+      purchaseDate =
+        parsedDate;
     }
 
-    // =====================================================
-    // สร้างครุภัณฑ์
-    // =====================================================
+    /* =====================================================
+       CREATE
+       ===================================================== */
 
-    const asset =
-      await prisma.asset.create({
-        data: {
-          name,
-          category: assetCategory,
+    await prisma.asset.create({
+      data: {
+        name,
+        category:
+          assetCategory,
 
-          brand: brand || null,
-          model: model || null,
-          serialNumber:
-            serialNumber || null,
+        brand:
+          brand || null,
 
-          governmentAssetNo:
-            governmentAssetNo || null,
+        model:
+          model || null,
 
-          officeAssetNo:
-            officeAssetNo || null,
+        serialNumber:
+          serialNumber || null,
 
-          departmentId:
-            departmentIdNumber,
+        quantity,
 
-          sectionId,
-          officerId,
+        unit:
+          assetUnit || null,
 
-          status: "IN_USE",
+        governmentAssetNo:
+          governmentAssetNo || null,
 
-          purchaseDate,
-          price,
+        officeAssetNo:
+          officeAssetNo || null,
 
-          location: location || null,
-          remark: remark || null,
-        },
-      });
+        departmentId:
+          departmentIdNumber,
+
+        sectionId,
+        officerId,
+
+        responsibleName,
+
+        status:
+          "IN_USE",
+
+        purchaseDate,
+        price,
+
+        location:
+          location || null,
+
+        remark:
+          remark || null,
+      },
+    });
 
     redirect(
       `/assets/${departmentIdNumber}/${assetCategory}`
     );
   }
+
+  /* =======================================================
+     UI
+     ======================================================= */
 
   return (
     <div
@@ -527,9 +705,9 @@ export default async function NewAssetPage({
         sm:space-y-6
       "
     >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+      {/* ===================================================
+          HEADER
+          =================================================== */}
 
       <div
         className="
@@ -565,8 +743,13 @@ export default async function NewAssetPage({
               sm:text-3xl
             "
           >
-            {categoryIcon[category]} เพิ่ม
-            {categoryName[category]}
+            {categoryIcon[
+              assetCategory
+            ]}{" "}
+            เพิ่ม
+            {categoryName[
+              assetCategory
+            ]}
           </h1>
 
           <p
@@ -581,12 +764,13 @@ export default async function NewAssetPage({
               sm:text-base
             "
           >
-            {department.name} — ทะเบียนคุมครุภัณฑ์
+            {department.name} —
+            ทะเบียนคุมครุภัณฑ์
           </p>
         </div>
 
         <Link
-          href={`/assets/${department.id}/${category}`}
+          href={`/assets/${department.id}/${assetCategory}`}
           className="
             shrink-0
             rounded-xl
@@ -613,10 +797,9 @@ export default async function NewAssetPage({
         </Link>
       </div>
 
-      {/* =====================================================
-          Form
-          การ์ดเดียว / กึ่งกลาง / max-w-4xl
-      ===================================================== */}
+      {/* ===================================================
+          FORM
+          =================================================== */}
 
       <form
         action={createAsset}
@@ -638,43 +821,21 @@ export default async function NewAssetPage({
         "
       >
         {/* =================================================
-            ข้อมูลหลัก
-        ================================================= */}
+            ข้อมูลครุภัณฑ์
+            ================================================= */}
 
         <div>
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-            "
-          >
+          <h2 className="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 text-lg font-extrabold !text-white">
             📋 ข้อมูลครุภัณฑ์
           </h2>
 
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {/* รายการ */}
+
             <div className="sm:col-span-2">
               <label
                 htmlFor="name"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 รายการครุภัณฑ์{" "}
                 <span className="text-red-400">
@@ -687,36 +848,21 @@ export default async function NewAssetPage({
                 name="name"
                 type="text"
                 required
-                placeholder={`เช่น ${categoryName[category]}`}
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                placeholder={`เช่น ${
+                  categoryName[
+                    assetCategory
+                  ]
+                }`}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
+
+            {/* ยี่ห้อ */}
 
             <div>
               <label
                 htmlFor="brand"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 ยี่ห้อ
               </label>
@@ -725,34 +871,16 @@ export default async function NewAssetPage({
                 id="brand"
                 name="brand"
                 type="text"
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
+
+            {/* รุ่น */}
 
             <div>
               <label
                 htmlFor="model"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 รุ่น
               </label>
@@ -761,34 +889,16 @@ export default async function NewAssetPage({
                 id="model"
                 name="model"
                 type="text"
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
+
+            {/* Serial */}
 
             <div className="sm:col-span-2">
               <label
                 htmlFor="serialNumber"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 Serial Number
               </label>
@@ -797,22 +907,55 @@ export default async function NewAssetPage({
                 id="serialNumber"
                 name="serialNumber"
                 type="text"
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+              />
+            </div>
+
+            {/* จำนวน */}
+
+            <div>
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-extrabold !text-slate-200"
+              >
+                จำนวน{" "}
+                <span className="text-red-400">
+                  *
+                </span>
+              </label>
+
+              <input
+                id="quantity"
+                name="quantity"
+                type="number"
+                min={1}
+                step={1}
+                required
+                defaultValue={1}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+              />
+            </div>
+
+            {/* หน่วย */}
+
+            <div>
+              <label
+                htmlFor="unit"
+                className="block text-sm font-extrabold !text-slate-200"
+              >
+                หน่วย
+              </label>
+
+              <input
+                id="unit"
+                name="unit"
+                type="text"
+                defaultValue={
+                  categoryUnit[
+                    assetCategory
+                  ]
+                }
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
           </div>
@@ -820,42 +963,18 @@ export default async function NewAssetPage({
 
         {/* =================================================
             เลขทะเบียน
-        ================================================= */}
+            ================================================= */}
 
         <div className="mt-6">
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-            "
-          >
+          <h2 className="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 text-lg font-extrabold !text-white">
             🔖 เลขทะเบียนครุภัณฑ์
           </h2>
 
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="governmentAssetNo"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 รหัส GFMIS
               </label>
@@ -864,34 +983,14 @@ export default async function NewAssetPage({
                 id="governmentAssetNo"
                 name="governmentAssetNo"
                 type="text"
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
 
             <div>
               <label
                 htmlFor="officeAssetNo"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className="block text-sm font-extrabold !text-slate-200"
               >
                 รหัสครุภัณฑ์
               </label>
@@ -900,22 +999,7 @@ export default async function NewAssetPage({
                 id="officeAssetNo"
                 name="officeAssetNo"
                 type="text"
-                className="
-                  mt-2
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
               />
             </div>
           </div>
@@ -923,51 +1007,103 @@ export default async function NewAssetPage({
 
         {/* =================================================
             ผู้รับผิดชอบ
-        ================================================= */}
+            ================================================= */}
 
         <div className="mt-6">
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-            "
-          >
+          <h2 className="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 text-lg font-extrabold !text-white">
             👤 ผู้รับผิดชอบ
           </h2>
 
           <AssetResponsibleFields
-            sections={department.sections}
-            officers={department.officers}
-            departmentName={department.name}
-            departmentId={department.id}
+            sections={
+              department.sections
+            }
+            officers={
+              department.officers
+            }
+            departmentName={
+              department.name
+            }
+            departmentId={
+              department.id
+            }
           />
         </div>
 
         {/* =================================================
-            หมายเหตุ
-        ================================================= */}
+            ข้อมูลเพิ่มเติม
+            ================================================= */}
 
         <div className="mt-6">
-          <h2
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-              text-lg
-              font-extrabold
-              !text-white
-            "
-          >
+          <h2 className="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 text-lg font-extrabold !text-white">
+            📌 ข้อมูลเพิ่มเติม
+          </h2>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {/* วันที่ได้มา */}
+
+            <div>
+              <label
+                htmlFor="purchaseDate"
+                className="block text-sm font-extrabold !text-slate-200"
+              >
+                วันที่ได้มา
+              </label>
+
+              <input
+                id="purchaseDate"
+                name="purchaseDate"
+                type="date"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+              />
+            </div>
+
+            {/* ราคา */}
+
+            <div>
+              <label
+                htmlFor="price"
+                className="block text-sm font-extrabold !text-slate-200"
+              >
+                ราคา
+              </label>
+
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min={0}
+                step="0.01"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+              />
+            </div>
+
+            {/* สถานที่ */}
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="location"
+                className="block text-sm font-extrabold !text-slate-200"
+              >
+                สถานที่ตั้ง
+              </label>
+
+              <input
+                id="location"
+                name="location"
+                type="text"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* =================================================
+            หมายเหตุ
+            ================================================= */}
+
+        <div className="mt-6">
+          <h2 className="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-3 text-lg font-extrabold !text-white">
             📝 หมายเหตุ
           </h2>
 
@@ -976,84 +1112,26 @@ export default async function NewAssetPage({
               id="remark"
               name="remark"
               rows={4}
-              className="
-                w-full
-                resize-y
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
-              "
+              className="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
         </div>
 
         {/* =================================================
-            ปุ่ม
-        ================================================= */}
+            BUTTONS
+            ================================================= */}
 
-        <div
-          className="
-            mt-6
-            flex
-            flex-col-reverse
-            gap-3
-            border-t
-            border-slate-700
-            pt-5
-            sm:flex-row
-            sm:justify-end
-          "
-        >
+        <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-700 pt-5 sm:flex-row sm:justify-end">
           <Link
-            href={`/assets/${department.id}/${category}`}
-            className="
-              w-full
-              rounded-xl
-              bg-slate-700
-              px-8
-              py-3
-              text-center
-              text-lg
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:bg-slate-800
-              sm:w-auto
-            "
+            href={`/assets/${department.id}/${assetCategory}`}
+            className="w-full rounded-xl bg-slate-700 px-8 py-3 text-center text-lg font-extrabold !text-white shadow-lg transition hover:bg-slate-800 sm:w-auto"
           >
             ยกเลิก
           </Link>
 
           <button
             type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-6
-              py-3
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
-              active:scale-[0.98]
-              sm:w-auto
-            "
+            className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 px-6 py-3 font-extrabold !text-white shadow-lg transition hover:scale-105 hover:from-emerald-700 hover:to-green-600 active:scale-[0.98] sm:w-auto"
           >
             💾 บันทึก
           </button>
