@@ -143,7 +143,7 @@ function formatThaiDate(value: string) {
   return `${day} ${month} ${year}`;
 }
 
-function getCategoryUnit(
+/*\n * ลำดับเดิมจากทะเบียนต้นฉบับ / Excel\n * รูปแบบ remark: SOURCE:DEPARTMENT_1:n\n */\nfunction getSourceOrder(\n  remark: string | null\n): number | null {\n  if (!remark) {\n    return null;\n  }\n\n  const match = remark.match(\n    /SOURCE:DEPARTMENT_1:(\\d+)/\n  );\n\n  if (!match) {\n    return null;\n  }\n\n  const sourceOrder = Number(match[1]);\n\n  if (\n    !Number.isInteger(sourceOrder) ||\n    sourceOrder <= 0\n  ) {\n    return null;\n  }\n\n  return sourceOrder;\n}\n\nfunction getCategoryUnit(
   category: string
 ) {
   const categoryUnit: Record<
@@ -1205,6 +1205,16 @@ export default function ExportInspectionPdf({
                           startIndex +
                           localIndex;
 
+                        // ใช้เลขลำดับเดิมจากทะเบียนต้นฉบับก่อน
+                        const sourceOrder =
+                          getSourceOrder(
+                            asset.remark
+                          );
+
+                        const displayOrder =
+                          sourceOrder ??
+                          actualIndex + 1;
+
                         const row =
                           rows.find(
                             (item) =>
@@ -1257,8 +1267,7 @@ export default function ExportInspectionPdf({
                                   bodyTextStyle
                                 }
                               >
-                                {actualIndex +
-                                  1}
+                                {displayOrder}
                               </span>
                             </td>
 

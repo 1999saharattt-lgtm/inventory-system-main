@@ -1,6 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import ExportInspectionPdf from "./ExportInspectionPdf";
 
 type Department = {
@@ -74,17 +79,11 @@ type Props = {
   department: Department;
   assets: Asset[];
   officers: Officer[];
-
   initialData?: InitialData;
-
   submitUrl?: string;
-
   submitMethod?: "POST" | "PUT";
-
   cancelHref?: string;
-
   submitLabel?: string;
-
   readOnly?: boolean;
 };
 
@@ -105,12 +104,20 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
+/* =========================================================
+   DATE
+   ========================================================= */
+
 function getCurrentDate() {
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -120,19 +127,30 @@ function parseDateOnly(value: string) {
     return null;
   }
 
-  const [year, month, day] = value.split("-").map(Number);
+  const [year, month, day] =
+    value.split("-").map(Number);
 
   if (!year || !month || !day) {
     return null;
   }
 
-  return new Date(year, month - 1, day);
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
 }
 
 function formatDateInput(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -144,7 +162,9 @@ function getOneYearBefore(value: string) {
     return "";
   }
 
-  date.setFullYear(date.getFullYear() - 1);
+  date.setFullYear(
+    date.getFullYear() - 1
+  );
 
   return formatDateInput(date);
 }
@@ -156,7 +176,9 @@ function getOneDayBefore(value: string) {
     return "";
   }
 
-  date.setDate(date.getDate() - 1);
+  date.setDate(
+    date.getDate() - 1
+  );
 
   return formatDateInput(date);
 }
@@ -169,8 +191,12 @@ function formatThaiDate(value: string) {
   }
 
   const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
+
+  const month =
+    thaiMonths[date.getMonth()];
+
+  const year =
+    date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
 }
@@ -183,7 +209,9 @@ function getFiscalYear(value: string) {
   }
 
   const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+
+  const month =
+    date.getMonth() + 1;
 
   return String(
     month >= 10
@@ -192,7 +220,13 @@ function getFiscalYear(value: string) {
   );
 }
 
-function getCategoryUnit(category: string) {
+/* =========================================================
+   UNIT
+   ========================================================= */
+
+function getCategoryUnit(
+  category: string
+) {
   switch (category) {
     case "COMPUTER":
     case "DESKTOP":
@@ -217,6 +251,42 @@ function getCategoryUnit(category: string) {
   }
 }
 
+/* =========================================================
+   SOURCE ORDER
+   ========================================================= */
+
+function getSourceOrder(
+  remark: string | null
+): number | null {
+  if (!remark) {
+    return null;
+  }
+
+  const match = remark.match(
+    /SOURCE:DEPARTMENT_1:(\d+)/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const sourceOrder =
+    Number(match[1]);
+
+  if (
+    !Number.isInteger(sourceOrder) ||
+    sourceOrder <= 0
+  ) {
+    return null;
+  }
+
+  return sourceOrder;
+}
+
+/* =========================================================
+   ROWS
+   ========================================================= */
+
 function createInitialRows(
   assets: Asset[]
 ): InspectionRow[] {
@@ -233,26 +303,37 @@ function normalizeInitialRows(
   assets: Asset[],
   initialRows?: InspectionRow[]
 ): InspectionRow[] {
-  if (!initialRows || initialRows.length === 0) {
-    return createInitialRows(assets);
+  if (
+    !initialRows ||
+    initialRows.length === 0
+  ) {
+    return createInitialRows(
+      assets
+    );
   }
 
   return assets.map((asset) => {
-    const existingRow = initialRows.find(
-      (row) => row.assetId === asset.id
-    );
+    const existingRow =
+      initialRows.find(
+        (row) =>
+          row.assetId === asset.id
+      );
 
     if (existingRow) {
       return {
         assetId: asset.id,
         countedQty:
-          existingRow.countedQty ?? "1",
+          existingRow.countedQty ??
+          "1",
         accuracy:
-          existingRow.accuracy ?? "",
+          existingRow.accuracy ??
+          "",
         status:
-          existingRow.status ?? "",
+          existingRow.status ??
+          "",
         remark:
-          existingRow.remark ?? "",
+          existingRow.remark ??
+          "",
       };
     }
 
@@ -266,19 +347,31 @@ function normalizeInitialRows(
   });
 }
 
-function normalizeInspectorIds(ids?: string[]) {
-  const result = Array<string>(5).fill("");
+function normalizeInspectorIds(
+  ids?: string[]
+) {
+  const result =
+    Array<string>(5).fill("");
 
   if (!ids) {
     return result;
   }
 
-  ids.slice(0, 5).forEach((id, index) => {
-    result[index] = String(id ?? "");
-  });
+  ids
+    .slice(0, 5)
+    .forEach(
+      (id, index) => {
+        result[index] =
+          String(id ?? "");
+      }
+    );
 
   return result;
 }
+
+/* =========================================================
+   COMPONENT
+   ========================================================= */
 
 export default function InspectionForm({
   department,
@@ -291,20 +384,23 @@ export default function InspectionForm({
   submitLabel,
   readOnly = false,
 }: Props) {
-  const today = getCurrentDate();
+  const today =
+    getCurrentDate();
 
   const [
     inspectionStartDate,
     setInspectionStartDate,
   ] = useState(
-    initialData?.inspectionStartDate || today
+    initialData?.inspectionStartDate ||
+      today
   );
 
   const [
     inspectionEndDate,
     setInspectionEndDate,
   ] = useState(
-    initialData?.inspectionEndDate || today
+    initialData?.inspectionEndDate ||
+      today
   );
 
   const [
@@ -341,30 +437,181 @@ export default function InspectionForm({
   );
 
   const [rows, setRows] =
-    useState<InspectionRow[]>(() =>
-      normalizeInitialRows(
-        assets,
-        initialData?.rows
-      )
+    useState<InspectionRow[]>(
+      () =>
+        normalizeInitialRows(
+          assets,
+          initialData?.rows
+        )
     );
 
   const [
     inspectorIds,
     setInspectorIds,
-  ] = useState<string[]>(() =>
-    normalizeInspectorIds(
-      initialData?.inspectorIds
-    )
+  ] = useState<string[]>(
+    () =>
+      normalizeInspectorIds(
+        initialData?.inspectorIds
+      )
   );
 
-  const [isSaving, setIsSaving] =
-    useState(false);
+  const [
+    isSaving,
+    setIsSaving,
+  ] = useState(false);
+
+  /* =======================================================
+     SEARCH
+     ======================================================= */
+
+  const [
+    searchTerm,
+    setSearchTerm,
+  ] = useState("");
+
+  const filteredAssets =
+    useMemo(() => {
+      const keyword =
+        searchTerm
+          .trim()
+          .toLowerCase();
+
+      if (!keyword) {
+        return assets;
+      }
+
+      return assets.filter(
+        (asset) => {
+          const officerName =
+            asset.officer
+              ? `${asset.officer.firstName} ${asset.officer.lastName}`
+              : "";
+
+          const sourceOrder =
+            getSourceOrder(
+              asset.remark
+            );
+
+          const searchableText = [
+            sourceOrder,
+            asset.name,
+            asset.category,
+            asset.brand,
+            asset.model,
+            asset.serialNumber,
+            asset.governmentAssetNo,
+            asset.officeAssetNo,
+            asset.location,
+            asset.section?.name,
+            officerName,
+            asset.remark,
+          ]
+            .filter(
+              (value) =>
+                value !== null &&
+                value !== undefined
+            )
+            .join(" ")
+            .toLowerCase();
+
+          return searchableText.includes(
+            keyword
+          );
+        }
+      );
+    }, [assets, searchTerm]);
+
+  /* =======================================================
+     REFS
+     ======================================================= */
 
   const inspectionStartDateRef =
-    useRef<HTMLInputElement>(null);
+    useRef<HTMLInputElement>(
+      null
+    );
 
   const inspectionEndDateRef =
-    useRef<HTMLInputElement>(null);
+    useRef<HTMLInputElement>(
+      null
+    );
+
+  const topScrollRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const bottomScrollRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const tableRef =
+    useRef<HTMLTableElement>(
+      null
+    );
+
+  const [
+    tableScrollWidth,
+    setTableScrollWidth,
+  ] = useState(2300);
+
+  /* =======================================================
+     SCROLLBAR
+     ======================================================= */
+
+  useEffect(() => {
+    function updateTableWidth() {
+      if (!tableRef.current) {
+        return;
+      }
+
+      setTableScrollWidth(
+        tableRef.current.scrollWidth
+      );
+    }
+
+    updateTableWidth();
+
+    window.addEventListener(
+      "resize",
+      updateTableWidth
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        updateTableWidth
+      );
+    };
+  }, [filteredAssets]);
+
+  function handleTopScroll() {
+    if (
+      !topScrollRef.current ||
+      !bottomScrollRef.current
+    ) {
+      return;
+    }
+
+    bottomScrollRef.current.scrollLeft =
+      topScrollRef.current.scrollLeft;
+  }
+
+  function handleBottomScroll() {
+    if (
+      !topScrollRef.current ||
+      !bottomScrollRef.current
+    ) {
+      return;
+    }
+
+    topScrollRef.current.scrollLeft =
+      bottomScrollRef.current.scrollLeft;
+  }
+
+  /* =======================================================
+     GENERAL
+     ======================================================= */
 
   const isEditMode =
     submitMethod === "PUT";
@@ -379,15 +626,23 @@ export default function InspectionForm({
       ? "บันทึกการแก้ไข"
       : "บันทึกผลการตรวจสอบ");
 
+  /* =======================================================
+     DATE PICKER
+     ======================================================= */
+
   function openDatePicker(
     input: HTMLInputElement | null
   ) {
-    if (readOnly || !input) {
+    if (
+      readOnly ||
+      !input
+    ) {
       return;
     }
 
     if (
-      typeof input.showPicker === "function"
+      typeof input.showPicker ===
+      "function"
     ) {
       input.showPicker();
       return;
@@ -395,6 +650,10 @@ export default function InspectionForm({
 
     input.click();
   }
+
+  /* =======================================================
+     UPDATE ROW
+     ======================================================= */
 
   function updateRow(
     assetId: number,
@@ -405,17 +664,101 @@ export default function InspectionForm({
       return;
     }
 
-    setRows((currentRows) =>
-      currentRows.map((row) =>
-        row.assetId === assetId
-          ? {
-              ...row,
-              [field]: value,
-            }
-          : row
-      )
+    setRows(
+      (currentRows) =>
+        currentRows.map(
+          (row) =>
+            row.assetId ===
+            assetId
+              ? {
+                  ...row,
+                  [field]:
+                    value,
+                }
+              : row
+        )
     );
   }
+
+  /* =======================================================
+     SELECT ALL
+
+     ทำงานเฉพาะรายการที่กำลังแสดงจากการค้นหา
+     ======================================================= */
+
+  function updateAllAccuracy(
+    value:
+      | "CORRECT"
+      | "INCORRECT"
+  ) {
+    if (readOnly) {
+      return;
+    }
+
+    const visibleAssetIds =
+      new Set(
+        filteredAssets.map(
+          (asset) =>
+            asset.id
+        )
+      );
+
+    setRows(
+      (currentRows) =>
+        currentRows.map(
+          (row) =>
+            visibleAssetIds.has(
+              row.assetId
+            )
+              ? {
+                  ...row,
+                  accuracy:
+                    value,
+                }
+              : row
+        )
+    );
+  }
+
+  function updateAllStatus(
+    value:
+      | "IN_USE"
+      | "DAMAGED"
+      | "DETERIORATED"
+      | "UNUSABLE"
+  ) {
+    if (readOnly) {
+      return;
+    }
+
+    const visibleAssetIds =
+      new Set(
+        filteredAssets.map(
+          (asset) =>
+            asset.id
+        )
+      );
+
+    setRows(
+      (currentRows) =>
+        currentRows.map(
+          (row) =>
+            visibleAssetIds.has(
+              row.assetId
+            )
+              ? {
+                  ...row,
+                  status:
+                    value,
+                }
+              : row
+        )
+    );
+  }
+
+  /* =======================================================
+     INSPECTOR
+     ======================================================= */
 
   function updateInspector(
     index: number,
@@ -425,19 +768,27 @@ export default function InspectionForm({
       return;
     }
 
-    setInspectorIds((current) => {
-      const next = [...current];
+    setInspectorIds(
+      (current) => {
+        const next = [
+          ...current,
+        ];
 
-      next[index] = value;
+        next[index] =
+          value;
 
-      return next;
-    });
+        return next;
+      }
+    );
   }
 
-  function getOfficer(id: string) {
+  function getOfficer(
+    id: string
+  ) {
     return officers.find(
       (officer) =>
-        String(officer.id) === id
+        String(officer.id) ===
+        id
     );
   }
 
@@ -447,10 +798,15 @@ export default function InspectionForm({
   ) {
     return inspectorIds.some(
       (id, index) =>
-        index !== currentIndex &&
+        index !==
+          currentIndex &&
         id === officerId
     );
   }
+
+  /* =======================================================
+     SAVE
+     ======================================================= */
 
   async function handleSave() {
     if (readOnly) {
@@ -467,20 +823,29 @@ export default function InspectionForm({
       return;
     }
 
-    const startDate = parseDateOnly(
-      inspectionStartDate
-    );
+    const startDate =
+      parseDateOnly(
+        inspectionStartDate
+      );
 
-    const endDate = parseDateOnly(
-      inspectionEndDate
-    );
+    const endDate =
+      parseDateOnly(
+        inspectionEndDate
+      );
 
-    if (!startDate || !endDate) {
-      alert("รูปแบบวันที่ไม่ถูกต้อง");
+    if (
+      !startDate ||
+      !endDate
+    ) {
+      alert(
+        "รูปแบบวันที่ไม่ถูกต้อง"
+      );
       return;
     }
 
-    if (endDate < startDate) {
+    if (
+      endDate < startDate
+    ) {
       alert(
         "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ"
       );
@@ -488,7 +853,9 @@ export default function InspectionForm({
     }
 
     if (
-      inspectorIds.some((id) => !id)
+      inspectorIds.some(
+        (id) => !id
+      )
     ) {
       alert(
         "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
@@ -497,7 +864,9 @@ export default function InspectionForm({
     }
 
     const uniqueInspectorIds =
-      new Set(inspectorIds);
+      new Set(
+        inspectorIds
+      );
 
     if (
       uniqueInspectorIds.size !==
@@ -509,20 +878,27 @@ export default function InspectionForm({
       return;
     }
 
-    if (rows.length === 0) {
+    if (
+      rows.length === 0
+    ) {
       alert(
         "ไม่พบรายการครุภัณฑ์สำหรับตรวจสอบ"
       );
       return;
     }
 
-    for (const row of rows) {
-      const countedQty = Number(
-        row.countedQty
-      );
+    for (
+      const row of rows
+    ) {
+      const countedQty =
+        Number(
+          row.countedQty
+        );
 
       if (
-        !Number.isInteger(countedQty) ||
+        !Number.isInteger(
+          countedQty
+        ) ||
         countedQty < 0
       ) {
         alert(
@@ -549,57 +925,74 @@ export default function InspectionForm({
     try {
       setIsSaving(true);
 
-      const response = await fetch(
-        submitUrl,
-        {
-          method: submitMethod,
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            departmentId:
-              department.id,
+      const response =
+        await fetch(
+          submitUrl,
+          {
+            method:
+              submitMethod,
 
-            inspectionStartDate,
-            inspectionEndDate,
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-            accountStartDate,
-            accountEndDate,
+            body:
+              JSON.stringify(
+                {
+                  departmentId:
+                    department.id,
 
-            movementFiscalYear,
+                  inspectionStartDate,
+                  inspectionEndDate,
 
-            inspectorIds:
-              inspectorIds.map(Number),
+                  accountStartDate,
+                  accountEndDate,
 
-            rows,
-          }),
-        }
-      );
+                  movementFiscalYear,
 
-      let data: unknown = null;
+                  inspectorIds:
+                    inspectorIds.map(
+                      Number
+                    ),
+
+                  rows,
+                }
+              ),
+          }
+        );
+
+      let data:
+        unknown = null;
 
       try {
-        data = await response.json();
+        data =
+          await response.json();
       } catch {
         data = null;
       }
 
       if (!response.ok) {
-        let errorMessage = isEditMode
-          ? "ไม่สามารถแก้ไขข้อมูลได้"
-          : "ไม่สามารถบันทึกข้อมูลได้";
+        let errorMessage =
+          isEditMode
+            ? "ไม่สามารถแก้ไขข้อมูลได้"
+            : "ไม่สามารถบันทึกข้อมูลได้";
 
         if (
           data &&
-          typeof data === "object" &&
+          typeof data ===
+            "object" &&
           "error" in data &&
-          typeof data.error === "string"
+          typeof data.error ===
+            "string"
         ) {
-          errorMessage = data.error;
+          errorMessage =
+            data.error;
         }
 
-        throw new Error(errorMessage);
+        throw new Error(
+          errorMessage
+        );
       }
 
       alert(
@@ -630,11 +1023,115 @@ export default function InspectionForm({
     }
   }
 
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
     <div className="mx-auto w-full max-w-[1800px] space-y-6">
-      {/* =====================================================
+
+      {/* ===================================================
+          SEARCH CARD
+          =================================================== */}
+
+      <div className="
+        rounded-2xl
+        border
+        border-slate-700
+        bg-gradient-to-br
+        from-slate-950
+        to-slate-800
+        p-5
+        text-white
+        shadow-xl
+      ">
+        <h2 className="
+          mb-4
+          text-2xl
+          font-extrabold
+          !text-white
+        ">
+          🔍 ค้นหารายการครุภัณฑ์
+        </h2>
+
+        <div className="
+          flex
+          flex-col
+          gap-3
+          sm:flex-row
+        ">
+          <input
+            id="inspection-search"
+            type="text"
+            value={searchTerm}
+            onChange={(e) =>
+              setSearchTerm(
+                e.target.value
+              )
+            }
+            placeholder="ค้นหาชื่อครุภัณฑ์, รหัส GFMIS, รหัสครุภัณฑ์, ยี่ห้อ, รุ่น, Serial Number..."
+            className="
+              min-h-[48px]
+              w-full
+              rounded-xl
+              border
+              border-slate-300
+              bg-white
+              px-4
+              py-2.5
+              font-semibold
+              text-slate-900
+              outline-none
+              placeholder:text-slate-400
+              focus:border-emerald-500
+              focus:ring-2
+              focus:ring-emerald-200
+            "
+          />
+
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() =>
+                setSearchTerm("")
+              }
+              className="
+                min-h-[48px]
+                shrink-0
+                rounded-xl
+                bg-gradient-to-r
+                from-slate-600
+                to-slate-500
+                px-5
+                py-2.5
+                font-extrabold
+                !text-white
+                shadow-lg
+                transition
+                hover:from-slate-700
+                hover:to-slate-600
+              "
+            >
+              ล้างค้นหา
+            </button>
+          )}
+        </div>
+
+        <p className="
+          mt-3
+          text-sm
+          font-semibold
+          !text-slate-300
+        ">
+          แสดง{" "}
+          {filteredAssets.length}{" "}
+          จาก {assets.length} รายการ
+        </p>
+      </div>
+
+      {/* ===================================================
           ข้อมูลการตรวจสอบ
-      ===================================================== */}
+          =================================================== */}
 
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white shadow-xl">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -643,10 +1140,14 @@ export default function InspectionForm({
           </h2>
 
           <ExportInspectionPdf
-            department={department}
+            department={
+              department
+            }
             assets={assets}
             rows={rows}
-            inspectorIds={inspectorIds}
+            inspectorIds={
+              inspectorIds
+            }
             inspectionStartDate={
               inspectionStartDate
             }
@@ -662,11 +1163,15 @@ export default function InspectionForm({
             movementFiscalYear={
               movementFiscalYear
             }
-            officers={officers}
+            officers={
+              officers
+            }
           />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* วันที่เริ่ม */}
+
           <div>
             <label className="mb-2 block text-lg font-extrabold !text-white">
               เริ่มดำเนินการตรวจสอบวันที่
@@ -675,7 +1180,9 @@ export default function InspectionForm({
             <div className="relative">
               <button
                 type="button"
-                disabled={readOnly}
+                disabled={
+                  readOnly
+                }
                 onClick={() =>
                   openDatePicker(
                     inspectionStartDateRef.current
@@ -741,7 +1248,9 @@ export default function InspectionForm({
                   value={
                     inspectionStartDate
                   }
-                  onChange={(e) => {
+                  onChange={(
+                    e
+                  ) => {
                     const value =
                       e.target.value;
 
@@ -750,11 +1259,15 @@ export default function InspectionForm({
                     );
 
                     setAccountStartDate(
-                      getOneYearBefore(value)
+                      getOneYearBefore(
+                        value
+                      )
                     );
 
                     setMovementFiscalYear(
-                      getFiscalYear(value)
+                      getFiscalYear(
+                        value
+                      )
                     );
                   }}
                   required
@@ -764,6 +1277,8 @@ export default function InspectionForm({
             </div>
           </div>
 
+          {/* วันที่สิ้นสุด */}
+
           <div>
             <label className="mb-2 block text-lg font-extrabold !text-white">
               ตรวจสอบแล้วเสร็จวันที่
@@ -772,7 +1287,9 @@ export default function InspectionForm({
             <div className="relative">
               <button
                 type="button"
-                disabled={readOnly}
+                disabled={
+                  readOnly
+                }
                 onClick={() =>
                   openDatePicker(
                     inspectionEndDateRef.current
@@ -838,7 +1355,9 @@ export default function InspectionForm({
                   value={
                     inspectionEndDate
                   }
-                  onChange={(e) => {
+                  onChange={(
+                    e
+                  ) => {
                     const value =
                       e.target.value;
 
@@ -847,7 +1366,9 @@ export default function InspectionForm({
                     );
 
                     setAccountEndDate(
-                      getOneDayBefore(value)
+                      getOneDayBefore(
+                        value
+                      )
                     );
                   }}
                   required
@@ -859,13 +1380,278 @@ export default function InspectionForm({
         </div>
       </div>
 
-      {/* =====================================================
-          ตารางตรวจสอบ
-      ===================================================== */}
+      {/* ===================================================
+          QUICK SELECT
+          =================================================== */}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-lg">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[2300px] border-collapse text-[13px] leading-tight">
+      {!readOnly && (
+        <div className="
+          rounded-2xl
+          border
+          border-slate-300
+          bg-white
+          p-5
+          shadow-lg
+        ">
+          <div className="
+            flex
+            flex-col
+            gap-4
+            xl:flex-row
+            xl:items-center
+            xl:justify-between
+          ">
+            <div>
+              <h2 className="
+                text-xl
+                font-extrabold
+                text-slate-900
+              ">
+                เลือกผลการตรวจสอบแบบรวดเร็ว
+              </h2>
+
+              <p className="
+                mt-1
+                text-sm
+                font-semibold
+                text-slate-500
+              ">
+                ใช้กับรายการที่กำลังแสดง{" "}
+                {filteredAssets.length} รายการ
+              </p>
+            </div>
+
+            <div className="
+              flex
+              flex-wrap
+              gap-2
+            ">
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllAccuracy(
+                    "CORRECT"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-emerald-600
+                  to-green-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-emerald-700
+                  hover:to-green-600
+                "
+              >
+                ✓ ถูกต้องทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllAccuracy(
+                    "INCORRECT"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-red-700
+                  to-red-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-red-800
+                  hover:to-red-600
+                "
+              >
+                ✕ ไม่ถูกต้องทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllStatus(
+                    "IN_USE"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-emerald-600
+                  to-green-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-emerald-700
+                  hover:to-green-600
+                "
+              >
+                ✓ ใช้งานปกติทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllStatus(
+                    "DAMAGED"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-orange-600
+                  to-orange-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-orange-700
+                  hover:to-orange-600
+                "
+              >
+                ชำรุดทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllStatus(
+                    "DETERIORATED"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-amber-600
+                  to-yellow-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-amber-700
+                  hover:to-yellow-600
+                "
+              >
+                เสื่อมสภาพทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateAllStatus(
+                    "UNUSABLE"
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-red-700
+                  to-red-500
+                  px-4
+                  py-2.5
+                  font-extrabold
+                  !text-white
+                  shadow
+                  transition
+                  hover:scale-[1.02]
+                  hover:from-red-800
+                  hover:to-red-600
+                "
+              >
+                ไม่จำเป็นต้องใช้ทั้งหมด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================
+          TABLE
+          =================================================== */}
+
+      <div className="
+        overflow-hidden
+        rounded-2xl
+        border
+        border-slate-300
+        bg-white
+        shadow-lg
+      ">
+        {/* ===============================================
+            TOP SCROLLBAR
+            =============================================== */}
+
+        <div className="
+          border-b
+          border-slate-300
+          bg-slate-100
+          px-2
+          pt-2
+        ">
+          <div
+            ref={topScrollRef}
+            onScroll={
+              handleTopScroll
+            }
+            className="
+              overflow-x-auto
+              overflow-y-hidden
+            "
+          >
+            <div
+              style={{
+                width:
+                  tableScrollWidth,
+                height: 12,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* ===============================================
+            TABLE + BOTTOM SCROLLBAR
+            =============================================== */}
+
+        <div
+          ref={
+            bottomScrollRef
+          }
+          onScroll={
+            handleBottomScroll
+          }
+          className="overflow-x-auto"
+        >
+          <table
+            ref={tableRef}
+            className="
+              w-full
+              min-w-[2300px]
+              border-collapse
+              text-[13px]
+              leading-tight
+            "
+          >
             <thead>
               <tr>
                 <th
@@ -1031,276 +1817,397 @@ export default function InspectionForm({
             </thead>
 
             <tbody>
-              {assets.map((asset, index) => {
-                const row = rows.find(
-                  (item) =>
-                    item.assetId === asset.id
-                );
-
-                const responsibleGroup =
-                  department.name ===
-                  "กลุ่มอำนวยการ"
-                    ? [
-                        department.name,
-                        asset.section?.name ||
-                          "",
-                      ]
-                        .filter(Boolean)
-                        .join(" / ")
-                    : department.name;
-
-                return (
-                  <tr
-                    key={asset.id}
-                    className="bg-white text-sm font-medium text-slate-900"
+              {filteredAssets.length ===
+              0 ? (
+                <tr>
+                  <td
+                    colSpan={18}
+                    className="
+                      border
+                      border-black
+                      px-4
+                      py-10
+                      text-center
+                      text-base
+                      font-bold
+                      text-slate-500
+                    "
                   >
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      {index + 1}
-                    </td>
+                    ไม่พบรายการครุภัณฑ์ที่ตรงกับคำค้นหา
+                  </td>
+                </tr>
+              ) : (
+                filteredAssets.map(
+                  (asset) => {
+                    const row =
+                      rows.find(
+                        (item) =>
+                          item.assetId ===
+                          asset.id
+                      );
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      {asset.governmentAssetNo ||
-                        "-"}
-                    </td>
+                    /* ===============================
+                       ลำดับเดิมจากหน้า /all
+                       =============================== */
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      {asset.officeAssetNo ||
-                        "-"}
-                    </td>
+                    const sourceOrder =
+                      getSourceOrder(
+                        asset.remark
+                      );
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      {responsibleGroup}
-                    </td>
+                    const originalIndex =
+                      assets.findIndex(
+                        (item) =>
+                          item.id ===
+                          asset.id
+                      );
 
-                    <td className="border border-black px-2 py-2 text-left align-middle">
-                      {asset.name}
-                    </td>
+                    const displayOrder =
+                      sourceOrder ??
+                      originalIndex + 1;
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      {getCategoryUnit(
-                        asset.category
-                      )}
-                    </td>
+                    const responsibleGroup =
+                      department.name ===
+                      "กลุ่มอำนวยการ"
+                        ? [
+                            department.name,
+                            asset.section
+                              ?.name ||
+                              "",
+                          ]
+                            .filter(
+                              Boolean
+                            )
+                            .join(
+                              " / "
+                            )
+                        : department.name;
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      1
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      -
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      -
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      1
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={
-                          row?.countedQty ??
-                          "1"
+                    return (
+                      <tr
+                        key={
+                          asset.id
                         }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "countedQty",
-                            e.target.value
-                          )
-                        }
-                        className={`
-                          mx-auto
-                          h-8
-                          w-16
-                          rounded
-                          border
-                          border-slate-400
-                          px-2
-                          py-1
-                          text-center
-                          ${
-                            readOnly
-                              ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
-                              : "bg-white"
+                        className="
+                          bg-white
+                          text-sm
+                          font-medium
+                          text-slate-900
+                          transition
+                          hover:bg-emerald-50
+                        "
+                      >
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          {
+                            displayOrder
                           }
-                        `}
-                      />
-                    </td>
+                        </td>
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`accuracy-${asset.id}`}
-                        value="CORRECT"
-                        checked={
-                          row?.accuracy ===
-                          "CORRECT"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "accuracy",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          {asset.governmentAssetNo ||
+                            "-"}
+                        </td>
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`accuracy-${asset.id}`}
-                        value="INCORRECT"
-                        checked={
-                          row?.accuracy ===
-                          "INCORRECT"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "accuracy",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          {asset.officeAssetNo ||
+                            "-"}
+                        </td>
 
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        value="IN_USE"
-                        checked={
-                          row?.status ===
-                          "IN_USE"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        value="DAMAGED"
-                        checked={
-                          row?.status ===
-                          "DAMAGED"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        value="DETERIORATED"
-                        checked={
-                          row?.status ===
-                          "DETERIORATED"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
-
-                    <td className="border border-black px-2 py-2 text-center align-middle">
-                      <input
-                        type="radio"
-                        name={`status-${asset.id}`}
-                        value="UNUSABLE"
-                        checked={
-                          row?.status ===
-                          "UNUSABLE"
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "status",
-                            e.target.value
-                          )
-                        }
-                        className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
-                      />
-                    </td>
-
-                    <td className="border border-black px-2 py-2 align-middle">
-                      <input
-                        type="text"
-                        value={
-                          row?.remark ?? ""
-                        }
-                        disabled={readOnly}
-                        onChange={(e) =>
-                          updateRow(
-                            asset.id,
-                            "remark",
-                            e.target.value
-                          )
-                        }
-                        className={`
-                          h-8
-                          w-full
-                          rounded
-                          border
-                          border-slate-400
-                          px-2
-                          py-1
-                          ${
-                            readOnly
-                              ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
-                              : "bg-white"
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          {
+                            responsibleGroup
                           }
-                        `}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-left align-middle">
+                          {asset.name}
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          {getCategoryUnit(
+                            asset.category
+                          )}
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          1
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          -
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          -
+                        </td>
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          1
+                        </td>
+
+                        {/* จำนวนตรวจนับ */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={
+                              row?.countedQty ??
+                              "1"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "countedQty",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className={`
+                              mx-auto
+                              h-8
+                              w-16
+                              rounded
+                              border
+                              border-slate-400
+                              px-2
+                              py-1
+                              text-center
+                              ${
+                                readOnly
+                                  ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                                  : "bg-white"
+                              }
+                            `}
+                          />
+                        </td>
+
+                        {/* ถูกต้อง */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`accuracy-${asset.id}`}
+                            value="CORRECT"
+                            checked={
+                              row?.accuracy ===
+                              "CORRECT"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "accuracy",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* ไม่ถูกต้อง */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`accuracy-${asset.id}`}
+                            value="INCORRECT"
+                            checked={
+                              row?.accuracy ===
+                              "INCORRECT"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "accuracy",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* ใช้งานปกติ */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`status-${asset.id}`}
+                            value="IN_USE"
+                            checked={
+                              row?.status ===
+                              "IN_USE"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "status",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* ชำรุด */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`status-${asset.id}`}
+                            value="DAMAGED"
+                            checked={
+                              row?.status ===
+                              "DAMAGED"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "status",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* เสื่อมสภาพ */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`status-${asset.id}`}
+                            value="DETERIORATED"
+                            checked={
+                              row?.status ===
+                              "DETERIORATED"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "status",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* ไม่จำเป็นต้องใช้ */}
+
+                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          <input
+                            type="radio"
+                            name={`status-${asset.id}`}
+                            value="UNUSABLE"
+                            checked={
+                              row?.status ===
+                              "UNUSABLE"
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "status",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                          />
+                        </td>
+
+                        {/* หมายเหตุ */}
+
+                        <td className="border border-black px-2 py-2 align-middle">
+                          <input
+                            type="text"
+                            value={
+                              row?.remark ??
+                              ""
+                            }
+                            disabled={
+                              readOnly
+                            }
+                            onChange={(
+                              e
+                            ) =>
+                              updateRow(
+                                asset.id,
+                                "remark",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className={`
+                              h-8
+                              w-full
+                              min-w-[140px]
+                              rounded
+                              border
+                              border-slate-400
+                              px-2
+                              py-1
+                              ${
+                                readOnly
+                                  ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                                  : "bg-white"
+                              }
+                            `}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* =====================================================
-          รายชื่อผู้ตรวจสอบ
-      ===================================================== */}
+      {/* ===================================================
+          INSPECTORS
+          =================================================== */}
 
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
         <h2 className="mb-6 text-2xl font-extrabold !text-white">
@@ -1309,7 +2216,10 @@ export default function InspectionForm({
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {inspectorIds.map(
-            (inspectorId, index) => (
+            (
+              inspectorId,
+              index
+            ) => (
               <div key={index}>
                 <label className="mb-2 block text-lg font-extrabold !text-white">
                   ผู้ตรวจสอบคนที่{" "}
@@ -1321,16 +2231,22 @@ export default function InspectionForm({
                     {inspectorId
                       ? `${getOfficer(inspectorId)?.firstName || ""} ${
                           getOfficer(inspectorId)?.lastName || ""
-                        }`.trim() || "-"
+                        }`.trim() ||
+                        "-"
                       : "-"}
                   </div>
                 ) : (
                   <select
-                    value={inspectorId}
-                    onChange={(e) =>
+                    value={
+                      inspectorId
+                    }
+                    onChange={(
+                      e
+                    ) =>
                       updateInspector(
                         index,
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                     className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
@@ -1340,9 +2256,13 @@ export default function InspectionForm({
                     </option>
 
                     {officers.map(
-                      (officer) => {
+                      (
+                        officer
+                      ) => {
                         const value =
-                          String(officer.id);
+                          String(
+                            officer.id
+                          );
 
                         if (
                           isOfficerSelected(
@@ -1355,8 +2275,12 @@ export default function InspectionForm({
 
                         return (
                           <option
-                            key={officer.id}
-                            value={value}
+                            key={
+                              officer.id
+                            }
+                            value={
+                              value
+                            }
                           >
                             {
                               officer.firstName
@@ -1374,8 +2298,10 @@ export default function InspectionForm({
                 {inspectorId && (
                   <p className="mt-2 text-sm font-semibold !text-slate-300">
                     ตำแหน่ง:{" "}
-                    {getOfficer(inspectorId)
-                      ?.position || "-"}
+                    {getOfficer(
+                      inspectorId
+                    )?.position ||
+                      "-"}
                   </p>
                 )}
               </div>
@@ -1384,14 +2310,16 @@ export default function InspectionForm({
         </div>
       </div>
 
-      {/* =====================================================
-          ปุ่มดำเนินการ
-      ===================================================== */}
+      {/* ===================================================
+          ACTION BUTTONS
+          =================================================== */}
 
       {!readOnly && (
         <div className="flex flex-wrap items-center justify-end gap-3">
           <a
-            href={finalCancelHref}
+            href={
+              finalCancelHref
+            }
             className="
               rounded-xl
               bg-gradient-to-r
@@ -1414,8 +2342,12 @@ export default function InspectionForm({
 
           <button
             type="button"
-            onClick={handleSave}
-            disabled={isSaving}
+            onClick={
+              handleSave
+            }
+            disabled={
+              isSaving
+            }
             className="
               rounded-xl
               bg-gradient-to-r
