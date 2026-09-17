@@ -73,14 +73,9 @@ export default async function EditAssetPage({
      PARAMS
      ======================================================= */
 
-  const departmentIdNumber =
-    Number(departmentId);
-
-  const assetIdNumber =
-    Number(assetId);
-
-  const normalizedCategory =
-    category.toUpperCase();
+  const departmentIdNumber = Number(departmentId);
+  const assetIdNumber = Number(assetId);
+  const normalizedCategory = category.toUpperCase();
 
   if (
     !Number.isInteger(departmentIdNumber) ||
@@ -101,101 +96,82 @@ export default async function EditAssetPage({
      ASSET
      ======================================================= */
 
-  const asset =
-    await prisma.asset.findFirst({
-      where: {
-        id: assetIdNumber,
-        departmentId:
-          departmentIdNumber,
-        category:
-          assetCategory,
-      },
+  const asset = await prisma.asset.findFirst({
+    where: {
+      id: assetIdNumber,
+      departmentId: departmentIdNumber,
+      category: assetCategory,
+    },
 
-      include: {
-        department: true,
-        section: true,
-        officer: true,
-      },
-    });
+    include: {
+      department: true,
+      section: true,
+      officer: true,
+    },
+  });
 
   if (!asset) {
     notFound();
   }
 
-  const assetIdForUpdate =
-    asset.id;
+  const assetIdForUpdate = asset.id;
 
   /* =======================================================
      SECTIONS
-
-     ดึงเฉพาะกลุ่มงานที่อยู่ในหน่วยงานนี้
      ======================================================= */
 
-  const sections =
-    await prisma.section.findMany({
-      where: {
-        departmentId:
-          departmentIdNumber,
-      },
+  const sections = await prisma.section.findMany({
+    where: {
+      departmentId: departmentIdNumber,
+    },
 
-      select: {
-        id: true,
-        name: true,
-      },
+    select: {
+      id: true,
+      name: true,
+    },
 
-      orderBy: {
-        id: "asc",
-      },
-    });
+    orderBy: {
+      id: "asc",
+    },
+  });
 
   /* =======================================================
      OFFICERS
-
-     รองรับ Officer 2 รูปแบบ
-
-     1. Officer.departmentId ตรงกับ Department
-     2. Officer ผูกกับ Section ที่อยู่ใน Department
-
-     ใช้สำหรับเลือกผู้ครอบครองตามกลุ่มงาน
      ======================================================= */
 
-  const officers =
-    await prisma.officer.findMany({
-      where: {
-        OR: [
-          {
-            departmentId:
-              departmentIdNumber,
-          },
-
-          {
-            section: {
-              is: {
-                departmentId:
-                  departmentIdNumber,
-              },
+  const officers = await prisma.officer.findMany({
+    where: {
+      OR: [
+        {
+          departmentId: departmentIdNumber,
+        },
+        {
+          section: {
+            is: {
+              departmentId: departmentIdNumber,
             },
           },
-        ],
-      },
-
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        position: true,
-        sectionId: true,
-      },
-
-      orderBy: [
-        {
-          firstName: "asc",
-        },
-        {
-          lastName: "asc",
         },
       ],
-    });
+    },
+
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      position: true,
+      sectionId: true,
+    },
+
+    orderBy: [
+      {
+        firstName: "asc",
+      },
+      {
+        lastName: "asc",
+      },
+    ],
+  });
 
   /* =======================================================
      UPDATE
@@ -211,6 +187,9 @@ export default async function EditAssetPage({
       formData
     );
   }
+
+  const detailPath =
+    `/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`;
 
   /* =======================================================
      UI
@@ -286,7 +265,7 @@ export default async function EditAssetPage({
         </div>
 
         <Link
-          href={`/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`}
+          href={detailPath}
           className="
             w-full
             rounded-xl
@@ -321,6 +300,8 @@ export default async function EditAssetPage({
           mx-auto
           w-full
           max-w-4xl
+          space-y-4
+          sm:space-y-6
         "
       >
         {/* =================================================
@@ -390,9 +371,7 @@ export default async function EditAssetPage({
               <select
                 id="status"
                 name="status"
-                defaultValue={
-                  asset.status
-                }
+                defaultValue={asset.status}
                 className="
                   mt-2
                   min-h-[50px]
@@ -406,6 +385,7 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -448,7 +428,6 @@ export default async function EditAssetPage({
 
         <div
           className="
-            mt-4
             w-full
             min-w-0
             rounded-3xl
@@ -482,7 +461,7 @@ export default async function EditAssetPage({
                 sm:text-xl
               "
             >
-              🏷️ ข้อมูลครุภัณฑ์
+              📋 ข้อมูลครุภัณฑ์
             </h2>
           </div>
 
@@ -492,12 +471,11 @@ export default async function EditAssetPage({
               grid
               gap-4
               sm:grid-cols-2
-              lg:grid-cols-3
             "
           >
             {/* รายการครุภัณฑ์ */}
 
-            <div className="min-w-0">
+            <div className="min-w-0 sm:col-span-2">
               <label
                 htmlFor="name"
                 className="
@@ -515,9 +493,7 @@ export default async function EditAssetPage({
                 name="name"
                 type="text"
                 required
-                defaultValue={
-                  asset.name
-                }
+                defaultValue={asset.name}
                 className="
                   mt-2
                   min-h-[50px]
@@ -558,9 +534,7 @@ export default async function EditAssetPage({
                 id="category"
                 name="category"
                 required
-                defaultValue={
-                  asset.category
-                }
+                defaultValue={asset.category}
                 className="
                   mt-2
                   min-h-[50px]
@@ -574,18 +548,14 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
                 "
               >
-                {Object.entries(
-                  categoryName
-                ).map(
-                  ([
-                    value,
-                    label,
-                  ]) => (
+                {Object.entries(categoryName).map(
+                  ([value, label]) => (
                     <option
                       key={value}
                       value={value}
@@ -616,9 +586,7 @@ export default async function EditAssetPage({
                 id="brand"
                 name="brand"
                 type="text"
-                defaultValue={
-                  asset.brand ?? ""
-                }
+                defaultValue={asset.brand ?? ""}
                 className="
                   mt-2
                   min-h-[50px]
@@ -659,9 +627,7 @@ export default async function EditAssetPage({
                 id="model"
                 name="model"
                 type="text"
-                defaultValue={
-                  asset.model ?? ""
-                }
+                defaultValue={asset.model ?? ""}
                 className="
                   mt-2
                   min-h-[50px]
@@ -703,8 +669,7 @@ export default async function EditAssetPage({
                 name="serialNumber"
                 type="text"
                 defaultValue={
-                  asset.serialNumber ??
-                  ""
+                  asset.serialNumber ?? ""
                 }
                 className="
                   mt-2
@@ -726,7 +691,60 @@ export default async function EditAssetPage({
                 "
               />
             </div>
+          </div>
+        </div>
 
+        {/* =================================================
+            เลขทะเบียนครุภัณฑ์
+            ================================================= */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            rounded-3xl
+            border
+            border-slate-700
+            bg-gradient-to-br
+            from-slate-950
+            via-slate-900
+            to-slate-800
+            p-6
+            text-white
+            shadow-2xl
+            sm:p-8
+          "
+        >
+          <div
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+            "
+          >
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
+              "
+            >
+              🔖 เลขทะเบียนครุภัณฑ์
+            </h2>
+          </div>
+
+          <div
+            className="
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
+            "
+          >
             {/* GFMIS */}
 
             <div className="min-w-0">
@@ -747,8 +765,7 @@ export default async function EditAssetPage({
                 name="governmentAssetNo"
                 type="text"
                 defaultValue={
-                  asset.governmentAssetNo ??
-                  ""
+                  asset.governmentAssetNo ?? ""
                 }
                 className="
                   mt-2
@@ -791,8 +808,7 @@ export default async function EditAssetPage({
                 name="officeAssetNo"
                 type="text"
                 defaultValue={
-                  asset.officeAssetNo ??
-                  ""
+                  asset.officeAssetNo ?? ""
                 }
                 className="
                   mt-2
@@ -807,6 +823,7 @@ export default async function EditAssetPage({
                   font-semibold
                   text-slate-900
                   outline-none
+                  transition
                   focus:border-emerald-600
                   focus:ring-2
                   focus:ring-emerald-200
@@ -817,12 +834,11 @@ export default async function EditAssetPage({
         </div>
 
         {/* =================================================
-            หน่วยงานและผู้ครอบครอง
+            หน่วยงานและผู้รับผิดชอบ
             ================================================= */}
 
         <div
           className="
-            mt-4
             w-full
             min-w-0
             rounded-3xl
@@ -856,7 +872,7 @@ export default async function EditAssetPage({
                 sm:text-xl
               "
             >
-              👤 หน่วยงานและผู้ครอบครอง
+              👤 หน่วยงานและผู้รับผิดชอบ
             </h2>
           </div>
 
@@ -884,7 +900,6 @@ export default async function EditAssetPage({
 
         <div
           className="
-            mt-4
             w-full
             min-w-0
             rounded-3xl
@@ -958,7 +973,6 @@ export default async function EditAssetPage({
 
         <div
           className="
-            mt-4
             flex
             w-full
             flex-col
@@ -968,7 +982,7 @@ export default async function EditAssetPage({
           "
         >
           <Link
-            href={`/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`}
+            href={detailPath}
             className="
               w-full
               rounded-xl
