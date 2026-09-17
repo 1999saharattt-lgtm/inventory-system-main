@@ -64,8 +64,7 @@ function formatThaiDate(
 ) {
   if (!date) return "-";
 
-  const parsedDate =
-    new Date(date);
+  const parsedDate = new Date(date);
 
   if (
     Number.isNaN(
@@ -80,8 +79,7 @@ function formatThaiDate(
       parsedDate.getMonth()
     ]
   } ${
-    parsedDate.getFullYear() +
-    543
+    parsedDate.getFullYear() + 543
   }`;
 }
 
@@ -110,31 +108,23 @@ export default async function IssuePage({
   // Search Params
   // =====================================================
 
-  const params =
-    await searchParams;
+  const params = await searchParams;
 
   // =====================================================
   // Session
   // =====================================================
 
-  const cookieStore =
-    await cookies();
+  const cookieStore = await cookies();
 
   const token =
-    cookieStore.get(
-      "session"
-    )?.value;
+    cookieStore.get("session")?.value;
 
-  let session:
-    | SessionUser
-    | null = null;
+  let session: SessionUser | null = null;
 
   if (token) {
     try {
       session =
-        await verifySession(
-          token
-        );
+        await verifySession(token);
     } catch {
       session = null;
     }
@@ -169,8 +159,7 @@ export default async function IssuePage({
   // กำหนดช่วงวันที่สำหรับการกรอง
   // =====================================================
 
-  const now =
-    new Date();
+  const now = new Date();
 
   let startDate:
     | Date
@@ -184,9 +173,7 @@ export default async function IssuePage({
   // เบิกจ่ายวันนี้
   // =====================================================
 
-  if (
-    params.date === "today"
-  ) {
+  if (params.date === "today") {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -212,10 +199,7 @@ export default async function IssuePage({
   // เบิกจ่ายประจำเดือน
   // =====================================================
 
-  if (
-    params.period ===
-    "month"
-  ) {
+  if (params.period === "month") {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -244,8 +228,7 @@ export default async function IssuePage({
   const issueWhere = {
     ...issueDepartmentWhere,
 
-    ...(startDate &&
-    endDate
+    ...(startDate && endDate
       ? {
           issueDate: {
             gte: startDate,
@@ -287,8 +270,7 @@ export default async function IssuePage({
     session?.role === "ADMIN"
       ? issues.filter(
           (issue) =>
-            issue.status ===
-            "PENDING"
+            issue.status === "PENDING"
         ).length
       : 0;
 
@@ -312,9 +294,9 @@ export default async function IssuePage({
           min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -325,6 +307,9 @@ export default async function IssuePage({
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
           sm:px-8
           sm:py-6
         "
@@ -369,27 +354,33 @@ export default async function IssuePage({
         <div
           className="
             flex
+            w-full
             shrink-0
-            items-center
+            flex-col
             gap-2
+            sm:w-auto
+            sm:flex-row
+            sm:items-center
             sm:gap-3
           "
         >
           {/* ===============================================
               เพิ่มรายการ
+              เชื่อมไปฟอร์มเดิม /issue/new
           =============================================== */}
 
           <Link
             href="/issue/new"
             className="
+              w-full
               shrink-0
               whitespace-nowrap
               rounded-xl
               bg-gradient-to-r
-              from-blue-600
-              to-blue-500
-              px-3
-              py-2
+              from-emerald-600
+              to-green-500
+              px-4
+              py-2.5
               text-center
               text-sm
               font-extrabold
@@ -398,8 +389,9 @@ export default async function IssuePage({
               shadow-lg
               transition
               hover:scale-105
-              hover:from-blue-700
-              hover:to-blue-600
+              hover:from-emerald-700
+              hover:to-green-600
+              sm:w-auto
               sm:px-5
               sm:py-3
               sm:text-base
@@ -415,14 +407,15 @@ export default async function IssuePage({
           <Link
             href="/"
             className="
+              w-full
               shrink-0
               whitespace-nowrap
               rounded-xl
               bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-3
-              py-2
+              from-slate-600
+              to-slate-500
+              px-4
+              py-2.5
               text-center
               text-sm
               font-extrabold
@@ -431,8 +424,9 @@ export default async function IssuePage({
               shadow-lg
               transition
               hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
+              hover:from-slate-700
+              hover:to-slate-600
+              sm:w-auto
               sm:px-5
               sm:py-3
               sm:text-base
@@ -448,8 +442,7 @@ export default async function IssuePage({
           เฉพาะ ADMIN
       ===================================================== */}
 
-      {session?.role ===
-        "ADMIN" &&
+      {session?.role === "ADMIN" &&
         pendingCount > 0 && (
           <div
             className="
@@ -490,8 +483,7 @@ export default async function IssuePage({
                 "
               >
                 มีใบเบิกจำนวน{" "}
-                {pendingCount}{" "}
-                รายการ
+                {pendingCount} รายการ
                 รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
               </p>
             </div>
@@ -509,9 +501,7 @@ export default async function IssuePage({
                 shadow
               "
             >
-              รอ{" "}
-              {pendingCount}{" "}
-              รายการ
+              รอ {pendingCount} รายการ
             </div>
           </div>
         )}
@@ -583,30 +573,26 @@ export default async function IssuePage({
             </thead>
 
             <tbody>
-              {issues.length >
-              0 ? (
+              {issues.length > 0 ? (
                 issues.map(
                   (
                     issue: Issue,
                     index: number
                   ) => (
                     <tr
-                      key={
-                        issue.id
-                      }
+                      key={issue.id}
                       className="
                         border-b
                         border-slate-900
                         text-slate-900
                         transition
-                        hover:bg-blue-50
+                        hover:bg-emerald-50
                       "
                     >
                       {/* ลำดับ */}
 
                       <td className="whitespace-nowrap border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {index +
-                          1}
+                        {index + 1}
                       </td>
 
                       {/* วันที่ */}
@@ -622,18 +608,14 @@ export default async function IssuePage({
                       {/* เลขที่เอกสาร */}
 
                       <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {
-                          issue.documentNo
-                        }
+                        {issue.documentNo}
                       </td>
 
                       {/* หน่วยงาน / กลุ่มงาน */}
 
                       <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue
-                          .department
-                          ?.name ??
-                          "-"}
+                        {issue.department
+                          ?.name ?? "-"}
                       </td>
 
                       {/* ผู้ขอเบิก */}
@@ -650,20 +632,17 @@ export default async function IssuePage({
                         {issue.status ===
                         "PENDING" ? (
                           <span className="inline-flex max-w-full items-center justify-center rounded-full bg-amber-100 px-2 py-1.5 text-amber-800 shadow-sm">
-                            🔔
-                            รอเบิกจ่าย
+                            🔔 รอเบิกจ่าย
                           </span>
                         ) : issue.status ===
                           "APPROVED" ? (
                           <span className="inline-flex max-w-full items-center justify-center rounded-full bg-emerald-100 px-2 py-1.5 text-emerald-800 shadow-sm">
-                            ✓
-                            เสร็จสิ้นแล้ว
+                            ✓ เสร็จสิ้นแล้ว
                           </span>
                         ) : issue.status ===
                           "REJECTED" ? (
                           <span className="inline-flex max-w-full items-center justify-center rounded-full bg-red-100 px-2 py-1.5 text-red-800 shadow-sm">
-                            ✕
-                            ไม่อนุมัติ
+                            ✕ ไม่อนุมัติ
                           </span>
                         ) : (
                           <span className="inline-flex max-w-full items-center justify-center rounded-full bg-slate-100 px-2 py-1.5 text-slate-700">
@@ -734,9 +713,7 @@ export default async function IssuePage({
                           </Link>
 
                           <DeleteButton
-                            id={
-                              issue.id
-                            }
+                            id={issue.id}
                           />
                         </div>
                       </td>
@@ -746,9 +723,7 @@ export default async function IssuePage({
               ) : (
                 <tr>
                   <td
-                    colSpan={
-                      8
-                    }
+                    colSpan={8}
                     className="
                       border
                       border-slate-900
