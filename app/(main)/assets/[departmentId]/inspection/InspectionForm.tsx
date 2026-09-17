@@ -306,39 +306,76 @@ function getAssetUnit(
    ========================================================= */
 
 function getResponsibleName(
-  asset: Asset
+  asset: Asset,
+  department: Department
 ): string {
   const originalResponsibleName =
     asset.responsibleName?.trim();
+
+  let responsibleName = "";
 
   if (
     originalResponsibleName &&
     originalResponsibleName !== "-"
   ) {
-    return originalResponsibleName;
+    responsibleName =
+      originalResponsibleName;
+  } else {
+    const officerName =
+      asset.officer
+        ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+        : "";
+
+    if (
+      officerName &&
+      asset.section?.name
+    ) {
+      responsibleName =
+        `${officerName} / ${asset.section.name}`;
+    } else if (officerName) {
+      responsibleName =
+        officerName;
+    } else if (
+      asset.section?.name
+    ) {
+      responsibleName =
+        asset.section.name;
+    } else {
+      responsibleName = "-";
+    }
   }
 
-  const officerName =
-    asset.officer
-      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-      : "";
+  /* =======================================================
+     กลุ่มอำนวยการ
+
+     แสดงชื่อกลุ่มนำหน้าผู้รับผิดชอบเดิมทุกอัน
+
+     ตัวอย่าง:
+     หน้าห้องหัวหน้าอำนวยการ
+     →
+     กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
+     ======================================================= */
 
   if (
-    officerName &&
-    asset.section?.name
+    department.name ===
+      "กลุ่มอำนวยการ" &&
+    responsibleName !== "-"
   ) {
-    return `${officerName} / ${asset.section.name}`;
+    const prefix =
+      `${department.name} / `;
+
+    if (
+      !responsibleName.startsWith(
+        prefix
+      ) &&
+      responsibleName !==
+        department.name
+    ) {
+      return `${department.name} / ${responsibleName}`;
+    }
   }
 
-  if (officerName) {
-    return officerName;
-  }
-
-  if (asset.section?.name) {
-    return asset.section.name;
-  }
-
-  return "-";
+  return responsibleName;
 }
 
 /* =========================================================
@@ -601,7 +638,8 @@ export default function InspectionForm({
 
           const responsibleName =
             getResponsibleName(
-              asset
+              asset,
+              department
             );
 
           const unit =
@@ -2006,7 +2044,8 @@ export default function InspectionForm({
 
                     const responsibleName =
                       getResponsibleName(
-                        asset
+                        asset,
+                        department
                       );
 
                     const assetUnit =
