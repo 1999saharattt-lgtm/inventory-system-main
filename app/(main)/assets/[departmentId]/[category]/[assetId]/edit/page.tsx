@@ -14,7 +14,11 @@ type Props = {
   }>;
 };
 
-const categoryName: Record<string, string> = {
+/* =========================================================
+   CATEGORY
+   ========================================================= */
+
+const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
@@ -24,7 +28,26 @@ const categoryName: Record<string, string> = {
   TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
-};
+} as const;
+
+const validCategories = [
+  "DESK",
+  "CHAIR",
+  "AIR_CONDITIONER",
+  "CABINET",
+  "COMPUTER",
+  "PRINTER",
+  "TELEPHONE",
+  "OTHER",
+  "NO_SYSTEM",
+] as const;
+
+type AssetCategoryValue =
+  (typeof validCategories)[number];
+
+/* =========================================================
+   STATUS
+   ========================================================= */
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
@@ -32,6 +55,10 @@ const statusName: Record<string, string> = {
   WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
+
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 export default async function EditAssetPage({
   params,
@@ -42,70 +69,166 @@ export default async function EditAssetPage({
     assetId,
   } = await params;
 
-  const departmentIdNumber = Number(departmentId);
-  const assetIdNumber = Number(assetId);
+  /* =======================================================
+     PARAMS
+     ======================================================= */
+
+  const departmentIdNumber =
+    Number(departmentId);
+
+  const assetIdNumber =
+    Number(assetId);
+
+  const normalizedCategory =
+    category.toUpperCase();
 
   if (
     !Number.isInteger(departmentIdNumber) ||
-    !Number.isInteger(assetIdNumber)
+    departmentIdNumber <= 0 ||
+    !Number.isInteger(assetIdNumber) ||
+    assetIdNumber <= 0 ||
+    !validCategories.includes(
+      normalizedCategory as AssetCategoryValue
+    )
   ) {
     notFound();
   }
 
-  const asset = await prisma.asset.findFirst({
-    where: {
-      id: assetIdNumber,
-      departmentId: departmentIdNumber,
-      category: category as any,
-    },
-    include: {
-      department: true,
-      section: true,
-      officer: true,
-    },
-  });
+  const assetCategory =
+    normalizedCategory as AssetCategoryValue;
+
+  /* =======================================================
+     ASSET
+
+     responsibleName:
+     เก็บข้อมูลผู้รับผิดชอบ/ตำแหน่งเดิมจาก Excel
+
+     เช่น
+     - หน้าห้องผู้อำนวยการ
+     - ข้างห้องชั้น 4
+     - ห้องประชุม
+     - ชื่อบุคคลเดิมจากทะเบียน
+
+     ข้อมูลนี้ต้องไม่ถูกลบเพียงเพราะไม่ได้เลือก Officer
+     ======================================================= */
+
+  const asset =
+    await prisma.asset.findFirst({
+      where: {
+        id: assetIdNumber,
+        departmentId:
+          departmentIdNumber,
+        category:
+          assetCategory,
+      },
+
+      include: {
+        department: true,
+        section: true,
+        officer: true,
+      },
+    });
 
   if (!asset) {
     notFound();
   }
 
-  const assetIdForUpdate = asset.id;
+  const assetIdForUpdate =
+    asset.id;
 
-  const sections = await prisma.section.findMany({
-    where: {
-      departmentId: departmentIdNumber,
-    },
-    orderBy: {
-      id: "asc",
-    },
-  });
+  /* =======================================================
+     SECTIONS
 
-  const officers = await prisma.officer.findMany({
-    where: {
-      departmentId: departmentIdNumber,
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      position: true,
-      sectionId: true,
-    },
-    orderBy: [
-      {
-        firstName: "asc",
+     ดึงเฉพาะกลุ่มงานที่อยู่ในหน่วยงานนี้
+     ======================================================= */
+
+  const sections =
+    await prisma.section.findMany({
+      where: {
+        departmentId:
+          departmentIdNumber,
       },
-      {
-        lastName: "asc",
-      },
-    ],
-  });
 
-  async function submitUpdate(formData: FormData) {
+      select: {
+        id: true,
+        name: true,
+      },
+
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+  /* =======================================================
+     OFFICERS
+
+     รองรับ Officer 2 รูปแบบ
+
+     1. Officer.departmentId ตรงกับ Department
+     2. Officer ผูกกับ Section ที่อยู่ใน Department
+
+     จุดประสงค์:
+     - ให้เลือกผู้ครอบครองได้ตามกลุ่มงาน
+     - รองรับข้อมูล Officer เดิม
+     - ไม่กระทบ responsibleName จาก Excel
+     ======================================================= */
+
+  const officers =
+    await prisma.officer.findMany({
+      where: {
+        OR: [
+          {
+            departmentId:
+              departmentIdNumber,
+          },
+
+          {
+            section: {
+              is: {
+                departmentId:
+                  departmentIdNumber,
+              },
+            },
+          },
+        ],
+      },
+
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        position: true,
+        sectionId: true,
+      },
+
+      orderBy: [
+        {
+          firstName: "asc",
+        },
+        {
+          lastName: "asc",
+        },
+      ],
+    });
+
+  /* =======================================================
+     UPDATE
+     ======================================================= */
+
+  async function submitUpdate(
+    formData: FormData
+  ) {
     "use server";
 
-    await updateAsset(assetIdForUpdate, formData);
+    await updateAsset(
+      assetIdForUpdate,
+      formData
+    );
   }
+
+  /* =======================================================
+     UI
+     ======================================================= */
 
   return (
     <div
@@ -117,9 +240,9 @@ export default async function EditAssetPage({
         sm:space-y-6
       "
     >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+      {/* ===================================================
+          HEADER
+          =================================================== */}
 
       <div
         className="
@@ -177,7 +300,7 @@ export default async function EditAssetPage({
         </div>
 
         <Link
-          href={`/assets/${departmentId}/${category}/${asset.id}`}
+          href={`/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`}
           className="
             w-full
             rounded-xl
@@ -202,9 +325,9 @@ export default async function EditAssetPage({
         </Link>
       </div>
 
-      {/* =====================================================
-          Form
-      ===================================================== */}
+      {/* ===================================================
+          FORM
+          =================================================== */}
 
       <form
         action={submitUpdate}
@@ -214,9 +337,9 @@ export default async function EditAssetPage({
           max-w-4xl
         "
       >
-        {/* =====================================================
+        {/* =================================================
             สถานะครุภัณฑ์
-        ===================================================== */}
+            ================================================= */}
 
         <div
           className="
@@ -235,107 +358,107 @@ export default async function EditAssetPage({
             sm:p-8
           "
         >
-          <div>
-            <div
+          <div
+            className="
+              rounded-xl
+              bg-gradient-to-r
+              from-slate-800
+              to-slate-700
+              px-4
+              py-3
+            "
+          >
+            <h2
               className="
-                rounded-xl
-                bg-gradient-to-r
-                from-slate-800
-                to-slate-700
-                px-4
-                py-3
+                text-lg
+                font-extrabold
+                !text-white
+                sm:text-xl
               "
             >
-              <h2
+              📌 สถานะครุภัณฑ์
+            </h2>
+          </div>
+
+          <div
+            className="
+              mt-4
+              grid
+              gap-4
+              sm:grid-cols-2
+            "
+          >
+            <div className="min-w-0">
+              <label
+                htmlFor="status"
                 className="
-                  text-lg
+                  block
+                  text-sm
                   font-extrabold
-                  !text-white
-                  sm:text-xl
+                  !text-slate-200
                 "
               >
-                📌 สถานะครุภัณฑ์
-              </h2>
-            </div>
+                สถานะ
+              </label>
 
-            <div
-              className="
-                mt-4
-                grid
-                gap-4
-                sm:grid-cols-2
-              "
-            >
-              <div className="min-w-0">
-                <label
-                  htmlFor="status"
-                  className="
-                    block
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  สถานะ
-                </label>
+              <select
+                id="status"
+                name="status"
+                defaultValue={
+                  asset.status
+                }
+                className="
+                  mt-2
+                  min-h-[50px]
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              >
+                <option value="IN_USE">
+                  {statusName.IN_USE}
+                </option>
 
-                <select
-                  id="status"
-                  name="status"
-                  defaultValue={asset.status}
-                  className="
-                    mt-2
-                    min-h-[50px]
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    font-semibold
-                    text-slate-900
-                    outline-none
-                    focus:border-emerald-600
-                    focus:ring-2
-                    focus:ring-emerald-200
-                  "
-                >
-                  <option value="IN_USE">
-                    {statusName.IN_USE}
-                  </option>
+                <option value="DAMAGED">
+                  {statusName.DAMAGED}
+                </option>
 
-                  <option value="DAMAGED">
-                    {statusName.DAMAGED}
-                  </option>
+                <option value="WAITING_DISPOSAL">
+                  {statusName.WAITING_DISPOSAL}
+                </option>
 
-                  <option value="WAITING_DISPOSAL">
-                    {statusName.WAITING_DISPOSAL}
-                  </option>
+                <option value="DISPOSED">
+                  {statusName.DISPOSED}
+                </option>
+              </select>
 
-                  <option value="DISPOSED">
-                    {statusName.DISPOSED}
-                  </option>
-                </select>
-
-                <p
-                  className="
-                    mt-2
-                    text-sm
-                    font-semibold
-                    !text-slate-400
-                  "
-                >
-                  สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
-                </p>
-              </div>
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  !text-slate-400
+                "
+              >
+                สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
+              </p>
             </div>
           </div>
         </div>
 
-        {/* =====================================================
+        {/* =================================================
             ข้อมูลครุภัณฑ์
-        ===================================================== */}
+            ================================================= */}
 
         <div
           className="
@@ -406,7 +529,9 @@ export default async function EditAssetPage({
                 name="name"
                 type="text"
                 required
-                defaultValue={asset.name}
+                defaultValue={
+                  asset.name
+                }
                 className="
                   mt-2
                   min-h-[50px]
@@ -447,7 +572,9 @@ export default async function EditAssetPage({
                 id="category"
                 name="category"
                 required
-                defaultValue={asset.category}
+                defaultValue={
+                  asset.category
+                }
                 className="
                   mt-2
                   min-h-[50px]
@@ -466,8 +593,13 @@ export default async function EditAssetPage({
                   focus:ring-emerald-200
                 "
               >
-                {Object.entries(categoryName).map(
-                  ([value, label]) => (
+                {Object.entries(
+                  categoryName
+                ).map(
+                  ([
+                    value,
+                    label,
+                  ]) => (
                     <option
                       key={value}
                       value={value}
@@ -498,7 +630,9 @@ export default async function EditAssetPage({
                 id="brand"
                 name="brand"
                 type="text"
-                defaultValue={asset.brand ?? ""}
+                defaultValue={
+                  asset.brand ?? ""
+                }
                 className="
                   mt-2
                   min-h-[50px]
@@ -539,7 +673,9 @@ export default async function EditAssetPage({
                 id="model"
                 name="model"
                 type="text"
-                defaultValue={asset.model ?? ""}
+                defaultValue={
+                  asset.model ?? ""
+                }
                 className="
                   mt-2
                   min-h-[50px]
@@ -580,49 +716,9 @@ export default async function EditAssetPage({
                 id="serialNumber"
                 name="serialNumber"
                 type="text"
-                defaultValue={asset.serialNumber ?? ""}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
-            </div>
-
-            {/* เลขครุภัณฑ์กรม */}
-
-            <div className="min-w-0">
-              <label
-                htmlFor="governmentAssetNo"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                รหัส GFMIS
-              </label>
-
-              <input
-                id="governmentAssetNo"
-                name="governmentAssetNo"
-                type="text"
                 defaultValue={
-                  asset.governmentAssetNo ?? ""
+                  asset.serialNumber ??
+                  ""
                 }
                 className="
                   mt-2
@@ -645,7 +741,51 @@ export default async function EditAssetPage({
               />
             </div>
 
-            {/* เลขครุภัณฑ์ประจำสำนัก */}
+            {/* GFMIS */}
+
+            <div className="min-w-0">
+              <label
+                htmlFor="governmentAssetNo"
+                className="
+                  block
+                  text-sm
+                  font-extrabold
+                  !text-slate-200
+                "
+              >
+                รหัส GFMIS
+              </label>
+
+              <input
+                id="governmentAssetNo"
+                name="governmentAssetNo"
+                type="text"
+                defaultValue={
+                  asset.governmentAssetNo ??
+                  ""
+                }
+                className="
+                  mt-2
+                  min-h-[50px]
+                  w-full
+                  rounded-xl
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  py-3
+                  font-semibold
+                  text-slate-900
+                  outline-none
+                  transition
+                  focus:border-emerald-600
+                  focus:ring-2
+                  focus:ring-emerald-200
+                "
+              />
+            </div>
+
+            {/* รหัสครุภัณฑ์ */}
 
             <div className="min-w-0">
               <label
@@ -665,7 +805,8 @@ export default async function EditAssetPage({
                 name="officeAssetNo"
                 type="text"
                 defaultValue={
-                  asset.officeAssetNo ?? ""
+                  asset.officeAssetNo ??
+                  ""
                 }
                 className="
                   mt-2
@@ -689,9 +830,9 @@ export default async function EditAssetPage({
           </div>
         </div>
 
-        {/* =====================================================
+        {/* =================================================
             หน่วยงานและผู้ครอบครอง
-        ===================================================== */}
+            ================================================= */}
 
         <div
           className="
@@ -733,19 +874,50 @@ export default async function EditAssetPage({
             </h2>
           </div>
 
+          {/* ===============================================
+              หลักการ
+
+              1. responsibleName
+                 = ข้อมูลเดิมจาก Excel
+
+              2. officerId
+                 = ผู้ครอบครองที่เลือกจากระบบ
+
+              3. สามารถไม่เลือก officerId ได้
+
+              4. responsibleName เดิมจะไม่หาย
+                 เพียงเพราะไม่ได้เลือก Officer
+              =============================================== */}
+
           <AssetResponsibleFields
             sections={sections}
             officers={officers}
-            initialSectionId={asset.sectionId}
-            initialOfficerId={asset.officerId}
-            departmentName={asset.department.name}
-            departmentId={departmentIdNumber}
+
+            initialSectionId={
+              asset.sectionId
+            }
+
+            initialOfficerId={
+              asset.officerId
+            }
+
+            initialResponsibleName={
+              asset.responsibleName
+            }
+
+            departmentName={
+              asset.department.name
+            }
+
+            departmentId={
+              departmentIdNumber
+            }
           />
         </div>
 
-        {/* =====================================================
+        {/* =================================================
             หมายเหตุ
-        ===================================================== */}
+            ================================================= */}
 
         <div
           className="
@@ -792,7 +964,9 @@ export default async function EditAssetPage({
               id="remark"
               name="remark"
               rows={4}
-              defaultValue={asset.remark ?? ""}
+              defaultValue={
+                asset.remark ?? ""
+              }
               className="
                 min-h-[120px]
                 w-full
@@ -815,9 +989,9 @@ export default async function EditAssetPage({
           </div>
         </div>
 
-        {/* =====================================================
-            ปุ่มบันทึก
-        ===================================================== */}
+        {/* =================================================
+            ปุ่ม
+            ================================================= */}
 
         <div
           className="
@@ -831,7 +1005,7 @@ export default async function EditAssetPage({
           "
         >
           <Link
-            href={`/assets/${departmentId}/${category}/${asset.id}`}
+            href={`/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`}
             className="
               w-full
               rounded-xl
