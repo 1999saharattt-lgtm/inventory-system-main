@@ -51,23 +51,45 @@ function normalizePersonName(
 }
 
 /* =========================================================
+   ปรับชื่อผู้รับผิดชอบตามที่กำหนด
+
+   งานธุรการ / เจ้าหน้าที่
+   งานธุรการ/เจ้าหน้าที่
+   งานธุรการ
+   -> งานสารบรรณ
+   ========================================================= */
+
+function normalizeResponsibleName(
+  value: string | null | undefined
+): string {
+  const normalized = normalizeText(value);
+
+  if (!normalized || normalized === "-") {
+    return "";
+  }
+
+  const compact = normalized.replace(/\s/g, "");
+
+  if (
+    compact === "งานธุรการ/เจ้าหน้าที่" ||
+    compact === "งานธุรการ"
+  ) {
+    return "งานสารบรรณ";
+  }
+
+  return normalized;
+}
+
+/* =========================================================
    แยกข้อมูลผู้รับผิดชอบ
-
-   รองรับ:
-   - ชื่อบุคคล / ชื่องาน
-   - งาน...
-   - ห้อง...
-   - ข้อความอื่นตามต้นฉบับ
-
-   responsibleName ต้นฉบับจะถูกเก็บลง Asset เสมอ
    ========================================================= */
 
 function parseResponsibleName(
   value: string | null | undefined
 ) {
-  const original = normalizeText(value);
+  const original = normalizeResponsibleName(value);
 
-  if (!original || original === "-") {
+  if (!original) {
     return {
       original: "",
       officerName: "",
@@ -99,18 +121,14 @@ function parseResponsibleName(
 }
 
 /* =========================================================
-   ตรวจรหัสซ้ำภายในไฟล์ต้นฉบับ
+   นับรหัสซ้ำในต้นฉบับ
 
-   สำคัญ:
-   schema ปัจจุบันกำหนด governmentAssetNo / officeAssetNo
-   เป็น unique ดังนั้นรหัสที่ซ้ำใน Excel ไม่สามารถบันทึก
-   ซ้ำลง column unique ได้
+   หมายเหตุ:
+   schema ล่าสุดอนุญาตให้ governmentAssetNo และ
+   officeAssetNo ซ้ำได้แล้ว
 
-   แนวทาง:
-   - occurrence แรกเก็บรหัสตามต้นฉบับใน column
-   - occurrence ถัดไปเก็บ null ใน column unique
-   - รหัสต้นฉบับยังเก็บครบใน remark
-   - ใช้ sourceOrder ใน remark เพื่อระบุแต่ละแถว
+   ส่วนนี้ใช้สำหรับ "รายงานสถิติ" เท่านั้น
+   จะไม่ทำรหัสซ้ำเป็น null
    ========================================================= */
 
 function buildSourceCodeCounts() {
@@ -118,11 +136,13 @@ function buildSourceCodeCounts() {
   const officeCounts = new Map<string, number>();
 
   for (const asset of department1Assets) {
-    const governmentAssetNo =
-      normalizeText(asset.governmentAssetNo);
+    const governmentAssetNo = normalizeText(
+      asset.governmentAssetNo
+    );
 
-    const officeAssetNo =
-      normalizeText(asset.officeAssetNo);
+    const officeAssetNo = normalizeText(
+      asset.officeAssetNo
+    );
 
     if (governmentAssetNo) {
       governmentCounts.set(
@@ -146,20 +166,19 @@ function buildSourceCodeCounts() {
 }
 
 /* =========================================================
-   หา Asset เดิมจาก sourceOrder
+   หา Asset เดิมด้วย sourceOrder
 
-   Import รุ่นนี้ใส่ marker:
+   Marker:
    SOURCE:DEPARTMENT_1:<sourceOrder>
 
-   ทำให้รันซ้ำได้โดยไม่สร้างรายการเพิ่ม
-   และไม่ต้องพึ่งรหัสที่อาจซ้ำใน Excel
+   ทำให้รัน Import ซ้ำแล้วเป็น UPDATE
+   ไม่สร้างรายการเพิ่ม
    ========================================================= */
 
 async function findExistingAssetBySourceOrder(
   sourceOrder: number
 ) {
-  const marker =
-    `SOURCE:DEPARTMENT_1:${sourceOrder}`;
+  const marker = `SOURCE:DEPARTMENT_1:${sourceOrder}`;
 
   return prisma.asset.findFirst({
     where: {
@@ -175,49 +194,37 @@ async function findExistingAssetBySourceOrder(
 }
 
 /* =========================================================
-   ตรวจว่ารหัส unique ถูก Asset อื่นใช้อยู่หรือไม่
+   อ่าน quantity จากต้นฉบับอย่างปลอดภัย
+
+   รองรับกรณี Department1AssetData เดิมยังไม่มี quantity
    ========================================================= */
 
-async function isGovernmentNoUsedByOtherAsset(
-  governmentAssetNo: string,
-  currentAssetId: number | null
-) {
-  const found =
-    await prisma.asset.findUnique({
-      where: {
-        governmentAssetNo,
-      },
-      select: {
-        id: true,
-      },
-    });
+function getAssetQuantity(
+  asset: Department1AssetData
+): number {
+  const source = asset as Department1AssetData & {
+    quantity?: number | string | null;
+  };
 
-  return Boolean(
-    found &&
-      (currentAssetId === null ||
-        found.id !== currentAssetId)
-  );
+  const value = Number(source.quantity ?? 1);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    return 1;
+  }
+
+  return Math.trunc(value);
 }
 
-async function isOfficeNoUsedByOtherAsset(
-  officeAssetNo: string,
-  currentAssetId: number | null
-) {
-  const found =
-    await prisma.asset.findUnique({
-      where: {
-        officeAssetNo,
-      },
-      select: {
-        id: true,
-      },
-    });
+/* =========================================================
+   อ่าน unit จากต้นฉบับ
+   ========================================================= */
 
-  return Boolean(
-    found &&
-      (currentAssetId === null ||
-        found.id !== currentAssetId)
-  );
+function getAssetUnit(
+  asset: Department1AssetData
+): string | null {
+  const value = normalizeText(asset.unit);
+
+  return value || null;
 }
 
 /* =========================================================
@@ -319,19 +326,36 @@ async function main() {
      4. Section Map
      ======================================================= */
 
-  const sectionMap =
-    new Map<string, number>();
+  const sectionMap = new Map<string, number>();
 
   for (const section of sections) {
-    const key =
-      normalizeText(section.name);
+    const key = normalizeText(section.name);
 
     if (key) {
-      sectionMap.set(
-        key,
-        section.id
-      );
+      sectionMap.set(key, section.id);
     }
+  }
+
+  /* =======================================================
+     เพิ่ม alias งานธุรการ -> งานสารบรรณ
+
+     ถ้าในฐานข้อมูลมี Section "งานสารบรรณ"
+     ข้อมูลต้นฉบับที่เป็นงานธุรการจะชี้มาที่ Section นี้
+     ======================================================= */
+
+  const correspondenceSectionId =
+    sectionMap.get("งานสารบรรณ");
+
+  if (correspondenceSectionId !== undefined) {
+    sectionMap.set(
+      "งานธุรการ",
+      correspondenceSectionId
+    );
+
+    sectionMap.set(
+      "งานธุรการ / เจ้าหน้าที่",
+      correspondenceSectionId
+    );
   }
 
   /* =======================================================
@@ -347,10 +371,9 @@ async function main() {
   >();
 
   for (const officer of officers) {
-    const fullName =
-      normalizePersonName(
-        `${officer.firstName} ${officer.lastName}`
-      );
+    const fullName = normalizePersonName(
+      `${officer.firstName} ${officer.lastName}`
+    );
 
     if (!fullName) {
       continue;
@@ -371,15 +394,13 @@ async function main() {
     officeCounts,
   } = buildSourceCodeCounts();
 
-  const duplicateGovernmentCodes =
-    [...governmentCounts.entries()].filter(
-      ([, count]) => count > 1
-    );
+  const duplicateGovernmentCodes = [
+    ...governmentCounts.entries(),
+  ].filter(([, count]) => count > 1);
 
-  const duplicateOfficeCodes =
-    [...officeCounts.entries()].filter(
-      ([, count]) => count > 1
-    );
+  const duplicateOfficeCodes = [
+    ...officeCounts.entries(),
+  ].filter(([, count]) => count > 1);
 
   console.log(
     `รหัส GFMIS ซ้ำในต้นฉบับ     : ${duplicateGovernmentCodes.length} รหัส`
@@ -413,17 +434,7 @@ async function main() {
   };
 
   /* =======================================================
-     8. ใช้ Set คุม occurrence ของรหัสซ้ำ
-     ======================================================= */
-
-  const seenGovernmentCodes =
-    new Set<string>();
-
-  const seenOfficeCodes =
-    new Set<string>();
-
-  /* =======================================================
-     9. Import ทีละรายการ
+     8. Import ทีละรายการ
      ======================================================= */
 
   for (const asset of department1Assets) {
@@ -432,10 +443,6 @@ async function main() {
         asset,
         sectionMap,
         officerMap,
-        governmentCounts,
-        officeCounts,
-        seenGovernmentCodes,
-        seenOfficeCodes,
         stats
       );
     } catch (error) {
@@ -450,7 +457,74 @@ async function main() {
   }
 
   /* =======================================================
-     10. สรุปผล
+     9. ตรวจฐานข้อมูลหลัง Import
+     ======================================================= */
+
+  const totalAfterImport =
+    await prisma.asset.count({
+      where: {
+        departmentId: DEPARTMENT_1_ID,
+      },
+    });
+
+  const importedAfterImport =
+    await prisma.asset.count({
+      where: {
+        departmentId: DEPARTMENT_1_ID,
+        remark: {
+          contains: "SOURCE:DEPARTMENT_1:",
+        },
+      },
+    });
+
+  /* =======================================================
+     10. ตรวจจำนวนข้อมูลที่มีค่า
+     ======================================================= */
+
+  const assetsAfterImport =
+    await prisma.asset.findMany({
+      where: {
+        departmentId: DEPARTMENT_1_ID,
+        remark: {
+          contains: "SOURCE:DEPARTMENT_1:",
+        },
+      },
+      select: {
+        id: true,
+        governmentAssetNo: true,
+        officeAssetNo: true,
+        quantity: true,
+        unit: true,
+        responsibleName: true,
+      },
+    });
+
+  const governmentCodeCount =
+    assetsAfterImport.filter(
+      (item) =>
+        normalizeText(item.governmentAssetNo) !== ""
+    ).length;
+
+  const officeCodeCount =
+    assetsAfterImport.filter(
+      (item) =>
+        normalizeText(item.officeAssetNo) !== ""
+    ).length;
+
+  const unitCount =
+    assetsAfterImport.filter(
+      (item) =>
+        normalizeText(item.unit) !== ""
+    ).length;
+
+  const responsibleCount =
+    assetsAfterImport.filter(
+      (item) =>
+        normalizeText(item.responsibleName) !== ""
+    ).length;
+
+  /* =======================================================
+     11. สรุปผล
      ======================================================= */
 
   console.log("");
@@ -494,6 +568,40 @@ async function main() {
   );
   console.log(
     `รหัสครุภัณฑ์ซ้ำในต้นฉบับ   : ${stats.duplicateSourceOfficeNo} รหัส`
+  );
+
+  console.log("");
+
+  console.log(
+    "======================================================"
+  );
+  console.log(" ตรวจข้อมูลหลัง Import");
+  console.log(
+    "======================================================"
+  );
+
+  console.log(
+    `Department 1 ทั้งหมด        : ${totalAfterImport}`
+  );
+
+  console.log(
+    `รายการที่มี Source Marker   : ${importedAfterImport}`
+  );
+
+  console.log(
+    `รายการที่มี GFMIS           : ${governmentCodeCount}`
+  );
+
+  console.log(
+    `รายการที่มีรหัสครุภัณฑ์     : ${officeCodeCount}`
+  );
+
+  console.log(
+    `รายการที่มีหน่วย            : ${unitCount}`
+  );
+
+  console.log(
+    `รายการที่มีผู้รับผิดชอบ     : ${responsibleCount}`
   );
 
   console.log("");
@@ -546,68 +654,44 @@ async function importAsset(
     }
   >,
 
-  governmentCounts: Map<string, number>,
-
-  officeCounts: Map<string, number>,
-
-  seenGovernmentCodes: Set<string>,
-
-  seenOfficeCodes: Set<string>,
-
   stats: ImportStats
 ) {
   /* =======================================================
      1. ผู้รับผิดชอบ
      ======================================================= */
 
-  const responsible =
-    parseResponsibleName(
-      asset.responsibleName
-    );
+  const responsible = parseResponsibleName(
+    asset.responsibleName
+  );
 
-  let sectionId: number | null =
-    null;
+  let sectionId: number | null = null;
+  let officerId: number | null = null;
 
-  let officerId: number | null =
-    null;
-
-  let matchedResponsible = false;
+  let sectionMatched = false;
+  let officerMatched = false;
 
   /* =======================================================
-     2. กรณี "ชื่อบุคคล / ชื่องาน"
-
-     หมายเหตุ:
-     ถ้าข้อมูลต้นฉบับเป็น "งานธุรการ/เจ้าหน้าที่"
-     ส่วนแรกอาจเป็น Section ไม่ใช่ชื่อบุคคล
-     จึงลองจับ Section ทั้งสองฝั่งก่อน
+     2. กรณีมีข้อมูลแบบ A / B
      ======================================================= */
 
   if (responsible.sectionName) {
-    const rightSectionId =
-      sectionMap.get(
-        normalizeText(
-          responsible.sectionName
-        )
-      );
+    const rightSectionId = sectionMap.get(
+      normalizeText(responsible.sectionName)
+    );
 
     if (rightSectionId !== undefined) {
       sectionId = rightSectionId;
-      stats.sectionMatched += 1;
-      matchedResponsible = true;
+      sectionMatched = true;
     }
 
     if (sectionId === null) {
-      const leftSectionId =
-        sectionMap.get(
-          normalizeText(
-            responsible.officerName
-          )
-        );
+      const leftSectionId = sectionMap.get(
+        normalizeText(responsible.officerName)
+      );
 
       if (leftSectionId !== undefined) {
         sectionId = leftSectionId;
-        stats.sectionMatched += 1;
-        matchedResponsible = true;
+        sectionMatched = true;
       }
     }
   }
@@ -617,62 +701,48 @@ async function importAsset(
      ======================================================= */
 
   if (responsible.officerName) {
-    const matchedOfficer =
-      officerMap.get(
-        normalizePersonName(
-          responsible.officerName
-        )
-      );
+    const matchedOfficer = officerMap.get(
+      normalizePersonName(
+        responsible.officerName
+      )
+    );
 
     if (matchedOfficer) {
-      officerId =
-        matchedOfficer.id;
-
-      stats.officerMatched += 1;
-      matchedResponsible = true;
+      officerId = matchedOfficer.id;
+      officerMatched = true;
 
       if (
         sectionId === null &&
         matchedOfficer.sectionId !== null
       ) {
-        sectionId =
-          matchedOfficer.sectionId;
+        sectionId = matchedOfficer.sectionId;
       }
     }
   }
 
   /* =======================================================
-     4. กรณีข้อความเดียว
+     4. กรณีผู้รับผิดชอบเป็นข้อความเดียว
      ======================================================= */
 
   if (responsible.singleValue) {
-    const singleValue =
-      normalizeText(
-        responsible.singleValue
-      );
+    const singleValue = normalizeText(
+      responsible.singleValue
+    );
 
     const matchedSectionId =
       sectionMap.get(singleValue);
 
     if (matchedSectionId !== undefined) {
       sectionId = matchedSectionId;
-
-      stats.sectionMatched += 1;
-      matchedResponsible = true;
+      sectionMatched = true;
     } else {
-      const matchedOfficer =
-        officerMap.get(
-          normalizePersonName(
-            singleValue
-          )
-        );
+      const matchedOfficer = officerMap.get(
+        normalizePersonName(singleValue)
+      );
 
       if (matchedOfficer) {
-        officerId =
-          matchedOfficer.id;
-
-        stats.officerMatched += 1;
-        matchedResponsible = true;
+        officerId = matchedOfficer.id;
+        officerMatched = true;
 
         if (
           matchedOfficer.sectionId !== null
@@ -684,31 +754,46 @@ async function importAsset(
     }
   }
 
+  /* =======================================================
+     นับสถิติครั้งเดียวต่อ Asset
+     ======================================================= */
+
+  if (sectionMatched) {
+    stats.sectionMatched += 1;
+  }
+
+  if (officerMatched) {
+    stats.officerMatched += 1;
+  }
+
   if (
     responsible.original &&
-    !matchedResponsible
+    !sectionMatched &&
+    !officerMatched
   ) {
     stats.responsibleOnly += 1;
   }
 
   /* =======================================================
-     5. รหัสต้นฉบับ
+     5. ข้อมูลจากต้นฉบับ
      ======================================================= */
 
-  const originalGovernmentAssetNo =
+  const governmentAssetNo =
     normalizeText(
       asset.governmentAssetNo
     ) || null;
 
-  const originalOfficeAssetNo =
+  const officeAssetNo =
     normalizeText(
       asset.officeAssetNo
     ) || null;
 
-  /* =======================================================
-     6. หา Asset เดิมจาก sourceOrder ก่อน
+  const quantity = getAssetQuantity(asset);
 
-     วิธีนี้ทำให้ Import ซ้ำได้โดยไม่สร้าง 446 รายการใหม่
+  const unit = getAssetUnit(asset);
+
+  /* =======================================================
+     6. หา Asset เดิม
      ======================================================= */
 
   const existingAsset =
@@ -716,98 +801,11 @@ async function importAsset(
       asset.sourceOrder
     );
 
-  const existingAssetId =
-    existingAsset?.id ?? null;
-
   /* =======================================================
-     7. จัดการรหัสซ้ำจาก Excel
+     7. Remark
 
-     ถ้ารหัสเดียวกันปรากฏมากกว่า 1 แถว:
-     - แถวแรกเก็บรหัสลง column unique
-     - แถวถัดไปเก็บ null
-     - รหัสต้นฉบับยังอยู่ใน remark ทุกแถว
-
-     ถ้ารหัสถูก record อื่นใน DB ใช้อยู่แล้ว:
-     - ไม่ overwrite record อื่น
-     - เก็บ null ใน column unique
-     - เก็บค่าต้นฉบับใน remark
-     ======================================================= */
-
-  let governmentAssetNo =
-    originalGovernmentAssetNo;
-
-  let officeAssetNo =
-    originalOfficeAssetNo;
-
-  if (originalGovernmentAssetNo) {
-    const sourceCount =
-      governmentCounts.get(
-        originalGovernmentAssetNo
-      ) ?? 0;
-
-    const alreadySeen =
-      seenGovernmentCodes.has(
-        originalGovernmentAssetNo
-      );
-
-    const usedByOtherAsset =
-      await isGovernmentNoUsedByOtherAsset(
-        originalGovernmentAssetNo,
-        existingAssetId
-      );
-
-    if (
-      (sourceCount > 1 && alreadySeen) ||
-      usedByOtherAsset
-    ) {
-      governmentAssetNo = null;
-    }
-
-    seenGovernmentCodes.add(
-      originalGovernmentAssetNo
-    );
-  }
-
-  if (originalOfficeAssetNo) {
-    const sourceCount =
-      officeCounts.get(
-        originalOfficeAssetNo
-      ) ?? 0;
-
-    const alreadySeen =
-      seenOfficeCodes.has(
-        originalOfficeAssetNo
-      );
-
-    const usedByOtherAsset =
-      await isOfficeNoUsedByOtherAsset(
-        originalOfficeAssetNo,
-        existingAssetId
-      );
-
-    if (
-      (sourceCount > 1 && alreadySeen) ||
-      usedByOtherAsset
-    ) {
-      officeAssetNo = null;
-    }
-
-    seenOfficeCodes.add(
-      originalOfficeAssetNo
-    );
-  }
-
-  /* =======================================================
-     8. Remark
-
-     เก็บข้อมูลต้นฉบับที่จำเป็นสำหรับตรวจย้อนหลังครบ:
-     - marker sourceOrder
-     - หน้า
-     - หน่วย
-     - GFMIS ต้นฉบับ
-     - รหัสครุภัณฑ์ต้นฉบับ
-     - สภาพจากต้นฉบับ
-     - หมายเหตุต้นฉบับ
+     ไม่ทำรหัสซ้ำเป็น null อีกแล้ว
+     เพราะ schema ล่าสุดอนุญาตให้ซ้ำ
      ======================================================= */
 
   const sourceMarker =
@@ -820,38 +818,35 @@ async function importAsset(
 
     `ลำดับต้นฉบับ ${asset.sourceOrder}`,
 
-    asset.sourcePage !== null
+    asset.sourcePage !== null &&
+    asset.sourcePage !== undefined
       ? `หน้า ${asset.sourcePage}`
       : null,
 
-    asset.unit
-      ? `หน่วยนับ ${normalizeText(asset.unit)}`
+    `จำนวน ${quantity}`,
+
+    unit
+      ? `หน่วยนับ ${unit}`
       : null,
 
-    originalGovernmentAssetNo
-      ? `GFMIS ต้นฉบับ ${originalGovernmentAssetNo}`
+    governmentAssetNo
+      ? `GFMIS ต้นฉบับ ${governmentAssetNo}`
       : null,
 
-    originalOfficeAssetNo
-      ? `รหัสครุภัณฑ์ต้นฉบับ ${originalOfficeAssetNo}`
+    officeAssetNo
+      ? `รหัสครุภัณฑ์ต้นฉบับ ${officeAssetNo}`
       : null,
 
     asset.sourceCondition
-      ? `สภาพต้นฉบับ ${normalizeText(asset.sourceCondition)}`
+      ? `สภาพต้นฉบับ ${normalizeText(
+          asset.sourceCondition
+        )}`
       : null,
 
     asset.sourceRemark
-      ? `หมายเหตุต้นฉบับ ${normalizeText(asset.sourceRemark)}`
-      : null,
-
-    originalGovernmentAssetNo &&
-    governmentAssetNo === null
-      ? "หมายเหตุระบบ: GFMIS ซ้ำ/ถูกใช้อยู่ จึงไม่บันทึกซ้ำในช่อง unique"
-      : null,
-
-    originalOfficeAssetNo &&
-    officeAssetNo === null
-      ? "หมายเหตุระบบ: รหัสครุภัณฑ์ซ้ำ/ถูกใช้อยู่ จึงไม่บันทึกซ้ำในช่อง unique"
+      ? `หมายเหตุต้นฉบับ ${normalizeText(
+          asset.sourceRemark
+        )}`
       : null,
   ]
     .filter(
@@ -861,15 +856,24 @@ async function importAsset(
     .join(" | ");
 
   /* =======================================================
-     9. ข้อมูลที่จะบันทึก
+     8. ข้อมูลที่จะบันทึก
+
+     จุดสำคัญ:
+     - quantity ลง DB
+     - unit ลง DB
+     - GFMIS ลง DB ตรง ๆ
+     - รหัสครุภัณฑ์ลง DB ตรง ๆ
+     - responsibleName ลง DB
      ======================================================= */
 
   const data = {
-    name:
-      normalizeText(asset.name),
+    name: normalizeText(asset.name),
 
-    category:
-      asset.category,
+    category: asset.category,
+
+    quantity,
+
+    unit,
 
     governmentAssetNo,
 
@@ -892,7 +896,7 @@ async function importAsset(
   };
 
   /* =======================================================
-     10. UPDATE
+     9. UPDATE
      ======================================================= */
 
   if (existingAsset) {
@@ -913,15 +917,7 @@ async function importAsset(
   }
 
   /* =======================================================
-     11. CREATE
-
-     หมายเหตุ:
-     ถ้าเป็นการ Import ครั้งแรกจากระบบเก่าที่ไม่มี source marker
-     รายการเดิมจะไม่ถูกถือว่าเป็นรายการเดียวกันอัตโนมัติ
-
-     เพื่อให้ข้อมูล 446 แถวตรงกับทะเบียนต้นฉบับ
-     ควรใช้กับ Department 1 ที่เตรียมสำหรับชุด Import ใหม่นี้
-     หรือสำรอง/ล้างข้อมูลเดิมของกลุ่มอำนวยการก่อน
+     10. CREATE
      ======================================================= */
 
   await prisma.asset.create({
@@ -947,9 +943,7 @@ main()
       "======================================================"
     );
 
-    console.error(
-      " IMPORT FAILED"
-    );
+    console.error(" IMPORT FAILED");
 
     console.error(
       "======================================================"

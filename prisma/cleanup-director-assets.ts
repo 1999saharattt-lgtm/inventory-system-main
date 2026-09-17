@@ -6,11 +6,131 @@ import { prisma } from "../lib/prisma";
 
 const DEPARTMENT_ID = 1;
 
-const EXPECTED_TOTAL_COUNT = 887;
-const EXPECTED_NEW_COUNT = 446;
-const EXPECTED_OLD_COUNT = 441;
+const EXPECTED_SOURCE_COUNT = 446;
 
-const IMPORT_MARKER = "SOURCE:DEPARTMENT_1:";
+const IMPORT_MARKER_PREFIX =
+  "SOURCE:DEPARTMENT_1:";
+
+/* =========================================================
+   TYPE
+   ========================================================= */
+
+type CleanupAsset = {
+  id: number;
+  name: string;
+  governmentAssetNo: string | null;
+  officeAssetNo: string | null;
+  quantity: number;
+  unit: string | null;
+  responsibleName: string | null;
+  remark: string | null;
+};
+
+/* =========================================================
+   อ่าน sourceOrder จาก remark
+
+   ตัวอย่าง:
+   SOURCE:DEPARTMENT_1:123
+   ========================================================= */
+
+function extractSourceOrder(
+  remark: string | null
+): number | null {
+  if (!remark) {
+    return null;
+  }
+
+  const match = remark.match(
+    /SOURCE:DEPARTMENT_1:(\d+)/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const sourceOrder = Number(match[1]);
+
+  if (
+    !Number.isInteger(sourceOrder) ||
+    sourceOrder <= 0
+  ) {
+    return null;
+  }
+
+  return sourceOrder;
+}
+
+/* =========================================================
+   ให้คะแนน record
+
+   กรณี sourceOrder เดียวมีหลาย record
+   จะเก็บ record ที่มีข้อมูลสมบูรณ์กว่า
+
+   สำคัญ:
+   ID ใหม่กว่าใช้เป็น tie-breaker เพราะ Import ล่าสุด
+   มีแนวโน้มเป็น record ที่เพิ่งถูกเขียนข้อมูลใหม่
+   ========================================================= */
+
+function getAssetScore(
+  asset: CleanupAsset
+): number {
+  let score = 0;
+
+  if (asset.governmentAssetNo?.trim()) {
+    score += 10;
+  }
+
+  if (asset.officeAssetNo?.trim()) {
+    score += 10;
+  }
+
+  if (asset.unit?.trim()) {
+    score += 10;
+  }
+
+  if (
+    asset.quantity &&
+    asset.quantity > 0
+  ) {
+    score += 5;
+  }
+
+  if (asset.responsibleName?.trim()) {
+    score += 10;
+  }
+
+  if (asset.name?.trim()) {
+    score += 5;
+  }
+
+  return score;
+}
+
+/* =========================================================
+   เลือก record ที่จะเก็บ
+
+   1. คะแนนข้อมูลสูงกว่า
+   2. ถ้าคะแนนเท่ากัน เก็บ ID ใหม่กว่า
+   ========================================================= */
+
+function chooseAssetToKeep(
+  assets: CleanupAsset[]
+): CleanupAsset {
+  const sorted = [...assets].sort(
+    (a, b) => {
+      const scoreA = getAssetScore(a);
+      const scoreB = getAssetScore(b);
+
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+
+      return b.id - a.id;
+    }
+  );
+
+  return sorted[0];
+}
 
 /* =========================================================
    MAIN
@@ -18,53 +138,60 @@ const IMPORT_MARKER = "SOURCE:DEPARTMENT_1:";
 
 async function main() {
   console.log("");
+
   console.log(
     "======================================================"
   );
   console.log(
-    " Cleanup ข้อมูลเก่ากลุ่มอำนวยการ"
+    " Cleanup Duplicate Import กลุ่มอำนวยการ"
   );
   console.log(
     "======================================================"
   );
 
-  console.log(`Department ID : ${DEPARTMENT_ID}`);
   console.log(
-    `ข้อมูลชุดใหม่ที่ต้องเก็บ : ${EXPECTED_NEW_COUNT}`
+    `Department ID        : ${DEPARTMENT_ID}`
   );
+
   console.log(
-    `ข้อมูลชุดเก่าที่ต้องลบ   : ${EXPECTED_OLD_COUNT}`
+    `ต้นฉบับที่ต้องเหลือ : ${EXPECTED_SOURCE_COUNT} รายการ`
   );
 
   console.log("");
 
   /* =======================================================
-     1. นับรายการทั้งหมด Department 1
+     1. โหลด Department
      ======================================================= */
 
-  const total = await prisma.asset.count({
-    where: {
-      departmentId: DEPARTMENT_ID,
-    },
-  });
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: DEPARTMENT_ID,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  if (!department) {
+    throw new Error(
+      `ไม่พบ Department ID ${DEPARTMENT_ID}`
+    );
+  }
+
+  console.log(
+    `Department           : ${department.name}`
+  );
 
   /* =======================================================
-     2. ค้นหาข้อมูล Import ชุดใหม่
-
-     ใช้ marker:
-     SOURCE:DEPARTMENT_1:
-
-     รายการเหล่านี้จะถูกเก็บไว้ทั้งหมด
+     2. โหลด Asset ทั้งหมด
      ======================================================= */
 
-  const newAssets =
+  const allAssets =
     await prisma.asset.findMany({
       where: {
         departmentId: DEPARTMENT_ID,
-
-        remark: {
-          contains: IMPORT_MARKER,
-        },
       },
 
       select: {
@@ -72,6 +199,9 @@ async function main() {
         name: true,
         governmentAssetNo: true,
         officeAssetNo: true,
+        quantity: true,
+        unit: true,
+        responsibleName: true,
         remark: true,
       },
 
@@ -80,91 +210,152 @@ async function main() {
       },
     });
 
-  /* =======================================================
-     3. เก็บ ID ของข้อมูลชุดใหม่
-     ======================================================= */
-
-  const newAssetIds = newAssets.map(
-    (asset) => asset.id
+  console.log(
+    `ข้อมูลปัจจุบัน       : ${allAssets.length} รายการ`
   );
 
   /* =======================================================
-     4. หา Asset เก่า
-
-     Department 1
-     แต่ ID ไม่อยู่ในชุด Import ใหม่
-
-     หมายเหตุ:
-     ไม่ใช้เงื่อนไข ID <= 441
-     เพราะ ID ของข้อมูลเก่าไม่ได้เรียงต่อเนื่อง
+     3. แยก record ตาม sourceOrder
      ======================================================= */
 
-  const oldAssets =
-    await prisma.asset.findMany({
-      where: {
-        departmentId: DEPARTMENT_ID,
+  const sourceMap =
+    new Map<number, CleanupAsset[]>();
 
-        id: {
-          notIn: newAssetIds,
-        },
-      },
+  const invalidMarkerAssets:
+    CleanupAsset[] = [];
 
-      select: {
-        id: true,
-        name: true,
-        governmentAssetNo: true,
-        officeAssetNo: true,
-        remark: true,
-      },
+  for (const asset of allAssets) {
+    const sourceOrder =
+      extractSourceOrder(asset.remark);
 
-      orderBy: {
-        id: "asc",
-      },
-    });
+    if (sourceOrder === null) {
+      invalidMarkerAssets.push(asset);
+      continue;
+    }
+
+    /*
+     * Marker ต้องอยู่ในช่วง 1–446 เท่านั้น
+     */
+
+    if (
+      sourceOrder < 1 ||
+      sourceOrder > EXPECTED_SOURCE_COUNT
+    ) {
+      invalidMarkerAssets.push(asset);
+      continue;
+    }
+
+    const current =
+      sourceMap.get(sourceOrder) ?? [];
+
+    current.push(asset);
+
+    sourceMap.set(
+      sourceOrder,
+      current
+    );
+  }
 
   /* =======================================================
-     5. แสดงผลการตรวจสอบ
+     4. ตรวจ sourceOrder ที่หาย
      ======================================================= */
+
+  const missingSourceOrders: number[] =
+    [];
+
+  for (
+    let sourceOrder = 1;
+    sourceOrder <= EXPECTED_SOURCE_COUNT;
+    sourceOrder += 1
+  ) {
+    if (!sourceMap.has(sourceOrder)) {
+      missingSourceOrders.push(
+        sourceOrder
+      );
+    }
+  }
+
+  /* =======================================================
+     5. หา sourceOrder ซ้ำ
+     ======================================================= */
+
+  const duplicateGroups = [
+    ...sourceMap.entries(),
+  ].filter(
+    ([, assets]) =>
+      assets.length > 1
+  );
+
+  const duplicateRecordCount =
+    duplicateGroups.reduce(
+      (total, [, assets]) =>
+        total +
+        (assets.length - 1),
+      0
+    );
+
+  /* =======================================================
+     6. สรุปก่อน Cleanup
+     ======================================================= */
+
+  console.log("");
 
   console.log(
     "======================================================"
   );
   console.log(
-    " ตรวจสอบข้อมูลก่อน Cleanup"
+    " ตรวจสอบ Source Marker"
   );
   console.log(
     "======================================================"
   );
 
   console.log(
-    `รายการทั้งหมด       : ${total}`
+    `SourceOrder ที่พบไม่ซ้ำ : ${sourceMap.size}`
   );
 
   console.log(
-    `ข้อมูล Import ใหม่   : ${newAssets.length}`
+    `SourceOrder ที่หาย      : ${missingSourceOrders.length}`
   );
 
   console.log(
-    `ข้อมูลเดิม           : ${oldAssets.length}`
+    `SourceOrder ที่ซ้ำ      : ${duplicateGroups.length}`
+  );
+
+  console.log(
+    `Record ซ้ำส่วนเกิน      : ${duplicateRecordCount}`
+  );
+
+  console.log(
+    `Marker ผิด/ไม่มี marker : ${invalidMarkerAssets.length}`
   );
 
   console.log("");
 
   /* =======================================================
-     6. SAFETY CHECK
+     7. SAFETY CHECK สำคัญที่สุด
 
-     ต้องตรงครบทุกเงื่อนไขก่อนจึงจะอนุญาตให้ลบ
+     ต้องมี sourceOrder ครบ 1–446 ก่อน
+     ถึงจะอนุญาตให้ลบ duplicate
      ======================================================= */
 
   if (
-    total !== EXPECTED_TOTAL_COUNT
+    missingSourceOrders.length > 0
   ) {
+    console.error(
+      "SourceOrder ที่หาย:"
+    );
+
+    console.error(
+      missingSourceOrders.join(", ")
+    );
+
     throw new Error(
       [
-        "หยุดทำงานเพื่อความปลอดภัย",
+        "หยุด Cleanup เพื่อความปลอดภัย",
         "",
-        `คาดว่าต้องมีทั้งหมด ${EXPECTED_TOTAL_COUNT} รายการ`,
-        `แต่พบจริง ${total} รายการ`,
+        `พบ SourceOrder ไม่ครบ ${EXPECTED_SOURCE_COUNT} รายการ`,
+        `หาย ${missingSourceOrders.length} sourceOrder`,
         "",
         "ยังไม่มีข้อมูลใดถูกลบ",
       ].join("\n")
@@ -172,83 +363,15 @@ async function main() {
   }
 
   if (
-    newAssets.length !==
-    EXPECTED_NEW_COUNT
+    sourceMap.size !==
+    EXPECTED_SOURCE_COUNT
   ) {
     throw new Error(
       [
-        "หยุดทำงานเพื่อความปลอดภัย",
+        "หยุด Cleanup เพื่อความปลอดภัย",
         "",
-        `ข้อมูล Import ใหม่ควรมี ${EXPECTED_NEW_COUNT} รายการ`,
-        `แต่พบจริง ${newAssets.length} รายการ`,
-        "",
-        "ยังไม่มีข้อมูลใดถูกลบ",
-      ].join("\n")
-    );
-  }
-
-  if (
-    oldAssets.length !==
-    EXPECTED_OLD_COUNT
-  ) {
-    throw new Error(
-      [
-        "หยุดทำงานเพื่อความปลอดภัย",
-        "",
-        `ข้อมูลเก่าควรมี ${EXPECTED_OLD_COUNT} รายการ`,
-        `แต่พบจริง ${oldAssets.length} รายการ`,
-        "",
-        "ยังไม่มีข้อมูลใดถูกลบ",
-      ].join("\n")
-    );
-  }
-
-  /*
-   * ตรวจสอบสมการจำนวนอีกครั้ง
-   */
-
-  if (
-    newAssets.length +
-      oldAssets.length !==
-    total
-  ) {
-    throw new Error(
-      [
-        "หยุดทำงานเพื่อความปลอดภัย",
-        "",
-        "จำนวนข้อมูลใหม่ + ข้อมูลเก่า ไม่เท่ากับจำนวนทั้งหมด",
-        "",
-        `ใหม่    : ${newAssets.length}`,
-        `เก่า    : ${oldAssets.length}`,
-        `รวม     : ${
-          newAssets.length +
-          oldAssets.length
-        }`,
-        `ทั้งหมด : ${total}`,
-        "",
-        "ยังไม่มีข้อมูลใดถูกลบ",
-      ].join("\n")
-    );
-  }
-
-  /*
-   * ต้องมี ID ชุดใหม่จริง
-   *
-   * ป้องกันกรณี marker ผิดแล้ว notIn
-   * ทำงานกับ array ว่าง
-   */
-
-  if (
-    newAssetIds.length !==
-    EXPECTED_NEW_COUNT
-  ) {
-    throw new Error(
-      [
-        "หยุดทำงานเพื่อความปลอดภัย",
-        "",
-        "จำนวน ID ของข้อมูลชุดใหม่ไม่ถูกต้อง",
-        `ควรมี ${EXPECTED_NEW_COUNT}`,
-        `พบ ${newAssetIds.length}`,
+        `ควรมี SourceOrder ไม่ซ้ำ ${EXPECTED_SOURCE_COUNT}`,
+        `แต่พบ ${sourceMap.size}`,
         "",
         "ยังไม่มีข้อมูลใดถูกลบ",
       ].join("\n")
@@ -256,111 +379,270 @@ async function main() {
   }
 
   /* =======================================================
-     7. แสดงรายการเก่าที่กำลังจะลบ
+     8. เตรียมรายการที่จะเก็บ / ลบ
      ======================================================= */
 
-  console.log(
-    "======================================================"
-  );
-  console.log(
-    " รายการเก่าที่จะถูกลบ"
-  );
+  const keepAssets:
+    CleanupAsset[] = [];
+
+  const duplicateAssetsToDelete:
+    CleanupAsset[] = [];
+
+  for (
+    let sourceOrder = 1;
+    sourceOrder <= EXPECTED_SOURCE_COUNT;
+    sourceOrder += 1
+  ) {
+    const assets =
+      sourceMap.get(sourceOrder);
+
+    if (!assets || assets.length === 0) {
+      throw new Error(
+        `SourceOrder ${sourceOrder} ไม่มีข้อมูล`
+      );
+    }
+
+    const keep =
+      chooseAssetToKeep(assets);
+
+    keepAssets.push(keep);
+
+    for (const asset of assets) {
+      if (asset.id !== keep.id) {
+        duplicateAssetsToDelete.push(
+          asset
+        );
+      }
+    }
+  }
+
+  /*
+   * Marker ผิดหรือไม่มี marker
+   * ถือว่าไม่ใช่หนึ่งใน 446 source rows
+   */
+
+  const assetsToDelete = [
+    ...duplicateAssetsToDelete,
+    ...invalidMarkerAssets,
+  ];
+
+  /*
+   * กัน ID ซ้ำใน delete list
+   */
+
+  const deleteIdSet =
+    new Set<number>();
+
+  for (const asset of assetsToDelete) {
+    deleteIdSet.add(asset.id);
+  }
+
+  const deleteIds =
+    [...deleteIdSet];
+
+  /* =======================================================
+     9. ตรวจสมการ
+
+     จำนวนปัจจุบัน - จำนวนที่จะลบ
+     ต้องเหลือ 446 พอดี
+     ======================================================= */
+
+  const expectedRemaining =
+    allAssets.length -
+    deleteIds.length;
+
   console.log(
     "======================================================"
   );
 
-  for (const asset of oldAssets) {
+  console.log(
+    " แผน Cleanup"
+  );
+
+  console.log(
+    "======================================================"
+  );
+
+  console.log(
+    `ข้อมูลปัจจุบัน     : ${allAssets.length}`
+  );
+
+  console.log(
+    `ข้อมูลที่จะเก็บ    : ${keepAssets.length}`
+  );
+
+  console.log(
+    `Duplicate ที่จะลบ : ${duplicateAssetsToDelete.length}`
+  );
+
+  console.log(
+    `Marker ผิดที่จะลบ : ${invalidMarkerAssets.length}`
+  );
+
+  console.log(
+    `รวมที่จะลบ        : ${deleteIds.length}`
+  );
+
+  console.log(
+    `หลัง Cleanup       : ${expectedRemaining}`
+  );
+
+  console.log("");
+
+  if (
+    keepAssets.length !==
+    EXPECTED_SOURCE_COUNT
+  ) {
+    throw new Error(
+      [
+        "หยุด Cleanup เพื่อความปลอดภัย",
+        "",
+        `รายการที่จะเก็บควรมี ${EXPECTED_SOURCE_COUNT}`,
+        `แต่พบ ${keepAssets.length}`,
+        "",
+        "ยังไม่มีข้อมูลใดถูกลบ",
+      ].join("\n")
+    );
+  }
+
+  if (
+    expectedRemaining !==
+    EXPECTED_SOURCE_COUNT
+  ) {
+    throw new Error(
+      [
+        "หยุด Cleanup เพื่อความปลอดภัย",
+        "",
+        `หลัง Cleanup ต้องเหลือ ${EXPECTED_SOURCE_COUNT}`,
+        `แต่จากการคำนวณจะเหลือ ${expectedRemaining}`,
+        "",
+        "ยังไม่มีข้อมูลใดถูกลบ",
+      ].join("\n")
+    );
+  }
+
+  /* =======================================================
+     10. แสดง Duplicate
+     ======================================================= */
+
+  if (
+    duplicateGroups.length > 0
+  ) {
     console.log(
-      `[ID ${asset.id}] ${asset.name} | GFMIS: ${
-        asset.governmentAssetNo ??
-        "-"
-      } | รหัสครุภัณฑ์: ${
-        asset.officeAssetNo ??
-        "-"
-      }`
+      "======================================================"
     );
+
+    console.log(
+      " SourceOrder ที่มีข้อมูลซ้ำ"
+    );
+
+    console.log(
+      "======================================================"
+    );
+
+    for (
+      const [
+        sourceOrder,
+        assets,
+      ] of duplicateGroups
+    ) {
+      const keep =
+        chooseAssetToKeep(assets);
+
+      console.log("");
+
+      console.log(
+        `SourceOrder ${sourceOrder}`
+      );
+
+      for (const asset of assets) {
+        const action =
+          asset.id === keep.id
+            ? "KEEP"
+            : "DELETE";
+
+        console.log(
+          `  ${action} | ID ${asset.id} | ${asset.name} | GFMIS: ${
+            asset.governmentAssetNo ??
+            "-"
+          } | รหัส: ${
+            asset.officeAssetNo ??
+            "-"
+          } | หน่วย: ${
+            asset.unit ?? "-"
+          }`
+        );
+      }
+    }
+
+    console.log("");
   }
 
-  console.log("");
-
-  console.log(
-    "======================================================"
-  );
-  console.log(
-    " SAFETY CHECK ผ่าน"
-  );
-  console.log(
-    "======================================================"
-  );
-
-  console.log(
-    `ข้อมูลที่จะเก็บไว้ : ${newAssets.length}`
-  );
-
-  console.log(
-    `ข้อมูลที่จะลบ      : ${oldAssets.length}`
-  );
-
-  console.log("");
-
   /* =======================================================
-     8. เตรียม ID ที่จะลบ
-
-     ใช้ ID ที่ตรวจสอบจาก oldAssets โดยตรง
-
-     ไม่ใช้:
-     id <= 441
-
-     เพราะ ID เก่าไม่ได้เรียงต่อเนื่อง
+     11. แสดง Marker ผิด
      ======================================================= */
-
-  const oldAssetIds = oldAssets.map(
-    (asset) => asset.id
-  );
 
   if (
-    oldAssetIds.length !==
-    EXPECTED_OLD_COUNT
+    invalidMarkerAssets.length > 0
   ) {
-    throw new Error(
-      [
-        "หยุดทำงานเพื่อความปลอดภัย",
-        "",
-        `ควรมี ID ที่จะลบ ${EXPECTED_OLD_COUNT} รายการ`,
-        `แต่พบ ${oldAssetIds.length} รายการ`,
-        "",
-        "ยังไม่มีข้อมูลใดถูกลบ",
-      ].join("\n")
+    console.log(
+      "======================================================"
     );
+
+    console.log(
+      " รายการ Marker ผิด/ไม่มี Marker"
+    );
+
+    console.log(
+      "======================================================"
+    );
+
+    for (
+      const asset of
+      invalidMarkerAssets
+    ) {
+      console.log(
+        `DELETE | ID ${asset.id} | ${asset.name}`
+      );
+    }
+
+    console.log("");
   }
 
   /* =======================================================
-     9. ลบข้อมูลจริง
+     12. ถ้าไม่มีอะไรต้องลบ
+     ======================================================= */
 
-     ใช้ Transaction เพื่อให้การลบและการตรวจสอบ
-     จำนวนหลังลบเป็นชุดการทำงานเดียวกัน
+  if (deleteIds.length === 0) {
+    console.log(
+      `✅ ไม่พบข้อมูลซ้ำ Department ${DEPARTMENT_ID} มี ${allAssets.length} รายการ`
+    );
 
-     หากจำนวนที่ลบหรือจำนวนคงเหลือผิด
-     Transaction จะ rollback
+    return;
+  }
+
+  /* =======================================================
+     13. Transaction ลบจริง
      ======================================================= */
 
   console.log(
     "======================================================"
   );
+
   console.log(
-    " เริ่มลบข้อมูลเก่า"
+    " เริ่ม Cleanup"
   );
+
   console.log(
     "======================================================"
   );
 
-  const cleanupResult =
+  const result =
     await prisma.$transaction(
       async (tx) => {
-        /* -------------------------------------------------
-           ลบเฉพาะ ID ที่ตรวจสอบแล้วว่าเป็นข้อมูลเก่า
-           และต้องอยู่ Department 1 เท่านั้น
-           ------------------------------------------------- */
+        /*
+         * ลบเฉพาะ ID ที่ผ่าน Safety Check
+         */
 
         const deleted =
           await tx.asset.deleteMany({
@@ -369,129 +651,226 @@ async function main() {
                 DEPARTMENT_ID,
 
               id: {
-                in: oldAssetIds,
+                in: deleteIds,
               },
             },
           });
-
-        /* -------------------------------------------------
-           ตรวจจำนวนที่ลบ
-           ------------------------------------------------- */
 
         if (
           deleted.count !==
-          EXPECTED_OLD_COUNT
+          deleteIds.length
         ) {
           throw new Error(
             [
-              "จำนวนที่ลบไม่ตรงตามที่กำหนด",
+              "จำนวนที่ลบไม่ตรง",
               "",
-              `ควรลบ ${EXPECTED_OLD_COUNT} รายการ`,
-              `ลบจริง ${deleted.count} รายการ`,
+              `ควรลบ ${deleteIds.length}`,
+              `ลบจริง ${deleted.count}`,
               "",
-              "Transaction จะถูก Rollback",
+              "Transaction จะ Rollback",
             ].join("\n")
           );
         }
 
-        /* -------------------------------------------------
-           นับจำนวน Department 1 หลังลบ
-           ------------------------------------------------- */
+        /* -----------------------------------------------
+           ตรวจจำนวนหลังลบ
+           ----------------------------------------------- */
 
         const remaining =
-          await tx.asset.count({
+          await tx.asset.findMany({
             where: {
               departmentId:
                 DEPARTMENT_ID,
             },
+
+            select: {
+              id: true,
+              remark: true,
+            },
           });
 
         if (
-          remaining !==
-          EXPECTED_NEW_COUNT
+          remaining.length !==
+          EXPECTED_SOURCE_COUNT
         ) {
           throw new Error(
             [
-              "จำนวนข้อมูลคงเหลือไม่ถูกต้อง",
+              "จำนวนหลัง Cleanup ไม่ถูกต้อง",
               "",
-              `ควรเหลือ ${EXPECTED_NEW_COUNT} รายการ`,
-              `แต่เหลือจริง ${remaining} รายการ`,
+              `ควรเหลือ ${EXPECTED_SOURCE_COUNT}`,
+              `แต่เหลือ ${remaining.length}`,
               "",
-              "Transaction จะถูก Rollback",
+              "Transaction จะ Rollback",
             ].join("\n")
           );
         }
 
-        /* -------------------------------------------------
-           ตรวจ marker ของข้อมูลที่เหลือ
-           ------------------------------------------------- */
+        /* -----------------------------------------------
+           ตรวจ sourceOrder หลังลบ
+           ----------------------------------------------- */
 
-        const remainingNewAssets =
-          await tx.asset.count({
-            where: {
-              departmentId:
-                DEPARTMENT_ID,
+        const finalSourceOrders =
+          new Set<number>();
 
-              remark: {
-                contains:
-                  IMPORT_MARKER,
-              },
-            },
-          });
+        for (const asset of remaining) {
+          const sourceOrder =
+            extractSourceOrder(
+              asset.remark
+            );
+
+          if (
+            sourceOrder === null ||
+            sourceOrder < 1 ||
+            sourceOrder >
+              EXPECTED_SOURCE_COUNT
+          ) {
+            throw new Error(
+              [
+                "พบ Marker ผิดหลัง Cleanup",
+                `Asset ID ${asset.id}`,
+                "",
+                "Transaction จะ Rollback",
+              ].join("\n")
+            );
+          }
+
+          if (
+            finalSourceOrders.has(
+              sourceOrder
+            )
+          ) {
+            throw new Error(
+              [
+                "ยังพบ SourceOrder ซ้ำหลัง Cleanup",
+                `SourceOrder ${sourceOrder}`,
+                "",
+                "Transaction จะ Rollback",
+              ].join("\n")
+            );
+          }
+
+          finalSourceOrders.add(
+            sourceOrder
+          );
+        }
 
         if (
-          remainingNewAssets !==
-          EXPECTED_NEW_COUNT
+          finalSourceOrders.size !==
+          EXPECTED_SOURCE_COUNT
         ) {
           throw new Error(
             [
-              "ข้อมูลชุดใหม่หลัง Cleanup ไม่ครบ",
+              "จำนวน SourceOrder หลัง Cleanup ไม่ถูกต้อง",
               "",
-              `ควรพบ ${EXPECTED_NEW_COUNT} รายการ`,
-              `แต่พบ ${remainingNewAssets} รายการ`,
+              `ควรมี ${EXPECTED_SOURCE_COUNT}`,
+              `แต่พบ ${finalSourceOrders.size}`,
               "",
-              "Transaction จะถูก Rollback",
+              "Transaction จะ Rollback",
             ].join("\n")
           );
         }
 
         return {
-          deletedCount:
+          deleted:
             deleted.count,
 
-          remainingCount:
-            remaining,
+          remaining:
+            remaining.length,
 
-          remainingNewCount:
-            remainingNewAssets,
+          sourceOrders:
+            finalSourceOrders.size,
         };
       }
     );
 
   /* =======================================================
-     10. ตรวจสอบอีกครั้งหลัง Transaction สำเร็จ
+     14. ตรวจฐานข้อมูลหลัง Transaction
      ======================================================= */
 
-  const finalTotal =
-    await prisma.asset.count({
+  const finalAssets =
+    await prisma.asset.findMany({
       where: {
-        departmentId: DEPARTMENT_ID,
+        departmentId:
+          DEPARTMENT_ID,
+      },
+
+      select: {
+        id: true,
+        remark: true,
+        governmentAssetNo: true,
+        officeAssetNo: true,
+        quantity: true,
+        unit: true,
+        responsibleName: true,
       },
     });
 
-  const finalNewAssets =
-    await prisma.asset.count({
-      where: {
-        departmentId: DEPARTMENT_ID,
+  const finalSourceMap =
+    new Map<number, number>();
 
-        remark: {
-          contains: IMPORT_MARKER,
-        },
-      },
-    });
+  let invalidFinalMarker = 0;
+
+  for (const asset of finalAssets) {
+    const sourceOrder =
+      extractSourceOrder(
+        asset.remark
+      );
+
+    if (
+      sourceOrder === null ||
+      sourceOrder < 1 ||
+      sourceOrder >
+        EXPECTED_SOURCE_COUNT
+    ) {
+      invalidFinalMarker += 1;
+      continue;
+    }
+
+    finalSourceMap.set(
+      sourceOrder,
+      (finalSourceMap.get(
+        sourceOrder
+      ) ?? 0) + 1
+    );
+  }
+
+  const finalDuplicates =
+    [...finalSourceMap.values()].filter(
+      (count) => count > 1
+    ).length;
+
+  const governmentCount =
+    finalAssets.filter(
+      (asset) =>
+        Boolean(
+          asset.governmentAssetNo?.trim()
+        )
+    ).length;
+
+  const officeCount =
+    finalAssets.filter(
+      (asset) =>
+        Boolean(
+          asset.officeAssetNo?.trim()
+        )
+    ).length;
+
+  const unitCount =
+    finalAssets.filter(
+      (asset) =>
+        Boolean(asset.unit?.trim())
+    ).length;
+
+  const responsibleCount =
+    finalAssets.filter(
+      (asset) =>
+        Boolean(
+          asset.responsibleName?.trim()
+        )
+    ).length;
 
   /* =======================================================
-     11. แสดงผล
+     15. FINAL RESULT
      ======================================================= */
 
   console.log("");
@@ -499,53 +878,95 @@ async function main() {
   console.log(
     "======================================================"
   );
+
   console.log(
     " CLEANUP สำเร็จ"
   );
+
   console.log(
     "======================================================"
   );
 
   console.log(
-    `ข้อมูลก่อน Cleanup     : ${total} รายการ`
+    `ข้อมูลก่อน Cleanup     : ${allAssets.length}`
   );
 
   console.log(
-    `ลบข้อมูลเดิม           : ${cleanupResult.deletedCount} รายการ`
+    `ลบข้อมูลซ้ำ/ส่วนเกิน   : ${result.deleted}`
   );
 
   console.log(
-    `ข้อมูลคงเหลือ          : ${cleanupResult.remainingCount} รายการ`
+    `ข้อมูลคงเหลือ          : ${result.remaining}`
   );
 
   console.log(
-    `ข้อมูล Import ใหม่      : ${cleanupResult.remainingNewCount} รายการ`
+    `SourceOrder ไม่ซ้ำ     : ${result.sourceOrders}`
   );
 
   console.log("");
 
   console.log(
-    `ตรวจสอบฐานข้อมูลล่าสุด : ${finalTotal} รายการ`
+    "======================================================"
   );
 
   console.log(
-    `ตรวจ marker ชุดใหม่    : ${finalNewAssets} รายการ`
+    " ตรวจฐานข้อมูลล่าสุด"
+  );
+
+  console.log(
+    "======================================================"
+  );
+
+  console.log(
+    `Department 1 ทั้งหมด   : ${finalAssets.length}`
+  );
+
+  console.log(
+    `SourceOrder            : ${finalSourceMap.size}`
+  );
+
+  console.log(
+    `SourceOrder ซ้ำ        : ${finalDuplicates}`
+  );
+
+  console.log(
+    `Marker ผิด             : ${invalidFinalMarker}`
+  );
+
+  console.log("");
+
+  console.log(
+    `มี GFMIS              : ${governmentCount}`
+  );
+
+  console.log(
+    `มีรหัสครุภัณฑ์        : ${officeCount}`
+  );
+
+  console.log(
+    `มีหน่วย               : ${unitCount}`
+  );
+
+  console.log(
+    `มีผู้รับผิดชอบ        : ${responsibleCount}`
   );
 
   console.log("");
 
   if (
-    finalTotal ===
-      EXPECTED_NEW_COUNT &&
-    finalNewAssets ===
-      EXPECTED_NEW_COUNT
+    finalAssets.length ===
+      EXPECTED_SOURCE_COUNT &&
+    finalSourceMap.size ===
+      EXPECTED_SOURCE_COUNT &&
+    finalDuplicates === 0 &&
+    invalidFinalMarker === 0
   ) {
     console.log(
-      `✅ Cleanup สำเร็จ กลุ่มอำนวยการเหลือ ${EXPECTED_NEW_COUNT} รายการ`
+      `✅ Cleanup สมบูรณ์ กลุ่มอำนวยการเหลือ ${EXPECTED_SOURCE_COUNT} รายการ`
     );
   } else {
-    console.warn(
-      "⚠️ กรุณาตรวจสอบข้อมูลอีกครั้ง"
+    throw new Error(
+      "ผลตรวจหลัง Cleanup ไม่ผ่าน"
     );
   }
 
@@ -554,9 +975,11 @@ async function main() {
   console.log(
     "======================================================"
   );
+
   console.log(
     " เสร็จสิ้น"
   );
+
   console.log(
     "======================================================"
   );
