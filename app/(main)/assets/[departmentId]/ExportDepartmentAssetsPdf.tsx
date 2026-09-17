@@ -194,9 +194,6 @@ function getResponsibleName(asset: Asset) {
       /*
        * ป้องกันกรณี officerName
        * มี "/ ชื่องาน" อยู่แล้ว
-       *
-       * เช่น
-       * นาย ก / งานการเงิน
        */
 
       if (
@@ -213,11 +210,6 @@ function getResponsibleName(asset: Asset) {
       /*
        * กรณี responsibleName
        * เป็นข้อความสถานที่
-       *
-       * เช่น
-       * ห้องประชุมชั้น 3
-       *
-       * ไม่ควรนำ Section มาต่อท้าย
        */
 
       if (
@@ -487,17 +479,10 @@ export default function ExportDepartmentAssetsPdf({
 
                 return [
                   /* ลำดับ */
+
                   globalIndex + 1,
 
-                  /* =========================================
-                     ประเภท
-
-                     CABINET / SHELF
-                     = ตู้และชั้นวาง
-
-                     COMPUTER / MONITOR
-                     = คอมพิวเตอร์
-                     ========================================= */
+                  /* ประเภท */
 
                   categoryName[
                     asset.category
@@ -716,6 +701,9 @@ export default function ExportDepartmentAssetsPdf({
                 0,
               ],
 
+              halign:
+                "center",
+
               valign:
                 "middle",
 
@@ -767,7 +755,7 @@ export default function ExportDepartmentAssetsPdf({
               /* =================================================
                  รายการครุภัณฑ์
 
-                 ข้อมูลชิดซ้าย
+                 คงเดิม: ข้อมูลชิดซ้าย
                  ================================================= */
 
               4: {
@@ -802,20 +790,26 @@ export default function ExportDepartmentAssetsPdf({
               /* =================================================
                  ผู้รับผิดชอบ
 
-                 ข้อมูลชิดซ้าย
+                 แก้ไข:
+                 - ข้อมูลอยู่กึ่งกลางแนวนอน
+                 - ข้อมูลอยู่กึ่งกลางแนวตั้ง
+                 - รองรับข้อความหลายบรรทัด
                  ================================================= */
 
               7: {
                 cellWidth: 45,
-                halign: "left",
+                halign: "center",
                 valign: "middle",
 
                 cellPadding: {
                   top: 1.2,
                   right: 1.2,
                   bottom: 1.2,
-                  left: 2,
+                  left: 1.2,
                 },
+
+                overflow:
+                  "linebreak",
               },
 
               /* สถานะ */
@@ -828,29 +822,65 @@ export default function ExportDepartmentAssetsPdf({
             },
 
             /* =================================================
-               หัวตาราง
+               บังคับตำแหน่งข้อความ
 
-               column 4 และ 7
-               ข้อมูลถูกกำหนดชิดซ้าย
-
-               แต่หัวตารางต้องอยู่กึ่งกลาง
+               - หัว "รายการครุภัณฑ์" อยู่กึ่งกลาง
+               - ข้อมูล "รายการครุภัณฑ์" ชิดซ้าย
+               - หัว "ผู้รับผิดชอบ" อยู่กึ่งกลาง
+               - ข้อมูล "ผู้รับผิดชอบ" อยู่กึ่งกลาง
                ================================================= */
 
             didParseCell: (
               data
             ) => {
+              /*
+               * หัวรายการครุภัณฑ์
+               */
+
               if (
                 data.section ===
                   "head" &&
-                (
-                  data.column
-                    .index === 4 ||
-                  data.column
-                    .index === 7
-                )
+                data.column.index === 4
               ) {
                 data.cell.styles.halign =
                   "center";
+
+                data.cell.styles.valign =
+                  "middle";
+              }
+
+              /*
+               * หัวผู้รับผิดชอบ
+               */
+
+              if (
+                data.section ===
+                  "head" &&
+                data.column.index === 7
+              ) {
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+              }
+
+              /*
+               * ข้อมูลผู้รับผิดชอบ
+               *
+               * บังคับกึ่งกลางทุกแถว
+               */
+
+              if (
+                data.section ===
+                  "body" &&
+                data.column.index === 7
+              ) {
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
               }
             },
 
