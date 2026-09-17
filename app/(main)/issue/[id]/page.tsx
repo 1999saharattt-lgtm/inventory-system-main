@@ -20,6 +20,7 @@ type IssueItem = {
   id: number;
   qty: number;
   issuedQty: number;
+  remark: string | null;
 
   material: {
     code: string;
@@ -30,15 +31,6 @@ type IssueItem = {
       toString(): string;
     };
   };
-};
-
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 const statusName: Record<string, string> = {
@@ -124,12 +116,25 @@ export default async function IssueDetailPage({
   }
 
   // =====================================================
+  // ตรวจสอบ ID
+  // =====================================================
+
+  const issueId = Number(id);
+
+  if (
+    !Number.isInteger(issueId) ||
+    issueId <= 0
+  ) {
+    notFound();
+  }
+
+  // =====================================================
   // ดึงข้อมูลใบเบิก
   // =====================================================
 
   const issue = await prisma.issue.findUnique({
     where: {
-      id: Number(id),
+      id: issueId,
     },
 
     include: {
@@ -500,8 +505,6 @@ export default async function IssueDetailPage({
           sm:p-6
         "
       >
-        {/* Header ของข้อมูลใบเบิก */}
-
         <div
           className="
             mb-5
@@ -559,7 +562,9 @@ export default async function IssueDetailPage({
           </div>
         </div>
 
-        {/* ข้อมูลใบเบิก */}
+        {/* =================================================
+            ข้อมูลใบเบิก
+        ================================================= */}
 
         <div
           className="
@@ -678,6 +683,16 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ตารางรายการใบเบิก
+
+          ตารางใหม่:
+          1. ลำดับ
+          2. รายการพัสดุ
+          3. จำนวนที่ขอเบิก
+          4. จำนวนที่เบิกจ่ายจริง
+          5. หน่วย
+          6. หมายเหตุ
+
+          ตัด "หมวดหมู่" ออก
       ===================================================== */}
 
       <div
@@ -694,13 +709,18 @@ export default async function IssueDetailPage({
           <table
             className="
               w-full
+              min-w-[900px]
+              table-fixed
               border-collapse
             "
           >
             <thead>
               <tr>
+                {/* ลำดับ */}
+
                 <th
                   className="
+                    w-[7%]
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -709,7 +729,7 @@ export default async function IssueDetailPage({
                     px-3
                     py-3
                     text-center
-                    text-lg
+                    text-base
                     font-extrabold
                     !text-white
                   "
@@ -717,26 +737,11 @@ export default async function IssueDetailPage({
                   ลำดับ
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-slate-900
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    text-lg
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หมวดหมู่
-                </th>
+                {/* รายการพัสดุ */}
 
                 <th
                   className="
+                    w-[35%]
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -745,7 +750,7 @@ export default async function IssueDetailPage({
                     px-3
                     py-3
                     text-center
-                    text-lg
+                    text-base
                     font-extrabold
                     !text-white
                   "
@@ -753,8 +758,11 @@ export default async function IssueDetailPage({
                   รายการพัสดุ
                 </th>
 
+                {/* จำนวนที่ขอเบิก */}
+
                 <th
                   className="
+                    w-[13%]
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -763,7 +771,7 @@ export default async function IssueDetailPage({
                     px-3
                     py-3
                     text-center
-                    text-lg
+                    text-base
                     font-extrabold
                     !text-white
                   "
@@ -771,8 +779,11 @@ export default async function IssueDetailPage({
                   จำนวนที่ขอเบิก
                 </th>
 
+                {/* จำนวนที่เบิกจ่ายจริง */}
+
                 <th
                   className="
+                    w-[15%]
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -781,7 +792,7 @@ export default async function IssueDetailPage({
                     px-3
                     py-3
                     text-center
-                    text-lg
+                    text-base
                     font-extrabold
                     !text-white
                   "
@@ -789,8 +800,11 @@ export default async function IssueDetailPage({
                   จำนวนที่เบิกจ่ายจริง
                 </th>
 
+                {/* หน่วย */}
+
                 <th
                   className="
+                    w-[10%]
                     border
                     border-slate-900
                     bg-gradient-to-r
@@ -799,12 +813,33 @@ export default async function IssueDetailPage({
                     px-3
                     py-3
                     text-center
-                    text-lg
+                    text-base
                     font-extrabold
                     !text-white
                   "
                 >
                   หน่วย
+                </th>
+
+                {/* หมายเหตุ */}
+
+                <th
+                  className="
+                    w-[20%]
+                    border
+                    border-slate-900
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-3
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  หมายเหตุ
                 </th>
               </tr>
             </thead>
@@ -823,6 +858,8 @@ export default async function IssueDetailPage({
                       hover:bg-emerald-50
                     "
                   >
+                    {/* ลำดับ */}
+
                     <td
                       className="
                         border
@@ -836,19 +873,7 @@ export default async function IssueDetailPage({
                       {index + 1}
                     </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-3
-                        py-3
-                      "
-                    >
-                      {categoryName[
-                        item.material.category
-                      ] ??
-                        item.material.category}
-                    </td>
+                    {/* รายการพัสดุ */}
 
                     <td
                       className="
@@ -856,14 +881,19 @@ export default async function IssueDetailPage({
                         border-slate-900
                         px-3
                         py-3
+                        align-middle
                         font-semibold
                       "
                     >
-                      <span className="font-extrabold">
-                        {item.material.code}
-                      </span>{" "}
-                      - {item.material.name}
+                      <div className="break-words">
+                        <span className="font-extrabold">
+                          {item.material.code}
+                        </span>{" "}
+                        - {item.material.name}
+                      </div>
                     </td>
+
+                    {/* จำนวนที่ขอเบิก */}
 
                     <td
                       className="
@@ -877,6 +907,8 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
+
+                    {/* จำนวนที่เบิกจ่ายจริง */}
 
                     <td
                       className="
@@ -903,6 +935,8 @@ export default async function IssueDetailPage({
                       )}
                     </td>
 
+                    {/* หน่วย */}
+
                     <td
                       className="
                         border
@@ -914,6 +948,26 @@ export default async function IssueDetailPage({
                       "
                     >
                       {item.material.unit}
+                    </td>
+
+                    {/* หมายเหตุ */}
+
+                    <td
+                      className="
+                        border
+                        border-slate-900
+                        px-3
+                        py-3
+                        align-middle
+                        text-left
+                        font-semibold
+                      "
+                    >
+                      <div className="break-words whitespace-pre-wrap">
+                        {item.remark?.trim()
+                          ? item.remark
+                          : "-"}
+                      </div>
                     </td>
                   </tr>
                 )
