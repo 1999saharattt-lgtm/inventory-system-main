@@ -99,17 +99,6 @@ export default async function EditAssetPage({
 
   /* =======================================================
      ASSET
-
-     responsibleName:
-     เก็บข้อมูลผู้รับผิดชอบ/ตำแหน่งเดิมจาก Excel
-
-     เช่น
-     - หน้าห้องผู้อำนวยการ
-     - ข้างห้องชั้น 4
-     - ห้องประชุม
-     - ชื่อบุคคลเดิมจากทะเบียน
-
-     ข้อมูลนี้ต้องไม่ถูกลบเพียงเพราะไม่ได้เลือก Officer
      ======================================================= */
 
   const asset =
@@ -167,10 +156,7 @@ export default async function EditAssetPage({
      1. Officer.departmentId ตรงกับ Department
      2. Officer ผูกกับ Section ที่อยู่ใน Department
 
-     จุดประสงค์:
-     - ให้เลือกผู้ครอบครองได้ตามกลุ่มงาน
-     - รองรับข้อมูล Officer เดิม
-     - ไม่กระทบ responsibleName จาก Excel
+     ใช้สำหรับเลือกผู้ครอบครองตามกลุ่มงาน
      ======================================================= */
 
   const officers =
@@ -874,41 +860,18 @@ export default async function EditAssetPage({
             </h2>
           </div>
 
-          {/* ===============================================
-              หลักการ
-
-              1. responsibleName
-                 = ข้อมูลเดิมจาก Excel
-
-              2. officerId
-                 = ผู้ครอบครองที่เลือกจากระบบ
-
-              3. สามารถไม่เลือก officerId ได้
-
-              4. responsibleName เดิมจะไม่หาย
-                 เพียงเพราะไม่ได้เลือก Officer
-              =============================================== */}
-
           <AssetResponsibleFields
             sections={sections}
             officers={officers}
-
             initialSectionId={
               asset.sectionId
             }
-
             initialOfficerId={
               asset.officerId
             }
-
-            initialResponsibleName={
-              asset.responsibleName
-            }
-
             departmentName={
               asset.department.name
             }
-
             departmentId={
               departmentIdNumber
             }

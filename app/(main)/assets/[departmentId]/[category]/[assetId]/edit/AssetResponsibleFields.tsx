@@ -26,21 +26,6 @@ type Props = {
   initialSectionId: number | null;
   initialOfficerId: number | null;
 
-  /*
-   * ข้อมูลผู้รับผิดชอบ/ตำแหน่งเดิมจาก Excel
-   *
-   * ตัวอย่าง:
-   * - หน้าห้องผู้อำนวยการ
-   * - ข้างห้องชั้น 4
-   * - ห้องประชุม
-   * - ชื่อผู้รับผิดชอบเดิม
-   *
-   * สำคัญ:
-   * ข้อมูลนี้แยกจาก officerId
-   * และไม่ถูกแก้ไขจาก Component นี้
-   */
-  initialResponsibleName: string | null;
-
   departmentName: string;
   departmentId: number;
 };
@@ -54,14 +39,11 @@ export default function AssetResponsibleFields({
   officers,
   initialSectionId,
   initialOfficerId,
-  initialResponsibleName,
   departmentName,
   departmentId,
 }: Props) {
   /* =======================================================
      ตรวจสอบกลุ่มงานเดิม
-
-     Section เดิมต้องอยู่ในรายการที่ Server ส่งมา
      ======================================================= */
 
   const validInitialSectionId = useMemo(() => {
@@ -93,17 +75,13 @@ export default function AssetResponsibleFields({
   }, [officers, initialOfficerId]);
 
   /* =======================================================
-     ตรวจสอบว่า Officer เดิมยังใช้ได้หรือไม่
+     ตรวจสอบ Officer เดิมว่าใช้ได้หรือไม่
 
-     หน่วยงานไม่มี Section
+     ไม่มี Section
      → ใช้ Officer เดิมได้
 
-     หน่วยงานมี Section
-     → Asset ต้องมี Section ที่ถูกต้อง
+     มี Section
      → Officer ต้องอยู่ Section เดียวกับ Asset
-
-     หมายเหตุ:
-     responsibleName ไม่เกี่ยวข้องกับการตรวจสอบนี้
      ======================================================= */
 
   const validInitialOfficerId = useMemo(() => {
@@ -111,24 +89,14 @@ export default function AssetResponsibleFields({
       return null;
     }
 
-    /*
-     * หน่วยงานไม่มีการแบ่งกลุ่มงาน
-     */
     if (sections.length === 0) {
       return initialOfficer.id;
     }
 
-    /*
-     * หน่วยงานมี Section
-     * แต่ Asset เดิมไม่มี Section ที่ถูกต้อง
-     */
     if (validInitialSectionId === null) {
       return null;
     }
 
-    /*
-     * Officer ต้องอยู่ Section เดียวกับ Asset
-     */
     if (
       initialOfficer.sectionId !== validInitialSectionId
     ) {
@@ -154,9 +122,6 @@ export default function AssetResponsibleFields({
 
   /* =======================================================
      STATE : OFFICER
-
-     ผู้ครอบครองเป็น Optional
-     สามารถไม่เลือกได้
      ======================================================= */
 
   const [officerId, setOfficerId] = useState<string>(
@@ -164,19 +129,6 @@ export default function AssetResponsibleFields({
       ? String(validInitialOfficerId)
       : ""
   );
-
-  /* =======================================================
-     RESPONSIBLE NAME เดิมจาก Excel
-
-     ไม่ใช้ State
-     ไม่ให้แก้ไข
-     ไม่ส่งกลับไป update
-
-     ทำให้ข้อมูลเดิมไม่ถูกกระทบ
-     ======================================================= */
-
-  const responsibleName =
-    initialResponsibleName?.trim() ?? "";
 
   /* =======================================================
      SECTION ที่เลือกปัจจุบัน
@@ -202,37 +154,26 @@ export default function AssetResponsibleFields({
 
   /* =======================================================
      กรอง Officer ตาม Section
-
-     กรณี 1:
-     หน่วยงานไม่มี Section
-     → แสดง Officer ทั้งหมดที่ Server ส่งมา
-
-     กรณี 2:
-     หน่วยงานมี Section แต่ยังไม่เลือก
-     → ไม่แสดง Officer
-
-     กรณี 3:
-     เลือก Section แล้ว
-     → แสดงเฉพาะ Officer ของ Section นั้น
      ======================================================= */
 
   const filteredOfficers = useMemo(() => {
     /*
-     * ไม่มี Section
+     * หน่วยงานไม่มี Section
+     * → แสดง Officer ทั้งหมด
      */
     if (sections.length === 0) {
       return officers;
     }
 
     /*
-     * ยังไม่เลือก Section
+     * มี Section แต่ยังไม่ได้เลือก
      */
     if (selectedSectionId === null) {
       return [];
     }
 
     /*
-     * กรองตาม Section
+     * แสดงเฉพาะ Officer ใน Section ที่เลือก
      */
     return officers.filter(
       (officer) =>
@@ -246,9 +187,6 @@ export default function AssetResponsibleFields({
 
   /* =======================================================
      Officer ที่เลือกปัจจุบัน
-
-     ใช้ filteredOfficers เพื่อป้องกัน Officer
-     ที่ไม่ได้อยู่ใน Section ปัจจุบัน
      ======================================================= */
 
   const selectedOfficer = useMemo(() => {
@@ -264,8 +202,7 @@ export default function AssetResponsibleFields({
 
     return (
       filteredOfficers.find(
-        (officer) =>
-          officer.id === parsedOfficerId
+        (officer) => officer.id === parsedOfficerId
       ) ?? null
     );
   }, [filteredOfficers, officerId]);
@@ -276,10 +213,8 @@ export default function AssetResponsibleFields({
 
   function handleSectionChange(value: string) {
     /*
-     * ไม่ระบุ Section
-     *
-     * ล้างเฉพาะ officerId
-     * responsibleName เดิมไม่เกี่ยวข้อง
+     * ไม่ระบุกลุ่มงาน
+     * → ล้าง Officer
      */
     if (!value) {
       setSectionId("");
@@ -289,21 +224,14 @@ export default function AssetResponsibleFields({
 
     const nextSectionId = Number(value);
 
-    /*
-     * ตรวจสอบ Integer
-     */
     if (!Number.isInteger(nextSectionId)) {
       setSectionId("");
       setOfficerId("");
       return;
     }
 
-    /*
-     * ตรวจสอบว่า Section มีอยู่จริง
-     */
     const sectionExists = sections.some(
-      (section) =>
-        section.id === nextSectionId
+      (section) => section.id === nextSectionId
     );
 
     if (!sectionExists) {
@@ -316,24 +244,20 @@ export default function AssetResponsibleFields({
 
     /*
      * ยังไม่มี Officer
-     * ไม่ต้องทำอะไรต่อ
      */
     if (!officerId) {
       return;
     }
 
-    const currentOfficerId =
-      Number(officerId);
+    const currentOfficerId = Number(officerId);
 
-    const currentOfficer =
-      officers.find(
-        (officer) =>
-          officer.id === currentOfficerId
-      );
+    const currentOfficer = officers.find(
+      (officer) => officer.id === currentOfficerId
+    );
 
     /*
      * Officer เดิมยังอยู่ใน Section ใหม่
-     * → คงค่าเดิม
+     * → เก็บไว้
      */
     if (
       currentOfficer &&
@@ -343,10 +267,8 @@ export default function AssetResponsibleFields({
     }
 
     /*
-     * Officer เดิมไม่อยู่ Section ใหม่
-     * → ล้างเฉพาะ Officer
-     *
-     * responsibleName เดิมไม่ถูกแตะต้อง
+     * Officer ไม่อยู่ Section ใหม่
+     * → ล้าง Officer
      */
     setOfficerId("");
   }
@@ -358,9 +280,6 @@ export default function AssetResponsibleFields({
   function handleOfficerChange(value: string) {
     /*
      * ไม่ระบุผู้ครอบครอง
-     *
-     * → officerId ว่าง
-     * → responsibleName เดิมยังอยู่
      */
     if (!value) {
       setOfficerId("");
@@ -375,14 +294,11 @@ export default function AssetResponsibleFields({
     }
 
     /*
-     * ต้องเป็น Officer ที่อยู่ในรายการ
-     * filteredOfficers เท่านั้น
+     * ต้องเป็น Officer ที่อยู่ในรายการปัจจุบันเท่านั้น
      */
-    const officerExists =
-      filteredOfficers.some(
-        (officer) =>
-          officer.id === nextOfficerId
-      );
+    const officerExists = filteredOfficers.some(
+      (officer) => officer.id === nextOfficerId
+    );
 
     if (!officerExists) {
       setOfficerId("");
@@ -442,12 +358,6 @@ export default function AssetResponsibleFields({
           {departmentName}
         </div>
 
-        {/*
-         * ส่ง departmentId กลับ Server
-         *
-         * Server จะตรวจอีกครั้งว่า
-         * ตรงกับ Department เดิมของ Asset
-         */}
         <input
           type="hidden"
           name="departmentId"
@@ -478,9 +388,7 @@ export default function AssetResponsibleFields({
             name="sectionId"
             value={sectionId}
             onChange={(event) =>
-              handleSectionChange(
-                event.target.value
-              )
+              handleSectionChange(event.target.value)
             }
             className="
               mt-2
@@ -535,66 +443,7 @@ export default function AssetResponsibleFields({
       )}
 
       {/* ===================================================
-          ข้อมูลเดิมจากทะเบียน / Excel
-
-          สำคัญ:
-          - แสดงอย่างเดียว
-          - ไม่แก้ไข
-          - ไม่มี name="responsibleName"
-          - จึงไม่ส่งค่าไป action.ts
-          - action.ts จะไม่เขียนทับข้อมูลเดิม
-          =================================================== */}
-
-      <div className="h-full min-w-0">
-        <label
-          htmlFor="responsibleNameDisplay"
-          className="
-            block
-            text-sm
-            font-extrabold
-            !text-slate-200
-          "
-        >
-          ผู้รับผิดชอบเดิม / ตำแหน่งจัดเก็บ
-        </label>
-
-        <div
-          id="responsibleNameDisplay"
-          className="
-            mt-2
-            min-h-[50px]
-            w-full
-            break-words
-            rounded-xl
-            border
-            border-slate-300
-            bg-slate-100
-            px-4
-            py-3
-            font-semibold
-            text-slate-900
-          "
-        >
-          {responsibleName || "-"}
-        </div>
-
-        <p
-          className="
-            mt-2
-            text-sm
-            font-semibold
-            !text-slate-400
-          "
-        >
-          ข้อมูลเดิมจากทะเบียน/Excel ระบบจะเก็บไว้ตามเดิม
-        </p>
-      </div>
-
-      {/* ===================================================
           ผู้ครอบครอง
-
-          Optional:
-          จะเลือกหรือไม่เลือกก็ได้
           =================================================== */}
 
       <div className="h-full min-w-0">
@@ -615,9 +464,7 @@ export default function AssetResponsibleFields({
           name="officerId"
           value={officerId}
           onChange={(event) =>
-            handleOfficerChange(
-              event.target.value
-            )
+            handleOfficerChange(event.target.value)
           }
           disabled={
             sections.length > 0 &&
@@ -649,17 +496,14 @@ export default function AssetResponsibleFields({
             -- ยังไม่ได้ระบุผู้ครอบครอง --
           </option>
 
-          {filteredOfficers.map(
-            (officer) => (
-              <option
-                key={officer.id}
-                value={officer.id}
-              >
-                {officer.firstName}{" "}
-                {officer.lastName}
-              </option>
-            )
-          )}
+          {filteredOfficers.map((officer) => (
+            <option
+              key={officer.id}
+              value={officer.id}
+            >
+              {officer.firstName} {officer.lastName}
+            </option>
+          ))}
         </select>
 
         <p
@@ -683,10 +527,7 @@ export default function AssetResponsibleFields({
       </div>
 
       {/* ===================================================
-          ตำแหน่งของ Officer
-
-          แสดงตาม Officer ที่เลือกเท่านั้น
-          ไม่เกี่ยวกับ responsibleName
+          ตำแหน่ง
           =================================================== */}
 
       <div className="h-full min-w-0">
@@ -719,8 +560,7 @@ export default function AssetResponsibleFields({
             text-slate-900
           "
         >
-          {selectedOfficer?.position?.trim() ||
-            "-"}
+          {selectedOfficer?.position?.trim() || "-"}
         </div>
 
         <p
