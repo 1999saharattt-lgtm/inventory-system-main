@@ -81,6 +81,11 @@ type InspectionRow = {
   remark: string;
 };
 
+type QuickActionPosition = {
+  left: number;
+  width: number;
+};
+
 type InitialData = {
   inspectionStartDate?: string;
   inspectionEndDate?: string;
@@ -709,40 +714,199 @@ export default function InspectionForm({
       null
     );
 
+  /* =======================================================
+     QUICK ACTION HEADER REFS
+
+     ใช้วัดตำแหน่งจริงของคอลัมน์
+     เพื่อให้ปุ่มด้านบนตรงกับหัวตารางของช่องนั้น
+     ======================================================= */
+
+  const correctHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
+  const incorrectHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
+  const inUseHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
+  const damagedHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
+  const deterioratedHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
+  const unusableHeaderRef =
+    useRef<HTMLTableCellElement>(
+      null
+    );
+
   const [
     tableScrollWidth,
     setTableScrollWidth,
-  ] = useState(2900);
+  ] = useState(0);
+
+  const [
+    quickActionPositions,
+    setQuickActionPositions,
+  ] = useState<{
+    correct: QuickActionPosition | null;
+    incorrect: QuickActionPosition | null;
+    inUse: QuickActionPosition | null;
+    damaged: QuickActionPosition | null;
+    deteriorated: QuickActionPosition | null;
+    unusable: QuickActionPosition | null;
+  }>({
+    correct: null,
+    incorrect: null,
+    inUse: null,
+    damaged: null,
+    deteriorated: null,
+    unusable: null,
+  });
 
   /* =======================================================
      SCROLLBAR
      ======================================================= */
 
   useEffect(() => {
-    function updateTableWidth() {
-      if (!tableRef.current) {
-        return;
-      }
+    let animationFrame = 0;
 
-      setTableScrollWidth(
-        tableRef.current.scrollWidth
+    function updateTableMeasurements() {
+      cancelAnimationFrame(
+        animationFrame
       );
+
+      animationFrame =
+        requestAnimationFrame(
+          () => {
+            const table =
+              tableRef.current;
+
+            if (!table) {
+              return;
+            }
+
+            const tableRect =
+              table.getBoundingClientRect();
+
+            setTableScrollWidth(
+              table.scrollWidth
+            );
+
+            function measureHeader(
+              element:
+                | HTMLTableCellElement
+                | null
+            ): QuickActionPosition | null {
+              if (!element) {
+                return null;
+              }
+
+              const rect =
+                element.getBoundingClientRect();
+
+              return {
+                left:
+                  rect.left -
+                  tableRect.left,
+                width:
+                  rect.width,
+              };
+            }
+
+            setQuickActionPositions({
+              correct:
+                measureHeader(
+                  correctHeaderRef.current
+                ),
+
+              incorrect:
+                measureHeader(
+                  incorrectHeaderRef.current
+                ),
+
+              inUse:
+                measureHeader(
+                  inUseHeaderRef.current
+                ),
+
+              damaged:
+                measureHeader(
+                  damagedHeaderRef.current
+                ),
+
+              deteriorated:
+                measureHeader(
+                  deterioratedHeaderRef.current
+                ),
+
+              unusable:
+                measureHeader(
+                  unusableHeaderRef.current
+                ),
+            });
+          }
+        );
     }
 
-    updateTableWidth();
+    updateTableMeasurements();
 
     window.addEventListener(
       "resize",
-      updateTableWidth
+      updateTableMeasurements
     );
 
+    const table =
+      tableRef.current;
+
+    const resizeObserver =
+      typeof ResizeObserver !==
+        "undefined" &&
+      table
+        ? new ResizeObserver(
+            updateTableMeasurements
+          )
+        : null;
+
+    if (
+      resizeObserver &&
+      table
+    ) {
+      resizeObserver.observe(
+        table
+      );
+    }
+
     return () => {
+      cancelAnimationFrame(
+        animationFrame
+      );
+
       window.removeEventListener(
         "resize",
-        updateTableWidth
+        updateTableMeasurements
       );
+
+      resizeObserver?.disconnect();
     };
-  }, [filteredAssets]);
+  }, [
+    filteredAssets,
+    accountStartDate,
+    accountEndDate,
+    movementFiscalYear,
+    readOnly,
+  ]);
 
   function handleTopScroll() {
     if (
@@ -1553,222 +1717,6 @@ export default function InspectionForm({
       </div>
 
       {/* ===================================================
-          QUICK SELECT
-          =================================================== */}
-
-      {!readOnly && (
-        <div
-          className="
-            rounded-2xl
-            border
-            border-slate-300
-            bg-white
-            p-5
-            shadow-lg
-          "
-        >
-          <div
-            className="
-              flex
-              flex-col
-              gap-4
-              xl:flex-row
-              xl:items-center
-              xl:justify-between
-            "
-          >
-            <div>
-              <h2
-                className="
-                  text-xl
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                เลือกผลการตรวจสอบแบบรวดเร็ว
-              </h2>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  text-slate-500
-                "
-              >
-                ใช้กับรายการที่กำลังแสดง{" "}
-                {filteredAssets.length} รายการ
-              </p>
-            </div>
-
-            <div
-              className="
-                flex
-                flex-wrap
-                gap-2
-              "
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllAccuracy(
-                    "CORRECT"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-emerald-600
-                  to-green-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-emerald-700
-                  hover:to-green-600
-                "
-              >
-                ✓ ถูกต้องทั้งหมด
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllAccuracy(
-                    "INCORRECT"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-red-700
-                  to-red-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-red-800
-                  hover:to-red-600
-                "
-              >
-                ✕ ไม่ถูกต้องทั้งหมด
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllStatus(
-                    "IN_USE"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-emerald-600
-                  to-green-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-emerald-700
-                  hover:to-green-600
-                "
-              >
-                ✓ ใช้งานปกติทั้งหมด
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllStatus(
-                    "DAMAGED"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-orange-600
-                  to-orange-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-orange-700
-                  hover:to-orange-600
-                "
-              >
-                ชำรุดทั้งหมด
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllStatus(
-                    "DETERIORATED"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-amber-600
-                  to-yellow-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-amber-700
-                  hover:to-yellow-600
-                "
-              >
-                เสื่อมสภาพทั้งหมด
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  updateAllStatus(
-                    "UNUSABLE"
-                  )
-                }
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-red-700
-                  to-red-500
-                  px-4
-                  py-2.5
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-[1.02]
-                  hover:from-red-800
-                  hover:to-red-600
-                "
-              >
-                ไม่จำเป็นต้องใช้ทั้งหมด
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===================================================
           TABLE
           =================================================== */}
 
@@ -1828,11 +1776,274 @@ export default function InspectionForm({
           }
           className="overflow-x-auto"
         >
+          {/* ===============================================
+              QUICK ACTIONS
+
+              อยู่ในการ์ดเดียวกับตาราง
+              แต่อยู่นอกตารางและเหนือเส้นหัวตาราง
+
+              ปุ่มแต่ละอันตรงกับหัวคอลัมน์ของตัวเอง
+              และกว้างเท่ากับคอลัมน์นั้น
+              =============================================== */}
+
+          {!readOnly && (
+            <div
+              className="
+                relative
+                h-[54px]
+                min-w-full
+                border-b
+                border-slate-300
+                bg-slate-50
+              "
+              style={{
+                width:
+                  tableScrollWidth ||
+                  undefined,
+              }}
+            >
+              {quickActionPositions.correct && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllAccuracy(
+                      "CORRECT"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .correct.left,
+                    width:
+                      quickActionPositions
+                        .correct.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-green-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-emerald-700
+                    hover:to-green-600
+                  "
+                >
+                  ✓ ถูกต้องทั้งหมด
+                </button>
+              )}
+
+              {quickActionPositions.incorrect && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllAccuracy(
+                      "INCORRECT"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .incorrect.left,
+                    width:
+                      quickActionPositions
+                        .incorrect.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-red-700
+                    to-red-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-red-800
+                    hover:to-red-600
+                  "
+                >
+                  ✕ ไม่ถูกต้องทั้งหมด
+                </button>
+              )}
+
+              {quickActionPositions.inUse && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllStatus(
+                      "IN_USE"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .inUse.left,
+                    width:
+                      quickActionPositions
+                        .inUse.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-emerald-600
+                    to-green-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-emerald-700
+                    hover:to-green-600
+                  "
+                >
+                  ✓ ใช้งานปกติทั้งหมด
+                </button>
+              )}
+
+              {quickActionPositions.damaged && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllStatus(
+                      "DAMAGED"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .damaged.left,
+                    width:
+                      quickActionPositions
+                        .damaged.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-orange-600
+                    to-orange-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-orange-700
+                    hover:to-orange-600
+                  "
+                >
+                  ชำรุดทั้งหมด
+                </button>
+              )}
+
+              {quickActionPositions.deteriorated && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllStatus(
+                      "DETERIORATED"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .deteriorated.left,
+                    width:
+                      quickActionPositions
+                        .deteriorated.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-amber-600
+                    to-yellow-500
+                    px-1
+                    text-[11px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-amber-700
+                    hover:to-yellow-600
+                  "
+                >
+                  เสื่อมสภาพทั้งหมด
+                </button>
+              )}
+
+              {quickActionPositions.unusable && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateAllStatus(
+                      "UNUSABLE"
+                    )
+                  }
+                  style={{
+                    left:
+                      quickActionPositions
+                        .unusable.left,
+                    width:
+                      quickActionPositions
+                        .unusable.width,
+                  }}
+                  className="
+                    absolute
+                    top-2
+                    h-[38px]
+                    whitespace-nowrap
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-red-700
+                    to-red-500
+                    px-1
+                    text-[10px]
+                    font-extrabold
+                    !text-white
+                    shadow
+                    transition
+                    hover:from-red-800
+                    hover:to-red-600
+                  "
+                >
+                  ไม่จำเป็นต้องใช้ทั้งหมด
+                </button>
+              )}
+            </div>
+          )}
+
           <table
             ref={tableRef}
             className="
-              w-full
-              min-w-[2900px]
+              w-max
+              min-w-full
+              table-auto
               border-collapse
               text-[13px]
               leading-tight
@@ -1863,14 +2074,14 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="min-w-[220px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   ผู้รับผิดชอบ
                 </th>
 
                 <th
                   rowSpan={2}
-                  className="min-w-[260px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   รายการครุภัณฑ์
                 </th>
@@ -1961,42 +2172,102 @@ export default function InspectionForm({
 
                 <th
                   rowSpan={2}
-                  className="min-w-[180px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
               <tr>
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white">
                   รับ
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white">
                   จ่าย
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={correctHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
+                  >
+                    ✓ ถูกต้องทั้งหมด
+                  </span>
+
                   ถูกต้อง
                 </th>
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={incorrectHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
+                  >
+                    ✕ ไม่ถูกต้องทั้งหมด
+                  </span>
+
                   ไม่ถูกต้อง
                 </th>
 
-                <th className="min-w-[105px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={inUseHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
+                  >
+                    ✓ ใช้งานปกติทั้งหมด
+                  </span>
+
                   ใช้งานปกติ
                 </th>
 
-                <th className="min-w-[70px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={damagedHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
+                  >
+                    ชำรุดทั้งหมด
+                  </span>
+
                   ชำรุด
                 </th>
 
-                <th className="min-w-[95px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={deterioratedHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[11px] font-extrabold"
+                  >
+                    เสื่อมสภาพทั้งหมด
+                  </span>
+
                   เสื่อมสภาพ
                 </th>
 
-                <th className="min-w-[125px] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2 text-center font-extrabold !text-white">
+                <th
+                  ref={unusableHeaderRef}
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="invisible block h-0 overflow-hidden whitespace-nowrap text-[10px] font-extrabold"
+                  >
+                    ไม่จำเป็นต้องใช้ทั้งหมด
+                  </span>
+
                   ไม่จำเป็นต้องใช้
                 </th>
               </tr>
@@ -2086,7 +2357,7 @@ export default function InspectionForm({
 
                         {/* GFMIS */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
                           {asset.governmentAssetNo?.trim()
                             ? asset.governmentAssetNo
                             : "-"}
@@ -2094,7 +2365,7 @@ export default function InspectionForm({
 
                         {/* รหัสครุภัณฑ์ */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
                           {asset.officeAssetNo?.trim()
                             ? asset.officeAssetNo
                             : "-"}
@@ -2102,17 +2373,17 @@ export default function InspectionForm({
 
                         {/* ผู้รับผิดชอบ */}
 
-                        <td className="border border-black px-3 py-2 text-center align-middle">
-                          <p className="whitespace-normal font-semibold leading-relaxed">
+                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
+                          <span className="whitespace-nowrap font-semibold">
                             {
                               responsibleName
                             }
-                          </p>
+                          </span>
                         </td>
 
                         {/* รายการ */}
 
-                        <td className="border border-black px-3 py-2 text-left align-middle font-semibold">
+                        <td className="whitespace-nowrap border border-black px-2 py-2 text-left align-middle font-semibold">
                           {asset.name}
                         </td>
 
@@ -2360,7 +2631,7 @@ export default function InspectionForm({
 
                         {/* หมายเหตุ */}
 
-                        <td className="border border-black px-2 py-2 align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2 align-middle">
                           <input
                             type="text"
                             value={
@@ -2381,8 +2652,7 @@ export default function InspectionForm({
                             }
                             className={`
                               h-8
-                              w-full
-                              min-w-[160px]
+                              w-[140px]
                               rounded
                               border
                               border-slate-400
