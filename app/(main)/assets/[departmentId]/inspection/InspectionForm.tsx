@@ -1194,31 +1194,30 @@ export default function InspectionForm({
 
       <div
         className="
+          w-full
+          min-w-0
           rounded-2xl
           border
           border-slate-700
           bg-gradient-to-br
-          from-slate-950
+          from-slate-900
           to-slate-800
-          p-5
-          text-white
+          p-4
           shadow-xl
+          sm:p-5
         "
       >
-        <h2
-          className="
-            mb-4
-            text-2xl
-            font-extrabold
-            !text-white
-          "
-        >
-          🔍 ค้นหารายการครุภัณฑ์
-        </h2>
-
-        <div
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSearchTerm(
+              searchTerm.trim()
+            );
+          }}
           className="
             flex
+            w-full
+            min-w-0
             flex-col
             gap-3
             sm:flex-row
@@ -1233,25 +1232,47 @@ export default function InspectionForm({
                 e.target.value
               )
             }
-            placeholder="ค้นหาชื่อครุภัณฑ์, รหัส GFMIS, รหัสครุภัณฑ์, ผู้รับผิดชอบ, สถานที่, ยี่ห้อ, รุ่น, Serial Number..."
+            placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
             className="
-              min-h-[48px]
-              w-full
+              min-w-0
+              flex-1
               rounded-xl
               border
               border-slate-300
               bg-white
               px-4
-              py-2.5
+              py-3
               font-semibold
               text-slate-900
               outline-none
+              transition
               placeholder:text-slate-400
-              focus:border-emerald-500
+              focus:border-emerald-600
               focus:ring-2
               focus:ring-emerald-200
             "
           />
+
+          <button
+            type="submit"
+            className="
+              w-full
+              rounded-xl
+              bg-gradient-to-r
+              from-emerald-600
+              to-green-500
+              px-5
+              py-3
+              font-extrabold
+              !text-white
+              shadow-lg
+              transition
+              hover:scale-105
+              sm:w-auto
+            "
+          >
+            ค้นหา
+          </button>
 
           {searchTerm && (
             <button
@@ -1260,39 +1281,24 @@ export default function InspectionForm({
                 setSearchTerm("")
               }
               className="
-                min-h-[48px]
-                shrink-0
+                w-full
                 rounded-xl
-                bg-gradient-to-r
-                from-slate-600
-                to-slate-500
+                bg-slate-600
                 px-5
-                py-2.5
+                py-3
+                text-center
                 font-extrabold
                 !text-white
                 shadow-lg
                 transition
-                hover:from-slate-700
-                hover:to-slate-600
+                hover:bg-slate-500
+                sm:w-auto
               "
             >
-              ล้างค้นหา
+              ล้างการค้นหา
             </button>
           )}
-        </div>
-
-        <p
-          className="
-            mt-3
-            text-sm
-            font-semibold
-            !text-slate-300
-          "
-        >
-          แสดง{" "}
-          {filteredAssets.length}{" "}
-          จาก {assets.length} รายการ
-        </p>
+        </form>
       </div>
 
       {/* ===================================================
