@@ -367,6 +367,14 @@ export default async function DepartmentAllAssetsPage({
      3. Officer
      4. Section
      5. -
+
+     สำหรับ "กลุ่มอำนวยการ"
+     จะแสดงชื่อกลุ่มนำหน้าผู้รับผิดชอบเดิม
+
+     ตัวอย่าง:
+     หน้าห้องหัวหน้าอำนวยการ
+     ->
+     กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
      ======================================================= */
 
   const getResponsibleName = (
@@ -375,34 +383,89 @@ export default async function DepartmentAllAssetsPage({
     const originalResponsibleName =
       asset.responsibleName?.trim();
 
+    let responsibleName = "";
+
+    /* -----------------------------------------------------
+       1. responsibleName จากทะเบียนต้นฉบับ
+       ----------------------------------------------------- */
+
     if (
       originalResponsibleName &&
       originalResponsibleName !== "-"
     ) {
-      return originalResponsibleName;
+      responsibleName =
+        originalResponsibleName;
+    } else {
+      /* ---------------------------------------------------
+         2. Officer
+         --------------------------------------------------- */
+
+      const officerName =
+        asset.officer
+          ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+          : "";
+
+      /* ---------------------------------------------------
+         3. Section
+         --------------------------------------------------- */
+
+      const sectionName =
+        asset.section?.name?.trim() ||
+        "";
+
+      /* ---------------------------------------------------
+         4. Officer + Section
+         --------------------------------------------------- */
+
+      if (
+        officerName &&
+        sectionName
+      ) {
+        responsibleName =
+          `${officerName} / ${sectionName}`;
+      } else if (officerName) {
+        responsibleName =
+          officerName;
+      } else if (sectionName) {
+        responsibleName =
+          sectionName;
+      } else {
+        responsibleName = "-";
+      }
     }
 
-    const officerName =
-      asset.officer
-        ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-        : "";
+    /* -----------------------------------------------------
+       กลุ่มอำนวยการ
+
+       เพิ่ม "กลุ่มอำนวยการ /" นำหน้าข้อมูลเดิม
+       แต่ป้องกันไม่ให้ชื่อซ้ำ
+       ----------------------------------------------------- */
 
     if (
-      officerName &&
-      asset.section?.name
+      department.name ===
+        "กลุ่มอำนวยการ" &&
+      responsibleName !== "-"
     ) {
-      return `${officerName} / ${asset.section.name}`;
+      const prefix =
+        `${department.name} / `;
+
+      if (
+        responsibleName ===
+        department.name
+      ) {
+        return responsibleName;
+      }
+
+      if (
+        !responsibleName.startsWith(
+          prefix
+        )
+      ) {
+        return `${department.name} / ${responsibleName}`;
+      }
     }
 
-    if (officerName) {
-      return officerName;
-    }
-
-    if (asset.section?.name) {
-      return asset.section.name;
-    }
-
-    return "-";
+    return responsibleName;
   };
 
   /* =======================================================
@@ -436,6 +499,10 @@ export default async function DepartmentAllAssetsPage({
 
      จุดสำคัญ:
      price ต้องแปลงเป็น number | null
+
+     ผู้รับผิดชอบจะใช้รูปแบบเดียวกับหน้าเว็บ
+     เช่น:
+     กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
      ======================================================= */
 
   const exportAssets = assets.map(
