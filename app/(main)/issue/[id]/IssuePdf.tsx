@@ -34,7 +34,7 @@ type IssuePdfProps = {
 // =====================================================
 
 const TABLE_BORDER_COLOR = "#000000";
-const TABLE_BORDER_WIDTH = "0.2px";
+const TABLE_BORDER_WIDTH = "0.05px";
 
 // =====================================================
 // ความสูงของทุกแถวในตาราง
