@@ -1134,7 +1134,7 @@ export default function ExportInspectionPdf({
 
               {
                 content:
-                  "รายการ",
+                  "รายการครุภัณฑ์",
                 rowSpan: 2,
               },
 
@@ -1418,8 +1418,12 @@ export default function ExportInspectionPdf({
               overflow:
                 "hidden",
 
-              cellPadding:
-                0.3,
+              cellPadding: {
+                top: 0.3,
+                right: 0.3,
+                bottom: 0.3,
+                left: 1.2,
+              },
             },
 
             5: {
@@ -1820,7 +1824,12 @@ export default function ExportInspectionPdf({
                 "hidden";
 
               data.cell.styles.cellPadding =
-                0.3;
+                {
+                  top: 0.3,
+                  right: 0.3,
+                  bottom: 0.3,
+                  left: 1.2,
+                };
 
               data.cell.styles.fontSize =
                 getSingleLineFontSize(
@@ -1829,7 +1838,7 @@ export default function ExportInspectionPdf({
                   COLUMN_WIDTHS.item,
                   8.5,
                   4,
-                  0.8
+                  1.7
                 );
             }
 
@@ -1878,7 +1887,14 @@ export default function ExportInspectionPdf({
             }
 
             /* =============================================
-               เครื่องหมาย ✓
+               ช่องผลตรวจ / สภาพครุภัณฑ์
+
+               ไม่พึ่ง glyph ✓ ของฟอนต์
+               เพราะบางเครื่องอาจไม่แสดงเครื่องหมาย
+
+               ถ้าค่าที่บันทึกไว้ตรงกับช่องนั้น
+               จะวาดเครื่องหมายถูกด้วยเส้น Vector
+               ใน didDrawCell ด้านล่าง
                ============================================= */
 
             if (
@@ -1889,11 +1905,8 @@ export default function ExportInspectionPdf({
               data.column.index <=
                 16
             ) {
-              data.cell.styles.fontSize =
-                11;
-
-              data.cell.styles.fontStyle =
-                "normal";
+              data.cell.text =
+                [""];
 
               data.cell.styles.halign =
                 "center";
@@ -1901,6 +1914,82 @@ export default function ExportInspectionPdf({
               data.cell.styles.valign =
                 "middle";
             }
+          },
+
+          /* =================================================
+             วาดเครื่องหมายถูกตามค่าที่เลือกและบันทึกไว้
+
+             accuracy:
+             - CORRECT      -> คอลัมน์ 11
+             - INCORRECT    -> คอลัมน์ 12
+
+             status:
+             - IN_USE       -> คอลัมน์ 13
+             - DAMAGED      -> คอลัมน์ 14
+             - DETERIORATED -> คอลัมน์ 15
+             - UNUSABLE     -> คอลัมน์ 16
+
+             body ถูกสร้างจาก rows ที่ส่งเข้ามา
+             จึงแสดงค่าที่เลือกไว้ทั้งก่อนบันทึก
+             และเมื่อเปิดข้อมูลที่บันทึกไว้กลับมา
+             ================================================= */
+
+          didDrawCell: (
+            data
+          ) => {
+            if (
+              data.section !==
+                "body" ||
+              data.column.index <
+                11 ||
+              data.column.index >
+                16
+            ) {
+              return;
+            }
+
+            const isChecked =
+              String(
+                data.cell.raw ??
+                  ""
+              ).trim() ===
+              "✓";
+
+            if (!isChecked) {
+              return;
+            }
+
+            const centerX =
+              data.cell.x +
+              data.cell.width / 2;
+
+            const centerY =
+              data.cell.y +
+              data.cell.height / 2;
+
+            doc.setDrawColor(
+              0,
+              0,
+              0
+            );
+
+            doc.setLineWidth(
+              0.45
+            );
+
+            doc.line(
+              centerX - 1.8,
+              centerY,
+              centerX - 0.4,
+              centerY + 1.4
+            );
+
+            doc.line(
+              centerX - 0.4,
+              centerY + 1.4,
+              centerX + 2.2,
+              centerY - 1.6
+            );
           },
 
           tableLineColor: [
