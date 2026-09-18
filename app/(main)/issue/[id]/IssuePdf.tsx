@@ -270,6 +270,9 @@ export default function IssuePdf({
 
   // =====================================================
   // พอ.101 จำนวน 18 แถว
+  //
+  // แถวที่ไม่มีข้อมูลยังคงแสดงเส้นตาราง
+  // แต่จะไม่แสดงเลขลำดับ
   // =====================================================
 
   const rows = Array.from(
@@ -820,18 +823,23 @@ export default function IssuePdf({
                       }
                       style={getRowStyle()}
                     >
-                      {/* ลำดับ */}
+                      {/* =====================================
+                          ลำดับ
+                          แสดงเฉพาะแถวที่มีข้อมูล
+                      ===================================== */}
 
                       <td
                         style={
                           centerCellStyle
                         }
                       >
-                        <span
-                          style={dataTextStyle}
-                        >
-                          {index + 1}
-                        </span>
+                        {item ? (
+                          <span
+                            style={dataTextStyle}
+                          >
+                            {index + 1}
+                          </span>
+                        ) : null}
                       </td>
 
                       {/* รายการพัสดุ */}
