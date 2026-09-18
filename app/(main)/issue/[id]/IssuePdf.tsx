@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useRef } from "react";
+import "@/lib/fonts/THSarabunNew-normal";
+
+import React from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type IssueItem = {
   id: number;
@@ -29,21 +33,23 @@ type IssuePdfProps = {
 };
 
 // =====================================================
-// ตาราง พอ.101
-// เส้นสีดำบาง
+// เดือนภาษาไทย
 // =====================================================
 
-const TABLE_BORDER_COLOR = "#000000";
-const TABLE_BORDER_WIDTH = "0.25px";
-
-const TABLE_BORDER =
-  `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`;
-
-// =====================================================
-// ทุกแถวสูงเท่ากัน
-// =====================================================
-
-const TABLE_ROW_HEIGHT = "8mm";
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
 
 // =====================================================
 // วันที่ภาษาไทย
@@ -57,176 +63,176 @@ function formatThaiDate(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "-";
   }
 
-  return date.toLocaleDateString(
-    "th-TH",
+  return `${date.getDate()} ${
+    thaiMonths[
+      date.getMonth()
+    ]
+  } ${
+    date.getFullYear() + 543
+  }`;
+}
+
+// =====================================================
+// วาดข้อความตัวหนาแบบไม่ต้องใช้ไฟล์ Font Bold
+//
+// ใช้ Font เดิมวาดซ้ำเหลื่อมเล็กน้อย
+// เพื่อป้องกันปัญหาไม่มี TH Sarabun Bold
+// =====================================================
+
+function drawBoldCenterText(
+  doc: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number
+) {
+  doc.setFont(
+    "2.3.2 THSarabunNew",
+    "normal"
+  );
+
+  doc.setFontSize(
+    fontSize
+  );
+
+  doc.setTextColor(
+    0,
+    0,
+    0
+  );
+
+  doc.text(
+    text,
+    x,
+    y,
     {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+      align: "center",
+    }
+  );
+
+  doc.text(
+    text,
+    x + 0.12,
+    y,
+    {
+      align: "center",
     }
   );
 }
 
 // =====================================================
-// ปรับขนาดตัวอักษรรายการพัสดุ
-//
-// จุดประสงค์:
-// - ไม่ตัดข้อความ
-// - ไม่ให้ข้อความชนเส้นตาราง
-// - ยังคงความสูงทุกแถวเท่ากัน
-// =====================================================
-
-function getMaterialFontSize(
-  text: string
-) {
-  const length = text.length;
-
-  if (length > 85) {
-    return "10px";
-  }
-
-  if (length > 70) {
-    return "11px";
-  }
-
-  if (length > 55) {
-    return "12px";
-  }
-
-  if (length > 42) {
-    return "13px";
-  }
-
-  return "15px";
-}
-
-// =====================================================
-// ปรับขนาดตัวอักษรหมายเหตุ
-// =====================================================
-
-function getRemarkFontSize(
-  text: string
-) {
-  const length = text.length;
-
-  if (length > 35) {
-    return "9.5px";
-  }
-
-  if (length > 28) {
-    return "10.5px";
-  }
-
-  if (length > 20) {
-    return "12px";
-  }
-
-  if (length > 14) {
-    return "13px";
-  }
-
-  return "15px";
-}
-
-// =====================================================
 // ลายเซ็น
 //
-// เส้นลงชื่ออยู่คอลัมน์กลาง
-// วงเล็บชื่อ + วันที่
-// จัดกึ่งกลางตรงใต้เส้นลงชื่อ
+// รูปแบบ:
+//
+// ลงชื่อ ................. ผู้รับของ
+//       (.................)
+//       วันที่ ............
+//
+// role อยู่ต่อจากเส้นจุด
+// ไม่ทับเส้น
 // =====================================================
 
-function SignatureBlock({
-  role,
-}: {
-  role: string;
-}) {
-  return (
-    <div
-      style={{
-        width: "100%",
-      }}
-    >
-      {/* ===============================================
-          แถวลงชื่อ
-      =============================================== */}
+function drawSignatureBlock(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  role: string
+) {
+  doc.setFont(
+    "2.3.2 THSarabunNew",
+    "normal"
+  );
 
-      <div
-        style={{
-          display: "grid",
+  doc.setFontSize(16);
 
-          gridTemplateColumns:
-            "12mm 45mm 1fr",
+  doc.setTextColor(
+    0,
+    0,
+    0
+  );
 
-          alignItems: "center",
+  // ===================================================
+  // ตำแหน่ง
+  // ===================================================
 
-          width: "100%",
-        }}
-      >
-        <div className="whitespace-nowrap">
-          ลงชื่อ
-        </div>
+  const labelX = x;
 
-        <div
-          className="
-            whitespace-nowrap
-            text-center
-          "
-          style={{
-            width: "45mm",
-          }}
-        >
-          ...............................................................
-        </div>
+  const lineStartX =
+    x + 12;
 
-        <div className="whitespace-nowrap">
-          {role}
-        </div>
-      </div>
+  const lineWidth =
+    43;
 
-      {/* ===============================================
-          วงเล็บชื่อ
-          อยู่กึ่งกลางใต้เส้นลงชื่อ
-      =============================================== */}
+  const lineCenterX =
+    lineStartX +
+    lineWidth / 2;
 
-      <div
-        className="
-          mt-[1mm]
-          whitespace-nowrap
-          text-center
-        "
-        style={{
-          marginLeft: "12mm",
-          width: "45mm",
-        }}
-      >
-        (.........................................................)
-      </div>
+  const roleX =
+    lineStartX +
+    lineWidth +
+    2;
 
-      {/* ===============================================
-          วันที่
-          อยู่กึ่งกลางใต้เส้นลงชื่อ
-      =============================================== */}
+  // ===================================================
+  // ลงชื่อ
+  // ===================================================
 
-      <div
-        className="
-          mt-[1mm]
-          whitespace-nowrap
-          text-center
-        "
-        style={{
-          marginLeft: "12mm",
-          width: "45mm",
-        }}
-      >
-        วันที่{" "}
-        ................................................
-      </div>
-    </div>
+  doc.text(
+    "ลงชื่อ",
+    labelX,
+    y
+  );
+
+  doc.text(
+    "............................................................",
+    lineStartX,
+    y
+  );
+
+  // ===================================================
+  // ตำแหน่งต่อจากเส้น
+  // ===================================================
+
+  doc.text(
+    role,
+    roleX,
+    y
+  );
+
+  // ===================================================
+  // วงเล็บชื่อ
+  // กึ่งกลางใต้เส้นลงชื่อ
+  // ===================================================
+
+  doc.text(
+    "(.........................................................)",
+    lineCenterX,
+    y + 6,
+    {
+      align: "center",
+    }
+  );
+
+  // ===================================================
+  // วันที่
+  // กึ่งกลางใต้เส้นลงชื่อ
+  // ===================================================
+
+  doc.text(
+    "วันที่ ................................................",
+    lineCenterX,
+    y + 12,
+    {
+      align: "center",
+    }
   );
 }
 
@@ -237,21 +243,35 @@ export default function IssuePdf({
   departmentName,
   items,
 }: IssuePdfProps) {
-  const pdfRef =
-    useRef<HTMLDivElement>(null);
-
   const [loading, setLoading] =
     React.useState(false);
 
   // =====================================================
-  // สร้าง PDF
+  // Export PDF
   // =====================================================
 
-  const handleExport = async () => {
-    if (
-      !pdfRef.current ||
-      loading
-    ) {
+  async function exportPdf() {
+    if (loading) {
+      return;
+    }
+
+    // =================================================
+    // เปิด Tab ก่อน await
+    //
+    // ป้องกัน Browser Block Popup
+    // =================================================
+
+    const previewWindow =
+      window.open(
+        "",
+        "_blank"
+      );
+
+    if (!previewWindow) {
+      alert(
+        "ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
+      );
+
       return;
     }
 
@@ -259,125 +279,10 @@ export default function IssuePdf({
       setLoading(true);
 
       // =================================================
-      // Import Library
+      // PDF A4 Portrait
       // =================================================
 
-      const html2canvas =
-        (
-          await import(
-            "html2canvas"
-          )
-        ).default;
-
-      const jsPDF =
-        (
-          await import(
-            "jspdf"
-          )
-        ).default;
-
-      // =================================================
-      // รอ Font
-      // =================================================
-
-      if (
-        document.fonts?.ready
-      ) {
-        await document.fonts.ready;
-      }
-
-      // =================================================
-      // รอ Browser Render
-      // =================================================
-
-      await new Promise<void>(
-        (resolve) => {
-          requestAnimationFrame(
-            () => {
-              requestAnimationFrame(
-                () => {
-                  resolve();
-                }
-              );
-            }
-          );
-        }
-      );
-
-      const element =
-        pdfRef.current;
-
-      if (!element) {
-        throw new Error(
-          "ไม่พบพื้นที่สำหรับสร้าง PDF"
-        );
-      }
-
-      const width =
-        element.clientWidth;
-
-      const height =
-        element.clientHeight;
-
-      if (
-        width <= 0 ||
-        height <= 0
-      ) {
-        throw new Error(
-          "ขนาดพื้นที่สำหรับสร้าง PDF ไม่ถูกต้อง"
-        );
-      }
-
-      // =================================================
-      // HTML -> Canvas
-      // =================================================
-
-      const canvas =
-        await html2canvas(
-          element,
-          {
-            scale: 3,
-
-            useCORS: true,
-
-            allowTaint: false,
-
-            backgroundColor:
-              "#ffffff",
-
-            width,
-
-            height,
-
-            windowWidth:
-              width,
-
-            windowHeight:
-              height,
-
-            scrollX: 0,
-
-            scrollY: 0,
-
-            logging: false,
-          }
-        );
-
-      // =================================================
-      // Canvas -> PNG
-      // =================================================
-
-      const imageData =
-        canvas.toDataURL(
-          "image/png",
-          1.0
-        );
-
-      // =================================================
-      // สร้าง PDF A4
-      // =================================================
-
-      const pdf =
+      const doc =
         new jsPDF({
           orientation:
             "portrait",
@@ -387,38 +292,551 @@ export default function IssuePdf({
 
           format:
             "a4",
-
-          compress:
-            true,
         });
 
-      const pageWidth =
-        pdf.internal.pageSize.getWidth();
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
 
-      const pageHeight =
-        pdf.internal.pageSize.getHeight();
-
-      // =================================================
-      // ใส่ภาพลง PDF
-      // =================================================
-
-      pdf.addImage(
-        imageData,
-        "PNG",
+      doc.setTextColor(
         0,
         0,
-        pageWidth,
-        pageHeight,
-        undefined,
-        "FAST"
+        0
       );
 
       // =================================================
-      // สร้าง Blob
+      // ขนาดหน้า
+      // =================================================
+
+      const pageWidth =
+        doc.internal.pageSize.getWidth();
+
+      const centerX =
+        pageWidth / 2;
+
+      const leftX =
+        10;
+
+      const rightX =
+        pageWidth - 10;
+
+      // =================================================
+      // เลขที่เอกสาร
+      // =================================================
+
+      doc.setFontSize(16);
+
+      doc.text(
+        `เลขที่เอกสาร ${
+          documentNo ||
+          "-"
+        }`,
+        rightX,
+        9,
+        {
+          align: "right",
+        }
+      );
+
+      // =================================================
+      // พอ.101
+      //
+      // ใหญ่กว่าเนื้อหาอื่น
+      // หนา
+      // สีดำ
+      // =================================================
+
+      drawBoldCenterText(
+        doc,
+        "พอ.101",
+        centerX,
+        10,
+        23
+      );
+
+      // =================================================
+      // ใบเบิกพัสดุ
+      // =================================================
+
+      drawBoldCenterText(
+        doc,
+        "ใบเบิกพัสดุ",
+        centerX,
+        18,
+        25
+      );
+
+      // =================================================
+      // กลุ่ม/งาน
+      //
+      // เว้นจากใบเบิกพัสดุชัดเจน
+      // =================================================
+
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
+
+      doc.setFontSize(16);
+
+      doc.text(
+        "กลุ่ม/งาน :",
+        leftX,
+        29
+      );
+
+      doc.text(
+        departmentName ||
+          "-",
+        31,
+        29
+      );
+
+      doc.text(
+        "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย",
+        72,
+        29
+      );
+
+      // =================================================
+      // วันที่
+      // =================================================
+
+      doc.text(
+        "วันที่ :",
+        leftX,
+        36
+      );
+
+      doc.text(
+        formatThaiDate(
+          issueDate
+        ),
+        31,
+        36
+      );
+
+      // =================================================
+      // ข้อความประสงค์
+      // =================================================
+
+      doc.text(
+        "ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ ดังมีรายการต่อไปนี้",
+        leftX,
+        43
+      );
+
+      // =================================================
+      // ตาราง
+      //
+      // ใช้รูปแบบเดียวกับ Stock Card
+      // =================================================
+
+      const tableHeaders = [
+        "ลำดับ",
+        "รายการพัสดุ",
+        "จำนวนที่ขอเบิก",
+        "จำนวนที่พัสดุจ่าย",
+        "หมายเหตุ",
+      ];
+
+      // =================================================
+      // 18 แถว
+      //
+      // แถวไม่มีข้อมูล:
+      // - ไม่มีเลขลำดับ
+      // - ยังคงมีกรอบตาราง
+      // =================================================
+
+      const body: string[][] =
+        [];
+
+      for (
+        let index = 0;
+        index < 18;
+        index++
+      ) {
+        const item =
+          items[index];
+
+        if (item) {
+          body.push([
+            String(
+              index + 1
+            ),
+
+            item.material
+              .name || "",
+
+            String(
+              item.qty
+            ),
+
+            item.issuedQty >
+            0
+              ? String(
+                  item.issuedQty
+                )
+              : "",
+
+            item.remark ??
+              "",
+          ]);
+        } else {
+          body.push([
+            "",
+            "",
+            "",
+            "",
+            "",
+          ]);
+        }
+      }
+
+      // =================================================
+      // TABLE
+      //
+      // สำคัญ:
+      // เหมือน Stock Card
+      //
+      // lineColor = ดำ
+      // lineWidth = 0.25
+      // valign = middle
+      // minCellHeight = 8
+      // =================================================
+
+      autoTable(
+        doc,
+        {
+          startY:
+            48,
+
+          margin: {
+            left:
+              10,
+
+            right:
+              10,
+          },
+
+          tableWidth:
+            190,
+
+          head: [
+            tableHeaders,
+          ],
+
+          body,
+
+          theme:
+            "grid",
+
+          styles: {
+            font:
+              "2.3.2 THSarabunNew",
+
+            fontStyle:
+              "normal",
+
+            // =============================================
+            // ขนาดเดียวกันทั้งตาราง
+            // ไม่ย่อข้อความบางรายการ
+            // =============================================
+
+            fontSize:
+              16,
+
+            // =============================================
+            // ช่องว่างจากเส้นบน/ล่าง
+            //
+            // ทำให้ตัวอักษรไทยไม่ติดเส้น
+            // และอยู่กลางช่อง
+            // =============================================
+
+            cellPadding: {
+              top:
+                1.2,
+
+              right:
+                1,
+
+              bottom:
+                1.2,
+
+              left:
+                1,
+            },
+
+            textColor:
+              0,
+
+            halign:
+              "center",
+
+            valign:
+              "middle",
+
+            // =============================================
+            // เส้นตารางแบบเดียวกับ Stock Card
+            // =============================================
+
+            lineColor: [
+              0,
+              0,
+              0,
+            ],
+
+            lineWidth:
+              0.25,
+
+            // =============================================
+            // ทุกแถวสูงอย่างน้อย 8 mm
+            // =============================================
+
+            minCellHeight:
+              8,
+
+            // =============================================
+            // ไม่ตัดข้อความด้วย ...
+            // =============================================
+
+            overflow:
+              "visible",
+          },
+
+          // =================================================
+          // หัวตาราง
+          // =================================================
+
+          headStyles: {
+            font:
+              "2.3.2 THSarabunNew",
+
+            fontStyle:
+              "normal",
+
+            fontSize:
+              16,
+
+            fillColor: [
+              255,
+              255,
+              255,
+            ],
+
+            textColor:
+              0,
+
+            halign:
+              "center",
+
+            valign:
+              "middle",
+
+            lineColor: [
+              0,
+              0,
+              0,
+            ],
+
+            lineWidth:
+              0.25,
+
+            cellPadding: {
+              top:
+                1.2,
+
+              right:
+                1,
+
+              bottom:
+                1.2,
+
+              left:
+                1,
+            },
+
+            minCellHeight:
+              8,
+
+            overflow:
+              "visible",
+          },
+
+          // =================================================
+          // ความกว้างรวม = 190 mm
+          // =================================================
+
+          columnStyles: {
+            // ลำดับ
+            0: {
+              cellWidth:
+                14,
+
+              halign:
+                "center",
+            },
+
+            // รายการพัสดุ
+            1: {
+              cellWidth:
+                87,
+
+              halign:
+                "left",
+            },
+
+            // จำนวนที่ขอเบิก
+            2: {
+              cellWidth:
+                27,
+
+              halign:
+                "center",
+            },
+
+            // จำนวนที่พัสดุจ่าย
+            3: {
+              cellWidth:
+                28,
+
+              halign:
+                "center",
+            },
+
+            // หมายเหตุ
+            4: {
+              cellWidth:
+                34,
+
+              halign:
+                "left",
+            },
+          },
+
+          rowPageBreak:
+            "avoid",
+        }
+      );
+
+      // =================================================
+      // ตำแหน่งหลังตาราง
+      // =================================================
+
+      const finalTableY =
+        (
+          doc as any
+        ).lastAutoTable
+          ?.finalY ??
+        200;
+
+      // =================================================
+      // ได้รับของ + จำนวนรายการ
+      // =================================================
+
+      const summaryY =
+        finalTableY +
+        9;
+
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
+
+      doc.setFontSize(
+        16
+      );
+
+      doc.text(
+        "ได้รับของจากงานพัสดุเรียบร้อยแล้ว",
+        12,
+        summaryY
+      );
+
+      doc.text(
+        `รวมทั้งสิ้น ${items.length} รายการ`,
+        198,
+        summaryY,
+        {
+          align:
+            "right",
+        }
+      );
+
+      // =================================================
+      // วันที่ลงบัญชีหักพัสดุ
+      // =================================================
+
+      const accountDateY =
+        summaryY +
+        9;
+
+      doc.text(
+        "วันที่ลงบัญชีหักพัสดุ ................................................",
+        12,
+        accountDateY
+      );
+
+      // =================================================
+      // ลายเซ็น
+      //
+      // ซ้าย / ขวาอยู่ระดับเดียวกัน
+      // =================================================
+
+      const firstSignatureY =
+        accountDateY +
+        15;
+
+      // =================================================
+      // แถวที่ 1
+      // =================================================
+
+      drawSignatureBlock(
+        doc,
+        12,
+        firstSignatureY,
+        "ผู้รับของ"
+      );
+
+      drawSignatureBlock(
+        doc,
+        110,
+        firstSignatureY,
+        "ผู้เบิก"
+      );
+
+      // =================================================
+      // แถวที่ 2
+      // =================================================
+
+      const secondSignatureY =
+        firstSignatureY +
+        27;
+
+      drawSignatureBlock(
+        doc,
+        12,
+        secondSignatureY,
+        "ผู้จ่าย"
+      );
+
+      drawSignatureBlock(
+        doc,
+        110,
+        secondSignatureY,
+        "ผู้อนุญาต"
+      );
+
+      // =================================================
+      // PDF Preview
+      //
+      // วิธีเดียวกับ Stock Card
+      // ไม่ผ่าน html2canvas
       // =================================================
 
       const pdfBlob =
-        pdf.output(
+        doc.output(
           "blob"
         );
 
@@ -427,48 +845,9 @@ export default function IssuePdf({
           pdfBlob
         );
 
-      // =================================================
-      // เปิด PDF
-      // =================================================
-
-      const pdfWindow =
-        window.open(
-          pdfUrl,
-          "_blank"
-        );
-
-      // =================================================
-      // Fallback
-      // =================================================
-
-      if (!pdfWindow) {
-        const link =
-          document.createElement(
-            "a"
-          );
-
-        link.href =
-          pdfUrl;
-
-        link.target =
-          "_blank";
-
-        link.rel =
-          "noopener noreferrer";
-
-        link.style.display =
-          "none";
-
-        document.body.appendChild(
-          link
-        );
-
-        link.click();
-
-        document.body.removeChild(
-          link
-        );
-      }
+      previewWindow.location.replace(
+        pdfUrl
+      );
 
       // =================================================
       // คืน Memory ภายหลัง
@@ -488,989 +867,53 @@ export default function IssuePdf({
         error
       );
 
+      if (
+        previewWindow &&
+        !previewWindow.closed
+      ) {
+        previewWindow.close();
+      }
+
       alert(
-        error instanceof Error
-          ? error.message
-          : "ไม่สามารถสร้าง PDF ได้"
+        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
       setLoading(false);
     }
-  };
-
-  // =====================================================
-  // พอ.101 จำนวน 18 แถว
-  //
-  // แถวว่าง:
-  // - ยังมีเส้น
-  // - ไม่มีเลขลำดับ
-  // =====================================================
-
-  const rows =
-    Array.from(
-      {
-        length: 18,
-      },
-      (_, index) =>
-        items[index] ??
-        null
-    );
-
-  const totalItems =
-    items.length;
-
-  // =====================================================
-  // Base Style ของ Cell
-  //
-  // ใช้ verticalAlign ของ Table โดยตรง
-  // ไม่บังคับ position/top
-  // ไม่ใช้ overflow:hidden ครอบข้อความแนวตั้ง
-  // =====================================================
-
-  const cellBaseStyle:
-    React.CSSProperties = {
-    height:
-      TABLE_ROW_HEIGHT,
-
-    padding:
-      "0 1mm",
-
-    margin:
-      0,
-
-    backgroundColor:
-      "#ffffff",
-
-    color:
-      "#000000",
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize:
-      "15px",
-
-    fontWeight:
-      "normal",
-
-    lineHeight:
-      "1.35",
-
-    verticalAlign:
-      "middle",
-
-    boxSizing:
-      "border-box",
-
-    border:
-      TABLE_BORDER,
-  };
-
-  // =====================================================
-  // Cell หัวตาราง
-  // =====================================================
-
-  const headerCellStyle:
-    React.CSSProperties = {
-    ...cellBaseStyle,
-
-    height:
-      TABLE_ROW_HEIGHT,
-
-    padding:
-      "0 1mm",
-
-    textAlign:
-      "center",
-
-    verticalAlign:
-      "middle",
-
-    whiteSpace:
-      "nowrap",
-
-    fontSize:
-      "15px",
-
-    lineHeight:
-      "1.35",
-  };
-
-  // =====================================================
-  // Cell ตรงกลาง
-  // =====================================================
-
-  const centerCellStyle:
-    React.CSSProperties = {
-    ...cellBaseStyle,
-
-    textAlign:
-      "center",
-
-    verticalAlign:
-      "middle",
-
-    whiteSpace:
-      "nowrap",
-  };
-
-  // =====================================================
-  // Cell ชิดซ้าย
-  // =====================================================
-
-  const leftCellStyle:
-    React.CSSProperties = {
-    ...cellBaseStyle,
-
-    textAlign:
-      "left",
-
-    verticalAlign:
-      "middle",
-
-    whiteSpace:
-      "nowrap",
-
-    paddingLeft:
-      "1.5mm",
-
-    paddingRight:
-      "1mm",
-  };
-
-  // =====================================================
-  // ข้อความหัวตาราง
-  // =====================================================
-
-  const headerTextStyle:
-    React.CSSProperties = {
-    display:
-      "inline-block",
-
-    margin:
-      0,
-
-    padding:
-      0,
-
-    color:
-      "#000000",
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize:
-      "15px",
-
-    fontWeight:
-      "normal",
-
-    lineHeight:
-      "1.35",
-
-    whiteSpace:
-      "nowrap",
-
-    verticalAlign:
-      "middle",
-  };
-
-  // =====================================================
-  // ข้อมูลตัวเลข
-  // =====================================================
-
-  const dataTextStyle:
-    React.CSSProperties = {
-    display:
-      "inline-block",
-
-    margin:
-      0,
-
-    padding:
-      0,
-
-    color:
-      "#000000",
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize:
-      "15px",
-
-    fontWeight:
-      "normal",
-
-    lineHeight:
-      "1.35",
-
-    whiteSpace:
-      "nowrap",
-
-    verticalAlign:
-      "middle",
-  };
-
-  // =====================================================
-  // ทุกแถวสูงเท่ากัน
-  // =====================================================
-
-  function getRowStyle():
-    React.CSSProperties {
-    return {
-      height:
-        TABLE_ROW_HEIGHT,
-    };
   }
 
   return (
-    <div>
-      {/* =====================================================
-          ปุ่มส่งออก PDF
-      ===================================================== */}
-
-      <button
-        type="button"
-        onClick={
-          handleExport
-        }
-        disabled={
-          loading
-        }
-        className="
-          rounded-xl
-          bg-gradient-to-r
-          from-emerald-600
-          to-green-500
-          px-5
-          py-2.5
-          text-sm
-          font-extrabold
-          text-white
-          shadow-lg
-          transition
-          hover:scale-105
-          disabled:cursor-not-allowed
-          disabled:opacity-60
-          sm:px-6
-          sm:py-3
-          sm:text-base
-        "
-      >
-        {loading
-          ? "กำลังสร้าง PDF..."
-          : "📄 ส่งออก PDF"}
-      </button>
-
-      {/* =====================================================
-          พื้นที่สร้าง PDF
-      ===================================================== */}
-
-      <div
-        style={{
-          position:
-            "fixed",
-
-          left:
-            "-10000px",
-
-          top:
-            "0",
-
-          width:
-            "210mm",
-
-          height:
-            "297mm",
-
-          overflow:
-            "hidden",
-
-          pointerEvents:
-            "none",
-
-          opacity:
-            1,
-
-          zIndex:
-            -1,
-        }}
-        aria-hidden="true"
-      >
-        <div
-          ref={
-            pdfRef
-          }
-          id={`issue-pdf-${issueId}`}
-          className="
-            box-border
-            h-[297mm]
-            w-[210mm]
-            overflow-hidden
-            bg-white
-            px-[10mm]
-            py-[5mm]
-            text-black
-          "
-          style={{
-            fontFamily:
-              '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-            fontSize:
-              "16px",
-
-            lineHeight:
-              "1",
-
-            backgroundColor:
-              "#ffffff",
-
-            color:
-              "#000000",
-          }}
-        >
-          {/* =================================================
-              ส่วนหัวเอกสาร
-          ================================================= */}
-
-          <div
-            className="
-              relative
-              h-[27mm]
-            "
-          >
-            {/* ===============================================
-                เลขที่เอกสาร
-            =============================================== */}
-
-            <div
-              className="
-                absolute
-                right-0
-                top-0
-                whitespace-nowrap
-                text-[21px]
-                leading-none
-                text-black
-              "
-            >
-              เลขที่เอกสาร{" "}
-              {documentNo ||
-                "-"}
-            </div>
-
-            {/* ===============================================
-                พอ.101
-                ใหญ่ + หนา + ดำ
-            =============================================== */}
-
-            <div
-              className="
-                pt-[0.5mm]
-                text-center
-                text-[28px]
-                font-extrabold
-                leading-none
-                !text-black
-              "
-              style={{
-                color:
-                  "#000000",
-
-                fontWeight:
-                  800,
-              }}
-            >
-              พอ.101
-            </div>
-
-            {/* ===============================================
-                ใบเบิกพัสดุ
-                ใหญ่ + หนา + ดำ
-            =============================================== */}
-
-            <div
-              className="
-                mt-[1mm]
-                text-center
-                text-[28px]
-                font-extrabold
-                leading-none
-                !text-black
-              "
-              style={{
-                color:
-                  "#000000",
-
-                fontWeight:
-                  800,
-              }}
-            >
-              ใบเบิกพัสดุ
-            </div>
-
-            {/* ===============================================
-                กลุ่ม/งาน
-            =============================================== */}
-
-            <div
-              className="
-                absolute
-                left-0
-                right-0
-                top-[15mm]
-                whitespace-nowrap
-                text-[21px]
-                leading-none
-                text-black
-              "
-            >
-              <span
-                className="
-                  inline-block
-                  w-[20mm]
-                "
-              >
-                กลุ่ม/งาน :
-              </span>
-
-              <span>
-                {departmentName ||
-                  "-"}
-              </span>
-
-              <span
-                className="
-                  ml-[3mm]
-                "
-              >
-                สำนักอนามัยการเจริญพันธุ์
-                กรมอนามัย
-              </span>
-            </div>
-
-            {/* ===============================================
-                วันที่
-            =============================================== */}
-
-            <div
-              className="
-                absolute
-                left-0
-                right-0
-                top-[21mm]
-                whitespace-nowrap
-                text-[21px]
-                leading-none
-                text-black
-              "
-            >
-              <span
-                className="
-                  inline-block
-                  w-[20mm]
-                "
-              >
-                วันที่ :
-              </span>
-
-              {formatThaiDate(
-                issueDate
-              )}
-            </div>
-          </div>
-
-          {/* =================================================
-              ข้อความประสงค์
-          ================================================= */}
-
-          <div
-            className="
-              mb-[4mm]
-              text-[21px]
-              leading-none
-              text-black
-            "
-          >
-            ประสงค์จะขอเบิกสิ่งของต่างๆ
-            สำหรับใช้ในราชการ
-            ดังมีรายการต่อไปนี้
-          </div>
-
-          {/* =================================================
-              ตารางรายการ
-          ================================================= */}
-
-          <div
-            className="
-              flex
-              justify-center
-            "
-          >
-            <table
-              style={{
-                width:
-                  "190mm",
-
-                tableLayout:
-                  "fixed",
-
-                borderCollapse:
-                  "collapse",
-
-                borderSpacing:
-                  0,
-
-                borderRadius:
-                  0,
-
-                border:
-                  TABLE_BORDER,
-
-                color:
-                  "#000000",
-
-                backgroundColor:
-                  "#ffffff",
-              }}
-            >
-              <thead>
-                <tr
-                  style={
-                    getRowStyle()
-                  }
-                >
-                  {/* =========================================
-                      ลำดับ
-                  ========================================= */}
-
-                  <th
-                    style={{
-                      ...headerCellStyle,
-
-                      width:
-                        "8%",
-                    }}
-                  >
-                    <span
-                      style={
-                        headerTextStyle
-                      }
-                    >
-                      ลำดับ
-                    </span>
-                  </th>
-
-                  {/* =========================================
-                      รายการพัสดุ
-                  ========================================= */}
-
-                  <th
-                    style={{
-                      ...headerCellStyle,
-
-                      width:
-                        "44%",
-                    }}
-                  >
-                    <span
-                      style={
-                        headerTextStyle
-                      }
-                    >
-                      รายการพัสดุ
-                    </span>
-                  </th>
-
-                  {/* =========================================
-                      จำนวนที่ขอเบิก
-                  ========================================= */}
-
-                  <th
-                    style={{
-                      ...headerCellStyle,
-
-                      width:
-                        "15%",
-                    }}
-                  >
-                    <span
-                      style={
-                        headerTextStyle
-                      }
-                    >
-                      จำนวนที่ขอเบิก
-                    </span>
-                  </th>
-
-                  {/* =========================================
-                      จำนวนที่พัสดุจ่าย
-                  ========================================= */}
-
-                  <th
-                    style={{
-                      ...headerCellStyle,
-
-                      width:
-                        "15%",
-                    }}
-                  >
-                    <span
-                      style={
-                        headerTextStyle
-                      }
-                    >
-                      จำนวนที่พัสดุจ่าย
-                    </span>
-                  </th>
-
-                  {/* =========================================
-                      หมายเหตุ
-                  ========================================= */}
-
-                  <th
-                    style={{
-                      ...headerCellStyle,
-
-                      width:
-                        "18%",
-                    }}
-                  >
-                    <span
-                      style={
-                        headerTextStyle
-                      }
-                    >
-                      หมายเหตุ
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rows.map(
-                  (
-                    item,
-                    index
-                  ) => (
-                    <tr
-                      key={
-                        item?.id ??
-                        `empty-${index}`
-                      }
-                      style={
-                        getRowStyle()
-                      }
-                    >
-                      {/* =====================================
-                          ลำดับ
-                      ===================================== */}
-
-                      <td
-                        style={
-                          centerCellStyle
-                        }
-                      >
-                        {item ? (
-                          <span
-                            style={
-                              dataTextStyle
-                            }
-                          >
-                            {index +
-                              1}
-                          </span>
-                        ) : null}
-                      </td>
-
-                      {/* =====================================
-                          รายการพัสดุ
-                      ===================================== */}
-
-                      <td
-                        style={
-                          leftCellStyle
-                        }
-                      >
-                        {item ? (
-                          <span
-                            style={{
-                              display:
-                                "inline-block",
-
-                              margin:
-                                0,
-
-                              padding:
-                                0,
-
-                              color:
-                                "#000000",
-
-                              fontFamily:
-                                '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-                              fontSize:
-                                getMaterialFontSize(
-                                  item
-                                    .material
-                                    .name
-                                ),
-
-                              fontWeight:
-                                "normal",
-
-                              lineHeight:
-                                "1.4",
-
-                              whiteSpace:
-                                "nowrap",
-
-                              verticalAlign:
-                                "middle",
-                            }}
-                          >
-                            {
-                              item
-                                .material
-                                .name
-                            }
-                          </span>
-                        ) : null}
-                      </td>
-
-                      {/* =====================================
-                          จำนวนที่ขอเบิก
-                      ===================================== */}
-
-                      <td
-                        style={
-                          centerCellStyle
-                        }
-                      >
-                        {item ? (
-                          <span
-                            style={
-                              dataTextStyle
-                            }
-                          >
-                            {
-                              item.qty
-                            }
-                          </span>
-                        ) : null}
-                      </td>
-
-                      {/* =====================================
-                          จำนวนที่พัสดุจ่าย
-                      ===================================== */}
-
-                      <td
-                        style={
-                          centerCellStyle
-                        }
-                      >
-                        {item &&
-                        item.issuedQty >
-                          0 ? (
-                          <span
-                            style={
-                              dataTextStyle
-                            }
-                          >
-                            {
-                              item
-                                .issuedQty
-                            }
-                          </span>
-                        ) : null}
-                      </td>
-
-                      {/* =====================================
-                          หมายเหตุ
-                      ===================================== */}
-
-                      <td
-                        style={
-                          leftCellStyle
-                        }
-                      >
-                        {item?.remark ? (
-                          <span
-                            style={{
-                              display:
-                                "inline-block",
-
-                              margin:
-                                0,
-
-                              padding:
-                                0,
-
-                              color:
-                                "#000000",
-
-                              fontFamily:
-                                '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-                              fontSize:
-                                getRemarkFontSize(
-                                  item.remark
-                                ),
-
-                              fontWeight:
-                                "normal",
-
-                              lineHeight:
-                                "1.4",
-
-                              whiteSpace:
-                                "nowrap",
-
-                              verticalAlign:
-                                "middle",
-                            }}
-                          >
-                            {
-                              item.remark
-                            }
-                          </span>
-                        ) : null}
-                      </td>
-                    </tr>
-                  )
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* =================================================
-              หลังตาราง
-          ================================================= */}
-
-          <div
-            className="
-              mt-[3mm]
-              flex
-              justify-between
-              px-[2mm]
-              text-[21px]
-              leading-none
-              text-black
-            "
-          >
-            <div>
-              ได้รับของจากงานพัสดุเรียบร้อยแล้ว
-            </div>
-
-            <div>
-              รวมทั้งสิ้น{" "}
-              {totalItems}{" "}
-              รายการ
-            </div>
-          </div>
-
-          {/* =================================================
-              วันที่ลงบัญชีหักพัสดุ
-          ================================================= */}
-
-          <div
-            className="
-              mt-[2.5mm]
-              px-[2mm]
-              text-[21px]
-              leading-none
-              text-black
-            "
-          >
-            วันที่ลงบัญชีหักพัสดุ{" "}
-            ................................................
-          </div>
-
-          {/* =================================================
-              ลายเซ็น
-
-              แถวบน:
-              ผู้รับของ ↔ ผู้เบิก
-
-              แถวล่าง:
-              ผู้จ่าย ↔ ผู้อนุญาต
-
-              วงเล็บชื่อและวันที่
-              อยู่กึ่งกลางใต้เส้นลงชื่อ
-          ================================================= */}
-
-          <div
-            className="
-              mt-[6mm]
-              grid
-              grid-cols-2
-              gap-x-[15mm]
-              px-[2mm]
-              text-[21px]
-              leading-none
-              text-black
-            "
-          >
-            {/* =================================================
-                ฝั่งซ้าย
-            ================================================= */}
-
-            <div
-              className="
-                text-left
-              "
-            >
-              {/* ผู้รับของ */}
-
-              <div
-                className="
-                  mb-[6mm]
-                "
-              >
-                <SignatureBlock
-                  role="ผู้รับของ"
-                />
-              </div>
-
-              {/* ผู้จ่าย */}
-
-              <SignatureBlock
-                role="ผู้จ่าย"
-              />
-            </div>
-
-            {/* =================================================
-                ฝั่งขวา
-            ================================================= */}
-
-            <div
-              className="
-                text-left
-              "
-            >
-              {/* ผู้เบิก */}
-
-              <div
-                className="
-                  mb-[6mm]
-                "
-              >
-                <SignatureBlock
-                  role="ผู้เบิก"
-                />
-              </div>
-
-              {/* ผู้อนุญาต */}
-
-              <SignatureBlock
-                role="ผู้อนุญาต"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={
+        exportPdf
+      }
+      disabled={
+        loading
+      }
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-emerald-600
+        to-green-500
+        px-5
+        py-2.5
+        text-sm
+        font-extrabold
+        text-white
+        shadow-lg
+        transition
+        hover:scale-105
+        disabled:cursor-not-allowed
+        disabled:opacity-60
+        sm:px-6
+        sm:py-3
+        sm:text-base
+      "
+    >
+      {loading
+        ? "กำลังสร้าง PDF..."
+        : "📄 ส่งออก PDF"}
+    </button>
   );
 }
