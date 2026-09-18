@@ -34,7 +34,14 @@ type IssuePdfProps = {
 // =====================================================
 
 const TABLE_BORDER_COLOR = "#000000";
-const TABLE_BORDER_WIDTH = "0.5px";
+const TABLE_BORDER_WIDTH = "0.2px";
+
+// =====================================================
+// ความสูงของทุกแถวในตาราง
+// กำหนดให้เท่ากันทุกแถวเสมอ
+// =====================================================
+
+const TABLE_ROW_HEIGHT = "8mm";
 
 // =====================================================
 // วันที่ภาษาไทย
@@ -282,7 +289,9 @@ export default function IssuePdf({
 
   const cellBaseStyle:
     React.CSSProperties = {
-    minHeight: "8mm",
+    height: TABLE_ROW_HEIGHT,
+    minHeight: TABLE_ROW_HEIGHT,
+    maxHeight: TABLE_ROW_HEIGHT,
 
     padding: 0,
     margin: 0,
@@ -346,7 +355,9 @@ export default function IssuePdf({
     React.CSSProperties = {
     ...cellBaseStyle,
 
-    height: "8mm",
+    height: TABLE_ROW_HEIGHT,
+    minHeight: TABLE_ROW_HEIGHT,
+    maxHeight: TABLE_ROW_HEIGHT,
 
     textAlign: "center",
 
@@ -489,34 +500,16 @@ export default function IssuePdf({
 
   // =====================================================
   // ความสูงแต่ละแถว
+  //
+  // ทุกแถวใช้ความสูงเท่ากันเสมอ
+  // ไม่เปลี่ยนตามความยาวชื่อพัสดุหรือหมายเหตุ
   // =====================================================
 
-  function getRowStyle(
-    item: IssueItem | null
-  ): React.CSSProperties {
-    const hasLongMaterialName =
-      Boolean(
-        item &&
-          item.material.name.length > 42
-      );
-
-    const hasLongRemark =
-      Boolean(
-        item &&
-          item.remark &&
-          item.remark.length > 30
-      );
-
-    const height =
-      !item
-        ? "8mm"
-        : hasLongMaterialName ||
-            hasLongRemark
-          ? "10mm"
-          : "8mm";
-
+  function getRowStyle(): React.CSSProperties {
     return {
-      height,
+      height: TABLE_ROW_HEIGHT,
+      minHeight: TABLE_ROW_HEIGHT,
+      maxHeight: TABLE_ROW_HEIGHT,
     };
   }
 
@@ -762,7 +755,9 @@ export default function IssuePdf({
               <thead>
                 <tr
                   style={{
-                    height: "8mm",
+                    height: TABLE_ROW_HEIGHT,
+                    minHeight: TABLE_ROW_HEIGHT,
+                    maxHeight: TABLE_ROW_HEIGHT,
                   }}
                 >
                   {/* ลำดับ */}
@@ -840,7 +835,7 @@ export default function IssuePdf({
                         item?.id ??
                         `empty-${index}`
                       }
-                      style={getRowStyle(item)}
+                      style={getRowStyle()}
                     >
                       {/* ลำดับ */}
 
