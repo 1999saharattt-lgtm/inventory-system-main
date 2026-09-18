@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import html2canvas from "html2canvas";
+import "@/lib/fonts/THSarabunNew-normal";
+
+import { useState } from "react";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Department = {
   id: number;
@@ -92,13 +94,11 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-const PDF_MARGIN = 10;
-const PDF_WIDTH = 277;
-const PDF_HEIGHT = 190;
-
-const TABLE_HEADER_FONT_SIZE = "9px";
-const TABLE_BODY_FONT_SIZE = "10px";
-const CHECKMARK_FONT_SIZE = "12px";
+const PAGE_WIDTH = 297;
+const TABLE_WIDTH = 270;
+const MARGIN_X = (PAGE_WIDTH - TABLE_WIDTH) / 2;
+const TABLE_START_Y = 35;
+const SIGNATURE_START_Y = 172;
 
 function parseDateOnly(value: string) {
   if (!value) {
@@ -135,18 +135,17 @@ function formatThaiDate(value: string) {
   }
 
   const day = date.getDate();
-  const month =
-    thaiMonths[date.getMonth()];
-  const year =
-    date.getFullYear() + 543;
+  const month = thaiMonths[date.getMonth()];
+  const year = date.getFullYear() + 543;
 
   return `${day} ${month} ${year}`;
 }
 
-/*
- * ลำดับเดิมจากทะเบียนต้นฉบับ / Excel
- * รูปแบบ remark: SOURCE:DEPARTMENT_1:n
- */
+/* =========================================================
+   ลำดับเดิมจากทะเบียนต้นฉบับ / Excel
+   รูปแบบ remark: SOURCE:DEPARTMENT_1:n
+   ========================================================= */
+
 function getSourceOrder(
   remark: string | null
 ): number | null {
@@ -215,15 +214,16 @@ function getOfficer(
   );
 }
 
-/*
- * ผู้รับผิดชอบใน PDF
- *
- * กลุ่มอำนวยการ
- * แสดง: ชื่อ นามสกุล / ชื่องาน
- *
- * กลุ่มอื่น
- * แสดง: ชื่อ นามสกุล
- */
+/* =========================================================
+   ผู้รับผิดชอบใน PDF
+
+   กลุ่มอำนวยการ
+   แสดง: ชื่อ นามสกุล / ชื่องาน
+
+   กลุ่มอื่น
+   แสดง: ชื่อ นามสกุล
+   ========================================================= */
+
 function getResponsibleName(
   asset: Asset,
   department: Department
@@ -266,25 +266,9 @@ function getAccuracyChecked(
     : "";
 }
 
-function getCompactFontSize(
-  text: string,
-  normalSize = 13,
-  mediumSize = 12,
-  smallSize = 11
-) {
-  const length =
-    text.trim().length;
-
-  if (length > 48) {
-    return `${smallSize}px`;
-  }
-
-  if (length > 30) {
-    return `${mediumSize}px`;
-  }
-
-  return `${normalSize}px`;
-}
+/* =========================================================
+   COMPONENT
+   ========================================================= */
 
 export default function ExportInspectionPdf({
   department,
@@ -298,41 +282,147 @@ export default function ExportInspectionPdf({
   movementFiscalYear,
   officers = [],
 }: Props) {
-  const pdfRef =
-    useRef<HTMLDivElement>(null);
-
   const [
     isExporting,
     setIsExporting,
   ] = useState(false);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      assets.length /
-        ROWS_PER_PAGE
-    )
-  );
+  function drawDocumentHeader(
+    doc: jsPDF
+  ) {
+    const center = PAGE_WIDTH / 2;
 
-  /* =======================================================
-     PDF PREVIEW
+    doc.setFont(
+      "2.3.2 THSarabunNew",
+      "normal"
+    );
 
-     เดิม:
-     pdf.save() -> ดาวน์โหลดทันที
+    doc.setTextColor(0, 0, 0);
 
-     ใหม่:
-     1. เปิดแท็บใหม่ทันทีจาก click
-     2. สร้าง PDF
-     3. สร้าง Blob URL
-     4. เปิด PDF ใน Browser PDF Viewer
-     5. ผู้ใช้เลือก Download / Print เอง
-     ======================================================= */
+    doc.setFontSize(18);
+    doc.text(
+      `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${INSPECTION_FISCAL_YEAR}`,
+      center,
+      12,
+      {
+        align: "center",
+      }
+    );
+
+    doc.setFontSize(18);
+    doc.text(
+      "สำนักอนามัยการเจริญพันธุ์",
+      center,
+      20,
+      {
+        align: "center",
+      }
+    );
+
+    doc.setFontSize(15);
+    doc.text(
+      `เริ่มดำเนินการตรวจสอบวันที่ ${formatThaiDate(
+        inspectionStartDate
+      )}     ตรวจสอบแล้วเสร็จวันที่ ${formatThaiDate(
+        inspectionEndDate
+      )}`,
+      center,
+      28,
+      {
+        align: "center",
+      }
+    );
+  }
+
+  function drawInspectors(
+    doc: jsPDF
+  ) {
+    const columnWidth =
+      TABLE_WIDTH / 5;
+
+    const dotLine =
+      "....................................................";
+
+    for (
+      let index = 0;
+      index < 5;
+      index++
+    ) {
+      const selectedInspectorId =
+        inspectorIds[index] || "";
+
+      const selectedOfficer =
+        getOfficer(
+          selectedInspectorId,
+          officers
+        );
+
+      const inspectorName =
+        selectedOfficer
+          ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
+          : "................................";
+
+      const inspectorPosition =
+        selectedOfficer?.position ||
+        "................................";
+
+      const centerX =
+        MARGIN_X +
+        columnWidth * index +
+        columnWidth / 2;
+
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
+
+      doc.setTextColor(0, 0, 0);
+
+      doc.setFontSize(11);
+      doc.text(
+        `ลงชื่อ ${dotLine}`,
+        centerX,
+        SIGNATURE_START_Y,
+        {
+          align: "center",
+        }
+      );
+
+      doc.setFontSize(11);
+
+      const nameLines =
+        doc.splitTextToSize(
+          `(${inspectorName})`,
+          columnWidth - 5
+        );
+
+      doc.text(
+        nameLines,
+        centerX,
+        SIGNATURE_START_Y + 5,
+        {
+          align: "center",
+        }
+      );
+
+      const positionLines =
+        doc.splitTextToSize(
+          inspectorPosition,
+          columnWidth - 5
+        );
+
+      doc.text(
+        positionLines,
+        centerX,
+        SIGNATURE_START_Y + 10,
+        {
+          align: "center",
+        }
+      );
+    }
+  }
 
   async function handleExportPdf() {
-    if (!pdfRef.current) {
-      return;
-    }
-
     if (assets.length === 0) {
       alert(
         "ไม่พบรายการครุภัณฑ์สำหรับสร้าง PDF"
@@ -340,14 +430,11 @@ export default function ExportInspectionPdf({
       return;
     }
 
-    /*
-     * เปิดแท็บใหม่ทันทีจาก user click
-     *
-     * สำคัญ:
-     * ต้องเปิดก่อน await html2canvas
-     * เพื่อป้องกัน Browser มองว่าเป็น Popup
-     * ที่ไม่ได้เกิดจากการคลิกของผู้ใช้
-     */
+    /* =====================================================
+       เปิดแท็บ Preview ทันทีจากการคลิก
+       ป้องกัน Browser Block Popup
+       ===================================================== */
+
     const previewWindow =
       window.open(
         "",
@@ -361,205 +448,522 @@ export default function ExportInspectionPdf({
       return;
     }
 
-    /*
-     * แสดงหน้ารอระหว่างสร้าง PDF
-     */
-    previewWindow.document.open();
+    try {
+      previewWindow.document.open();
+      previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="th">
+          <head>
+            <meta charset="UTF-8" />
+            <title>กำลังสร้าง PDF...</title>
+            <style>
+              html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+              }
 
-    previewWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="th">
-        <head>
-          <meta charset="UTF-8" />
+              body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f8fafc;
+                color: #0f172a;
+                font-family: Arial, sans-serif;
+              }
 
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1"
-          />
-
-          <title>กำลังสร้าง PDF...</title>
-
-          <style>
-            * {
-              box-sizing: border-box;
-            }
-
-            html,
-            body {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-            }
-
-            body {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: #f8fafc;
-              font-family:
-                "Sarabun",
-                Arial,
-                sans-serif;
-              color: #0f172a;
-            }
-
-            .loading-card {
-              width: min(
-                90%,
-                420px
-              );
-              padding: 32px;
-              border: 1px solid #cbd5e1;
-              border-radius: 20px;
-              background: #ffffff;
-              text-align: center;
-              box-shadow:
-                0 20px 40px
-                rgba(
-                  15,
-                  23,
-                  42,
-                  0.12
-                );
-            }
-
-            .icon {
-              margin-bottom: 16px;
-              font-size: 42px;
-            }
-
-            h2 {
-              margin: 0;
-              font-size: 22px;
-              font-weight: 800;
-            }
-
-            p {
-              margin:
-                10px 0 0;
-              color: #64748b;
-              font-size: 15px;
-            }
-          </style>
-        </head>
-
-        <body>
-          <div class="loading-card">
-            <div class="icon">
-              📄
+              .loading {
+                font-size: 18px;
+                font-weight: 700;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="loading">
+              กำลังสร้าง PDF...
             </div>
-
-            <h2>
-              กำลังสร้าง PDF
-            </h2>
-
-            <p>
-              กรุณารอสักครู่...
-            </p>
-          </div>
-        </body>
-      </html>
-    `);
-
-    previewWindow.document.close();
+          </body>
+        </html>
+      `);
+      previewWindow.document.close();
+    } catch {
+      // ไม่กระทบการสร้าง PDF
+    }
 
     try {
       setIsExporting(true);
 
-      /*
-       * รอ Font โหลดให้ครบ
-       */
-      if (document.fonts?.ready) {
-        await document.fonts.ready;
-      }
+      /* ===================================================
+         สร้าง PDF แบบ Vector โดยตรง
 
-      /*
-       * รอ Browser render DOM ให้เรียบร้อย
-       */
-      await new Promise<void>(
-        (resolve) => {
-          requestAnimationFrame(
-            () => {
-              requestAnimationFrame(
-                () => resolve()
-              );
-            }
-          );
-        }
-      );
+         ไม่ใช้ html2canvas
+         → เปิดไวขึ้น
+         → เส้นตารางคมชัด
+         → ไฟล์เล็กลง
+         =================================================== */
 
-      const pages =
-        pdfRef.current.querySelectorAll<HTMLElement>(
-          ".inspection-pdf-page"
-        );
-
-      if (pages.length === 0) {
-        previewWindow.close();
-        return;
-      }
-
-      /*
-       * สร้าง A4 แนวนอน
-       */
-      const pdf = new jsPDF({
+      const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
         compress: true,
       });
 
-      /*
-       * แปลงแต่ละหน้า HTML เป็นรูป
-       * แล้วใส่ลง PDF
-       */
-      for (
-        let i = 0;
-        i < pages.length;
-        i++
-      ) {
-        const page = pages[i];
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
 
-        const canvas =
-          await html2canvas(
-            page,
-            {
-              scale: 2,
-              useCORS: true,
-              allowTaint: false,
-              backgroundColor:
-                "#ffffff",
-              scrollX: 0,
-              scrollY: 0,
-              logging: false,
+      const totalPages = Math.max(
+        1,
+        Math.ceil(
+          assets.length /
+            ROWS_PER_PAGE
+        )
+      );
+
+      for (
+        let pageIndex = 0;
+        pageIndex < totalPages;
+        pageIndex++
+      ) {
+        if (pageIndex > 0) {
+          doc.addPage(
+            "a4",
+            "landscape"
+          );
+        }
+
+        drawDocumentHeader(doc);
+
+        const startIndex =
+          pageIndex *
+          ROWS_PER_PAGE;
+
+        const pageAssets =
+          assets.slice(
+            startIndex,
+            startIndex +
+              ROWS_PER_PAGE
+          );
+
+        const body =
+          pageAssets.map(
+            (
+              asset,
+              localIndex
+            ) => {
+              const actualIndex =
+                startIndex +
+                localIndex;
+
+              const sourceOrder =
+                getSourceOrder(
+                  asset.remark
+                );
+
+              const displayOrder =
+                sourceOrder ??
+                actualIndex + 1;
+
+              const row =
+                rows.find(
+                  (item) =>
+                    item.assetId ===
+                    asset.id
+                ) || {
+                  assetId:
+                    asset.id,
+                  countedQty:
+                    "1",
+                  accuracy: "",
+                  status: "",
+                  remark: "",
+                };
+
+              const responsibleName =
+                getResponsibleName(
+                  asset,
+                  department
+                );
+
+              const assetName =
+                [
+                  asset.name,
+                  asset.brand,
+                  asset.model,
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+
+              return [
+                String(
+                  displayOrder
+                ),
+                asset.governmentAssetNo ||
+                  "",
+                asset.officeAssetNo ||
+                  "",
+                responsibleName,
+                assetName,
+                getCategoryUnit(
+                  asset.category
+                ),
+                "1",
+                "-",
+                "-",
+                "1",
+                row.countedQty,
+                getAccuracyChecked(
+                  row,
+                  "CORRECT"
+                ),
+                getAccuracyChecked(
+                  row,
+                  "INCORRECT"
+                ),
+                getStatusChecked(
+                  row,
+                  "IN_USE"
+                ),
+                getStatusChecked(
+                  row,
+                  "DAMAGED"
+                ),
+                getStatusChecked(
+                  row,
+                  "DETERIORATED"
+                ),
+                getStatusChecked(
+                  row,
+                  "UNUSABLE"
+                ),
+                row.remark || "",
+              ];
             }
           );
 
-        const imageData =
-          canvas.toDataURL(
-            "image/png",
-            1.0
-          );
+        /* =================================================
+           เติมแถวว่างให้ครบ 15 แถว
+           เหมือนรูปแบบเดิม
+           ================================================= */
 
-        if (i > 0) {
-          pdf.addPage();
+        while (
+          body.length <
+          ROWS_PER_PAGE
+        ) {
+          body.push(
+            Array(18).fill("")
+          );
         }
 
-        pdf.addImage(
-          imageData,
-          "PNG",
-          PDF_MARGIN,
-          PDF_MARGIN,
-          PDF_WIDTH,
-          PDF_HEIGHT,
-          undefined,
-          "FAST"
-        );
+        autoTable(doc, {
+          startY: TABLE_START_Y,
+
+          margin: {
+            left: MARGIN_X,
+            right: MARGIN_X,
+          },
+
+          tableWidth: TABLE_WIDTH,
+
+          theme: "grid",
+
+          head: [
+            [
+              {
+                content: "ลำดับ",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "รหัส GFMIS",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "รหัสครุภัณฑ์",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "ผู้รับผิดชอบ",
+                rowSpan: 2,
+              },
+              {
+                content: "รายการ",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "หน่วยนับ",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  `ยอดคงเหลือตามบัญชี\nณ วันที่ ${formatThaiDate(
+                    accountStartDate
+                  )}`,
+                rowSpan: 2,
+              },
+              {
+                content:
+                  `รายการเคลื่อนไหวระหว่าง\nปีงบประมาณ พ.ศ. ${movementFiscalYear}`,
+                colSpan: 2,
+              },
+              {
+                content:
+                  `ยอดคงเหลือตามบัญชี\nณ วันที่ ${formatThaiDate(
+                    accountEndDate
+                  )}`,
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "จำนวนที่ตรวจนับได้",
+                rowSpan: 2,
+              },
+              {
+                content:
+                  "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี",
+                colSpan: 2,
+              },
+              {
+                content:
+                  "สภาพครุภัณฑ์ที่ตรวจนับ",
+                colSpan: 4,
+              },
+              {
+                content: "หมายเหตุ",
+                rowSpan: 2,
+              },
+            ],
+            [
+              "รับ",
+              "จ่าย",
+              "ถูกต้อง",
+              "ไม่ถูกต้อง",
+              "ใช้งานปกติ",
+              "ชำรุด",
+              "เสื่อมสภาพ",
+              "ไม่จำเป็นต้องใช้",
+            ],
+          ],
+
+          body,
+
+          styles: {
+            font:
+              "2.3.2 THSarabunNew",
+            fontStyle:
+              "normal",
+            fontSize: 8.5,
+            textColor: [
+              0,
+              0,
+              0,
+            ],
+            lineColor: [
+              0,
+              0,
+              0,
+            ],
+            lineWidth: 0.25,
+            cellPadding: 0.7,
+            minCellHeight: 7.1,
+            halign: "center",
+            valign: "middle",
+            overflow:
+              "linebreak",
+          },
+
+          headStyles: {
+            font:
+              "2.3.2 THSarabunNew",
+            fontStyle:
+              "normal",
+            fontSize: 8,
+            fillColor: [
+              255,
+              255,
+              255,
+            ],
+            textColor: [
+              0,
+              0,
+              0,
+            ],
+            lineColor: [
+              0,
+              0,
+              0,
+            ],
+            lineWidth: 0.25,
+            cellPadding: 0.65,
+            halign: "center",
+            valign: "middle",
+            overflow:
+              "linebreak",
+          },
+
+          bodyStyles: {
+            font:
+              "2.3.2 THSarabunNew",
+            fontStyle:
+              "normal",
+            fontSize: 8.5,
+            textColor: [
+              0,
+              0,
+              0,
+            ],
+            lineColor: [
+              0,
+              0,
+              0,
+            ],
+            lineWidth: 0.25,
+            cellPadding: 0.7,
+            minCellHeight: 7.1,
+            halign: "center",
+            valign: "middle",
+          },
+
+          columnStyles: {
+            0: {
+              cellWidth: 6.75,
+            },
+            1: {
+              cellWidth: 17.55,
+            },
+            2: {
+              cellWidth: 21.6,
+            },
+            3: {
+              cellWidth: 24.3,
+              halign: "left",
+            },
+            4: {
+              cellWidth: 32.4,
+              halign: "left",
+            },
+            5: {
+              cellWidth: 9.45,
+            },
+            6: {
+              cellWidth: 17.55,
+            },
+            7: {
+              cellWidth: 10.8,
+            },
+            8: {
+              cellWidth: 10.8,
+            },
+            9: {
+              cellWidth: 20.25,
+            },
+            10: {
+              cellWidth: 13.5,
+            },
+            11: {
+              cellWidth: 12.825,
+            },
+            12: {
+              cellWidth: 12.825,
+            },
+            13: {
+              cellWidth: 10.125,
+            },
+            14: {
+              cellWidth: 9.45,
+            },
+            15: {
+              cellWidth: 10.8,
+            },
+            16: {
+              cellWidth: 13.5,
+            },
+            17: {
+              cellWidth: 15.525,
+            },
+          },
+
+          didParseCell: (
+            data
+          ) => {
+            if (
+              data.section ===
+                "body" &&
+              (
+                data.column.index ===
+                  3 ||
+                data.column.index ===
+                  4
+              )
+            ) {
+              const text =
+                String(
+                  data.cell.raw ??
+                    ""
+                );
+
+              if (
+                text.length > 45
+              ) {
+                data.cell.styles.fontSize =
+                  7;
+              } else if (
+                text.length > 30
+              ) {
+                data.cell.styles.fontSize =
+                  7.5;
+              } else {
+                data.cell.styles.fontSize =
+                  8.5;
+              }
+            }
+
+            if (
+              data.section ===
+                "body" &&
+              data.column.index >=
+                11 &&
+              data.column.index <=
+                16
+            ) {
+              data.cell.styles.fontSize =
+                11;
+              data.cell.styles.fontStyle =
+                "normal";
+              data.cell.styles.halign =
+                "center";
+              data.cell.styles.valign =
+                "middle";
+            }
+          },
+
+          tableLineColor: [
+            0,
+            0,
+            0,
+          ],
+
+          tableLineWidth: 0.25,
+
+          rowPageBreak:
+            "avoid",
+
+          showHead:
+            "everyPage",
+        });
+
+        drawInspectors(doc);
       }
 
-      /*
-       * ชื่อไฟล์
-       */
+      /* ===================================================
+         เปิด PDF ใน Browser PDF Viewer
+         =================================================== */
+
       const safeDepartmentName =
         department.name
           .replace(
@@ -571,33 +975,14 @@ export default function ExportInspectionPdf({
       const fileName =
         `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`;
 
-      /*
-       * ไม่ใช้:
-       *
-       * pdf.save(...)
-       *
-       * เพราะจะ Download ทันที
-       */
-
       const pdfBlob =
-        pdf.output("blob");
+        doc.output("blob");
 
-      /*
-       * สร้าง URL ชั่วคราว
-       * สำหรับ PDF Viewer
-       */
       const pdfUrl =
         URL.createObjectURL(
           pdfBlob
         );
 
-      /*
-       * ตั้งชื่อแท็บก่อนเปลี่ยนไป PDF
-       *
-       * Browser PDF Viewer บางตัวอาจแสดง
-       * blob URL เป็นชื่อเอกสารแทน
-       * แต่ไม่กระทบการ Preview
-       */
       try {
         previewWindow.document.title =
           fileName;
@@ -605,22 +990,10 @@ export default function ExportInspectionPdf({
         // ไม่ต้องทำอะไร
       }
 
-      /*
-       * เปิด PDF ในแท็บที่สร้างไว้
-       *
-       * Chrome / Edge / Browser ที่รองรับ PDF
-       * จะแสดง PDF Viewer โดยอัตโนมัติ
-       */
       previewWindow.location.replace(
         pdfUrl
       );
 
-      /*
-       * อย่า revoke ทันที
-       *
-       * Browser PDF Viewer ยังต้องใช้ Blob URL
-       * สำหรับอ่านเอกสาร
-       */
       window.setTimeout(
         () => {
           URL.revokeObjectURL(
@@ -635,10 +1008,6 @@ export default function ExportInspectionPdf({
         error
       );
 
-      /*
-       * ปิดแท็บ Preview
-       * หากสร้าง PDF ไม่สำเร็จ
-       */
       if (
         previewWindow &&
         !previewWindow.closed
@@ -655,1451 +1024,36 @@ export default function ExportInspectionPdf({
   }
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={handleExportPdf}
-        disabled={
-          isExporting ||
-          assets.length === 0
-        }
-        className="
-          rounded-xl
-          bg-gradient-to-r
-          from-red-700
-          to-red-500
-          px-5
-          py-2.5
-          text-base
-          font-extrabold
-          !text-white
-          shadow-lg
-          transition
-          hover:scale-105
-          hover:from-red-800
-          hover:to-red-600
-          disabled:cursor-not-allowed
-          disabled:opacity-50
-          disabled:hover:scale-100
-        "
-      >
-        {isExporting
-          ? "กำลังสร้าง PDF..."
-          : "📄 ส่งออก PDF"}
-      </button>
-
-      {/* ===================================================
-          DOM สำหรับสร้าง PDF
-
-          ซ่อนไว้นอกหน้าจอ
-          html2canvas จะนำ DOM ส่วนนี้ไปสร้าง PDF
-          =================================================== */}
-
-      <div
-        ref={pdfRef}
-        style={{
-          position: "fixed",
-          left: "-100000px",
-          top: 0,
-          width: `${PDF_WIDTH}mm`,
-          background: "#ffffff",
-          zIndex: -1,
-          pointerEvents: "none",
-        }}
-      >
-        {Array.from(
-          { length: totalPages },
-          (_, pageIndex) => {
-            const startIndex =
-              pageIndex *
-              ROWS_PER_PAGE;
-
-            const pageAssets =
-              assets.slice(
-                startIndex,
-                startIndex +
-                  ROWS_PER_PAGE
-              );
-
-            return (
-              <div
-                key={pageIndex}
-                className="inspection-pdf-page"
-                style={{
-                  width: `${PDF_WIDTH}mm`,
-                  height: `${PDF_HEIGHT}mm`,
-                  boxSizing:
-                    "border-box",
-                  padding: 0,
-                  margin: 0,
-                  background:
-                    "#ffffff",
-                  fontFamily:
-                    "TH Sarabun New, Sarabun, Arial, sans-serif",
-                  color: "#000000",
-                  overflow:
-                    "hidden",
-                  display: "flex",
-                  flexDirection:
-                    "column",
-                  justifyContent:
-                    "flex-start",
-                  paddingTop:
-                    "3mm",
-                }}
-              >
-                {/* ==============================
-                    หัวเอกสาร
-                    ============================== */}
-
-                <div
-                  style={{
-                    width: "100%",
-                    textAlign:
-                      "center",
-                    marginBottom:
-                      "3.5mm",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={
-                      mainTitleStyle
-                    }
-                  >
-                    กระดาษทำการตรวจสอบพัสดุ
-                    ประจำปีงบประมาณ
-                    พ.ศ.{" "}
-                    {
-                      INSPECTION_FISCAL_YEAR
-                    }
-                  </div>
-
-                  <div
-                    style={
-                      mainTitleStyle
-                    }
-                  >
-                    สำนักอนามัยการเจริญพันธุ์
-                  </div>
-
-                  <div
-                    style={
-                      dateTitleStyle
-                    }
-                  >
-                    เริ่มดำเนินการตรวจสอบวันที่{" "}
-                    {formatThaiDate(
-                      inspectionStartDate
-                    )}
-                    {"     "}
-                    ตรวจสอบแล้วเสร็จวันที่{" "}
-                    {formatThaiDate(
-                      inspectionEndDate
-                    )}
-                  </div>
-                </div>
-
-                {/* ==============================
-                    ตาราง
-                    ============================== */}
-
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse:
-                      "collapse",
-                    borderSpacing: 0,
-                    border:
-                      "0.6px solid #000000",
-                    borderRadius: 0,
-                    outline: "none",
-                    overflow:
-                      "visible",
-                    tableLayout:
-                      "fixed",
-                    fontFamily:
-                      "TH Sarabun New, Sarabun, Arial, sans-serif",
-                    color: "#000000",
-                    backgroundColor:
-                      "#ffffff",
-                    flexShrink: 0,
-                  }}
-                >
-                  <colgroup>
-                    <col style={{ width: "2.5%" }} />
-                    <col style={{ width: "6.5%" }} />
-                    <col style={{ width: "8%" }} />
-                    <col style={{ width: "9%" }} />
-                    <col style={{ width: "12%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "6.5%" }} />
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "7.5%" }} />
-                    <col style={{ width: "5%" }} />
-                    <col style={{ width: "4.75%" }} />
-                    <col style={{ width: "4.75%" }} />
-                    <col style={{ width: "3.75%" }} />
-                    <col style={{ width: "3.5%" }} />
-                    <col style={{ width: "4%" }} />
-                    <col style={{ width: "5%" }} />
-                    <col style={{ width: "5.75%" }} />
-                  </colgroup>
-
-                  <thead>
-                    <tr>
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          ลำดับ
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          รหัส GFMIS
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          รหัสครุภัณฑ์
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          ผู้รับผิดชอบ
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          รายการ
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          หน่วยนับ
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          <div
-                            style={
-                              accountHeaderLineStyle
-                            }
-                          >
-                            ยอดคงเหลือตามบัญชี
-                          </div>
-
-                          <div
-                            style={
-                              accountHeaderLineStyle
-                            }
-                          >
-                            ณ วันที่{" "}
-                            {formatThaiDate(
-                              accountStartDate
-                            )}
-                          </div>
-                        </div>
-                      </th>
-
-                      <th
-                        colSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          <div
-                            style={
-                              headerNoWrapStyle
-                            }
-                          >
-                            รายการเคลื่อนไหวระหว่าง
-                          </div>
-
-                          <div
-                            style={
-                              headerNoWrapStyle
-                            }
-                          >
-                            ปีงบประมาณ
-                            พ.ศ.{" "}
-                            {
-                              movementFiscalYear
-                            }
-                          </div>
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          <div
-                            style={
-                              accountHeaderLineStyle
-                            }
-                          >
-                            ยอดคงเหลือตามบัญชี
-                          </div>
-
-                          <div
-                            style={
-                              accountHeaderLineStyle
-                            }
-                          >
-                            ณ วันที่{" "}
-                            {formatThaiDate(
-                              accountEndDate
-                            )}
-                          </div>
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          จำนวนที่ตรวจนับได้
-                        </div>
-                      </th>
-
-                      <th
-                        colSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          <div
-                            style={
-                              resultHeaderLineStyle
-                            }
-                          >
-                            ผลการตรวจนับถูกต้อง
-                          </div>
-
-                          <div
-                            style={
-                              resultHeaderLineStyle
-                            }
-                          >
-                            ตรงกับยอดคงเหลือตามบัญชี
-                          </div>
-                        </div>
-                      </th>
-
-                      <th
-                        colSpan={4}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          สภาพครุภัณฑ์ที่ตรวจนับ
-                        </div>
-                      </th>
-
-                      <th
-                        rowSpan={2}
-                        style={
-                          headerStyle
-                        }
-                      >
-                        <div
-                          style={
-                            headerCenterStyle
-                          }
-                        >
-                          หมายเหตุ
-                        </div>
-                      </th>
-                    </tr>
-
-                    <tr>
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          รับ
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          จ่าย
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          ถูกต้อง
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          ไม่ถูกต้อง
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          ใช้งานปกติ
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          ชำรุด
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          เสื่อมสภาพ
-                        </div>
-                      </th>
-
-                      <th
-                        style={
-                          subHeaderStyle
-                        }
-                      >
-                        <div
-                          style={
-                            subHeaderTextStyle
-                          }
-                        >
-                          ไม่จำเป็นต้องใช้
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {pageAssets.map(
-                      (
-                        asset,
-                        localIndex
-                      ) => {
-                        const actualIndex =
-                          startIndex +
-                          localIndex;
-
-                        // ใช้เลขลำดับเดิมจากทะเบียนต้นฉบับก่อน
-                        const sourceOrder =
-                          getSourceOrder(
-                            asset.remark
-                          );
-
-                        const displayOrder =
-                          sourceOrder ??
-                          actualIndex + 1;
-
-                        const row =
-                          rows.find(
-                            (item) =>
-                              item.assetId ===
-                              asset.id
-                          ) || {
-                            assetId:
-                              asset.id,
-                            countedQty:
-                              "1",
-                            accuracy: "",
-                            status: "",
-                            remark: "",
-                          };
-
-                        const responsibleName =
-                          getResponsibleName(
-                            asset,
-                            department
-                          );
-
-                        const assetName =
-                          [
-                            asset.name,
-                            asset.brand,
-                            asset.model,
-                          ]
-                            .filter(
-                              Boolean
-                            )
-                            .join(" ");
-
-                        return (
-                          <tr
-                            key={
-                              asset.id
-                            }
-                            style={{
-                              height:
-                                "7.6mm",
-                            }}
-                          >
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                {displayOrder}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  codeTextStyle
-                                }
-                              >
-                                {asset.governmentAssetNo ||
-                                  ""}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  codeTextStyle
-                                }
-                              >
-                                {asset.officeAssetNo ||
-                                  ""}
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                textAlign:
-                                  "left",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  ...bodyTextStyle,
-                                  textAlign:
-                                    "left",
-                                  justifyContent:
-                                    "flex-start",
-                                  paddingLeft:
-                                    "0.8mm",
-                                  paddingRight:
-                                    "0.4mm",
-                                  fontSize:
-                                    getCompactFontSize(
-                                      responsibleName,
-                                      10,
-                                      9,
-                                      8
-                                    ),
-                                }}
-                              >
-                                {
-                                  responsibleName
-                                }
-                              </span>
-                            </td>
-
-                            <td
-                              style={{
-                                ...bodyCellStyle,
-                                textAlign:
-                                  "left",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  ...bodyTextStyle,
-                                  textAlign:
-                                    "left",
-                                  justifyContent:
-                                    "flex-start",
-                                  paddingLeft:
-                                    "0.8mm",
-                                  paddingRight:
-                                    "0.4mm",
-                                  fontSize:
-                                    TABLE_BODY_FONT_SIZE,
-                                }}
-                              >
-                                {assetName}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                {getCategoryUnit(
-                                  asset.category
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                1
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                -
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                -
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                1
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                {
-                                  row.countedQty
-                                }
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getAccuracyChecked(
-                                  row,
-                                  "CORRECT"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getAccuracyChecked(
-                                  row,
-                                  "INCORRECT"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "IN_USE"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "DAMAGED"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "DETERIORATED"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                checkCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  checkTextStyle
-                                }
-                              >
-                                {getStatusChecked(
-                                  row,
-                                  "UNUSABLE"
-                                )}
-                              </span>
-                            </td>
-
-                            <td
-                              style={
-                                bodyCellStyle
-                              }
-                            >
-                              <span
-                                style={
-                                  bodyTextStyle
-                                }
-                              >
-                                {row.remark ||
-                                  ""}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      }
-                    )}
-
-                    {Array.from(
-                      {
-                        length:
-                          Math.max(
-                            0,
-                            ROWS_PER_PAGE -
-                              pageAssets.length
-                          ),
-                      },
-                      (
-                        _,
-                        emptyIndex
-                      ) => (
-                        <tr
-                          key={`empty-${emptyIndex}`}
-                          style={{
-                            height:
-                              "7.6mm",
-                          }}
-                        >
-                          {Array.from(
-                            {
-                              length: 18,
-                            },
-                            (
-                              _,
-                              cellIndex
-                            ) => (
-                              <td
-                                key={
-                                  cellIndex
-                                }
-                                style={
-                                  bodyCellStyle
-                                }
-                              />
-                            )
-                          )}
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-
-                {/* ==============================
-                    ผู้ตรวจสอบ
-                    ============================== */}
-
-                <div
-                  style={{
-                    width: "100%",
-                    minHeight:
-                      "27mm",
-                    paddingTop:
-                      "3mm",
-                    boxSizing:
-                      "border-box",
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(5, 1fr)",
-                    columnGap:
-                      "3mm",
-                    flexShrink: 0,
-                  }}
-                >
-                  {Array.from(
-                    { length: 5 },
-                    (_, index) => {
-                      const selectedInspectorId =
-                        inspectorIds[
-                          index
-                        ] || "";
-
-                      const selectedOfficer =
-                        getOfficer(
-                          selectedInspectorId,
-                          officers
-                        );
-
-                      const inspectorName =
-                        selectedOfficer
-                          ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
-                          : "................................";
-
-                      const inspectorPosition =
-                        selectedOfficer?.position ||
-                        "................................";
-
-                      return (
-                        <div
-                          key={index}
-                          style={{
-                            textAlign:
-                              "center",
-                            minWidth: 0,
-                            fontFamily:
-                              "TH Sarabun New, Sarabun, Arial, sans-serif",
-                          }}
-                        >
-                          <div
-                            style={
-                              signatureTitleStyle
-                            }
-                          >
-                            ลงชื่อ
-                            ....................................................
-                          </div>
-
-                          <div
-                            style={{
-                              ...signatureTextStyle,
-                              fontSize:
-                                getCompactFontSize(
-                                  inspectorName,
-                                  12,
-                                  11,
-                                  10
-                                ),
-                            }}
-                          >
-                            (
-                            {
-                              inspectorName
-                            }
-                            )
-                          </div>
-
-                          <div
-                            style={{
-                              ...signatureTextStyle,
-                              fontSize:
-                                getCompactFontSize(
-                                  inspectorPosition,
-                                  12,
-                                  11,
-                                  10
-                                ),
-                            }}
-                          >
-                            {
-                              inspectorPosition
-                            }
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-            );
-          }
-        )}
-      </div>
-    </>
+    <button
+      type="button"
+      onClick={handleExportPdf}
+      disabled={
+        isExporting ||
+        assets.length === 0
+      }
+      className="
+        rounded-xl
+        bg-gradient-to-r
+        from-red-700
+        to-red-500
+        px-5
+        py-2.5
+        text-base
+        font-extrabold
+        !text-white
+        shadow-lg
+        transition
+        hover:scale-105
+        hover:from-red-800
+        hover:to-red-600
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+        disabled:hover:scale-100
+      "
+    >
+      {isExporting
+        ? "กำลังสร้าง PDF..."
+        : "📄 ส่งออก PDF"}
+    </button>
   );
 }
-
-/* =========================================================
-   STYLES
-   ========================================================= */
-
-const mainTitleStyle: React.CSSProperties =
-  {
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize: "17px",
-    fontWeight: 700,
-    lineHeight: 1.15,
-    marginBottom:
-      "0.8mm",
-    whiteSpace:
-      "nowrap",
-  };
-
-const dateTitleStyle: React.CSSProperties =
-  {
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize: "17px",
-    fontWeight: 600,
-    lineHeight: 1.15,
-    whiteSpace:
-      "nowrap",
-  };
-
-const headerStyle: React.CSSProperties =
-  {
-    border:
-      "0.6px solid #000000",
-    borderRadius: "0px",
-    background: "#ffffff",
-    color: "#000000",
-    textAlign: "center",
-    verticalAlign:
-      "middle",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontWeight:
-      "normal",
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    padding:
-      "0.6mm 0.3mm",
-    margin: 0,
-    lineHeight: 1.08,
-    height: "10.5mm",
-    boxSizing:
-      "border-box",
-    whiteSpace:
-      "normal",
-    overflow:
-      "visible",
-  };
-
-const subHeaderStyle: React.CSSProperties =
-  {
-    ...headerStyle,
-    height: "6.5mm",
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    padding:
-      "0.45mm 0.25mm",
-    lineHeight: 1.08,
-    overflow:
-      "visible",
-  };
-
-const headerCenterStyle: React.CSSProperties =
-  {
-    display: "block",
-    position:
-      "relative",
-    top: "-0.65mm",
-    width: "100%",
-    margin: 0,
-    padding: 0,
-    textAlign:
-      "center",
-    verticalAlign:
-      "middle",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    fontWeight:
-      "normal",
-    lineHeight: 1.08,
-    whiteSpace:
-      "normal",
-    overflow:
-      "visible",
-    wordBreak:
-      "normal",
-    overflowWrap:
-      "break-word",
-  };
-
-const bodyCellStyle: React.CSSProperties =
-  {
-    border:
-      "0.6px solid #000000",
-    borderRadius: "0px",
-    background: "#ffffff",
-    color: "#000000",
-    textAlign: "center",
-    verticalAlign:
-      "middle",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize:
-      TABLE_BODY_FONT_SIZE,
-    fontWeight:
-      "normal",
-    padding: 0,
-    margin: 0,
-    lineHeight: 1,
-    height: "7.6mm",
-    minHeight:
-      "7.6mm",
-    boxSizing:
-      "border-box",
-    overflow:
-      "visible",
-  };
-
-const bodyTextStyle: React.CSSProperties =
-  {
-    display: "flex",
-    position:
-      "relative",
-    top: "-1.15mm",
-    width: "100%",
-    minHeight:
-      "5.4mm",
-    margin: 0,
-    padding:
-      "0 0.3mm",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    textAlign:
-      "center",
-    verticalAlign:
-      "middle",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize:
-      TABLE_BODY_FONT_SIZE,
-    fontWeight:
-      "normal",
-    lineHeight: 1,
-    whiteSpace:
-      "normal",
-    overflow:
-      "visible",
-    textOverflow:
-      "clip",
-    wordBreak:
-      "normal",
-    overflowWrap:
-      "break-word",
-    boxSizing:
-      "border-box",
-  };
-
-const headerNoWrapStyle: React.CSSProperties =
-  {
-    width: "100%",
-    margin: 0,
-    padding: 0,
-    textAlign:
-      "center",
-    whiteSpace:
-      "nowrap",
-    lineHeight: 1.08,
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    overflow:
-      "visible",
-  };
-
-const accountHeaderLineStyle: React.CSSProperties =
-  {
-    width: "100%",
-    margin: 0,
-    padding: 0,
-    textAlign:
-      "center",
-    whiteSpace:
-      "nowrap",
-    lineHeight: 1.08,
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    overflow:
-      "visible",
-  };
-
-const resultHeaderLineStyle: React.CSSProperties =
-  {
-    width: "100%",
-    margin: 0,
-    padding: 0,
-    textAlign:
-      "center",
-    whiteSpace:
-      "nowrap",
-    lineHeight: 1.08,
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    overflow:
-      "visible",
-  };
-
-const subHeaderTextStyle: React.CSSProperties =
-  {
-    display: "flex",
-    position:
-      "relative",
-    top: "-0.8mm",
-    width: "100%",
-    height: "100%",
-    minHeight:
-      "5.2mm",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    textAlign:
-      "center",
-    verticalAlign:
-      "middle",
-    margin: 0,
-    padding: 0,
-    boxSizing:
-      "border-box",
-    lineHeight: 1,
-    fontSize:
-      TABLE_HEADER_FONT_SIZE,
-    whiteSpace:
-      "nowrap",
-    overflow:
-      "visible",
-  };
-
-const codeTextStyle: React.CSSProperties =
-  {
-    display: "flex",
-    position:
-      "relative",
-    top: "-1.15mm",
-    width: "100%",
-    minHeight:
-      "5.4mm",
-    margin: 0,
-    padding:
-      "0 0.25mm",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    textAlign:
-      "center",
-    verticalAlign:
-      "middle",
-    fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
-    fontSize:
-      TABLE_BODY_FONT_SIZE,
-    fontWeight:
-      "normal",
-    lineHeight: 1,
-    whiteSpace:
-      "nowrap",
-    overflow:
-      "visible",
-    textOverflow:
-      "clip",
-    wordBreak:
-      "normal",
-    boxSizing:
-      "border-box",
-  };
-
-const checkCellStyle: React.CSSProperties =
-  {
-    ...bodyCellStyle,
-    fontSize:
-      CHECKMARK_FONT_SIZE,
-    fontWeight: 700,
-    textAlign:
-      "center",
-    verticalAlign:
-      "middle",
-    whiteSpace:
-      "nowrap",
-    lineHeight: 1,
-  };
-
-const checkTextStyle: React.CSSProperties =
-  {
-    display: "flex",
-    position:
-      "relative",
-    top: "-1.15mm",
-    width: "100%",
-    minHeight:
-      "5.4mm",
-    alignItems:
-      "center",
-    justifyContent:
-      "center",
-    margin: 0,
-    padding: 0,
-    fontSize:
-      CHECKMARK_FONT_SIZE,
-    lineHeight: 1,
-  };
-
-const signatureTitleStyle: React.CSSProperties =
-  {
-    fontSize: "12px",
-    lineHeight: 1.05,
-    minHeight: "4mm",
-    whiteSpace:
-      "nowrap",
-  };
-
-const signatureTextStyle: React.CSSProperties =
-  {
-    minHeight: "4mm",
-    padding:
-      "0.1mm 0",
-    lineHeight: 1.02,
-    textAlign:
-      "center",
-    whiteSpace:
-      "normal",
-    wordBreak:
-      "normal",
-    overflowWrap:
-      "break-word",
-  };
