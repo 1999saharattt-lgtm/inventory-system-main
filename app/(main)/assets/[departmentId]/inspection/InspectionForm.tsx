@@ -1643,13 +1643,13 @@ export default function InspectionForm({
           : "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
       );
 
-      if (
-        isEditMode &&
-        finalCancelHref
-      ) {
-        window.location.href =
-          finalCancelHref;
-      }
+      /* ===================================================
+         หลังบันทึกสำเร็จ
+         ไปหน้าประวัติการตรวจสอบครุภัณฑ์
+         =================================================== */
+
+      window.location.href =
+        "/assets/inspection-history";
     } catch (error) {
       console.error(error);
 
