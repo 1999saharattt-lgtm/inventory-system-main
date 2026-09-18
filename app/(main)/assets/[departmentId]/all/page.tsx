@@ -25,7 +25,6 @@ const statusName: Record<string, string> = {
 
 // =====================================================
 // หน่วยนับสำรอง
-//
 // ใช้เฉพาะกรณีในทะเบียนไม่มี unit
 // =====================================================
 
@@ -45,10 +44,6 @@ const categoryUnit: Record<string, string> = {
 
 // =====================================================
 // ลำดับจากทะเบียนต้นฉบับ
-//
-// SOURCE:DEPARTMENT_1:1
-// SOURCE:DEPARTMENT_1:2
-// ...
 // =====================================================
 
 function getSourceOrder(
@@ -80,54 +75,93 @@ function getSourceOrder(
 
 // =====================================================
 // ผู้รับผิดชอบ
-//
-// ลำดับ:
-// 1. responsibleName จากทะเบียนต้นฉบับ
-// 2. เจ้าหน้าที่ + กลุ่มงาน
-// 3. เจ้าหน้าที่
-// 4. กลุ่มงาน
+// ใช้ responsibleName จากทะเบียน Excel เป็นหลัก
 // =====================================================
 
 function getResponsibleName(asset: {
   responsibleName: string | null;
 
-  officer: {
-    firstName: string;
-    lastName: string;
-  } | null;
+  department: {
+    name: string;
+  };
 
   section: {
     name: string;
   } | null;
+
+  officer: {
+    firstName: string;
+    lastName: string;
+  } | null;
 }) {
+  const departmentName =
+    asset.department.name?.trim() || "";
+
   const originalResponsibleName =
     asset.responsibleName?.trim();
+
+  // ===================================================
+  // ใช้ข้อความจาก Excel ก่อน
+  // ===================================================
 
   if (
     originalResponsibleName &&
     originalResponsibleName !== "-"
   ) {
+    if (
+      departmentName &&
+      (
+        originalResponsibleName === departmentName ||
+        originalResponsibleName.startsWith(
+          `${departmentName} /`
+        )
+      )
+    ) {
+      return originalResponsibleName;
+    }
+
+    if (departmentName) {
+      return `${departmentName} / ${originalResponsibleName}`;
+    }
+
     return originalResponsibleName;
   }
+
+  // ===================================================
+  // ถ้าไม่มี responsibleName ใช้ section
+  // ===================================================
+
+  const sectionName =
+    asset.section?.name?.trim();
+
+  if (sectionName) {
+    if (departmentName) {
+      return `${departmentName} / ${sectionName}`;
+    }
+
+    return sectionName;
+  }
+
+  // ===================================================
+  // ถ้าไม่มีทั้ง responsibleName และ section
+  // ใช้ผู้ครอบครอง
+  // ===================================================
 
   const officerName =
     asset.officer
       ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
       : "";
 
-  if (
-    officerName &&
-    asset.section?.name
-  ) {
-    return `${officerName} / ${asset.section.name}`;
-  }
-
   if (officerName) {
+    if (departmentName) {
+      return `${departmentName} / ${officerName}`;
+    }
+
     return officerName;
   }
 
-  if (asset.section?.name) {
-    return asset.section.name;
+  if (departmentName) {
+    return departmentName;
   }
 
   return "-";
@@ -198,9 +232,7 @@ export default async function AllAssetsPage({
   }
 
   // ===================================================
-  // ครุภัณฑ์
-  //
-  // ดึงเฉพาะ department ที่เปิดอยู่
+  // ดึงครุภัณฑ์เฉพาะหน่วยงานนี้
   // ===================================================
 
   const assetsFromDatabase =
@@ -248,9 +280,7 @@ export default async function AllAssetsPage({
   });
 
   // ===================================================
-  // Component PDF เดิม
-  //
-  // ส่ง props หลักที่ PDF ของ department อาจใช้อยู่
+  // PDF
   // ===================================================
 
   const ExportPdfButton =
@@ -346,32 +376,68 @@ export default async function AllAssetsPage({
           "
         >
           {/* =============================================
-              ส่งออก PDF เดิม
+              ส่งออก PDF
+              แดง / ตัวอักษรขาว
+              ขนาดเท่าปุ่มกลับ
           ============================================= */}
 
-          <ExportPdfButton
-            departmentId={
-              department.id
-            }
-            departmentName={
-              department.name
-            }
-            department={
-              department
-            }
-            assets={
-              assets
-            }
-          />
+          <div
+            className="
+              w-full
+              sm:w-[170px]
+
+              [&_button]:!flex
+              [&_button]:!h-12
+              [&_button]:!w-full
+              [&_button]:!items-center
+              [&_button]:!justify-center
+              [&_button]:!rounded-xl
+              [&_button]:!border-0
+              [&_button]:!bg-red-600
+              [&_button]:!px-5
+              [&_button]:!py-3
+              [&_button]:!text-center
+              [&_button]:!text-sm
+              [&_button]:!font-extrabold
+              [&_button]:!text-white
+              [&_button]:!shadow-lg
+              [&_button]:!transition
+
+              [&_button:hover]:!bg-red-700
+
+              sm:[&_button]:!text-base
+            "
+          >
+            <ExportPdfButton
+              departmentId={
+                department.id
+              }
+              departmentName={
+                department.name
+              }
+              department={
+                department
+              }
+              assets={
+                assets
+              }
+            />
+          </div>
 
           {/* =============================================
               กลับ
+              สีเขียวเดิม
+              ขนาดเท่าปุ่มส่งออก PDF
           ============================================= */}
 
           <Link
             href={`/assets/${department.id}`}
             className="
+              flex
+              h-12
               w-full
+              items-center
+              justify-center
               whitespace-nowrap
               rounded-xl
               bg-gradient-to-r
@@ -385,10 +451,9 @@ export default async function AllAssetsPage({
               !text-white
               shadow-lg
               transition
-              hover:scale-105
               hover:from-emerald-700
               hover:to-green-600
-              sm:w-auto
+              sm:w-[170px]
               sm:text-base
             "
           >
@@ -407,8 +472,6 @@ export default async function AllAssetsPage({
           min-w-0
           overflow-hidden
           rounded-2xl
-          border
-          border-black
           bg-white
           shadow-xl
         "
@@ -429,9 +492,7 @@ export default async function AllAssetsPage({
           >
             <thead>
               <tr>
-                {/* =======================================
-                    ลำดับ
-                ======================================= */}
+                {/* ลำดับ */}
 
                 <th
                   className="
@@ -451,9 +512,7 @@ export default async function AllAssetsPage({
                   ลำดับ
                 </th>
 
-                {/* =======================================
-                    รหัส GFMIS
-                ======================================= */}
+                {/* รหัส GFMIS */}
 
                 <th
                   className="
@@ -473,9 +532,7 @@ export default async function AllAssetsPage({
                   รหัส GFMIS
                 </th>
 
-                {/* =======================================
-                    รหัสครุภัณฑ์
-                ======================================= */}
+                {/* รหัสครุภัณฑ์ */}
 
                 <th
                   className="
@@ -495,31 +552,7 @@ export default async function AllAssetsPage({
                   รหัสครุภัณฑ์
                 </th>
 
-                {/* =======================================
-                    ผู้รับผิดชอบ
-                ======================================= */}
-
-                <th
-                  className="
-                    w-[16%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ผู้รับผิดชอบ
-                </th>
-
-                {/* =======================================
-                    รายการครุภัณฑ์
-                ======================================= */}
+                {/* รายการครุภัณฑ์ */}
 
                 <th
                   className="
@@ -539,9 +572,7 @@ export default async function AllAssetsPage({
                   รายการครุภัณฑ์
                 </th>
 
-                {/* =======================================
-                    จำนวน
-                ======================================= */}
+                {/* จำนวน */}
 
                 <th
                   className="
@@ -561,9 +592,7 @@ export default async function AllAssetsPage({
                   จำนวน
                 </th>
 
-                {/* =======================================
-                    หน่วย
-                ======================================= */}
+                {/* หน่วย */}
 
                 <th
                   className="
@@ -583,9 +612,27 @@ export default async function AllAssetsPage({
                   หน่วย
                 </th>
 
-                {/* =======================================
-                    สถานะ
-                ======================================= */}
+                {/* ผู้รับผิดชอบ */}
+
+                <th
+                  className="
+                    w-[16%]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-3
+                    py-4
+                    text-center
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ผู้รับผิดชอบ
+                </th>
+
+                {/* สถานะ */}
 
                 <th
                   className="
@@ -618,9 +665,7 @@ export default async function AllAssetsPage({
                       hover:bg-blue-50
                     "
                   >
-                    {/* ===================================
-                        ลำดับ
-                    =================================== */}
+                    {/* ลำดับ */}
 
                     <td
                       className="
@@ -635,9 +680,7 @@ export default async function AllAssetsPage({
                       {index + 1}
                     </td>
 
-                    {/* ===================================
-                        รหัส GFMIS
-                    =================================== */}
+                    {/* รหัส GFMIS */}
 
                     <td
                       className="
@@ -654,9 +697,7 @@ export default async function AllAssetsPage({
                         "-"}
                     </td>
 
-                    {/* ===================================
-                        รหัสครุภัณฑ์
-                    =================================== */}
+                    {/* รหัสครุภัณฑ์ */}
 
                     <td
                       className="
@@ -673,28 +714,7 @@ export default async function AllAssetsPage({
                         "-"}
                     </td>
 
-                    {/* ===================================
-                        ผู้รับผิดชอบ
-                    =================================== */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        font-semibold
-                      "
-                    >
-                      {getResponsibleName(
-                        asset
-                      )}
-                    </td>
-
-                    {/* ===================================
-                        รายการครุภัณฑ์
-                    =================================== */}
+                    {/* รายการครุภัณฑ์ */}
 
                     <td
                       className="
@@ -733,19 +753,13 @@ export default async function AllAssetsPage({
                             asset.brand,
                             asset.model,
                           ]
-                            .filter(
-                              Boolean
-                            )
-                            .join(
-                              " / "
-                            )}
+                            .filter(Boolean)
+                            .join(" / ")}
                         </p>
                       )}
                     </td>
 
-                    {/* ===================================
-                        จำนวน
-                    =================================== */}
+                    {/* จำนวน */}
 
                     <td
                       className="
@@ -760,9 +774,7 @@ export default async function AllAssetsPage({
                       {asset.quantity}
                     </td>
 
-                    {/* ===================================
-                        หน่วย
-                    =================================== */}
+                    {/* หน่วย */}
 
                     <td
                       className="
@@ -779,9 +791,24 @@ export default async function AllAssetsPage({
                       )}
                     </td>
 
-                    {/* ===================================
-                        สถานะ
-                    =================================== */}
+                    {/* ผู้รับผิดชอบ */}
+
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        font-semibold
+                      "
+                    >
+                      {getResponsibleName(
+                        asset
+                      )}
+                    </td>
+
+                    {/* สถานะ */}
 
                     <td
                       className="
@@ -824,10 +851,6 @@ export default async function AllAssetsPage({
                   </tr>
                 )
               )}
-
-              {/* =============================================
-                  ไม่มีข้อมูล
-              ============================================= */}
 
               {assets.length === 0 && (
                 <tr>
