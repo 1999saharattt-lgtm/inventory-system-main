@@ -377,17 +377,16 @@ export default async function AllAssetsPage({
         >
           {/* =============================================
               ส่งออก PDF
-              แดง / ขาว
-              170 x 48
+              ขนาดกะทัดรัดเหมือนภาพตัวอย่าง
           ============================================= */}
 
           <div
             className="
               w-full
-              sm:w-[170px]
+              sm:w-auto
 
               [&_button]:!flex
-              [&_button]:!h-12
+              [&_button]:!h-11
               [&_button]:!w-full
               [&_button]:!items-center
               [&_button]:!justify-center
@@ -396,20 +395,22 @@ export default async function AllAssetsPage({
               [&_button]:!border-0
               [&_button]:!bg-none
               [&_button]:!bg-red-600
-              [&_button]:!px-5
-              [&_button]:!py-3
+              [&_button]:!px-4
+              [&_button]:!py-0
               [&_button]:!text-center
               [&_button]:!text-sm
               [&_button]:!font-extrabold
-              [&_button]:!leading-tight
+              [&_button]:!leading-none
               [&_button]:!text-white
               [&_button]:!shadow-lg
               [&_button]:!transition
 
-              [&_button:hover]:!scale-105
+              [&_button:hover]:!scale-[1.02]
               [&_button:hover]:!bg-red-700
 
-              sm:[&_button]:!text-base
+              [&_button:active]:!scale-[0.98]
+
+              sm:[&_button]:!w-auto
             "
           >
             <ExportPdfButton
@@ -430,15 +431,14 @@ export default async function AllAssetsPage({
 
           {/* =============================================
               กลับ
-              เขียว / ขาว
-              170 x 48
+              ขนาดกะทัดรัดเหมือนภาพตัวอย่าง
           ============================================= */}
 
           <Link
             href={`/assets/${department.id}`}
             className="
               flex
-              h-12
+              h-11
               w-full
               items-center
               justify-center
@@ -447,20 +447,20 @@ export default async function AllAssetsPage({
               bg-gradient-to-r
               from-emerald-600
               to-green-500
-              px-5
-              py-3
+              px-4
+              py-0
               text-center
               text-sm
               font-extrabold
-              leading-tight
+              leading-none
               !text-white
               shadow-lg
               transition
-              hover:scale-105
+              hover:scale-[1.02]
               hover:from-emerald-700
               hover:to-green-600
-              sm:w-[170px]
-              sm:text-base
+              active:scale-[0.98]
+              sm:w-auto
             "
           >
             ← กลับ
