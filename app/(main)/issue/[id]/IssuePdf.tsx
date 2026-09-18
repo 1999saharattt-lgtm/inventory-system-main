@@ -30,14 +30,12 @@ type IssuePdfProps = {
 
 // =====================================================
 // ตาราง พอ.101
-//
-// ใช้เส้นสีดำบาง
-// ไม่ใช้ rgba เพื่อให้เวลาพิมพ์ออกมาเป็นสีดำจริง
-// แต่ลดความหนาของเส้นแทน
+// เส้นสีดำบาง
 // =====================================================
 
 const TABLE_BORDER_COLOR = "#000000";
 const TABLE_BORDER_WIDTH = "0.25px";
+
 const TABLE_BORDER =
   `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`;
 
@@ -51,7 +49,9 @@ const TABLE_ROW_HEIGHT = "8mm";
 // วันที่ภาษาไทย
 // =====================================================
 
-function formatThaiDate(value: Date | string) {
+function formatThaiDate(
+  value: Date | string
+) {
   const date =
     value instanceof Date
       ? value
@@ -61,11 +61,173 @@ function formatThaiDate(value: Date | string) {
     return "-";
   }
 
-  return date.toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return date.toLocaleDateString(
+    "th-TH",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  );
+}
+
+// =====================================================
+// ปรับขนาดตัวอักษรรายการพัสดุ
+//
+// จุดประสงค์:
+// - ไม่ตัดข้อความ
+// - ไม่ให้ข้อความชนเส้นตาราง
+// - ยังคงความสูงทุกแถวเท่ากัน
+// =====================================================
+
+function getMaterialFontSize(
+  text: string
+) {
+  const length = text.length;
+
+  if (length > 85) {
+    return "10px";
+  }
+
+  if (length > 70) {
+    return "11px";
+  }
+
+  if (length > 55) {
+    return "12px";
+  }
+
+  if (length > 42) {
+    return "13px";
+  }
+
+  return "15px";
+}
+
+// =====================================================
+// ปรับขนาดตัวอักษรหมายเหตุ
+// =====================================================
+
+function getRemarkFontSize(
+  text: string
+) {
+  const length = text.length;
+
+  if (length > 35) {
+    return "9.5px";
+  }
+
+  if (length > 28) {
+    return "10.5px";
+  }
+
+  if (length > 20) {
+    return "12px";
+  }
+
+  if (length > 14) {
+    return "13px";
+  }
+
+  return "15px";
+}
+
+// =====================================================
+// ลายเซ็น
+//
+// เส้นลงชื่ออยู่คอลัมน์กลาง
+// วงเล็บชื่อ + วันที่
+// จัดกึ่งกลางตรงใต้เส้นลงชื่อ
+// =====================================================
+
+function SignatureBlock({
+  role,
+}: {
+  role: string;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+      }}
+    >
+      {/* ===============================================
+          แถวลงชื่อ
+      =============================================== */}
+
+      <div
+        style={{
+          display: "grid",
+
+          gridTemplateColumns:
+            "12mm 45mm 1fr",
+
+          alignItems: "center",
+
+          width: "100%",
+        }}
+      >
+        <div className="whitespace-nowrap">
+          ลงชื่อ
+        </div>
+
+        <div
+          className="
+            whitespace-nowrap
+            text-center
+          "
+          style={{
+            width: "45mm",
+          }}
+        >
+          ...............................................................
+        </div>
+
+        <div className="whitespace-nowrap">
+          {role}
+        </div>
+      </div>
+
+      {/* ===============================================
+          วงเล็บชื่อ
+          อยู่กึ่งกลางใต้เส้นลงชื่อ
+      =============================================== */}
+
+      <div
+        className="
+          mt-[1mm]
+          whitespace-nowrap
+          text-center
+        "
+        style={{
+          marginLeft: "12mm",
+          width: "45mm",
+        }}
+      >
+        (.........................................................)
+      </div>
+
+      {/* ===============================================
+          วันที่
+          อยู่กึ่งกลางใต้เส้นลงชื่อ
+      =============================================== */}
+
+      <div
+        className="
+          mt-[1mm]
+          whitespace-nowrap
+          text-center
+        "
+        style={{
+          marginLeft: "12mm",
+          width: "45mm",
+        }}
+      >
+        วันที่{" "}
+        ................................................
+      </div>
+    </div>
+  );
 }
 
 export default function IssuePdf({
@@ -86,7 +248,10 @@ export default function IssuePdf({
   // =====================================================
 
   const handleExport = async () => {
-    if (!pdfRef.current || loading) {
+    if (
+      !pdfRef.current ||
+      loading
+    ) {
       return;
     }
 
@@ -98,16 +263,26 @@ export default function IssuePdf({
       // =================================================
 
       const html2canvas =
-        (await import("html2canvas")).default;
+        (
+          await import(
+            "html2canvas"
+          )
+        ).default;
 
       const jsPDF =
-        (await import("jspdf")).default;
+        (
+          await import(
+            "jspdf"
+          )
+        ).default;
 
       // =================================================
       // รอ Font
       // =================================================
 
-      if (document.fonts?.ready) {
+      if (
+        document.fonts?.ready
+      ) {
         await document.fonts.ready;
       }
 
@@ -115,15 +290,22 @@ export default function IssuePdf({
       // รอ Browser Render
       // =================================================
 
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            resolve();
-          });
-        });
-      });
+      await new Promise<void>(
+        (resolve) => {
+          requestAnimationFrame(
+            () => {
+              requestAnimationFrame(
+                () => {
+                  resolve();
+                }
+              );
+            }
+          );
+        }
+      );
 
-      const element = pdfRef.current;
+      const element =
+        pdfRef.current;
 
       if (!element) {
         throw new Error(
@@ -137,7 +319,10 @@ export default function IssuePdf({
       const height =
         element.clientHeight;
 
-      if (width <= 0 || height <= 0) {
+      if (
+        width <= 0 ||
+        height <= 0
+      ) {
         throw new Error(
           "ขนาดพื้นที่สำหรับสร้าง PDF ไม่ถูกต้อง"
         );
@@ -145,31 +330,38 @@ export default function IssuePdf({
 
       // =================================================
       // HTML -> Canvas
-      //
-      // scale 3 เพื่อให้ตัวอักษรและเส้นคมขึ้น
       // =================================================
 
       const canvas =
-        await html2canvas(element, {
-          scale: 3,
+        await html2canvas(
+          element,
+          {
+            scale: 3,
 
-          useCORS: true,
+            useCORS: true,
 
-          allowTaint: false,
+            allowTaint: false,
 
-          backgroundColor: "#ffffff",
+            backgroundColor:
+              "#ffffff",
 
-          width,
-          height,
+            width,
 
-          windowWidth: width,
-          windowHeight: height,
+            height,
 
-          scrollX: 0,
-          scrollY: 0,
+            windowWidth:
+              width,
 
-          logging: false,
-        });
+            windowHeight:
+              height,
+
+            scrollX: 0,
+
+            scrollY: 0,
+
+            logging: false,
+          }
+        );
 
       // =================================================
       // Canvas -> PNG
@@ -187,10 +379,17 @@ export default function IssuePdf({
 
       const pdf =
         new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-          compress: true,
+          orientation:
+            "portrait",
+
+          unit:
+            "mm",
+
+          format:
+            "a4",
+
+          compress:
+            true,
         });
 
       const pageWidth =
@@ -219,10 +418,14 @@ export default function IssuePdf({
       // =================================================
 
       const pdfBlob =
-        pdf.output("blob");
+        pdf.output(
+          "blob"
+        );
 
       const pdfUrl =
-        URL.createObjectURL(pdfBlob);
+        URL.createObjectURL(
+          pdfBlob
+        );
 
       // =================================================
       // เปิด PDF
@@ -240,10 +443,16 @@ export default function IssuePdf({
 
       if (!pdfWindow) {
         const link =
-          document.createElement("a");
+          document.createElement(
+            "a"
+          );
 
-        link.href = pdfUrl;
-        link.target = "_blank";
+        link.href =
+          pdfUrl;
+
+        link.target =
+          "_blank";
+
         link.rel =
           "noopener noreferrer";
 
@@ -265,11 +474,14 @@ export default function IssuePdf({
       // คืน Memory ภายหลัง
       // =================================================
 
-      window.setTimeout(() => {
-        URL.revokeObjectURL(
-          pdfUrl
-        );
-      }, 5 * 60 * 1000);
+      window.setTimeout(
+        () => {
+          URL.revokeObjectURL(
+            pdfUrl
+          );
+        },
+        5 * 60 * 1000
+      );
     } catch (error) {
       console.error(
         "ไม่สามารถสร้าง PDF ได้:",
@@ -289,15 +501,20 @@ export default function IssuePdf({
   // =====================================================
   // พอ.101 จำนวน 18 แถว
   //
-  // ช่องว่างยังคงมีเส้นตาราง
-  // แต่ไม่แสดงเลขลำดับ
+  // แถวว่าง:
+  // - ยังมีเส้น
+  // - ไม่มีเลขลำดับ
   // =====================================================
 
-  const rows = Array.from(
-    { length: 18 },
-    (_, index) =>
-      items[index] ?? null
-  );
+  const rows =
+    Array.from(
+      {
+        length: 18,
+      },
+      (_, index) =>
+        items[index] ??
+        null
+    );
 
   const totalItems =
     items.length;
@@ -305,114 +522,48 @@ export default function IssuePdf({
   // =====================================================
   // Base Style ของ Cell
   //
-  // สำคัญ:
-  // ไม่ใช้ top: -1.35mm กับข้อความอีก
-  // เพราะทำให้ตัวอักษรถูกตัด
+  // ใช้ verticalAlign ของ Table โดยตรง
+  // ไม่บังคับ position/top
+  // ไม่ใช้ overflow:hidden ครอบข้อความแนวตั้ง
   // =====================================================
 
   const cellBaseStyle:
     React.CSSProperties = {
-    height: TABLE_ROW_HEIGHT,
+    height:
+      TABLE_ROW_HEIGHT,
 
-    padding: 0,
-    margin: 0,
+    padding:
+      "0 1mm",
 
-    backgroundColor: "#ffffff",
-    color: "#000000",
+    margin:
+      0,
 
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
+    backgroundColor:
+      "#ffffff",
 
-    fontSize: "16px",
-
-    fontWeight: "normal",
-
-    lineHeight: "1",
-
-    verticalAlign: "middle",
-
-    boxSizing: "border-box",
-
-    border: TABLE_BORDER,
-  };
-
-  // =====================================================
-  // Wrapper สำหรับจัดข้อความกึ่งกลางแนวตั้ง
-  //
-  // ใช้ flex แทน position/top
-  // ป้องกันตัวหนังสือตกหรือถูกตัด
-  // =====================================================
-
-  const centerContentStyle:
-    React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-
-    minHeight: TABLE_ROW_HEIGHT,
-
-    display: "flex",
-
-    alignItems: "center",
-
-    justifyContent: "center",
-
-    boxSizing: "border-box",
-
-    paddingTop: 0,
-    paddingBottom: 0,
-
-    margin: 0,
-  };
-
-  const leftContentStyle:
-    React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-
-    minHeight: TABLE_ROW_HEIGHT,
-
-    display: "flex",
-
-    alignItems: "center",
-
-    justifyContent: "flex-start",
-
-    boxSizing: "border-box",
-
-    paddingLeft: "1mm",
-    paddingRight: "1mm",
-
-    paddingTop: 0,
-    paddingBottom: 0,
-
-    margin: 0,
-
-    overflow: "hidden",
-  };
-
-  // =====================================================
-  // ข้อความหัวตาราง
-  // =====================================================
-
-  const headerTextStyle:
-    React.CSSProperties = {
-    display: "block",
-
-    margin: 0,
-    padding: 0,
+    color:
+      "#000000",
 
     fontFamily:
       '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
-    fontSize: "16px",
+    fontSize:
+      "15px",
 
-    fontWeight: "normal",
+    fontWeight:
+      "normal",
 
-    lineHeight: "1.15",
+    lineHeight:
+      "1.35",
 
-    whiteSpace: "nowrap",
+    verticalAlign:
+      "middle",
 
-    textAlign: "center",
+    boxSizing:
+      "border-box",
+
+    border:
+      TABLE_BORDER,
   };
 
   // =====================================================
@@ -423,94 +574,26 @@ export default function IssuePdf({
     React.CSSProperties = {
     ...cellBaseStyle,
 
-    height: TABLE_ROW_HEIGHT,
+    height:
+      TABLE_ROW_HEIGHT,
 
-    textAlign: "center",
+    padding:
+      "0 1mm",
 
-    whiteSpace: "nowrap",
+    textAlign:
+      "center",
 
-    verticalAlign: "middle",
-  };
+    verticalAlign:
+      "middle",
 
-  // =====================================================
-  // ข้อความข้อมูล
-  // =====================================================
+    whiteSpace:
+      "nowrap",
 
-  const dataTextStyle:
-    React.CSSProperties = {
-    display: "block",
+    fontSize:
+      "15px",
 
-    margin: 0,
-    padding: 0,
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize: "16px",
-
-    fontWeight: "normal",
-
-    lineHeight: "1.15",
-
-    whiteSpace: "nowrap",
-  };
-
-  // =====================================================
-  // รายการพัสดุ
-  // =====================================================
-
-  const materialNameTextStyle:
-    React.CSSProperties = {
-    display: "block",
-
-    width: "100%",
-
-    margin: 0,
-    padding: 0,
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize: "16px",
-
-    fontWeight: "normal",
-
-    lineHeight: "1.15",
-
-    whiteSpace: "nowrap",
-
-    overflow: "hidden",
-
-    textOverflow: "clip",
-  };
-
-  // =====================================================
-  // หมายเหตุ
-  // =====================================================
-
-  const remarkTextStyle:
-    React.CSSProperties = {
-    display: "block",
-
-    width: "100%",
-
-    margin: 0,
-    padding: 0,
-
-    fontFamily:
-      '"TH Sarabun New", Sarabun, Arial, sans-serif',
-
-    fontSize: "16px",
-
-    fontWeight: "normal",
-
-    lineHeight: "1.15",
-
-    whiteSpace: "nowrap",
-
-    overflow: "hidden",
-
-    textOverflow: "clip",
+    lineHeight:
+      "1.35",
   };
 
   // =====================================================
@@ -521,13 +604,14 @@ export default function IssuePdf({
     React.CSSProperties = {
     ...cellBaseStyle,
 
-    textAlign: "center",
+    textAlign:
+      "center",
 
-    whiteSpace: "nowrap",
+    verticalAlign:
+      "middle",
 
-    overflow: "hidden",
-
-    verticalAlign: "middle",
+    whiteSpace:
+      "nowrap",
   };
 
   // =====================================================
@@ -538,13 +622,94 @@ export default function IssuePdf({
     React.CSSProperties = {
     ...cellBaseStyle,
 
-    textAlign: "left",
+    textAlign:
+      "left",
 
-    whiteSpace: "nowrap",
+    verticalAlign:
+      "middle",
 
-    overflow: "hidden",
+    whiteSpace:
+      "nowrap",
 
-    verticalAlign: "middle",
+    paddingLeft:
+      "1.5mm",
+
+    paddingRight:
+      "1mm",
+  };
+
+  // =====================================================
+  // ข้อความหัวตาราง
+  // =====================================================
+
+  const headerTextStyle:
+    React.CSSProperties = {
+    display:
+      "inline-block",
+
+    margin:
+      0,
+
+    padding:
+      0,
+
+    color:
+      "#000000",
+
+    fontFamily:
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
+
+    fontSize:
+      "15px",
+
+    fontWeight:
+      "normal",
+
+    lineHeight:
+      "1.35",
+
+    whiteSpace:
+      "nowrap",
+
+    verticalAlign:
+      "middle",
+  };
+
+  // =====================================================
+  // ข้อมูลตัวเลข
+  // =====================================================
+
+  const dataTextStyle:
+    React.CSSProperties = {
+    display:
+      "inline-block",
+
+    margin:
+      0,
+
+    padding:
+      0,
+
+    color:
+      "#000000",
+
+    fontFamily:
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
+
+    fontSize:
+      "15px",
+
+    fontWeight:
+      "normal",
+
+    lineHeight:
+      "1.35",
+
+    whiteSpace:
+      "nowrap",
+
+    verticalAlign:
+      "middle",
   };
 
   // =====================================================
@@ -554,7 +719,8 @@ export default function IssuePdf({
   function getRowStyle():
     React.CSSProperties {
     return {
-      height: TABLE_ROW_HEIGHT,
+      height:
+        TABLE_ROW_HEIGHT,
     };
   }
 
@@ -566,8 +732,12 @@ export default function IssuePdf({
 
       <button
         type="button"
-        onClick={handleExport}
-        disabled={loading}
+        onClick={
+          handleExport
+        }
+        disabled={
+          loading
+        }
         className="
           rounded-xl
           bg-gradient-to-r
@@ -599,28 +769,39 @@ export default function IssuePdf({
 
       <div
         style={{
-          position: "fixed",
+          position:
+            "fixed",
 
-          left: "-10000px",
+          left:
+            "-10000px",
 
-          top: "0",
+          top:
+            "0",
 
-          width: "210mm",
+          width:
+            "210mm",
 
-          height: "297mm",
+          height:
+            "297mm",
 
-          overflow: "hidden",
+          overflow:
+            "hidden",
 
-          pointerEvents: "none",
+          pointerEvents:
+            "none",
 
-          opacity: 1,
+          opacity:
+            1,
 
-          zIndex: -1,
+          zIndex:
+            -1,
         }}
         aria-hidden="true"
       >
         <div
-          ref={pdfRef}
+          ref={
+            pdfRef
+          }
           id={`issue-pdf-${issueId}`}
           className="
             box-border
@@ -636,22 +817,32 @@ export default function IssuePdf({
             fontFamily:
               '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
-            fontSize: "16px",
+            fontSize:
+              "16px",
 
-            lineHeight: "1",
+            lineHeight:
+              "1",
 
             backgroundColor:
               "#ffffff",
 
-            color: "#000000",
+            color:
+              "#000000",
           }}
         >
           {/* =================================================
               ส่วนหัวเอกสาร
           ================================================= */}
 
-          <div className="relative h-[27mm]">
-            {/* เลขที่เอกสาร */}
+          <div
+            className="
+              relative
+              h-[27mm]
+            "
+          >
+            {/* ===============================================
+                เลขที่เอกสาร
+            =============================================== */}
 
             <div
               className="
@@ -665,40 +856,63 @@ export default function IssuePdf({
               "
             >
               เลขที่เอกสาร{" "}
-              {documentNo || "-"}
+              {documentNo ||
+                "-"}
             </div>
 
-            {/* พอ.101 */}
+            {/* ===============================================
+                พอ.101
+                ใหญ่ + หนา + ดำ
+            =============================================== */}
 
             <div
               className="
-                pt-[1mm]
+                pt-[0.5mm]
                 text-center
-                text-[21px]
-                font-bold
+                text-[28px]
+                font-extrabold
                 leading-none
-                text-black
+                !text-black
               "
+              style={{
+                color:
+                  "#000000",
+
+                fontWeight:
+                  800,
+              }}
             >
               พอ.101
             </div>
 
-            {/* ใบเบิกพัสดุ */}
+            {/* ===============================================
+                ใบเบิกพัสดุ
+                ใหญ่ + หนา + ดำ
+            =============================================== */}
 
             <div
               className="
-                mt-[0.8mm]
+                mt-[1mm]
                 text-center
-                text-[21px]
-                font-bold
+                text-[28px]
+                font-extrabold
                 leading-none
-                text-black
+                !text-black
               "
+              style={{
+                color:
+                  "#000000",
+
+                fontWeight:
+                  800,
+              }}
             >
               ใบเบิกพัสดุ
             </div>
 
-            {/* กลุ่ม/งาน */}
+            {/* ===============================================
+                กลุ่ม/งาน
+            =============================================== */}
 
             <div
               className="
@@ -712,21 +926,33 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[20mm]">
+              <span
+                className="
+                  inline-block
+                  w-[20mm]
+                "
+              >
                 กลุ่ม/งาน :
               </span>
 
               <span>
-                {departmentName || "-"}
+                {departmentName ||
+                  "-"}
               </span>
 
-              <span className="ml-[3mm]">
+              <span
+                className="
+                  ml-[3mm]
+                "
+              >
                 สำนักอนามัยการเจริญพันธุ์
                 กรมอนามัย
               </span>
             </div>
 
-            {/* วันที่ */}
+            {/* ===============================================
+                วันที่
+            =============================================== */}
 
             <div
               className="
@@ -740,7 +966,12 @@ export default function IssuePdf({
                 text-black
               "
             >
-              <span className="inline-block w-[20mm]">
+              <span
+                className="
+                  inline-block
+                  w-[20mm]
+                "
+              >
                 วันที่ :
               </span>
 
@@ -771,145 +1002,148 @@ export default function IssuePdf({
               ตารางรายการ
           ================================================= */}
 
-          <div className="flex justify-center">
+          <div
+            className="
+              flex
+              justify-center
+            "
+          >
             <table
               style={{
-                width: "190mm",
+                width:
+                  "190mm",
 
-                tableLayout: "fixed",
+                tableLayout:
+                  "fixed",
 
                 borderCollapse:
                   "collapse",
 
-                borderSpacing: 0,
+                borderSpacing:
+                  0,
 
-                borderRadius: 0,
+                borderRadius:
+                  0,
 
-                border: TABLE_BORDER,
+                border:
+                  TABLE_BORDER,
 
-                fontSize: "16px",
-
-                color: "#000000",
+                color:
+                  "#000000",
 
                 backgroundColor:
                   "#ffffff",
               }}
             >
               <thead>
-                <tr style={getRowStyle()}>
-                  {/* ลำดับ */}
+                <tr
+                  style={
+                    getRowStyle()
+                  }
+                >
+                  {/* =========================================
+                      ลำดับ
+                  ========================================= */}
 
                   <th
                     style={{
                       ...headerCellStyle,
-                      width: "8%",
+
+                      width:
+                        "8%",
                     }}
                   >
-                    <div
+                    <span
                       style={
-                        centerContentStyle
+                        headerTextStyle
                       }
                     >
-                      <span
-                        style={
-                          headerTextStyle
-                        }
-                      >
-                        ลำดับ
-                      </span>
-                    </div>
+                      ลำดับ
+                    </span>
                   </th>
 
-                  {/* รายการพัสดุ */}
+                  {/* =========================================
+                      รายการพัสดุ
+                  ========================================= */}
 
                   <th
                     style={{
                       ...headerCellStyle,
-                      width: "44%",
+
+                      width:
+                        "44%",
                     }}
                   >
-                    <div
+                    <span
                       style={
-                        centerContentStyle
+                        headerTextStyle
                       }
                     >
-                      <span
-                        style={
-                          headerTextStyle
-                        }
-                      >
-                        รายการพัสดุ
-                      </span>
-                    </div>
+                      รายการพัสดุ
+                    </span>
                   </th>
 
-                  {/* จำนวนที่ขอเบิก */}
+                  {/* =========================================
+                      จำนวนที่ขอเบิก
+                  ========================================= */}
 
                   <th
                     style={{
                       ...headerCellStyle,
-                      width: "15%",
+
+                      width:
+                        "15%",
                     }}
                   >
-                    <div
+                    <span
                       style={
-                        centerContentStyle
+                        headerTextStyle
                       }
                     >
-                      <span
-                        style={
-                          headerTextStyle
-                        }
-                      >
-                        จำนวนที่ขอเบิก
-                      </span>
-                    </div>
+                      จำนวนที่ขอเบิก
+                    </span>
                   </th>
 
-                  {/* จำนวนที่พัสดุจ่าย */}
+                  {/* =========================================
+                      จำนวนที่พัสดุจ่าย
+                  ========================================= */}
 
                   <th
                     style={{
                       ...headerCellStyle,
-                      width: "15%",
+
+                      width:
+                        "15%",
                     }}
                   >
-                    <div
+                    <span
                       style={
-                        centerContentStyle
+                        headerTextStyle
                       }
                     >
-                      <span
-                        style={
-                          headerTextStyle
-                        }
-                      >
-                        จำนวนที่พัสดุจ่าย
-                      </span>
-                    </div>
+                      จำนวนที่พัสดุจ่าย
+                    </span>
                   </th>
 
-                  {/* หมายเหตุ */}
+                  {/* =========================================
+                      หมายเหตุ
+                  ========================================= */}
 
                   <th
                     style={{
                       ...headerCellStyle,
-                      width: "18%",
+
+                      width:
+                        "18%",
                     }}
                   >
-                    <div
+                    <span
                       style={
-                        centerContentStyle
+                        headerTextStyle
                       }
                     >
-                      <span
-                        style={
-                          headerTextStyle
-                        }
-                      >
-                        หมายเหตุ
-                      </span>
-                    </div>
+                      หมายเหตุ
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -929,134 +1163,180 @@ export default function IssuePdf({
                         getRowStyle()
                       }
                     >
-                      {/* ลำดับ */}
+                      {/* =====================================
+                          ลำดับ
+                      ===================================== */}
 
                       <td
                         style={
                           centerCellStyle
                         }
                       >
-                        <div
-                          style={
-                            centerContentStyle
-                          }
-                        >
-                          {item ? (
-                            <span
-                              style={
-                                dataTextStyle
-                              }
-                            >
-                              {index + 1}
-                            </span>
-                          ) : null}
-                        </div>
+                        {item ? (
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {index +
+                              1}
+                          </span>
+                        ) : null}
                       </td>
 
-                      {/* รายการพัสดุ */}
+                      {/* =====================================
+                          รายการพัสดุ
+                      ===================================== */}
 
                       <td
                         style={
                           leftCellStyle
                         }
                       >
-                        <div
-                          style={
-                            leftContentStyle
-                          }
-                        >
-                          {item ? (
-                            <span
-                              style={
-                                materialNameTextStyle
-                              }
-                            >
-                              {
-                                item
-                                  .material
-                                  .name
-                              }
-                            </span>
-                          ) : null}
-                        </div>
+                        {item ? (
+                          <span
+                            style={{
+                              display:
+                                "inline-block",
+
+                              margin:
+                                0,
+
+                              padding:
+                                0,
+
+                              color:
+                                "#000000",
+
+                              fontFamily:
+                                '"TH Sarabun New", Sarabun, Arial, sans-serif',
+
+                              fontSize:
+                                getMaterialFontSize(
+                                  item
+                                    .material
+                                    .name
+                                ),
+
+                              fontWeight:
+                                "normal",
+
+                              lineHeight:
+                                "1.4",
+
+                              whiteSpace:
+                                "nowrap",
+
+                              verticalAlign:
+                                "middle",
+                            }}
+                          >
+                            {
+                              item
+                                .material
+                                .name
+                            }
+                          </span>
+                        ) : null}
                       </td>
 
-                      {/* จำนวนที่ขอเบิก */}
+                      {/* =====================================
+                          จำนวนที่ขอเบิก
+                      ===================================== */}
 
                       <td
                         style={
                           centerCellStyle
                         }
                       >
-                        <div
-                          style={
-                            centerContentStyle
-                          }
-                        >
-                          {item ? (
-                            <span
-                              style={
-                                dataTextStyle
-                              }
-                            >
-                              {item.qty}
-                            </span>
-                          ) : null}
-                        </div>
+                        {item ? (
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {
+                              item.qty
+                            }
+                          </span>
+                        ) : null}
                       </td>
 
-                      {/* จำนวนที่พัสดุจ่าย */}
+                      {/* =====================================
+                          จำนวนที่พัสดุจ่าย
+                      ===================================== */}
 
                       <td
                         style={
                           centerCellStyle
                         }
                       >
-                        <div
-                          style={
-                            centerContentStyle
-                          }
-                        >
-                          {item &&
-                          item.issuedQty >
-                            0 ? (
-                            <span
-                              style={
-                                dataTextStyle
-                              }
-                            >
-                              {
-                                item.issuedQty
-                              }
-                            </span>
-                          ) : null}
-                        </div>
+                        {item &&
+                        item.issuedQty >
+                          0 ? (
+                          <span
+                            style={
+                              dataTextStyle
+                            }
+                          >
+                            {
+                              item
+                                .issuedQty
+                            }
+                          </span>
+                        ) : null}
                       </td>
 
-                      {/* หมายเหตุ */}
+                      {/* =====================================
+                          หมายเหตุ
+                      ===================================== */}
 
                       <td
                         style={
                           leftCellStyle
                         }
                       >
-                        <div
-                          style={
-                            leftContentStyle
-                          }
-                        >
-                          {item?.remark ? (
-                            <span
-                              style={
-                                remarkTextStyle
-                              }
-                            >
-                              {
-                                item.remark
-                              }
-                            </span>
-                          ) : null}
-                        </div>
+                        {item?.remark ? (
+                          <span
+                            style={{
+                              display:
+                                "inline-block",
+
+                              margin:
+                                0,
+
+                              padding:
+                                0,
+
+                              color:
+                                "#000000",
+
+                              fontFamily:
+                                '"TH Sarabun New", Sarabun, Arial, sans-serif',
+
+                              fontSize:
+                                getRemarkFontSize(
+                                  item.remark
+                                ),
+
+                              fontWeight:
+                                "normal",
+
+                              lineHeight:
+                                "1.4",
+
+                              whiteSpace:
+                                "nowrap",
+
+                              verticalAlign:
+                                "middle",
+                            }}
+                          >
+                            {
+                              item.remark
+                            }
+                          </span>
+                        ) : null}
                       </td>
                     </tr>
                   )
@@ -1086,7 +1366,8 @@ export default function IssuePdf({
 
             <div>
               รวมทั้งสิ้น{" "}
-              {totalItems} รายการ
+              {totalItems}{" "}
+              รายการ
             </div>
           </div>
 
@@ -1107,13 +1388,17 @@ export default function IssuePdf({
             ................................................
           </div>
 
-                    {/* =================================================
+          {/* =================================================
               ลายเซ็น
-              
-              - ซ้ายและขวาจัดโครงสร้างเหมือนกัน
-              - ลงชื่อ / วงเล็บชื่อ / วันที่ อยู่แนวเดียวกัน
-              - แถวบนซ้าย-ขวาตรงกัน
-              - แถวล่างซ้าย-ขวาตรงกัน
+
+              แถวบน:
+              ผู้รับของ ↔ ผู้เบิก
+
+              แถวล่าง:
+              ผู้จ่าย ↔ ผู้อนุญาต
+
+              วงเล็บชื่อและวันที่
+              อยู่กึ่งกลางใต้เส้นลงชื่อ
           ================================================= */}
 
           <div
@@ -1132,88 +1417,56 @@ export default function IssuePdf({
                 ฝั่งซ้าย
             ================================================= */}
 
-            <div className="text-left">
+            <div
+              className="
+                text-left
+              "
+            >
               {/* ผู้รับของ */}
 
-              <div className="mb-[6mm]">
-                <div className="whitespace-nowrap">
-                  ลงชื่อ{" "}
-                  ...............................................................{" "}
-                  ผู้รับของ
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  (.........................................................)
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่{" "}
-                  ................................................
-                </div>
+              <div
+                className="
+                  mb-[6mm]
+                "
+              >
+                <SignatureBlock
+                  role="ผู้รับของ"
+                />
               </div>
 
               {/* ผู้จ่าย */}
 
-              <div>
-                <div className="whitespace-nowrap">
-                  ลงชื่อ{" "}
-                  ...............................................................{" "}
-                  ผู้จ่าย
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  (.........................................................)
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่{" "}
-                  ................................................
-                </div>
-              </div>
+              <SignatureBlock
+                role="ผู้จ่าย"
+              />
             </div>
 
             {/* =================================================
                 ฝั่งขวา
             ================================================= */}
 
-            <div className="text-left">
+            <div
+              className="
+                text-left
+              "
+            >
               {/* ผู้เบิก */}
 
-              <div className="mb-[6mm]">
-                <div className="whitespace-nowrap">
-                  ลงชื่อ{" "}
-                  ...............................................................{" "}
-                  ผู้เบิก
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  (.........................................................)
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่{" "}
-                  ................................................
-                </div>
+              <div
+                className="
+                  mb-[6mm]
+                "
+              >
+                <SignatureBlock
+                  role="ผู้เบิก"
+                />
               </div>
 
               {/* ผู้อนุญาต */}
 
-              <div>
-                <div className="whitespace-nowrap">
-                  ลงชื่อ{" "}
-                  ...............................................................{" "}
-                  ผู้อนุญาต
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  (.........................................................)
-                </div>
-
-                <div className="mt-[1mm] whitespace-nowrap">
-                  วันที่{" "}
-                  ................................................
-                </div>
-              </div>
+              <SignatureBlock
+                role="ผู้อนุญาต"
+              />
             </div>
           </div>
         </div>
