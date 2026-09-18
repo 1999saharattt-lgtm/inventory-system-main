@@ -1596,6 +1596,52 @@ export default function ExportInspectionPdf({
             }
 
             /* =============================================
+               จำนวนที่ตรวจนับได้
+
+               บังคับให้อยู่บรรทัดเดียว
+               และลดขนาดตัวอักษรอัตโนมัติให้พอดีกับช่อง
+               ============================================= */
+
+            if (
+              data.section ===
+                "head" &&
+              data.row.index ===
+                0 &&
+              data.column.index ===
+                10
+            ) {
+              const countedHeaderText =
+                "จำนวนที่ตรวจนับได้";
+
+              data.cell.text =
+                [
+                  countedHeaderText,
+                ];
+
+              data.cell.styles.fontSize =
+                getSingleLineFontSize(
+                  doc,
+                  countedHeaderText,
+                  COLUMN_WIDTHS.counted,
+                  8,
+                  4.5,
+                  0.6
+                );
+
+              data.cell.styles.cellPadding =
+                0.2;
+
+              data.cell.styles.halign =
+                "center";
+
+              data.cell.styles.valign =
+                "middle";
+
+              data.cell.styles.overflow =
+                "hidden";
+            }
+
+            /* =============================================
                GFMIS
                ============================================= */
 
