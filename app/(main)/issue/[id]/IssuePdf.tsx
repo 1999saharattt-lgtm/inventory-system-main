@@ -29,16 +29,18 @@ type IssuePdfProps = {
 };
 
 // =====================================================
-// เส้นตาราง PDF
-// สีดำ + เส้นบาง
+// รูปแบบตาราง พอ.101
+//
+// html2canvas จะ Rasterize เส้นก่อนนำเข้า PDF
+// ใช้เส้นบาง + ลดความเข้ม
+// เพื่อให้ใกล้เคียงแบบฟอร์มราชการ
 // =====================================================
 
-const TABLE_BORDER_COLOR = "#000000";
-const TABLE_BORDER_WIDTH = "0.05px";
+const TABLE_BORDER =
+  "0.5px solid rgba(0, 0, 0, 0.48)";
 
 // =====================================================
-// ความสูงของทุกแถวในตาราง
-// กำหนดให้เท่ากันทุกแถวเสมอ
+// ความสูงทุกแถวเท่ากัน
 // =====================================================
 
 const TABLE_ROW_HEIGHT = "8mm";
@@ -78,10 +80,6 @@ export default function IssuePdf({
 
   // =====================================================
   // สร้าง PDF
-  //
-  // 1. สร้าง PDF ในหน้าเดิม
-  // 2. ไม่เปิดหน้า Loading แยก
-  // 3. เมื่อสร้างเสร็จจึงเปิด PDF
   // =====================================================
 
   const handleExport = async () => {
@@ -146,7 +144,7 @@ export default function IssuePdf({
       const canvas = await html2canvas(
         element,
         {
-          scale: 2,
+          scale: 3,
 
           useCORS: true,
 
@@ -195,7 +193,7 @@ export default function IssuePdf({
         pdf.internal.pageSize.getHeight();
 
       // =================================================
-      // ใส่ภาพลง PDF
+      // ใส่ภาพเต็มหน้า A4
       // =================================================
 
       pdf.addImage(
@@ -213,8 +211,7 @@ export default function IssuePdf({
       // สร้าง Blob
       // =================================================
 
-      const pdfBlob =
-        pdf.output("blob");
+      const pdfBlob = pdf.output("blob");
 
       const pdfUrl =
         URL.createObjectURL(pdfBlob);
@@ -300,7 +297,7 @@ export default function IssuePdf({
     color: "#000000",
 
     fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
     fontSize: "16px",
 
@@ -312,8 +309,7 @@ export default function IssuePdf({
 
     boxSizing: "border-box",
 
-    border:
-      `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`,
+    border: TABLE_BORDER,
   };
 
   // =====================================================
@@ -332,7 +328,7 @@ export default function IssuePdf({
     padding: 0,
 
     fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
     fontSize: "16px",
 
@@ -362,9 +358,6 @@ export default function IssuePdf({
     textAlign: "center",
 
     whiteSpace: "nowrap",
-
-    border:
-      `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`,
   };
 
   // =====================================================
@@ -383,7 +376,7 @@ export default function IssuePdf({
     padding: 0,
 
     fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
     fontSize: "16px",
 
@@ -412,7 +405,7 @@ export default function IssuePdf({
     padding: 0,
 
     fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
     fontSize: "16px",
 
@@ -420,11 +413,11 @@ export default function IssuePdf({
 
     lineHeight: "1",
 
-    whiteSpace: "normal",
+    whiteSpace: "nowrap",
 
-    overflowWrap: "break-word",
+    overflow: "hidden",
 
-    wordBreak: "normal",
+    textOverflow: "clip",
 
     verticalAlign: "middle",
   };
@@ -445,7 +438,7 @@ export default function IssuePdf({
     padding: 0,
 
     fontFamily:
-      "TH Sarabun New, Sarabun, Arial, sans-serif",
+      '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
     fontSize: "16px",
 
@@ -453,11 +446,11 @@ export default function IssuePdf({
 
     lineHeight: "1",
 
-    whiteSpace: "normal",
+    whiteSpace: "nowrap",
 
-    overflowWrap: "break-word",
+    overflow: "hidden",
 
-    wordBreak: "normal",
+    textOverflow: "clip",
 
     verticalAlign: "middle",
   };
@@ -474,7 +467,7 @@ export default function IssuePdf({
 
     whiteSpace: "nowrap",
 
-    overflow: "visible",
+    overflow: "hidden",
   };
 
   // =====================================================
@@ -487,9 +480,9 @@ export default function IssuePdf({
 
     textAlign: "left",
 
-    whiteSpace: "normal",
+    whiteSpace: "nowrap",
 
-    overflow: "visible",
+    overflow: "hidden",
 
     paddingLeft: "1mm",
 
@@ -499,13 +492,11 @@ export default function IssuePdf({
   };
 
   // =====================================================
-  // ความสูงแต่ละแถว
-  //
-  // ทุกแถวใช้ความสูงเท่ากันเสมอ
-  // ไม่เปลี่ยนตามความยาวชื่อพัสดุหรือหมายเหตุ
+  // ทุกแถวสูงเท่ากัน
   // =====================================================
 
-  function getRowStyle(): React.CSSProperties {
+  function getRowStyle():
+    React.CSSProperties {
     return {
       height: TABLE_ROW_HEIGHT,
       minHeight: TABLE_ROW_HEIGHT,
@@ -589,7 +580,7 @@ export default function IssuePdf({
           "
           style={{
             fontFamily:
-              "TH Sarabun New, Sarabun, Arial, sans-serif",
+              '"TH Sarabun New", Sarabun, Arial, sans-serif',
 
             fontSize: "16px",
 
@@ -741,25 +732,17 @@ export default function IssuePdf({
 
                 borderRadius: 0,
 
-                border:
-                  `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`,
+                border: TABLE_BORDER,
 
                 fontSize: "16px",
 
                 color: "#000000",
 
-                backgroundColor:
-                  "#ffffff",
+                backgroundColor: "#ffffff",
               }}
             >
               <thead>
-                <tr
-                  style={{
-                    height: TABLE_ROW_HEIGHT,
-                    minHeight: TABLE_ROW_HEIGHT,
-                    maxHeight: TABLE_ROW_HEIGHT,
-                  }}
-                >
+                <tr style={getRowStyle()}>
                   {/* ลำดับ */}
 
                   <th
@@ -799,7 +782,7 @@ export default function IssuePdf({
                     </span>
                   </th>
 
-                  {/* จำนวนที่เบิกจ่าย */}
+                  {/* จำนวนที่พัสดุจ่าย */}
 
                   <th
                     style={{
@@ -808,7 +791,7 @@ export default function IssuePdf({
                     }}
                   >
                     <span style={headerTextStyle}>
-                      จำนวนที่เบิกจ่าย
+                      จำนวนที่พัสดุจ่าย
                     </span>
                   </th>
 
@@ -886,7 +869,7 @@ export default function IssuePdf({
                         </span>
                       </td>
 
-                      {/* จำนวนที่เบิกจ่าย */}
+                      {/* จำนวนที่พัสดุจ่าย */}
 
                       <td
                         style={
@@ -1031,13 +1014,13 @@ export default function IssuePdf({
             {/* ฝั่งขวา */}
 
             <div className="text-center">
-              {/* หัวหน้ากลุ่ม */}
+              {/* ผู้เบิก */}
 
               <div className="mb-[6mm]">
                 <div className="whitespace-nowrap">
                   ลงชื่อ{" "}
                   ...............................................................{" "}
-                  หัวหน้ากลุ่ม
+                  ผู้เบิก
                 </div>
 
                 <div className="mt-[1mm] whitespace-nowrap">
