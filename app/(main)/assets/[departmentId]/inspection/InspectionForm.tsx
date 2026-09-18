@@ -233,13 +233,8 @@ function getFiscalYear(value: string) {
 
   const year = date.getFullYear();
 
-  const month =
-    date.getMonth() + 1;
-
   return String(
-    month >= 10
-      ? year + 1 + 543
-      : year + 543
+    year + 543
   );
 }
 
