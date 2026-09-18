@@ -341,7 +341,7 @@ export default async function AllAssetsPage({
               sm:text-3xl
             "
           >
-            📋 ทะเบียนคุมครุภัณฑ์
+            📋 ทะเบียนครุภัณฑ์ทั้งหมด
           </h1>
 
           <p
@@ -377,7 +377,6 @@ export default async function AllAssetsPage({
         >
           {/* =============================================
               ส่งออก PDF
-              ขนาดกะทัดรัดเหมือนภาพตัวอย่าง
           ============================================= */}
 
           <div
@@ -431,7 +430,6 @@ export default async function AllAssetsPage({
 
           {/* =============================================
               กลับ
-              ขนาดกะทัดรัดเหมือนภาพตัวอย่าง
           ============================================= */}
 
           <Link
@@ -498,8 +496,6 @@ export default async function AllAssetsPage({
           >
             <thead>
               <tr>
-                {/* ลำดับ */}
-
                 <th
                   className="
                     w-[6%]
@@ -517,8 +513,6 @@ export default async function AllAssetsPage({
                 >
                   ลำดับ
                 </th>
-
-                {/* รหัส GFMIS */}
 
                 <th
                   className="
@@ -538,8 +532,6 @@ export default async function AllAssetsPage({
                   รหัส GFMIS
                 </th>
 
-                {/* รหัสครุภัณฑ์ */}
-
                 <th
                   className="
                     w-[15%]
@@ -557,8 +549,6 @@ export default async function AllAssetsPage({
                 >
                   รหัสครุภัณฑ์
                 </th>
-
-                {/* รายการครุภัณฑ์ */}
 
                 <th
                   className="
@@ -578,8 +568,6 @@ export default async function AllAssetsPage({
                   รายการครุภัณฑ์
                 </th>
 
-                {/* จำนวน */}
-
                 <th
                   className="
                     w-[7%]
@@ -597,8 +585,6 @@ export default async function AllAssetsPage({
                 >
                   จำนวน
                 </th>
-
-                {/* หน่วย */}
 
                 <th
                   className="
@@ -618,8 +604,6 @@ export default async function AllAssetsPage({
                   หน่วย
                 </th>
 
-                {/* ผู้รับผิดชอบ */}
-
                 <th
                   className="
                     w-[16%]
@@ -637,8 +621,6 @@ export default async function AllAssetsPage({
                 >
                   ผู้รับผิดชอบ
                 </th>
-
-                {/* สถานะ */}
 
                 <th
                   className="
@@ -806,6 +788,8 @@ export default async function AllAssetsPage({
                         border-black
                         px-3
                         py-4
+                        text-center
+                        align-middle
                         font-semibold
                       "
                     >
