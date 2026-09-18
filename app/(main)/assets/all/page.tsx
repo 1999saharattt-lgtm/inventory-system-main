@@ -1,18 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-const categoryName: Record<string, string> = {
-  DESK: "โต๊ะ",
-  CHAIR: "เก้าอี้",
-  AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
-  COMPUTER: "คอมพิวเตอร์",
-  PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "เครื่องโทรศัพท์",
-  OTHER: "ทั่วไป",
-  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
-};
-
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
   WAITING_DISPOSAL: "รอจำหน่าย",
@@ -104,7 +92,7 @@ export default async function AllAssetsPage() {
               sm:text-base
             "
           >
-            รายการครุภัณฑ์ทั้งหมดของสำนัก แยกตามหน่วยงานและประเภท
+            รายการครุภัณฑ์ทั้งหมดของสำนัก แยกตามหน่วยงาน
           </p>
         </div>
       </div>
@@ -159,7 +147,12 @@ export default async function AllAssetsPage() {
           </p>
 
           <p className="mt-2 text-3xl font-extrabold text-emerald-800">
-            {assets.filter((asset) => asset.status === "IN_USE").length}
+            {
+              assets.filter(
+                (asset) =>
+                  asset.status === "IN_USE"
+              ).length
+            }
           </p>
 
           <p className="mt-1 text-sm font-semibold text-emerald-700">
@@ -184,7 +177,9 @@ export default async function AllAssetsPage() {
           <p className="mt-2 text-3xl font-extrabold text-amber-800">
             {
               assets.filter(
-                (asset) => asset.status === "WAITING_DISPOSAL"
+                (asset) =>
+                  asset.status ===
+                  "WAITING_DISPOSAL"
               ).length
             }
           </p>
@@ -215,7 +210,7 @@ export default async function AllAssetsPage() {
           <table
             className="
               w-full
-              min-w-[1200px]
+              min-w-[1050px]
               border-collapse
               text-sm
             "
@@ -233,212 +228,210 @@ export default async function AllAssetsPage() {
                   ลำดับ
                 </th>
 
-                <th className="w-[13%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[15%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   หน่วยงาน
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
-                  ประเภท
-                </th>
-
-                <th className="w-[22%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[29%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   รายการครุภัณฑ์
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[14%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   เลขครุภัณฑ์กรม
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[14%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   เลขครุภัณฑ์ประจำสำนัก
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[13%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   ผู้ครอบครอง
                 </th>
 
-                <th className="w-[12%] border border-black px-3 py-4 text-center font-extrabold !text-white">
+                <th className="w-[10%] border border-black px-3 py-4 text-center font-extrabold !text-white">
                   สถานะ
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              {assets.map((asset, index) => (
-                <tr
-                  key={asset.id}
-                  className="
-                    text-slate-900
-                    transition
-                    hover:bg-blue-50
-                  "
-                >
-                  {/* ลำดับ */}
-
-                  <td
+              {assets.map(
+                (asset, index) => (
+                  <tr
+                    key={asset.id}
                     className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-bold
+                      text-slate-900
+                      transition
+                      hover:bg-blue-50
                     "
                   >
-                    {index + 1}
-                  </td>
+                    {/* ลำดับ */}
 
-                  {/* หน่วยงาน */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    {asset.department.name}
-                  </td>
-
-                  {/* ประเภท */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    {categoryName[asset.category] ?? asset.category}
-                  </td>
-
-                  {/* รายการ */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    <Link
-                      href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}`}
+                    <td
                       className="
-                        font-extrabold
-                        text-slate-900
-                        underline-offset-4
-                        hover:text-blue-700
-                        hover:underline
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                        font-bold
                       "
                     >
-                      {asset.name}
-                    </Link>
+                      {index + 1}
+                    </td>
 
-                    {(asset.brand || asset.model) && (
-                      <p className="mt-1 text-xs font-semibold text-slate-500">
-                        {[asset.brand, asset.model]
-                          .filter(Boolean)
-                          .join(" / ")}
-                      </p>
-                    )}
-                  </td>
+                    {/* หน่วยงาน */}
 
-                  {/* เลขครุภัณฑ์กรม */}
-
-                  <td
-                    className="
-                      break-all
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-semibold
-                    "
-                  >
-                    {asset.governmentAssetNo ?? "-"}
-                  </td>
-
-                  {/* เลขครุภัณฑ์ประจำสำนัก */}
-
-                  <td
-                    className="
-                      break-all
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                      font-semibold
-                    "
-                  >
-                    {asset.officeAssetNo ?? "-"}
-                  </td>
-
-                  {/* ผู้ครอบครอง */}
-
-                  <td
-                    className="
-                      break-words
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      font-semibold
-                    "
-                  >
-                    {asset.officer
-                      ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                      : "-"}
-                  </td>
-
-                  {/* สถานะ */}
-
-                  <td
-                    className="
-                      border
-                      border-black
-                      px-3
-                      py-4
-                      text-center
-                    "
-                  >
-                    <span
-                      className={`
-                        inline-flex
-                        rounded-full
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
                         px-3
-                        py-1
-                        text-xs
-                        font-extrabold
-                        ${
-                          asset.status === "IN_USE"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : asset.status === "WAITING_DISPOSAL"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-slate-200 text-slate-800"
-                        }
-                      `}
+                        py-4
+                        font-semibold
+                      "
                     >
-                      {statusName[asset.status] ?? asset.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                      {asset.department.name}
+                    </td>
+
+                    {/* รายการครุภัณฑ์ */}
+
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        font-semibold
+                      "
+                    >
+                      <Link
+                        href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}`}
+                        className="
+                          font-extrabold
+                          text-slate-900
+                          underline-offset-4
+                          hover:text-blue-700
+                          hover:underline
+                        "
+                      >
+                        {asset.name}
+                      </Link>
+
+                      {(asset.brand ||
+                        asset.model) && (
+                        <p className="mt-1 text-xs font-semibold text-slate-500">
+                          {[
+                            asset.brand,
+                            asset.model,
+                          ]
+                            .filter(
+                              Boolean
+                            )
+                            .join(
+                              " / "
+                            )}
+                        </p>
+                      )}
+                    </td>
+
+                    {/* เลขครุภัณฑ์กรม */}
+
+                    <td
+                      className="
+                        break-all
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                        font-semibold
+                      "
+                    >
+                      {asset.governmentAssetNo ??
+                        "-"}
+                    </td>
+
+                    {/* เลขครุภัณฑ์ประจำสำนัก */}
+
+                    <td
+                      className="
+                        break-all
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                        font-semibold
+                      "
+                    >
+                      {asset.officeAssetNo ??
+                        "-"}
+                    </td>
+
+                    {/* ผู้ครอบครอง */}
+
+                    <td
+                      className="
+                        break-words
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        font-semibold
+                      "
+                    >
+                      {asset.officer
+                        ? `${asset.officer.firstName} ${asset.officer.lastName}`
+                        : "-"}
+                    </td>
+
+                    {/* สถานะ */}
+
+                    <td
+                      className="
+                        border
+                        border-black
+                        px-3
+                        py-4
+                        text-center
+                      "
+                    >
+                      <span
+                        className={`
+                          inline-flex
+                          rounded-full
+                          px-3
+                          py-1
+                          text-xs
+                          font-extrabold
+                          ${
+                            asset.status ===
+                            "IN_USE"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : asset.status ===
+                                  "WAITING_DISPOSAL"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-slate-200 text-slate-800"
+                          }
+                        `}
+                      >
+                        {statusName[
+                          asset.status
+                        ] ??
+                          asset.status}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              )}
 
               {assets.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="
                       border
                       border-black
