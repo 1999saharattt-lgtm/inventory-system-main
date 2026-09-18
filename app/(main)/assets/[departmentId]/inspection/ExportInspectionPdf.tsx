@@ -166,9 +166,9 @@ const COLUMN_WIDTHS = {
   receive: 12,
   issue: 12,
   accountEnd: 22.5,
-  counted: 13.5,
-  correct: 12.5,
-  incorrect: 12.5,
+  counted: 15.5,
+  correct: 11.5,
+  incorrect: 11.5,
   inUse: 10,
   damaged: 9.5,
   deteriorated: 10.5,
@@ -998,11 +998,13 @@ export default function ExportInspectionPdf({
                   displayOrder
                 ),
 
-                asset.governmentAssetNo ||
-                  "",
+                asset.governmentAssetNo?.trim()
+                  ? asset.governmentAssetNo
+                  : "-",
 
-                asset.officeAssetNo ||
-                  "",
+                asset.officeAssetNo?.trim()
+                  ? asset.officeAssetNo
+                  : "-",
 
                 responsibleName,
 
@@ -1346,6 +1348,10 @@ export default function ExportInspectionPdf({
              - ยอดคงเหลือต้นงวด
              - รับ / จ่าย
              - ยอดคงเหลือปลายงวด
+
+             และรอบนี้:
+             - เพิ่มช่อง "จำนวนที่ตรวจนับได้" จาก 13.5 → 15.5 mm
+             - ลดกลุ่ม "ผลการตรวจนับถูกต้อง..." ลงรวม 2 mm
              ================================================= */
 
           columnStyles: {
