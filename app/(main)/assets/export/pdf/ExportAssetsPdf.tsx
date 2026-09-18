@@ -34,18 +34,6 @@ type Props = {
   assets: Asset[];
 };
 
-const categoryName: Record<string, string> = {
-  DESK: "โต๊ะ",
-  CHAIR: "เก้าอี้",
-  AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  CABINET: "ตู้และชั้น",
-  COMPUTER: "คอมพิวเตอร์",
-  PRINTER: "เครื่องพิมพ์",
-  TELEPHONE: "เครื่องโทรศัพท์",
-  OTHER: "ทั่วไป",
-  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
-};
-
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
   WAITING_DISPOSAL: "รอจำหน่าย",
@@ -53,11 +41,15 @@ const statusName: Record<string, string> = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "-";
+  if (!value) {
+    return "-";
+  }
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
 
   return date.toLocaleDateString("th-TH", {
     day: "2-digit",
@@ -86,35 +78,42 @@ export default function ExportAssetsPdf({
   const [departmentId, setDepartmentId] =
     useState<string>("all");
 
-  const [category, setCategory] =
-    useState<string>("all");
-
   const [isExporting, setIsExporting] =
     useState(false);
 
+  // =====================================================
+  // Filter
+  //
+  // เหลือเฉพาะการกรองตามหน่วยงาน
+  // ไม่มีการกรองตามประเภทแล้ว
+  // =====================================================
+
   const filteredAssets = assets.filter((asset) => {
-    const departmentMatch =
+    return (
       departmentId === "all" ||
-      asset.departmentId === Number(departmentId);
-
-    const categoryMatch =
-      category === "all" ||
-      asset.category === category;
-
-    return departmentMatch && categoryMatch;
+      asset.departmentId === Number(departmentId)
+    );
   });
 
-  const categories = Array.from(
-    new Set(assets.map((asset) => asset.category))
-  );
+  // =====================================================
+  // Export PDF
+  // =====================================================
 
   async function handleExportPdf() {
-    if (!pdfRef.current || filteredAssets.length === 0) {
+    if (
+      !pdfRef.current ||
+      filteredAssets.length === 0 ||
+      isExporting
+    ) {
       return;
     }
 
     try {
       setIsExporting(true);
+
+      // =================================================
+      // HTML -> Canvas
+      // =================================================
 
       const canvas = await html2canvas(pdfRef.current, {
         scale: 2,
@@ -124,6 +123,10 @@ export default function ExportAssetsPdf({
       });
 
       const imageData = canvas.toDataURL("image/png");
+
+      // =================================================
+      // PDF A4 Landscape
+      // =================================================
 
       const pdf = new jsPDF({
         orientation: "landscape",
@@ -149,11 +152,13 @@ export default function ExportAssetsPdf({
         canvas.width / canvas.height;
 
       let imageWidth = contentWidth;
-      let imageHeight = imageWidth / imageRatio;
+      let imageHeight =
+        imageWidth / imageRatio;
 
       if (imageHeight > contentHeight) {
         imageHeight = contentHeight;
-        imageWidth = imageHeight * imageRatio;
+        imageWidth =
+          imageHeight * imageRatio;
       }
 
       const x =
@@ -175,6 +180,10 @@ export default function ExportAssetsPdf({
         "FAST"
       );
 
+      // =================================================
+      // ชื่อหน่วยงาน
+      // =================================================
+
       const departmentName =
         departmentId === "all"
           ? "ทุกหน่วยงาน"
@@ -183,13 +192,14 @@ export default function ExportAssetsPdf({
                 department.id === Number(departmentId)
             )?.name ?? "หน่วยงาน";
 
-      const categoryText =
-        category === "all"
-          ? "ทุกประเภท"
-          : categoryName[category] ?? category;
+      // =================================================
+      // ชื่อไฟล์
+      //
+      // เอาประเภทออกจากชื่อไฟล์ด้วย
+      // =================================================
 
       const fileName =
-        `ทะเบียนคุมครุภัณฑ์_${departmentName}_${categoryText}.pdf`;
+        `ทะเบียนคุมครุภัณฑ์_${departmentName}.pdf`;
 
       pdf.save(fileName);
     } catch (error) {
@@ -241,18 +251,14 @@ export default function ExportAssetsPdf({
           </h2>
         </div>
 
-        <div
-          className="
-            grid
-            gap-4
-            p-4
-            sm:grid-cols-2
-            sm:p-6
-          "
-        >
-          {/* หน่วยงาน */}
+        {/* =================================================
+            เลือกหน่วยงาน
 
-          <div>
+            เอาตัวเลือก "ประเภทครุภัณฑ์" ออกแล้ว
+        ================================================= */}
+
+        <div className="p-4 sm:p-6">
+          <div className="w-full sm:max-w-xl">
             <label
               htmlFor="department"
               className="
@@ -301,59 +307,11 @@ export default function ExportAssetsPdf({
               ))}
             </select>
           </div>
-
-          {/* ประเภท */}
-
-          <div>
-            <label
-              htmlFor="category"
-              className="
-                text-sm
-                font-extrabold
-                text-slate-700
-              "
-            >
-              ประเภทครุภัณฑ์
-            </label>
-
-            <select
-              id="category"
-              value={category}
-              onChange={(event) =>
-                setCategory(event.target.value)
-              }
-              className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
-              "
-            >
-              <option value="all">
-                ทุกประเภท
-              </option>
-
-              {categories.map((value) => (
-                <option
-                  key={value}
-                  value={value}
-                >
-                  {categoryName[value] ?? value}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
+
+        {/* =================================================
+            จำนวนรายการ + ปุ่ม Export
+        ================================================= */}
 
         <div
           className="
@@ -372,7 +330,9 @@ export default function ExportAssetsPdf({
           <p className="font-bold text-slate-600">
             พบทั้งหมด{" "}
             <span className="font-extrabold text-slate-900">
-              {filteredAssets.length.toLocaleString("th-TH")}
+              {filteredAssets.length.toLocaleString(
+                "th-TH"
+              )}
             </span>{" "}
             รายการ
           </p>
@@ -430,7 +390,9 @@ export default function ExportAssetsPdf({
           shadow-xl
         "
       >
-        {/* PDF Header */}
+        {/* =================================================
+            PDF Header
+        ================================================= */}
 
         <div className="mb-5 text-center">
           <h2
@@ -454,6 +416,11 @@ export default function ExportAssetsPdf({
             สำนักอนามัยการเจริญพันธุ์ กรมอนามัย
           </p>
 
+          {/* ===============================================
+              แสดงเฉพาะหน่วยงาน
+              ไม่มี "/ ทุกประเภท" แล้ว
+          =============================================== */}
+
           <p
             className="
               mt-1
@@ -469,21 +436,20 @@ export default function ExportAssetsPdf({
                     department.id ===
                     Number(departmentId)
                 )?.name ?? "-"}
-
-            {" / "}
-
-            {category === "all"
-              ? "ทุกประเภท"
-              : categoryName[category] ?? category}
           </p>
         </div>
 
-        {/* Table */}
+        {/* =================================================
+            Table
+
+            เอาคอลัมน์ "ประเภท" ออก
+        ================================================= */}
 
         <div className="overflow-hidden">
           <table
             className="
               w-full
+              table-fixed
               border-collapse
               border
               border-black
@@ -499,8 +465,11 @@ export default function ExportAssetsPdf({
                   text-white
                 "
               >
+                {/* ลำดับ */}
+
                 <th
                   className="
+                    w-[5%]
                     border
                     border-black
                     px-2
@@ -512,8 +481,11 @@ export default function ExportAssetsPdf({
                   ลำดับ
                 </th>
 
+                {/* รายการครุภัณฑ์ */}
+
                 <th
                   className="
+                    w-[23%]
                     border
                     border-black
                     px-2
@@ -525,21 +497,11 @@ export default function ExportAssetsPdf({
                   รายการครุภัณฑ์
                 </th>
 
-                <th
-                  className="
-                    border
-                    border-black
-                    px-2
-                    py-2
-                    text-center
-                    font-extrabold
-                  "
-                >
-                  ประเภท
-                </th>
+                {/* ยี่ห้อ / รุ่น */}
 
                 <th
                   className="
+                    w-[13%]
                     border
                     border-black
                     px-2
@@ -551,8 +513,11 @@ export default function ExportAssetsPdf({
                   ยี่ห้อ / รุ่น
                 </th>
 
+                {/* เลขครุภัณฑ์กรม */}
+
                 <th
                   className="
+                    w-[14%]
                     border
                     border-black
                     px-2
@@ -564,8 +529,11 @@ export default function ExportAssetsPdf({
                   เลขครุภัณฑ์กรม
                 </th>
 
+                {/* เลขครุภัณฑ์ประจำสำนัก */}
+
                 <th
                   className="
+                    w-[15%]
                     border
                     border-black
                     px-2
@@ -577,8 +545,11 @@ export default function ExportAssetsPdf({
                   เลขครุภัณฑ์ประจำสำนัก
                 </th>
 
+                {/* ผู้ครอบครอง */}
+
                 <th
                   className="
+                    w-[11%]
                     border
                     border-black
                     px-2
@@ -590,8 +561,11 @@ export default function ExportAssetsPdf({
                   ผู้ครอบครอง
                 </th>
 
+                {/* สถานะ */}
+
                 <th
                   className="
+                    w-[7%]
                     border
                     border-black
                     px-2
@@ -603,8 +577,11 @@ export default function ExportAssetsPdf({
                   สถานะ
                 </th>
 
+                {/* วันที่จัดซื้อ */}
+
                 <th
                   className="
+                    w-[7%]
                     border
                     border-black
                     px-2
@@ -616,8 +593,11 @@ export default function ExportAssetsPdf({
                   วันที่จัดซื้อ
                 </th>
 
+                {/* ราคา */}
+
                 <th
                   className="
+                    w-[5%]
                     border
                     border-black
                     px-2
@@ -635,7 +615,7 @@ export default function ExportAssetsPdf({
               {filteredAssets.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={9}
                     className="
                       border
                       border-black
@@ -650,163 +630,180 @@ export default function ExportAssetsPdf({
                   </td>
                 </tr>
               ) : (
-                filteredAssets.map((asset, index) => (
-                  <tr key={asset.id}>
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {index + 1}
-                    </td>
+                filteredAssets.map(
+                  (asset, index) => (
+                    <tr key={asset.id}>
+                      {/* ลำดับ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {asset.name}
-                    </td>
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          text-center
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {index + 1}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {categoryName[asset.category] ??
-                        asset.category}
-                    </td>
+                      {/* รายการครุภัณฑ์ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {asset.brand || asset.model
-                        ? [
-                            asset.brand,
-                            asset.model,
-                          ]
-                            .filter(Boolean)
-                            .join(" / ")
-                        : "-"}
-                    </td>
+                      <td
+                        className="
+                          break-words
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {asset.name}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {asset.governmentAssetNo ||
-                        "-"}
-                    </td>
+                      {/* ยี่ห้อ / รุ่น */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {asset.officeAssetNo || "-"}
-                    </td>
+                      <td
+                        className="
+                          break-words
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {asset.brand ||
+                        asset.model
+                          ? [
+                              asset.brand,
+                              asset.model,
+                            ]
+                              .filter(Boolean)
+                              .join(" / ")
+                          : "-"}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {asset.officerName || "-"}
-                    </td>
+                      {/* เลขครุภัณฑ์กรม */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {statusName[asset.status] ??
-                        asset.status}
-                    </td>
+                      <td
+                        className="
+                          break-all
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {asset.governmentAssetNo ||
+                          "-"}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {formatDate(
-                        asset.purchaseDate
-                      )}
-                    </td>
+                      {/* เลขครุภัณฑ์ประจำสำนัก */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-right
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {formatPrice(asset.price)}
-                    </td>
-                  </tr>
-                ))
+                      <td
+                        className="
+                          break-all
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {asset.officeAssetNo ||
+                          "-"}
+                      </td>
+
+                      {/* ผู้ครอบครอง */}
+
+                      <td
+                        className="
+                          break-words
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          text-center
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {asset.officerName || "-"}
+                      </td>
+
+                      {/* สถานะ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          text-center
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {statusName[
+                          asset.status
+                        ] ?? asset.status}
+                      </td>
+
+                      {/* วันที่จัดซื้อ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          text-center
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {formatDate(
+                          asset.purchaseDate
+                        )}
+                      </td>
+
+                      {/* ราคา */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-2
+                          py-2
+                          text-right
+                          font-semibold
+                          text-slate-900
+                        "
+                      >
+                        {formatPrice(
+                          asset.price
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Footer */}
+        {/* =================================================
+            Footer
+        ================================================= */}
 
         <div
           className="
@@ -819,12 +816,18 @@ export default function ExportAssetsPdf({
           "
         >
           <span>
-            จำนวน {filteredAssets.length.toLocaleString("th-TH")} รายการ
+            จำนวน{" "}
+            {filteredAssets.length.toLocaleString(
+              "th-TH"
+            )}{" "}
+            รายการ
           </span>
 
           <span>
             พิมพ์วันที่{" "}
-            {new Date().toLocaleDateString("th-TH")}
+            {new Date().toLocaleDateString(
+              "th-TH"
+            )}
           </span>
         </div>
       </div>
