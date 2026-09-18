@@ -29,18 +29,20 @@ type IssuePdfProps = {
 };
 
 // =====================================================
-// รูปแบบตาราง พอ.101
+// ตาราง พอ.101
 //
-// html2canvas จะ Rasterize เส้นก่อนนำเข้า PDF
-// ใช้เส้นบาง + ลดความเข้ม
-// เพื่อให้ใกล้เคียงแบบฟอร์มราชการ
+// ใช้เส้นสีดำบาง
+// ไม่ใช้ rgba เพื่อให้เวลาพิมพ์ออกมาเป็นสีดำจริง
+// แต่ลดความหนาของเส้นแทน
 // =====================================================
 
+const TABLE_BORDER_COLOR = "#000000";
+const TABLE_BORDER_WIDTH = "0.25px";
 const TABLE_BORDER =
-  "0.5px solid rgba(0, 0, 0, 0.48)";
+  `${TABLE_BORDER_WIDTH} solid ${TABLE_BORDER_COLOR}`;
 
 // =====================================================
-// ความสูงทุกแถวเท่ากัน
+// ทุกแถวสูงเท่ากัน
 // =====================================================
 
 const TABLE_ROW_HEIGHT = "8mm";
@@ -73,7 +75,8 @@ export default function IssuePdf({
   departmentName,
   items,
 }: IssuePdfProps) {
-  const pdfRef = useRef<HTMLDivElement>(null);
+  const pdfRef =
+    useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] =
     React.useState(false);
@@ -128,8 +131,11 @@ export default function IssuePdf({
         );
       }
 
-      const width = element.clientWidth;
-      const height = element.clientHeight;
+      const width =
+        element.clientWidth;
+
+      const height =
+        element.clientHeight;
 
       if (width <= 0 || height <= 0) {
         throw new Error(
@@ -139,11 +145,12 @@ export default function IssuePdf({
 
       // =================================================
       // HTML -> Canvas
+      //
+      // scale 3 เพื่อให้ตัวอักษรและเส้นคมขึ้น
       // =================================================
 
-      const canvas = await html2canvas(
-        element,
-        {
+      const canvas =
+        await html2canvas(element, {
           scale: 3,
 
           useCORS: true,
@@ -162,8 +169,7 @@ export default function IssuePdf({
           scrollY: 0,
 
           logging: false,
-        }
-      );
+        });
 
       // =================================================
       // Canvas -> PNG
@@ -179,12 +185,13 @@ export default function IssuePdf({
       // สร้าง PDF A4
       // =================================================
 
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
+      const pdf =
+        new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          compress: true,
+        });
 
       const pageWidth =
         pdf.internal.pageSize.getWidth();
@@ -193,7 +200,7 @@ export default function IssuePdf({
         pdf.internal.pageSize.getHeight();
 
       // =================================================
-      // ใส่ภาพเต็มหน้า A4
+      // ใส่ภาพลง PDF
       // =================================================
 
       pdf.addImage(
@@ -211,7 +218,8 @@ export default function IssuePdf({
       // สร้าง Blob
       // =================================================
 
-      const pdfBlob = pdf.output("blob");
+      const pdfBlob =
+        pdf.output("blob");
 
       const pdfUrl =
         URL.createObjectURL(pdfBlob);
@@ -220,13 +228,14 @@ export default function IssuePdf({
       // เปิด PDF
       // =================================================
 
-      const pdfWindow = window.open(
-        pdfUrl,
-        "_blank"
-      );
+      const pdfWindow =
+        window.open(
+          pdfUrl,
+          "_blank"
+        );
 
       // =================================================
-      // Fallback กรณี Browser Block
+      // Fallback
       // =================================================
 
       if (!pdfWindow) {
@@ -235,14 +244,21 @@ export default function IssuePdf({
 
         link.href = pdfUrl;
         link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.style.display = "none";
+        link.rel =
+          "noopener noreferrer";
 
-        document.body.appendChild(link);
+        link.style.display =
+          "none";
+
+        document.body.appendChild(
+          link
+        );
 
         link.click();
 
-        document.body.removeChild(link);
+        document.body.removeChild(
+          link
+        );
       }
 
       // =================================================
@@ -250,7 +266,9 @@ export default function IssuePdf({
       // =================================================
 
       window.setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
+        URL.revokeObjectURL(
+          pdfUrl
+        );
       }, 5 * 60 * 1000);
     } catch (error) {
       console.error(
@@ -271,8 +289,8 @@ export default function IssuePdf({
   // =====================================================
   // พอ.101 จำนวน 18 แถว
   //
-  // แถวที่ไม่มีข้อมูลยังคงแสดงเส้นตาราง
-  // แต่จะไม่แสดงเลขลำดับ
+  // ช่องว่างยังคงมีเส้นตาราง
+  // แต่ไม่แสดงเลขลำดับ
   // =====================================================
 
   const rows = Array.from(
@@ -281,17 +299,20 @@ export default function IssuePdf({
       items[index] ?? null
   );
 
-  const totalItems = items.length;
+  const totalItems =
+    items.length;
 
   // =====================================================
   // Base Style ของ Cell
+  //
+  // สำคัญ:
+  // ไม่ใช้ top: -1.35mm กับข้อความอีก
+  // เพราะทำให้ตัวอักษรถูกตัด
   // =====================================================
 
   const cellBaseStyle:
     React.CSSProperties = {
     height: TABLE_ROW_HEIGHT,
-    minHeight: TABLE_ROW_HEIGHT,
-    maxHeight: TABLE_ROW_HEIGHT,
 
     padding: 0,
     margin: 0,
@@ -316,16 +337,66 @@ export default function IssuePdf({
   };
 
   // =====================================================
+  // Wrapper สำหรับจัดข้อความกึ่งกลางแนวตั้ง
+  //
+  // ใช้ flex แทน position/top
+  // ป้องกันตัวหนังสือตกหรือถูกตัด
+  // =====================================================
+
+  const centerContentStyle:
+    React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+
+    minHeight: TABLE_ROW_HEIGHT,
+
+    display: "flex",
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    boxSizing: "border-box",
+
+    paddingTop: 0,
+    paddingBottom: 0,
+
+    margin: 0,
+  };
+
+  const leftContentStyle:
+    React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+
+    minHeight: TABLE_ROW_HEIGHT,
+
+    display: "flex",
+
+    alignItems: "center",
+
+    justifyContent: "flex-start",
+
+    boxSizing: "border-box",
+
+    paddingLeft: "1mm",
+    paddingRight: "1mm",
+
+    paddingTop: 0,
+    paddingBottom: 0,
+
+    margin: 0,
+
+    overflow: "hidden",
+  };
+
+  // =====================================================
   // ข้อความหัวตาราง
   // =====================================================
 
   const headerTextStyle:
     React.CSSProperties = {
-    display: "inline-block",
-
-    position: "relative",
-
-    top: "-1.35mm",
+    display: "block",
 
     margin: 0,
     padding: 0,
@@ -337,13 +408,11 @@ export default function IssuePdf({
 
     fontWeight: "normal",
 
-    lineHeight: "1",
+    lineHeight: "1.15",
 
     whiteSpace: "nowrap",
 
     textAlign: "center",
-
-    verticalAlign: "middle",
   };
 
   // =====================================================
@@ -355,25 +424,21 @@ export default function IssuePdf({
     ...cellBaseStyle,
 
     height: TABLE_ROW_HEIGHT,
-    minHeight: TABLE_ROW_HEIGHT,
-    maxHeight: TABLE_ROW_HEIGHT,
 
     textAlign: "center",
 
     whiteSpace: "nowrap",
+
+    verticalAlign: "middle",
   };
 
   // =====================================================
-  // ข้อความข้อมูลทั่วไป
+  // ข้อความข้อมูล
   // =====================================================
 
   const dataTextStyle:
     React.CSSProperties = {
-    display: "inline-block",
-
-    position: "relative",
-
-    top: "-1.35mm",
+    display: "block",
 
     margin: 0,
     padding: 0,
@@ -385,24 +450,20 @@ export default function IssuePdf({
 
     fontWeight: "normal",
 
-    lineHeight: "1",
+    lineHeight: "1.15",
 
     whiteSpace: "nowrap",
-
-    verticalAlign: "middle",
   };
 
   // =====================================================
-  // ข้อความรายการพัสดุ
+  // รายการพัสดุ
   // =====================================================
 
   const materialNameTextStyle:
     React.CSSProperties = {
     display: "block",
 
-    position: "relative",
-
-    top: "-1.35mm",
+    width: "100%",
 
     margin: 0,
     padding: 0,
@@ -414,28 +475,24 @@ export default function IssuePdf({
 
     fontWeight: "normal",
 
-    lineHeight: "1",
+    lineHeight: "1.15",
 
     whiteSpace: "nowrap",
 
     overflow: "hidden",
 
     textOverflow: "clip",
-
-    verticalAlign: "middle",
   };
 
   // =====================================================
-  // ข้อความหมายเหตุ
+  // หมายเหตุ
   // =====================================================
 
   const remarkTextStyle:
     React.CSSProperties = {
     display: "block",
 
-    position: "relative",
-
-    top: "-1.35mm",
+    width: "100%",
 
     margin: 0,
     padding: 0,
@@ -447,15 +504,13 @@ export default function IssuePdf({
 
     fontWeight: "normal",
 
-    lineHeight: "1",
+    lineHeight: "1.15",
 
     whiteSpace: "nowrap",
 
     overflow: "hidden",
 
     textOverflow: "clip",
-
-    verticalAlign: "middle",
   };
 
   // =====================================================
@@ -471,6 +526,8 @@ export default function IssuePdf({
     whiteSpace: "nowrap",
 
     overflow: "hidden",
+
+    verticalAlign: "middle",
   };
 
   // =====================================================
@@ -487,10 +544,6 @@ export default function IssuePdf({
 
     overflow: "hidden",
 
-    paddingLeft: "1mm",
-
-    paddingRight: "1mm",
-
     verticalAlign: "middle",
   };
 
@@ -502,8 +555,6 @@ export default function IssuePdf({
     React.CSSProperties {
     return {
       height: TABLE_ROW_HEIGHT,
-      minHeight: TABLE_ROW_HEIGHT,
-      maxHeight: TABLE_ROW_HEIGHT,
     };
   }
 
@@ -589,7 +640,8 @@ export default function IssuePdf({
 
             lineHeight: "1",
 
-            backgroundColor: "#ffffff",
+            backgroundColor:
+              "#ffffff",
 
             color: "#000000",
           }}
@@ -692,7 +744,9 @@ export default function IssuePdf({
                 วันที่ :
               </span>
 
-              {formatThaiDate(issueDate)}
+              {formatThaiDate(
+                issueDate
+              )}
             </div>
           </div>
 
@@ -719,17 +773,13 @@ export default function IssuePdf({
 
           <div className="flex justify-center">
             <table
-              className="
-                w-[190mm]
-                table-fixed
-                border-collapse
-                bg-white
-                text-black
-              "
               style={{
                 width: "190mm",
 
                 tableLayout: "fixed",
+
+                borderCollapse:
+                  "collapse",
 
                 borderSpacing: 0,
 
@@ -741,7 +791,8 @@ export default function IssuePdf({
 
                 color: "#000000",
 
-                backgroundColor: "#ffffff",
+                backgroundColor:
+                  "#ffffff",
               }}
             >
               <thead>
@@ -754,9 +805,19 @@ export default function IssuePdf({
                       width: "8%",
                     }}
                   >
-                    <span style={headerTextStyle}>
-                      ลำดับ
-                    </span>
+                    <div
+                      style={
+                        centerContentStyle
+                      }
+                    >
+                      <span
+                        style={
+                          headerTextStyle
+                        }
+                      >
+                        ลำดับ
+                      </span>
+                    </div>
                   </th>
 
                   {/* รายการพัสดุ */}
@@ -767,9 +828,19 @@ export default function IssuePdf({
                       width: "44%",
                     }}
                   >
-                    <span style={headerTextStyle}>
-                      รายการพัสดุ
-                    </span>
+                    <div
+                      style={
+                        centerContentStyle
+                      }
+                    >
+                      <span
+                        style={
+                          headerTextStyle
+                        }
+                      >
+                        รายการพัสดุ
+                      </span>
+                    </div>
                   </th>
 
                   {/* จำนวนที่ขอเบิก */}
@@ -780,9 +851,19 @@ export default function IssuePdf({
                       width: "15%",
                     }}
                   >
-                    <span style={headerTextStyle}>
-                      จำนวนที่ขอเบิก
-                    </span>
+                    <div
+                      style={
+                        centerContentStyle
+                      }
+                    >
+                      <span
+                        style={
+                          headerTextStyle
+                        }
+                      >
+                        จำนวนที่ขอเบิก
+                      </span>
+                    </div>
                   </th>
 
                   {/* จำนวนที่พัสดุจ่าย */}
@@ -793,9 +874,19 @@ export default function IssuePdf({
                       width: "15%",
                     }}
                   >
-                    <span style={headerTextStyle}>
-                      จำนวนที่พัสดุจ่าย
-                    </span>
+                    <div
+                      style={
+                        centerContentStyle
+                      }
+                    >
+                      <span
+                        style={
+                          headerTextStyle
+                        }
+                      >
+                        จำนวนที่พัสดุจ่าย
+                      </span>
+                    </div>
                   </th>
 
                   {/* หมายเหตุ */}
@@ -806,40 +897,60 @@ export default function IssuePdf({
                       width: "18%",
                     }}
                   >
-                    <span style={headerTextStyle}>
-                      หมายเหตุ
-                    </span>
+                    <div
+                      style={
+                        centerContentStyle
+                      }
+                    >
+                      <span
+                        style={
+                          headerTextStyle
+                        }
+                      >
+                        หมายเหตุ
+                      </span>
+                    </div>
                   </th>
                 </tr>
               </thead>
 
               <tbody>
                 {rows.map(
-                  (item, index) => (
+                  (
+                    item,
+                    index
+                  ) => (
                     <tr
                       key={
                         item?.id ??
                         `empty-${index}`
                       }
-                      style={getRowStyle()}
+                      style={
+                        getRowStyle()
+                      }
                     >
-                      {/* =====================================
-                          ลำดับ
-                          แสดงเฉพาะแถวที่มีข้อมูล
-                      ===================================== */}
+                      {/* ลำดับ */}
 
                       <td
                         style={
                           centerCellStyle
                         }
                       >
-                        {item ? (
-                          <span
-                            style={dataTextStyle}
-                          >
-                            {index + 1}
-                          </span>
-                        ) : null}
+                        <div
+                          style={
+                            centerContentStyle
+                          }
+                        >
+                          {item ? (
+                            <span
+                              style={
+                                dataTextStyle
+                              }
+                            >
+                              {index + 1}
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* รายการพัสดุ */}
@@ -849,18 +960,25 @@ export default function IssuePdf({
                           leftCellStyle
                         }
                       >
-                        {item ? (
-                          <span
-                            style={
-                              materialNameTextStyle
-                            }
-                          >
-                            {
-                              item.material
-                                .name
-                            }
-                          </span>
-                        ) : null}
+                        <div
+                          style={
+                            leftContentStyle
+                          }
+                        >
+                          {item ? (
+                            <span
+                              style={
+                                materialNameTextStyle
+                              }
+                            >
+                              {
+                                item
+                                  .material
+                                  .name
+                              }
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* จำนวนที่ขอเบิก */}
@@ -870,11 +988,21 @@ export default function IssuePdf({
                           centerCellStyle
                         }
                       >
-                        <span
-                          style={dataTextStyle}
+                        <div
+                          style={
+                            centerContentStyle
+                          }
                         >
-                          {item?.qty ?? ""}
-                        </span>
+                          {item ? (
+                            <span
+                              style={
+                                dataTextStyle
+                              }
+                            >
+                              {item.qty}
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* จำนวนที่พัสดุจ่าย */}
@@ -884,15 +1012,25 @@ export default function IssuePdf({
                           centerCellStyle
                         }
                       >
-                        <span
-                          style={dataTextStyle}
+                        <div
+                          style={
+                            centerContentStyle
+                          }
                         >
-                          {item
-                            ? item.issuedQty > 0
-                              ? item.issuedQty
-                              : ""
-                            : ""}
-                        </span>
+                          {item &&
+                          item.issuedQty >
+                            0 ? (
+                            <span
+                              style={
+                                dataTextStyle
+                              }
+                            >
+                              {
+                                item.issuedQty
+                              }
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* หมายเหตุ */}
@@ -902,15 +1040,23 @@ export default function IssuePdf({
                           leftCellStyle
                         }
                       >
-                        {item?.remark ? (
-                          <span
-                            style={
-                              remarkTextStyle
-                            }
-                          >
-                            {item.remark}
-                          </span>
-                        ) : null}
+                        <div
+                          style={
+                            leftContentStyle
+                          }
+                        >
+                          {item?.remark ? (
+                            <span
+                              style={
+                                remarkTextStyle
+                              }
+                            >
+                              {
+                                item.remark
+                              }
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -962,7 +1108,7 @@ export default function IssuePdf({
           </div>
 
           {/* =================================================
-              ลายเซ็น 4 ตำแหน่ง
+              ลายเซ็น
           ================================================= */}
 
           <div
@@ -971,15 +1117,17 @@ export default function IssuePdf({
               grid
               grid-cols-2
               gap-x-[15mm]
-              px-[8mm]
+              px-[2mm]
               text-[21px]
               leading-none
               text-black
             "
           >
-            {/* ฝั่งซ้าย */}
+            {/* =================================================
+                ฝั่งซ้าย
+            ================================================= */}
 
-            <div className="text-center">
+            <div className="text-left">
               {/* ผู้รับของ */}
 
               <div className="mb-[6mm]">
@@ -1019,7 +1167,9 @@ export default function IssuePdf({
               </div>
             </div>
 
-            {/* ฝั่งขวา */}
+            {/* =================================================
+                ฝั่งขวา
+            ================================================= */}
 
             <div className="text-center">
               {/* ผู้เบิก */}
