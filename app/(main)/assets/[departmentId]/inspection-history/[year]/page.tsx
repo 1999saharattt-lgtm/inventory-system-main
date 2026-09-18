@@ -126,6 +126,11 @@ function getOneDayBefore(
 
 // =====================================================
 // ปีงบประมาณจากวันที่
+//
+// ระบบนี้ยึดปี พ.ศ. ของวันที่ตรวจสอบโดยตรง
+// เช่น 18 กันยายน 2026 = 2569
+// และ 1 ตุลาคม 2026 = 2569
+// ไม่บวกปีเพิ่มเป็น 2570
 // =====================================================
 
 function getFiscalYear(
@@ -144,13 +149,8 @@ function getFiscalYear(
     return "";
   }
 
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-
   return String(
-    month >= 10
-      ? year + 1 + 543
-      : year + 543
+    date.getFullYear() + 543
   );
 }
 
@@ -297,13 +297,13 @@ export default async function InspectionHistoryDetailPage({
   // ===================================================
   // รองรับ URL ทั้ง พ.ศ. และ ค.ศ.
   //
-  // URL 2570
-  // พ.ศ. = 2570
-  // ค.ศ. = 2027
+  // URL 2569
+  // พ.ศ. = 2569
+  // ค.ศ. = 2026
   //
-  // URL 2027
-  // พ.ศ. = 2570
-  // ค.ศ. = 2027
+  // URL 2026
+  // พ.ศ. = 2569
+  // ค.ศ. = 2026
   // ===================================================
 
   const buddhistYear =
@@ -372,23 +372,32 @@ export default async function InspectionHistoryDetailPage({
   }
 
   // ===================================================
-  // ใช้ปีจริงที่พบในฐานข้อมูล
+  // Inspection แรก
+  // ===================================================
+
+  const firstInspection =
+    inspections[0];
+
+  // ===================================================
+  // ปีที่ใช้แสดง
+  //
+  // ยึดปีของวันที่เริ่มตรวจเป็นหลัก
+  // เพื่อให้ข้อมูลปี 2569 แสดงเป็น 2569
+  // ไม่ถูกบวกเป็น 2570
+  //
+  // หากไม่มีวันที่ จึง fallback ไปใช้ year ในฐานข้อมูล
   // ===================================================
 
   const databaseYear =
     inspections[0].year;
 
   const displayFiscalYear =
+    getFiscalYear(
+      firstInspection.inspectionStartDate
+    ) ||
     normalizeFiscalYear(
       databaseYear
     );
-
-  // ===================================================
-  // Inspection แรก
-  // ===================================================
-
-  const firstInspection =
-    inspections[0];
 
   // ===================================================
   // วันที่
@@ -421,6 +430,9 @@ export default async function InspectionHistoryDetailPage({
 
   // ===================================================
   // ปีงบประมาณรายการเคลื่อนไหว
+  //
+  // ใช้ปีเดียวกับข้อมูลที่แสดง
+  // เช่น 2569 ไม่เป็น 2570
   // ===================================================
 
   const movementFiscalYear =
@@ -1015,10 +1027,15 @@ export default async function InspectionHistoryDetailPage({
                           "-"}
                       </td>
 
+                      {/* กลุ่มงาน / ผู้รับผิดชอบ
+                          จัดข้อความให้อยู่กึ่งกลางแนวนอนและแนวตั้ง */}
+
                       <td className="border border-black px-2 py-3 text-center align-middle">
-                        {
-                          responsibleGroup
-                        }
+                        <div className="flex w-full items-center justify-center text-center">
+                          {
+                            responsibleGroup
+                          }
+                        </div>
                       </td>
 
                       <td className="border border-black px-2 py-3 text-left align-middle">
