@@ -80,7 +80,7 @@ export default async function DepartmentAssetsPage({
      ตรวจสอบผู้ใช้งาน
      ======================================================= */
 
-  const user = await requireLogin();
+  await requireLogin();
 
   /* =======================================================
      อ่าน Department ID จาก URL
@@ -403,39 +403,6 @@ export default async function DepartmentAssetsPage({
             sm:items-center
           "
         >
-          {/* ===============================================
-              ปุ่มตรวจสอบรายการครุภัณฑ์
-              เฉพาะ ADMIN
-              =============================================== */}
-
-          {user.role === "ADMIN" && (
-            <Link
-              href={`/assets/${department.id}/inspection`}
-              className="
-                block
-                rounded-xl
-                border
-                border-slate-200
-                bg-white
-                px-4
-                py-2.5
-                text-center
-                text-sm
-                font-extrabold
-                !text-black
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:bg-slate-100
-                sm:px-6
-                sm:py-3
-                sm:text-base
-              "
-            >
-              🔎 ตรวจสอบรายการครุภัณฑ์
-            </Link>
-          )}
-
           {/* ===============================================
               ปุ่มรวมรายการครุภัณฑ์
               =============================================== */}

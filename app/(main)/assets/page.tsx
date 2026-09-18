@@ -1,7 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { requireLogin } from "@/lib/auth";
 
 export default async function AssetsPage() {
+  /* =====================================================
+     ตรวจสอบผู้ใช้งาน
+  ===================================================== */
+
+  const user = await requireLogin();
+
+  /* =====================================================
+     โหลดกลุ่มงาน
+  ===================================================== */
+
   const departments = await prisma.department.findMany({
     orderBy: {
       id: "asc",
@@ -78,35 +89,96 @@ export default async function AssetsPage() {
           </p>
         </div>
 
-        <Link
-          href="/assets/inspection-history"
+        {/* =================================================
+            ปุ่มด้านขวา
+        ================================================= */}
+
+        <div
           className="
-            inline-flex
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            border
-            border-white/20
-            bg-white
-            px-4
-            py-3
-            text-center
-            text-sm
-            font-extrabold
-            text-slate-900
-            shadow-lg
-            transition-all
-            duration-200
-            hover:-translate-y-0.5
-            hover:bg-slate-100
-            hover:shadow-xl
-            sm:px-5
-            sm:text-base
+            flex
+            w-full
+            flex-col
+            gap-3
+            sm:w-auto
+            sm:flex-row
+            sm:items-center
           "
         >
-          📋 ตรวจสอบครุภัณฑ์ประจำปี
-        </Link>
+          {/* ===============================================
+              ประวัติการตรวจสอบครุภัณฑ์ประจำปี
+          =============================================== */}
+
+          <Link
+            href="/assets/inspection-history"
+            className="
+              inline-flex
+              shrink-0
+              items-center
+              justify-center
+              whitespace-nowrap
+              rounded-xl
+              border
+              border-white/20
+              bg-white
+              px-4
+              py-3
+              text-center
+              text-sm
+              font-extrabold
+              text-slate-900
+              shadow-lg
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:bg-slate-100
+              hover:shadow-xl
+              sm:px-5
+              sm:text-base
+            "
+          >
+            📋 ประวัติการตรวจสอบครุภัณฑ์ประจำปี
+          </Link>
+
+          {/* ===============================================
+              ตรวจสอบรายการครุภัณฑ์ประจำปี
+
+              ย้ายมาจากหน้า /assets/1
+              เฉพาะ ADMIN
+          =============================================== */}
+
+          {user.role === "ADMIN" && (
+            <Link
+              href="/assets/1/inspection"
+              className="
+                inline-flex
+                shrink-0
+                items-center
+                justify-center
+                whitespace-nowrap
+                rounded-xl
+                border
+                border-white/20
+                bg-white
+                px-4
+                py-3
+                text-center
+                text-sm
+                font-extrabold
+                text-slate-900
+                shadow-lg
+                transition-all
+                duration-200
+                hover:-translate-y-0.5
+                hover:bg-slate-100
+                hover:shadow-xl
+                sm:px-5
+                sm:text-base
+              "
+            >
+              🔎 ตรวจสอบรายการครุภัณฑ์ประจำปี
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* =====================================================
