@@ -20,18 +20,29 @@ type Asset = {
   serialNumber: string | null;
   governmentAssetNo: string | null;
   officeAssetNo: string | null;
+
+  /*
+   * ผู้รับผิดชอบจากทะเบียนต้นฉบับ
+   * เช่น งานสารบรรณ / หน้าห้องผู้อำนวยการ
+   */
+  responsibleName?: string | null;
+
   departmentId: number;
   sectionId: number | null;
   officerId: number | null;
+
   status: string;
+
   purchaseDate: Date | string | null;
   price: number | null;
   location: string | null;
   remark: string | null;
+
   section: {
     id: number;
     name: string;
   } | null;
+
   officer: {
     id: number;
     firstName: string;
@@ -45,10 +56,12 @@ type Officer = {
   firstName: string;
   lastName: string;
   position: string | null;
+
   department: {
     id: number;
     name: string;
   } | null;
+
   section: {
     id: number;
     name: string;
@@ -67,17 +80,24 @@ type Props = {
   department: Department;
   assets: Asset[];
   rows: InspectionRow[];
+
   inspectionStartDate: string;
   inspectionEndDate: string;
+
   inspectorIds: string[];
+
   accountStartDate: string;
   accountEndDate: string;
+
   movementFiscalYear: string;
+
   officers?: Officer[];
 };
 
 const ROWS_PER_PAGE = 15;
-const INSPECTION_FISCAL_YEAR = "2569";
+
+const INSPECTION_FISCAL_YEAR =
+  "2569";
 
 const thaiMonths = [
   "มกราคม",
@@ -94,18 +114,45 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-const PAGE_WIDTH = 297;
-const TABLE_WIDTH = 270;
-const MARGIN_X = (PAGE_WIDTH - TABLE_WIDTH) / 2;
-const TABLE_START_Y = 35;
-const SIGNATURE_START_Y = 172;
+/* =========================================================
+   PAGE
+   ========================================================= */
 
-function parseDateOnly(value: string) {
+const PAGE_WIDTH = 297;
+
+const TABLE_WIDTH = 270;
+
+const MARGIN_X =
+  (PAGE_WIDTH - TABLE_WIDTH) / 2;
+
+const TABLE_START_Y = 35;
+
+/*
+ * เว้นช่องไฟระหว่างตารางกับส่วนลงชื่อ
+ * ให้มีลักษณะเหมือนเอกสารราชการ
+ */
+const SIGNATURE_GAP = 10;
+
+/*
+ * อย่างน้อยให้ส่วนลงชื่อเริ่มประมาณช่วงล่างของหน้า
+ */
+const SIGNATURE_MIN_START_Y = 170;
+
+/* =========================================================
+   DATE
+   ========================================================= */
+
+function parseDateOnly(
+  value: string
+) {
   if (!value) {
     return new Date(NaN);
   }
 
-  const parts = value.split("-").map(Number);
+  const parts =
+    value
+      .split("-")
+      .map(Number);
 
   if (
     parts.length !== 3 ||
@@ -114,7 +161,11 @@ function parseDateOnly(value: string) {
     return new Date(NaN);
   }
 
-  const [year, month, day] = parts;
+  const [
+    year,
+    month,
+    day,
+  ] = parts;
 
   return new Date(
     year,
@@ -123,27 +174,45 @@ function parseDateOnly(value: string) {
   );
 }
 
-function formatThaiDate(value: string) {
+function formatThaiDate(
+  value: string
+) {
   if (!value) {
     return "........";
   }
 
-  const date = parseDateOnly(value);
+  const date =
+    parseDateOnly(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "........";
   }
 
-  const day = date.getDate();
-  const month = thaiMonths[date.getMonth()];
-  const year = date.getFullYear() + 543;
+  const day =
+    date.getDate();
+
+  const month =
+    thaiMonths[
+      date.getMonth()
+    ];
+
+  const year =
+    date.getFullYear() +
+    543;
 
   return `${day} ${month} ${year}`;
 }
 
 /* =========================================================
+   SOURCE ORDER
+
    ลำดับเดิมจากทะเบียนต้นฉบับ / Excel
-   รูปแบบ remark: SOURCE:DEPARTMENT_1:n
+
+   SOURCE:DEPARTMENT_1:n
    ========================================================= */
 
 function getSourceOrder(
@@ -153,18 +222,22 @@ function getSourceOrder(
     return null;
   }
 
-  const match = remark.match(
-    /SOURCE:DEPARTMENT_1:(\d+)/
-  );
+  const match =
+    remark.match(
+      /SOURCE:DEPARTMENT_1:(\d+)/
+    );
 
   if (!match) {
     return null;
   }
 
-  const sourceOrder = Number(match[1]);
+  const sourceOrder =
+    Number(match[1]);
 
   if (
-    !Number.isInteger(sourceOrder) ||
+    !Number.isInteger(
+      sourceOrder
+    ) ||
     sourceOrder <= 0
   ) {
     return null;
@@ -173,32 +246,46 @@ function getSourceOrder(
   return sourceOrder;
 }
 
+/* =========================================================
+   UNIT
+   ========================================================= */
+
 function getCategoryUnit(
   category: string
 ) {
-  const categoryUnit: Record<
-    string,
-    string
-  > = {
-    COMPUTER: "เครื่อง",
-    DESKTOP: "เครื่อง",
-    LAPTOP: "เครื่อง",
-    PRINTER: "เครื่อง",
-    TELEPHONE: "เครื่อง",
-    AIR_CONDITIONER: "เครื่อง",
-    FAN: "เครื่อง",
-    CHAIR: "ตัว",
-    DESK: "ตัว",
-    CABINET: "ตู้",
-    TABLE: "ตัว",
-    OTHER: "รายการ",
-  };
+  const categoryUnit:
+    Record<string, string> = {
+      COMPUTER: "เครื่อง",
+      DESKTOP: "เครื่อง",
+      LAPTOP: "เครื่อง",
+      MONITOR: "เครื่อง",
+      PRINTER: "เครื่อง",
+      TELEPHONE: "เครื่อง",
+      AIR_CONDITIONER:
+        "เครื่อง",
+      FAN: "เครื่อง",
+
+      CHAIR: "ตัว",
+      DESK: "ตัว",
+      TABLE: "ตัว",
+      SHELF: "ตัว",
+
+      CABINET: "ตู้",
+
+      OTHER: "รายการ",
+      NO_SYSTEM: "รายการ",
+    };
 
   return (
-    categoryUnit[category] ||
-    "รายการ"
+    categoryUnit[
+      category
+    ] || "รายการ"
   );
 }
+
+/* =========================================================
+   OFFICER
+   ========================================================= */
 
 function getOfficer(
   officerId: string,
@@ -210,49 +297,186 @@ function getOfficer(
 
   return officers.find(
     (officer) =>
-      String(officer.id) === officerId
+      String(
+        officer.id
+      ) === officerId
   );
 }
 
 /* =========================================================
-   ผู้รับผิดชอบใน PDF
+   RESPONSIBLE NAME
 
-   กลุ่มอำนวยการ
-   แสดง: ชื่อ นามสกุล / ชื่องาน
+   ใช้รูปแบบเดียวกับหน้า /assets/[departmentId]/all
 
-   กลุ่มอื่น
-   แสดง: ชื่อ นามสกุล
+   ตัวอย่าง
+
+   กลุ่มอำนวยการ / งานสารบรรณ
+   กลุ่มอำนวยการ / หน้าห้องผู้อำนวยการ
+
+   ลำดับการเลือกข้อมูล
+
+   1. responsibleName จากทะเบียนเดิม
+   2. section
+   3. officer
+   4. ชื่อกลุ่ม
    ========================================================= */
 
 function getResponsibleName(
   asset: Asset,
   department: Department
 ) {
+  const departmentName =
+    department.name?.trim() ||
+    "";
+
+  const originalResponsibleName =
+    asset.responsibleName?.trim();
+
+  /* =======================================================
+     responsibleName จากทะเบียนเดิมเป็นหลัก
+     ======================================================= */
+
+  if (
+    originalResponsibleName &&
+    originalResponsibleName !== "-"
+  ) {
+    /*
+     * ถ้ามีชื่อกลุ่มอยู่แล้ว
+     * ไม่เติมซ้ำ
+     */
+
+    if (
+      departmentName &&
+      (
+        originalResponsibleName ===
+          departmentName ||
+        originalResponsibleName.startsWith(
+          `${departmentName} /`
+        )
+      )
+    ) {
+      return originalResponsibleName;
+    }
+
+    if (
+      departmentName
+    ) {
+      return `${departmentName} / ${originalResponsibleName}`;
+    }
+
+    return originalResponsibleName;
+  }
+
+  /* =======================================================
+     fallback เป็น section
+     ======================================================= */
+
+  const sectionName =
+    asset.section?.name?.trim() ||
+    "";
+
+  if (sectionName) {
+    if (
+      departmentName &&
+      (
+        sectionName ===
+          departmentName ||
+        sectionName.startsWith(
+          `${departmentName} /`
+        )
+      )
+    ) {
+      return sectionName;
+    }
+
+    if (
+      departmentName
+    ) {
+      return `${departmentName} / ${sectionName}`;
+    }
+
+    return sectionName;
+  }
+
+  /* =======================================================
+     fallback เป็น officer
+     ======================================================= */
+
   const officerName =
     asset.officer
       ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-      : "-";
+      : "";
 
-  if (
-    department.name ===
-    "กลุ่มอำนวยการ"
-  ) {
-    const sectionName =
-      asset.section?.name?.trim();
-
-    if (sectionName) {
-      return `${officerName} / ${sectionName}`;
+  if (officerName) {
+    if (
+      departmentName
+    ) {
+      return `${departmentName} / ${officerName}`;
     }
+
+    return officerName;
   }
 
-  return officerName;
+  /* =======================================================
+     fallback สุดท้าย
+     ======================================================= */
+
+  if (departmentName) {
+    return departmentName;
+  }
+
+  return "-";
 }
+
+/* =========================================================
+   RESPONSIBLE FONT SIZE
+
+   ใช้สำหรับบังคับให้ข้อความผู้รับผิดชอบ
+   อยู่บรรทัดเดียว
+
+   ข้อความยิ่งยาว
+   → ลดขนาดอักษร
+   ========================================================= */
+
+function getResponsibleFontSize(
+  text: string
+) {
+  const length =
+    text.trim().length;
+
+  if (length > 65) {
+    return 5;
+  }
+
+  if (length > 55) {
+    return 5.5;
+  }
+
+  if (length > 45) {
+    return 6;
+  }
+
+  if (length > 35) {
+    return 6.5;
+  }
+
+  if (length > 28) {
+    return 7;
+  }
+
+  return 8;
+}
+
+/* =========================================================
+   CHECK
+   ========================================================= */
 
 function getStatusChecked(
   row: InspectionRow,
   status: string
 ) {
-  return row.status === status
+  return row.status ===
+    status
     ? "✓"
     : "";
 }
@@ -261,7 +485,8 @@ function getAccuracyChecked(
   row: InspectionRow,
   accuracy: string
 ) {
-  return row.accuracy === accuracy
+  return row.accuracy ===
+    accuracy
     ? "✓"
     : "";
 }
@@ -274,12 +499,17 @@ export default function ExportInspectionPdf({
   department,
   assets,
   rows,
+
   inspectionStartDate,
   inspectionEndDate,
+
   inspectorIds,
+
   accountStartDate,
   accountEndDate,
+
   movementFiscalYear,
+
   officers = [],
 }: Props) {
   const [
@@ -287,19 +517,33 @@ export default function ExportInspectionPdf({
     setIsExporting,
   ] = useState(false);
 
+  /* =======================================================
+     DOCUMENT HEADER
+     ======================================================= */
+
   function drawDocumentHeader(
     doc: jsPDF
   ) {
-    const center = PAGE_WIDTH / 2;
+    const center =
+      PAGE_WIDTH / 2;
 
     doc.setFont(
       "2.3.2 THSarabunNew",
       "normal"
     );
 
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(
+      0,
+      0,
+      0
+    );
+
+    /* =====================================================
+       หัวบรรทัด 1
+       ===================================================== */
 
     doc.setFontSize(18);
+
     doc.text(
       `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${INSPECTION_FISCAL_YEAR}`,
       center,
@@ -309,7 +553,12 @@ export default function ExportInspectionPdf({
       }
     );
 
+    /* =====================================================
+       หัวบรรทัด 2
+       ===================================================== */
+
     doc.setFontSize(18);
+
     doc.text(
       "สำนักอนามัยการเจริญพันธุ์",
       center,
@@ -319,7 +568,12 @@ export default function ExportInspectionPdf({
       }
     );
 
+    /* =====================================================
+       หัวบรรทัด 3
+       ===================================================== */
+
     doc.setFontSize(15);
+
     doc.text(
       `เริ่มดำเนินการตรวจสอบวันที่ ${formatThaiDate(
         inspectionStartDate
@@ -334,8 +588,16 @@ export default function ExportInspectionPdf({
     );
   }
 
+  /* =======================================================
+     INSPECTORS
+
+     startY รับตำแหน่งหลังตารางจริง
+     จึงไม่ซ้อนกับตาราง
+     ======================================================= */
+
   function drawInspectors(
-    doc: jsPDF
+    doc: jsPDF,
+    startY: number
   ) {
     const columnWidth =
       TABLE_WIDTH / 5;
@@ -349,7 +611,9 @@ export default function ExportInspectionPdf({
       index++
     ) {
       const selectedInspectorId =
-        inspectorIds[index] || "";
+        inspectorIds[
+          index
+        ] || "";
 
       const selectedOfficer =
         getOfficer(
@@ -368,7 +632,8 @@ export default function ExportInspectionPdf({
 
       const centerX =
         MARGIN_X +
-        columnWidth * index +
+        columnWidth *
+          index +
         columnWidth / 2;
 
       doc.setFont(
@@ -376,17 +641,30 @@ export default function ExportInspectionPdf({
         "normal"
       );
 
-      doc.setTextColor(0, 0, 0);
+      doc.setTextColor(
+        0,
+        0,
+        0
+      );
+
+      /* ===================================================
+         ลงชื่อ
+         =================================================== */
 
       doc.setFontSize(11);
+
       doc.text(
         `ลงชื่อ ${dotLine}`,
         centerX,
-        SIGNATURE_START_Y,
+        startY,
         {
           align: "center",
         }
       );
+
+      /* ===================================================
+         ชื่อ
+         =================================================== */
 
       doc.setFontSize(11);
 
@@ -399,11 +677,15 @@ export default function ExportInspectionPdf({
       doc.text(
         nameLines,
         centerX,
-        SIGNATURE_START_Y + 5,
+        startY + 5,
         {
           align: "center",
         }
       );
+
+      /* ===================================================
+         ตำแหน่ง
+         =================================================== */
 
       const positionLines =
         doc.splitTextToSize(
@@ -414,7 +696,7 @@ export default function ExportInspectionPdf({
       doc.text(
         positionLines,
         centerX,
-        SIGNATURE_START_Y + 10,
+        startY + 10,
         {
           align: "center",
         }
@@ -422,17 +704,25 @@ export default function ExportInspectionPdf({
     }
   }
 
+  /* =======================================================
+     EXPORT PDF
+     ======================================================= */
+
   async function handleExportPdf() {
-    if (assets.length === 0) {
+    if (
+      assets.length === 0
+    ) {
       alert(
         "ไม่พบรายการครุภัณฑ์สำหรับสร้าง PDF"
       );
+
       return;
     }
 
     /* =====================================================
-       เปิดแท็บ Preview ทันทีจากการคลิก
-       ป้องกัน Browser Block Popup
+       เปิดแท็บก่อนสร้าง PDF
+
+       เพื่อไม่ให้ Browser Block Popup
        ===================================================== */
 
     const previewWindow =
@@ -445,19 +735,31 @@ export default function ExportInspectionPdf({
       alert(
         "ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
       );
+
       return;
     }
 
+    /* =====================================================
+       หน้า Loading
+       ===================================================== */
+
     try {
       previewWindow.document.open();
+
       previewWindow.document.write(`
         <!DOCTYPE html>
+
         <html lang="th">
           <head>
             <meta charset="UTF-8" />
-            <title>กำลังสร้าง PDF...</title>
+
+            <title>
+              กำลังสร้าง PDF...
+            </title>
+
             <style>
-              html, body {
+              html,
+              body {
                 width: 100%;
                 height: 100%;
                 margin: 0;
@@ -469,7 +771,9 @@ export default function ExportInspectionPdf({
                 justify-content: center;
                 background: #f8fafc;
                 color: #0f172a;
-                font-family: Arial, sans-serif;
+                font-family:
+                  Arial,
+                  sans-serif;
               }
 
               .loading {
@@ -478,6 +782,7 @@ export default function ExportInspectionPdf({
               }
             </style>
           </head>
+
           <body>
             <div class="loading">
               กำลังสร้าง PDF...
@@ -485,6 +790,7 @@ export default function ExportInspectionPdf({
           </body>
         </html>
       `);
+
       previewWindow.document.close();
     } catch {
       // ไม่กระทบการสร้าง PDF
@@ -494,47 +800,71 @@ export default function ExportInspectionPdf({
       setIsExporting(true);
 
       /* ===================================================
-         สร้าง PDF แบบ Vector โดยตรง
+         PDF VECTOR
 
          ไม่ใช้ html2canvas
-         → เปิดไวขึ้น
-         → เส้นตารางคมชัด
-         → ไฟล์เล็กลง
          =================================================== */
 
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
+      const doc =
+        new jsPDF({
+          orientation:
+            "landscape",
+
+          unit: "mm",
+
+          format: "a4",
+
+          compress: true,
+        });
 
       doc.setFont(
         "2.3.2 THSarabunNew",
         "normal"
       );
 
-      const totalPages = Math.max(
-        1,
-        Math.ceil(
-          assets.length /
-            ROWS_PER_PAGE
-        )
-      );
+      /* ===================================================
+         จำนวนหน้า
+         =================================================== */
+
+      const totalPages =
+        Math.max(
+          1,
+          Math.ceil(
+            assets.length /
+              ROWS_PER_PAGE
+          )
+        );
+
+      /* ===================================================
+         สร้างแต่ละหน้า
+         =================================================== */
 
       for (
         let pageIndex = 0;
-        pageIndex < totalPages;
+        pageIndex <
+        totalPages;
         pageIndex++
       ) {
-        if (pageIndex > 0) {
+        if (
+          pageIndex > 0
+        ) {
           doc.addPage(
             "a4",
             "landscape"
           );
         }
 
-        drawDocumentHeader(doc);
+        /* =================================================
+           HEADER
+           ================================================= */
+
+        drawDocumentHeader(
+          doc
+        );
+
+        /* =================================================
+           DATA
+           ================================================= */
 
         const startIndex =
           pageIndex *
@@ -557,6 +887,10 @@ export default function ExportInspectionPdf({
                 startIndex +
                 localIndex;
 
+              /* ===========================================
+                 ลำดับ
+                 =========================================== */
+
               const sourceOrder =
                 getSourceOrder(
                   asset.remark
@@ -566,6 +900,10 @@ export default function ExportInspectionPdf({
                 sourceOrder ??
                 actualIndex + 1;
 
+              /* ===========================================
+                 Row
+                 =========================================== */
+
               const row =
                 rows.find(
                   (item) =>
@@ -574,18 +912,32 @@ export default function ExportInspectionPdf({
                 ) || {
                   assetId:
                     asset.id,
+
                   countedQty:
                     "1",
+
                   accuracy: "",
+
                   status: "",
+
                   remark: "",
                 };
+
+              /* ===========================================
+                 ผู้รับผิดชอบ
+
+                 กลุ่ม / งาน
+                 =========================================== */
 
               const responsibleName =
                 getResponsibleName(
                   asset,
                   department
                 );
+
+              /* ===========================================
+                 รายการ
+                 =========================================== */
 
               const assetName =
                 [
@@ -597,47 +949,100 @@ export default function ExportInspectionPdf({
                   .join(" ");
 
               return [
+                /* 0 ลำดับ */
+
                 String(
                   displayOrder
                 ),
+
+                /* 1 GFMIS */
+
                 asset.governmentAssetNo ||
                   "",
+
+                /* 2 รหัสครุภัณฑ์ */
+
                 asset.officeAssetNo ||
                   "",
+
+                /* 3 ผู้รับผิดชอบ */
+
                 responsibleName,
+
+                /* 4 รายการ */
+
                 assetName,
+
+                /* 5 หน่วย */
+
                 getCategoryUnit(
                   asset.category
                 ),
+
+                /* 6 ยอดต้น */
+
                 "1",
+
+                /* 7 รับ */
+
                 "-",
+
+                /* 8 จ่าย */
+
                 "-",
+
+                /* 9 ยอดปลาย */
+
                 "1",
+
+                /* 10 ตรวจนับ */
+
                 row.countedQty,
+
+                /* 11 ถูก */
+
                 getAccuracyChecked(
                   row,
                   "CORRECT"
                 ),
+
+                /* 12 ผิด */
+
                 getAccuracyChecked(
                   row,
                   "INCORRECT"
                 ),
+
+                /* 13 ใช้งาน */
+
                 getStatusChecked(
                   row,
                   "IN_USE"
                 ),
+
+                /* 14 ชำรุด */
+
                 getStatusChecked(
                   row,
                   "DAMAGED"
                 ),
+
+                /* 15 เสื่อม */
+
                 getStatusChecked(
                   row,
                   "DETERIORATED"
                 ),
+
+                /* 16 ไม่จำเป็น */
+
                 getStatusChecked(
                   row,
                   "UNUSABLE"
                 ),
+
+                /* 17 หมายเหตุ */
+
                 row.remark || "",
               ];
             }
@@ -645,7 +1050,8 @@ export default function ExportInspectionPdf({
 
         /* =================================================
            เติมแถวว่างให้ครบ 15 แถว
-           เหมือนรูปแบบเดิม
+
+           ให้ทุกหน้ามีรูปแบบเดียวกัน
            ================================================= */
 
         while (
@@ -653,96 +1059,140 @@ export default function ExportInspectionPdf({
           ROWS_PER_PAGE
         ) {
           body.push(
-            Array(18).fill("")
+            Array(18).fill(
+              ""
+            )
           );
         }
 
+        /* =================================================
+           TABLE
+           ================================================= */
+
         autoTable(doc, {
-          startY: TABLE_START_Y,
+          startY:
+            TABLE_START_Y,
 
           margin: {
-            left: MARGIN_X,
-            right: MARGIN_X,
+            left:
+              MARGIN_X,
+
+            right:
+              MARGIN_X,
           },
 
-          tableWidth: TABLE_WIDTH,
+          tableWidth:
+            TABLE_WIDTH,
 
           theme: "grid",
+
+          /* =================================================
+             HEADER
+             ================================================= */
 
           head: [
             [
               {
-                content: "ลำดับ",
+                content:
+                  "ลำดับ",
                 rowSpan: 2,
               },
+
               {
                 content:
                   "รหัส GFMIS",
                 rowSpan: 2,
               },
+
               {
                 content:
                   "รหัสครุภัณฑ์",
                 rowSpan: 2,
               },
+
               {
                 content:
                   "ผู้รับผิดชอบ",
                 rowSpan: 2,
               },
-              {
-                content: "รายการ",
-                rowSpan: 2,
-              },
+
               {
                 content:
-                  "หน่วยนับ",
+                  "รายการ",
                 rowSpan: 2,
               },
+
+              {
+                /* =========================================
+                   เปลี่ยนจาก หน่วยนับ → หน่วย
+                   ========================================= */
+
+                content:
+                  "หน่วย",
+                rowSpan: 2,
+              },
+
               {
                 content:
                   `ยอดคงเหลือตามบัญชี\nณ วันที่ ${formatThaiDate(
                     accountStartDate
                   )}`,
+
                 rowSpan: 2,
               },
+
               {
                 content:
                   `รายการเคลื่อนไหวระหว่าง\nปีงบประมาณ พ.ศ. ${movementFiscalYear}`,
+
                 colSpan: 2,
               },
+
               {
                 content:
                   `ยอดคงเหลือตามบัญชี\nณ วันที่ ${formatThaiDate(
                     accountEndDate
                   )}`,
+
                 rowSpan: 2,
               },
+
               {
                 content:
                   "จำนวนที่ตรวจนับได้",
+
                 rowSpan: 2,
               },
+
               {
                 content:
                   "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี",
+
                 colSpan: 2,
               },
+
               {
                 content:
                   "สภาพครุภัณฑ์ที่ตรวจนับ",
+
                 colSpan: 4,
               },
+
               {
-                content: "หมายเหตุ",
+                content:
+                  "หมายเหตุ",
+
                 rowSpan: 2,
               },
             ],
+
             [
               "รับ",
               "จ่าย",
+
               "ถูกต้อง",
               "ไม่ถูกต้อง",
+
               "ใช้งานปกติ",
               "ชำรุด",
               "เสื่อมสภาพ",
@@ -752,154 +1202,386 @@ export default function ExportInspectionPdf({
 
           body,
 
+          /* =================================================
+             DEFAULT STYLE
+             ================================================= */
+
           styles: {
             font:
               "2.3.2 THSarabunNew",
+
             fontStyle:
               "normal",
+
             fontSize: 8.5,
+
             textColor: [
               0,
               0,
               0,
             ],
+
             lineColor: [
               0,
               0,
               0,
             ],
+
             lineWidth: 0.25,
+
             cellPadding: 0.7,
-            minCellHeight: 7.1,
-            halign: "center",
-            valign: "middle",
+
+            minCellHeight:
+              7.1,
+
+            halign:
+              "center",
+
+            valign:
+              "middle",
+
             overflow:
               "linebreak",
           },
 
+          /* =================================================
+             HEADER STYLE
+             ================================================= */
+
           headStyles: {
             font:
               "2.3.2 THSarabunNew",
+
             fontStyle:
               "normal",
+
             fontSize: 8,
+
             fillColor: [
               255,
               255,
               255,
             ],
+
             textColor: [
               0,
               0,
               0,
             ],
+
             lineColor: [
               0,
               0,
               0,
             ],
-            lineWidth: 0.25,
-            cellPadding: 0.65,
-            halign: "center",
-            valign: "middle",
+
+            lineWidth:
+              0.25,
+
+            cellPadding:
+              0.65,
+
+            halign:
+              "center",
+
+            valign:
+              "middle",
+
             overflow:
               "linebreak",
           },
 
+          /* =================================================
+             BODY STYLE
+             ================================================= */
+
           bodyStyles: {
             font:
               "2.3.2 THSarabunNew",
+
             fontStyle:
               "normal",
+
             fontSize: 8.5,
+
             textColor: [
               0,
               0,
               0,
             ],
+
             lineColor: [
               0,
               0,
               0,
             ],
-            lineWidth: 0.25,
-            cellPadding: 0.7,
-            minCellHeight: 7.1,
-            halign: "center",
-            valign: "middle",
+
+            lineWidth:
+              0.25,
+
+            cellPadding:
+              0.7,
+
+            minCellHeight:
+              7.1,
+
+            halign:
+              "center",
+
+            valign:
+              "middle",
           },
 
+          /* =================================================
+             COLUMN WIDTH
+
+             รวม 270 mm
+             ================================================= */
+
           columnStyles: {
+            /* 0 ลำดับ */
+
             0: {
-              cellWidth: 6.75,
+              cellWidth:
+                6.75,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
             },
+
+            /* 1 GFMIS */
+
             1: {
-              cellWidth: 17.55,
+              cellWidth:
+                17.55,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
             },
+
+            /* 2 รหัส */
+
             2: {
-              cellWidth: 21.6,
+              cellWidth:
+                21.6,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
             },
+
+            /* =================================================
+               3 ผู้รับผิดชอบ
+
+               กึ่งกลาง
+               ไม่ขึ้นบรรทัดใหม่
+               ================================================= */
+
             3: {
-              cellWidth: 24.3,
-              halign: "left",
+              cellWidth:
+                24.3,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              overflow:
+                "hidden",
+
+              cellPadding:
+                0.3,
             },
+
+            /* 4 รายการ */
+
             4: {
-              cellWidth: 32.4,
-              halign: "left",
+              cellWidth:
+                32.4,
+
+              halign:
+                "left",
+
+              valign:
+                "middle",
             },
+
+            /* 5 หน่วย */
+
             5: {
-              cellWidth: 9.45,
+              cellWidth:
+                9.45,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
             },
+
+            /* 6 ยอดต้น */
+
             6: {
-              cellWidth: 17.55,
+              cellWidth:
+                17.55,
             },
+
+            /* 7 รับ */
+
             7: {
-              cellWidth: 10.8,
+              cellWidth:
+                10.8,
             },
+
+            /* 8 จ่าย */
+
             8: {
-              cellWidth: 10.8,
+              cellWidth:
+                10.8,
             },
+
+            /* 9 ยอดปลาย */
+
             9: {
-              cellWidth: 20.25,
+              cellWidth:
+                20.25,
             },
+
+            /* 10 ตรวจนับ */
+
             10: {
-              cellWidth: 13.5,
+              cellWidth:
+                13.5,
             },
+
+            /* 11 ถูก */
+
             11: {
-              cellWidth: 12.825,
+              cellWidth:
+                12.825,
             },
+
+            /* 12 ผิด */
+
             12: {
-              cellWidth: 12.825,
+              cellWidth:
+                12.825,
             },
+
+            /* 13 ใช้ */
+
             13: {
-              cellWidth: 10.125,
+              cellWidth:
+                10.125,
             },
+
+            /* 14 ชำรุด */
+
             14: {
-              cellWidth: 9.45,
+              cellWidth:
+                9.45,
             },
+
+            /* 15 เสื่อม */
+
             15: {
-              cellWidth: 10.8,
+              cellWidth:
+                10.8,
             },
+
+            /* 16 ไม่จำเป็น */
+
             16: {
-              cellWidth: 13.5,
+              cellWidth:
+                13.5,
             },
+
+            /* 17 หมายเหตุ */
+
             17: {
-              cellWidth: 15.525,
+              cellWidth:
+                15.525,
             },
           },
+
+          /* =================================================
+             CELL STYLE
+             ================================================= */
 
           didParseCell: (
             data
           ) => {
+            /* =============================================
+               ผู้รับผิดชอบ
+
+               - กึ่งกลาง
+               - กึ่งกลางแนวตั้ง
+               - บรรทัดเดียว
+               - ลดขนาดตัวอักษรตามความยาว
+               ============================================= */
+
             if (
               data.section ===
                 "body" &&
-              (
-                data.column.index ===
-                  3 ||
-                data.column.index ===
-                  4
-              )
+              data.column.index ===
+                3
+            ) {
+              const text =
+                String(
+                  data.cell.raw ??
+                    ""
+                )
+                  .replace(
+                    /\s+/g,
+                    " "
+                  )
+                  .trim();
+
+              /*
+               * บังคับให้เป็นข้อความบรรทัดเดียว
+               */
+
+              data.cell.text =
+                [text];
+
+              data.cell.styles.halign =
+                "center";
+
+              data.cell.styles.valign =
+                "middle";
+
+              data.cell.styles.overflow =
+                "hidden";
+
+              data.cell.styles.cellPadding =
+                0.3;
+
+              data.cell.styles.fontSize =
+                getResponsibleFontSize(
+                  text
+                );
+            }
+
+            /* =============================================
+               รายการ
+
+               อนุญาตให้ตัดบรรทัดได้ตามเดิม
+               ============================================= */
+
+            if (
+              data.section ===
+                "body" &&
+              data.column.index ===
+                4
             ) {
               const text =
                 String(
@@ -908,12 +1590,14 @@ export default function ExportInspectionPdf({
                 );
 
               if (
-                text.length > 45
+                text.length >
+                45
               ) {
                 data.cell.styles.fontSize =
                   7;
               } else if (
-                text.length > 30
+                text.length >
+                30
               ) {
                 data.cell.styles.fontSize =
                   7.5;
@@ -922,6 +1606,10 @@ export default function ExportInspectionPdf({
                   8.5;
               }
             }
+
+            /* =============================================
+               เครื่องหมาย ✓
+               ============================================= */
 
             if (
               data.section ===
@@ -933,14 +1621,21 @@ export default function ExportInspectionPdf({
             ) {
               data.cell.styles.fontSize =
                 11;
+
               data.cell.styles.fontStyle =
                 "normal";
+
               data.cell.styles.halign =
                 "center";
+
               data.cell.styles.valign =
                 "middle";
             }
           },
+
+          /* =================================================
+             TABLE LINE
+             ================================================= */
 
           tableLineColor: [
             0,
@@ -948,7 +1643,12 @@ export default function ExportInspectionPdf({
             0,
           ],
 
-          tableLineWidth: 0.25,
+          tableLineWidth:
+            0.25,
+
+          /* =================================================
+             ไม่ตัดแถวกลางหน้า
+             ================================================= */
 
           rowPageBreak:
             "avoid",
@@ -957,11 +1657,54 @@ export default function ExportInspectionPdf({
             "everyPage",
         });
 
-        drawInspectors(doc);
+        /* =================================================
+           ตำแหน่งจริงที่ตารางสิ้นสุด
+
+           ใช้ finalY ของ autoTable
+           ไม่ใช้เลขคงที่อีกต่อไป
+
+           จึงไม่เกิดปัญหา
+           ตารางซ้อนกับช่องลงชื่อ
+           ================================================= */
+
+        const lastAutoTable =
+          (
+            doc as jsPDF & {
+              lastAutoTable?: {
+                finalY: number;
+              };
+            }
+          ).lastAutoTable;
+
+        const tableFinalY =
+          lastAutoTable
+            ?.finalY ??
+          TABLE_START_Y;
+
+        /* =================================================
+           ช่องลงชื่อ
+
+           อย่างน้อยเว้นจากตาราง 10 mm
+
+           และให้เริ่มไม่สูงกว่าโซนเอกสารด้านล่าง
+           ================================================= */
+
+        const signatureStartY =
+          Math.max(
+            tableFinalY +
+              SIGNATURE_GAP,
+
+            SIGNATURE_MIN_START_Y
+          );
+
+        drawInspectors(
+          doc,
+          signatureStartY
+        );
       }
 
       /* ===================================================
-         เปิด PDF ใน Browser PDF Viewer
+         เปิด PDF
          =================================================== */
 
       const safeDepartmentName =
@@ -976,7 +1719,9 @@ export default function ExportInspectionPdf({
         `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`;
 
       const pdfBlob =
-        doc.output("blob");
+        doc.output(
+          "blob"
+        );
 
       const pdfUrl =
         URL.createObjectURL(
@@ -990,9 +1735,19 @@ export default function ExportInspectionPdf({
         // ไม่ต้องทำอะไร
       }
 
+      /* ===================================================
+         เปิด Preview
+
+         ใช้แท็บเดิมที่เปิดไว้ตอนกดปุ่ม
+         =================================================== */
+
       previewWindow.location.replace(
         pdfUrl
       );
+
+      /* ===================================================
+         ล้าง Blob URL ภายหลัง
+         =================================================== */
 
       window.setTimeout(
         () => {
@@ -1019,14 +1774,22 @@ export default function ExportInspectionPdf({
         "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
-      setIsExporting(false);
+      setIsExporting(
+        false
+      );
     }
   }
+
+  /* =========================================================
+     BUTTON
+     ========================================================= */
 
   return (
     <button
       type="button"
-      onClick={handleExportPdf}
+      onClick={
+        handleExportPdf
+      }
       disabled={
         isExporting ||
         assets.length === 0
