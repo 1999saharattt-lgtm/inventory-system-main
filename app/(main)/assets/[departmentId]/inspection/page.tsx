@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireLogin } from "@/lib/auth";
 import InspectionForm from "./InspectionForm";
+import DepartmentInspectionSelect from "./DepartmentInspectionSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -91,20 +92,31 @@ export default async function AssetInspectionPage({
   }
 
   /* =======================================================
-     ข้อมูลกลุ่มงาน
+     รายชื่อกลุ่มงานทั้งหมด
+
+     ใช้สำหรับ Dropdown เลือกกลุ่ม
      ======================================================= */
 
-  const department =
-    await prisma.department.findUnique({
-      where: {
-        id,
-      },
-
+  const departments =
+    await prisma.department.findMany({
       select: {
         id: true,
         name: true,
       },
+
+      orderBy: {
+        id: "asc",
+      },
     });
+
+  /* =======================================================
+     ข้อมูลกลุ่มงานปัจจุบัน
+     ======================================================= */
+
+  const department =
+    departments.find(
+      (item) => item.id === id
+    );
 
   if (!department) {
     notFound();
@@ -305,9 +317,9 @@ export default async function AssetInspectionPage({
           min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
+          flex-col
+          justify-center
+          gap-4
           rounded-2xl
           bg-gradient-to-r
           from-slate-950
@@ -318,11 +330,18 @@ export default async function AssetInspectionPage({
           text-white
           shadow-xl
           sm:min-h-[140px]
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
           sm:px-8
           sm:py-6
         "
       >
-        <div className="min-w-0">
+        {/* ===============================================
+            ชื่อหน้า + เลือกกลุ่ม
+            =============================================== */}
+
+        <div className="min-w-0 flex-1">
           <h1
             className="
               break-words
@@ -333,26 +352,33 @@ export default async function AssetInspectionPage({
               sm:text-3xl
             "
           >
-            🔎 ตรวจสอบรายการครุภัณฑ์
+            🔎 ตรวจสอบรายการครุภัณฑ์ประจำปี
           </h1>
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            {department.name}
-          </p>
+          {/* =============================================
+              Dropdown เลือกกลุ่ม
+
+              เมื่อเปลี่ยนกลุ่ม
+              → เปลี่ยน URL
+              → โหลดข้อมูลครุภัณฑ์ของกลุ่มนั้น
+              ============================================= */}
+
+          <div className="mt-3 w-full max-w-[420px]">
+            <DepartmentInspectionSelect
+              departments={departments}
+              currentDepartmentId={
+                department.id
+              }
+            />
+          </div>
         </div>
 
+        {/* ===============================================
+            กลับ
+            =============================================== */}
+
         <Link
-          href={`/assets/${department.id}`}
+          href="/assets"
           className="
             shrink-0
             whitespace-nowrap
@@ -385,18 +411,14 @@ export default async function AssetInspectionPage({
           FORM
 
           assets ที่ส่งเข้า InspectionForm
-          ถูกเรียงตาม SourceOrder แล้ว
+          คือข้อมูลเฉพาะกลุ่มที่เลือก
 
-          และตอนนี้มีข้อมูลเพิ่มเติม:
-          - quantity
-          - unit
-          - responsibleName
-
-          ทำให้ InspectionForm สามารถแสดงข้อมูล
-          ให้ตรงกับหน้า /assets/[departmentId]/all
+          เมื่อ Dropdown เปลี่ยน departmentId
+          หน้านี้จะ Query ข้อมูลใหม่ตามกลุ่มนั้นทันที
           =================================================== */}
 
       <InspectionForm
+        key={department.id}
         department={department}
         assets={assets}
         officers={officers}
