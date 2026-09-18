@@ -15,9 +15,30 @@ type Asset = {
   serialNumber: string | null;
   governmentAssetNo: string | null;
   officeAssetNo: string | null;
+
   departmentName: string;
   sectionName: string | null;
   officerName: string | null;
+
+  /*
+   * รองรับข้อมูลที่ส่งตรงมาจากหน้า
+   * /assets/[departmentId]/all
+   */
+  responsibleName?: string | null;
+
+  department?: {
+    name: string;
+  } | null;
+
+  section?: {
+    name: string;
+  } | null;
+
+  officer?: {
+    firstName: string;
+    lastName: string;
+  } | null;
+
   status: string;
   purchaseDate: string | null;
   price: number | null;
@@ -33,17 +54,8 @@ type Props = {
 /* =========================================================
    ชื่อประเภทครุภัณฑ์
 
-   หมวดที่ใช้แสดงผล
-
-   CABINET + SHELF
-   = ตู้และชั้นวาง
-
-   COMPUTER + MONITOR
-   = คอมพิวเตอร์
-
-   SHELF และ MONITOR ยังคงรองรับไว้
-   สำหรับข้อมูลเดิมในฐานข้อมูล
-   แต่จะไม่แสดงชื่อเป็นหมวดแยกใน PDF
+   เก็บไว้รองรับข้อมูลเดิม
+   แม้ PDF ชุดนี้จะไม่แสดงคอลัมน์ "ประเภท"
    ========================================================= */
 
 const categoryName: Record<string, string> = {
@@ -150,116 +162,112 @@ function getCurrentQuarter(date: Date) {
 /* =========================================================
    ผู้รับผิดชอบ
 
-   กลุ่มอำนวยการ
-   = ชื่อ นามสกุล / ชื่องาน
+   ใช้รูปแบบเดียวกับหน้า
+   /assets/[departmentId]/all
 
-   กลุ่มอื่น
-   = ชื่อ นามสกุล
-
-   หมายเหตุ:
-   หน้า /assets/[departmentId]/all
-   อาจส่ง officerName ที่เป็น responsibleName
-   จากทะเบียนต้นฉบับมาแล้ว
-
-   จึงต้องป้องกันการต่อ Section ซ้ำ
+   ตัวอย่าง:
+   กลุ่มอำนวยการ / หน้าห้องผู้อำนวยการ
+   กลุ่มอำนวยการ / งานสารบรรณ
    ========================================================= */
 
 function getResponsibleName(asset: Asset) {
-  const officerName =
-    asset.officerName?.trim() || "";
-
-  const sectionName =
-    asset.sectionName?.trim() || "";
-
-  const assetDepartmentName =
-    asset.departmentName?.trim() || "";
-
   /* =======================================================
-     กลุ่มอำนวยการ
+     ชื่อกลุ่ม
+     รองรับทั้งข้อมูลแบบเดิมและข้อมูลจาก Prisma โดยตรง
      ======================================================= */
 
+  const assetDepartmentName =
+    asset.departmentName?.trim() ||
+    asset.department?.name?.trim() ||
+    "";
+
+  /* =======================================================
+     ผู้รับผิดชอบจากทะเบียน Excel
+
+     responsibleName เป็นข้อมูลหลัก
+
+     แต่ยังรองรับ officerName เดิม
+     เพื่อไม่กระทบจุดที่เรียก Component แบบเก่า
+     ======================================================= */
+
+  const originalResponsibleName =
+    asset.responsibleName?.trim() ||
+    asset.officerName?.trim() ||
+    "";
+
   if (
-    assetDepartmentName ===
-    "กลุ่มอำนวยการ"
+    originalResponsibleName &&
+    originalResponsibleName !== "-"
   ) {
     /*
-     * มีทั้งข้อมูลผู้รับผิดชอบ
-     * และ Section
+     * ถ้ามีชื่อกลุ่มนำหน้าอยู่แล้ว
+     * ไม่เติมซ้ำ
      */
 
     if (
-      officerName &&
-      sectionName
-    ) {
-      /*
-       * ป้องกันกรณี officerName
-       * มี "/ ชื่องาน" อยู่แล้ว
-       */
-
-      if (
-        officerName.includes(
-          ` / ${sectionName}`
-        ) ||
-        officerName.endsWith(
-          `/${sectionName}`
+      assetDepartmentName &&
+      (
+        originalResponsibleName ===
+          assetDepartmentName ||
+        originalResponsibleName.startsWith(
+          `${assetDepartmentName} /`
         )
-      ) {
-        return officerName;
-      }
-
-      /*
-       * กรณี responsibleName
-       * เป็นข้อความสถานที่
-       */
-
-      if (
-        officerName.startsWith("ห้อง")
-      ) {
-        return officerName;
-      }
-
-      /*
-       * กรณีข้อความเป็นชื่องานอยู่แล้ว
-       */
-
-      if (
-        officerName.startsWith("งาน")
-      ) {
-        return officerName;
-      }
-
-      /*
-       * กรณีชื่อบุคคลจริง
-       * ต่อด้วย Section
-       */
-
-      return `${officerName} / ${sectionName}`;
+      )
+    ) {
+      return originalResponsibleName;
     }
 
     /*
-     * มีเฉพาะผู้รับผิดชอบ
+     * ตัวอย่าง:
+     *
+     * กลุ่มอำนวยการ
+     * +
+     * หน้าห้องผู้อำนวยการ
+     *
+     * =
+     * กลุ่มอำนวยการ / หน้าห้องผู้อำนวยการ
      */
 
-    if (officerName) {
-      return officerName;
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${originalResponsibleName}`;
     }
 
-    /*
-     * มีเฉพาะ Section
-     */
-
-    if (sectionName) {
-      return sectionName;
-    }
-
-    return assetDepartmentName || "-";
+    return originalResponsibleName;
   }
 
   /* =======================================================
-     กลุ่มอื่น
+     ไม่มี responsibleName
+     ใช้ section เป็น fallback
      ======================================================= */
 
+  const sectionName =
+    asset.sectionName?.trim() ||
+    asset.section?.name?.trim() ||
+    "";
+
+  if (sectionName) {
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${sectionName}`;
+    }
+
+    return sectionName;
+  }
+
+  /* =======================================================
+     ไม่มี responsibleName และ section
+     ใช้ชื่อเจ้าหน้าที่เป็น fallback
+     ======================================================= */
+
+  const officerName =
+    asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+      : "";
+
   if (officerName) {
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${officerName}`;
+    }
+
     return officerName;
   }
 
@@ -459,6 +467,18 @@ export default function ExportDepartmentAssetsPdf({
 
           /* =================================================
              TABLE DATA
+
+             เรียงเหมือนหน้า
+             /assets/[departmentId]/all
+
+             1. ลำดับ
+             2. รหัส GFMIS
+             3. รหัสครุภัณฑ์
+             4. รายการครุภัณฑ์
+             5. จำนวน
+             6. หน่วย
+             7. ผู้รับผิดชอบ
+             8. สถานะ
              ================================================= */
 
           const body =
@@ -481,13 +501,6 @@ export default function ExportDepartmentAssetsPdf({
                   /* ลำดับ */
 
                   globalIndex + 1,
-
-                  /* ประเภท */
-
-                  categoryName[
-                    asset.category
-                  ] ??
-                    asset.category,
 
                   /* รหัส GFMIS */
 
@@ -544,7 +557,6 @@ export default function ExportDepartmentAssetsPdf({
               "",
               "",
               "",
-              "",
             ]);
           }
 
@@ -581,7 +593,6 @@ export default function ExportDepartmentAssetsPdf({
             head: [
               [
                 "ลำดับ",
-                "ประเภท",
                 "รหัส GFMIS",
                 "รหัสครุภัณฑ์",
                 "รายการครุภัณฑ์",
@@ -717,6 +728,8 @@ export default function ExportDepartmentAssetsPdf({
 
             /* =================================================
                ความกว้างและตำแหน่งแต่ละคอลัมน์
+
+               รวม = 270 mm
                ================================================= */
 
             columnStyles: {
@@ -728,17 +741,9 @@ export default function ExportDepartmentAssetsPdf({
                 valign: "middle",
               },
 
-              /* ประเภท */
-
-              1: {
-                cellWidth: 29,
-                halign: "center",
-                valign: "middle",
-              },
-
               /* รหัส GFMIS */
 
-              2: {
+              1: {
                 cellWidth: 34,
                 halign: "center",
                 valign: "middle",
@@ -746,7 +751,7 @@ export default function ExportDepartmentAssetsPdf({
 
               /* รหัสครุภัณฑ์ */
 
-              3: {
+              2: {
                 cellWidth: 42,
                 halign: "center",
                 valign: "middle",
@@ -754,12 +759,11 @@ export default function ExportDepartmentAssetsPdf({
 
               /* =================================================
                  รายการครุภัณฑ์
-
-                 คงเดิม: ข้อมูลชิดซ้าย
+                 ข้อมูลชิดซ้าย
                  ================================================= */
 
-              4: {
-                cellWidth: 62,
+              3: {
+                cellWidth: 75,
                 halign: "left",
                 valign: "middle",
 
@@ -773,16 +777,16 @@ export default function ExportDepartmentAssetsPdf({
 
               /* จำนวน */
 
-              5: {
-                cellWidth: 12,
+              4: {
+                cellWidth: 14,
                 halign: "center",
                 valign: "middle",
               },
 
               /* หน่วย */
 
-              6: {
-                cellWidth: 16,
+              5: {
+                cellWidth: 17,
                 halign: "center",
                 valign: "middle",
               },
@@ -790,14 +794,13 @@ export default function ExportDepartmentAssetsPdf({
               /* =================================================
                  ผู้รับผิดชอบ
 
-                 แก้ไข:
-                 - ข้อมูลอยู่กึ่งกลางแนวนอน
-                 - ข้อมูลอยู่กึ่งกลางแนวตั้ง
-                 - รองรับข้อความหลายบรรทัด
+                 กึ่งกลางแนวนอน
+                 กึ่งกลางแนวตั้ง
+                 รองรับหลายบรรทัด
                  ================================================= */
 
-              7: {
-                cellWidth: 45,
+              6: {
+                cellWidth: 58,
                 halign: "center",
                 valign: "middle",
 
@@ -814,7 +817,7 @@ export default function ExportDepartmentAssetsPdf({
 
               /* สถานะ */
 
-              8: {
+              7: {
                 cellWidth: 20,
                 halign: "center",
                 valign: "middle",
@@ -823,24 +826,20 @@ export default function ExportDepartmentAssetsPdf({
 
             /* =================================================
                บังคับตำแหน่งข้อความ
-
-               - หัว "รายการครุภัณฑ์" อยู่กึ่งกลาง
-               - ข้อมูล "รายการครุภัณฑ์" ชิดซ้าย
-               - หัว "ผู้รับผิดชอบ" อยู่กึ่งกลาง
-               - ข้อมูล "ผู้รับผิดชอบ" อยู่กึ่งกลาง
                ================================================= */
 
             didParseCell: (
               data
             ) => {
-              /*
-               * หัวรายการครุภัณฑ์
-               */
+              /* =============================================
+                 หัว "รายการครุภัณฑ์"
+                 อยู่กึ่งกลาง
+                 ============================================= */
 
               if (
                 data.section ===
                   "head" &&
-                data.column.index === 4
+                data.column.index === 3
               ) {
                 data.cell.styles.halign =
                   "center";
@@ -849,14 +848,15 @@ export default function ExportDepartmentAssetsPdf({
                   "middle";
               }
 
-              /*
-               * หัวผู้รับผิดชอบ
-               */
+              /* =============================================
+                 หัว "ผู้รับผิดชอบ"
+                 อยู่กึ่งกลาง
+                 ============================================= */
 
               if (
                 data.section ===
                   "head" &&
-                data.column.index === 7
+                data.column.index === 6
               ) {
                 data.cell.styles.halign =
                   "center";
@@ -865,16 +865,15 @@ export default function ExportDepartmentAssetsPdf({
                   "middle";
               }
 
-              /*
-               * ข้อมูลผู้รับผิดชอบ
-               *
-               * บังคับกึ่งกลางทุกแถว
-               */
+              /* =============================================
+                 ข้อมูล "ผู้รับผิดชอบ"
+                 อยู่กึ่งกลางทุกแถว
+                 ============================================= */
 
               if (
                 data.section ===
                   "body" &&
-                data.column.index === 7
+                data.column.index === 6
               ) {
                 data.cell.styles.halign =
                   "center";

@@ -1,151 +1,262 @@
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+"use client";
 
-import ExportDepartmentAssetsPdf from "../ExportDepartmentAssetsPdf";
+import "@/lib/fonts/THSarabunNew-normal";
 
-export const dynamic = "force-dynamic";
+import { useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+type Asset = {
+  id: number;
+  name: string;
+  category: string;
+  brand: string | null;
+  model: string | null;
+  serialNumber: string | null;
+  governmentAssetNo: string | null;
+  officeAssetNo: string | null;
+
+  departmentName: string;
+  sectionName: string | null;
+  officerName: string | null;
+
+  /*
+   * รองรับข้อมูลที่ส่งตรงมาจากหน้า
+   * /assets/[departmentId]/all
+   */
+  responsibleName?: string | null;
+
+  department?: {
+    name: string;
+  } | null;
+
+  section?: {
+    name: string;
+  } | null;
+
+  officer?: {
+    firstName: string;
+    lastName: string;
+  } | null;
+
+  status: string;
+  purchaseDate: string | null;
+  price: number | null;
+  location: string | null;
+  remark: string | null;
+};
 
 type Props = {
-  params: Promise<{
-    departmentId: string;
-  }>;
+  departmentName: string;
+  assets: Asset[];
 };
 
-// =====================================================
-// สถานะครุภัณฑ์
-// =====================================================
+/* =========================================================
+   ชื่อประเภทครุภัณฑ์
 
-const statusName: Record<string, string> = {
-  IN_USE: "ยังใช้งาน",
-  DAMAGED: "ชำรุด",
-  WAITING_DISPOSAL: "รอจำหน่าย",
-  DISPOSED: "จำหน่ายแล้ว",
+   เก็บไว้รองรับข้อมูลเดิม
+   แม้ PDF ชุดนี้จะไม่แสดงคอลัมน์ "ประเภท"
+   ========================================================= */
+
+const categoryName: Record<string, string> = {
+  DESK: "โต๊ะ",
+  CHAIR: "เก้าอี้",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  TELEPHONE: "เครื่องโทรศัพท์",
+
+  CABINET: "ตู้และชั้นวาง",
+  SHELF: "ตู้และชั้นวาง",
+
+  COMPUTER: "คอมพิวเตอร์",
+  MONITOR: "คอมพิวเตอร์",
+
+  PRINTER: "เครื่องพิมพ์",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
-// =====================================================
-// หน่วยนับสำรอง
-// ใช้เฉพาะกรณีในทะเบียนไม่มี unit
-// =====================================================
+/* =========================================================
+   หน่วยของครุภัณฑ์
+   ========================================================= */
 
 const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
   AIR_CONDITIONER: "เครื่อง",
   TELEPHONE: "เครื่อง",
-  CABINET: "ตู้",
+
+  CABINET: "ตัว",
   SHELF: "ตัว",
+
   COMPUTER: "เครื่อง",
   MONITOR: "เครื่อง",
+
   PRINTER: "เครื่อง",
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 };
 
-// =====================================================
-// ลำดับจากทะเบียนต้นฉบับ
-// =====================================================
+/* =========================================================
+   สถานะครุภัณฑ์
+   ========================================================= */
 
-function getSourceOrder(
-  remark: string | null
-): number | null {
-  if (!remark) {
-    return null;
+const statusName: Record<string, string> = {
+  IN_USE: "ยังใช้งาน",
+
+  // รองรับข้อมูลเดิม
+  ACTIVE: "ยังใช้งาน",
+  INACTIVE: "ไม่ใช้งาน",
+
+  DAMAGED: "ชำรุด",
+  WAITING_DISPOSAL: "รอจำหน่าย",
+  DISPOSED: "จำหน่ายแล้ว",
+
+  // รองรับข้อมูลเดิม
+  LOST: "สูญหาย",
+};
+
+/* =========================================================
+   ปีงบประมาณราชการ
+
+   ต.ค. - ก.ย.
+   ========================================================= */
+
+function getFiscalYear(date: Date) {
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  if (month >= 10) {
+    return year + 1 + 543;
   }
 
-  const match = remark.match(
-    /SOURCE:DEPARTMENT_1:(\d+)/
-  );
-
-  if (!match) {
-    return null;
-  }
-
-  const sourceOrder = Number(match[1]);
-
-  if (
-    !Number.isInteger(sourceOrder) ||
-    sourceOrder <= 0
-  ) {
-    return null;
-  }
-
-  return sourceOrder;
+  return year + 543;
 }
 
-// =====================================================
-// ผู้รับผิดชอบ
-// ใช้ responsibleName จากทะเบียน Excel เป็นหลัก
-// =====================================================
+/* =========================================================
+   รอบไตรมาสปัจจุบัน
 
-function getResponsibleName(asset: {
-  responsibleName: string | null;
+   ต.ค. - ธ.ค. = 1
+   ม.ค. - มี.ค. = 2
+   เม.ย. - มิ.ย. = 3
+   ก.ค. - ก.ย. = 4
+   ========================================================= */
 
-  department: {
-    name: string;
-  };
+function getCurrentQuarter(date: Date) {
+  const month = date.getMonth() + 1;
 
-  section: {
-    name: string;
-  } | null;
+  if (month >= 10 && month <= 12) {
+    return 1;
+  }
 
-  officer: {
-    firstName: string;
-    lastName: string;
-  } | null;
-}) {
-  const departmentName =
-    asset.department.name?.trim() || "";
+  if (month >= 1 && month <= 3) {
+    return 2;
+  }
+
+  if (month >= 4 && month <= 6) {
+    return 3;
+  }
+
+  return 4;
+}
+
+/* =========================================================
+   ผู้รับผิดชอบ
+
+   ใช้รูปแบบเดียวกับหน้า
+   /assets/[departmentId]/all
+
+   ตัวอย่าง:
+   กลุ่มอำนวยการ / หน้าห้องผู้อำนวยการ
+   กลุ่มอำนวยการ / งานสารบรรณ
+   ========================================================= */
+
+function getResponsibleName(asset: Asset) {
+  /* =======================================================
+     ชื่อกลุ่ม
+     รองรับทั้งข้อมูลแบบเดิมและข้อมูลจาก Prisma โดยตรง
+     ======================================================= */
+
+  const assetDepartmentName =
+    asset.departmentName?.trim() ||
+    asset.department?.name?.trim() ||
+    "";
+
+  /* =======================================================
+     ผู้รับผิดชอบจากทะเบียน Excel
+
+     responsibleName เป็นข้อมูลหลัก
+
+     แต่ยังรองรับ officerName เดิม
+     เพื่อไม่กระทบจุดที่เรียก Component แบบเก่า
+     ======================================================= */
 
   const originalResponsibleName =
-    asset.responsibleName?.trim();
-
-  // ===================================================
-  // ใช้ข้อความจาก Excel ก่อน
-  // ===================================================
+    asset.responsibleName?.trim() ||
+    asset.officerName?.trim() ||
+    "";
 
   if (
     originalResponsibleName &&
     originalResponsibleName !== "-"
   ) {
+    /*
+     * ถ้ามีชื่อกลุ่มนำหน้าอยู่แล้ว
+     * ไม่เติมซ้ำ
+     */
+
     if (
-      departmentName &&
+      assetDepartmentName &&
       (
-        originalResponsibleName === departmentName ||
+        originalResponsibleName ===
+          assetDepartmentName ||
         originalResponsibleName.startsWith(
-          `${departmentName} /`
+          `${assetDepartmentName} /`
         )
       )
     ) {
       return originalResponsibleName;
     }
 
-    if (departmentName) {
-      return `${departmentName} / ${originalResponsibleName}`;
+    /*
+     * ตัวอย่าง:
+     *
+     * กลุ่มอำนวยการ
+     * +
+     * หน้าห้องผู้อำนวยการ
+     *
+     * =
+     * กลุ่มอำนวยการ / หน้าห้องผู้อำนวยการ
+     */
+
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${originalResponsibleName}`;
     }
 
     return originalResponsibleName;
   }
 
-  // ===================================================
-  // ถ้าไม่มี responsibleName ใช้ section
-  // ===================================================
+  /* =======================================================
+     ไม่มี responsibleName
+     ใช้ section เป็น fallback
+     ======================================================= */
 
   const sectionName =
-    asset.section?.name?.trim();
+    asset.sectionName?.trim() ||
+    asset.section?.name?.trim() ||
+    "";
 
   if (sectionName) {
-    if (departmentName) {
-      return `${departmentName} / ${sectionName}`;
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${sectionName}`;
     }
 
     return sectionName;
   }
 
-  // ===================================================
-  // ถ้าไม่มีทั้ง responsibleName และ section
-  // ใช้ผู้ครอบครอง
-  // ===================================================
+  /* =======================================================
+     ไม่มี responsibleName และ section
+     ใช้ชื่อเจ้าหน้าที่เป็น fallback
+     ======================================================= */
 
   const officerName =
     asset.officer
@@ -153,728 +264,740 @@ function getResponsibleName(asset: {
       : "";
 
   if (officerName) {
-    if (departmentName) {
-      return `${departmentName} / ${officerName}`;
+    if (assetDepartmentName) {
+      return `${assetDepartmentName} / ${officerName}`;
     }
 
     return officerName;
   }
 
-  if (departmentName) {
-    return departmentName;
+  if (assetDepartmentName) {
+    return assetDepartmentName;
   }
 
   return "-";
 }
 
-// =====================================================
-// หน่วย
-// =====================================================
+/* =========================================================
+   COMPONENT
+   ========================================================= */
 
-function getAssetUnit(asset: {
-  unit: string | null;
-  category: string;
-}) {
-  const originalUnit =
-    asset.unit?.trim();
-
-  if (
-    originalUnit &&
-    originalUnit !== "-"
-  ) {
-    return originalUnit;
-  }
-
-  return (
-    categoryUnit[asset.category] ??
-    "รายการ"
-  );
-}
-
-// =====================================================
-// PAGE
-// =====================================================
-
-export default async function AllAssetsPage({
-  params,
+export default function ExportDepartmentAssetsPdf({
+  departmentName,
+  assets,
 }: Props) {
-  const { departmentId } =
-    await params;
+  const [isExporting, setIsExporting] =
+    useState(false);
 
-  const id =
-    Number(departmentId);
+  /* =========================================================
+     A4 แนวนอน
 
-  if (
-    !Number.isInteger(id) ||
-    id <= 0
-  ) {
-    notFound();
+     297 x 210 mm
+     ========================================================= */
+
+  const pageWidth = 297;
+
+  /* =========================================================
+     ความกว้างตาราง
+     ========================================================= */
+
+  const tableWidth = 270;
+
+  /* =========================================================
+     จัดตารางให้อยู่กึ่งกลางหน้า
+     ========================================================= */
+
+  const marginX =
+    (pageWidth - tableWidth) / 2;
+
+  /* =========================================================
+     จำนวนรายการต่อหน้า
+     ========================================================= */
+
+  const rowsPerPage = 17;
+
+  /* =========================================================
+     EXPORT PDF
+     ========================================================= */
+
+  async function handleExportPdf() {
+    if (assets.length === 0) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      /* =====================================================
+         คำนวณไตรมาสและปีงบประมาณ
+         ===================================================== */
+
+      const currentDate =
+        new Date();
+
+      const currentQuarter =
+        getCurrentQuarter(
+          currentDate
+        );
+
+      const fiscalYear =
+        getFiscalYear(
+          currentDate
+        );
+
+      /* =====================================================
+         สร้าง PDF A4 แนวนอน
+         ===================================================== */
+
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      /* =====================================================
+         ฟอนต์ภาษาไทย
+         ===================================================== */
+
+      doc.setFont(
+        "2.3.2 THSarabunNew",
+        "normal"
+      );
+
+      /* =====================================================
+         แบ่งข้อมูลเป็นหน้า
+         ===================================================== */
+
+      const pages: Asset[][] = [];
+
+      for (
+        let i = 0;
+        i < assets.length;
+        i += rowsPerPage
+      ) {
+        pages.push(
+          assets.slice(
+            i,
+            i + rowsPerPage
+          )
+        );
+      }
+
+      /* =====================================================
+         สร้าง PDF ทีละหน้า
+         ===================================================== */
+
+      pages.forEach(
+        (
+          pageAssets,
+          pageIndex
+        ) => {
+          if (pageIndex > 0) {
+            doc.addPage(
+              "a4",
+              "landscape"
+            );
+          }
+
+          const center =
+            pageWidth / 2;
+
+          /* =================================================
+             HEADER
+             ================================================= */
+
+          doc.setFont(
+            "2.3.2 THSarabunNew",
+            "normal"
+          );
+
+          /* -------------------------------------------------
+             บรรทัดที่ 1
+             ------------------------------------------------- */
+
+          doc.setFontSize(26);
+
+          doc.text(
+            "ทะเบียนคุมครุภัณฑ์",
+            center,
+            15,
+            {
+              align: "center",
+            }
+          );
+
+          /* -------------------------------------------------
+             บรรทัดที่ 2
+             ------------------------------------------------- */
+
+          doc.setFontSize(16);
+
+          const departmentHeader =
+            departmentName +
+            " สำนักอนามัยการเจริญพันธุ์";
+
+          doc.text(
+            departmentHeader,
+            center,
+            23,
+            {
+              align: "center",
+            }
+          );
+
+          /* -------------------------------------------------
+             บรรทัดที่ 3
+             ------------------------------------------------- */
+
+          const fiscalHeader =
+            "รอบไตรมาสที่ " +
+            currentQuarter +
+            " ปีงบประมาณ พ.ศ. " +
+            fiscalYear;
+
+          doc.text(
+            fiscalHeader,
+            center,
+            31,
+            {
+              align: "center",
+            }
+          );
+
+          /* =================================================
+             TABLE DATA
+
+             เรียงเหมือนหน้า
+             /assets/[departmentId]/all
+
+             1. ลำดับ
+             2. รหัส GFMIS
+             3. รหัสครุภัณฑ์
+             4. รายการครุภัณฑ์
+             5. จำนวน
+             6. หน่วย
+             7. ผู้รับผิดชอบ
+             8. สถานะ
+             ================================================= */
+
+          const body =
+            pageAssets.map(
+              (
+                asset,
+                index
+              ) => {
+                const globalIndex =
+                  pageIndex *
+                    rowsPerPage +
+                  index;
+
+                const responsibleName =
+                  getResponsibleName(
+                    asset
+                  );
+
+                return [
+                  /* ลำดับ */
+
+                  globalIndex + 1,
+
+                  /* รหัส GFMIS */
+
+                  asset.governmentAssetNo ??
+                    "-",
+
+                  /* รหัสครุภัณฑ์ */
+
+                  asset.officeAssetNo ??
+                    "-",
+
+                  /* รายการครุภัณฑ์ */
+
+                  asset.name || "-",
+
+                  /* จำนวน */
+
+                  "1",
+
+                  /* หน่วย */
+
+                  categoryUnit[
+                    asset.category
+                  ] ?? "รายการ",
+
+                  /* ผู้รับผิดชอบ */
+
+                  responsibleName,
+
+                  /* สถานะ */
+
+                  statusName[
+                    asset.status
+                  ] ??
+                    asset.status,
+                ];
+              }
+            );
+
+          /* =================================================
+             เติมแถวว่างให้ครบ 17 แถว
+             ================================================= */
+
+          while (
+            body.length <
+            rowsPerPage
+          ) {
+            body.push([
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+            ]);
+          }
+
+          /* =================================================
+             TABLE
+             ================================================= */
+
+          autoTable(doc, {
+            /* ------------------------------------------------
+               เริ่มตารางหลัง Header
+               ------------------------------------------------ */
+
+            startY: 37,
+
+            /* ------------------------------------------------
+               ตารางอยู่กึ่งกลาง
+               ------------------------------------------------ */
+
+            margin: {
+              left: marginX,
+              right: marginX,
+            },
+
+            /* ------------------------------------------------
+               ความกว้างรวม
+               ------------------------------------------------ */
+
+            tableWidth,
+
+            /* ------------------------------------------------
+               หัวตาราง
+               ------------------------------------------------ */
+
+            head: [
+              [
+                "ลำดับ",
+                "รหัส GFMIS",
+                "รหัสครุภัณฑ์",
+                "รายการครุภัณฑ์",
+                "จำนวน",
+                "หน่วย",
+                "ผู้รับผิดชอบ",
+                "สถานะ",
+              ],
+            ],
+
+            body,
+
+            theme: "grid",
+
+            /* =================================================
+               รูปแบบตารางพื้นฐาน
+               ================================================= */
+
+            styles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize: 13,
+
+              cellPadding: 1.2,
+
+              halign: "center",
+
+              valign: "middle",
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth: 0.25,
+
+              minCellHeight: 7.2,
+
+              overflow:
+                "linebreak",
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+            },
+
+            /* =================================================
+               หัวตาราง
+               ================================================= */
+
+            headStyles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize: 13,
+
+              fillColor: [
+                255,
+                255,
+                255,
+              ],
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth: 0.25,
+
+              cellPadding: 1.3,
+
+              minCellHeight: 9,
+
+              overflow:
+                "linebreak",
+            },
+
+            /* =================================================
+               ข้อมูลในตาราง
+               ================================================= */
+
+            bodyStyles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize: 13,
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              cellPadding: 1.2,
+
+              minCellHeight: 7.2,
+
+              overflow:
+                "linebreak",
+            },
+
+            /* =================================================
+               ความกว้างและตำแหน่งแต่ละคอลัมน์
+
+               รวม = 270 mm
+               ================================================= */
+
+            columnStyles: {
+              /* ลำดับ */
+
+              0: {
+                cellWidth: 10,
+                halign: "center",
+                valign: "middle",
+              },
+
+              /* รหัส GFMIS */
+
+              1: {
+                cellWidth: 34,
+                halign: "center",
+                valign: "middle",
+              },
+
+              /* รหัสครุภัณฑ์ */
+
+              2: {
+                cellWidth: 42,
+                halign: "center",
+                valign: "middle",
+              },
+
+              /* =================================================
+                 รายการครุภัณฑ์
+                 ข้อมูลชิดซ้าย
+                 ================================================= */
+
+              3: {
+                cellWidth: 75,
+                halign: "left",
+                valign: "middle",
+
+                cellPadding: {
+                  top: 1.2,
+                  right: 1.2,
+                  bottom: 1.2,
+                  left: 2,
+                },
+              },
+
+              /* จำนวน */
+
+              4: {
+                cellWidth: 14,
+                halign: "center",
+                valign: "middle",
+              },
+
+              /* หน่วย */
+
+              5: {
+                cellWidth: 17,
+                halign: "center",
+                valign: "middle",
+              },
+
+              /* =================================================
+                 ผู้รับผิดชอบ
+
+                 กึ่งกลางแนวนอน
+                 กึ่งกลางแนวตั้ง
+                 รองรับหลายบรรทัด
+                 ================================================= */
+
+              6: {
+                cellWidth: 58,
+                halign: "center",
+                valign: "middle",
+
+                cellPadding: {
+                  top: 1.2,
+                  right: 1.2,
+                  bottom: 1.2,
+                  left: 1.2,
+                },
+
+                overflow:
+                  "linebreak",
+              },
+
+              /* สถานะ */
+
+              7: {
+                cellWidth: 20,
+                halign: "center",
+                valign: "middle",
+              },
+            },
+
+            /* =================================================
+               บังคับตำแหน่งข้อความ
+               ================================================= */
+
+            didParseCell: (
+              data
+            ) => {
+              /* =============================================
+                 หัว "รายการครุภัณฑ์"
+                 อยู่กึ่งกลาง
+                 ============================================= */
+
+              if (
+                data.section ===
+                  "head" &&
+                data.column.index === 3
+              ) {
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+              }
+
+              /* =============================================
+                 หัว "ผู้รับผิดชอบ"
+                 อยู่กึ่งกลาง
+                 ============================================= */
+
+              if (
+                data.section ===
+                  "head" &&
+                data.column.index === 6
+              ) {
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+              }
+
+              /* =============================================
+                 ข้อมูล "ผู้รับผิดชอบ"
+                 อยู่กึ่งกลางทุกแถว
+                 ============================================= */
+
+              if (
+                data.section ===
+                  "body" &&
+                data.column.index === 6
+              ) {
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+              }
+            },
+
+            /* =================================================
+               เส้นกรอบตาราง
+               ================================================= */
+
+            tableLineColor: [
+              0,
+              0,
+              0,
+            ],
+
+            tableLineWidth:
+              0.25,
+          });
+        }
+      );
+
+      /* =====================================================
+         เปิด PDF
+         ===================================================== */
+
+      const pdfBlob =
+        doc.output("blob");
+
+      const pdfUrl =
+        URL.createObjectURL(
+          pdfBlob
+        );
+
+      const newWindow =
+        window.open(
+          pdfUrl,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+      if (!newWindow) {
+        const link =
+          document.createElement(
+            "a"
+          );
+
+        link.href = pdfUrl;
+
+        link.target =
+          "_blank";
+
+        link.rel =
+          "noopener noreferrer";
+
+        link.click();
+      }
+
+      /* =====================================================
+         ล้าง Object URL
+         ===================================================== */
+
+      setTimeout(() => {
+        URL.revokeObjectURL(
+          pdfUrl
+        );
+      }, 60000);
+    } catch (error) {
+      console.error(
+        "ไม่สามารถสร้าง PDF ได้:",
+        error
+      );
+
+      alert(
+        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
+      );
+    } finally {
+      setIsExporting(false);
+    }
   }
 
-  // ===================================================
-  // หน่วยงาน
-  // ===================================================
-
-  const department =
-    await prisma.department.findUnique({
-      where: {
-        id,
-      },
-
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-  if (!department) {
-    notFound();
-  }
-
-  // ===================================================
-  // ดึงครุภัณฑ์เฉพาะหน่วยงานนี้
-  // ===================================================
-
-  const assetsFromDatabase =
-    await prisma.asset.findMany({
-      where: {
-        departmentId: id,
-      },
-
-      include: {
-        department: true,
-        section: true,
-        officer: true,
-      },
-    });
-
-  // ===================================================
-  // เรียงตามทะเบียนต้นฉบับ
-  // ===================================================
-
-  const assets = [
-    ...assetsFromDatabase,
-  ].sort((a, b) => {
-    const orderA =
-      getSourceOrder(a.remark);
-
-    const orderB =
-      getSourceOrder(b.remark);
-
-    if (
-      orderA !== null &&
-      orderB !== null
-    ) {
-      return orderA - orderB;
-    }
-
-    if (orderA !== null) {
-      return -1;
-    }
-
-    if (orderB !== null) {
-      return 1;
-    }
-
-    return a.id - b.id;
-  });
-
-  // ===================================================
-  // PDF
-  // ===================================================
-
-  const ExportPdfButton =
-    ExportDepartmentAssetsPdf as any;
+  /* =========================================================
+     UI
+     ========================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =================================================
-          HEADER
-      ================================================= */}
-
-      <div
+    <div className="shrink-0">
+      <button
+        type="button"
+        onClick={
+          handleExportPdf
+        }
+        disabled={
+          isExporting ||
+          assets.length === 0
+        }
         className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
+          rounded-xl
           bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
+          from-emerald-600
+          to-green-500
           px-4
-          py-5
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-8
-          sm:py-6
+          py-3
+          text-sm
+          font-extrabold
+          !text-white
+          shadow-lg
+          transition
+          hover:scale-[1.02]
+          hover:from-emerald-700
+          hover:to-green-600
+          active:scale-[0.98]
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+          sm:px-6
         "
       >
-        {/* ===============================================
-            ชื่อหน้า
-        =============================================== */}
-
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📋 ทะเบียนครุภัณฑ์ทั้งหมด
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            {department.name}
-          </p>
-        </div>
-
-        {/* ===============================================
-            ปุ่ม
-        =============================================== */}
-
-        <div
-          className="
-            flex
-            w-full
-            shrink-0
-            flex-col
-            gap-3
-            sm:w-auto
-            sm:flex-row
-            sm:items-center
-          "
-        >
-          {/* =============================================
-              ส่งออก PDF
-              แดง / ตัวอักษรขาว
-              ขนาดเท่าปุ่มกลับ
-          ============================================= */}
-
-          <div
-            className="
-              w-full
-              sm:w-[170px]
-
-              [&_button]:!flex
-              [&_button]:!h-12
-              [&_button]:!w-full
-              [&_button]:!items-center
-              [&_button]:!justify-center
-              [&_button]:!rounded-xl
-              [&_button]:!border-0
-              [&_button]:!bg-red-600
-              [&_button]:!px-5
-              [&_button]:!py-3
-              [&_button]:!text-center
-              [&_button]:!text-sm
-              [&_button]:!font-extrabold
-              [&_button]:!text-white
-              [&_button]:!shadow-lg
-              [&_button]:!transition
-
-              [&_button:hover]:!bg-red-700
-
-              sm:[&_button]:!text-base
-            "
-          >
-            <ExportPdfButton
-              departmentId={
-                department.id
-              }
-              departmentName={
-                department.name
-              }
-              department={
-                department
-              }
-              assets={
-                assets
-              }
-            />
-          </div>
-
-          {/* =============================================
-              กลับ
-              สีเขียวเดิม
-              ขนาดเท่าปุ่มส่งออก PDF
-          ============================================= */}
-
-          <Link
-            href={`/assets/${department.id}`}
-            className="
-              flex
-              h-12
-              w-full
-              items-center
-              justify-center
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-3
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-[170px]
-              sm:text-base
-            "
-          >
-            ← กลับ
-          </Link>
-        </div>
-      </div>
-
-      {/* =================================================
-          TABLE
-      ================================================= */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          overflow-hidden
-          rounded-2xl
-          bg-white
-          shadow-xl
-        "
-      >
-        <div
-          className="
-            w-full
-            overflow-x-auto
-          "
-        >
-          <table
-            className="
-              w-full
-              min-w-[1450px]
-              border-collapse
-              text-sm
-            "
-          >
-            <thead>
-              <tr>
-                {/* ลำดับ */}
-
-                <th
-                  className="
-                    w-[6%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ลำดับ
-                </th>
-
-                {/* รหัส GFMIS */}
-
-                <th
-                  className="
-                    w-[14%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รหัส GFMIS
-                </th>
-
-                {/* รหัสครุภัณฑ์ */}
-
-                <th
-                  className="
-                    w-[15%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รหัสครุภัณฑ์
-                </th>
-
-                {/* รายการครุภัณฑ์ */}
-
-                <th
-                  className="
-                    w-[25%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รายการครุภัณฑ์
-                </th>
-
-                {/* จำนวน */}
-
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  จำนวน
-                </th>
-
-                {/* หน่วย */}
-
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หน่วย
-                </th>
-
-                {/* ผู้รับผิดชอบ */}
-
-                <th
-                  className="
-                    w-[16%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ผู้รับผิดชอบ
-                </th>
-
-                {/* สถานะ */}
-
-                <th
-                  className="
-                    w-[10%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  สถานะ
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {assets.map(
-                (asset, index) => (
-                  <tr
-                    key={asset.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    {/* ลำดับ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {index + 1}
-                    </td>
-
-                    {/* รหัส GFMIS */}
-
-                    <td
-                      className="
-                        break-all
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {asset.governmentAssetNo ??
-                        "-"}
-                    </td>
-
-                    {/* รหัสครุภัณฑ์ */}
-
-                    <td
-                      className="
-                        break-all
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {asset.officeAssetNo ??
-                        "-"}
-                    </td>
-
-                    {/* รายการครุภัณฑ์ */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        font-semibold
-                      "
-                    >
-                      <Link
-                        href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}`}
-                        className="
-                          font-extrabold
-                          text-slate-900
-                          underline-offset-4
-                          hover:text-blue-700
-                          hover:underline
-                        "
-                      >
-                        {asset.name}
-                      </Link>
-
-                      {(asset.brand ||
-                        asset.model) && (
-                        <p
-                          className="
-                            mt-1
-                            text-xs
-                            font-semibold
-                            text-slate-500
-                          "
-                        >
-                          {[
-                            asset.brand,
-                            asset.model,
-                          ]
-                            .filter(Boolean)
-                            .join(" / ")}
-                        </p>
-                      )}
-                    </td>
-
-                    {/* จำนวน */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {asset.quantity}
-                    </td>
-
-                    {/* หน่วย */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {getAssetUnit(
-                        asset
-                      )}
-                    </td>
-
-                    {/* ผู้รับผิดชอบ */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        font-semibold
-                      "
-                    >
-                      {getResponsibleName(
-                        asset
-                      )}
-                    </td>
-
-                    {/* สถานะ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                      "
-                    >
-                      <span
-                        className={`
-                          inline-flex
-                          whitespace-nowrap
-                          rounded-full
-                          px-3
-                          py-1
-                          text-xs
-                          font-extrabold
-                          ${
-                            asset.status ===
-                            "IN_USE"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : asset.status ===
-                                  "WAITING_DISPOSAL"
-                                ? "bg-amber-100 text-amber-800"
-                                : asset.status ===
-                                    "DAMAGED"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-slate-200 text-slate-800"
-                          }
-                        `}
-                      >
-                        {statusName[
-                          asset.status
-                        ] ??
-                          asset.status}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              )}
-
-              {assets.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="
-                      border
-                      border-black
-                      px-6
-                      py-12
-                      text-center
-                      text-lg
-                      font-semibold
-                      text-slate-500
-                    "
-                  >
-                    ยังไม่มีข้อมูลครุภัณฑ์
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        {isExporting
+          ? "⏳ กำลังสร้าง PDF..."
+          : "📄 ส่งออก PDF"}
+      </button>
     </div>
   );
 }
