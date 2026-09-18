@@ -512,6 +512,330 @@ function normalizeInspectorIds(
 }
 
 /* =========================================================
+   SEARCHABLE OFFICER SELECT
+
+   Dropdown รายชื่อผู้ตรวจสอบ
+   - พิมพ์ค้นหาชื่อได้
+   - ค้นหานามสกุลได้
+   - ค้นหาตำแหน่งได้
+   - ค้นหากลุ่ม/งานได้
+   - ไม่แสดงคนที่ถูกเลือกในช่องอื่นแล้ว
+   ========================================================= */
+
+type SearchableOfficerSelectProps = {
+  officers: Officer[];
+  value: string;
+  readOnly: boolean;
+
+  isUnavailable: (
+    officerId: string
+  ) => boolean;
+
+  onChange: (
+    officerId: string
+  ) => void;
+};
+
+function SearchableOfficerSelect({
+  officers,
+  value,
+  readOnly,
+  isUnavailable,
+  onChange,
+}: SearchableOfficerSelectProps) {
+  const [
+    searchText,
+    setSearchText,
+  ] = useState("");
+
+  const [
+    isOpen,
+    setIsOpen,
+  ] = useState(false);
+
+  const selectedOfficer =
+    useMemo(
+      () =>
+        officers.find(
+          (officer) =>
+            String(
+              officer.id
+            ) === value
+        ),
+      [officers, value]
+    );
+
+  const selectedOfficerName =
+    selectedOfficer
+      ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`.trim()
+      : "";
+
+  useEffect(() => {
+    setSearchText(
+      selectedOfficerName
+    );
+  }, [
+    selectedOfficerName,
+  ]);
+
+  const filteredOfficers =
+    useMemo(() => {
+      const keyword =
+        searchText
+          .trim()
+          .toLowerCase();
+
+      return officers.filter(
+        (officer) => {
+          const officerId =
+            String(
+              officer.id
+            );
+
+          if (
+            isUnavailable(
+              officerId
+            )
+          ) {
+            return false;
+          }
+
+          if (!keyword) {
+            return true;
+          }
+
+          const searchableText =
+            [
+              officer.firstName,
+              officer.lastName,
+              officer.position,
+              officer.department
+                ?.name,
+              officer.section
+                ?.name,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+          return searchableText.includes(
+            keyword
+          );
+        }
+      );
+    }, [
+      officers,
+      searchText,
+      isUnavailable,
+    ]);
+
+  if (readOnly) {
+    return (
+      <div className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
+        {selectedOfficerName ||
+          "-"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full">
+      <input
+        type="text"
+        value={searchText}
+        placeholder="พิมพ์ชื่อผู้ตรวจสอบเพื่อค้นหา..."
+        autoComplete="off"
+        onFocus={(e) => {
+          setIsOpen(true);
+          e.currentTarget.select();
+        }}
+        onChange={(e) => {
+          setSearchText(
+            e.target.value
+          );
+          setIsOpen(true);
+        }}
+        onBlur={() => {
+          window.setTimeout(
+            () => {
+              setIsOpen(false);
+              setSearchText(
+                selectedOfficerName
+              );
+            },
+            150
+          );
+        }}
+        className="
+          w-full
+          rounded-lg
+          border
+          border-slate-300
+          bg-white
+          px-3
+          py-2.5
+          pr-10
+          font-semibold
+          text-slate-900
+          outline-none
+          transition
+          placeholder:text-slate-400
+          focus:border-cyan-500
+          focus:ring-2
+          focus:ring-cyan-100
+        "
+      />
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          right-3
+          top-[13px]
+          text-slate-500
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className="h-5 w-5"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+6px)]
+            z-[100]
+            max-h-[260px]
+            overflow-y-auto
+            rounded-xl
+            border
+            border-slate-300
+            bg-white
+            p-1.5
+            shadow-2xl
+          "
+        >
+          {filteredOfficers.length ===
+          0 ? (
+            <div
+              className="
+                px-4
+                py-4
+                text-center
+                text-sm
+                font-semibold
+                text-slate-500
+              "
+            >
+              ไม่พบรายชื่อผู้ตรวจสอบ
+            </div>
+          ) : (
+            filteredOfficers.map(
+              (officer) => {
+                const officerId =
+                  String(
+                    officer.id
+                  );
+
+                const officerName =
+                  `${officer.firstName} ${officer.lastName}`.trim();
+
+                const isSelected =
+                  officerId ===
+                  value;
+
+                return (
+                  <button
+                    key={officer.id}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={() => {
+                      onChange(
+                        officerId
+                      );
+
+                      setSearchText(
+                        officerName
+                      );
+
+                      setIsOpen(
+                        false
+                      );
+                    }}
+                    className={`
+                      flex
+                      w-full
+                      flex-col
+                      rounded-lg
+                      px-3
+                      py-2.5
+                      text-left
+                      transition
+                      ${
+                        isSelected
+                          ? "bg-emerald-100 text-emerald-900"
+                          : "text-slate-900 hover:bg-slate-100"
+                      }
+                    `}
+                  >
+                    <span className="font-extrabold">
+                      {officerName}
+                    </span>
+
+                    {(officer.position ||
+                      officer.department
+                        ?.name ||
+                      officer.section
+                        ?.name) && (
+                      <span
+                        className="
+                          mt-0.5
+                          text-xs
+                          font-semibold
+                          text-slate-500
+                        "
+                      >
+                        {[
+                          officer.position,
+                          officer.department
+                            ?.name,
+                          officer.section
+                            ?.name,
+                        ]
+                          .filter(
+                            Boolean
+                          )
+                          .join(
+                            " / "
+                          )}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    COMPONENT
    ========================================================= */
 
@@ -2696,12 +3020,12 @@ export default function InspectionForm({
       </div>
 
       {/* ===================================================
-          รายชื่อผู้ตรวจสอบ
+          คณะกรรมการตรวจสอบครุภัณฑ์
           =================================================== */}
 
       <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
         <h2 className="mb-6 text-2xl font-extrabold !text-white">
-          รายชื่อผู้ตรวจสอบ
+          คณะกรรมการตรวจสอบครุภัณฑ์
         </h2>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -2712,77 +3036,32 @@ export default function InspectionForm({
             ) => (
               <div key={index}>
                 <label className="mb-2 block text-lg font-extrabold !text-white">
-                  ผู้ตรวจสอบคนที่{" "}
-                  {index + 1}
+                  {index === 0
+                    ? "ประธานกรรมการ"
+                    : "กรรมการ"}
                 </label>
 
-                {readOnly ? (
-                  <div className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
-                    {inspectorId
-                      ? `${getOfficer(inspectorId)?.firstName || ""} ${
-                          getOfficer(inspectorId)?.lastName || ""
-                        }`.trim() ||
-                        "-"
-                      : "-"}
-                  </div>
-                ) : (
-                  <select
-                    value={
-                      inspectorId
-                    }
-                    onChange={(
-                      e
-                    ) =>
-                      updateInspector(
-                        index,
-                        e.target.value
-                      )
-                    }
-                    className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                  >
-                    <option value="">
-                      -- เลือกผู้ตรวจสอบ --
-                    </option>
-
-                    {officers.map(
-                      (
-                        officer
-                      ) => {
-                        const value =
-                          String(
-                            officer.id
-                          );
-
-                        if (
-                          isOfficerSelected(
-                            value,
-                            index
-                          )
-                        ) {
-                          return null;
-                        }
-
-                        return (
-                          <option
-                            key={
-                              officer.id
-                            }
-                            value={
-                              value
-                            }
-                          >
-                            {
-                              officer.firstName
-                            }{" "}
-                            {
-                              officer.lastName
-                            }
-                          </option>
-                        );
-                      }
-                    )}
-                  </select>
-                )}
+                <SearchableOfficerSelect
+                  officers={officers}
+                  value={inspectorId}
+                  readOnly={readOnly}
+                  isUnavailable={(
+                    officerId
+                  ) =>
+                    isOfficerSelected(
+                      officerId,
+                      index
+                    )
+                  }
+                  onChange={(
+                    officerId
+                  ) =>
+                    updateInspector(
+                      index,
+                      officerId
+                    )
+                  }
+                />
 
                 {inspectorId && (
                   <p className="mt-2 text-sm font-semibold !text-slate-300">
