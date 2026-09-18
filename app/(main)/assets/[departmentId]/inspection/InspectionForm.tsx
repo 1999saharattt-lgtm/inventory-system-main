@@ -1805,6 +1805,8 @@ export default function InspectionForm({
               {quickActionPositions.correct && (
                 <button
                   type="button"
+                  title="ถูกต้องทั้งหมด"
+                  aria-label="ถูกต้องทั้งหมด"
                   onClick={() =>
                     updateAllAccuracy(
                       "CORRECT"
@@ -1813,46 +1815,47 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .correct.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .correct.width - 4,
-                        0
-                      ),
+                        .correct.left +
+                      quickActionPositions
+                        .correct.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
                     from-emerald-600
                     to-green-500
-                    px-1
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
+                    hover:scale-105
                     hover:from-emerald-700
                     hover:to-green-600
                   "
                 >
-                  ✓ ถูกต้องทั้งหมด
+                  ✓
                 </button>
               )}
 
               {quickActionPositions.incorrect && (
                 <button
                   type="button"
+                  title="ไม่ถูกต้องทั้งหมด"
+                  aria-label="ไม่ถูกต้องทั้งหมด"
                   onClick={() =>
                     updateAllAccuracy(
                       "INCORRECT"
@@ -1861,46 +1864,47 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .incorrect.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .incorrect.width - 4,
-                        0
-                      ),
+                        .incorrect.left +
+                      quickActionPositions
+                        .incorrect.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
                     from-red-700
                     to-red-500
-                    px-1
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
+                    hover:scale-105
                     hover:from-red-800
                     hover:to-red-600
                   "
                 >
-                  ✕ ไม่ถูกต้องทั้งหมด
+                  ✕
                 </button>
               )}
 
               {quickActionPositions.inUse && (
                 <button
                   type="button"
+                  title="ใช้งานปกติทั้งหมด"
+                  aria-label="ใช้งานปกติทั้งหมด"
                   onClick={() =>
                     updateAllStatus(
                       "IN_USE"
@@ -1909,46 +1913,47 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .inUse.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .inUse.width - 4,
-                        0
-                      ),
+                        .inUse.left +
+                      quickActionPositions
+                        .inUse.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
                     from-emerald-600
                     to-green-500
-                    px-1
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
+                    hover:scale-105
                     hover:from-emerald-700
                     hover:to-green-600
                   "
                 >
-                  ✓ ใช้งานปกติทั้งหมด
+                  ✓
                 </button>
               )}
 
               {quickActionPositions.damaged && (
                 <button
                   type="button"
+                  title="ชำรุดทั้งหมด"
+                  aria-label="ชำรุดทั้งหมด"
                   onClick={() =>
                     updateAllStatus(
                       "DAMAGED"
@@ -1957,46 +1962,47 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .damaged.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .damaged.width - 4,
-                        0
-                      ),
+                        .damaged.left +
+                      quickActionPositions
+                        .damaged.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
-                    from-orange-600
-                    to-orange-500
-                    px-1
+                    from-emerald-600
+                    to-green-500
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
-                    hover:from-orange-700
-                    hover:to-orange-600
+                    hover:scale-105
+                    hover:from-emerald-700
+                    hover:to-green-600
                   "
                 >
-                  ชำรุดทั้งหมด
+                  ✓
                 </button>
               )}
 
               {quickActionPositions.deteriorated && (
                 <button
                   type="button"
+                  title="เสื่อมสภาพทั้งหมด"
+                  aria-label="เสื่อมสภาพทั้งหมด"
                   onClick={() =>
                     updateAllStatus(
                       "DETERIORATED"
@@ -2005,46 +2011,47 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .deteriorated.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .deteriorated.width - 4,
-                        0
-                      ),
+                        .deteriorated.left +
+                      quickActionPositions
+                        .deteriorated.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
-                    from-amber-600
-                    to-yellow-500
-                    px-1
+                    from-emerald-600
+                    to-green-500
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
-                    hover:from-amber-700
-                    hover:to-yellow-600
+                    hover:scale-105
+                    hover:from-emerald-700
+                    hover:to-green-600
                   "
                 >
-                  เสื่อมสภาพทั้งหมด
+                  ✓
                 </button>
               )}
 
               {quickActionPositions.unusable && (
                 <button
                   type="button"
+                  title="ไม่จำเป็นต้องใช้ทั้งหมด"
+                  aria-label="ไม่จำเป็นต้องใช้ทั้งหมด"
                   onClick={() =>
                     updateAllStatus(
                       "UNUSABLE"
@@ -2053,40 +2060,39 @@ export default function InspectionForm({
                   style={{
                     left:
                       quickActionPositions
-                        .unusable.left + 2,
-                    width:
-                      Math.max(
-                        quickActionPositions
-                          .unusable.width - 4,
-                        0
-                      ),
+                        .unusable.left +
+                      quickActionPositions
+                        .unusable.width /
+                        2,
+                    transform:
+                      "translateX(-50%)",
                   }}
                   className="
                     absolute
                     top-2
                     flex
                     h-[34px]
+                    w-[34px]
                     items-center
                     justify-center
-                    overflow-hidden
-                    rounded-lg
+                    rounded-full
                     bg-gradient-to-r
                     from-red-700
                     to-red-500
-                    px-1
+                    p-0
                     text-center
-                    text-[9px]
+                    text-lg
                     font-extrabold
-                    leading-[1.05]
-                    whitespace-normal
+                    leading-none
                     !text-white
                     shadow
                     transition
+                    hover:scale-105
                     hover:from-red-800
                     hover:to-red-600
                   "
                 >
-                  ไม่จำเป็นต้องใช้ทั้งหมด
+                  ✕
                 </button>
               )}
             </div>

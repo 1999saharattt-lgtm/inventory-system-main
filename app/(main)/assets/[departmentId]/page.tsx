@@ -430,7 +430,7 @@ export default async function DepartmentAssetsPage({
               sm:text-base
             "
           >
-            📋 รวมรายการครุภัณฑ์
+            📋 รายการครุภัณฑ์หลังการตรวจสอบ
           </Link>
         </div>
       </div>
