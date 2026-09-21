@@ -5,19 +5,45 @@ import type {
 } from "react";
 
 /* =========================================================
+   APP BUTTON
+   iOS-Inspired Global Button Component
+
+   ใช้เป็นมาตรฐานปุ่มทั้งระบบ
+
+   DESIGN RULE
+   - iOS-inspired
+   - Soft Glass Surface
+   - Soft Highlight
+   - Layered Shadow
+   - Rounded Corners
+   - Smooth Hover
+   - Physical Press Feedback
+   - Focus Ring
+   - ขนาดมาตรฐานเดียวกัน
+
+   IMPORTANT
+   - ไม่เกี่ยวข้องกับ Database
+   - ไม่เกี่ยวข้องกับ Prisma
+   - ไม่เปลี่ยน Route
+   - ไม่เปลี่ยน Permission
+   - ไม่เปลี่ยน Business Logic
+========================================================= */
+
+/* =========================================================
    TYPES
 ========================================================= */
 
-type ButtonVariant =
+export type AppButtonVariant =
   | "primary"
   | "success"
   | "danger"
   | "warning"
   | "secondary"
   | "outline"
+  | "glass"
   | "white";
 
-type ButtonSize =
+export type AppButtonSize =
   | "sm"
   | "md"
   | "lg";
@@ -25,11 +51,13 @@ type ButtonSize =
 type CommonProps = {
   children: ReactNode;
 
-  variant?: ButtonVariant;
+  variant?: AppButtonVariant;
 
-  size?: ButtonSize;
+  size?: AppButtonSize;
 
   icon?: ReactNode;
+
+  endIcon?: ReactNode;
 
   fullWidth?: boolean;
 
@@ -66,110 +94,204 @@ type NormalButtonProps = CommonProps &
     href?: never;
   };
 
-type AppButtonProps =
+export type AppButtonProps =
   | LinkButtonProps
   | NormalButtonProps;
 
 /* =========================================================
-   VARIANT
+   VARIANT STYLES
+
+   ใช้สีตามหน้าที่ของปุ่ม
+   แต่คงภาษาการออกแบบแบบ iOS เหมือนกันทั้งหมด
 ========================================================= */
 
 const variantClasses: Record<
-  ButtonVariant,
+  AppButtonVariant,
   string
 > = {
+  /* -------------------------------------------------------
+     PRIMARY
+     ปุ่มหลักของระบบ
+  ------------------------------------------------------- */
+
   primary: `
-    border-blue-500/40
-    bg-gradient-to-r
-    from-blue-600
-    to-cyan-500
+    border-blue-400/35
+    bg-gradient-to-b
+    from-blue-500
+    via-blue-600
+    to-blue-700
     !text-white
-    shadow-blue-950/20
-    hover:from-blue-700
-    hover:to-cyan-600
+
+    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
+
+    hover:from-blue-500
+    hover:via-blue-600
+    hover:to-blue-700
+    hover:shadow-[0_12px_28px_rgba(37,99,235,0.28),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
+
+  /* -------------------------------------------------------
+     SUCCESS
+     บันทึก / กลับ / ยืนยันเชิงบวก
+  ------------------------------------------------------- */
 
   success: `
-    border-emerald-500/40
-    bg-gradient-to-r
-    from-emerald-600
-    to-green-500
+    border-emerald-400/35
+    bg-gradient-to-b
+    from-emerald-500
+    via-emerald-600
+    to-emerald-700
     !text-white
-    shadow-emerald-950/20
-    hover:from-emerald-700
-    hover:to-green-600
+
+    shadow-[0_8px_20px_rgba(5,150,105,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+
+    hover:from-emerald-500
+    hover:via-emerald-600
+    hover:to-emerald-700
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
+
+  /* -------------------------------------------------------
+     DANGER
+     ลบ / จำหน่าย / PDF / การกระทำอันตราย
+  ------------------------------------------------------- */
 
   danger: `
-    border-red-500/40
-    bg-gradient-to-r
-    from-red-600
-    to-rose-500
+    border-red-400/35
+    bg-gradient-to-b
+    from-red-500
+    via-red-600
+    to-rose-700
     !text-white
-    shadow-red-950/20
-    hover:from-red-700
-    hover:to-rose-600
+
+    shadow-[0_8px_20px_rgba(220,38,38,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+
+    hover:from-red-500
+    hover:via-red-600
+    hover:to-rose-700
+    hover:shadow-[0_12px_28px_rgba(220,38,38,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
+
+  /* -------------------------------------------------------
+     WARNING
+  ------------------------------------------------------- */
 
   warning: `
-    border-amber-500/40
-    bg-gradient-to-r
-    from-amber-500
-    to-orange-500
+    border-amber-300/40
+    bg-gradient-to-b
+    from-amber-400
+    via-amber-500
+    to-orange-600
     !text-white
-    shadow-amber-950/20
-    hover:from-amber-600
+
+    shadow-[0_8px_20px_rgba(245,158,11,0.20),inset_0_1px_0_rgba(255,255,255,0.30)]
+
+    hover:from-amber-400
+    hover:via-amber-500
     hover:to-orange-600
+    hover:shadow-[0_12px_28px_rgba(245,158,11,0.26),inset_0_1px_0_rgba(255,255,255,0.34)]
   `,
+
+  /* -------------------------------------------------------
+     SECONDARY
+     ยกเลิก / Action รอง
+  ------------------------------------------------------- */
 
   secondary: `
-    border-slate-600
-    bg-gradient-to-r
-    from-slate-700
+    border-slate-500/40
+    bg-gradient-to-b
+    from-slate-600
+    via-slate-700
     to-slate-800
     !text-white
-    shadow-slate-950/20
-    hover:from-slate-800
-    hover:to-slate-900
+
+    shadow-[0_8px_20px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.18)]
+
+    hover:from-slate-600
+    hover:via-slate-700
+    hover:to-slate-800
+    hover:shadow-[0_12px_28px_rgba(15,23,42,0.24),inset_0_1px_0_rgba(255,255,255,0.22)]
   `,
+
+  /* -------------------------------------------------------
+     OUTLINE
+  ------------------------------------------------------- */
 
   outline: `
-    border-slate-300
-    bg-white/80
+    border-slate-300/80
+    bg-white/75
     !text-slate-800
-    shadow-slate-900/10
+
+    shadow-[0_6px_18px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]
+
     backdrop-blur-xl
-    hover:border-slate-400
-    hover:bg-white
+    backdrop-saturate-150
+
+    hover:border-slate-300
+    hover:bg-white/90
+    hover:shadow-[0_10px_24px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,1)]
   `,
 
+  /* -------------------------------------------------------
+     GLASS
+     ใช้บน Header / พื้นหลังเข้ม
+  ------------------------------------------------------- */
+
+  glass: `
+    border-white/20
+    bg-white/10
+    !text-white
+
+    shadow-[0_8px_24px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.18)]
+
+    backdrop-blur-xl
+    backdrop-saturate-150
+
+    hover:border-white/30
+    hover:bg-white/15
+    hover:shadow-[0_12px_30px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.24)]
+  `,
+
+  /* -------------------------------------------------------
+     WHITE
+  ------------------------------------------------------- */
+
   white: `
-    border-white/70
-    bg-white
+    border-white/90
+    bg-gradient-to-b
+    from-white
+    to-slate-50
     !text-slate-900
-    shadow-slate-950/15
-    hover:bg-slate-50
+
+    shadow-[0_8px_22px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,1)]
+
+    hover:from-white
+    hover:to-white
+    hover:shadow-[0_12px_28px_rgba(15,23,42,0.16),inset_0_1px_0_rgba(255,255,255,1)]
   `,
 };
 
 /* =========================================================
    SIZE
+
+   ความสูงของปุ่มถูกกำหนดจากส่วนกลาง
+   เพื่อให้ทุกหน้ามีขนาดตรงกัน
 ========================================================= */
 
 const sizeClasses: Record<
-  ButtonSize,
+  AppButtonSize,
   string
 > = {
   sm: `
     h-10
-    min-w-[100px]
+    min-w-[104px]
     px-4
     text-sm
   `,
 
   md: `
     h-11
-    min-w-[120px]
+    min-w-[124px]
     px-5
     text-sm
     sm:text-base
@@ -177,7 +299,7 @@ const sizeClasses: Record<
 
   lg: `
     h-12
-    min-w-[140px]
+    min-w-[144px]
     px-6
     text-base
     sm:text-lg
@@ -196,6 +318,7 @@ export default function AppButton(
     variant = "primary",
     size = "md",
     icon,
+    endIcon,
     fullWidth = false,
     className = "",
   } = props;
@@ -203,17 +326,20 @@ export default function AppButton(
   /* =======================================================
      BASE STYLE
 
-     มาตรฐานปุ่มทั้งระบบ
-     - ความสูงเท่ากัน
-     - Radius เท่ากัน
-     - Font เท่ากัน
-     - Shadow เท่ากัน
-     - Hover / Active แบบเดียวกัน
+     Interaction:
+     Default
+       ↓
+     Hover = ลอยขึ้นเล็กน้อย
+       ↓
+     Press = ยุบลงเหมือนปุ่มจริง
+       ↓
+     Release = คืนตำแหน่งแบบนุ่ม
   ======================================================= */
 
   const baseClassName = `
     group
     relative
+    isolate
     inline-flex
     shrink-0
     select-none
@@ -222,29 +348,34 @@ export default function AppButton(
     gap-2
     overflow-hidden
     whitespace-nowrap
-    rounded-[16px]
+
+    rounded-[14px]
     border
+
     font-extrabold
     leading-none
-    shadow-lg
+
     outline-none
-    transition-all
+
+    transition-[transform,box-shadow,background-color,border-color,opacity]
     duration-200
     ease-out
 
-    hover:-translate-y-[1px]
-    hover:shadow-xl
+    will-change-transform
 
-    active:translate-y-0
+    hover:-translate-y-[1px]
+
+    active:translate-y-[1px]
     active:scale-[0.97]
 
     focus-visible:ring-2
-    focus-visible:ring-blue-400
+    focus-visible:ring-blue-400/80
     focus-visible:ring-offset-2
+    focus-visible:ring-offset-white
 
     disabled:pointer-events-none
     disabled:cursor-not-allowed
-    disabled:opacity-50
+    disabled:opacity-45
     disabled:shadow-none
 
     ${variantClasses[variant]}
@@ -266,21 +397,59 @@ export default function AppButton(
 
   const content = (
     <>
-      {/* subtle highlight */}
+      {/* ===================================================
+          TOP SPECULAR HIGHLIGHT
+
+          แสงสะท้อนบาง ๆ ด้านบน
+          ทำให้ปุ่มดูเป็น Layer แบบ iOS
+      =================================================== */}
 
       <span
         aria-hidden="true"
         className="
           pointer-events-none
           absolute
-          inset-x-0
+          inset-x-2
           top-0
+          z-0
           h-px
-          bg-white/40
+          bg-gradient-to-r
+          from-transparent
+          via-white/60
+          to-transparent
+          opacity-80
         "
       />
 
-      {/* Icon */}
+      {/* ===================================================
+          SOFT LIGHT
+
+          แสงอ่อนภายในปุ่ม
+      =================================================== */}
+
+      <span
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -top-8
+          left-1/2
+          z-0
+          h-14
+          w-[80%]
+          -translate-x-1/2
+          rounded-full
+          bg-white/10
+          blur-xl
+          transition-opacity
+          duration-200
+          group-hover:opacity-100
+        "
+      />
+
+      {/* ===================================================
+          LEFT ICON
+      =================================================== */}
 
       {icon && (
         <span
@@ -291,22 +460,29 @@ export default function AppButton(
             shrink-0
             items-center
             justify-center
+
             transition-transform
             duration-200
-            group-hover:scale-105
+            ease-out
+
+            group-hover:scale-[1.04]
+            group-active:scale-95
           "
         >
           {icon}
         </span>
       )}
 
-      {/* Text */}
+      {/* ===================================================
+          LABEL
+      =================================================== */}
 
       <span
         className="
           relative
           z-10
           flex
+          min-w-0
           items-center
           justify-center
           whitespace-nowrap
@@ -314,11 +490,37 @@ export default function AppButton(
       >
         {children}
       </span>
+
+      {/* ===================================================
+          RIGHT ICON
+      =================================================== */}
+
+      {endIcon && (
+        <span
+          className="
+            relative
+            z-10
+            flex
+            shrink-0
+            items-center
+            justify-center
+
+            transition-transform
+            duration-200
+            ease-out
+
+            group-hover:translate-x-[1px]
+            group-active:translate-x-0
+          "
+        >
+          {endIcon}
+        </span>
+      )}
     </>
   );
 
   /* =======================================================
-     LINK
+     LINK BUTTON
   ======================================================= */
 
   if ("href" in props && props.href) {
@@ -329,11 +531,16 @@ export default function AppButton(
       onClick,
     } = props;
 
+    const safeRel =
+      target === "_blank"
+        ? rel ?? "noopener noreferrer"
+        : rel;
+
     return (
       <Link
         href={href}
         target={target}
-        rel={rel}
+        rel={safeRel}
         onClick={onClick}
         className={baseClassName}
       >
@@ -343,7 +550,7 @@ export default function AppButton(
   }
 
   /* =======================================================
-     BUTTON
+     NORMAL BUTTON
   ======================================================= */
 
   const {
@@ -353,16 +560,22 @@ export default function AppButton(
     name,
     value,
     form,
+    id,
+    title,
+    "aria-label": ariaLabel,
   } = props as NormalButtonProps;
 
   return (
     <button
+      id={id}
       type={type}
       disabled={disabled}
       onClick={onClick}
       name={name}
       value={value}
       form={form}
+      title={title}
+      aria-label={ariaLabel}
       className={baseClassName}
     >
       {content}
