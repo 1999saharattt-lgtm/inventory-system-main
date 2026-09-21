@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 function formatThaiDate(
   value: Date | string | null | undefined
@@ -277,34 +278,7 @@ export default async function InspectionHistoryPage() {
             ปุ่มกลับ
         ================================================= */}
 
-        <Link
-          href="/assets"
-          className="
-            w-full
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-            sm:px-5
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
+        <BackButton href="/assets" />
       </div>
 
       {/* =====================================================

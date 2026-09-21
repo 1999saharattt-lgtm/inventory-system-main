@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { updateAsset } from "../../action";
+import BackButton from "@/components/BackButton";
 import AssetResponsibleFields from "./AssetResponsibleFields";
 
 export const dynamic = "force-dynamic";
@@ -264,30 +265,7 @@ export default async function EditAssetPage({
           </p>
         </div>
 
-        <Link
-          href={detailPath}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-          "
-        >
-          ← กลับ
-        </Link>
+        <BackButton href={detailPath} />
       </div>
 
       {/* ===================================================

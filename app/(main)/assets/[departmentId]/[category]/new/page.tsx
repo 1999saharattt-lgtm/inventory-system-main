@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { requireLogin } from "@/lib/auth";
+import BackButton from "@/components/BackButton";
 import AssetResponsibleFields from "./AssetResponsibleFields";
 
 export const dynamic = "force-dynamic";
@@ -769,32 +770,9 @@ export default async function NewAssetPage({
           </p>
         </div>
 
-        <Link
+        <BackButton
           href={`/assets/${department.id}/${assetCategory}`}
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
+        />
       </div>
 
       {/* ===================================================

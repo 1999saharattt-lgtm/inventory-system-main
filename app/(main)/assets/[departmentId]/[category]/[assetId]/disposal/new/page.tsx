@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import BackButton from "@/components/BackButton";
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
@@ -180,33 +181,9 @@ export default async function NewAssetDisposalPage({
           </p>
         </div>
 
-        <Link
+        <BackButton
           href={`/assets/${departmentId}/${category}/${asset.id}/disposal`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-            sm:px-6
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
+        />
       </div>
 
       {/* =====================================================

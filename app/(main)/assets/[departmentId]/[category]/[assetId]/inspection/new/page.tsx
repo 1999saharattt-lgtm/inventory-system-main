@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import BackButton from "@/components/BackButton";
 import {
   verifySession,
   type SessionUser,
@@ -370,30 +371,9 @@ export default async function NewAssetInspectionPage({
           </p>
         </div>
 
-        <Link
+        <BackButton
           href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}/inspection`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-          "
-        >
-          ← กลับ
-        </Link>
+        />
       </div>
 
       {/* =====================================================

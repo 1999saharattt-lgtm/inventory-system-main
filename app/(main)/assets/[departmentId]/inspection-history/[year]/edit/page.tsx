@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import BackButton from "@/components/BackButton";
 import InspectionForm from "../../../inspection/InspectionForm";
 
 type PageProps = {
@@ -490,32 +490,7 @@ export default async function InspectionHistoryEditPage({
             กลับไปหน้ารวมประวัติ
         =============================================== */}
 
-        <Link
-          href={historyHref}
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
+        <BackButton href={historyHref} />
       </div>
 
       {/* =================================================

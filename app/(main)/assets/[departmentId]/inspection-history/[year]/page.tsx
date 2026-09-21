@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import BackButton from "@/components/BackButton";
 import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
 
 const thaiMonths = [
@@ -614,31 +614,7 @@ export default async function InspectionHistoryDetailPage({
           </p>
         </div>
 
-        <Link
-          href="/assets/inspection-history"
-          className="
-            inline-flex
-            shrink-0
-            items-center
-            justify-center
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-2.5
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-          "
-        >
-          ← กลับ
-        </Link>
+        <BackButton href="/assets/inspection-history" />
       </div>
 
       {/* =================================================

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireLogin } from "@/lib/auth";
+import BackButton from "@/components/BackButton";
 import InspectionForm from "./InspectionForm";
 import DepartmentInspectionSelect from "./DepartmentInspectionSelect";
 
@@ -377,34 +377,7 @@ export default async function AssetInspectionPage({
             กลับ
             =============================================== */}
 
-        <Link
-          href="/assets"
-          className="
-            shrink-0
-            whitespace-nowrap
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            leading-tight
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
+        <BackButton href="/assets" />
       </div>
 
       {/* ===================================================

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BackButton from "@/components/BackButton";
 import ExportDepartmentAssetsPdf from "../ExportDepartmentAssetsPdf";
 
 export const dynamic = "force-dynamic";
@@ -432,37 +433,9 @@ export default async function AllAssetsPage({
               กลับ
           ============================================= */}
 
-          <Link
+          <BackButton
             href={`/assets/${department.id}`}
-            className="
-              flex
-              h-11
-              w-full
-              items-center
-              justify-center
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-0
-              text-center
-              text-sm
-              font-extrabold
-              leading-none
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              active:scale-[0.98]
-              sm:w-auto
-            "
-          >
-            ← กลับ
-          </Link>
+          />
         </div>
       </div>
 

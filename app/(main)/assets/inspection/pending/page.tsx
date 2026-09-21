@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import BackButton from "@/components/BackButton";
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
@@ -146,28 +147,10 @@ export default async function PendingAssetInspectionPage() {
           </p>
         </div>
 
-        <Link
+        <BackButton
           href="/assets/inspection"
-          className="
-            shrink-0
-            rounded-xl
-            bg-white
-            px-5
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-slate-900
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            sm:px-6
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับหน้าตรวจสอบ
-        </Link>
+          label="← กลับหน้าตรวจสอบ"
+        />
       </div>
 
       {/* =====================================================
