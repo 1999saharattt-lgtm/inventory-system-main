@@ -1,42 +1,45 @@
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type BackButtonProps = {
   href: string;
+
   label?: string;
+
   className?: string;
+
+  fullWidth?: boolean;
 };
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function BackButton({
   href,
-  label = "← กลับ",
+  label = "กลับ",
   className = "",
+  fullWidth = false,
 }: BackButtonProps) {
   return (
-    <Link
+    <AppButton
       href={href}
-      className={`
-        inline-flex
-        h-11
-        w-[120px]
-        shrink-0
-        items-center
-        justify-center
-        rounded-xl
-        border
-        border-slate-300
-        bg-white
-        px-4
-        text-base
-        font-extrabold
-        !text-black
-        shadow-md
-        transition
-        hover:bg-slate-100
-        hover:shadow-lg
-        ${className}
-      `}
+      variant="success"
+      size="md"
+      fullWidth={fullWidth}
+      className={className}
+      icon={
+        <ArrowLeft
+          size={20}
+          strokeWidth={2.6}
+        />
+      }
     >
       {label}
-    </Link>
+    </AppButton>
   );
 }

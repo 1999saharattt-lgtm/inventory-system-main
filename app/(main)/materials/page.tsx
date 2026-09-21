@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
 
 type Category = {
   code: string;
@@ -48,221 +50,216 @@ const categories: Category[] = [
 
 export default function MaterialsPage() {
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <AppPage>
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
-      {/* Header */}
+      <AppPageHeader
+        icon="📦"
+        title="รายการพัสดุทั้งหมด"
+        subtitle="เลือกหมวดหมู่เพื่อดูและจัดการข้อมูลพัสดุ"
+        actions={
+          <>
+            <Link
+              href="/materials/qr"
+              prefetch
+              className="
+                group
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                gap-2
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                px-4
+                text-sm
+                font-extrabold
+                !text-slate-800
+                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
+                backdrop-blur-xl
+                transition-all
+                duration-300
+                ease-out
+                hover:-translate-y-0.5
+                hover:border-blue-200
+                hover:bg-white
+                hover:shadow-[0_16px_30px_-18px_rgba(59,130,246,0.35)]
+                active:translate-y-0
+                active:scale-[0.97]
+                sm:px-5
+              "
+            >
+              <span className="transition-transform duration-300 group-hover:scale-105">
+                📱
+              </span>
+              <span>QR Code รวม</span>
+            </Link>
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
+            <Link
+              href="/materials/export/pdf"
+              target="_blank"
+              className="
+                group
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                gap-2
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-slate-900
+                px-4
+                text-sm
+                font-extrabold
+                !text-white
+                shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
+                transition-all
+                duration-300
+                ease-out
+                hover:-translate-y-0.5
+                hover:bg-slate-800
+                hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
+                active:translate-y-0
+                active:scale-[0.97]
+                sm:px-5
+              "
+            >
+              <span className="transition-transform duration-300 group-hover:scale-105">
+                📋
+              </span>
+              <span>รวมรายการพัสดุ</span>
+            </Link>
+          </>
+        }
+      />
 
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📦 รายการพัสดุทั้งหมด
-          </h1>
+      {/* =====================================================
+          Category Cards
+      ===================================================== */}
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            เลือกหมวดหมู่เพื่อดูรายการพัสดุ
-          </p>
-
-        </div>
-
-        {/* QR Code รวม + รวมรายการพัสดุ */}
-
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-
-          {/* QR Code รวม */}
-
-          <Link
-            href="/materials/qr"
-            className="
-              rounded-xl
-              bg-white
-              px-3
-              py-2
-              text-center
-              text-sm
-              font-extrabold
-              text-slate-900
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:bg-slate-100
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            📱 QR Code รวม
-          </Link>
-
-          {/* รวมรายการพัสดุ */}
-
-          <Link
-            href="/materials/export/pdf"
-            target="_blank"
-            className="
-              rounded-xl
-              bg-white
-              px-3
-              py-2
-              text-center
-              text-sm
-              font-extrabold
-              text-slate-900
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:bg-slate-100
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            📋 รวมรายการพัสดุ
-          </Link>
-
-        </div>
-
-      </div>
-
-      {/* Category Cards */}
-
-      <div
+      <section
         className="
           grid
           w-full
           min-w-0
           grid-cols-1
-          gap-3
-          sm:gap-5
+          gap-4
           md:grid-cols-2
           xl:grid-cols-3
         "
       >
-
         {categories.map((cat) => (
           <Link
             key={cat.code}
             href={`/materials/category/${cat.code}`}
+            prefetch
             className="
               group
+              relative
               min-w-0
               overflow-hidden
-              rounded-2xl
+              rounded-[28px]
               border
-              border-slate-300
-              bg-white
-              shadow-lg
+              border-white/80
+              bg-white/80
+              shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+              backdrop-blur-2xl
               transition-all
               duration-300
+              ease-out
               hover:-translate-y-1
-              hover:shadow-2xl
+              hover:border-slate-200
+              hover:bg-white/95
+              hover:shadow-[0_26px_64px_-28px_rgba(15,23,42,0.45)]
+              active:translate-y-0
+              active:scale-[0.985]
             "
           >
+            {/* Accent */}
 
             <div
-              className="
-                h-1.5
-                bg-gradient-to-r
-                from-slate-700
-                to-slate-900
-                sm:h-2
-              "
+              className={`h-1.5 bg-gradient-to-r ${cat.color}`}
+            />
+
+            {/* Ambient Glow */}
+
+            <div
+              aria-hidden="true"
+              className={`
+                pointer-events-none
+                absolute
+                -right-12
+                -top-12
+                h-36
+                w-36
+                rounded-full
+                bg-gradient-to-br
+                ${cat.color}
+                opacity-[0.08]
+                blur-3xl
+                transition-all
+                duration-500
+                group-hover:scale-125
+                group-hover:opacity-[0.14]
+              `}
             />
 
             <div
               className="
+                relative
                 flex
-                min-h-[170px]
+                min-h-[205px]
                 min-w-0
                 flex-col
-                items-center
-                gap-2
-                p-3
-                text-center
-                sm:min-h-[230px]
-                sm:gap-5
+                p-5
+                sm:min-h-[225px]
                 sm:p-6
               "
             >
+              {/* Icon */}
 
               <div
-                className="
+                className={`
                   flex
-                  h-12
-                  w-12
+                  h-16
+                  w-16
                   shrink-0
                   items-center
                   justify-center
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-slate-100
-                  text-xl
-                  shadow-md
-                  transition
+                  rounded-[20px]
+                  bg-gradient-to-br
+                  ${cat.color}
+                  text-3xl
+                  shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
+                  ring-1
+                  ring-white/30
+                  transition-all
                   duration-300
-                  group-hover:scale-110
-                  sm:h-16
-                  sm:w-16
-                  sm:text-3xl
-                "
+                  group-hover:-translate-y-0.5
+                  group-hover:scale-[1.06]
+                  group-active:scale-[0.96]
+                `}
               >
                 {cat.icon}
               </div>
 
-              <div className="min-w-0 max-w-full">
+              {/* Text */}
 
+              <div className="mt-5 min-w-0">
                 <h2
                   className="
-                    mt-1
                     break-words
-                    text-base
-                    font-extrabold
+                    text-xl
+                    font-black
                     leading-tight
-                    text-slate-900
-                    sm:mt-5
-                    sm:text-xl
+                    tracking-tight
+                    !text-slate-900
+                    sm:text-2xl
                   "
                 >
                   {cat.name}
@@ -270,51 +267,81 @@ export default function MaterialsPage() {
 
                 <p
                   className="
-                    mt-1
+                    mt-2
                     break-words
-                    text-xs
+                    text-sm
                     font-semibold
-                    leading-tight
-                    text-slate-600
-                    sm:mt-2
-                    sm:text-lg
+                    leading-relaxed
+                    !text-slate-500
+                    sm:text-base
                   "
                 >
-                  คลิกเพื่อจัดการข้อมูลพัสดุ
+                  คลิกเพื่อจัดการข้อมูลพัสดุในหมวดหมู่นี้
                 </p>
-
               </div>
 
-              <span
+              {/* Footer */}
+
+              <div
                 className="
-                  mt-1
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-950
-                  px-5
-                  py-2
-                  text-sm
-                  font-extrabold
-                  text-white
-                  shadow-lg
-                  transition
-                  group-hover:scale-105
-                  sm:mt-5
-                  sm:px-8
-                  sm:py-3
-                  sm:text-lg
+                  mt-auto
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                  pt-5
                 "
               >
-                เปิด
-              </span>
+                <span
+                  className="
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    border
+                    border-slate-200
+                    bg-white/80
+                    px-3
+                    py-1.5
+                    text-xs
+                    font-extrabold
+                    !text-slate-500
+                    shadow-sm
+                  "
+                >
+                  หมวด {cat.code}
+                </span>
 
+                <span
+                  className="
+                    inline-flex
+                    h-10
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-[14px]
+                    bg-slate-900
+                    px-4
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
+                    transition-all
+                    duration-300
+                    group-hover:bg-slate-800
+                    group-active:scale-[0.96]
+                  "
+                >
+                  <span>เปิด</span>
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">
+                    →
+                  </span>
+                </span>
+              </div>
             </div>
           </Link>
         ))}
-
-      </div>
-
-    </div>
+      </section>
+    </AppPage>
   );
 }
