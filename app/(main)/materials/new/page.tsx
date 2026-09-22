@@ -64,7 +64,7 @@ export default async function NewMaterialPage() {
         actions={
           <AppButton
             href="/materials"
-            variant="outline"
+            variant="back"
             size="md"
             icon={<span>←</span>}
           >
