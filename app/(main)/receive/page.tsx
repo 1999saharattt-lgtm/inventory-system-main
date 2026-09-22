@@ -40,7 +40,7 @@ const thaiShortMonths = [
   "พ.ค.",
   "มิ.ย.",
   "ก.ค.",
-  "ก.ย.",
+  "ส.ค.",
   "ก.ย.",
   "ต.ค.",
   "พ.ย.",
@@ -156,7 +156,11 @@ export default async function ReceivePage({
 
   /* =========================================================
      LOAD RECEIVE DATA
-     เรียงวันที่รับเข้าเก่าสุด -> ล่าสุด
+
+     เรียง:
+     1. วันที่รับเข้าล่าสุดอยู่ด้านบน
+     2. วันที่เก่าอยู่ด้านล่าง
+     3. ถ้าวันที่ซ้ำกัน รายการที่บันทึกใหม่กว่าอยู่ด้านบน
   ========================================================= */
 
   const receives =
@@ -179,10 +183,10 @@ export default async function ReceivePage({
 
         orderBy: [
           {
-            receiveDate: "asc",
+            receiveDate: "desc",
           },
           {
-            id: "asc",
+            id: "desc",
           },
         ],
       }
@@ -222,29 +226,16 @@ export default async function ReceivePage({
         title="รายการรับเข้าพัสดุ"
         subtitle={filterText}
         actions={
-          <>
-            <AppButton
-              href="/receive/create"
-              variant="primary"
-              size="md"
-            >
-              <span>＋</span>
-              <span>
-                เพิ่มรายการ
-              </span>
-            </AppButton>
-
-            <AppButton
-              href="/"
-              variant="back"
-              size="md"
-              icon={
-                <span>←</span>
-              }
-            >
-              กลับ
-            </AppButton>
-          </>
+          <AppButton
+            href="/receive/create"
+            variant="primary"
+            size="md"
+          >
+            <span>＋</span>
+            <span>
+              เพิ่มรายการ
+            </span>
+          </AppButton>
         }
       />
 
@@ -420,7 +411,7 @@ export default async function ReceivePage({
                 !text-slate-500
               "
             >
-              เรียงจากวันที่รับเข้าเก่าสุดไปล่าสุด
+              เรียงจากวันที่รับเข้าล่าสุด
             </p>
           </div>
 
@@ -593,6 +584,7 @@ export default async function ReceivePage({
 
                       {/* =======================================
                           วันที่รับเข้า
+                          ไทยแบบย่อ เช่น 22 ก.ย. 69
                       ======================================= */}
 
                       <td
@@ -660,7 +652,6 @@ export default async function ReceivePage({
 
                       {/* =======================================
                           รายละเอียด
-                          ใช้ AppButton ตัวกลาง
                       ======================================= */}
 
                       <td
