@@ -233,7 +233,6 @@ export default async function IssueDetailPage({
 
   // =====================================================
   // Shared UI
-  // เฉพาะ "ช่องข้อมูล" เท่านั้นที่ใช้กรอบดำ
   // =====================================================
 
   const infoLabelClass = `
@@ -299,7 +298,6 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           สถานะใบเบิก
-          คง iOS - ไม่ใช้กรอบดำรอบการ์ด
       ===================================================== */}
 
       <section
@@ -528,7 +526,6 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ข้อมูลใบเบิก
-          การ์ดใหญ่คง iOS
       ===================================================== */}
 
       <section
@@ -576,8 +573,6 @@ export default async function IssueDetailPage({
             blur-3xl
           "
         />
-
-        {/* Header */}
 
         <div
           className="
@@ -647,8 +642,7 @@ export default async function IssueDetailPage({
         </div>
 
         {/* =================================================
-            ช่องข้อมูล
-            เฉพาะส่วนนี้ใช้กรอบดำ
+            ช่องข้อมูลเท่านั้นที่ใช้กรอบดำ
         ================================================= */}
 
         <div
@@ -661,8 +655,6 @@ export default async function IssueDetailPage({
             xl:grid-cols-3
           "
         >
-          {/* เลขที่เอกสาร */}
-
           <div
             className={`
               ${infoCardClass}
@@ -677,8 +669,6 @@ export default async function IssueDetailPage({
               {issue.documentNo}
             </p>
           </div>
-
-          {/* วันที่เบิก */}
 
           <div
             className={`
@@ -697,8 +687,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* หน่วยงาน */}
-
           <div
             className={`
               ${infoCardClass}
@@ -713,8 +701,6 @@ export default async function IssueDetailPage({
               {issue.department.name}
             </p>
           </div>
-
-          {/* ผู้ขอเบิก */}
 
           <div
             className={`
@@ -731,8 +717,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* จำนวนรายการ */}
-
           <div
             className={`
               ${infoCardClass}
@@ -748,8 +732,6 @@ export default async function IssueDetailPage({
             </p>
           </div>
 
-          {/* จำนวนรวมที่ขอเบิก */}
-
           <div
             className={`
               ${infoCardClass}
@@ -764,8 +746,6 @@ export default async function IssueDetailPage({
               {totalRequested} หน่วย
             </p>
           </div>
-
-          {/* จำนวนรวมที่เบิกจ่ายจริง */}
 
           <div
             className={`
@@ -806,7 +786,13 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ตารางรายการใบเบิก
-          เส้นตารางดำ แต่ wrapper คง iOS
+
+          สำคัญ:
+          - Wrapper ทั้งหมดมีพื้นหลัง slate-50
+          - ส่วน scroll มีพื้นหลังเดียวกัน
+          - table มีพื้นหลังเต็ม
+          - tbody มีพื้นหลังเต็ม
+          - ไม่มีพื้นที่ดำหลังแถวสุดท้าย
       ===================================================== */}
 
       <section
@@ -817,16 +803,18 @@ export default async function IssueDetailPage({
           rounded-[30px]
           border
           border-white/80
-          bg-white/80
+          bg-slate-50
           shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
           backdrop-blur-2xl
         "
       >
+        {/* Table Title */}
+
         <div
           className="
             border-b
             border-slate-200
-            bg-slate-50/80
+            bg-white/80
             px-5
             py-4
           "
@@ -854,278 +842,329 @@ export default async function IssueDetailPage({
           </p>
         </div>
 
+        {/* =================================================
+            Table Background Wrapper
+        ================================================= */}
+
         <div
           className="
             w-full
-            overflow-x-auto
-            overscroll-x-contain
+            min-w-0
+            bg-slate-50
           "
         >
-          <table
+          <div
             className="
               w-full
-              min-w-[900px]
-              table-fixed
-              border-collapse
-              bg-white
+              min-w-0
+              overflow-x-auto
+              overscroll-x-contain
+              bg-slate-50
             "
           >
-            <thead>
-              <tr>
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ลำดับ
-                </th>
-
-                <th
-                  className="
-                    w-[35%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รายการพัสดุ
-                </th>
-
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  จำนวนที่ขอเบิก
-                </th>
-
-                <th
-                  className="
-                    w-[15%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  จำนวนที่เบิกจ่ายจริง
-                </th>
-
-                <th
-                  className="
-                    w-[10%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หน่วย
-                </th>
-
-                <th
-                  className="
-                    w-[20%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หมายเหตุ
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="!text-slate-900">
-              {issue.items.map(
-                (
-                  item: IssueItem,
-                  index: number
-                ) => (
-                  <tr
-                    key={item.id}
+            <table
+              className="
+                w-full
+                min-w-[900px]
+                table-fixed
+                border-collapse
+                bg-white
+              "
+            >
+              <thead>
+                <tr>
+                  <th
                     className="
-                      bg-white
-                      transition-colors
-                      duration-200
-                      even:bg-slate-50
-                      hover:bg-blue-50
+                      w-[7%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
                     "
                   >
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                        !text-slate-900
-                      "
-                    >
-                      {index + 1}
-                    </td>
+                    ลำดับ
+                  </th>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-4
-                        py-4
-                        align-middle
-                        font-semibold
-                        !text-slate-900
-                      "
-                    >
-                      <div className="break-words">
-                        <span className="font-extrabold">
-                          {item.material.code}
-                        </span>{" "}
-                        - {item.material.name}
-                      </div>
-                    </td>
+                  <th
+                    className="
+                      w-[35%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    รายการพัสดุ
+                  </th>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-extrabold
-                        !text-slate-900
-                      "
-                    >
-                      {item.qty}
-                    </td>
+                  <th
+                    className="
+                      w-[13%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    จำนวนที่ขอเบิก
+                  </th>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-extrabold
-                      "
-                    >
-                      {issue.status ===
-                      "PENDING" ? (
-                        <span className="!text-amber-700">
-                          รอเจ้าหน้าที่พัสดุ
-                        </span>
-                      ) : issue.status ===
-                        "REJECTED" ? (
-                        <span className="!text-red-700">
-                          ไม่อนุมัติ
-                        </span>
-                      ) : (
-                        <span className="!text-emerald-700">
-                          {item.issuedQty}
-                        </span>
-                      )}
-                    </td>
+                  <th
+                    className="
+                      w-[15%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    จำนวนที่เบิกจ่ายจริง
+                  </th>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                        !text-slate-900
-                      "
-                    >
-                      {item.material.unit}
-                    </td>
+                  <th
+                    className="
+                      w-[10%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    หน่วย
+                  </th>
 
-                    <td
+                  <th
+                    className="
+                      w-[20%]
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-3
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    หมายเหตุ
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody
+                className="
+                  bg-white
+                  !text-slate-900
+                "
+              >
+                {issue.items.map(
+                  (
+                    item: IssueItem,
+                    index: number
+                  ) => (
+                    <tr
+                      key={item.id}
                       className="
-                        border
-                        border-black
-                        px-4
-                        py-4
-                        align-middle
-                        text-left
-                        font-semibold
-                        !text-slate-900
+                        bg-white
+                        transition-colors
+                        duration-200
+                        even:bg-slate-50
+                        hover:!bg-blue-50
                       "
                     >
-                      <div
+                      {/* ลำดับ */}
+
+                      <td
                         className="
-                          whitespace-pre-wrap
-                          break-words
+                          border
+                          border-black
+                          bg-inherit
+                          px-3
+                          py-4
+                          text-center
+                          font-bold
+                          !text-slate-900
                         "
                       >
-                        {item.remark?.trim()
-                          ? item.remark
-                          : "-"}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
+                        {index + 1}
+                      </td>
+
+                      {/* รายการพัสดุ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-inherit
+                          px-4
+                          py-4
+                          align-middle
+                          font-semibold
+                          !text-slate-900
+                        "
+                      >
+                        <div className="break-words">
+                          <span className="font-extrabold">
+                            {
+                              item
+                                .material
+                                .code
+                            }
+                          </span>{" "}
+                          -{" "}
+                          {
+                            item
+                              .material
+                              .name
+                          }
+                        </div>
+                      </td>
+
+                      {/* จำนวนที่ขอเบิก */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-inherit
+                          px-3
+                          py-4
+                          text-center
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
+                        {item.qty}
+                      </td>
+
+                      {/* จำนวนที่เบิกจ่ายจริง */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-inherit
+                          px-3
+                          py-4
+                          text-center
+                          font-extrabold
+                        "
+                      >
+                        {issue.status ===
+                        "PENDING" ? (
+                          <span className="!text-amber-700">
+                            รอเจ้าหน้าที่พัสดุ
+                          </span>
+                        ) : issue.status ===
+                          "REJECTED" ? (
+                          <span className="!text-red-700">
+                            ไม่อนุมัติ
+                          </span>
+                        ) : (
+                          <span className="!text-emerald-700">
+                            {
+                              item.issuedQty
+                            }
+                          </span>
+                        )}
+                      </td>
+
+                      {/* หน่วย */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-inherit
+                          px-3
+                          py-4
+                          text-center
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        {
+                          item
+                            .material
+                            .unit
+                        }
+                      </td>
+
+                      {/* หมายเหตุ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          bg-inherit
+                          px-4
+                          py-4
+                          align-middle
+                          text-left
+                          font-semibold
+                          !text-slate-900
+                        "
+                      >
+                        <div
+                          className="
+                            whitespace-pre-wrap
+                            break-words
+                          "
+                        >
+                          {item.remark?.trim()
+                            ? item.remark
+                            : "-"}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       {/* =====================================================
           สรุปเมื่อเสร็จสิ้น
-          คง iOS ไม่ใช้กรอบดำ
       ===================================================== */}
 
       {issue.status ===
