@@ -19,7 +19,7 @@ export default async function EditMaterialPage({
   const { id } = await params;
 
   /* =========================================================
-     Material
+     MATERIAL
   ========================================================= */
 
   const materialId = Number(id);
@@ -43,7 +43,10 @@ export default async function EditMaterialPage({
   }
 
   /* =========================================================
-     Vendors
+     VENDORS
+
+     ส่งข้อมูลผู้จำหน่ายไปให้ EditMaterialForm
+     เพื่อใช้ Dropdown แบบพิมพ์ค้นหาได้
   ========================================================= */
 
   const vendors =
@@ -59,13 +62,23 @@ export default async function EditMaterialPage({
     });
 
   /* =========================================================
+     BACK URL
+
+     กลับไปยังหมวดหมู่เดิมของพัสดุ
+     เช่น OFFICE -> /materials/category/OFFICE
+  ========================================================= */
+
+  const backHref =
+    `/materials/category/${material.category}`;
+
+  /* =========================================================
      UI
   ========================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
       <AppPageHeader
@@ -74,8 +87,9 @@ export default async function EditMaterialPage({
         subtitle="แก้ไขรายละเอียดรายการพัสดุ"
         actions={
           <AppButton
-            href={`/materials/category/${material.category}`}
-            variant="secondary"
+            href={backHref}
+            variant="back"
+            size="md"
             icon={<span>←</span>}
           >
             กลับ
@@ -84,7 +98,7 @@ export default async function EditMaterialPage({
       />
 
       {/* =====================================================
-          Edit Material Form
+          EDIT MATERIAL FORM
       ===================================================== */}
 
       <section

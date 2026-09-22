@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { MATERIALS } from "@/lib/materials";
@@ -31,6 +36,26 @@ type Props = {
   vendors: Vendor[];
 };
 
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
 const categories = [
   "OFFICE",
   "COMPUTER",
@@ -49,6 +74,397 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
+/* =========================================================
+   SEARCHABLE DROPDOWN
+
+   มาตรฐาน Dropdown ของระบบ
+   - พิมพ์ค้นหาได้
+   - กรอบดำ
+   - ไม่ต้องติดตั้ง library เพิ่ม
+========================================================= */
+
+function SearchableDropdown({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
+  emptyText = "ไม่พบข้อมูล",
+  disabled = false,
+  onChange,
+}: SearchableDropdownProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.value === value
+    );
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        search.trim().toLocaleLowerCase(
+          "th"
+        );
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase("th")
+            .includes(keyword) ||
+          option.value
+            .toLocaleLowerCase("th")
+            .includes(keyword)
+      );
+    }, [options, search]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+    }
+  }, [open]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+    >
+      {/* =====================================================
+          SELECT CONTROL
+      ===================================================== */}
+
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          if (!disabled) {
+            setOpen(
+              (current) => !current
+            );
+          }
+        }}
+        className="
+          flex
+          min-h-[52px]
+          w-full
+          items-center
+          justify-between
+          gap-3
+          rounded-[16px]
+          border-2
+          !border-black
+          bg-white
+          px-4
+          py-3
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+          shadow-sm
+          outline-none
+          transition-all
+          duration-200
+
+          hover:bg-slate-50
+
+          focus:!border-black
+          focus:ring-4
+          focus:ring-slate-900/10
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-100
+          disabled:!text-slate-400
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-600
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {/* =====================================================
+          DROPDOWN PANEL
+      ===================================================== */}
+
+      {open && !disabled && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+8px)]
+            z-[100]
+            overflow-hidden
+            rounded-[18px]
+            border-2
+            !border-black
+            bg-white
+            shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)]
+          "
+        >
+          {/* =================================================
+              SEARCH
+          ================================================= */}
+
+          <div
+            className="
+              border-b
+              border-slate-200
+              bg-slate-50
+              p-3
+            "
+          >
+            <div className="relative">
+              <span
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  left-4
+                  flex
+                  items-center
+                  text-base
+                "
+              >
+                🔎
+              </span>
+
+              <input
+                type="text"
+                value={search}
+                autoFocus
+                onChange={(event) =>
+                  setSearch(
+                    event.target.value
+                  )
+                }
+                onKeyDown={(event) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(false);
+                  }
+                }}
+                placeholder={
+                  searchPlaceholder
+                }
+                className="
+                  min-h-[46px]
+                  w-full
+                  rounded-[13px]
+                  border-2
+                  !border-black
+                  bg-white
+                  py-2.5
+                  pl-11
+                  pr-4
+                  text-base
+                  font-bold
+                  !text-slate-900
+                  outline-none
+                  placeholder:!text-slate-400
+
+                  focus:!border-black
+                  focus:ring-4
+                  focus:ring-slate-900/10
+                "
+              />
+            </div>
+          </div>
+
+          {/* =================================================
+              OPTIONS
+          ================================================= */}
+
+          <div
+            role="listbox"
+            className="
+              max-h-[260px]
+              overflow-y-auto
+              overscroll-contain
+              p-2
+            "
+          >
+            {filteredOptions.length >
+            0 ? (
+              filteredOptions.map(
+                (option) => {
+                  const selected =
+                    option.value ===
+                    value;
+
+                  return (
+                    <button
+                      key={
+                        option.value
+                      }
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        selected
+                      }
+                      onClick={() => {
+                        onChange(
+                          option.value
+                        );
+
+                        setOpen(false);
+                        setSearch("");
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        gap-3
+                        rounded-[12px]
+                        px-3
+                        py-3
+                        text-left
+                        text-base
+                        font-bold
+                        transition-colors
+
+                        ${
+                          selected
+                            ? `
+                              bg-slate-900
+                              !text-white
+                            `
+                            : `
+                              bg-white
+                              !text-slate-800
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      <span
+                        className="
+                          min-w-0
+                          flex-1
+                          break-words
+                        "
+                      >
+                        {option.label}
+                      </span>
+
+                      {selected && (
+                        <span
+                          className="
+                            shrink-0
+                            !text-white
+                          "
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+              )
+            ) : (
+              <div
+                className="
+                  px-4
+                  py-6
+                  text-center
+                  text-sm
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                {emptyText}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   EDIT MATERIAL FORM
+========================================================= */
+
 export default function EditMaterialForm({
   material,
   vendors,
@@ -66,34 +482,130 @@ export default function EditMaterialForm({
 
   const [vendorId, setVendorId] =
     useState(
-      material.vendorId?.toString() ?? ""
+      material.vendorId?.toString() ??
+        ""
     );
 
   /* =========================================================
-     Material Names
+     MATERIAL NAMES
   ========================================================= */
 
   const names = useMemo(() => {
     const thaiCategory =
       categoryName[category];
 
-    return (
+    const categoryMaterials =
       MATERIALS[
         thaiCategory as keyof typeof MATERIALS
-      ] ?? []
+      ] ?? [];
+
+    /*
+     * ป้องกันกรณีชื่อพัสดุเดิม
+     * ไม่มีอยู่ใน MATERIALS
+     * แต่มีอยู่ในฐานข้อมูลแล้ว
+     */
+
+    return Array.from(
+      new Set([
+        ...categoryMaterials,
+        ...(material.category ===
+          category &&
+        material.name
+          ? [material.name]
+          : []),
+      ])
     );
-  }, [category]);
+  }, [
+    category,
+    material.category,
+    material.name,
+  ]);
 
   /* =========================================================
-     Unit
+     UNIT
+
+     ถ้าชื่อเดิมไม่มีใน UNITS
+     ให้ใช้หน่วยเดิมจากฐานข้อมูล
   ========================================================= */
 
-  const unit = name
-    ? UNITS[name] ?? ""
-    : "";
+  const unit = useMemo(() => {
+    if (!name) {
+      return "";
+    }
+
+    const mappedUnit =
+      UNITS[name];
+
+    if (mappedUnit) {
+      return mappedUnit;
+    }
+
+    if (
+      name === material.name
+    ) {
+      return material.unit;
+    }
+
+    return "";
+  }, [
+    name,
+    material.name,
+    material.unit,
+  ]);
 
   /* =========================================================
-     Submit
+     OPTIONS
+  ========================================================= */
+
+  const categoryOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        categories.map(
+          (categoryCode) => ({
+            value: categoryCode,
+            label:
+              categoryName[
+                categoryCode
+              ],
+          })
+        ),
+      []
+    );
+
+  const materialOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        names.map(
+          (materialName) => ({
+            value: materialName,
+            label: materialName,
+          })
+        ),
+      [names]
+    );
+
+  const vendorOptions =
+    useMemo<SearchableOption[]>(
+      () => [
+        {
+          value: "",
+          label:
+            "-- ไม่ระบุผู้จำหน่าย --",
+        },
+
+        ...vendors.map(
+          (vendor) => ({
+            value:
+              vendor.id.toString(),
+            label: vendor.name,
+          })
+        ),
+      ],
+      [vendors]
+    );
+
+  /* =========================================================
+     SUBMIT
   ========================================================= */
 
   async function handleSubmit(
@@ -105,17 +617,43 @@ export default function EditMaterialForm({
       return;
     }
 
+    if (!category) {
+      alert(
+        "กรุณาเลือกหมวดหมู่"
+      );
+      return;
+    }
+
+    if (!name) {
+      alert(
+        "กรุณาเลือกรายการพัสดุ"
+      );
+      return;
+    }
+
+    if (!unit) {
+      alert(
+        "ไม่พบหน่วยของรายการพัสดุ กรุณาตรวจสอบข้อมูล"
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const formData = new FormData(
-        e.currentTarget
-      );
+      const formData =
+        new FormData(
+          e.currentTarget
+        );
 
       const body = {
-        code: formData.get("code"),
+        code:
+          formData.get("code"),
+
         category,
+
         name,
+
         unit,
 
         balance: Number(
@@ -123,7 +661,11 @@ export default function EditMaterialForm({
         ),
 
         latestPrice: Number(
-          formData.get("latestPrice")
+          Number(
+            formData.get(
+              "latestPrice"
+            )
+          ).toFixed(2)
         ),
 
         vendorId: vendorId
@@ -141,14 +683,17 @@ export default function EditMaterialForm({
               "application/json",
           },
 
-          body: JSON.stringify(body),
+          body: JSON.stringify(
+            body
+          ),
         }
       );
 
-      const text = await res.text();
+      const text =
+        await res.text();
 
       let data: {
-        message: string;
+        message?: string;
       } | null = null;
 
       try {
@@ -156,9 +701,11 @@ export default function EditMaterialForm({
           ? JSON.parse(text)
           : null;
       } catch {
-        data = {
-          message: text,
-        };
+        data = text
+          ? {
+              message: text,
+            }
+          : null;
       }
 
       if (!res.ok) {
@@ -187,7 +734,7 @@ export default function EditMaterialForm({
   }
 
   /* =========================================================
-     Shared UI Classes
+     SHARED UI CLASSES
   ========================================================= */
 
   const labelClass = `
@@ -199,20 +746,21 @@ export default function EditMaterialForm({
     sm:text-base
   `;
 
-  /* =========================================================
-     INPUT มาตรฐาน
-     ช่องข้อมูลใช้กรอบสีดำ
-  ========================================================= */
+  /*
+   * มาตรฐานช่องข้อมูลของระบบ
+   * ทุกช่องใช้กรอบดำ
+   */
 
   const inputClass = `
     min-h-[52px]
     w-full
     rounded-[16px]
-    border
-    border-black
+    border-2
+    !border-black
     bg-white
     px-4
     py-3
+    text-base
     font-bold
     !text-slate-900
     shadow-sm
@@ -220,39 +768,14 @@ export default function EditMaterialForm({
     transition-all
     duration-200
     placeholder:!text-slate-400
+
+    hover:!border-black
     hover:bg-slate-50
-    focus:border-blue-500
+
+    focus:!border-black
     focus:bg-white
     focus:ring-4
-    focus:ring-blue-500/10
-  `;
-
-  /* =========================================================
-     SELECT มาตรฐาน
-     ช่องข้อมูลใช้กรอบสีดำ
-  ========================================================= */
-
-  const selectClass = `
-    min-h-[52px]
-    w-full
-    appearance-none
-    rounded-[16px]
-    border
-    border-black
-    bg-white
-    px-4
-    py-3
-    font-bold
-    !text-slate-900
-    shadow-sm
-    outline-none
-    transition-all
-    duration-200
-    hover:bg-slate-50
-    focus:border-blue-500
-    focus:bg-white
-    focus:ring-4
-    focus:ring-blue-500/10
+    focus:ring-slate-900/10
   `;
 
   /* =========================================================
@@ -266,7 +789,7 @@ export default function EditMaterialForm({
         relative
         w-full
         min-w-0
-        overflow-hidden
+        overflow-visible
         rounded-[30px]
         border
         border-slate-300
@@ -279,7 +802,7 @@ export default function EditMaterialForm({
       "
     >
       {/* =====================================================
-          Ambient Background
+          AMBIENT BACKGROUND
       ===================================================== */}
 
       <div
@@ -314,7 +837,7 @@ export default function EditMaterialForm({
 
       <div className="relative space-y-6">
         {/* ===================================================
-            Form Header
+            FORM HEADER
         =================================================== */}
 
         <div
@@ -386,13 +909,18 @@ export default function EditMaterialForm({
           <input
             id="code"
             name="code"
-            defaultValue={material.code}
-            className={inputClass}
+            defaultValue={
+              material.code
+            }
+            className={
+              inputClass
+            }
           />
         </div>
 
         {/* ===================================================
             หมวดหมู่
+            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -403,48 +931,36 @@ export default function EditMaterialForm({
             หมวดหมู่
           </label>
 
-          <div className="relative">
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => {
-                setCategory(
-                  e.target.value
-                );
+          <SearchableDropdown
+            id="category"
+            value={category}
+            options={
+              categoryOptions
+            }
+            placeholder="เลือกหมวดหมู่"
+            searchPlaceholder="ค้นหาหมวดหมู่..."
+            onChange={(
+              selectedCategory
+            ) => {
+              if (
+                selectedCategory ===
+                category
+              ) {
+                return;
+              }
 
-                setName("");
-              }}
-              className={`${selectClass} pr-11`}
-            >
-              {categories.map((c) => (
-                <option
-                  key={c}
-                  value={c}
-                >
-                  {categoryName[c]}
-                </option>
-              ))}
-            </select>
+              setCategory(
+                selectedCategory
+              );
 
-            <span
-              aria-hidden="true"
-              className="
-                pointer-events-none
-                absolute
-                right-4
-                top-1/2
-                -translate-y-1/2
-                text-xs
-                !text-slate-500
-              "
-            >
-              ▼
-            </span>
-          </div>
+              setName("");
+            }}
+          />
         </div>
 
         {/* ===================================================
             รายการพัสดุ
+            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -455,48 +971,23 @@ export default function EditMaterialForm({
             รายการพัสดุ
           </label>
 
-          <div className="relative">
-            <select
-              id="name"
-              value={name}
-              onChange={(e) =>
-                setName(e.target.value)
-              }
-              className={`${selectClass} pr-11`}
-            >
-              <option value="">
-                เลือกรายการพัสดุ
-              </option>
-
-              {names.map((item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              ))}
-            </select>
-
-            <span
-              aria-hidden="true"
-              className="
-                pointer-events-none
-                absolute
-                right-4
-                top-1/2
-                -translate-y-1/2
-                text-xs
-                !text-slate-500
-              "
-            >
-              ▼
-            </span>
-          </div>
+          <SearchableDropdown
+            id="name"
+            value={name}
+            options={
+              materialOptions
+            }
+            placeholder="เลือกรายการพัสดุ"
+            searchPlaceholder="ค้นหารายการพัสดุ..."
+            emptyText="ไม่พบรายการพัสดุ"
+            disabled={!category}
+            onChange={setName}
+          />
         </div>
 
         {/* ===================================================
             ผู้จำหน่าย
+            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -507,46 +998,19 @@ export default function EditMaterialForm({
             ผู้จำหน่าย
           </label>
 
-          <div className="relative">
-            <select
-              id="vendorId"
-              value={vendorId}
-              onChange={(e) =>
-                setVendorId(
-                  e.target.value
-                )
-              }
-              className={`${selectClass} pr-11`}
-            >
-              <option value="">
-                -- ไม่ระบุผู้จำหน่าย --
-              </option>
-
-              {vendors.map((vendor) => (
-                <option
-                  key={vendor.id}
-                  value={vendor.id}
-                >
-                  {vendor.name}
-                </option>
-              ))}
-            </select>
-
-            <span
-              aria-hidden="true"
-              className="
-                pointer-events-none
-                absolute
-                right-4
-                top-1/2
-                -translate-y-1/2
-                text-xs
-                !text-slate-500
-              "
-            >
-              ▼
-            </span>
-          </div>
+          <SearchableDropdown
+            id="vendorId"
+            value={vendorId}
+            options={
+              vendorOptions
+            }
+            placeholder="เลือกผู้จำหน่าย"
+            searchPlaceholder="ค้นหาผู้จำหน่าย..."
+            emptyText="ไม่พบผู้จำหน่าย"
+            onChange={
+              setVendorId
+            }
+          />
         </div>
 
         {/* ===================================================
@@ -566,7 +1030,9 @@ export default function EditMaterialForm({
           <div>
             <label
               htmlFor="balance"
-              className={labelClass}
+              className={
+                labelClass
+              }
             >
               จำนวน
             </label>
@@ -579,7 +1045,9 @@ export default function EditMaterialForm({
               defaultValue={
                 material.balance
               }
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </div>
 
@@ -588,7 +1056,9 @@ export default function EditMaterialForm({
           <div>
             <label
               htmlFor="unit"
-              className={labelClass}
+              className={
+                labelClass
+              }
             >
               หน่วย
             </label>
@@ -597,20 +1067,23 @@ export default function EditMaterialForm({
               id="unit"
               value={unit}
               readOnly
+              placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
               className="
                 min-h-[52px]
                 w-full
                 cursor-default
                 rounded-[16px]
-                border
-                border-black
+                border-2
+                !border-black
                 bg-slate-100
                 px-4
                 py-3
-                font-bold
+                text-base
+                font-extrabold
                 !text-slate-700
-                shadow-inner
+                shadow-sm
                 outline-none
+                placeholder:!text-slate-400
               "
             />
           </div>
@@ -642,6 +1115,7 @@ export default function EditMaterialForm({
                 ${inputClass}
                 pr-16
                 text-right
+                tabular-nums
               `}
             />
 
@@ -663,7 +1137,7 @@ export default function EditMaterialForm({
         </div>
 
         {/* ===================================================
-            Buttons
+            BUTTONS
         =================================================== */}
 
         <div
@@ -678,17 +1152,14 @@ export default function EditMaterialForm({
             sm:justify-end
           "
         >
-          {/* =================================================
-              ยกเลิก
-          ================================================= */}
-
           <AppButton
             type="button"
             variant="secondary"
+            size="md"
             disabled={loading}
             onClick={() =>
               router.push(
-                `/materials/category/${category}`
+                `/materials/category/${material.category}`
               )
             }
             className="
@@ -700,22 +1171,13 @@ export default function EditMaterialForm({
             ยกเลิก
           </AppButton>
 
-          {/* =================================================
-              บันทึก
-          ================================================= */}
-
           <AppButton
             type="submit"
-            variant="primary"
+            variant="success"
+            size="md"
             disabled={loading}
-            className="
-              w-full
-              sm:w-auto
-              sm:min-w-[180px]
-            "
-          >
-            {loading ? (
-              <>
+            icon={
+              loading ? (
                 <span
                   className="
                     h-4
@@ -727,17 +1189,19 @@ export default function EditMaterialForm({
                     border-t-transparent
                   "
                 />
-
-                <span>
-                  กำลังบันทึก...
-                </span>
-              </>
-            ) : (
-              <>
+              ) : (
                 <span>💾</span>
-                <span>บันทึก</span>
-              </>
-            )}
+              )
+            }
+            className="
+              w-full
+              sm:w-auto
+              sm:min-w-[180px]
+            "
+          >
+            {loading
+              ? "กำลังบันทึก..."
+              : "บันทึก"}
           </AppButton>
         </div>
       </div>
