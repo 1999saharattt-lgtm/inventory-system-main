@@ -2,8 +2,10 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 import QRCodeButton from "./QRCodeButton";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -37,12 +39,14 @@ type Material = {
   name: string;
   balance: number;
   unit: string;
+
   latestPrice: {
     toLocaleString(
       locale?: string,
       options?: Intl.NumberFormatOptions
     ): string;
   };
+
   receiveItems: {
     manufacture: Date | null;
     expiry: Date | null;
@@ -58,6 +62,50 @@ type Props = {
     search?: string;
   }>;
 };
+
+/* =========================================================
+   วันที่ไทยแบบย่อ
+   ตัวอย่าง 01 ก.ย. 69
+========================================================= */
+
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+function formatThaiShortDate(
+  value: Date | string | null | undefined
+) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  const month = thaiShortMonths[date.getMonth()];
+
+  const buddhistYear = String(
+    date.getFullYear() + 543
+  ).slice(-2);
+
+  return `${day} ${month} ${buddhistYear}`;
+}
 
 export default async function CategoryPage({
   params,
@@ -97,6 +145,7 @@ export default async function CategoryPage({
         orderBy: {
           id: "desc",
         },
+
         take: 1,
       },
     },
@@ -124,99 +173,23 @@ export default async function CategoryPage({
         subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length} รายการ`}
         actions={
           <>
-            {/* เพิ่มรายการ */}
-
-            <Link
+            <AppButton
               href="/materials/new"
-              prefetch
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-emerald-200/80
-                bg-emerald-500
-                px-4
-                text-sm
-                font-extrabold
-                !text-white
-                shadow-[0_12px_28px_-16px_rgba(16,185,129,0.55)]
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:bg-emerald-600
-                hover:shadow-[0_18px_34px_-18px_rgba(16,185,129,0.65)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
+              variant="primary"
+              size="md"
             >
-              <span
-                className="
-                  text-lg
-                  leading-none
-                  transition-transform
-                  duration-300
-                  group-hover:scale-110
-                "
-              >
-                +
-              </span>
-
+              <span>＋</span>
               <span>เพิ่มรายการ</span>
-            </Link>
+            </AppButton>
 
-            {/* กลับ */}
-
-            <Link
+            <AppButton
               href="/materials"
-              prefetch
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-white/90
-                px-4
-                text-sm
-                font-extrabold
-                !text-slate-800
-                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-                backdrop-blur-xl
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:border-slate-300
-                hover:bg-white
-                hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.35)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
+              variant="outline"
+              size="md"
             >
-              <span
-                className="
-                  transition-transform
-                  duration-300
-                  group-hover:-translate-x-0.5
-                "
-              >
-                ←
-              </span>
-
+              <span>←</span>
               <span>กลับ</span>
-            </Link>
+            </AppButton>
           </>
         }
       />
@@ -231,7 +204,7 @@ export default async function CategoryPage({
           min-w-0
           rounded-[24px]
           border
-          border-white/80
+          border-slate-200
           bg-white/80
           p-4
           shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
@@ -250,7 +223,9 @@ export default async function CategoryPage({
             sm:items-center
           "
         >
-          {/* Search Input */}
+          {/* =================================================
+              Search Input
+          ================================================= */}
 
           <div className="relative min-w-0 flex-1">
             <div
@@ -277,22 +252,22 @@ export default async function CategoryPage({
                 w-full
                 rounded-[16px]
                 border
-                border-slate-200
-                bg-slate-50/80
+                border-black
+                bg-white
                 py-3
                 pl-12
                 pr-4
                 text-base
                 font-bold
                 !text-slate-900
-                shadow-inner
                 outline-none
                 transition-all
                 duration-300
                 placeholder:!text-slate-400
-                hover:border-slate-300
-                hover:bg-white
-                focus:border-blue-400
+
+                hover:bg-slate-50
+
+                focus:border-blue-600
                 focus:bg-white
                 focus:ring-4
                 focus:ring-blue-500/10
@@ -300,75 +275,32 @@ export default async function CategoryPage({
             />
           </div>
 
-          {/* Search Button */}
+          {/* =================================================
+              Search Button
+          ================================================= */}
 
-          <button
+          <AppButton
             type="submit"
-            className="
-              inline-flex
-              min-h-[48px]
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              bg-slate-900
-              px-6
-              py-3
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:bg-slate-800
-              hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
-              active:translate-y-0
-              active:scale-[0.97]
-              sm:w-auto
-            "
+            variant="primary"
+            size="md"
           >
             <span>🔎</span>
             <span>ค้นหา</span>
-          </button>
+          </AppButton>
 
-          {/* Clear Search */}
+          {/* =================================================
+              Clear Search
+          ================================================= */}
 
           {search && (
-            <Link
+            <AppButton
               href={`/materials/category/${category}`}
-              prefetch
-              className="
-                inline-flex
-                min-h-[48px]
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-white
-                px-5
-                py-3
-                text-sm
-                font-extrabold
-                !text-slate-700
-                shadow-sm
-                transition-all
-                duration-300
-                hover:-translate-y-0.5
-                hover:bg-slate-50
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:w-auto
-              "
+              variant="outline"
+              size="md"
             >
               <span>✕</span>
               <span>ล้างการค้นหา</span>
-            </Link>
+            </AppButton>
           )}
         </form>
       </section>
@@ -384,7 +316,7 @@ export default async function CategoryPage({
           overflow-hidden
           rounded-[28px]
           border
-          border-white/80
+          border-slate-300
           bg-white/85
           shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
           backdrop-blur-2xl
@@ -400,7 +332,7 @@ export default async function CategoryPage({
             flex-col
             gap-2
             border-b
-            border-slate-200/80
+            border-black
             bg-white/70
             px-5
             py-4
@@ -445,7 +377,7 @@ export default async function CategoryPage({
               gap-2
               rounded-full
               border
-              border-slate-200
+              border-slate-300
               bg-slate-100/80
               px-3
               py-1.5
@@ -488,12 +420,12 @@ export default async function CategoryPage({
         >
           <table
             className="
-              min-w-[1200px]
               w-full
-              border-separate
-              border-spacing-0
-              bg-transparent
-              shadow-none
+              min-w-[1200px]
+              border-collapse
+              border
+              border-black
+              bg-white
             "
           >
             <thead>
@@ -513,9 +445,8 @@ export default async function CategoryPage({
                     key={title}
                     className="
                       whitespace-nowrap
-                      border-b
-                      border-r
-                      border-slate-600
+                      border
+                      border-black
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
@@ -525,8 +456,6 @@ export default async function CategoryPage({
                       text-base
                       font-extrabold
                       !text-white
-                      first:border-l-0
-                      last:border-r-0
                       sm:text-lg
                     "
                   >
@@ -550,7 +479,6 @@ export default async function CategoryPage({
                       <tr
                         key={material.id}
                         className={`
-                          group/row
                           transition-colors
                           duration-200
 
@@ -563,14 +491,15 @@ export default async function CategoryPage({
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* รหัสพัสดุ */}
+                        {/* ===================================
+                            รหัสพัสดุ
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             font-extrabold
@@ -582,7 +511,7 @@ export default async function CategoryPage({
                               inline-flex
                               rounded-[10px]
                               border
-                              border-slate-200
+                              border-black
                               bg-slate-100
                               px-2.5
                               py-1
@@ -594,14 +523,15 @@ export default async function CategoryPage({
                           </span>
                         </td>
 
-                        {/* รายการ */}
+                        {/* ===================================
+                            รายการพัสดุ
+                        =================================== */}
 
                         <td
                           className="
                             min-w-[240px]
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             font-extrabold
@@ -611,14 +541,15 @@ export default async function CategoryPage({
                           {material.name}
                         </td>
 
-                        {/* จำนวน */}
+                        {/* ===================================
+                            จำนวน
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             text-center
@@ -643,20 +574,20 @@ export default async function CategoryPage({
                                     bg-red-50
                                     !text-red-600
                                     ring-1
-                                    ring-red-100
+                                    ring-red-200
                                   `
                                   : material.balance < 10
                                     ? `
                                       bg-amber-50
                                       !text-amber-600
                                       ring-1
-                                      ring-amber-100
+                                      ring-amber-200
                                     `
                                     : `
                                       bg-emerald-50
                                       !text-emerald-700
                                       ring-1
-                                      ring-emerald-100
+                                      ring-emerald-200
                                     `
                               }
                             `}
@@ -665,14 +596,15 @@ export default async function CategoryPage({
                           </span>
                         </td>
 
-                        {/* หน่วย */}
+                        {/* ===================================
+                            หน่วย
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             text-center
@@ -683,14 +615,15 @@ export default async function CategoryPage({
                           {material.unit}
                         </td>
 
-                        {/* ราคาล่าสุด */}
+                        {/* ===================================
+                            ราคาล่าสุด
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             text-right
@@ -708,14 +641,16 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* วันผลิต */}
+                        {/* ===================================
+                            วันผลิต
+                            รูปแบบ 01 ก.ย. 69
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             text-center
@@ -723,23 +658,21 @@ export default async function CategoryPage({
                             !text-slate-700
                           "
                         >
-                          {latestReceive?.manufacture
-                            ? new Date(
-                                latestReceive.manufacture
-                              ).toLocaleDateString(
-                                "th-TH"
-                              )
-                            : "-"}
+                          {formatThaiShortDate(
+                            latestReceive?.manufacture
+                          )}
                         </td>
 
-                        {/* วันหมดอายุ */}
+                        {/* ===================================
+                            วันหมดอายุ
+                            รูปแบบ 01 ก.ย. 69
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3.5
                             text-center
@@ -747,23 +680,20 @@ export default async function CategoryPage({
                             !text-slate-700
                           "
                         >
-                          {latestReceive?.expiry
-                            ? new Date(
-                                latestReceive.expiry
-                              ).toLocaleDateString(
-                                "th-TH"
-                              )
-                            : "-"}
+                          {formatThaiShortDate(
+                            latestReceive?.expiry
+                          )}
                         </td>
 
-                        {/* จัดการ */}
+                        {/* ===================================
+                            จัดการ
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-r
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3
                           "
@@ -776,37 +706,14 @@ export default async function CategoryPage({
                               gap-2
                             "
                           >
-                            <Link
+                            <AppButton
                               href={`/materials/${material.id}/edit`}
-                              prefetch
-                              className="
-                                inline-flex
-                                h-9
-                                items-center
-                                justify-center
-                                gap-1.5
-                                rounded-[12px]
-                                border
-                                border-slate-200
-                                bg-white
-                                px-3.5
-                                text-sm
-                                font-extrabold
-                                !text-slate-800
-                                shadow-sm
-                                transition-all
-                                duration-200
-                                hover:-translate-y-0.5
-                                hover:border-blue-200
-                                hover:bg-blue-50
-                                hover:!text-blue-700
-                                active:translate-y-0
-                                active:scale-[0.96]
-                              "
+                              variant="outline"
+                              size="sm"
                             >
                               <span>✏️</span>
                               <span>แก้ไข</span>
-                            </Link>
+                            </AppButton>
 
                             <DeleteButton
                               id={material.id}
@@ -814,13 +721,15 @@ export default async function CategoryPage({
                           </div>
                         </td>
 
-                        {/* QR Code */}
+                        {/* ===================================
+                            QR Code
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
-                            border-b
-                            border-slate-200
+                            border
+                            border-black
                             px-4
                             py-3
                             text-center
@@ -849,6 +758,8 @@ export default async function CategoryPage({
                   <td
                     colSpan={9}
                     className="
+                      border
+                      border-black
                       bg-white
                       px-6
                       py-16
@@ -907,32 +818,15 @@ export default async function CategoryPage({
                       </p>
 
                       {search && (
-                        <Link
-                          href={`/materials/category/${category}`}
-                          prefetch
-                          className="
-                            mt-5
-                            inline-flex
-                            h-10
-                            items-center
-                            justify-center
-                            rounded-[14px]
-                            bg-slate-900
-                            px-5
-                            text-sm
-                            font-extrabold
-                            !text-white
-                            shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
-                            transition-all
-                            duration-300
-                            hover:-translate-y-0.5
-                            hover:bg-slate-800
-                            active:translate-y-0
-                            active:scale-[0.97]
-                          "
-                        >
-                          แสดงรายการทั้งหมด
-                        </Link>
+                        <div className="mt-5">
+                          <AppButton
+                            href={`/materials/category/${category}`}
+                            variant="primary"
+                            size="md"
+                          >
+                            แสดงรายการทั้งหมด
+                          </AppButton>
+                        </div>
                       )}
                     </div>
                   </td>

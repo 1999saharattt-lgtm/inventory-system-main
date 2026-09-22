@@ -1,6 +1,8 @@
 import Link from "next/link";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 type Category = {
   code: string;
@@ -53,6 +55,7 @@ export default function MaterialsPage() {
     <AppPage>
       {/* =====================================================
           Header
+          ใช้ Header กลาง
       ===================================================== */}
 
       <AppPageHeader
@@ -61,79 +64,24 @@ export default function MaterialsPage() {
         subtitle="เลือกหมวดหมู่เพื่อดูและจัดการข้อมูลพัสดุ"
         actions={
           <>
-            <Link
+            <AppButton
               href="/materials/qr"
-              prefetch
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-white/90
-                px-4
-                text-sm
-                font-extrabold
-                !text-slate-800
-                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-                backdrop-blur-xl
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:border-blue-200
-                hover:bg-white
-                hover:shadow-[0_16px_30px_-18px_rgba(59,130,246,0.35)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
+              variant="outline"
+              size="md"
             >
-              <span className="transition-transform duration-300 group-hover:scale-105">
-                📱
-              </span>
+              <span>📱</span>
               <span>QR Code รวม</span>
-            </Link>
+            </AppButton>
 
-            <Link
+            <AppButton
               href="/materials/export/pdf"
+              variant="secondary"
+              size="md"
               target="_blank"
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-slate-900
-                px-4
-                text-sm
-                font-extrabold
-                !text-white
-                shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:bg-slate-800
-                hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
             >
-              <span className="transition-transform duration-300 group-hover:scale-105">
-                📋
-              </span>
+              <span>📋</span>
               <span>รวมรายการพัสดุ</span>
-            </Link>
+            </AppButton>
           </>
         }
       />
@@ -153,10 +101,10 @@ export default function MaterialsPage() {
           xl:grid-cols-3
         "
       >
-        {categories.map((cat) => (
+        {categories.map((category) => (
           <Link
-            key={cat.code}
-            href={`/materials/category/${cat.code}`}
+            key={category.code}
+            href={`/materials/category/${category.code}`}
             prefetch
             className="
               group
@@ -172,21 +120,31 @@ export default function MaterialsPage() {
               transition-all
               duration-300
               ease-out
+
               hover:-translate-y-1
               hover:border-slate-200
               hover:bg-white/95
               hover:shadow-[0_26px_64px_-28px_rgba(15,23,42,0.45)]
+
               active:translate-y-0
               active:scale-[0.985]
             "
           >
-            {/* Accent */}
+            {/* =================================================
+                Accent
+            ================================================= */}
 
             <div
-              className={`h-1.5 bg-gradient-to-r ${cat.color}`}
+              className={`
+                h-1.5
+                bg-gradient-to-r
+                ${category.color}
+              `}
             />
 
-            {/* Ambient Glow */}
+            {/* =================================================
+                Ambient Glow
+            ================================================= */}
 
             <div
               aria-hidden="true"
@@ -199,15 +157,20 @@ export default function MaterialsPage() {
                 w-36
                 rounded-full
                 bg-gradient-to-br
-                ${cat.color}
+                ${category.color}
                 opacity-[0.08]
                 blur-3xl
                 transition-all
                 duration-500
+
                 group-hover:scale-125
                 group-hover:opacity-[0.14]
               `}
             />
+
+            {/* =================================================
+                Content
+            ================================================= */}
 
             <div
               className="
@@ -221,7 +184,9 @@ export default function MaterialsPage() {
                 sm:p-6
               "
             >
-              {/* Icon */}
+              {/* ===============================================
+                  Icon
+              =============================================== */}
 
               <div
                 className={`
@@ -233,22 +198,26 @@ export default function MaterialsPage() {
                   justify-center
                   rounded-[20px]
                   bg-gradient-to-br
-                  ${cat.color}
+                  ${category.color}
                   text-3xl
                   shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
                   ring-1
                   ring-white/30
                   transition-all
                   duration-300
+
                   group-hover:-translate-y-0.5
                   group-hover:scale-[1.06]
+
                   group-active:scale-[0.96]
                 `}
               >
-                {cat.icon}
+                {category.icon}
               </div>
 
-              {/* Text */}
+              {/* ===============================================
+                  Text
+              =============================================== */}
 
               <div className="mt-5 min-w-0">
                 <h2
@@ -262,7 +231,7 @@ export default function MaterialsPage() {
                     sm:text-2xl
                   "
                 >
-                  {cat.name}
+                  {category.name}
                 </h2>
 
                 <p
@@ -280,7 +249,9 @@ export default function MaterialsPage() {
                 </p>
               </div>
 
-              {/* Footer */}
+              {/* ===============================================
+                  Footer
+              =============================================== */}
 
               <div
                 className="
@@ -309,7 +280,7 @@ export default function MaterialsPage() {
                     shadow-sm
                   "
                 >
-                  หมวด {cat.code}
+                  หมวด {category.code}
                 </span>
 
                 <span
@@ -328,12 +299,20 @@ export default function MaterialsPage() {
                     shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
                     transition-all
                     duration-300
+
                     group-hover:bg-slate-800
                     group-active:scale-[0.96]
                   "
                 >
                   <span>เปิด</span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">
+
+                  <span
+                    className="
+                      transition-transform
+                      duration-300
+                      group-hover:translate-x-1
+                    "
+                  >
                     →
                   </span>
                 </span>
