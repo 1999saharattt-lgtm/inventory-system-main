@@ -201,8 +201,10 @@ export default async function CategoryPage({
       {/* =====================================================
           SEARCH
 
-          ไม่มีไอคอนแว่นขยายภายในช่องกรอก
-          คงไอคอนแว่นขยายไว้เฉพาะปุ่มค้นหา
+          - ไม่มีไอคอนแว่นขยายภายในช่องกรอก
+          - ช่องค้นหาใช้กรอบดำหนา 2px
+          - Hover / Focus ยังคงกรอบดำ
+          - คงไอคอนแว่นขยายไว้เฉพาะปุ่มค้นหา
       ===================================================== */}
 
       <section
@@ -238,26 +240,36 @@ export default async function CategoryPage({
               className="
                 min-h-[48px]
                 w-full
+
                 rounded-[16px]
-                border
-                border-black
+
+                border-2
+                !border-black
+
                 bg-white
+
                 px-4
                 py-3
+
                 text-base
                 font-bold
                 !text-slate-900
+
+                shadow-sm
                 outline-none
+
                 transition-all
-                duration-300
+                duration-200
+
                 placeholder:!text-slate-400
 
+                hover:!border-black
                 hover:bg-slate-50
 
-                focus:border-blue-600
+                focus:!border-black
                 focus:bg-white
                 focus:ring-4
-                focus:ring-blue-500/10
+                focus:ring-slate-900/10
               "
             />
           </div>
