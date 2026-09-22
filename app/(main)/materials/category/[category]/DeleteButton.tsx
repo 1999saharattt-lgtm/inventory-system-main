@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import AppButton from "@/components/AppButton";
 
 type Props = {
   id: number;
 };
 
 export default function DeleteButton({ id }: Props) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] =
+    useState(false);
 
   async function handleDelete() {
     if (isDeleting) return;
@@ -57,42 +59,13 @@ export default function DeleteButton({ id }: Props) {
   }
 
   return (
-    <button
+    <AppButton
       type="button"
+      variant="danger"
+      size="sm"
       onClick={handleDelete}
       disabled={isDeleting}
       aria-label="ลบพัสดุ"
-      className="
-        group
-        inline-flex
-        h-9
-        min-w-[82px]
-        items-center
-        justify-center
-        gap-1.5
-        rounded-[12px]
-        border
-        border-red-200
-        bg-red-50
-        px-3.5
-        text-sm
-        font-extrabold
-        !text-red-600
-        shadow-sm
-        transition-all
-        duration-200
-        ease-out
-        hover:-translate-y-0.5
-        hover:border-red-300
-        hover:bg-red-500
-        hover:!text-white
-        hover:shadow-[0_10px_22px_-14px_rgba(239,68,68,0.65)]
-        active:translate-y-0
-        active:scale-[0.96]
-        disabled:pointer-events-none
-        disabled:cursor-not-allowed
-        disabled:opacity-60
-      "
     >
       {isDeleting ? (
         <>
@@ -112,19 +85,10 @@ export default function DeleteButton({ id }: Props) {
         </>
       ) : (
         <>
-          <span
-            className="
-              transition-transform
-              duration-200
-              group-hover:scale-110
-            "
-          >
-            🗑️
-          </span>
-
+          <span>🗑️</span>
           <span>ลบ</span>
         </>
       )}
-    </button>
+    </AppButton>
   );
 }
