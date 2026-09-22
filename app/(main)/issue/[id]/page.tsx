@@ -33,7 +33,6 @@ type IssueItem = {
     name: string;
     unit: string;
     category: string;
-
     latestPrice: {
       toString(): string;
     };
@@ -48,13 +47,11 @@ const statusName: Record<string, string> = {
 
 const statusClass: Record<string, string> = {
   PENDING:
-    "border-amber-400 bg-amber-50 !text-amber-800",
-
+    "border-amber-300 bg-amber-50/90 !text-amber-800",
   APPROVED:
-    "border-emerald-500 bg-emerald-50 !text-emerald-800",
-
+    "border-emerald-300 bg-emerald-50/90 !text-emerald-800",
   REJECTED:
-    "border-red-400 bg-red-50 !text-red-800",
+    "border-red-300 bg-red-50/90 !text-red-800",
 };
 
 // =====================================================
@@ -87,8 +84,7 @@ function formatThaiDate(
     return "-";
   }
 
-  const parsedDate =
-    new Date(date);
+  const parsedDate = new Date(date);
 
   if (
     Number.isNaN(
@@ -110,8 +106,7 @@ function formatThaiDate(
 export default async function IssueDetailPage({
   params,
 }: Props) {
-  const { id } =
-    await params;
+  const { id } = await params;
 
   // =====================================================
   // Session
@@ -121,9 +116,7 @@ export default async function IssueDetailPage({
     await cookies();
 
   const token =
-    cookieStore.get(
-      "session"
-    )?.value;
+    cookieStore.get("session")?.value;
 
   let session:
     | SessionUser
@@ -132,17 +125,11 @@ export default async function IssueDetailPage({
   if (token) {
     try {
       session =
-        await verifySession(
-          token
-        );
+        await verifySession(token);
     } catch {
       session = null;
     }
   }
-
-  // =====================================================
-  // ถ้าไม่มี Session ให้กลับหน้า Login
-  // =====================================================
 
   if (!session) {
     redirect("/login");
@@ -152,13 +139,10 @@ export default async function IssueDetailPage({
   // ตรวจสอบ ID
   // =====================================================
 
-  const issueId =
-    Number(id);
+  const issueId = Number(id);
 
   if (
-    !Number.isInteger(
-      issueId
-    ) ||
+    !Number.isInteger(issueId) ||
     issueId <= 0
   ) {
     notFound();
@@ -226,10 +210,7 @@ export default async function IssueDetailPage({
   const totalRequested =
     issue.items.reduce(
       (total, item) =>
-        total +
-        Number(
-          item.qty
-        ),
+        total + Number(item.qty),
       0
     );
 
@@ -237,9 +218,7 @@ export default async function IssueDetailPage({
     issue.items.reduce(
       (total, item) =>
         total +
-        Number(
-          item.issuedQty
-        ),
+        Number(item.issuedQty),
       0
     );
 
@@ -254,24 +233,22 @@ export default async function IssueDetailPage({
 
   // =====================================================
   // Shared UI
+  // เฉพาะ "ช่องข้อมูล" เท่านั้นที่ใช้กรอบดำ
   // =====================================================
 
   const infoLabelClass = `
     text-xs
-    font-extrabold
-    uppercase
-    tracking-wide
+    font-bold
     !text-slate-500
     sm:text-sm
   `;
 
   const infoValueClass = `
-    mt-1
+    mt-2
     break-words
     text-base
-    font-extrabold
-    !text-slate-900
-    sm:text-lg
+    font-bold
+    !text-slate-800
   `;
 
   const infoCardClass = `
@@ -279,13 +256,15 @@ export default async function IssueDetailPage({
     rounded-[18px]
     border
     border-black
-    bg-slate-50
+    bg-slate-50/90
     px-4
     py-4
-    shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+    shadow-[0_8px_22px_-18px_rgba(15,23,42,0.35)]
     transition-all
-    duration-200
-    hover:bg-blue-50
+    duration-300
+    hover:-translate-y-[1px]
+    hover:bg-white
+    hover:shadow-[0_12px_28px_-18px_rgba(15,23,42,0.35)]
   `;
 
   return (
@@ -320,6 +299,7 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           สถานะใบเบิก
+          คง iOS - ไม่ใช้กรอบดำรอบการ์ด
       ===================================================== */}
 
       <section
@@ -328,18 +308,16 @@ export default async function IssueDetailPage({
           w-full
           min-w-0
           overflow-hidden
-          rounded-[28px]
+          rounded-[30px]
           border
-          border-black
-          bg-slate-100/90
+          border-white/80
+          bg-white/75
           p-5
-          shadow-[0_24px_60px_-34px_rgba(15,23,42,0.45)]
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
           backdrop-blur-2xl
           sm:p-6
         "
       >
-        {/* Ambient */}
-
         <div
           aria-hidden="true"
           className="
@@ -351,6 +329,21 @@ export default async function IssueDetailPage({
             w-56
             rounded-full
             bg-blue-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-20
+            -left-20
+            h-56
+            w-56
+            rounded-full
+            bg-cyan-400/10
             blur-3xl
           "
         />
@@ -370,8 +363,8 @@ export default async function IssueDetailPage({
             <p
               className="
                 text-sm
-                font-extrabold
-                !text-slate-600
+                font-bold
+                !text-slate-500
               "
             >
               สถานะใบเบิก
@@ -388,22 +381,19 @@ export default async function IssueDetailPage({
                 px-5
                 py-2
                 text-base
-                font-black
+                font-extrabold
                 shadow-sm
                 ${
                   statusClass[
                     issue.status
                   ] ??
-                  "border-black bg-slate-50 !text-slate-900"
+                  "border-slate-200 bg-slate-100 !text-slate-800"
                 }
               `}
             >
-              {
-                statusName[
-                  issue.status
-                ] ??
+              {statusName[
                 issue.status
-              }
+              ] ?? issue.status}
             </div>
           </div>
 
@@ -443,10 +433,11 @@ export default async function IssueDetailPage({
                 className="
                   rounded-[18px]
                   border
-                  border-black
-                  bg-emerald-50
+                  border-slate-200/80
+                  bg-emerald-50/80
                   px-4
                   py-3
+                  shadow-sm
                   sm:text-right
                 "
               >
@@ -454,7 +445,7 @@ export default async function IssueDetailPage({
                   className="
                     text-sm
                     font-bold
-                    !text-slate-600
+                    !text-slate-500
                   "
                 >
                   วันที่ยืนยันการเบิกจ่าย
@@ -493,8 +484,6 @@ export default async function IssueDetailPage({
             )}
         </div>
 
-        {/* Pending Warning */}
-
         {session.role ===
           "ADMIN" &&
           issue.status ===
@@ -505,8 +494,8 @@ export default async function IssueDetailPage({
                 mt-5
                 rounded-[18px]
                 border
-                border-black
-                bg-amber-50
+                border-amber-200
+                bg-amber-50/90
                 px-4
                 py-4
                 shadow-sm
@@ -515,7 +504,7 @@ export default async function IssueDetailPage({
               <p
                 className="
                   font-extrabold
-                  !text-slate-900
+                  !text-amber-900
                 "
               >
                 ⚠️ ใบเบิกนี้ยังไม่ได้ตัดสต็อก
@@ -527,7 +516,7 @@ export default async function IssueDetailPage({
                   text-sm
                   font-semibold
                   leading-relaxed
-                  !text-slate-700
+                  !text-amber-800
                 "
               >
                 กรุณาตรวจสอบรายการและลงจำนวนที่เบิกจ่ายจริงก่อน
@@ -539,6 +528,7 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ข้อมูลใบเบิก
+          การ์ดใหญ่คง iOS
       ===================================================== */}
 
       <section
@@ -547,18 +537,16 @@ export default async function IssueDetailPage({
           w-full
           min-w-0
           overflow-hidden
-          rounded-[28px]
+          rounded-[30px]
           border
-          border-black
-          bg-slate-100/90
+          border-white/80
+          bg-white/75
           p-5
-          shadow-[0_24px_60px_-34px_rgba(15,23,42,0.45)]
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
           backdrop-blur-2xl
           sm:p-6
         "
       >
-        {/* Ambient */}
-
         <div
           aria-hidden="true"
           className="
@@ -566,6 +554,21 @@ export default async function IssueDetailPage({
             absolute
             -right-20
             -top-20
+            h-56
+            w-56
+            rounded-full
+            bg-blue-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
             h-56
             w-56
             rounded-full
@@ -584,7 +587,7 @@ export default async function IssueDetailPage({
             flex-col
             gap-4
             border-b
-            border-black
+            border-slate-200
             pb-5
             sm:flex-row
             sm:items-center
@@ -609,20 +612,13 @@ export default async function IssueDetailPage({
                 mt-1
                 text-sm
                 font-semibold
-                !text-slate-600
+                !text-slate-500
                 sm:text-base
               "
             >
               รายละเอียดเอกสารและข้อมูลการเบิกจ่าย
             </p>
           </div>
-
-          {/* =================================================
-              PDF
-
-              ตัวปุ่มจริงอยู่ใน IssuePdf.tsx
-              และใช้ AppButton ตัวกลาง
-          ================================================= */}
 
           <div
             className="
@@ -632,9 +628,7 @@ export default async function IssueDetailPage({
             "
           >
             <IssuePdf
-              issueId={
-                issue.id
-              }
+              issueId={issue.id}
               documentNo={
                 issue.documentNo
               }
@@ -642,21 +636,19 @@ export default async function IssueDetailPage({
                 issue.issueDate
               }
               departmentName={
-                issue.department
-                  .name
+                issue.department.name
               }
               requesterName={
                 requesterName
               }
-              items={
-                issue.items
-              }
+              items={issue.items}
             />
           </div>
         </div>
 
         {/* =================================================
             ช่องข้อมูล
+            เฉพาะส่วนนี้ใช้กรอบดำ
         ================================================= */}
 
         <div
@@ -674,23 +666,14 @@ export default async function IssueDetailPage({
           <div
             className={`
               ${infoCardClass}
-              bg-blue-50
+              bg-slate-50/90
             `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               เลขที่เอกสาร
             </p>
 
-            <p
-              className={`
-                ${infoValueClass}
-                !text-blue-900
-              `}
-            >
+            <p className={infoValueClass}>
               {issue.documentNo}
             </p>
           </div>
@@ -698,77 +681,52 @@ export default async function IssueDetailPage({
           {/* วันที่เบิก */}
 
           <div
-            className={
-              infoCardClass
-            }
+            className={`
+              ${infoCardClass}
+              bg-blue-50/70
+            `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               วันที่เบิก
             </p>
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
+            <p className={infoValueClass}>
               {formatThaiDate(
                 issue.issueDate
               )}
             </p>
           </div>
 
-          {/* กลุ่มงาน */}
+          {/* หน่วยงาน */}
 
           <div
             className={`
               ${infoCardClass}
-              bg-cyan-50
+              bg-slate-50/90
             `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               หน่วยงาน / กลุ่มงาน
             </p>
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {
-                issue.department
-                  .name
-              }
+            <p className={infoValueClass}>
+              {issue.department.name}
             </p>
           </div>
 
           {/* ผู้ขอเบิก */}
 
           <div
-            className={
-              infoCardClass
-            }
+            className={`
+              ${infoCardClass}
+              bg-slate-50/90
+            `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               ผู้ขอเบิก
             </p>
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
+            <p className={infoValueClass}>
               {requesterName}
             </p>
           </div>
@@ -778,52 +736,32 @@ export default async function IssueDetailPage({
           <div
             className={`
               ${infoCardClass}
-              bg-indigo-50
+              bg-blue-50/70
             `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               จำนวนรายการ
             </p>
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {
-                issue.items
-                  .length
-              }{" "}
-              รายการ
+            <p className={infoValueClass}>
+              {issue.items.length} รายการ
             </p>
           </div>
 
           {/* จำนวนรวมที่ขอเบิก */}
 
           <div
-            className={
-              infoCardClass
-            }
+            className={`
+              ${infoCardClass}
+              bg-slate-50/90
+            `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               จำนวนรวมที่ขอเบิก
             </p>
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {totalRequested}{" "}
-              หน่วย
+            <p className={infoValueClass}>
+              {totalRequested} หน่วย
             </p>
           </div>
 
@@ -835,30 +773,25 @@ export default async function IssueDetailPage({
               ${
                 issue.status ===
                 "APPROVED"
-                  ? "bg-emerald-50"
-                  : "bg-slate-50"
+                  ? "bg-emerald-50/80"
+                  : "bg-slate-50/90"
               }
               sm:col-span-2
               xl:col-span-3
             `}
           >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
+            <p className={infoLabelClass}>
               จำนวนรวมที่เบิกจ่ายจริง
             </p>
 
             <p
               className={`
                 ${infoValueClass}
-
                 ${
                   issue.status ===
                   "APPROVED"
                     ? "!text-emerald-800"
-                    : "!text-slate-500"
+                    : "!text-slate-600"
                 }
               `}
             >
@@ -873,6 +806,7 @@ export default async function IssueDetailPage({
 
       {/* =====================================================
           ตารางรายการใบเบิก
+          เส้นตารางดำ แต่ wrapper คง iOS
       ===================================================== */}
 
       <section
@@ -880,20 +814,19 @@ export default async function IssueDetailPage({
           w-full
           min-w-0
           overflow-hidden
-          rounded-[28px]
+          rounded-[30px]
           border
-          border-black
-          bg-slate-50
-          shadow-[0_24px_60px_-34px_rgba(15,23,42,0.45)]
+          border-white/80
+          bg-white/80
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
+          backdrop-blur-2xl
         "
       >
-        {/* Table Header */}
-
         <div
           className="
             border-b
-            border-black
-            bg-slate-100
+            border-slate-200
+            bg-slate-50/80
             px-5
             py-4
           "
@@ -914,7 +847,7 @@ export default async function IssueDetailPage({
               mt-1
               text-sm
               font-semibold
-              !text-slate-600
+              !text-slate-500
             "
           >
             รายละเอียดจำนวนที่ขอเบิกและจำนวนที่เบิกจ่ายจริง
@@ -1055,20 +988,14 @@ export default async function IssueDetailPage({
               </tr>
             </thead>
 
-            <tbody
-              className="
-                !text-slate-900
-              "
-            >
+            <tbody className="!text-slate-900">
               {issue.items.map(
                 (
                   item: IssueItem,
                   index: number
                 ) => (
                   <tr
-                    key={
-                      item.id
-                    }
+                    key={item.id}
                     className="
                       bg-white
                       transition-colors
@@ -1077,8 +1004,6 @@ export default async function IssueDetailPage({
                       hover:bg-blue-50
                     "
                   >
-                    {/* ลำดับ */}
-
                     <td
                       className="
                         border
@@ -1093,8 +1018,6 @@ export default async function IssueDetailPage({
                       {index + 1}
                     </td>
 
-                    {/* รายการพัสดุ */}
-
                     <td
                       className="
                         border
@@ -1106,39 +1029,18 @@ export default async function IssueDetailPage({
                         !text-slate-900
                       "
                     >
-                      <div
-                        className="
-                          break-words
-                        "
-                      >
-                        <span
-                          className="
-                            font-extrabold
-                            !text-slate-950
-                          "
-                        >
-                          {
-                            item
-                              .material
-                              .code
-                          }
+                      <div className="break-words">
+                        <span className="font-extrabold">
+                          {item.material.code}
                         </span>{" "}
-                        -{" "}
-                        {
-                          item
-                            .material
-                            .name
-                        }
+                        - {item.material.name}
                       </div>
                     </td>
-
-                    {/* จำนวนที่ขอเบิก */}
 
                     <td
                       className="
                         border
                         border-black
-                        bg-blue-50/50
                         px-3
                         py-4
                         text-center
@@ -1148,8 +1050,6 @@ export default async function IssueDetailPage({
                     >
                       {item.qty}
                     </td>
-
-                    {/* จำนวนที่เบิกจ่ายจริง */}
 
                     <td
                       className="
@@ -1163,36 +1063,20 @@ export default async function IssueDetailPage({
                     >
                       {issue.status ===
                       "PENDING" ? (
-                        <span
-                          className="
-                            !text-amber-700
-                          "
-                        >
+                        <span className="!text-amber-700">
                           รอเจ้าหน้าที่พัสดุ
                         </span>
                       ) : issue.status ===
                         "REJECTED" ? (
-                        <span
-                          className="
-                            !text-red-700
-                          "
-                        >
+                        <span className="!text-red-700">
                           ไม่อนุมัติ
                         </span>
                       ) : (
-                        <span
-                          className="
-                            !text-emerald-700
-                          "
-                        >
-                          {
-                            item.issuedQty
-                          }
+                        <span className="!text-emerald-700">
+                          {item.issuedQty}
                         </span>
                       )}
                     </td>
-
-                    {/* หน่วย */}
 
                     <td
                       className="
@@ -1205,14 +1089,8 @@ export default async function IssueDetailPage({
                         !text-slate-900
                       "
                     >
-                      {
-                        item
-                          .material
-                          .unit
-                      }
+                      {item.material.unit}
                     </td>
-
-                    {/* หมายเหตุ */}
 
                     <td
                       className="
@@ -1246,7 +1124,8 @@ export default async function IssueDetailPage({
       </section>
 
       {/* =====================================================
-          สรุปเมื่อเสร็จสิ้นแล้ว
+          สรุปเมื่อเสร็จสิ้น
+          คง iOS ไม่ใช้กรอบดำ
       ===================================================== */}
 
       {issue.status ===
@@ -1255,12 +1134,13 @@ export default async function IssueDetailPage({
           className="
             w-full
             min-w-0
-            rounded-[28px]
+            rounded-[30px]
             border
-            border-black
-            bg-emerald-50
+            border-emerald-200/80
+            bg-emerald-50/80
             p-5
-            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.4)]
+            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+            backdrop-blur-xl
             sm:p-6
           "
         >
@@ -1304,10 +1184,11 @@ export default async function IssueDetailPage({
                 shrink-0
                 rounded-[18px]
                 border
-                border-black
+                border-emerald-200
                 bg-white/70
                 px-5
                 py-3
+                shadow-sm
                 sm:text-right
               "
             >
@@ -1315,7 +1196,7 @@ export default async function IssueDetailPage({
                 className="
                   text-sm
                   font-bold
-                  !text-slate-600
+                  !text-slate-500
                 "
               >
                 จำนวนรวมที่เบิกจ่ายจริง
@@ -1329,8 +1210,7 @@ export default async function IssueDetailPage({
                   !text-emerald-800
                 "
               >
-                {totalIssued}{" "}
-                หน่วย
+                {totalIssued} หน่วย
               </p>
             </div>
           </div>
@@ -1338,7 +1218,7 @@ export default async function IssueDetailPage({
       )}
 
       {/* =====================================================
-          สถานะไม่อนุมัติ
+          ไม่อนุมัติ
       ===================================================== */}
 
       {issue.status ===
@@ -1347,12 +1227,13 @@ export default async function IssueDetailPage({
           className="
             w-full
             min-w-0
-            rounded-[28px]
+            rounded-[30px]
             border
-            border-black
-            bg-red-50
+            border-red-200
+            bg-red-50/80
             p-5
-            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.4)]
+            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+            backdrop-blur-xl
             sm:p-6
           "
         >
