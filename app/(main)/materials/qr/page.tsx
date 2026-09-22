@@ -6,23 +6,24 @@ export default async function MaterialsQrPage() {
      Load Materials
   ========================================================= */
 
-  const materials = await prisma.material.findMany({
-    select: {
-      id: true,
-      code: true,
-      name: true,
-      category: true,
-    },
+  const materials =
+    await prisma.material.findMany({
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        category: true,
+      },
 
-    orderBy: [
-      {
-        category: "asc",
-      },
-      {
-        code: "asc",
-      },
-    ],
-  });
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
+    });
 
   /* =========================================================
      Render

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/session";
+
 import {
   Bell,
   CheckCircle2,
@@ -9,7 +10,16 @@ import {
   PackageMinus,
 } from "lucide-react";
 
-function formatThaiDateTime(date: Date | string | null | undefined) {
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+
+/* =========================================================
+   DATE FORMAT
+========================================================= */
+
+function formatThaiDateTime(
+  date: Date | string | null | undefined
+) {
   if (!date) {
     return "-";
   }
@@ -26,13 +36,19 @@ function formatThaiDateTime(date: Date | string | null | undefined) {
   }).format(new Date(date));
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function NotificationsPage() {
-  // =====================================================
-  // Session
-  // =====================================================
+  /* =======================================================
+     SESSION
+  ======================================================= */
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+
+  const token =
+    cookieStore.get("session")?.value;
 
   if (!token) {
     return null;
@@ -46,202 +62,291 @@ export default async function NotificationsPage() {
     return null;
   }
 
-  const isAdmin = session.role === "ADMIN";
+  const isAdmin =
+    session.role === "ADMIN";
 
-  // =====================================================
-  // ADMIN
-  //
-  // เห็นใบเบิกที่รอเจ้าหน้าที่พัสดุตรวจสอบ
-  // ของทุกกลุ่มงาน
-  // =====================================================
+  /* =======================================================
+     ADMIN
+
+     เห็นใบเบิกที่รอเจ้าหน้าที่พัสดุตรวจสอบ
+     ของทุกกลุ่มงาน
+  ======================================================= */
 
   if (isAdmin) {
-    const pendingIssues = await prisma.issue.findMany({
-      where: {
-        status: "PENDING",
-      },
-      include: {
-        department: true,
-        officer: true,
-        items: {
-          include: {
-            material: true,
+    const pendingIssues =
+      await prisma.issue.findMany({
+        where: {
+          status: "PENDING",
+        },
+
+        include: {
+          department: true,
+
+          officer: true,
+
+          items: {
+            include: {
+              material: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
     return (
-      <div className="space-y-6">
-        {/* Header + Summary */}
+      <AppPage>
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
-        <div
+        <AppPageHeader
+          icon="🔔"
+          title="การแจ้งเตือน"
+          subtitle="ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ"
+        />
+
+        {/* =================================================
+            SUMMARY
+        ================================================= */}
+
+        <section
           className="
-            flex
-            min-h-[110px]
+            relative
             w-full
             min-w-0
-            flex-col
-            items-center
-            justify-between
-            gap-4
-            rounded-2xl
-            bg-gradient-to-r
-            from-slate-950
-            via-slate-800
-            to-slate-700
-            px-3
-            py-4
-            text-white
-            shadow-xl
-            sm:min-h-[140px]
-            sm:flex-row
-            sm:gap-5
-            sm:px-8
-            sm:py-6
+            overflow-hidden
+            rounded-[28px]
+            border
+            border-white/80
+            bg-white/80
+            p-5
+            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+            backdrop-blur-2xl
+            sm:p-6
           "
         >
-          {/* Header */}
+          {/* Ambient Glow */}
 
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <div
-              className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                bg-yellow-500/15
-                !text-yellow-400
-                sm:h-14
-                sm:w-14
-              "
-            >
-              <Bell size={30} strokeWidth={2.2} />
-            </div>
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -right-20
+              -top-20
+              h-56
+              w-56
+              rounded-full
+              bg-orange-400/10
+              blur-3xl
+            "
+          />
 
-            <div className="min-w-0">
-              <h1
-                className="
-                  break-words
-                  text-2xl
-                  font-extrabold
-                  leading-tight
-                  !text-white
-                  sm:text-3xl
-                "
-              >
-                การแจ้งเตือน
-              </h1>
-
-              <p
-                className="
-                  mt-2
-                  break-words
-                  text-sm
-                  font-semibold
-                  leading-tight
-                  !text-slate-200
-                  sm:text-base
-                "
-              >
-                ใบเบิกใหม่ที่รอเจ้าหน้าที่พัสดุตรวจสอบและดำเนินการ
-              </p>
-            </div>
-          </div>
-
-          {/* Summary */}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-24
+              -left-20
+              h-56
+              w-56
+              rounded-full
+              bg-amber-400/10
+              blur-3xl
+            "
+          />
 
           <div
             className="
+              relative
               flex
-              w-full
-              shrink-0
-              items-center
-              justify-between
-              gap-5
-              rounded-2xl
-              border
-              border-orange-500/30
-              bg-slate-700/60
-              px-5
-              py-4
-              sm:w-auto
-              sm:min-w-[230px]
+              flex-col
+              gap-4
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
             "
           >
-            <div>
-              <p className="text-sm font-bold !text-white">
-                ใบเบิกที่รอดำเนินการ
-              </p>
-
-              <p className="mt-1 text-3xl font-extrabold !text-white">
-                {pendingIssues.length}
-              </p>
-            </div>
-
             <div
               className="
                 flex
-                h-14
-                w-14
-                shrink-0
+                min-w-0
                 items-center
-                justify-center
-                rounded-2xl
-                bg-orange-500/15
-                !text-orange-400
-              "
-            >
-              <PackageMinus size={28} />
-            </div>
-          </div>
-        </div>
-
-        {/* Notifications */}
-
-        <div className="space-y-4">
-          {pendingIssues.length === 0 ? (
-            <div
-              className="
-                rounded-2xl
-                border
-                border-slate-700
-                bg-slate-800
-                px-6
-                py-12
-                text-center
-                shadow-lg
+                gap-4
               "
             >
               <div
                 className="
-                  mx-auto
                   flex
-                  h-16
-                  w-16
+                  h-14
+                  w-14
+                  shrink-0
                   items-center
                   justify-center
-                  rounded-full
-                  bg-slate-700
-                  !text-white
+                  rounded-[18px]
+                  border
+                  border-orange-200/70
+                  bg-orange-50
+                  !text-orange-600
+                  shadow-[0_12px_26px_-18px_rgba(234,88,12,0.5)]
                 "
               >
-                <Bell size={30} />
+                <PackageMinus
+                  size={27}
+                  strokeWidth={2.2}
+                />
               </div>
 
-              <h2 className="mt-4 text-xl font-extrabold !text-white">
-                ไม่มีการแจ้งเตือน
-              </h2>
+              <div className="min-w-0">
+                <p
+                  className="
+                    text-sm
+                    font-extrabold
+                    !text-slate-500
+                    sm:text-base
+                  "
+                >
+                  ใบเบิกที่รอดำเนินการ
+                </p>
 
-              <p className="mt-1 font-semibold !text-white">
-                ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
-              </p>
+                <p
+                  className="
+                    mt-1
+                    text-3xl
+                    font-black
+                    tracking-tight
+                    !text-slate-900
+                    sm:text-4xl
+                  "
+                >
+                  {pendingIssues.length}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="
+                inline-flex
+                w-fit
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-orange-200
+                bg-orange-50/90
+                px-4
+                py-2
+                text-sm
+                font-extrabold
+                !text-orange-700
+                shadow-sm
+              "
+            >
+              <span
+                className="
+                  h-2.5
+                  w-2.5
+                  rounded-full
+                  bg-orange-500
+                  shadow-[0_0_0_4px_rgba(249,115,22,0.12)]
+                "
+              />
+
+              รอตรวจสอบ
+            </div>
+          </div>
+        </section>
+
+        {/* =================================================
+            NOTIFICATIONS
+        ================================================= */}
+
+        <section
+          className="
+            w-full
+            min-w-0
+            space-y-4
+          "
+        >
+          {pendingIssues.length === 0 ? (
+            <div
+              className="
+                relative
+                overflow-hidden
+                rounded-[28px]
+                border
+                border-white/80
+                bg-white/80
+                px-6
+                py-14
+                text-center
+                shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+                backdrop-blur-2xl
+              "
+            >
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  left-1/2
+                  top-0
+                  h-40
+                  w-40
+                  -translate-x-1/2
+                  rounded-full
+                  bg-blue-400/10
+                  blur-3xl
+                "
+              />
+
+              <div className="relative">
+                <div
+                  className="
+                    mx-auto
+                    flex
+                    h-16
+                    w-16
+                    items-center
+                    justify-center
+                    rounded-[20px]
+                    border
+                    border-slate-200
+                    bg-slate-50
+                    !text-slate-500
+                    shadow-[0_12px_28px_-20px_rgba(15,23,42,0.4)]
+                  "
+                >
+                  <Bell size={30} />
+                </div>
+
+                <h2
+                  className="
+                    mt-5
+                    text-xl
+                    font-black
+                    tracking-tight
+                    !text-slate-900
+                    sm:text-2xl
+                  "
+                >
+                  ไม่มีการแจ้งเตือน
+                </h2>
+
+                <p
+                  className="
+                    mt-2
+                    font-semibold
+                    !text-slate-500
+                  "
+                >
+                  ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
+                </p>
+              </div>
             </div>
           ) : (
             pendingIssues.map((issue) => (
@@ -250,22 +355,72 @@ export default async function NotificationsPage() {
                 href={`/issue/${issue.id}`}
                 className="
                   group
+                  relative
                   block
-                  rounded-2xl
+                  min-w-0
+                  overflow-hidden
+                  rounded-[24px]
                   border
-                  border-orange-500/30
-                  bg-slate-800
+                  border-white/80
+                  bg-white/85
                   p-5
-                  shadow-lg
+                  shadow-[0_18px_48px_-28px_rgba(15,23,42,0.32)]
+                  backdrop-blur-2xl
                   transition-all
-                  duration-200
-                  hover:-translate-y-0.5
-                  hover:border-orange-400/70
-                  hover:bg-slate-700
-                  hover:shadow-xl
+                  duration-300
+                  ease-out
+                  hover:-translate-y-1
+                  hover:border-orange-200
+                  hover:bg-white
+                  hover:shadow-[0_26px_60px_-28px_rgba(15,23,42,0.4)]
+                  active:translate-y-0
+                  active:scale-[0.99]
+                  sm:p-6
                 "
               >
-                <div className="flex items-start gap-4">
+                {/* Accent */}
+
+                <div
+                  className="
+                    absolute
+                    inset-y-0
+                    left-0
+                    w-1
+                    bg-gradient-to-b
+                    from-orange-400
+                    to-amber-500
+                  "
+                />
+
+                {/* Ambient */}
+
+                <div
+                  aria-hidden="true"
+                  className="
+                    pointer-events-none
+                    absolute
+                    -right-16
+                    -top-16
+                    h-40
+                    w-40
+                    rounded-full
+                    bg-orange-400/[0.07]
+                    blur-3xl
+                    transition-transform
+                    duration-500
+                    group-hover:scale-125
+                  "
+                />
+
+                <div
+                  className="
+                    relative
+                    flex
+                    min-w-0
+                    items-start
+                    gap-4
+                  "
+                >
                   {/* Icon */}
 
                   <div
@@ -276,55 +431,123 @@ export default async function NotificationsPage() {
                       shrink-0
                       items-center
                       justify-center
-                      rounded-xl
-                      bg-orange-500/15
-                      !text-orange-400
+                      rounded-[16px]
+                      border
+                      border-orange-200/80
+                      bg-orange-50
+                      !text-orange-600
+                      shadow-[0_12px_24px_-18px_rgba(234,88,12,0.5)]
+                      transition-transform
+                      duration-300
+                      group-hover:scale-[1.05]
                     "
                   >
-                    <PackageMinus size={24} strokeWidth={2.2} />
+                    <PackageMinus
+                      size={24}
+                      strokeWidth={2.2}
+                    />
                   </div>
 
                   {/* Content */}
 
-                  <div className="min-w-0 flex-1 !text-white">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-extrabold !text-white">
+                  <div
+                    className="
+                      min-w-0
+                      flex-1
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        flex-wrap
+                        items-center
+                        gap-2
+                      "
+                    >
+                      <h2
+                        className="
+                          text-lg
+                          font-black
+                          !text-slate-900
+                          sm:text-xl
+                        "
+                      >
                         มีใบเบิกใหม่
                       </h2>
 
                       <span
                         className="
+                          inline-flex
+                          items-center
+                          gap-1.5
                           rounded-full
-                          bg-orange-500/15
+                          border
+                          border-orange-200
+                          bg-orange-50
                           px-3
                           py-1
                           text-xs
                           font-extrabold
-                          !text-white
+                          !text-orange-700
                         "
                       >
+                        <span
+                          className="
+                            h-1.5
+                            w-1.5
+                            rounded-full
+                            bg-orange-500
+                          "
+                        />
+
                         รอดำเนินการ
                       </span>
                     </div>
 
-                    <div className="mt-3 grid gap-1 text-sm font-semibold !text-white">
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
+                    <div
+                      className="
+                        mt-4
+                        grid
+                        gap-2
+                        text-sm
+                        font-semibold
+                        !text-slate-600
+                        sm:grid-cols-2
+                        sm:text-base
+                      "
+                    >
+                      <p>
+                        <span
+                          className="
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
                           เลขที่ใบเบิก:
                         </span>{" "}
                         {issue.documentNo}
                       </p>
 
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
+                      <p>
+                        <span
+                          className="
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
                           กลุ่มงาน:
                         </span>{" "}
                         {issue.department.name}
                       </p>
 
                       {issue.officer && (
-                        <p className="!text-white">
-                          <span className="font-extrabold !text-white">
+                        <p>
+                          <span
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
                             ผู้ขอเบิก:
                           </span>{" "}
                           {issue.officer.firstName}{" "}
@@ -332,20 +555,43 @@ export default async function NotificationsPage() {
                         </p>
                       )}
 
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
+                      <p>
+                        <span
+                          className="
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
                           จำนวนรายการ:
                         </span>{" "}
                         {issue.items.length} รายการ
                       </p>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold !text-white">
-                      <Clock size={16} />
+                    <div
+                      className="
+                        mt-4
+                        flex
+                        items-center
+                        gap-2
+                        border-t
+                        border-slate-200/80
+                        pt-4
+                        text-sm
+                        font-bold
+                        !text-slate-500
+                      "
+                    >
+                      <Clock
+                        size={16}
+                        className="shrink-0"
+                      />
 
-                      <span className="!text-white">
+                      <span>
                         ส่งใบเบิกเมื่อ{" "}
-                        {formatThaiDateTime(issue.createdAt)}
+                        {formatThaiDateTime(
+                          issue.createdAt
+                        )}
                       </span>
                     </div>
                   </div>
@@ -355,12 +601,24 @@ export default async function NotificationsPage() {
                   <div
                     className="
                       hidden
+                      h-10
+                      w-10
                       shrink-0
-                      !text-white
-                      transition-transform
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      border-slate-200
+                      bg-white
+                      font-black
+                      !text-slate-500
+                      shadow-sm
+                      transition-all
+                      duration-300
                       group-hover:translate-x-1
-                      group-hover:text-orange-400
-                      sm:block
+                      group-hover:border-orange-200
+                      group-hover:!text-orange-600
+                      sm:flex
                     "
                   >
                     →
@@ -369,341 +627,58 @@ export default async function NotificationsPage() {
               </Link>
             ))
           )}
-        </div>
-      </div>
+        </section>
+      </AppPage>
     );
   }
 
-  // =====================================================
-  // STAFF / VIEWER / กลุ่มงาน
-  //
-  // เห็นเฉพาะการแจ้งเตือนที่ ADMIN ดำเนินการแล้ว
-  // =====================================================
+  /* =======================================================
+     STAFF / VIEWER
+
+     ไม่พบ Department
+  ======================================================= */
 
   if (!session.departmentId) {
     return (
-      <div className="space-y-6">
-        {/* Header + Message */}
+      <AppPage>
+        <AppPageHeader
+          icon="🔔"
+          title="การแจ้งเตือน"
+          subtitle="ไม่พบข้อมูลกลุ่มงานของผู้ใช้งาน"
+        />
 
-        <div
+        <section
           className="
-            flex
-            min-h-[110px]
-            w-full
-            min-w-0
-            items-center
-            rounded-2xl
-            bg-gradient-to-r
-            from-slate-950
-            via-slate-800
-            to-slate-700
-            px-3
-            py-4
-            text-white
-            shadow-xl
-            sm:min-h-[140px]
-            sm:px-8
-            sm:py-6
-          "
-        >
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <div
-              className="
-                flex
-                h-12
-                w-12
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                bg-yellow-500/15
-                !text-yellow-400
-                sm:h-14
-                sm:w-14
-              "
-            >
-              <Bell size={30} strokeWidth={2.2} />
-            </div>
-
-            <div className="min-w-0">
-              <h1
-                className="
-                  break-words
-                  text-2xl
-                  font-extrabold
-                  leading-tight
-                  !text-white
-                  sm:text-3xl
-                "
-              >
-                การแจ้งเตือน
-              </h1>
-
-              <p
-                className="
-                  mt-2
-                  break-words
-                  text-sm
-                  font-semibold
-                  leading-tight
-                  !text-slate-200
-                  sm:text-base
-                "
-              >
-                ไม่พบข้อมูลกลุ่มงานของผู้ใช้งาน
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="
-            rounded-2xl
+            relative
+            overflow-hidden
+            rounded-[28px]
             border
-            border-slate-700
-            bg-slate-800
+            border-white/80
+            bg-white/80
             px-6
-            py-12
+            py-14
             text-center
-            shadow-lg
+            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+            backdrop-blur-2xl
           "
         >
           <div
+            aria-hidden="true"
             className="
-              mx-auto
-              flex
-              h-16
-              w-16
-              items-center
-              justify-center
+              pointer-events-none
+              absolute
+              left-1/2
+              top-0
+              h-40
+              w-40
+              -translate-x-1/2
               rounded-full
-              bg-slate-700
-              !text-white
+              bg-amber-400/10
+              blur-3xl
             "
-          >
-            <Bell size={30} />
-          </div>
+          />
 
-          <h2 className="mt-4 text-xl font-extrabold !text-white">
-            ไม่สามารถแสดงการแจ้งเตือนได้
-          </h2>
-
-          <p className="mt-1 font-semibold !text-white">
-            บัญชีผู้ใช้งานยังไม่ได้กำหนดกลุ่มงาน
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // =====================================================
-  // ใบเบิกที่ ADMIN ดำเนินการแล้ว
-  //
-  // เฉพาะใบเบิกของกลุ่มงานของผู้ใช้งาน
-  // และต้องเป็นรายการที่มี ADMIN เป็นผู้ดำเนินการ
-  // =====================================================
-
-  const completedIssues = await prisma.issue.findMany({
-    where: {
-      departmentId: session.departmentId,
-      status: "APPROVED",
-      approvedAt: {
-        not: null,
-      },
-      approvedById: {
-        not: null,
-      },
-    },
-    include: {
-      department: true,
-      officer: true,
-      approvedBy: {
-        select: {
-          fullname: true,
-          role: true,
-        },
-      },
-      items: {
-        include: {
-          material: true,
-        },
-      },
-    },
-    orderBy: {
-      approvedAt: "desc",
-    },
-  });
-
-  // =====================================================
-  // ป้องกันกรณี approvedBy ไม่ใช่ ADMIN
-  //
-  // แม้ approvedById จะมีค่า แต่การแจ้งเตือนของกลุ่มงาน
-  // ต้องมาจาก ADMIN เท่านั้น
-  // =====================================================
-
-  const adminCompletedIssues = completedIssues.filter(
-    (issue) => issue.approvedBy?.role === "ADMIN"
-  );
-
-  const totalIssuedItems = adminCompletedIssues.reduce(
-    (total, issue) =>
-      total +
-      issue.items.reduce(
-        (itemTotal, item) => itemTotal + item.issuedQty,
-        0
-      ),
-    0
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Header + Summary */}
-
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          items-center
-          justify-between
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:gap-5
-          sm:px-8
-          sm:py-6
-        "
-      >
-        {/* Header */}
-
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          <div
-            className="
-              flex
-              h-12
-              w-12
-              shrink-0
-              items-center
-              justify-center
-              rounded-2xl
-              bg-yellow-500/15
-              !text-yellow-400
-              sm:h-14
-              sm:w-14
-            "
-          >
-            <Bell size={30} strokeWidth={2.2} />
-          </div>
-
-          <div className="min-w-0">
-            <h1
-              className="
-                break-words
-                text-2xl
-                font-extrabold
-                leading-tight
-                !text-white
-                sm:text-3xl
-              "
-            >
-              การแจ้งเตือน
-            </h1>
-
-            <p
-              className="
-                mt-2
-                break-words
-                text-sm
-                font-semibold
-                leading-tight
-                !text-slate-200
-                sm:text-base
-              "
-            >
-              ผลการดำเนินการใบเบิกของกลุ่มงาน
-            </p>
-          </div>
-        </div>
-
-        {/* Summary */}
-
-        <div
-          className="
-            flex
-            w-full
-            shrink-0
-            items-center
-            justify-between
-            gap-5
-            rounded-2xl
-            border
-            border-emerald-500/30
-            bg-slate-700/60
-            px-5
-            py-4
-            sm:w-auto
-            sm:min-w-[230px]
-          "
-        >
-          <div>
-            <p className="text-sm font-bold !text-white">
-              ใบเบิกที่ดำเนินการแล้ว
-            </p>
-
-            <p className="mt-1 text-3xl font-extrabold !text-white">
-              {adminCompletedIssues.length}
-            </p>
-
-            <p className="mt-1 text-sm font-semibold !text-white">
-              เบิกจ่ายรวม {totalIssuedItems} หน่วย
-            </p>
-          </div>
-
-          <div
-            className="
-              flex
-              h-14
-              w-14
-              shrink-0
-              items-center
-              justify-center
-              rounded-2xl
-              bg-emerald-500/15
-              !text-emerald-400
-            "
-          >
-            <CheckCircle2 size={28} />
-          </div>
-        </div>
-      </div>
-
-      {/* Notifications */}
-
-      <div className="space-y-4">
-        {adminCompletedIssues.length === 0 ? (
-          <div
-            className="
-              rounded-2xl
-              border
-              border-slate-700
-              bg-slate-800
-              px-6
-              py-12
-              text-center
-              shadow-lg
-            "
-          >
+          <div className="relative">
             <div
               className="
                 mx-auto
@@ -712,180 +687,710 @@ export default async function NotificationsPage() {
                 w-16
                 items-center
                 justify-center
-                rounded-full
-                bg-slate-700
-                !text-white
+                rounded-[20px]
+                border
+                border-amber-200
+                bg-amber-50
+                !text-amber-600
+                shadow-[0_12px_28px_-20px_rgba(217,119,6,0.45)]
               "
             >
               <Bell size={30} />
             </div>
 
-            <h2 className="mt-4 text-xl font-extrabold !text-white">
-              ยังไม่มีการแจ้งเตือน
+            <h2
+              className="
+                mt-5
+                text-xl
+                font-black
+                tracking-tight
+                !text-slate-900
+                sm:text-2xl
+              "
+            >
+              ไม่สามารถแสดงการแจ้งเตือนได้
             </h2>
 
-            <p className="mt-1 font-semibold !text-white">
-              เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
-              จะแสดงผลที่หน้านี้
+            <p
+              className="
+                mt-2
+                font-semibold
+                !text-slate-500
+              "
+            >
+              บัญชีผู้ใช้งานยังไม่ได้กำหนดกลุ่มงาน
             </p>
           </div>
-        ) : (
-          adminCompletedIssues.map((issue) => {
-            const requestedTotal = issue.items.reduce(
-              (total, item) => total + item.qty,
-              0
-            );
+        </section>
+      </AppPage>
+    );
+  }
 
-            const issuedTotal = issue.items.reduce(
-              (total, item) => total + item.issuedQty,
-              0
-            );
+  /* =======================================================
+     STAFF / VIEWER
 
-            return (
-              <Link
-                key={issue.id}
-                href={`/issue/${issue.id}`}
+     ใบเบิกที่ ADMIN ดำเนินการแล้ว
+     เฉพาะกลุ่มงานของผู้ใช้งาน
+  ======================================================= */
+
+  const completedIssues =
+    await prisma.issue.findMany({
+      where: {
+        departmentId:
+          session.departmentId,
+
+        status: "APPROVED",
+
+        approvedAt: {
+          not: null,
+        },
+
+        approvedById: {
+          not: null,
+        },
+      },
+
+      include: {
+        department: true,
+
+        officer: true,
+
+        approvedBy: {
+          select: {
+            fullname: true,
+            role: true,
+          },
+        },
+
+        items: {
+          include: {
+            material: true,
+          },
+        },
+      },
+
+      orderBy: {
+        approvedAt: "desc",
+      },
+    });
+
+  /* =======================================================
+     ต้องเป็นรายการที่ ADMIN ดำเนินการเท่านั้น
+  ======================================================= */
+
+  const adminCompletedIssues =
+    completedIssues.filter(
+      (issue) =>
+        issue.approvedBy?.role === "ADMIN"
+    );
+
+  const totalIssuedItems =
+    adminCompletedIssues.reduce(
+      (total, issue) =>
+        total +
+        issue.items.reduce(
+          (itemTotal, item) =>
+            itemTotal + item.issuedQty,
+          0
+        ),
+      0
+    );
+
+  /* =======================================================
+     STAFF / VIEWER UI
+  ======================================================= */
+
+  return (
+    <AppPage>
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
+      <AppPageHeader
+        icon="🔔"
+        title="การแจ้งเตือน"
+        subtitle="ผลการดำเนินการใบเบิกของกลุ่มงาน"
+      />
+
+      {/* =================================================
+          SUMMARY
+      ================================================= */}
+
+      <section
+        className="
+          relative
+          w-full
+          min-w-0
+          overflow-hidden
+          rounded-[28px]
+          border
+          border-white/80
+          bg-white/80
+          p-5
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
+          sm:p-6
+        "
+      >
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+            h-56
+            w-56
+            rounded-full
+            bg-emerald-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+            h-56
+            w-56
+            rounded-full
+            bg-cyan-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            relative
+            flex
+            flex-col
+            gap-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <div
+            className="
+              flex
+              min-w-0
+              items-center
+              gap-4
+            "
+          >
+            <div
+              className="
+                flex
+                h-14
+                w-14
+                shrink-0
+                items-center
+                justify-center
+                rounded-[18px]
+                border
+                border-emerald-200/70
+                bg-emerald-50
+                !text-emerald-600
+                shadow-[0_12px_26px_-18px_rgba(5,150,105,0.5)]
+              "
+            >
+              <CheckCircle2
+                size={27}
+                strokeWidth={2.2}
+              />
+            </div>
+
+            <div className="min-w-0">
+              <p
                 className="
-                  group
-                  block
-                  rounded-2xl
-                  border
-                  border-emerald-500/30
-                  bg-slate-800
-                  p-5
-                  shadow-lg
-                  transition-all
-                  duration-200
-                  hover:-translate-y-0.5
-                  hover:border-emerald-400/70
-                  hover:bg-slate-700
-                  hover:shadow-xl
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+                  sm:text-base
                 "
               >
-                <div className="flex items-start gap-4">
-                  {/* Icon */}
+                ใบเบิกที่ดำเนินการแล้ว
+              </p>
+
+              <p
+                className="
+                  mt-1
+                  text-3xl
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+                  sm:text-4xl
+                "
+              >
+                {adminCompletedIssues.length}
+              </p>
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                เบิกจ่ายรวม {totalIssuedItems} หน่วย
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="
+              inline-flex
+              w-fit
+              items-center
+              gap-2
+              rounded-full
+              border
+              border-emerald-200
+              bg-emerald-50/90
+              px-4
+              py-2
+              text-sm
+              font-extrabold
+              !text-emerald-700
+              shadow-sm
+            "
+          >
+            <CheckCircle2 size={16} />
+
+            ดำเนินการแล้ว
+          </div>
+        </div>
+      </section>
+
+      {/* =================================================
+          NOTIFICATIONS
+      ================================================= */}
+
+      <section
+        className="
+          w-full
+          min-w-0
+          space-y-4
+        "
+      >
+        {adminCompletedIssues.length === 0 ? (
+          <div
+            className="
+              relative
+              overflow-hidden
+              rounded-[28px]
+              border
+              border-white/80
+              bg-white/80
+              px-6
+              py-14
+              text-center
+              shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+              backdrop-blur-2xl
+            "
+          >
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                left-1/2
+                top-0
+                h-40
+                w-40
+                -translate-x-1/2
+                rounded-full
+                bg-emerald-400/10
+                blur-3xl
+              "
+            />
+
+            <div className="relative">
+              <div
+                className="
+                  mx-auto
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
+                  rounded-[20px]
+                  border
+                  border-slate-200
+                  bg-slate-50
+                  !text-slate-500
+                  shadow-[0_12px_28px_-20px_rgba(15,23,42,0.4)]
+                "
+              >
+                <Bell size={30} />
+              </div>
+
+              <h2
+                className="
+                  mt-5
+                  text-xl
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+                  sm:text-2xl
+                "
+              >
+                ยังไม่มีการแจ้งเตือน
+              </h2>
+
+              <p
+                className="
+                  mt-2
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-500
+                "
+              >
+                เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
+                จะแสดงผลที่หน้านี้
+              </p>
+            </div>
+          </div>
+        ) : (
+          adminCompletedIssues.map(
+            (issue) => {
+              const requestedTotal =
+                issue.items.reduce(
+                  (total, item) =>
+                    total + item.qty,
+                  0
+                );
+
+              const issuedTotal =
+                issue.items.reduce(
+                  (total, item) =>
+                    total +
+                    item.issuedQty,
+                  0
+                );
+
+              return (
+                <Link
+                  key={issue.id}
+                  href={`/issue/${issue.id}`}
+                  className="
+                    group
+                    relative
+                    block
+                    min-w-0
+                    overflow-hidden
+                    rounded-[24px]
+                    border
+                    border-white/80
+                    bg-white/85
+                    p-5
+                    shadow-[0_18px_48px_-28px_rgba(15,23,42,0.32)]
+                    backdrop-blur-2xl
+                    transition-all
+                    duration-300
+                    ease-out
+                    hover:-translate-y-1
+                    hover:border-emerald-200
+                    hover:bg-white
+                    hover:shadow-[0_26px_60px_-28px_rgba(15,23,42,0.4)]
+                    active:translate-y-0
+                    active:scale-[0.99]
+                    sm:p-6
+                  "
+                >
+                  {/* Accent */}
 
                   <div
                     className="
+                      absolute
+                      inset-y-0
+                      left-0
+                      w-1
+                      bg-gradient-to-b
+                      from-emerald-400
+                      to-teal-500
+                    "
+                  />
+
+                  {/* Ambient */}
+
+                  <div
+                    aria-hidden="true"
+                    className="
+                      pointer-events-none
+                      absolute
+                      -right-16
+                      -top-16
+                      h-40
+                      w-40
+                      rounded-full
+                      bg-emerald-400/[0.07]
+                      blur-3xl
+                      transition-transform
+                      duration-500
+                      group-hover:scale-125
+                    "
+                  />
+
+                  <div
+                    className="
+                      relative
                       flex
-                      h-12
-                      w-12
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-emerald-500/15
-                      !text-emerald-400
+                      min-w-0
+                      items-start
+                      gap-4
                     "
                   >
-                    <CheckCircle2 size={24} strokeWidth={2.2} />
-                  </div>
+                    {/* Icon */}
 
-                  {/* Content */}
+                    <div
+                      className="
+                        flex
+                        h-12
+                        w-12
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-[16px]
+                        border
+                        border-emerald-200/80
+                        bg-emerald-50
+                        !text-emerald-600
+                        shadow-[0_12px_24px_-18px_rgba(5,150,105,0.5)]
+                        transition-transform
+                        duration-300
+                        group-hover:scale-[1.05]
+                      "
+                    >
+                      <CheckCircle2
+                        size={24}
+                        strokeWidth={2.2}
+                      />
+                    </div>
 
-                  <div className="min-w-0 flex-1 !text-white">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-extrabold !text-white">
-                        เจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
-                      </h2>
+                    {/* Content */}
 
-                      <span
+                    <div
+                      className="
+                        min-w-0
+                        flex-1
+                      "
+                    >
+                      <div
                         className="
-                          rounded-full
-                          bg-emerald-500/15
-                          px-3
-                          py-1
-                          text-xs
-                          font-extrabold
-                          !text-white
+                          flex
+                          flex-wrap
+                          items-center
+                          gap-2
                         "
                       >
-                        ดำเนินการแล้ว
-                      </span>
-                    </div>
+                        <h2
+                          className="
+                            text-lg
+                            font-black
+                            !text-slate-900
+                            sm:text-xl
+                          "
+                        >
+                          เจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
+                        </h2>
 
-                    <div className="mt-3 grid gap-1 text-sm font-semibold !text-white">
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
-                          เลขที่ใบเบิก:
-                        </span>{" "}
-                        {issue.documentNo}
-                      </p>
+                        <span
+                          className="
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-full
+                            border
+                            border-emerald-200
+                            bg-emerald-50
+                            px-3
+                            py-1
+                            text-xs
+                            font-extrabold
+                            !text-emerald-700
+                          "
+                        >
+                          <CheckCircle2
+                            size={12}
+                          />
 
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
-                          กลุ่มงาน:
-                        </span>{" "}
-                        {issue.department.name}
-                      </p>
-
-                      {issue.officer && (
-                        <p className="!text-white">
-                          <span className="font-extrabold !text-white">
-                            ผู้ขอเบิก:
-                          </span>{" "}
-                          {issue.officer.firstName}{" "}
-                          {issue.officer.lastName}
-                        </p>
-                      )}
-
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
-                          จำนวนที่ขอเบิก:
-                        </span>{" "}
-                        {requestedTotal} หน่วย
-                      </p>
-
-                      <p className="!text-white">
-                        <span className="font-extrabold !text-white">
-                          จำนวนที่เบิกจ่ายจริง:
-                        </span>{" "}
-                        <span className="font-extrabold !text-white">
-                          {issuedTotal} หน่วย
+                          ดำเนินการแล้ว
                         </span>
-                      </p>
+                      </div>
 
-                      {issue.approvedBy && (
-                        <p className="!text-white">
-                          <span className="font-extrabold !text-white">
-                            ดำเนินการโดย:
+                      <div
+                        className="
+                          mt-4
+                          grid
+                          gap-2
+                          text-sm
+                          font-semibold
+                          !text-slate-600
+                          sm:grid-cols-2
+                          sm:text-base
+                        "
+                      >
+                        <p>
+                          <span
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            เลขที่ใบเบิก:
                           </span>{" "}
-                          {issue.approvedBy.fullname}
+                          {issue.documentNo}
                         </p>
-                      )}
+
+                        <p>
+                          <span
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            กลุ่มงาน:
+                          </span>{" "}
+                          {issue.department.name}
+                        </p>
+
+                        {issue.officer && (
+                          <p>
+                            <span
+                              className="
+                                font-extrabold
+                                !text-slate-900
+                              "
+                            >
+                              ผู้ขอเบิก:
+                            </span>{" "}
+                            {
+                              issue.officer
+                                .firstName
+                            }{" "}
+                            {
+                              issue.officer
+                                .lastName
+                            }
+                          </p>
+                        )}
+
+                        <p>
+                          <span
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            จำนวนที่ขอเบิก:
+                          </span>{" "}
+                          {requestedTotal} หน่วย
+                        </p>
+
+                        <p>
+                          <span
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            จำนวนที่เบิกจ่ายจริง:
+                          </span>{" "}
+                          <span
+                            className="
+                              font-black
+                              !text-emerald-700
+                            "
+                          >
+                            {issuedTotal} หน่วย
+                          </span>
+                        </p>
+
+                        {issue.approvedBy && (
+                          <p>
+                            <span
+                              className="
+                                font-extrabold
+                                !text-slate-900
+                              "
+                            >
+                              ดำเนินการโดย:
+                            </span>{" "}
+                            {
+                              issue.approvedBy
+                                .fullname
+                            }
+                          </p>
+                        )}
+                      </div>
+
+                      <div
+                        className="
+                          mt-4
+                          flex
+                          items-center
+                          gap-2
+                          border-t
+                          border-slate-200/80
+                          pt-4
+                          text-sm
+                          font-bold
+                          !text-slate-500
+                        "
+                      >
+                        <Clock
+                          size={16}
+                          className="shrink-0"
+                        />
+
+                        <span>
+                          ดำเนินการเมื่อ{" "}
+                          {formatThaiDateTime(
+                            issue.approvedAt
+                          )}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold !text-white">
-                      <Clock size={16} />
+                    {/* Arrow */}
 
-                      <span className="!text-white">
-                        ดำเนินการเมื่อ{" "}
-                        {formatThaiDateTime(issue.approvedAt)}
-                      </span>
+                    <div
+                      className="
+                        hidden
+                        h-10
+                        w-10
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-slate-200
+                        bg-white
+                        font-black
+                        !text-slate-500
+                        shadow-sm
+                        transition-all
+                        duration-300
+                        group-hover:translate-x-1
+                        group-hover:border-emerald-200
+                        group-hover:!text-emerald-600
+                        sm:flex
+                      "
+                    >
+                      →
                     </div>
                   </div>
-
-                  {/* Arrow */}
-
-                  <div
-                    className="
-                      hidden
-                      shrink-0
-                      !text-white
-                      transition-transform
-                      group-hover:translate-x-1
-                      group-hover:text-emerald-400
-                      sm:block
-                    "
-                  >
-                    →
-                  </div>
-                </div>
-              </Link>
-            );
-          })
+                </Link>
+              );
+            }
+          )
         )}
-      </div>
-    </div>
+      </section>
+    </AppPage>
   );
 }
