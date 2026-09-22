@@ -170,18 +170,24 @@ export default function MaterialsPage() {
 
             {/* =================================================
                 Content
+                จัดทุกอย่างกึ่งกลางการ์ด
             ================================================= */}
 
             <div
               className="
                 relative
                 flex
-                min-h-[205px]
+                min-h-[225px]
                 min-w-0
                 flex-col
-                p-5
-                sm:min-h-[225px]
-                sm:p-6
+                items-center
+                justify-center
+                px-5
+                py-7
+                text-center
+                sm:min-h-[240px]
+                sm:px-6
+                sm:py-8
               "
             >
               {/* ===============================================
@@ -219,10 +225,18 @@ export default function MaterialsPage() {
                   Text
               =============================================== */}
 
-              <div className="mt-5 min-w-0">
+              <div
+                className="
+                  mt-5
+                  min-w-0
+                  w-full
+                  text-center
+                "
+              >
                 <h2
                   className="
                     break-words
+                    text-center
                     text-xl
                     font-black
                     leading-tight
@@ -238,6 +252,7 @@ export default function MaterialsPage() {
                   className="
                     mt-2
                     break-words
+                    text-center
                     text-sm
                     font-semibold
                     leading-relaxed
@@ -250,71 +265,50 @@ export default function MaterialsPage() {
               </div>
 
               {/* ===============================================
-                  Footer
+                  Open
+                  - เอา "หมวด CODE" ออก
+                  - เอาลูกศรออก
+                  - จัดกึ่งกลาง
+                  - ไม่กำหนดสีใหม่
               =============================================== */}
 
               <div
                 className="
-                  mt-auto
+                  mt-5
                   flex
+                  w-full
                   items-center
-                  justify-between
-                  gap-3
-                  pt-5
+                  justify-center
                 "
               >
                 <span
                   className="
                     inline-flex
+                    min-h-10
                     items-center
-                    gap-2
-                    rounded-full
+                    justify-center
+                    rounded-[14px]
                     border
                     border-slate-200
                     bg-white/80
-                    px-3
-                    py-1.5
-                    text-xs
-                    font-extrabold
-                    !text-slate-500
-                    shadow-sm
-                  "
-                >
-                  หมวด {category.code}
-                </span>
-
-                <span
-                  className="
-                    inline-flex
-                    h-10
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-[14px]
-                    bg-slate-900
-                    px-4
+                    px-5
+                    py-2
+                    text-center
                     text-sm
                     font-extrabold
-                    !text-white
-                    shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
+                    !text-slate-700
+                    shadow-sm
+                    backdrop-blur-xl
                     transition-all
                     duration-300
 
-                    group-hover:bg-slate-800
+                    group-hover:border-slate-300
+                    group-hover:bg-white
+
                     group-active:scale-[0.96]
                   "
                 >
-                  <span>เปิด</span>
-
-                  <span
-                    className="
-                      transition-transform
-                      duration-300
-                      group-hover:translate-x-1
-                    "
-                  >
-                    →
-                  </span>
+                  เปิด
                 </span>
               </div>
             </div>
