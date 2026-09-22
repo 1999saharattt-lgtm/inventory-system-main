@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+
 import AppButton from "@/components/AppButton";
 
 type Props = {
@@ -16,20 +17,25 @@ export default function QRCodeButton({
   materialName,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [qrCode, setQrCode] = useState("");
+
+  const [qrCode, setQrCode] =
+    useState("");
+
   const [isGenerating, setIsGenerating] =
     useState(false);
 
   /* =========================================================
-     Generate QR Code
+     GENERATE QR CODE
   ========================================================= */
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     let mounted = true;
 
-    const generateQRCode = async () => {
+    async function generateQRCode() {
       try {
         setIsGenerating(true);
 
@@ -38,11 +44,12 @@ export default function QRCodeButton({
           window.location.origin
         ).toString();
 
-        const dataUrl = await QRCode.toDataURL(url, {
-          width: 400,
-          margin: 2,
-          errorCorrectionLevel: "H",
-        });
+        const dataUrl =
+          await QRCode.toDataURL(url, {
+            width: 400,
+            margin: 2,
+            errorCorrectionLevel: "H",
+          });
 
         if (mounted) {
           setQrCode(dataUrl);
@@ -61,7 +68,7 @@ export default function QRCodeButton({
           setIsGenerating(false);
         }
       }
-    };
+    }
 
     generateQRCode();
 
@@ -71,24 +78,27 @@ export default function QRCodeButton({
   }, [open, materialId]);
 
   /* =========================================================
-     Keyboard / Body Scroll
+     KEYBOARD / BODY SCROLL
   ========================================================= */
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     const previousOverflow =
       document.body.style.overflow;
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
-    const handleKeyDown = (
+    function handleKeyDown(
       event: KeyboardEvent
-    ) => {
+    ) {
       if (event.key === "Escape") {
         setOpen(false);
       }
-    };
+    }
 
     window.addEventListener(
       "keydown",
@@ -106,11 +116,17 @@ export default function QRCodeButton({
     };
   }, [open]);
 
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
   return (
     <>
       {/* =====================================================
           OPEN BUTTON
-          ใช้ Component กลาง
+
+          ใช้ AppButton กลาง
+          ไม่กำหนดสีใน Component นี้
       ===================================================== */}
 
       <AppButton
@@ -120,12 +136,15 @@ export default function QRCodeButton({
         onClick={() => setOpen(true)}
         aria-label={`เปิด QR Code ${materialCode}`}
       >
-        <span>▦</span>
+        <span aria-hidden="true">
+          ▦
+        </span>
+
         <span>เปิด</span>
       </AppButton>
 
       {/* =====================================================
-          QR MODAL
+          MODAL
       ===================================================== */}
 
       {open && (
@@ -141,7 +160,7 @@ export default function QRCodeButton({
             items-center
             justify-center
             overflow-y-auto
-            bg-slate-950/45
+            bg-slate-950/40
             p-4
             backdrop-blur-md
             animate-in
@@ -149,7 +168,9 @@ export default function QRCodeButton({
             duration-200
             sm:p-6
           "
-          onClick={() => setOpen(false)}
+          onClick={() =>
+            setOpen(false)
+          }
         >
           {/* =================================================
               MODAL CARD
@@ -161,11 +182,11 @@ export default function QRCodeButton({
               w-full
               max-w-[440px]
               overflow-hidden
-              rounded-[30px]
+              rounded-[32px]
               border
-              border-slate-300
+              border-white/80
               bg-white/95
-              shadow-[0_30px_100px_-30px_rgba(15,23,42,0.65)]
+              shadow-[0_32px_100px_-28px_rgba(15,23,42,0.65)]
               backdrop-blur-2xl
               animate-in
               zoom-in-95
@@ -176,11 +197,53 @@ export default function QRCodeButton({
               event.stopPropagation()
             }
           >
-            {/* =================================================
-                TOP HANDLE
-            ================================================= */}
+            {/* ===============================================
+                AMBIENT GLOW
+            =============================================== */}
 
-            <div className="flex justify-center pt-3 sm:hidden">
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                -right-20
+                -top-20
+                h-52
+                w-52
+                rounded-full
+                bg-blue-400/10
+                blur-3xl
+              "
+            />
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                -bottom-24
+                -left-20
+                h-52
+                w-52
+                rounded-full
+                bg-cyan-400/[0.08]
+                blur-3xl
+              "
+            />
+
+            {/* ===============================================
+                MOBILE HANDLE
+            =============================================== */}
+
+            <div
+              className="
+                relative
+                flex
+                justify-center
+                pt-3
+                sm:hidden
+              "
+            >
               <div
                 className="
                   h-1.5
@@ -191,22 +254,24 @@ export default function QRCodeButton({
               />
             </div>
 
-            {/* =================================================
-                X CLOSE BUTTON
+            {/* ===============================================
+                ICON CLOSE CONTROL
 
-                ปุ่มนี้เป็น Icon Control เฉพาะ Modal
-                จึงคงเป็น button ปกติ
-            ================================================= */}
+                เป็น icon control ของ modal
+                ไม่ใช่ action button ของระบบ
+            =============================================== */}
 
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() =>
+                setOpen(false)
+              }
               aria-label="ปิด"
               className="
                 absolute
                 right-4
                 top-4
-                z-10
+                z-20
                 flex
                 h-9
                 w-9
@@ -214,60 +279,69 @@ export default function QRCodeButton({
                 justify-center
                 rounded-full
                 border
-                border-black
-                bg-slate-100
+                border-slate-200
+                bg-slate-100/90
                 p-0
-                text-lg
+                text-xl
                 font-black
-                !text-slate-600
+                leading-none
+                !text-slate-500
                 shadow-sm
+                backdrop-blur-xl
                 transition-all
                 duration-200
+
                 hover:bg-slate-200
                 hover:!text-slate-900
+
                 active:scale-[0.9]
               "
             >
               ×
             </button>
 
-            {/* =================================================
+            {/* ===============================================
                 HEADER
-            ================================================= */}
+            =============================================== */}
 
             <div
               className="
+                relative
                 border-b
-                border-slate-300
+                border-slate-200/80
                 px-6
                 pb-5
-                pt-7
+                pt-8
                 text-center
                 sm:px-8
-                sm:pt-8
+                sm:pt-9
               "
             >
+              {/* Icon */}
+
               <div
                 className="
                   mx-auto
                   flex
-                  h-14
-                  w-14
+                  h-16
+                  w-16
                   items-center
                   justify-center
-                  rounded-[18px]
+                  rounded-[20px]
                   bg-gradient-to-br
-                  from-blue-500
-                  to-blue-600
-                  text-2xl
-                  text-white
-                  shadow-[0_14px_28px_-14px_rgba(59,130,246,0.65)]
+                  from-slate-800
+                  to-slate-950
+                  text-3xl
+                  !text-white
+                  shadow-[0_18px_34px_-18px_rgba(15,23,42,0.7)]
                   ring-1
-                  ring-white/30
+                  ring-white/20
                 "
               >
                 ▦
               </div>
+
+              {/* Title */}
 
               <h2
                 id="qr-modal-title"
@@ -282,25 +356,42 @@ export default function QRCodeButton({
                 QR Code พัสดุ
               </h2>
 
-              <p
+              {/* Material Code */}
+
+              <div
                 className="
-                  mt-2
+                  mx-auto
+                  mt-3
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-slate-200
+                  bg-slate-100/80
+                  px-3.5
+                  py-1.5
                   text-sm
                   font-extrabold
-                  !text-slate-500
-                  sm:text-base
+                  !text-slate-700
+                  shadow-sm
                 "
               >
-                รหัสพัสดุ : {materialCode}
-              </p>
+                รหัสพัสดุ :{" "}
+                {materialCode}
+              </div>
+
+              {/* Material Name */}
 
               <p
                 className="
-                  mt-1
+                  mx-auto
+                  mt-3
+                  max-w-[330px]
                   break-words
                   text-base
                   font-extrabold
-                  leading-snug
+                  leading-relaxed
                   !text-slate-700
                   sm:text-lg
                 "
@@ -309,11 +400,22 @@ export default function QRCodeButton({
               </p>
             </div>
 
-            {/* =================================================
-                QR CODE
-            ================================================= */}
+            {/* ===============================================
+                CONTENT
+            =============================================== */}
 
-            <div className="px-6 py-6 sm:px-8">
+            <div
+              className="
+                relative
+                px-6
+                py-6
+                sm:px-8
+              "
+            >
+              {/* =============================================
+                  QR CARD
+              ============================================= */}
+
               <div
                 className="
                   mx-auto
@@ -326,10 +428,12 @@ export default function QRCodeButton({
                   overflow-hidden
                   rounded-[26px]
                   border
-                  border-black
+                  border-slate-300
                   bg-white
                   p-4
                   shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]
+                  ring-1
+                  ring-black/[0.02]
                 "
               >
                 {qrCode ? (
@@ -351,28 +455,31 @@ export default function QRCodeButton({
                       flex-col
                       items-center
                       justify-center
-                      gap-3
+                      gap-4
                     "
                   >
                     {isGenerating && (
                       <div
+                        aria-hidden="true"
                         className="
-                          h-8
-                          w-8
+                          h-9
+                          w-9
                           animate-spin
                           rounded-full
                           border-[3px]
-                          border-blue-100
-                          border-t-blue-500
+                          border-slate-200
+                          border-t-slate-800
                         "
                       />
                     )}
 
                     <span
                       className="
+                        px-4
                         text-center
                         text-sm
                         font-extrabold
+                        leading-relaxed
                         !text-slate-500
                       "
                     >
@@ -384,9 +491,9 @@ export default function QRCodeButton({
                 )}
               </div>
 
-              {/* =================================================
+              {/* =============================================
                   DESCRIPTION
-              ================================================= */}
+              ============================================= */}
 
               <div
                 className="
@@ -395,11 +502,12 @@ export default function QRCodeButton({
                   max-w-[310px]
                   rounded-[18px]
                   border
-                  border-black
-                  bg-blue-50/80
+                  border-slate-200
+                  bg-slate-50/90
                   px-4
                   py-3
                   text-center
+                  shadow-inner
                 "
               >
                 <p
@@ -407,25 +515,29 @@ export default function QRCodeButton({
                     text-sm
                     font-extrabold
                     leading-relaxed
-                    !text-blue-700
+                    !text-slate-600
                     sm:text-base
                   "
                 >
-                  สแกน QR Code เพื่อเปิดบัญชีพัสดุ
+                  สแกน QR Code
+                  เพื่อเปิดบัญชีพัสดุ
                 </p>
               </div>
 
-              {/* =================================================
+              {/* =============================================
                   CLOSE BUTTON
-                  ใช้ Component กลาง
-              ================================================= */}
+
+                  สีและ Style มาจาก AppButton กลางทั้งหมด
+              ============================================= */}
 
               <div className="mt-5">
                 <AppButton
                   type="button"
                   variant="primary"
                   size="md"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="w-full"
                 >
                   ปิด

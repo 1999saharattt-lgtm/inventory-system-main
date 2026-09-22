@@ -1,46 +1,67 @@
 "use client";
 
 import { useState } from "react";
+
 import AppButton from "@/components/AppButton";
 
 type Props = {
   id: number;
 };
 
-export default function DeleteButton({ id }: Props) {
+export default function DeleteButton({
+  id,
+}: Props) {
   const [isDeleting, setIsDeleting] =
     useState(false);
 
-  async function handleDelete() {
-    if (isDeleting) return;
+  /* =========================================================
+     DELETE MATERIAL
+  ========================================================= */
 
-    const ok = confirm(
+  async function handleDelete() {
+    if (isDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
       "ต้องการลบพัสดุนี้ใช่หรือไม่?"
     );
 
-    if (!ok) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setIsDeleting(true);
 
-      const res = await fetch(
+      const response = await fetch(
         `/api/materials/${id}`,
         {
           method: "DELETE",
         }
       );
 
-      if (res.ok) {
-        alert("ลบสำเร็จ");
+      /* =====================================================
+         SUCCESS
+      ===================================================== */
+
+      if (response.ok) {
+        window.alert("ลบสำเร็จ");
+
         window.location.reload();
+
         return;
       }
 
-      const data = await res
+      /* =====================================================
+         API ERROR
+      ===================================================== */
+
+      const data = await response
         .json()
         .catch(() => null);
 
-      alert(
+      window.alert(
         data?.message ??
           "ลบไม่สำเร็จ"
       );
@@ -50,13 +71,22 @@ export default function DeleteButton({ id }: Props) {
         error
       );
 
-      alert(
+      window.alert(
         "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
       setIsDeleting(false);
     }
   }
+
+  /* =========================================================
+     RENDER
+
+     สำคัญ:
+     - สีปุ่มใช้ AppButton ตัวกลาง
+     - ปุ่มลบใช้ variant="danger"
+     - ไม่กำหนดสีเฉพาะใน Component นี้
+  ========================================================= */
 
   return (
     <AppButton
@@ -65,11 +95,16 @@ export default function DeleteButton({ id }: Props) {
       size="sm"
       onClick={handleDelete}
       disabled={isDeleting}
-      aria-label="ลบพัสดุ"
+      aria-label={
+        isDeleting
+          ? "กำลังลบพัสดุ"
+          : "ลบพัสดุ"
+      }
     >
       {isDeleting ? (
         <>
           <span
+            aria-hidden="true"
             className="
               h-3.5
               w-3.5
@@ -85,7 +120,10 @@ export default function DeleteButton({ id }: Props) {
         </>
       ) : (
         <>
-          <span>🗑️</span>
+          <span aria-hidden="true">
+            🗑️
+          </span>
+
           <span>ลบ</span>
         </>
       )}
