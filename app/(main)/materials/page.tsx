@@ -54,8 +54,7 @@ export default function MaterialsPage() {
   return (
     <AppPage>
       {/* =====================================================
-          Header
-          ใช้ Header กลาง
+          HEADER
       ===================================================== */}
 
       <AppPageHeader
@@ -66,7 +65,7 @@ export default function MaterialsPage() {
           <>
             <AppButton
               href="/materials/qr"
-              variant="outline"
+              variant="primary"
               size="md"
             >
               <span>📱</span>
@@ -87,7 +86,7 @@ export default function MaterialsPage() {
       />
 
       {/* =====================================================
-          Category Cards
+          CATEGORY CARDS
       ===================================================== */}
 
       <section
@@ -131,7 +130,7 @@ export default function MaterialsPage() {
             "
           >
             {/* =================================================
-                Accent
+                ACCENT
             ================================================= */}
 
             <div
@@ -143,7 +142,7 @@ export default function MaterialsPage() {
             />
 
             {/* =================================================
-                Ambient Glow
+                AMBIENT GLOW
             ================================================= */}
 
             <div
@@ -169,8 +168,7 @@ export default function MaterialsPage() {
             />
 
             {/* =================================================
-                Content
-                จัดทุกอย่างกึ่งกลางการ์ด
+                CONTENT
             ================================================= */}
 
             <div
@@ -191,7 +189,7 @@ export default function MaterialsPage() {
               "
             >
               {/* ===============================================
-                  Icon
+                  ICON
               =============================================== */}
 
               <div
@@ -222,14 +220,14 @@ export default function MaterialsPage() {
               </div>
 
               {/* ===============================================
-                  Text
+                  TEXT
               =============================================== */}
 
               <div
                 className="
                   mt-5
-                  min-w-0
                   w-full
+                  min-w-0
                   text-center
                 "
               >
@@ -265,11 +263,12 @@ export default function MaterialsPage() {
               </div>
 
               {/* ===============================================
-                  Open
-                  - เอา "หมวด CODE" ออก
-                  - เอาลูกศรออก
-                  - จัดกึ่งกลาง
-                  - ไม่กำหนดสีใหม่
+                  OPEN BUTTON
+
+                  การ์ดด้านนอกเป็น Link อยู่แล้ว
+                  จึงไม่ใช้ AppButton href ซ้อน Link
+
+                  Style ให้ตรงกับ AppButton primary
               =============================================== */}
 
               <div
@@ -283,32 +282,59 @@ export default function MaterialsPage() {
               >
                 <span
                   className="
+                    relative
                     inline-flex
-                    min-h-10
+                    h-10
+                    min-w-[104px]
                     items-center
                     justify-center
+                    overflow-hidden
                     rounded-[14px]
                     border
-                    border-slate-200
-                    bg-white/80
-                    px-5
-                    py-2
-                    text-center
+                    border-blue-400/35
+                    bg-gradient-to-b
+                    from-blue-500
+                    via-blue-600
+                    to-blue-700
+                    px-4
                     text-sm
                     font-extrabold
-                    !text-slate-700
-                    shadow-sm
-                    backdrop-blur-xl
+                    leading-none
+                    !text-white
+
+                    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
+
                     transition-all
-                    duration-300
+                    duration-200
+                    ease-out
 
-                    group-hover:border-slate-300
-                    group-hover:bg-white
+                    group-hover:-translate-y-[1px]
+                    group-hover:shadow-[0_12px_28px_rgba(37,99,235,0.28),inset_0_1px_0_rgba(255,255,255,0.32)]
 
-                    group-active:scale-[0.96]
+                    group-active:translate-y-[1px]
+                    group-active:scale-[0.97]
                   "
                 >
-                  เปิด
+                  {/* Highlight */}
+
+                  <span
+                    aria-hidden="true"
+                    className="
+                      pointer-events-none
+                      absolute
+                      inset-x-2
+                      top-0
+                      h-px
+                      bg-gradient-to-r
+                      from-transparent
+                      via-white/60
+                      to-transparent
+                    "
+                  />
+
+                  <span className="relative z-10">
+                    เปิด
+                  </span>
                 </span>
               </div>
             </div>
