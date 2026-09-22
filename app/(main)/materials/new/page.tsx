@@ -7,30 +7,25 @@ import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 export default async function NewMaterialPage() {
-  /* =======================================================
+  /* =========================================================
      VENDORS
-  ======================================================= */
+  ========================================================= */
 
-  const vendors =
-    await prisma.vendor.findMany({
-      orderBy: {
-        name: "asc",
-      },
+  const vendors = await prisma.vendor.findMany({
+    orderBy: {
+      name: "asc",
+    },
 
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+    select: {
+      id: true,
+      name: true,
+    },
+  });
 
-  /* =======================================================
+  /* =========================================================
      MATERIAL MASTERS
-  ======================================================= */
+  ========================================================= */
 
   const materialMasters =
     await prisma.materialMaster.findMany({
@@ -51,15 +46,15 @@ export default async function NewMaterialPage() {
       },
     });
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
           HEADER
-          ใช้ Header กลาง
+          ใช้ Component กลาง
       ===================================================== */}
 
       <AppPageHeader
@@ -69,20 +64,17 @@ export default async function NewMaterialPage() {
         actions={
           <AppButton
             href="/materials"
-            variant="success"
+            variant="outline"
             size="md"
+            icon={<span>←</span>}
           >
-            <span>←</span>
-            <span>กลับ</span>
+            กลับ
           </AppButton>
         }
       />
 
       {/* =====================================================
           FORM AREA
-
-          ไม่กำหนดสีพื้นหลัง / Gradient / ปุ่มเฉพาะหน้านี้
-          ให้ MaterialForm และ Component กลางเป็นตัวควบคุม
       ===================================================== */}
 
       <section
