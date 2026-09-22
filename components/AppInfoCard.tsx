@@ -7,130 +7,100 @@ import type {
    TYPES
 ========================================================= */
 
-type AppInfoCardProps = {
-  /* =======================================================
-     แบบสำเร็จรูป
-     <AppInfoCard
-       label="วันที่รับเข้า"
-       value="22 กันยายน 2569"
-     />
-  ======================================================= */
+export type AppTableCardProps = {
+  children: ReactNode;
 
-  label?: ReactNode;
-  value?: ReactNode;
+  title?: ReactNode;
+  subtitle?: ReactNode;
 
-  /* =======================================================
-     แบบกำหนด Content เอง
-     <AppInfoCard>
-       ...
-     </AppInfoCard>
-  ======================================================= */
-
-  children?: ReactNode;
-
-  icon?: ReactNode;
+  /*
+   * รองรับข้อความด้านขวาของหัวตาราง เช่น
+   * badge="15 รายการ"
+   */
+  badge?: ReactNode;
 
   className?: string;
-  labelClassName?: string;
-  valueClassName?: string;
+  headerClassName?: string;
   contentClassName?: string;
+  badgeClassName?: string;
 } & Omit<
-  HTMLAttributes<HTMLDivElement>,
-  | "children"
-  | "className"
+  HTMLAttributes<HTMLElement>,
+  "children" | "className" | "title"
 >;
 
 /* =========================================================
-   APP INFO CARD
+   APP TABLE CARD
 ========================================================= */
 
-export default function AppInfoCard({
-  label,
-  value,
+export default function AppTableCard({
   children,
-  icon,
+
+  title,
+  subtitle,
+  badge,
 
   className = "",
-  labelClassName = "",
-  valueClassName = "",
+  headerClassName = "",
   contentClassName = "",
+  badgeClassName = "",
 
   ...props
-}: AppInfoCardProps) {
+}: AppTableCardProps) {
+  const hasHeader =
+    title !== undefined ||
+    subtitle !== undefined ||
+    badge !== undefined;
+
   return (
-    <div
+    <section
       {...props}
       className={`
-        group
-
         relative
-
-        flex
-        min-h-[96px]
         w-full
         min-w-0
-        flex-col
-        justify-center
 
         overflow-hidden
 
-        rounded-[20px]
+        rounded-[28px]
 
         border
-        border-white/90
+        border-white/80
 
         bg-gradient-to-br
         from-white/95
         via-white/90
-        to-slate-50/80
+        to-slate-50/85
 
-        px-4
-        py-3.5
-
-        shadow-[0_12px_32px_-20px_rgba(15,23,42,0.45),inset_0_1px_0_rgba(255,255,255,0.95)]
+        shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45),inset_0_1px_0_rgba(255,255,255,0.95)]
 
         ring-1
-        ring-slate-900/[0.06]
+        ring-slate-900/[0.05]
 
-        backdrop-blur-xl
-
-        transition-all
-        duration-300
-        ease-out
-
-        hover:-translate-y-[1px]
-
-        hover:shadow-[0_18px_38px_-20px_rgba(15,23,42,0.48),inset_0_1px_0_rgba(255,255,255,1)]
+        backdrop-blur-2xl
 
         ${className}
       `}
     >
       {/* =====================================================
-          IOS LIGHT
+          IOS AMBIENT BACKGROUND
       ===================================================== */}
 
       <div
         aria-hidden="true"
         className="
           pointer-events-none
-
           absolute
-          -right-10
-          -top-10
+          -right-20
+          -top-20
 
-          h-24
-          w-24
+          h-48
+          w-48
 
           rounded-full
 
-          bg-blue-400/[0.06]
+          bg-blue-400/[0.07]
 
-          blur-2xl
-
-          transition-opacity
-          duration-300
-
-          group-hover:bg-blue-400/[0.09]
+          blur-3xl
         "
       />
 
@@ -138,9 +108,29 @@ export default function AppInfoCard({
         aria-hidden="true"
         className="
           pointer-events-none
-
           absolute
-          inset-x-4
+          -bottom-24
+          -left-20
+
+          h-52
+          w-52
+
+          rounded-full
+
+          bg-cyan-400/[0.06]
+
+          blur-3xl
+        "
+      />
+
+      {/* แสงสะท้อนด้านบนแบบ iOS */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
           top-0
 
           h-px
@@ -151,6 +141,111 @@ export default function AppInfoCard({
           to-transparent
         "
       />
+
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      {hasHeader && (
+        <div
+          className={`
+            relative
+            z-10
+
+            flex
+            flex-col
+            gap-3
+
+            px-5
+            py-5
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            sm:px-6
+
+            ${headerClassName}
+          `}
+        >
+          {/* =================================================
+              TITLE + SUBTITLE
+          ================================================= */}
+
+          <div className="min-w-0">
+            {title !== undefined && (
+              <h2
+                className="
+                  text-lg
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+
+                  sm:text-xl
+                "
+              >
+                {title}
+              </h2>
+            )}
+
+            {subtitle !== undefined && (
+              <p
+                className="
+                  mt-1
+
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-500
+                "
+              >
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* =================================================
+              BADGE
+          ================================================= */}
+
+          {badge !== undefined && (
+            <div
+              className={`
+                inline-flex
+                w-fit
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+
+                rounded-full
+
+                border
+                border-white/90
+
+                bg-white/80
+
+                px-3.5
+                py-1.5
+
+                text-sm
+                font-extrabold
+                !text-slate-700
+
+                shadow-[0_8px_22px_-14px_rgba(15,23,42,0.45)]
+
+                ring-1
+                ring-slate-900/[0.05]
+
+                backdrop-blur-xl
+
+                ${badgeClassName}
+              `}
+            >
+              {badge}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* =====================================================
           CONTENT
@@ -167,105 +262,8 @@ export default function AppInfoCard({
           ${contentClassName}
         `}
       >
-        {children !== undefined ? (
-          children
-        ) : (
-          <>
-            {/* ===============================================
-                LABEL
-            =============================================== */}
-
-            {(label !== undefined ||
-              icon !== undefined) && (
-              <div
-                className="
-                  flex
-                  min-w-0
-                  items-center
-                  gap-2
-                "
-              >
-                {icon !== undefined && (
-                  <span
-                    className="
-                      flex
-                      h-7
-                      w-7
-                      shrink-0
-                      items-center
-                      justify-center
-
-                      rounded-[9px]
-
-                      border
-                      border-white
-
-                      bg-slate-100/90
-
-                      text-sm
-
-                      shadow-sm
-
-                      ring-1
-                      ring-slate-900/[0.04]
-                    "
-                  >
-                    {icon}
-                  </span>
-                )}
-
-                {label !== undefined && (
-                  <p
-                    className={`
-                      min-w-0
-
-                      text-sm
-                      font-extrabold
-                      !text-slate-500
-
-                      ${labelClassName}
-                    `}
-                  >
-                    {label}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* ===============================================
-                VALUE
-            =============================================== */}
-
-            {value !== undefined && (
-              <div
-                className={`
-                  ${
-                    label !== undefined ||
-                    icon !== undefined
-                      ? "mt-1.5"
-                      : ""
-                  }
-
-                  min-w-0
-
-                  break-words
-
-                  text-base
-                  font-extrabold
-                  leading-relaxed
-                  !text-slate-900
-
-                  sm:text-lg
-
-                  ${valueClassName}
-                `}
-              >
-                {value}
-              </div>
-            )}
-          </>
-        )}
+        {children}
       </div>
-    </div>
+    </section>
   );
 }
