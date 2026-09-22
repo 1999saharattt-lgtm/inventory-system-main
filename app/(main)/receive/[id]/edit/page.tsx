@@ -1,5 +1,10 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+
 import EditReceiveForm from "./EditReceiveForm";
 
 interface Props {
@@ -8,319 +13,181 @@ interface Props {
   }>;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function EditReceivePage({
   params,
 }: Props) {
   const { id } = await params;
 
-  // =====================================================
-  // Receive
-  // =====================================================
+  /* =========================================================
+     RECEIVE
+  ========================================================= */
 
-  const receive = await prisma.receive.findUnique({
-    where: {
-      id: Number(id),
-    },
+  const receive =
+    await prisma.receive.findUnique({
+      where: {
+        id: Number(id),
+      },
 
-    include: {
-      items: {
-        include: {
-          material: true,
+      include: {
+        items: {
+          include: {
+            material: true,
+          },
+
+          orderBy: {
+            id: "asc",
+          },
         },
       },
-    },
-  });
+    });
 
-  // =====================================================
-  // Not Found
-  // =====================================================
+  /* =========================================================
+     NOT FOUND
+  ========================================================= */
 
   if (!receive) {
-    return (
-      <div
-        className="
-          flex
-          min-h-[320px]
-          w-full
-          items-center
-          justify-center
-          px-4
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-lg
-            rounded-[28px]
-            border
-            border-slate-200/80
-            bg-white/90
-            p-6
-            text-center
-            shadow-[0_24px_60px_-32px_rgba(15,23,42,0.35)]
-            backdrop-blur-2xl
-            sm:p-8
-          "
-        >
-          <div
-            className="
-              mx-auto
-              flex
-              h-16
-              w-16
-              items-center
-              justify-center
-              rounded-[20px]
-              bg-slate-100
-              text-3xl
-              shadow-sm
-              ring-1
-              ring-slate-200
-            "
-          >
-            📦
-          </div>
-
-          <h1
-            className="
-              mt-5
-              text-xl
-              font-black
-              !text-slate-900
-              sm:text-2xl
-            "
-          >
-            ไม่พบรายการรับเข้าพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              text-sm
-              font-semibold
-              leading-relaxed
-              !text-slate-500
-              sm:text-base
-            "
-          >
-            ไม่พบข้อมูลเอกสารรับเข้าที่ต้องการแก้ไข
-          </p>
-
-          <Link
-            href="/receive"
-            className="
-              mt-6
-              inline-flex
-              h-11
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-[0_12px_28px_-16px_rgba(5,150,105,0.55)]
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:from-emerald-700
-              hover:to-green-600
-              hover:shadow-[0_18px_34px_-18px_rgba(5,150,105,0.6)]
-              active:translate-y-0
-              active:scale-[0.97]
-              sm:text-base
-            "
-          >
-            <span>←</span>
-            <span>กลับ</span>
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
-  // =====================================================
-  // Materials
-  // =====================================================
+  /* =========================================================
+     MATERIALS + VENDORS
+  ========================================================= */
 
-  const materials = await prisma.material.findMany({
-    orderBy: [
-      {
-        category: "asc",
-      },
-      {
-        code: "asc",
-      },
-    ],
-  });
+  const [materials, vendors] =
+    await Promise.all([
+      prisma.material.findMany({
+        orderBy: [
+          {
+            category: "asc",
+          },
+          {
+            code: "asc",
+          },
+        ],
+      }),
 
-  // =====================================================
-  // Vendors
-  // =====================================================
+      prisma.vendor.findMany({
+        orderBy: {
+          name: "asc",
+        },
+      }),
+    ]);
 
-  const vendors = await prisma.vendor.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        {/* =================================================
-            Title
-        ================================================= */}
-
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="✏️"
+        title="แก้ไขรายการรับเข้าพัสดุ"
+        subtitle="แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
+        actions={
+          <AppButton
+            href="/receive"
+            variant="back"
+            size="md"
+            icon={<span>←</span>}
           >
-            ✏️ แก้ไขรายการรับเข้าพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            แก้ไขรายละเอียดเอกสารและรายการพัสดุ
-          </p>
-        </div>
-
-        {/* =================================================
-            Back Button
-            มาตรฐานเดียวกันทุกหน้า
-        ================================================= */}
-
-        <Link
-          href="/receive"
-          className="
-            inline-flex
-            h-11
-            shrink-0
-            items-center
-            justify-center
-            gap-2
-            whitespace-nowrap
-            rounded-[16px]
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-[0_12px_28px_-16px_rgba(5,150,105,0.55)]
-            transition-all
-            duration-300
-            ease-out
-            hover:-translate-y-0.5
-            hover:from-emerald-700
-            hover:to-green-600
-            hover:shadow-[0_18px_34px_-18px_rgba(5,150,105,0.6)]
-            active:translate-y-0
-            active:scale-[0.97]
-            sm:px-5
-            sm:text-base
-          "
-        >
-          <span
-            className="
-              transition-transform
-              duration-300
-              group-hover:-translate-x-0.5
-            "
-          >
-            ←
-          </span>
-
-          <span>กลับ</span>
-        </Link>
-      </div>
+            กลับ
+          </AppButton>
+        }
+      />
 
       {/* =====================================================
-          Form Section
+          FORM CARD
       ===================================================== */}
 
       <section
         className="
+          relative
           w-full
           min-w-0
-          overflow-hidden
+          overflow-visible
+
           rounded-[28px]
+
           border
-          border-white/80
-          bg-white/80
-          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          border-slate-300
+
+          bg-white/85
+
+          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
+
           backdrop-blur-2xl
         "
       >
-        {/* =================================================
-            Form Header
-        ================================================= */}
+        {/* ===================================================
+            AMBIENT BACKGROUND
+        =================================================== */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+
+            h-52
+            w-52
+
+            rounded-full
+
+            bg-blue-400/10
+
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+
+            h-56
+            w-56
+
+            rounded-full
+
+            bg-cyan-400/10
+
+            blur-3xl
+          "
+        />
+
+        {/* ===================================================
+            FORM HEADER
+        =================================================== */}
 
         <div
           className="
+            relative
+
             flex
             items-center
             gap-3
+
             border-b
-            border-slate-200/80
+            border-black
+
             bg-white/70
-            px-4
+
+            px-5
             py-4
+
             sm:px-6
           "
         >
@@ -332,10 +199,15 @@ export default async function EditReceivePage({
               shrink-0
               items-center
               justify-center
+
               rounded-[15px]
+
               bg-blue-50
+
               text-xl
+
               shadow-sm
+
               ring-1
               ring-blue-100
             "
@@ -348,7 +220,9 @@ export default async function EditReceivePage({
               className="
                 text-lg
                 font-black
+                tracking-tight
                 !text-slate-900
+
                 sm:text-xl
               "
             >
@@ -358,6 +232,7 @@ export default async function EditReceivePage({
             <p
               className="
                 mt-0.5
+
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -368,17 +243,21 @@ export default async function EditReceivePage({
           </div>
         </div>
 
-        {/* =================================================
-            Edit Form
-        ================================================= */}
+        {/* ===================================================
+            EDIT FORM
+        =================================================== */}
 
         <div
           className="
+            relative
+            z-10
+
             w-full
             min-w-0
-            p-3
-            sm:p-5
-            lg:p-6
+
+            p-4
+
+            sm:p-6
           "
         >
           <EditReceiveForm
@@ -388,6 +267,6 @@ export default async function EditReceivePage({
           />
         </div>
       </section>
-    </div>
+    </AppPage>
   );
 }
