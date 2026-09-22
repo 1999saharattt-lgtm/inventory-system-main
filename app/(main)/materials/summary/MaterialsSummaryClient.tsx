@@ -60,6 +60,10 @@ export default function MaterialsSummaryClient({
 
   const keyword = search.trim().toLowerCase();
 
+  /* =========================================================
+     Search
+  ========================================================= */
+
   const filteredMaterials = useMemo(() => {
     if (!keyword) {
       return materials;
@@ -69,118 +73,288 @@ export default function MaterialsSummaryClient({
       return (
         material.code?.toLowerCase().includes(keyword) ||
         material.name?.toLowerCase().includes(keyword) ||
-        material.latestVendor?.toLowerCase().includes(keyword)
+        material.latestVendor
+          ?.toLowerCase()
+          .includes(keyword)
       );
     });
   }, [materials, keyword]);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
   }
 
-  /*
-   * =====================================================
-   * ADMIN
-   * =====================================================
-   */
+  /* =========================================================
+     Search Component
+  ========================================================= */
+
+  const searchBox = (
+    <form onSubmit={handleSubmit} className="w-full">
+      <div
+        className="
+          relative
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-white/80
+          bg-white/75
+          p-4
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
+          sm:p-5
+        "
+      >
+        {/* Ambient background */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -left-20
+            -top-20
+            h-48
+            w-48
+            rounded-full
+            bg-blue-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            right-0
+            h-48
+            w-48
+            rounded-full
+            bg-cyan-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            relative
+            flex
+            flex-col
+            gap-3
+            lg:flex-row
+            lg:items-center
+          "
+        >
+          {/* Search Input */}
+
+          <div className="relative min-w-0 flex-1">
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                left-4
+                flex
+                items-center
+                text-lg
+              "
+            >
+              🔎
+            </div>
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / ผู้จำหน่าย"
+              className="
+                h-12
+                w-full
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                py-3
+                pl-12
+                pr-4
+                text-base
+                font-bold
+                !text-slate-900
+                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+                outline-none
+                transition-all
+                duration-300
+                placeholder:!text-slate-400
+                focus:border-blue-300
+                focus:bg-white
+                focus:ring-4
+                focus:ring-blue-500/10
+              "
+            />
+          </div>
+
+          {/* Search Button */}
+
+          <button
+            type="submit"
+            className="
+              inline-flex
+              h-12
+              shrink-0
+              items-center
+              justify-center
+              gap-2
+              rounded-[16px]
+              border
+              border-slate-800
+              bg-slate-900
+              px-6
+              text-sm
+              font-extrabold
+              !text-white
+              shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
+              transition-all
+              duration-300
+              ease-out
+              hover:-translate-y-0.5
+              hover:bg-slate-800
+              hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
+              active:translate-y-0
+              active:scale-[0.97]
+            "
+          >
+            <span>🔎</span>
+            <span>ค้นหา</span>
+          </button>
+
+          {/* Result Count */}
+
+          <div
+            className="
+              inline-flex
+              h-12
+              shrink-0
+              items-center
+              justify-center
+              gap-2
+              rounded-[16px]
+              border
+              border-slate-200
+              bg-slate-100/80
+              px-5
+              text-sm
+              font-extrabold
+              !text-slate-700
+              shadow-sm
+              backdrop-blur-xl
+            "
+          >
+            <span
+              className="
+                flex
+                h-7
+                min-w-7
+                items-center
+                justify-center
+                rounded-full
+                bg-white
+                px-2
+                text-xs
+                font-black
+                !text-slate-900
+                shadow-sm
+              "
+            >
+              {filteredMaterials.length}
+            </span>
+
+            <span>รายการ</span>
+          </div>
+
+          {/* Clear Search */}
+
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="
+                inline-flex
+                h-12
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                px-5
+                text-sm
+                font-extrabold
+                !text-slate-600
+                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.3)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-white
+                hover:!text-slate-900
+                active:translate-y-0
+                active:scale-[0.97]
+              "
+            >
+              <span>✕</span>
+              <span>ล้าง</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </form>
+  );
+
+  /* =========================================================
+     ADMIN
+  ========================================================= */
 
   if (role === "ADMIN") {
     return (
-      <div className="w-full min-w-0 space-y-4 sm:space-y-6">
-        {/* =====================================================
-            Search Box
-        ===================================================== */}
+      <div
+        className="
+          w-full
+          min-w-0
+          space-y-5
+          sm:space-y-6
+        "
+      >
+        {/* Search */}
 
-        <form onSubmit={handleSubmit}>
-          <div
-            className="
-              overflow-hidden
-              rounded-2xl
-              border
-              border-slate-700
-              bg-gradient-to-br
-              from-slate-950
-              via-slate-900
-              to-slate-800
-              p-4
-              shadow-xl
-            "
-          >
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-                className="
-                  flex-1
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-4
-                  py-3
-                  text-base
-                  font-semibold
-                  text-white
-                  placeholder:text-slate-400
-                  outline-none
-                  transition
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-500/20
-                "
-              />
+        {searchBox}
 
-              <button
-                type="submit"
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-emerald-600
-                  to-green-500
-                  px-6
-                  py-3
-                  font-extrabold
-                  text-white
-                  shadow-lg
-                  transition
-                  hover:scale-105
-                  hover:shadow-xl
-                  active:scale-95
-                "
-              >
-                ค้นหา
-              </button>
-
-              <div
-                className="
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-5
-                  py-3
-                  text-center
-                  font-extrabold
-                  text-white
-                "
-              >
-                พบ {filteredMaterials.length} รายการ
-              </div>
-            </div>
-          </div>
-        </form>
-
-        {/* =====================================================
+        {/* ===================================================
             Categories
-        ===================================================== */}
+        =================================================== */}
 
-        <div className="w-full min-w-0 space-y-5 sm:space-y-6">
+        <div
+          className="
+            w-full
+            min-w-0
+            space-y-6
+          "
+        >
           {categories.map((category) => {
-            const categoryMaterials = filteredMaterials.filter(
-              (material) => material.category === category
-            );
+            const categoryMaterials =
+              filteredMaterials.filter(
+                (material) =>
+                  material.category === category
+              );
+
+            const color =
+              categoryColor[category] ??
+              "from-slate-600 to-slate-800";
 
             return (
               <section
@@ -188,65 +362,145 @@ export default function MaterialsSummaryClient({
                 className="
                   w-full
                   min-w-0
+                  overflow-hidden
+                  rounded-[26px]
+                  border
+                  border-slate-200
+                  bg-white/90
+                  shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+                  backdrop-blur-xl
                 "
               >
-                {/* =====================================================
+                {/* ===========================================
                     Category Header
-                ===================================================== */}
+                =========================================== */}
 
                 <div
                   className="
+                    relative
                     flex
+                    min-h-[76px]
                     items-center
                     justify-between
-                    gap-3
-                    rounded-t-2xl
-                    bg-gradient-to-r
-                    from-slate-950
-                    via-slate-800
-                    to-slate-700
+                    gap-4
+                    overflow-hidden
+                    border-b
+                    border-slate-200
+                    bg-white/90
                     px-4
                     py-4
-                    text-white
                     sm:px-6
                   "
                 >
-                  <h2
+                  {/* Ambient Glow */}
+
+                  <div
+                    aria-hidden="true"
+                    className={`
+                      pointer-events-none
+                      absolute
+                      -left-12
+                      -top-20
+                      h-40
+                      w-40
+                      rounded-full
+                      bg-gradient-to-br
+                      ${color}
+                      opacity-[0.08]
+                      blur-3xl
+                    `}
+                  />
+
+                  <div
                     className="
+                      relative
+                      flex
                       min-w-0
-                      break-words
-                      text-xl
-                      font-extrabold
-                      !text-white
-                      sm:text-2xl
+                      items-center
+                      gap-3
                     "
                   >
-                    {categoryName[category] ?? category}
-                  </h2>
+                    {/* Icon */}
+
+                    <div
+                      className={`
+                        flex
+                        h-12
+                        w-12
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-[16px]
+                        bg-gradient-to-br
+                        ${color}
+                        text-2xl
+                        shadow-[0_12px_24px_-14px_rgba(15,23,42,0.5)]
+                        ring-1
+                        ring-white/30
+                      `}
+                    >
+                      {categoryIcon[category] ??
+                        "📦"}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h2
+                        className="
+                          break-words
+                          text-xl
+                          font-black
+                          leading-tight
+                          tracking-tight
+                          !text-slate-900
+                          sm:text-2xl
+                        "
+                      >
+                        {categoryName[category] ??
+                          category}
+                      </h2>
+
+                      <p
+                        className="
+                          mt-1
+                          text-xs
+                          font-bold
+                          !text-slate-500
+                          sm:text-sm
+                        "
+                      >
+                        รายการพัสดุในหมวดนี้
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Count */}
 
                   <span
                     className="
+                      relative
+                      inline-flex
+                      h-10
                       shrink-0
-                      rounded-lg
-                      bg-white/10
-                      px-3
-                      py-2
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      border-slate-200
+                      bg-slate-100/80
+                      px-4
                       text-sm
-                      font-bold
-                      text-white
-                      sm:px-4
-                      sm:text-base
+                      font-extrabold
+                      !text-slate-700
+                      shadow-sm
                     "
                   >
                     {categoryMaterials.length} รายการ
                   </span>
                 </div>
 
-                {/* =====================================================
+                {/* ===========================================
                     Table
-                    ไม่มีกรอบ wrapper ซ้ำ
-                    เส้นตารางสีดำ
-                ===================================================== */}
+                =========================================== */}
 
                 <div
                   className="
@@ -259,9 +513,11 @@ export default function MaterialsSummaryClient({
                   <table
                     className="
                       w-full
-                      min-w-[900px]
+                      min-w-[950px]
                       border-collapse
-                      bg-white
+                      !rounded-none
+                      !border-0
+                      !shadow-none
                     "
                   >
                     <thead>
@@ -280,7 +536,7 @@ export default function MaterialsSummaryClient({
                             className="
                               whitespace-nowrap
                               border
-                              border-black
+                              border-slate-600
                               bg-gradient-to-r
                               from-slate-800
                               to-slate-700
@@ -298,132 +554,204 @@ export default function MaterialsSummaryClient({
                       </tr>
                     </thead>
 
-                    <tbody className="text-slate-900">
-                      {categoryMaterials.length === 0 ? (
+                    <tbody>
+                      {categoryMaterials.length ===
+                      0 ? (
                         <tr>
                           <td
                             colSpan={7}
                             className="
                               border
-                              border-black
+                              border-slate-200
+                              bg-white
                               px-4
-                              py-10
+                              py-12
                               text-center
-                              text-lg
-                              font-bold
-                              text-slate-500
                             "
                           >
-                            {keyword
-                              ? "ไม่พบข้อมูลที่ค้นหา"
-                              : "ยังไม่มีพัสดุในหมวดนี้"}
+                            <div
+                              className="
+                                flex
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                              "
+                            >
+                              <div
+                                className="
+                                  flex
+                                  h-12
+                                  w-12
+                                  items-center
+                                  justify-center
+                                  rounded-full
+                                  bg-slate-100
+                                  text-xl
+                                "
+                              >
+                                🔎
+                              </div>
+
+                              <span
+                                className="
+                                  text-base
+                                  font-extrabold
+                                  !text-slate-500
+                                "
+                              >
+                                {keyword
+                                  ? "ไม่พบข้อมูลที่ค้นหา"
+                                  : "ยังไม่มีพัสดุในหมวดนี้"}
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       ) : (
-                        categoryMaterials.map((material, index) => (
-                          <tr
-                            key={material.id}
-                            className="
-                              text-slate-900
-                              transition
-                              hover:bg-blue-50
-                            "
-                          >
-                            <td
+                        categoryMaterials.map(
+                          (material, index) => (
+                            <tr
+                              key={material.id}
                               className="
-                                whitespace-nowrap
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                text-center
-                                font-bold
+                                bg-white
+                                transition-colors
+                                duration-200
+                                hover:bg-slate-50
                               "
                             >
-                              {index + 1}
-                            </td>
+                              <td
+                                className="
+                                  whitespace-nowrap
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  text-center
+                                  font-bold
+                                  !text-slate-700
+                                "
+                              >
+                                {index + 1}
+                              </td>
 
-                            <td
-                              className="
-                                whitespace-nowrap
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                text-center
-                                font-bold
-                              "
-                            >
-                              {material.code || "-"}
-                            </td>
+                              <td
+                                className="
+                                  whitespace-nowrap
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  text-center
+                                "
+                              >
+                                <span
+                                  className="
+                                    inline-flex
+                                    rounded-lg
+                                    bg-slate-100
+                                    px-2.5
+                                    py-1
+                                    font-extrabold
+                                    !text-slate-800
+                                  "
+                                >
+                                  {material.code ||
+                                    "-"}
+                                </span>
+                              </td>
 
-                            <td
-                              className="
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                font-bold
-                              "
-                            >
-                              {material.name || "-"}
-                            </td>
+                              <td
+                                className="
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  font-extrabold
+                                  !text-slate-900
+                                "
+                              >
+                                {material.name ||
+                                  "-"}
+                              </td>
 
-                            <td
-                              className="
-                                whitespace-nowrap
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                text-center
-                                font-extrabold
-                              "
-                            >
-                              {material.balance ?? 0}
-                            </td>
+                              <td
+                                className="
+                                  whitespace-nowrap
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  text-center
+                                "
+                              >
+                                <span
+                                  className="
+                                    inline-flex
+                                    min-w-10
+                                    items-center
+                                    justify-center
+                                    rounded-full
+                                    bg-blue-50
+                                    px-3
+                                    py-1
+                                    font-black
+                                    !text-blue-700
+                                  "
+                                >
+                                  {material.balance ??
+                                    0}
+                                </span>
+                              </td>
 
-                            <td
-                              className="
-                                whitespace-nowrap
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                text-center
-                                font-semibold
-                              "
-                            >
-                              {material.unit || "-"}
-                            </td>
+                              <td
+                                className="
+                                  whitespace-nowrap
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  text-center
+                                  font-bold
+                                  !text-slate-600
+                                "
+                              >
+                                {material.unit ||
+                                  "-"}
+                              </td>
 
-                            <td
-                              className="
-                                whitespace-nowrap
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                text-right
-                                font-semibold
-                              "
-                            >
-                              {formatMoney(material.latestPrice)}
-                            </td>
+                              <td
+                                className="
+                                  whitespace-nowrap
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  text-right
+                                  font-extrabold
+                                  !text-slate-800
+                                "
+                              >
+                                {formatMoney(
+                                  material.latestPrice
+                                )}
+                              </td>
 
-                            <td
-                              className="
-                                border
-                                border-black
-                                px-4
-                                py-3
-                                font-semibold
-                              "
-                            >
-                              {material.latestVendor || "-"}
-                            </td>
-                          </tr>
-                        ))
+                              <td
+                                className="
+                                  border
+                                  border-slate-200
+                                  px-4
+                                  py-3.5
+                                  font-bold
+                                  !text-slate-700
+                                "
+                              >
+                                {material.latestVendor ||
+                                  "-"}
+                              </td>
+                            </tr>
+                          )
+                        )
                       )}
                     </tbody>
                   </table>
@@ -436,213 +764,177 @@ export default function MaterialsSummaryClient({
     );
   }
 
-  /*
-   * =====================================================
-   * STAFF / VIEWER
-   * =====================================================
-   */
+  /* =========================================================
+     STAFF / VIEWER
+  ========================================================= */
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <div
+      className="
+        w-full
+        min-w-0
+        space-y-5
+        sm:space-y-6
+      "
+    >
       {/* =====================================================
           Search
       ===================================================== */}
 
-      <form onSubmit={handleSubmit}>
-        <div
-          className="
-            overflow-hidden
-            rounded-2xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-4
-            shadow-xl
-          "
-        >
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-              className="
-                flex-1
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-3
-                text-base
-                font-semibold
-                text-white
-                placeholder:text-slate-400
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-500/20
-              "
-            />
-
-            <button
-              type="submit"
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-6
-                py-3
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:shadow-xl
-                active:scale-95
-              "
-            >
-              ค้นหา
-            </button>
-
-            <div
-              className="
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-5
-                py-3
-                text-center
-                font-extrabold
-                text-white
-              "
-            >
-              พบ {filteredMaterials.length} รายการ
-            </div>
-          </div>
-        </div>
-      </form>
+      {searchBox}
 
       {/* =====================================================
           Category Cards
       ===================================================== */}
 
-      <div
+      <section
         className="
           grid
           w-full
           min-w-0
           grid-cols-1
-          gap-3
-          sm:gap-5
+          gap-4
           md:grid-cols-2
           xl:grid-cols-3
         "
       >
         {categories.map((category) => {
-          const categoryMaterials = filteredMaterials.filter(
-            (material) => material.category === category
-          );
+          const categoryMaterials =
+            filteredMaterials.filter(
+              (material) =>
+                material.category === category
+            );
+
+          const color =
+            categoryColor[category] ??
+            "from-slate-600 to-slate-800";
 
           return (
             <Link
               key={category}
               href={`/materials/summary/${category}`}
+              prefetch
               className="
                 group
+                relative
                 min-w-0
                 overflow-hidden
-                rounded-2xl
+                rounded-[28px]
                 border
-                border-slate-300
-                bg-white
-                shadow-lg
+                border-white/80
+                bg-white/80
+                shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+                backdrop-blur-2xl
                 transition-all
                 duration-300
+                ease-out
                 hover:-translate-y-1
-                hover:shadow-2xl
+                hover:border-slate-200
+                hover:bg-white/95
+                hover:shadow-[0_26px_64px_-28px_rgba(15,23,42,0.45)]
+                active:translate-y-0
+                active:scale-[0.985]
               "
             >
+              {/* Accent */}
+
               <div
                 className={`
                   h-1.5
                   bg-gradient-to-r
-                  ${
-                    categoryColor[category] ??
-                    "from-slate-700 to-slate-900"
-                  }
-                  sm:h-2
+                  ${color}
+                `}
+              />
+
+              {/* Ambient Glow */}
+
+              <div
+                aria-hidden="true"
+                className={`
+                  pointer-events-none
+                  absolute
+                  -right-12
+                  -top-12
+                  h-36
+                  w-36
+                  rounded-full
+                  bg-gradient-to-br
+                  ${color}
+                  opacity-[0.08]
+                  blur-3xl
+                  transition-all
+                  duration-500
+                  group-hover:scale-125
+                  group-hover:opacity-[0.14]
                 `}
               />
 
               <div
                 className="
+                  relative
                   flex
-                  min-h-[180px]
+                  min-h-[220px]
                   min-w-0
                   flex-col
-                  items-center
-                  justify-between
-                  gap-3
-                  p-4
-                  text-center
-                  sm:min-h-[230px]
+                  p-5
+                  sm:min-h-[235px]
                   sm:p-6
                 "
               >
+                {/* Icon */}
+
                 <div
-                  className="
+                  className={`
                     flex
-                    h-14
-                    w-14
+                    h-16
+                    w-16
                     shrink-0
                     items-center
                     justify-center
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-100
-                    text-2xl
-                    shadow-md
-                    transition
+                    rounded-[20px]
+                    bg-gradient-to-br
+                    ${color}
+                    text-3xl
+                    shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
+                    ring-1
+                    ring-white/30
+                    transition-all
                     duration-300
-                    group-hover:scale-110
-                    sm:h-16
-                    sm:w-16
-                    sm:text-3xl
-                  "
+                    group-hover:-translate-y-0.5
+                    group-hover:scale-[1.06]
+                    group-active:scale-[0.96]
+                  `}
                 >
-                  {categoryIcon[category] ?? "📦"}
+                  {categoryIcon[category] ??
+                    "📦"}
                 </div>
 
-                <div className="min-w-0 max-w-full">
+                {/* Text */}
+
+                <div className="mt-5 min-w-0">
                   <h2
                     className="
                       break-words
-                      text-base
-                      font-extrabold
+                      text-xl
+                      font-black
                       leading-tight
-                      text-slate-900
-                      sm:text-xl
+                      tracking-tight
+                      !text-slate-900
+                      sm:text-2xl
                     "
                   >
-                    {categoryName[category] ?? category}
+                    {categoryName[category] ??
+                      category}
                   </h2>
 
                   <p
                     className="
                       mt-2
                       break-words
-                      text-xs
+                      text-sm
                       font-semibold
-                      leading-tight
-                      text-slate-600
+                      leading-relaxed
+                      !text-slate-500
                       sm:text-base
                     "
                   >
@@ -650,50 +942,76 @@ export default function MaterialsSummaryClient({
                   </p>
                 </div>
 
+                {/* Footer */}
+
                 <div
                   className="
-                    rounded-xl
-                    bg-slate-100
-                    px-5
-                    py-2
-                    text-sm
-                    font-extrabold
-                    text-slate-800
-                    shadow-sm
-                    sm:px-6
-                    sm:py-2.5
-                    sm:text-base
+                    mt-auto
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                    pt-5
                   "
                 >
-                  {categoryMaterials.length} รายการ
-                </div>
+                  <span
+                    className="
+                      inline-flex
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      border-slate-200
+                      bg-white/80
+                      px-3
+                      py-1.5
+                      text-xs
+                      font-extrabold
+                      !text-slate-600
+                      shadow-sm
+                    "
+                  >
+                    {categoryMaterials.length} รายการ
+                  </span>
 
-                <span
-                  className="
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-950
-                    px-6
-                    py-2
-                    text-sm
-                    font-extrabold
-                    text-white
-                    shadow-lg
-                    transition
-                    group-hover:scale-105
-                    sm:px-8
-                    sm:py-3
-                    sm:text-lg
-                  "
-                >
-                  เปิด
-                </span>
+                  <span
+                    className="
+                      inline-flex
+                      h-10
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-[14px]
+                      bg-slate-900
+                      px-4
+                      text-sm
+                      font-extrabold
+                      !text-white
+                      shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
+                      transition-all
+                      duration-300
+                      group-hover:bg-slate-800
+                      group-active:scale-[0.96]
+                    "
+                  >
+                    <span>เปิด</span>
+
+                    <span
+                      className="
+                        transition-transform
+                        duration-300
+                        group-hover:translate-x-1
+                      "
+                    >
+                      →
+                    </span>
+                  </span>
+                </div>
               </div>
             </Link>
           );
         })}
-      </div>
+      </section>
     </div>
   );
 }

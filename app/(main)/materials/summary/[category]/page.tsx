@@ -3,526 +3,927 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 const categoryName: Record<string, string> = {
-OFFICE: "วัสดุสำนักงาน",
-COMPUTER: "วัสดุคอมพิวเตอร์",
-ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-VEHICLE: "วัสดุยานพาหนะ",
-PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+};
+
+const categoryIcon: Record<string, string> = {
+  OFFICE: "📄",
+  COMPUTER: "💻",
+  ELECTRIC: "⚡",
+  HOUSEHOLD: "🏠",
+  VEHICLE: "🚗",
+  PRINTING: "📰",
+};
+
+const categoryColor: Record<string, string> = {
+  OFFICE: "from-blue-500 to-blue-700",
+  COMPUTER: "from-violet-500 to-violet-700",
+  ELECTRIC: "from-amber-400 to-amber-600",
+  HOUSEHOLD: "from-emerald-500 to-emerald-700",
+  VEHICLE: "from-red-500 to-red-700",
+  PRINTING: "from-cyan-500 to-cyan-700",
 };
 
 const categories = [
-"OFFICE",
-"COMPUTER",
-"ELECTRIC",
-"HOUSEHOLD",
-"VEHICLE",
-"PRINTING",
+  "OFFICE",
+  "COMPUTER",
+  "ELECTRIC",
+  "HOUSEHOLD",
+  "VEHICLE",
+  "PRINTING",
 ];
 
+type Category =
+  | "OFFICE"
+  | "COMPUTER"
+  | "ELECTRIC"
+  | "HOUSEHOLD"
+  | "VEHICLE"
+  | "PRINTING";
+
 type PageProps = {
-params: Promise<{
-category: string;
-}>;
-searchParams: Promise<{
-search?: string;
-}>;
+  params: Promise<{
+    category: string;
+  }>;
+  searchParams: Promise<{
+    search?: string;
+  }>;
 };
 
 export default async function MaterialsSummaryCategoryPage({
-params,
-searchParams,
+  params,
+  searchParams,
 }: PageProps) {
-const { category } = await params;
-const { search } = await searchParams;
+  const { category } = await params;
+  const { search } = await searchParams;
 
-const categoryCode = category.toUpperCase();
+  const categoryCode = category.toUpperCase();
 
-if (!categories.includes(categoryCode)) {
-notFound();
-}
+  if (!categories.includes(categoryCode)) {
+    notFound();
+  }
 
-const keyword = search?.trim() ?? "";
+  const keyword = search?.trim() ?? "";
 
-const materials = await prisma.material.findMany({
-where: {
-category: categoryCode as
-| "OFFICE"
-| "COMPUTER"
-| "ELECTRIC"
-| "HOUSEHOLD"
-| "VEHICLE"
-| "PRINTING",
+  /* =========================================================
+     Load Materials
+  ========================================================= */
 
-  ...(keyword
-    ? {
-        OR: [
-          {
-            code: {
-              contains: keyword,
-              mode: "insensitive",
-            },
-          },
-          {
-            name: {
-              contains: keyword,
-              mode: "insensitive",
-            },
-          },
-        ],
-      }
-    : {}),
-},
+  const materials = await prisma.material.findMany({
+    where: {
+      category: categoryCode as Category,
 
-orderBy: {
-  code: "asc",
-},
+      ...(keyword
+        ? {
+            OR: [
+              {
+                code: {
+                  contains: keyword,
+                  mode: "insensitive",
+                },
+              },
+              {
+                name: {
+                  contains: keyword,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          }
+        : {}),
+    },
 
-include: {
-  receiveItems: {
     orderBy: {
-      receive: {
-        receiveDate: "desc",
-      },
+      code: "asc",
     },
 
     include: {
-      receive: {
+      receiveItems: {
+        orderBy: {
+          receive: {
+            receiveDate: "desc",
+          },
+        },
+
         include: {
-          vendor: true,
+          receive: {
+            include: {
+              vendor: true,
+            },
+          },
         },
       },
+
+      issueItems: true,
     },
-  },
+  });
 
-  issueItems: true,
-},
+  /* =========================================================
+     Calculate Stock
+  ========================================================= */
 
-});
+  const data = materials.map((material) => {
+    const latestReceive = material.receiveItems[0];
 
-const data = materials.map((material) => {
-const latestReceive = material.receiveItems[0];
+    const totalReceive = material.receiveItems.reduce(
+      (sum, item) => sum + item.qty,
+      0
+    );
 
-const totalReceive = material.receiveItems.reduce(
-  (sum, item) => sum + item.qty,
-  0
-);
+    const totalIssue = material.issueItems.reduce(
+      (sum, item) => sum + item.qty,
+      0
+    );
 
-const totalIssue = material.issueItems.reduce(
-  (sum, item) => sum + item.qty,
-  0
-);
+    const balance = totalReceive - totalIssue;
 
-const balance = totalReceive - totalIssue;
+    return {
+      id: material.id,
+      category: material.category,
+      code: material.code,
+      name: material.name,
+      balance,
+      unit: material.unit,
 
-return {
-  id: material.id,
-  category: material.category,
-  code: material.code,
-  name: material.name,
-  balance,
-  unit: material.unit,
+      latestPrice: latestReceive
+        ? Number(latestReceive.unitPrice)
+        : null,
 
-  latestPrice: latestReceive
-    ? Number(latestReceive.unitPrice)
-    : null,
+      latestVendor:
+        latestReceive?.receive.vendor?.name ?? "-",
+    };
+  });
 
-  latestVendor:
-    latestReceive?.receive.vendor?.name ?? "-",
-};
+  const accentColor =
+    categoryColor[categoryCode] ??
+    "from-slate-600 to-slate-800";
 
-});
-
-return ( <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-5">
-{/* Header */}
-
-  <div
-    className="
-      flex
-      min-h-[110px]
-      w-full
-      min-w-0
-      items-center
-      justify-between
-      gap-3
-      rounded-2xl
-      bg-gradient-to-r
-      from-slate-950
-      via-slate-800
-      to-slate-700
-      px-3
-      py-4
-      text-white
-      shadow-xl
-      sm:min-h-[140px]
-      sm:px-8
-      sm:py-6
-    "
-  >
-    <div className="min-w-0">
-      <h1
-        className="
-          break-words
-          text-2xl
-          font-extrabold
-          leading-tight
-          !text-white
-          sm:text-3xl
-        "
-      >
-        📦 {categoryName[categoryCode]}
-      </h1>
-
-      <p
-        className="
-          mt-2
-          break-words
-          text-sm
-          font-semibold
-          leading-tight
-          !text-slate-200
-          sm:text-base
-        "
-      >
-        รายการพัสดุทั้งหมดในหมวดนี้
-      </p>
-    </div>
-
-    <Link
-      href="/materials/summary"
-      className="
-        shrink-0
-        whitespace-nowrap
-        rounded-xl
-        bg-gradient-to-r
-        from-emerald-600
-        to-green-500
-        px-3
-        py-2
-        text-center
-        text-sm
-        font-extrabold
-        leading-tight
-        !text-white
-        shadow-lg
-        transition
-        hover:scale-105
-        hover:from-emerald-700
-        hover:to-green-600
-        sm:px-5
-        sm:py-3
-        sm:text-base
-      "
-    >
-      ← กลับ
-    </Link>
-  </div>
-
-  {/* Search */}
-
-  <form
-    method="GET"
-    className="
-      flex
-      gap-4
-      rounded-2xl
-      border
-      border-slate-700
-      bg-gradient-to-r
-      from-slate-950
-      via-slate-900
-      to-slate-800
-      p-5
-      shadow-xl
-    "
-  >
-    <input
-      name="search"
-      defaultValue={keyword}
-      placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-      className="
-        flex-1
-        rounded-xl
-        border
-        border-slate-600
-        bg-slate-800
-        px-4
-        py-3
-        text-base
-        font-semibold
-        text-white
-        placeholder:text-slate-400
-        outline-none
-        transition
-        focus:border-cyan-400
-        focus:ring-4
-        focus:ring-cyan-500/20
-      "
-    />
-
-    <button
-      type="submit"
-      className="
-        rounded-xl
-        bg-gradient-to-r
-        from-emerald-600
-        to-green-500
-        px-6
-        py-3
-        font-extrabold
-        text-white
-        shadow-lg
-        transition
-        hover:scale-105
-        hover:shadow-xl
-        active:scale-95
-      "
-    >
-      ค้นหา
-    </button>
-  </form>
-
-  {/* Summary */}
-
-  <div
-    className="
-      overflow-hidden
-      rounded-2xl
-      border
-      border-slate-300
-      bg-white
-      shadow-lg
-    "
-  >
-    {/* Category Header */}
-
+  return (
     <div
       className="
-        flex
-        items-center
-        justify-between
-        gap-3
-        bg-gradient-to-r
-        from-slate-950
-        via-slate-800
-        to-slate-700
-        px-3
-        py-4
-        text-white
-        sm:px-6
+        w-full
+        min-w-0
+        space-y-5
+        overflow-x-hidden
+        sm:space-y-6
       "
     >
-      <h2
-        className="
-          break-words
-          text-lg
-          font-extrabold
-          !text-white
-          sm:text-2xl
-        "
-      >
-        {categoryName[categoryCode]}
-      </h2>
+      {/* =====================================================
+          Header
+      ===================================================== */}
 
-      <span
+      <div
         className="
-          shrink-0
-          rounded-lg
-          bg-white/10
-          px-3
-          py-2
-          text-sm
-          font-bold
-          text-white
-          sm:px-4
-          sm:text-base
-        "
-      >
-        {data.length} รายการ
-      </span>
-    </div>
-
-    {/* Table */}
-
-    <div className="overflow-x-auto">
-      <table
-        className="
-          min-w-full
-          border-collapse
+          relative
+          flex
+          min-h-[120px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-4
+          overflow-hidden
+          rounded-[28px]
           border
-          border-slate-900
+          border-white/10
+          bg-gradient-to-r
+          from-slate-950
+          via-slate-800
+          to-slate-700
+          px-5
+          py-5
+          shadow-[0_24px_60px_-28px_rgba(15,23,42,0.75)]
+          sm:min-h-[140px]
+          sm:px-8
+          sm:py-6
         "
       >
-        <thead>
-          <tr>
-            {[
-              "ลำดับ",
-              "รหัสพัสดุ",
-              "รายการพัสดุ",
-              "จำนวน",
-              "หน่วย",
-              "ราคา",
-              "ผู้จำหน่ายล่าสุด",
-            ].map((title) => (
-              <th
-                key={title}
-                className="
-                  border
-                  border-slate-900
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  px-4
-                  py-4
-                  text-center
-                  text-base
-                  font-extrabold
-                  text-white
-                  sm:text-lg
-                "
-              >
-                {title}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        {/* Ambient Glow */}
 
-        <tbody>
-          {data.length === 0 ? (
-            <tr>
-              <td
-                colSpan={7}
-                className="
-                  border
-                  border-slate-900
-                  py-10
-                  text-center
-                  text-lg
-                  font-bold
-                  text-slate-500
-                "
-              >
-                {keyword
-                  ? "ไม่พบข้อมูลที่ค้นหา"
-                  : "ยังไม่มีพัสดุในหมวดนี้"}
-              </td>
-            </tr>
-          ) : (
-            data.map((material, index) => (
-              <tr
-                key={material.id}
-                className="
-                  border
-                  border-slate-900
-                  text-slate-900
-                  transition
-                  hover:bg-blue-50
-                "
-              >
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    text-center
-                    font-bold
-                  "
-                >
-                  {index + 1}
-                </td>
+        <div
+          aria-hidden="true"
+          className={`
+            pointer-events-none
+            absolute
+            -left-20
+            -top-24
+            h-56
+            w-56
+            rounded-full
+            bg-gradient-to-br
+            ${accentColor}
+            opacity-[0.18]
+            blur-3xl
+          `}
+        />
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    text-center
-                    font-bold
-                  "
-                >
-                  {material.code || "-"}
-                </td>
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            right-20
+            h-52
+            w-52
+            rounded-full
+            bg-white/[0.05]
+            blur-3xl
+          "
+        />
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    font-bold
-                  "
-                >
-                  {material.name || "-"}
-                </td>
+        {/* Title */}
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    text-center
-                    font-extrabold
-                  "
-                >
-                  {material.balance ?? 0}
-                </td>
+        <div
+          className="
+            relative
+            flex
+            min-w-0
+            items-center
+            gap-4
+          "
+        >
+          <div
+            className={`
+              hidden
+              h-16
+              w-16
+              shrink-0
+              items-center
+              justify-center
+              rounded-[20px]
+              bg-gradient-to-br
+              ${accentColor}
+              text-3xl
+              shadow-[0_16px_34px_-18px_rgba(0,0,0,0.75)]
+              ring-1
+              ring-white/20
+              sm:flex
+            `}
+          >
+            {categoryIcon[categoryCode] ?? "📦"}
+          </div>
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    text-center
-                    font-semibold
-                  "
-                >
-                  {material.unit || "-"}
-                </td>
+          <div className="min-w-0">
+            <h1
+              className="
+                break-words
+                text-2xl
+                font-black
+                leading-tight
+                tracking-tight
+                !text-white
+                sm:text-3xl
+              "
+            >
+              <span className="sm:hidden">
+                {categoryIcon[categoryCode] ?? "📦"}{" "}
+              </span>
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    text-right
-                    font-semibold
-                  "
-                >
-                  {material.latestPrice === null
-                    ? "-"
-                    : material.latestPrice.toLocaleString(
-                        "th-TH",
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }
-                      )}
-                </td>
+              {categoryName[categoryCode]}
+            </h1>
 
-                <td
-                  className="
-                    border
-                    border-slate-900
-                    px-4
-                    py-3
-                    font-semibold
-                  "
-                >
-                  {material.latestVendor || "-"}
-                </td>
-              </tr>
-            ))
+            <p
+              className="
+                mt-2
+                break-words
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-slate-300
+                sm:text-base
+              "
+            >
+              รายการพัสดุทั้งหมดในหมวดนี้
+            </p>
+          </div>
+        </div>
+
+        {/* Back Button */}
+
+        <Link
+          href="/materials/summary"
+          prefetch
+          className="
+            relative
+            inline-flex
+            h-11
+            shrink-0
+            items-center
+            justify-center
+            gap-2
+            whitespace-nowrap
+            rounded-[16px]
+            border
+            border-white/20
+            bg-white/90
+            px-4
+            text-sm
+            font-extrabold
+            !text-slate-800
+            shadow-[0_12px_28px_-16px_rgba(0,0,0,0.5)]
+            backdrop-blur-xl
+            transition-all
+            duration-300
+            ease-out
+            hover:-translate-y-0.5
+            hover:bg-white
+            hover:shadow-[0_18px_34px_-18px_rgba(0,0,0,0.55)]
+            active:translate-y-0
+            active:scale-[0.97]
+            sm:px-5
+          "
+        >
+          <span>←</span>
+          <span>กลับ</span>
+        </Link>
+      </div>
+
+      {/* =====================================================
+          Search
+      ===================================================== */}
+
+      <form
+        method="GET"
+        className="
+          relative
+          w-full
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-white/80
+          bg-white/75
+          p-4
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
+          sm:p-5
+        "
+      >
+        {/* Ambient */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -left-20
+            -top-20
+            h-44
+            w-44
+            rounded-full
+            bg-blue-400/10
+            blur-3xl
+          "
+        />
+
+        <div
+          className="
+            relative
+            flex
+            w-full
+            flex-col
+            gap-3
+            sm:flex-row
+            sm:items-center
+          "
+        >
+          {/* Input */}
+
+          <div className="relative min-w-0 flex-1">
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                left-4
+                flex
+                items-center
+                text-lg
+              "
+            >
+              🔎
+            </span>
+
+            <input
+              name="search"
+              defaultValue={keyword}
+              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
+              className="
+                h-12
+                w-full
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                py-3
+                pl-12
+                pr-4
+                text-base
+                font-bold
+                !text-slate-900
+                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+                outline-none
+                transition-all
+                duration-300
+                placeholder:!text-slate-400
+                focus:border-blue-300
+                focus:bg-white
+                focus:ring-4
+                focus:ring-blue-500/10
+              "
+            />
+          </div>
+
+          {/* Search Button */}
+
+          <button
+            type="submit"
+            className="
+              inline-flex
+              h-12
+              shrink-0
+              items-center
+              justify-center
+              gap-2
+              rounded-[16px]
+              border
+              border-slate-800
+              bg-slate-900
+              px-6
+              text-sm
+              font-extrabold
+              !text-white
+              shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
+              transition-all
+              duration-300
+              ease-out
+              hover:-translate-y-0.5
+              hover:bg-slate-800
+              hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
+              active:translate-y-0
+              active:scale-[0.97]
+            "
+          >
+            <span>🔎</span>
+            <span>ค้นหา</span>
+          </button>
+
+          {/* Clear */}
+
+          {keyword && (
+            <Link
+              href={`/materials/summary/${categoryCode}`}
+              className="
+                inline-flex
+                h-12
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                px-5
+                text-sm
+                font-extrabold
+                !text-slate-600
+                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.3)]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-white
+                hover:!text-slate-900
+                active:translate-y-0
+                active:scale-[0.97]
+              "
+            >
+              <span>✕</span>
+              <span>ล้าง</span>
+            </Link>
           )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+        </div>
+      </form>
 
-);
+      {/* =====================================================
+          Summary Card
+      ===================================================== */}
+
+      <section
+        className="
+          w-full
+          min-w-0
+          overflow-hidden
+          rounded-[26px]
+          border
+          border-slate-200
+          bg-white/90
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-xl
+        "
+      >
+        {/* ===================================================
+            Category Header
+        =================================================== */}
+
+        <div
+          className="
+            relative
+            flex
+            min-h-[76px]
+            items-center
+            justify-between
+            gap-4
+            overflow-hidden
+            border-b
+            border-slate-200
+            bg-white/90
+            px-4
+            py-4
+            sm:px-6
+          "
+        >
+          {/* Ambient Glow */}
+
+          <div
+            aria-hidden="true"
+            className={`
+              pointer-events-none
+              absolute
+              -left-12
+              -top-20
+              h-40
+              w-40
+              rounded-full
+              bg-gradient-to-br
+              ${accentColor}
+              opacity-[0.08]
+              blur-3xl
+            `}
+          />
+
+          <div
+            className="
+              relative
+              flex
+              min-w-0
+              items-center
+              gap-3
+            "
+          >
+            {/* Icon */}
+
+            <div
+              className={`
+                flex
+                h-12
+                w-12
+                shrink-0
+                items-center
+                justify-center
+                rounded-[16px]
+                bg-gradient-to-br
+                ${accentColor}
+                text-2xl
+                shadow-[0_12px_24px_-14px_rgba(15,23,42,0.5)]
+                ring-1
+                ring-white/30
+              `}
+            >
+              {categoryIcon[categoryCode] ?? "📦"}
+            </div>
+
+            <div className="min-w-0">
+              <h2
+                className="
+                  break-words
+                  text-xl
+                  font-black
+                  leading-tight
+                  tracking-tight
+                  !text-slate-900
+                  sm:text-2xl
+                "
+              >
+                {categoryName[categoryCode]}
+              </h2>
+
+              <p
+                className="
+                  mt-1
+                  text-xs
+                  font-bold
+                  !text-slate-500
+                  sm:text-sm
+                "
+              >
+                สรุปรายการพัสดุในหมวดนี้
+              </p>
+            </div>
+          </div>
+
+          {/* Count */}
+
+          <span
+            className="
+              relative
+              inline-flex
+              h-10
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-slate-200
+              bg-slate-100/80
+              px-4
+              text-sm
+              font-extrabold
+              !text-slate-700
+              shadow-sm
+            "
+          >
+            {data.length} รายการ
+          </span>
+        </div>
+
+        {/* ===================================================
+            Table
+        =================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
+          <table
+            className="
+              w-full
+              min-w-[950px]
+              border-collapse
+              !rounded-none
+              !border-0
+              !shadow-none
+            "
+          >
+            <thead>
+              <tr>
+                {[
+                  "ลำดับ",
+                  "รหัสพัสดุ",
+                  "รายการพัสดุ",
+                  "จำนวน",
+                  "หน่วย",
+                  "ราคา",
+                  "ผู้จำหน่ายล่าสุด",
+                ].map((title) => (
+                  <th
+                    key={title}
+                    className="
+                      whitespace-nowrap
+                      border
+                      border-slate-600
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-4
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                      sm:text-lg
+                    "
+                  >
+                    {title}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {data.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="
+                      border
+                      border-slate-200
+                      bg-white
+                      px-4
+                      py-12
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        gap-2
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-12
+                          w-12
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-slate-100
+                          text-xl
+                        "
+                      >
+                        🔎
+                      </div>
+
+                      <span
+                        className="
+                          text-base
+                          font-extrabold
+                          !text-slate-500
+                        "
+                      >
+                        {keyword
+                          ? "ไม่พบข้อมูลที่ค้นหา"
+                          : "ยังไม่มีพัสดุในหมวดนี้"}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                data.map((material, index) => (
+                  <tr
+                    key={material.id}
+                    className="
+                      bg-white
+                      transition-colors
+                      duration-200
+                      hover:bg-slate-50
+                    "
+                  >
+                    {/* ลำดับ */}
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        text-center
+                        font-bold
+                        !text-slate-700
+                      "
+                    >
+                      {index + 1}
+                    </td>
+
+                    {/* รหัส */}
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        text-center
+                      "
+                    >
+                      <span
+                        className="
+                          inline-flex
+                          rounded-lg
+                          bg-slate-100
+                          px-2.5
+                          py-1
+                          font-extrabold
+                          !text-slate-800
+                        "
+                      >
+                        {material.code || "-"}
+                      </span>
+                    </td>
+
+                    {/* รายการ */}
+
+                    <td
+                      className="
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        font-extrabold
+                        !text-slate-900
+                      "
+                    >
+                      {material.name || "-"}
+                    </td>
+
+                    {/* จำนวน */}
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        text-center
+                      "
+                    >
+                      <span
+                        className="
+                          inline-flex
+                          min-w-10
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-blue-50
+                          px-3
+                          py-1
+                          font-black
+                          !text-blue-700
+                        "
+                      >
+                        {material.balance ?? 0}
+                      </span>
+                    </td>
+
+                    {/* หน่วย */}
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        text-center
+                        font-bold
+                        !text-slate-600
+                      "
+                    >
+                      {material.unit || "-"}
+                    </td>
+
+                    {/* ราคา */}
+
+                    <td
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        text-right
+                        font-extrabold
+                        !text-slate-800
+                      "
+                    >
+                      {material.latestPrice === null
+                        ? "-"
+                        : material.latestPrice.toLocaleString(
+                            "th-TH",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}
+                    </td>
+
+                    {/* Vendor */}
+
+                    <td
+                      className="
+                        border
+                        border-slate-200
+                        px-4
+                        py-3.5
+                        font-bold
+                        !text-slate-700
+                      "
+                    >
+                      {material.latestVendor || "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
 }

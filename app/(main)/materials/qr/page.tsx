@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import QRCodePdf from "./QRCodePdf";
 
 export default async function MaterialsQrPage() {
+  /* =========================================================
+     Load Materials
+  ========================================================= */
+
   const materials = await prisma.material.findMany({
     select: {
       id: true,
@@ -9,6 +13,7 @@ export default async function MaterialsQrPage() {
       name: true,
       category: true,
     },
+
     orderBy: [
       {
         category: "asc",
@@ -19,5 +24,13 @@ export default async function MaterialsQrPage() {
     ],
   });
 
-  return <QRCodePdf materials={materials} />;
+  /* =========================================================
+     Render
+  ========================================================= */
+
+  return (
+    <QRCodePdf
+      materials={materials}
+    />
+  );
 }
