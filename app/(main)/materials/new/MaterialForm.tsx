@@ -20,7 +20,21 @@ type MaterialMaster = {
 type Props = {
   vendors: Vendor[];
   materialMasters: MaterialMaster[];
+
+  /*
+   * รับหมวดหมู่จากหน้า /materials/new
+   *
+   * ตัวอย่าง
+   * OFFICE
+   * COMPUTER
+   * ELECTRIC
+   */
+  initialCategory?: string;
 };
+
+/* =========================================================
+   CATEGORY MAP
+========================================================= */
 
 const categoryMap: Record<string, string> = {
   "วัสดุสำนักงาน": "OFFICE",
@@ -31,38 +45,115 @@ const categoryMap: Record<string, string> = {
   "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
 };
 
+/* =========================================================
+   CATEGORY CODE -> THAI NAME
+========================================================= */
+
+const categoryLabelMap: Record<string, string> =
+  Object.fromEntries(
+    Object.entries(categoryMap).map(
+      ([label, code]) => [
+        code,
+        label,
+      ]
+    )
+  );
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function MaterialForm({
   vendors,
   materialMasters,
+  initialCategory = "",
 }: Props) {
-  const categories = Object.keys(categoryMap);
+  const categories =
+    Object.keys(categoryMap);
 
-  const [category, setCategory] = useState("");
-  const [name, setName] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newUnit, setNewUnit] = useState("");
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  /* =========================================================
+     INITIAL CATEGORY
+
+     initialCategory ที่ได้รับจะเป็น CODE
+     เช่น OFFICE
+
+     แต่ state category ใช้ชื่อภาษาไทย
+     เช่น วัสดุสำนักงาน
+  ========================================================= */
+
+  const initialCategoryLabel =
+    categoryLabelMap[
+      initialCategory.toUpperCase()
+    ] ?? "";
+
+  const [category, setCategory] =
+    useState(initialCategoryLabel);
+
+  const [name, setName] =
+    useState("");
+
+  const [newName, setNewName] =
+    useState("");
+
+  const [newUnit, setNewUnit] =
+    useState("");
+
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
+
+  /* =========================================================
+     CURRENT CATEGORY CODE
+  ========================================================= */
+
+  const currentCategoryCode =
+    categoryMap[category] ?? "";
+
+  /* =========================================================
+     CANCEL / BACK URL
+
+     ถ้ามีหมวดที่เลือกอยู่
+     ให้กลับเข้าหมวดนั้น
+
+     ถ้าไม่มีหมวด
+     ให้กลับหน้า /materials
+  ========================================================= */
+
+  const cancelHref =
+    currentCategoryCode
+      ? `/materials/category/${currentCategoryCode}`
+      : initialCategory &&
+          categoryLabelMap[
+            initialCategory.toUpperCase()
+          ]
+        ? `/materials/category/${initialCategory.toUpperCase()}`
+        : "/materials";
 
   /* =========================================================
      MATERIAL NAMES
   ========================================================= */
 
   const names = useMemo(() => {
-    if (!category) return [];
+    if (!category) {
+      return [];
+    }
 
     const oldNames =
       MATERIALS[
         category as keyof typeof MATERIALS
       ] ?? [];
 
-    const newNames = materialMasters
-      .filter(
-        (item) =>
-          item.category ===
-          categoryMap[category]
-      )
-      .map((item) => item.name);
+    const newNames =
+      materialMasters
+        .filter(
+          (item) =>
+            item.category ===
+            categoryMap[category]
+        )
+        .map(
+          (item) => item.name
+        );
 
     return Array.from(
       new Set([
@@ -70,7 +161,10 @@ export default function MaterialForm({
         ...newNames,
       ])
     );
-  }, [category, materialMasters]);
+  }, [
+    category,
+    materialMasters,
+  ]);
 
   /* =========================================================
      UNIT
@@ -95,91 +189,135 @@ export default function MaterialForm({
   ) {
     e.preventDefault();
 
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      return;
+    }
 
     const formData =
-      new FormData(e.currentTarget);
+      new FormData(
+        e.currentTarget
+      );
 
     const materialName =
       name === "__NEW__"
         ? newName.trim()
         : name;
 
+    /* =======================================================
+       VALIDATION
+    ======================================================= */
+
     if (!materialName) {
       alert(
         "กรุณาระบุชื่อรายการพัสดุ"
       );
+
       return;
     }
 
     if (!unit) {
-      alert("กรุณาระบุหน่วย");
+      alert(
+        "กรุณาระบุหน่วย"
+      );
+
       return;
     }
 
-    if (!categoryMap[category]) {
-      alert("กรุณาเลือกหมวดหมู่");
+    if (!currentCategoryCode) {
+      alert(
+        "กรุณาเลือกหมวดหมู่"
+      );
+
       return;
     }
+
+    /* =======================================================
+       REQUEST BODY
+    ======================================================= */
 
     const body = {
-      vendorId: formData.get(
-        "vendorId"
-      )
-        ? Number(
-            formData.get("vendorId")
-          )
-        : null,
+      vendorId:
+        formData.get("vendorId")
+          ? Number(
+              formData.get(
+                "vendorId"
+              )
+            )
+          : null,
 
       category:
-        categoryMap[category],
+        currentCategoryCode,
 
-      name: materialName,
+      name:
+        materialName,
 
       unit,
 
-      balance: Number(
-        formData.get("balance")
-      ),
-
-      latestPrice: Number(
+      balance:
         Number(
           formData.get(
-            "latestPrice"
+            "balance"
           )
-        ).toFixed(2)
-      ),
+        ),
+
+      latestPrice:
+        Number(
+          Number(
+            formData.get(
+              "latestPrice"
+            )
+          ).toFixed(2)
+        ),
     };
+
+    /* =======================================================
+       SAVE
+    ======================================================= */
 
     try {
       setIsSubmitting(true);
 
-      const res = await fetch(
-        "/api/materials",
-        {
-          method: "POST",
+      const res =
+        await fetch(
+          "/api/materials",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          body: JSON.stringify(
-            body
-          ),
-        }
-      );
+            body:
+              JSON.stringify(
+                body
+              ),
+          }
+        );
+
+      /* =====================================================
+         SUCCESS
+
+         กลับเข้าหมวดของรายการที่เพิ่ม
+      ===================================================== */
 
       if (res.ok) {
         window.location.href =
-          `/materials/category/${categoryMap[category]}`;
+          `/materials/category/${currentCategoryCode}`;
 
         return;
       }
 
-      const data = await res
-        .json()
-        .catch(() => null);
+      /* =====================================================
+         API ERROR
+      ===================================================== */
+
+      const data =
+        await res
+          .json()
+          .catch(
+            () => null
+          );
 
       alert(
         data?.message ??
@@ -212,28 +350,41 @@ export default function MaterialForm({
     sm:text-base
   `;
 
-  /*
-   * มาตรฐานช่องข้อมูลของระบบ
-   * - กรอบดำชัดเจน
-   * - ใช้ border-2
-   * - ใช้ !border-black ป้องกัน style อื่น override
-   */
+  /* =========================================================
+     INPUT STANDARD
+
+     มาตรฐานช่องข้อมูลของระบบ
+
+     - กรอบดำ
+     - border-2
+     - !border-black
+     - ทุก input / select ใช้มาตรฐานเดียวกัน
+  ========================================================= */
+
   const inputClassName = `
     min-h-[50px]
     w-full
     rounded-[16px]
+
     border-2
     !border-black
+
     bg-white
+
     px-4
     py-3
+
     text-base
     font-bold
     !text-slate-900
+
     shadow-sm
+
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
 
     hover:!border-black
@@ -353,7 +504,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="vendorId"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             ผู้จำหน่าย
           </label>
@@ -362,7 +515,9 @@ export default function MaterialForm({
             id="vendorId"
             name="vendorId"
             defaultValue=""
-            className={inputClassName}
+            className={
+              inputClassName
+            }
           >
             <option value="">
               เลือกผู้จำหน่าย
@@ -371,8 +526,12 @@ export default function MaterialForm({
             {vendors.map(
               (vendor) => (
                 <option
-                  key={vendor.id}
-                  value={vendor.id}
+                  key={
+                    vendor.id
+                  }
+                  value={
+                    vendor.id
+                  }
                 >
                   {vendor.name}
                 </option>
@@ -388,7 +547,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="category"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             หมวดหมู่
           </label>
@@ -400,13 +561,20 @@ export default function MaterialForm({
               const value =
                 e.target.value;
 
-              setCategory(value);
+              setCategory(
+                value
+              );
+
               setName("");
+
               setNewName("");
+
               setNewUnit("");
             }}
             required
-            className={inputClassName}
+            className={
+              inputClassName
+            }
           >
             <option value="">
               เลือกหมวดหมู่
@@ -432,7 +600,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="materialName"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             รายการพัสดุ
           </label>
@@ -483,7 +653,8 @@ export default function MaterialForm({
               NEW MATERIAL
           ================================================= */}
 
-          {name === "__NEW__" && (
+          {name ===
+            "__NEW__" && (
             <div
               className="
                 mt-4
@@ -497,6 +668,10 @@ export default function MaterialForm({
                 sm:p-5
               "
             >
+              {/* =============================================
+                  NEW NAME
+              ============================================= */}
+
               <div>
                 <label
                   htmlFor="newName"
@@ -509,10 +684,15 @@ export default function MaterialForm({
 
                 <input
                   id="newName"
-                  value={newName}
-                  onChange={(e) =>
+                  value={
+                    newName
+                  }
+                  onChange={(
+                    e
+                  ) =>
                     setNewName(
-                      e.target.value
+                      e.target
+                        .value
                     )
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
@@ -522,6 +702,10 @@ export default function MaterialForm({
                   }
                 />
               </div>
+
+              {/* =============================================
+                  NEW UNIT
+              ============================================= */}
 
               <div>
                 <label
@@ -535,10 +719,15 @@ export default function MaterialForm({
 
                 <input
                   id="newUnit"
-                  value={newUnit}
-                  onChange={(e) =>
+                  value={
+                    newUnit
+                  }
+                  onChange={(
+                    e
+                  ) =>
                     setNewUnit(
-                      e.target.value
+                      e.target
+                        .value
                     )
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
@@ -564,12 +753,16 @@ export default function MaterialForm({
             md:grid-cols-2
           "
         >
-          {/* จำนวน */}
+          {/* =================================================
+              จำนวน
+          ================================================= */}
 
           <div>
             <label
               htmlFor="balance"
-              className={labelClassName}
+              className={
+                labelClassName
+              }
             >
               จำนวน
             </label>
@@ -580,16 +773,22 @@ export default function MaterialForm({
               name="balance"
               defaultValue={0}
               min="0"
-              className={inputClassName}
+              className={
+                inputClassName
+              }
             />
           </div>
 
-          {/* หน่วย */}
+          {/* =================================================
+              หน่วย
+          ================================================= */}
 
           <div>
             <label
               htmlFor="unit"
-              className={labelClassName}
+              className={
+                labelClassName
+              }
             >
               หน่วย
             </label>
@@ -604,16 +803,23 @@ export default function MaterialForm({
                 w-full
                 cursor-default
                 rounded-[16px]
+
                 border-2
                 !border-black
+
                 bg-slate-100
+
                 px-4
                 py-3
+
                 text-base
                 font-extrabold
                 !text-slate-700
+
                 shadow-sm
+
                 outline-none
+
                 placeholder:!text-slate-400
               "
             />
@@ -627,7 +833,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="latestPrice"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             ราคาล่าสุด
           </label>
@@ -642,6 +850,7 @@ export default function MaterialForm({
               min="0"
               className={`
                 ${inputClassName}
+
                 pr-16
                 text-right
                 tabular-nums
@@ -669,7 +878,11 @@ export default function MaterialForm({
 
       {/* =====================================================
           ACTIONS
-          สีปุ่มใช้จาก AppButton กลางเท่านั้น
+
+          ปุ่มใช้ AppButton กลางเท่านั้น
+
+          ยกเลิก:
+          กลับไปหมวดที่กำลังเพิ่มรายการ
       ===================================================== */}
 
       <div
@@ -687,8 +900,12 @@ export default function MaterialForm({
           sm:px-8
         "
       >
+        {/* ===================================================
+            CANCEL
+        =================================================== */}
+
         <AppButton
-          href="/materials"
+          href={cancelHref}
           variant="secondary"
           size="md"
           className="
@@ -698,6 +915,10 @@ export default function MaterialForm({
         >
           ยกเลิก
         </AppButton>
+
+        {/* ===================================================
+            SAVE
+        =================================================== */}
 
         <AppButton
           type="submit"
@@ -720,7 +941,9 @@ export default function MaterialForm({
                 "
               />
             ) : (
-              <span>💾</span>
+              <span>
+                💾
+              </span>
             )
           }
           className="

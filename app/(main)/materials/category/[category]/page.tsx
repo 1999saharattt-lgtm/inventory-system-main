@@ -178,8 +178,13 @@ export default async function CategoryPage({
         subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length} รายการ`}
         actions={
           <>
+            {/* ===============================================
+                ส่ง category ปัจจุบันไปหน้าเพิ่มรายการ
+                เช่น OFFICE -> /materials/new?category=OFFICE
+            =============================================== */}
+
             <AppButton
-              href="/materials/new"
+              href={`/materials/new?category=${category}`}
               variant="primary"
               size="md"
             >

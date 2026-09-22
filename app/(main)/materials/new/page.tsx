@@ -7,21 +7,68 @@ import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewMaterialPage() {
+type Props = {
+  searchParams: Promise<{
+    category?: string;
+  }>;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const validCategories = [
+  "OFFICE",
+  "COMPUTER",
+  "ELECTRIC",
+  "HOUSEHOLD",
+  "VEHICLE",
+  "PRINTING",
+] as const;
+
+function getBackHref(
+  category: string | undefined
+) {
+  if (
+    category &&
+    validCategories.includes(
+      category as (typeof validCategories)[number]
+    )
+  ) {
+    return `/materials/category/${category}`;
+  }
+
+  return "/materials";
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+export default async function NewMaterialPage({
+  searchParams,
+}: Props) {
+  const { category } =
+    await searchParams;
+
+  const backHref =
+    getBackHref(category);
+
   /* =========================================================
      VENDORS
   ========================================================= */
 
-  const vendors = await prisma.vendor.findMany({
-    orderBy: {
-      name: "asc",
-    },
+  const vendors =
+    await prisma.vendor.findMany({
+      orderBy: {
+        name: "asc",
+      },
 
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
   /* =========================================================
      MATERIAL MASTERS
@@ -54,7 +101,6 @@ export default async function NewMaterialPage() {
     <AppPage>
       {/* =====================================================
           HEADER
-          ใช้ Component กลาง
       ===================================================== */}
 
       <AppPageHeader
@@ -63,7 +109,7 @@ export default async function NewMaterialPage() {
         subtitle="เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ"
         actions={
           <AppButton
-            href="/materials"
+            href={backHref}
             variant="back"
             size="md"
             icon={<span>←</span>}
