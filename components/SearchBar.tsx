@@ -229,7 +229,7 @@ export default function SearchBar({
         {...formProps}
         action={action}
         method={method}
-        className={`
+        className="
           relative
           z-10
 
@@ -243,7 +243,7 @@ export default function SearchBar({
 
           lg:flex-row
           lg:items-center
-        `}
+        "
       >
         {/* =================================================
             SEARCH INPUT AREA
@@ -260,6 +260,7 @@ export default function SearchBar({
         >
           {/* ===============================================
               SEARCH INPUT
+              ไม่มีไอคอนแว่นขยายภายในช่อง
           =============================================== */}
 
           <div
@@ -270,33 +271,6 @@ export default function SearchBar({
               flex-1
             "
           >
-            {/* Search Icon */}
-
-            <Search
-              aria-hidden="true"
-              size={20}
-              strokeWidth={2.3}
-              className="
-                pointer-events-none
-
-                absolute
-                left-4
-                top-1/2
-                z-10
-
-                -translate-y-1/2
-
-                text-slate-400
-
-                transition-colors
-                duration-200
-
-                group-focus-within:text-blue-500
-              "
-            />
-
-            {/* Input */}
-
             <input
               type="search"
               name={name}
@@ -316,7 +290,7 @@ export default function SearchBar({
                 bg-slate-50/80
 
                 py-3
-                pl-11
+                pl-4
                 pr-11
 
                 text-base
@@ -441,6 +415,7 @@ export default function SearchBar({
 
           {/* ===============================================
               SEARCH BUTTON
+              ไอคอนแว่นขยายตรงปุ่มยังคงไว้
           =============================================== */}
 
           {showSearchButton && (
