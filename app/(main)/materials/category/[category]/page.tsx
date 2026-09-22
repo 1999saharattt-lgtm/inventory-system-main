@@ -1,15 +1,10 @@
 import { prisma } from "@/lib/prisma";
-
 import DeleteButton from "./DeleteButton";
 import QRCodeButton from "./QRCodeButton";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
-
-/* =========================================================
-   CATEGORY
-========================================================= */
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -68,7 +63,7 @@ type Props = {
 };
 
 /* =========================================================
-   DATE FORMAT
+   วันที่ไทยแบบย่อ
    ตัวอย่าง 01 ก.ย. 69
 ========================================================= */
 
@@ -100,93 +95,70 @@ function formatThaiShortDate(
     return "-";
   }
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-  const month =
-    thaiShortMonths[
-      date.getMonth()
-    ];
+  const month = thaiShortMonths[date.getMonth()];
 
-  const buddhistYear =
-    String(
-      date.getFullYear() + 543
-    ).slice(-2);
+  const buddhistYear = String(
+    date.getFullYear() + 543
+  ).slice(-2);
 
   return `${day} ${month} ${buddhistYear}`;
 }
-
-/* =========================================================
-   PAGE
-========================================================= */
 
 export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
-  const { category } =
-    await params;
+  const { category } = await params;
+  const { search } = await searchParams;
 
-  const { search } =
-    await searchParams;
-
-  /* =======================================================
+  /* =========================================================
      DATA
-  ======================================================= */
+  ========================================================= */
 
-  const materials =
-    await prisma.material.findMany({
-      where: {
-        category:
-          category as Category,
+  const materials = await prisma.material.findMany({
+    where: {
+      category: category as Category,
 
-        ...(search
-          ? {
-              OR: [
-                {
-                  code: {
-                    contains:
-                      search,
-                  },
+      ...(search
+        ? {
+            OR: [
+              {
+                code: {
+                  contains: search,
                 },
-                {
-                  name: {
-                    contains:
-                      search,
-                  },
+              },
+              {
+                name: {
+                  contains: search,
                 },
-              ],
-            }
-          : {}),
-      },
+              },
+            ],
+          }
+        : {}),
+    },
 
-      include: {
-        receiveItems: {
-          orderBy: {
-            id: "desc",
-          },
-
-          take: 1,
+    include: {
+      receiveItems: {
+        orderBy: {
+          id: "desc",
         },
-      },
 
-      orderBy: {
-        code: "asc",
+        take: 1,
       },
-    });
+    },
+
+    orderBy: {
+      code: "asc",
+    },
+  });
 
   const title =
-    categoryName[category] ??
-    "รายการพัสดุ";
+    categoryName[category] ?? "รายการพัสดุ";
 
   const icon =
-    categoryIcon[category] ??
-    "📦";
-
-  /* =======================================================
-     UI
-  ======================================================= */
+    categoryIcon[category] ?? "📦";
 
   return (
     <AppPage>
@@ -206,18 +178,16 @@ export default async function CategoryPage({
               size="md"
             >
               <span>＋</span>
-              <span>
-                เพิ่มรายการ
-              </span>
+              <span>เพิ่มรายการ</span>
             </AppButton>
 
             <AppButton
               href="/materials"
-              variant="outline"
+              variant="back"
               size="md"
+              icon={<span>←</span>}
             >
-              <span>←</span>
-              <span>กลับ</span>
+              กลับ
             </AppButton>
           </>
         }
@@ -229,40 +199,20 @@ export default async function CategoryPage({
 
       <section
         className="
-          relative
           w-full
           min-w-0
-          overflow-hidden
-          rounded-[28px]
+          rounded-[24px]
           border
           border-slate-200
-          bg-slate-50/95
+          bg-white/80
           p-4
-          shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
-          backdrop-blur-xl
+          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
           sm:p-5
         "
       >
-        {/* Ambient */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-            h-52
-            w-52
-            rounded-full
-            bg-blue-300/10
-            blur-3xl
-          "
-        />
-
         <form
           className="
-            relative
             flex
             w-full
             min-w-0
@@ -272,17 +222,7 @@ export default async function CategoryPage({
             sm:items-center
           "
         >
-          {/* =================================================
-              SEARCH INPUT
-          ================================================= */}
-
-          <div
-            className="
-              relative
-              min-w-0
-              flex-1
-            "
-          >
+          <div className="relative min-w-0 flex-1">
             <div
               aria-hidden="true"
               className="
@@ -300,9 +240,7 @@ export default async function CategoryPage({
 
             <input
               name="search"
-              defaultValue={
-                search ?? ""
-              }
+              defaultValue={search ?? ""}
               placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
               className="
                 min-h-[48px]
@@ -317,26 +255,20 @@ export default async function CategoryPage({
                 text-base
                 font-bold
                 !text-slate-900
-                shadow-sm
                 outline-none
                 transition-all
-                duration-200
+                duration-300
                 placeholder:!text-slate-400
 
                 hover:bg-slate-50
 
-                focus:border-black
+                focus:border-blue-600
                 focus:bg-white
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-blue-500/10
               "
             />
           </div>
-
-          {/* =================================================
-              SEARCH BUTTON
-              สีมาจาก AppButton กลาง
-          ================================================= */}
 
           <AppButton
             type="submit"
@@ -347,11 +279,6 @@ export default async function CategoryPage({
             <span>ค้นหา</span>
           </AppButton>
 
-          {/* =================================================
-              CLEAR SEARCH
-              สีมาจาก AppButton กลาง
-          ================================================= */}
-
           {search && (
             <AppButton
               href={`/materials/category/${category}`}
@@ -359,10 +286,7 @@ export default async function CategoryPage({
               size="md"
             >
               <span>✕</span>
-
-              <span>
-                ล้างการค้นหา
-              </span>
+              <span>ล้างการค้นหา</span>
             </AppButton>
           )}
         </form>
@@ -379,24 +303,20 @@ export default async function CategoryPage({
           overflow-hidden
           rounded-[28px]
           border
-          border-slate-200
-          bg-slate-50/95
+          border-slate-300
+          bg-white/85
           shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-          backdrop-blur-xl
+          backdrop-blur-2xl
         "
       >
-        {/* ===================================================
-            TABLE CARD HEADER
-        =================================================== */}
-
         <div
           className="
             flex
             flex-col
-            gap-3
+            gap-2
             border-b
-            border-slate-200
-            bg-slate-50/95
+            border-black
+            bg-white/70
             px-5
             py-4
             sm:flex-row
@@ -441,13 +361,12 @@ export default async function CategoryPage({
               rounded-full
               border
               border-slate-300
-              bg-white
+              bg-slate-100/80
               px-3
               py-1.5
               text-sm
               font-extrabold
               !text-slate-700
-              shadow-sm
             "
           >
             <span>ทั้งหมด</span>
@@ -459,10 +378,11 @@ export default async function CategoryPage({
                 items-center
                 justify-center
                 rounded-full
-                bg-slate-100
+                bg-white
                 px-2
                 py-0.5
                 !text-slate-900
+                shadow-sm
               "
             >
               {materials.length}
@@ -479,7 +399,6 @@ export default async function CategoryPage({
             w-full
             overflow-x-auto
             overscroll-x-contain
-            bg-white
           "
         >
           <table
@@ -492,12 +411,6 @@ export default async function CategoryPage({
               bg-white
             "
           >
-            {/* =================================================
-                TABLE HEAD
-                ใช้มาตรฐานกลาง:
-                from-slate-800 to-slate-700
-            ================================================= */}
-
             <thead>
               <tr>
                 {[
@@ -510,77 +423,57 @@ export default async function CategoryPage({
                   "วันหมดอายุ",
                   "จัดการ",
                   "QR Code",
-                ].map(
-                  (columnTitle) => (
-                    <th
-                      key={
-                        columnTitle
-                      }
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-base
-                        font-extrabold
-                        !text-white
-                        sm:text-lg
-                      "
-                    >
-                      {
-                        columnTitle
-                      }
-                    </th>
-                  )
-                )}
+                ].map((tableTitle) => (
+                  <th
+                    key={tableTitle}
+                    className="
+                      whitespace-nowrap
+                      border
+                      border-black
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                      px-4
+                      py-4
+                      text-center
+                      text-base
+                      font-extrabold
+                      !text-white
+                      sm:text-lg
+                    "
+                  >
+                    {tableTitle}
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            {/* =================================================
-                TABLE BODY
-            ================================================= */}
-
             <tbody>
-              {materials.length >
-              0 ? (
+              {materials.length > 0 ? (
                 materials.map(
                   (
                     material: Material,
                     index
                   ) => {
                     const latestReceive =
-                      material
-                        .receiveItems[0];
+                      material.receiveItems[0];
 
                     return (
                       <tr
-                        key={
-                          material.id
-                        }
+                        key={material.id}
                         className={`
                           transition-colors
                           duration-200
 
                           ${
-                            index %
-                              2 ===
-                            0
+                            index % 2 === 0
                               ? "bg-white"
-                              : "bg-slate-50"
+                              : "bg-slate-50/60"
                           }
 
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* ===================================
-                            รหัสพัสดุ
-                        =================================== */}
-
                         <td
                           className="
                             whitespace-nowrap
@@ -588,7 +481,6 @@ export default async function CategoryPage({
                             border-black
                             px-4
                             py-3.5
-                            text-center
                             font-extrabold
                             !text-slate-900
                           "
@@ -596,8 +488,6 @@ export default async function CategoryPage({
                           <span
                             className="
                               inline-flex
-                              items-center
-                              justify-center
                               rounded-[10px]
                               border
                               border-black
@@ -608,15 +498,9 @@ export default async function CategoryPage({
                               !text-slate-700
                             "
                           >
-                            {
-                              material.code
-                            }
+                            {material.code}
                           </span>
                         </td>
-
-                        {/* ===================================
-                            รายการพัสดุ
-                        =================================== */}
 
                         <td
                           className="
@@ -629,14 +513,8 @@ export default async function CategoryPage({
                             !text-slate-900
                           "
                         >
-                          {
-                            material.name
-                          }
+                          {material.name}
                         </td>
-
-                        {/* ===================================
-                            จำนวน
-                        =================================== */}
 
                         <td
                           className="
@@ -662,16 +540,14 @@ export default async function CategoryPage({
                               text-sm
 
                               ${
-                                material.balance <=
-                                0
+                                material.balance <= 0
                                   ? `
                                     bg-red-50
                                     !text-red-600
                                     ring-1
                                     ring-red-200
                                   `
-                                  : material.balance <
-                                      10
+                                  : material.balance < 10
                                     ? `
                                       bg-amber-50
                                       !text-amber-600
@@ -687,15 +563,9 @@ export default async function CategoryPage({
                               }
                             `}
                           >
-                            {
-                              material.balance
-                            }
+                            {material.balance}
                           </span>
                         </td>
-
-                        {/* ===================================
-                            หน่วย
-                        =================================== */}
 
                         <td
                           className="
@@ -709,14 +579,8 @@ export default async function CategoryPage({
                             !text-slate-700
                           "
                         >
-                          {
-                            material.unit
-                          }
+                          {material.unit}
                         </td>
-
-                        {/* ===================================
-                            ราคาล่าสุด
-                        =================================== */}
 
                         <td
                           className="
@@ -734,18 +598,28 @@ export default async function CategoryPage({
                           {material.latestPrice.toLocaleString(
                             "th-TH",
                             {
-                              minimumFractionDigits:
-                                2,
-
-                              maximumFractionDigits:
-                                2,
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
                             }
                           )}
                         </td>
 
-                        {/* ===================================
-                            วันผลิต
-                        =================================== */}
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-bold
+                            !text-slate-700
+                          "
+                        >
+                          {formatThaiShortDate(
+                            latestReceive?.manufacture
+                          )}
+                        </td>
 
                         <td
                           className="
@@ -760,37 +634,9 @@ export default async function CategoryPage({
                           "
                         >
                           {formatThaiShortDate(
-                            latestReceive
-                              ?.manufacture
+                            latestReceive?.expiry
                           )}
                         </td>
-
-                        {/* ===================================
-                            วันหมดอายุ
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-                            px-4
-                            py-3.5
-                            text-center
-                            font-bold
-                            !text-slate-700
-                          "
-                        >
-                          {formatThaiShortDate(
-                            latestReceive
-                              ?.expiry
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            จัดการ
-                            ปุ่มใช้ Component กลางทั้งหมด
-                        =================================== */}
 
                         <td
                           className="
@@ -814,26 +660,15 @@ export default async function CategoryPage({
                               variant="outline"
                               size="sm"
                             >
-                              <span>
-                                ✏️
-                              </span>
-
-                              <span>
-                                แก้ไข
-                              </span>
+                              <span>✏️</span>
+                              <span>แก้ไข</span>
                             </AppButton>
 
                             <DeleteButton
-                              id={
-                                material.id
-                              }
+                              id={material.id}
                             />
                           </div>
                         </td>
-
-                        {/* ===================================
-                            QR CODE
-                        =================================== */}
 
                         <td
                           className="
@@ -845,12 +680,7 @@ export default async function CategoryPage({
                             text-center
                           "
                         >
-                          <div
-                            className="
-                              flex
-                              justify-center
-                            "
-                          >
+                          <div className="flex justify-center">
                             <QRCodeButton
                               materialId={
                                 material.id
@@ -869,10 +699,6 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
-                /* =============================================
-                   EMPTY STATE
-                ============================================= */
-
                 <tr>
                   <td
                     colSpan={9}
@@ -902,11 +728,9 @@ export default async function CategoryPage({
                           items-center
                           justify-center
                           rounded-[20px]
-                          border
-                          border-slate-200
                           bg-slate-100
                           text-3xl
-                          shadow-sm
+                          shadow-inner
                         "
                       >
                         📦
