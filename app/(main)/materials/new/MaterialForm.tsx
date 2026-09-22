@@ -1,9 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
+
 import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Vendor = {
   id: number;
@@ -20,74 +31,531 @@ type MaterialMaster = {
 type Props = {
   vendors: Vendor[];
   materialMasters: MaterialMaster[];
-
-  /*
-   * รับหมวดหมู่จากหน้า /materials/new
-   *
-   * ตัวอย่าง
-   * OFFICE
-   * COMPUTER
-   * ELECTRIC
-   */
   initialCategory?: string;
+  backHref?: string;
+};
+
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableSelectProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  disabled?: boolean;
+  required?: boolean;
+  onChange: (value: string) => void;
 };
 
 /* =========================================================
-   CATEGORY MAP
+   CATEGORY
 ========================================================= */
 
-const categoryMap: Record<string, string> = {
+const categoryMap: Record<
+  string,
+  string
+> = {
   "วัสดุสำนักงาน": "OFFICE",
   "วัสดุคอมพิวเตอร์": "COMPUTER",
   "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
-  "วัสดุงานบ้านและงานครัว": "HOUSEHOLD",
+  "วัสดุงานบ้านและงานครัว":
+    "HOUSEHOLD",
   "วัสดุยานพาหนะ": "VEHICLE",
-  "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
+  "วัสดุสื่อสิ่งพิมพ์":
+    "PRINTING",
 };
 
-/* =========================================================
-   CATEGORY CODE -> THAI NAME
-========================================================= */
-
-const categoryLabelMap: Record<string, string> =
+const categoryCodeToName =
   Object.fromEntries(
     Object.entries(categoryMap).map(
-      ([label, code]) => [
+      ([name, code]) => [
         code,
-        label,
+        name,
       ]
     )
-  );
+  ) as Record<string, string>;
 
 /* =========================================================
-   COMPONENT
+   SEARCHABLE SELECT
+========================================================= */
+
+function SearchableSelect({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
+  disabled = false,
+  required = false,
+  onChange,
+}: SearchableSelectProps) {
+  const [open, setOpen] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const inputRef =
+    useRef<HTMLInputElement>(null);
+
+  /* =========================================================
+     SELECTED OPTION
+  ========================================================= */
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.value === value
+    );
+
+  /* =========================================================
+     FILTER
+  ========================================================= */
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        search.trim().toLocaleLowerCase(
+          "th"
+        );
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase("th")
+            .includes(keyword)
+      );
+    }, [options, search]);
+
+  /* =========================================================
+     CLOSE WHEN CLICK OUTSIDE
+  ========================================================= */
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     FOCUS SEARCH
+  ========================================================= */
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const timer =
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [open]);
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+    >
+      {/* Hidden field for required validation */}
+
+      {required && (
+        <input
+          tabIndex={-1}
+          aria-hidden="true"
+          value={value}
+          onChange={() => {}}
+          required
+          className="
+            pointer-events-none
+            absolute
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      )}
+
+      {/* ===============================================
+          CONTROL
+      =============================================== */}
+
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+
+          setOpen((current) => {
+            const next = !current;
+
+            if (!next) {
+              setSearch("");
+            }
+
+            return next;
+          });
+        }}
+        className="
+          flex
+          min-h-[50px]
+          w-full
+          items-center
+          justify-between
+          gap-3
+          rounded-[16px]
+          border-2
+          !border-black
+          bg-white
+          px-4
+          py-3
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+          shadow-sm
+          outline-none
+          transition-all
+          duration-200
+
+          hover:!border-black
+          hover:bg-slate-50
+
+          focus:!border-black
+          focus:ring-4
+          focus:ring-slate-900/10
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-100
+          disabled:!text-slate-400
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-700
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {/* ===============================================
+          DROPDOWN
+      =============================================== */}
+
+      {open && !disabled && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+8px)]
+            z-50
+            overflow-hidden
+            rounded-[16px]
+            border-2
+            !border-black
+            bg-white
+            shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
+          "
+        >
+          {/* =============================================
+              SEARCH INPUT
+          ============================================= */}
+
+          <div
+            className="
+              border-b
+              border-slate-200
+              bg-slate-50
+              p-3
+            "
+          >
+            <div className="relative">
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  left-3
+                  flex
+                  items-center
+                  !text-slate-500
+                "
+              >
+                🔎
+              </div>
+
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(event) =>
+                  setSearch(
+                    event.target.value
+                  )
+                }
+                onKeyDown={(event) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(false);
+                    setSearch("");
+                  }
+
+                  if (
+                    event.key ===
+                      "Enter" &&
+                    filteredOptions.length ===
+                      1
+                  ) {
+                    event.preventDefault();
+
+                    onChange(
+                      filteredOptions[0]
+                        .value
+                    );
+
+                    setOpen(false);
+                    setSearch("");
+                  }
+                }}
+                placeholder={
+                  searchPlaceholder
+                }
+                className="
+                  min-h-[44px]
+                  w-full
+                  rounded-[12px]
+                  border-2
+                  !border-black
+                  bg-white
+                  py-2.5
+                  pl-10
+                  pr-3
+                  text-base
+                  font-bold
+                  !text-slate-900
+                  outline-none
+                  placeholder:!text-slate-400
+
+                  focus:!border-black
+                  focus:ring-4
+                  focus:ring-slate-900/10
+                "
+              />
+            </div>
+          </div>
+
+          {/* =============================================
+              OPTIONS
+          ============================================= */}
+
+          <div
+            role="listbox"
+            className="
+              max-h-[260px]
+              overflow-y-auto
+              overscroll-contain
+              p-2
+            "
+          >
+            {filteredOptions.length >
+            0 ? (
+              filteredOptions.map(
+                (option) => {
+                  const active =
+                    option.value ===
+                    value;
+
+                  return (
+                    <button
+                      key={
+                        option.value
+                      }
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        active
+                      }
+                      onClick={() => {
+                        onChange(
+                          option.value
+                        );
+
+                        setOpen(false);
+                        setSearch("");
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        gap-3
+                        rounded-[10px]
+                        px-3
+                        py-2.5
+                        text-left
+                        text-base
+                        font-bold
+                        transition-colors
+
+                        ${
+                          active
+                            ? `
+                              bg-slate-900
+                              !text-white
+                            `
+                            : `
+                              bg-white
+                              !text-slate-900
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      <span className="min-w-0 break-words">
+                        {
+                          option.label
+                        }
+                      </span>
+
+                      {active && (
+                        <span
+                          aria-hidden="true"
+                          className="
+                            shrink-0
+                            !text-white
+                          "
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+              )
+            ) : (
+              <div
+                className="
+                  px-4
+                  py-8
+                  text-center
+                  text-sm
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                ไม่พบข้อมูลที่ค้นหา
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   MATERIAL FORM
 ========================================================= */
 
 export default function MaterialForm({
   vendors,
   materialMasters,
   initialCategory = "",
+  backHref = "/materials",
 }: Props) {
   const categories =
     Object.keys(categoryMap);
 
-  /* =========================================================
-     INITIAL CATEGORY
-
-     initialCategory ที่ได้รับจะเป็น CODE
-     เช่น OFFICE
-
-     แต่ state category ใช้ชื่อภาษาไทย
-     เช่น วัสดุสำนักงาน
-  ========================================================= */
-
-  const initialCategoryLabel =
-    categoryLabelMap[
-      initialCategory.toUpperCase()
+  const initialCategoryName =
+    categoryCodeToName[
+      initialCategory
     ] ?? "";
 
+  const [vendorId, setVendorId] =
+    useState("");
+
   const [category, setCategory] =
-    useState(initialCategoryLabel);
+    useState(initialCategoryName);
 
   const [name, setName] =
     useState("");
@@ -104,31 +572,30 @@ export default function MaterialForm({
   ] = useState(false);
 
   /* =========================================================
-     CURRENT CATEGORY CODE
+     DROPDOWN OPTIONS
   ========================================================= */
 
-  const currentCategoryCode =
-    categoryMap[category] ?? "";
+  const vendorOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        vendors.map((vendor) => ({
+          value: String(vendor.id),
+          label: vendor.name,
+        })),
+      [vendors]
+    );
 
-  /* =========================================================
-     CANCEL / BACK URL
-
-     ถ้ามีหมวดที่เลือกอยู่
-     ให้กลับเข้าหมวดนั้น
-
-     ถ้าไม่มีหมวด
-     ให้กลับหน้า /materials
-  ========================================================= */
-
-  const cancelHref =
-    currentCategoryCode
-      ? `/materials/category/${currentCategoryCode}`
-      : initialCategory &&
-          categoryLabelMap[
-            initialCategory.toUpperCase()
-          ]
-        ? `/materials/category/${initialCategory.toUpperCase()}`
-        : "/materials";
+  const categoryOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        categories.map(
+          (item) => ({
+            value: item,
+            label: item,
+          })
+        ),
+      [categories]
+    );
 
   /* =========================================================
      MATERIAL NAMES
@@ -166,6 +633,23 @@ export default function MaterialForm({
     materialMasters,
   ]);
 
+  const materialOptions =
+    useMemo<SearchableOption[]>(
+      () => [
+        ...names.map((item) => ({
+          value: item,
+          label: item,
+        })),
+
+        {
+          value: "__NEW__",
+          label:
+            "+ เพิ่มรายการใหม่...",
+        },
+      ],
+      [names]
+    );
+
   /* =========================================================
      UNIT
   ========================================================= */
@@ -176,7 +660,9 @@ export default function MaterialForm({
       : UNITS[name] ??
         materialMasters.find(
           (item) =>
-            item.name === name
+            item.name === name &&
+            item.category ===
+              categoryMap[category]
         )?.unit ??
         "";
 
@@ -203,9 +689,13 @@ export default function MaterialForm({
         ? newName.trim()
         : name;
 
-    /* =======================================================
-       VALIDATION
-    ======================================================= */
+    if (!categoryMap[category]) {
+      alert(
+        "กรุณาเลือกหมวดหมู่"
+      );
+
+      return;
+    }
 
     if (!materialName) {
       alert(
@@ -223,101 +713,60 @@ export default function MaterialForm({
       return;
     }
 
-    if (!currentCategoryCode) {
-      alert(
-        "กรุณาเลือกหมวดหมู่"
-      );
-
-      return;
-    }
-
-    /* =======================================================
-       REQUEST BODY
-    ======================================================= */
-
     const body = {
-      vendorId:
-        formData.get("vendorId")
-          ? Number(
-              formData.get(
-                "vendorId"
-              )
-            )
-          : null,
+      vendorId: vendorId
+        ? Number(vendorId)
+        : null,
 
       category:
-        currentCategoryCode,
+        categoryMap[category],
 
-      name:
-        materialName,
+      name: materialName,
 
       unit,
 
-      balance:
+      balance: Number(
+        formData.get("balance")
+      ),
+
+      latestPrice: Number(
         Number(
           formData.get(
-            "balance"
+            "latestPrice"
           )
-        ),
-
-      latestPrice:
-        Number(
-          Number(
-            formData.get(
-              "latestPrice"
-            )
-          ).toFixed(2)
-        ),
+        ).toFixed(2)
+      ),
     };
-
-    /* =======================================================
-       SAVE
-    ======================================================= */
 
     try {
       setIsSubmitting(true);
 
-      const res =
-        await fetch(
-          "/api/materials",
-          {
-            method: "POST",
+      const res = await fetch(
+        "/api/materials",
+        {
+          method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-            body:
-              JSON.stringify(
-                body
-              ),
-          }
-        );
-
-      /* =====================================================
-         SUCCESS
-
-         กลับเข้าหมวดของรายการที่เพิ่ม
-      ===================================================== */
+          body: JSON.stringify(
+            body
+          ),
+        }
+      );
 
       if (res.ok) {
         window.location.href =
-          `/materials/category/${currentCategoryCode}`;
+          `/materials/category/${categoryMap[category]}`;
 
         return;
       }
 
-      /* =====================================================
-         API ERROR
-      ===================================================== */
-
-      const data =
-        await res
-          .json()
-          .catch(
-            () => null
-          );
+      const data = await res
+        .json()
+        .catch(() => null);
 
       alert(
         data?.message ??
@@ -350,41 +799,27 @@ export default function MaterialForm({
     sm:text-base
   `;
 
-  /* =========================================================
-     INPUT STANDARD
-
-     มาตรฐานช่องข้อมูลของระบบ
-
-     - กรอบดำ
-     - border-2
-     - !border-black
-     - ทุก input / select ใช้มาตรฐานเดียวกัน
-  ========================================================= */
+  /*
+   * มาตรฐานช่องข้อมูลของระบบ
+   * ทุกช่องต้องมีกรอบดำ
+   */
 
   const inputClassName = `
     min-h-[50px]
     w-full
     rounded-[16px]
-
     border-2
     !border-black
-
     bg-white
-
     px-4
     py-3
-
     text-base
     font-bold
     !text-slate-900
-
     shadow-sm
-
     outline-none
-
     transition-all
     duration-200
-
     placeholder:!text-slate-400
 
     hover:!border-black
@@ -407,7 +842,7 @@ export default function MaterialForm({
         mx-auto
         w-full
         max-w-4xl
-        overflow-hidden
+        overflow-visible
         rounded-[30px]
         border
         border-slate-200
@@ -422,6 +857,7 @@ export default function MaterialForm({
 
       <div
         className="
+          rounded-t-[30px]
           border-b
           border-slate-200
           bg-white/70
@@ -499,6 +935,7 @@ export default function MaterialForm({
       >
         {/* ===================================================
             ผู้จำหน่าย
+            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -511,37 +948,23 @@ export default function MaterialForm({
             ผู้จำหน่าย
           </label>
 
-          <select
+          <SearchableSelect
             id="vendorId"
-            name="vendorId"
-            defaultValue=""
-            className={
-              inputClassName
+            value={vendorId}
+            options={
+              vendorOptions
             }
-          >
-            <option value="">
-              เลือกผู้จำหน่าย
-            </option>
-
-            {vendors.map(
-              (vendor) => (
-                <option
-                  key={
-                    vendor.id
-                  }
-                  value={
-                    vendor.id
-                  }
-                >
-                  {vendor.name}
-                </option>
-              )
-            )}
-          </select>
+            placeholder="เลือกผู้จำหน่าย"
+            searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
+            onChange={
+              setVendorId
+            }
+          />
         </div>
 
         {/* ===================================================
             หมวดหมู่
+            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -554,47 +977,28 @@ export default function MaterialForm({
             หมวดหมู่
           </label>
 
-          <select
+          <SearchableSelect
             id="category"
             value={category}
-            onChange={(e) => {
-              const value =
-                e.target.value;
-
-              setCategory(
-                value
-              );
+            options={
+              categoryOptions
+            }
+            placeholder="เลือกหมวดหมู่"
+            searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+            required
+            onChange={(value) => {
+              setCategory(value);
 
               setName("");
-
               setNewName("");
-
               setNewUnit("");
             }}
-            required
-            className={
-              inputClassName
-            }
-          >
-            <option value="">
-              เลือกหมวดหมู่
-            </option>
-
-            {categories.map(
-              (item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              )
-            )}
-          </select>
+          />
         </div>
 
         {/* ===================================================
             รายการพัสดุ
+            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -607,54 +1011,37 @@ export default function MaterialForm({
             รายการพัสดุ
           </label>
 
-          <select
+          <SearchableSelect
             id="materialName"
             value={name}
-            onChange={(e) =>
-              setName(
-                e.target.value
-              )
+            options={
+              materialOptions
             }
-            required
-            disabled={!category}
-            className={`
-              ${inputClassName}
-
-              disabled:cursor-not-allowed
-              disabled:!border-black
-              disabled:bg-slate-100
-              disabled:!text-slate-400
-              disabled:opacity-70
-            `}
-          >
-            <option value="">
-              {category
+            placeholder={
+              category
                 ? "เลือกรายการพัสดุ"
-                : "กรุณาเลือกหมวดหมู่ก่อน"}
-            </option>
+                : "กรุณาเลือกหมวดหมู่ก่อน"
+            }
+            searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+            disabled={!category}
+            required
+            onChange={(value) => {
+              setName(value);
 
-            {names.map(
-              (item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              )
-            )}
-
-            <option value="__NEW__">
-              + เพิ่มรายการใหม่...
-            </option>
-          </select>
+              if (
+                value !== "__NEW__"
+              ) {
+                setNewName("");
+                setNewUnit("");
+              }
+            }}
+          />
 
           {/* =================================================
               NEW MATERIAL
           ================================================= */}
 
-          {name ===
-            "__NEW__" && (
+          {name === "__NEW__" && (
             <div
               className="
                 mt-4
@@ -668,10 +1055,6 @@ export default function MaterialForm({
                 sm:p-5
               "
             >
-              {/* =============================================
-                  NEW NAME
-              ============================================= */}
-
               <div>
                 <label
                   htmlFor="newName"
@@ -684,15 +1067,10 @@ export default function MaterialForm({
 
                 <input
                   id="newName"
-                  value={
-                    newName
-                  }
-                  onChange={(
-                    e
-                  ) =>
+                  value={newName}
+                  onChange={(e) =>
                     setNewName(
-                      e.target
-                        .value
+                      e.target.value
                     )
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
@@ -702,10 +1080,6 @@ export default function MaterialForm({
                   }
                 />
               </div>
-
-              {/* =============================================
-                  NEW UNIT
-              ============================================= */}
 
               <div>
                 <label
@@ -719,15 +1093,10 @@ export default function MaterialForm({
 
                 <input
                   id="newUnit"
-                  value={
-                    newUnit
-                  }
-                  onChange={(
-                    e
-                  ) =>
+                  value={newUnit}
+                  onChange={(e) =>
                     setNewUnit(
-                      e.target
-                        .value
+                      e.target.value
                     )
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
@@ -753,9 +1122,7 @@ export default function MaterialForm({
             md:grid-cols-2
           "
         >
-          {/* =================================================
-              จำนวน
-          ================================================= */}
+          {/* จำนวน */}
 
           <div>
             <label
@@ -779,9 +1146,7 @@ export default function MaterialForm({
             />
           </div>
 
-          {/* =================================================
-              หน่วย
-          ================================================= */}
+          {/* หน่วย */}
 
           <div>
             <label
@@ -803,23 +1168,16 @@ export default function MaterialForm({
                 w-full
                 cursor-default
                 rounded-[16px]
-
                 border-2
                 !border-black
-
                 bg-slate-100
-
                 px-4
                 py-3
-
                 text-base
                 font-extrabold
                 !text-slate-700
-
                 shadow-sm
-
                 outline-none
-
                 placeholder:!text-slate-400
               "
             />
@@ -850,7 +1208,6 @@ export default function MaterialForm({
               min="0"
               className={`
                 ${inputClassName}
-
                 pr-16
                 text-right
                 tabular-nums
@@ -878,11 +1235,6 @@ export default function MaterialForm({
 
       {/* =====================================================
           ACTIONS
-
-          ปุ่มใช้ AppButton กลางเท่านั้น
-
-          ยกเลิก:
-          กลับไปหมวดที่กำลังเพิ่มรายการ
       ===================================================== */}
 
       <div
@@ -890,6 +1242,7 @@ export default function MaterialForm({
           flex
           flex-col-reverse
           gap-3
+          rounded-b-[30px]
           border-t
           border-slate-200
           bg-white/70
@@ -900,12 +1253,8 @@ export default function MaterialForm({
           sm:px-8
         "
       >
-        {/* ===================================================
-            CANCEL
-        =================================================== */}
-
         <AppButton
-          href={cancelHref}
+          href={backHref}
           variant="secondary"
           size="md"
           className="
@@ -915,10 +1264,6 @@ export default function MaterialForm({
         >
           ยกเลิก
         </AppButton>
-
-        {/* ===================================================
-            SAVE
-        =================================================== */}
 
         <AppButton
           type="submit"
@@ -941,9 +1286,7 @@ export default function MaterialForm({
                 "
               />
             ) : (
-              <span>
-                💾
-              </span>
+              <span>💾</span>
             )
           }
           className="

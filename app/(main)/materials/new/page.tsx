@@ -7,10 +7,6 @@ import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
-/* =========================================================
-   TYPES
-========================================================= */
-
 type Props = {
   searchParams: Promise<{
     category?: string;
@@ -30,42 +26,24 @@ const validCategories = [
   "PRINTING",
 ] as const;
 
-type MaterialCategory =
+type CategoryCode =
   (typeof validCategories)[number];
 
-/* =========================================================
-   VALIDATE CATEGORY
-========================================================= */
-
-function getValidCategory(
+function isValidCategory(
   category: string | undefined
-): MaterialCategory | undefined {
-  if (!category) {
-    return undefined;
-  }
-
-  const normalizedCategory =
-    category.toUpperCase();
-
-  if (
+): category is CategoryCode {
+  return (
+    !!category &&
     validCategories.includes(
-      normalizedCategory as MaterialCategory
+      category as CategoryCode
     )
-  ) {
-    return normalizedCategory as MaterialCategory;
-  }
-
-  return undefined;
+  );
 }
 
-/* =========================================================
-   BACK HREF
-========================================================= */
-
 function getBackHref(
-  category: MaterialCategory | undefined
+  category: string | undefined
 ) {
-  if (category) {
+  if (isValidCategory(category)) {
     return `/materials/category/${category}`;
   }
 
@@ -79,16 +57,12 @@ function getBackHref(
 export default async function NewMaterialPage({
   searchParams,
 }: Props) {
-  /* =======================================================
-     SEARCH PARAMS
-  ======================================================= */
+  const { category } = await searchParams;
 
-  const params = await searchParams;
-
-  const category =
-    getValidCategory(
-      params.category
-    );
+  const initialCategory =
+    isValidCategory(category)
+      ? category
+      : "";
 
   const backHref =
     getBackHref(category);
@@ -138,10 +112,6 @@ export default async function NewMaterialPage({
 
   return (
     <AppPage>
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
       <AppPageHeader
         icon="➕"
         title="เพิ่มรายการพัสดุ"
@@ -158,10 +128,6 @@ export default async function NewMaterialPage({
         }
       />
 
-      {/* =====================================================
-          FORM AREA
-      ===================================================== */}
-
       <section
         className="
           w-full
@@ -170,8 +136,13 @@ export default async function NewMaterialPage({
       >
         <MaterialForm
           vendors={vendors}
-          materialMasters={materialMasters}
-          initialCategory={category}
+          materialMasters={
+            materialMasters
+          }
+          initialCategory={
+            initialCategory
+          }
+          backHref={backHref}
         />
       </section>
     </AppPage>
