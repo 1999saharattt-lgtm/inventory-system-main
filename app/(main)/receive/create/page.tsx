@@ -146,22 +146,14 @@ export default async function CreateReceivePage() {
           relative
           w-full
           min-w-0
-
-          overflow-hidden
-
+          overflow-visible
           rounded-[28px]
-
           border
           border-slate-300
-
           bg-white/85
-
           p-4
-
           shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-
           backdrop-blur-2xl
-
           sm:p-6
         "
       >
@@ -176,14 +168,10 @@ export default async function CreateReceivePage() {
             absolute
             -right-20
             -top-20
-
             h-52
             w-52
-
             rounded-full
-
             bg-blue-400/10
-
             blur-3xl
           "
         />
@@ -195,14 +183,10 @@ export default async function CreateReceivePage() {
             absolute
             -bottom-24
             -left-20
-
             h-56
             w-56
-
             rounded-full
-
             bg-cyan-400/10
-
             blur-3xl
           "
         />

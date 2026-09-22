@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { createReceive } from "./actions";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import AppButton from "@/components/AppButton";
+
+import { createReceive } from "./actions";
 
 type Vendor = {
   id: number;
@@ -31,6 +37,23 @@ type Props = {
   vendors: Vendor[];
   materials: Material[];
   documentNo: string;
+};
+
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  disabled?: boolean;
+  compact?: boolean;
+  onChange: (value: string) => void;
 };
 
 /* =========================================================
@@ -65,36 +88,38 @@ const categories = [
 ];
 
 /* =========================================================
-   THAI SHORT DATE
-   ตัวอย่าง 22 ก.ย. 69
+   THAI DATE
 ========================================================= */
 
-const thaiShortMonths = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
 
-function formatThaiShortDate(
+function formatThaiDate(
   dateString: string
 ) {
   if (!dateString) {
     return "";
   }
 
-  const [year, month, day] =
-    dateString
-      .split("-")
-      .map(Number);
+  const [
+    year,
+    month,
+    day,
+  ] = dateString
+    .split("-")
+    .map(Number);
 
   if (
     !year ||
@@ -104,32 +129,19 @@ function formatThaiShortDate(
     return "";
   }
 
-  const buddhistYear = String(
-    year + 543
-  ).slice(-2);
-
-  return `${String(day).padStart(
-    2,
-    "0"
-  )} ${
-    thaiShortMonths[month - 1]
-  } ${buddhistYear}`;
+  return `${day} ${
+    thaiMonths[month - 1]
+  } ${year + 543}`;
 }
-
-/* =========================================================
-   TODAY INPUT VALUE
-========================================================= */
 
 function getTodayInputValue() {
   const today = new Date();
 
   return [
     today.getFullYear(),
-
     String(
       today.getMonth() + 1
     ).padStart(2, "0"),
-
     String(
       today.getDate()
     ).padStart(2, "0"),
@@ -137,7 +149,543 @@ function getTodayInputValue() {
 }
 
 /* =========================================================
-   RECEIVE FORM
+   SEARCHABLE DROPDOWN
+
+   มาตรฐานของระบบ
+   - พิมพ์ค้นหาได้
+   - ไม่มีแว่นขยายในช่องค้นหา
+   - กรอบดำ
+========================================================= */
+
+function SearchableDropdown({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
+  emptyText = "ไม่พบข้อมูล",
+  disabled = false,
+  compact = false,
+  onChange,
+}: SearchableDropdownProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const inputRef =
+    useRef<HTMLInputElement>(null);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.value === value
+    );
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLocaleLowerCase(
+            "th"
+          );
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(keyword) ||
+          option.value
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(keyword)
+      );
+    }, [options, search]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+
+    const timer =
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+
+    return () => {
+      window.clearTimeout(
+        timer
+      );
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+    >
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+
+          setOpen(
+            (current) =>
+              !current
+          );
+        }}
+        className={`
+          flex
+          w-full
+          items-center
+          justify-between
+          gap-3
+
+          ${
+            compact
+              ? "min-h-[40px] rounded-[12px] px-3 py-2"
+              : "min-h-[52px] rounded-[16px] px-4 py-3"
+          }
+
+          border-2
+          !border-black
+
+          bg-white
+
+          text-left
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:bg-slate-50
+
+          focus:!border-black
+          focus:bg-white
+          focus:ring-4
+          focus:ring-slate-900/10
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-100
+          disabled:opacity-70
+        `}
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-700
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {open && !disabled && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+8px)]
+            z-[200]
+
+            overflow-hidden
+
+            rounded-[16px]
+
+            border-2
+            !border-black
+
+            bg-white
+
+            shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
+          "
+        >
+          <div
+            className="
+              border-b-2
+              border-black
+              bg-slate-50
+              p-3
+            "
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              autoComplete="off"
+              onChange={(
+                event
+              ) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              onKeyDown={(
+                event
+              ) => {
+                if (
+                  event.key ===
+                  "Escape"
+                ) {
+                  setOpen(false);
+                  setSearch("");
+                }
+
+                if (
+                  event.key ===
+                    "Enter" &&
+                  filteredOptions.length ===
+                    1
+                ) {
+                  event.preventDefault();
+
+                  onChange(
+                    filteredOptions[0]
+                      .value
+                  );
+
+                  setOpen(false);
+                  setSearch("");
+                }
+              }}
+              placeholder={
+                searchPlaceholder
+              }
+              className="
+                min-h-[46px]
+                w-full
+
+                rounded-[12px]
+
+                border-2
+                !border-black
+
+                bg-white
+
+                px-4
+                py-2.5
+
+                text-base
+                font-bold
+                !text-slate-900
+
+                shadow-sm
+                outline-none
+
+                placeholder:!text-slate-400
+
+                focus:!border-black
+                focus:ring-4
+                focus:ring-slate-900/10
+              "
+            />
+          </div>
+
+          <div
+            role="listbox"
+            className="
+              max-h-[260px]
+              overflow-y-auto
+              overscroll-contain
+              p-2
+            "
+          >
+            {filteredOptions.length >
+            0 ? (
+              filteredOptions.map(
+                (option) => {
+                  const selected =
+                    option.value ===
+                    value;
+
+                  return (
+                    <button
+                      key={
+                        option.value
+                      }
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        selected
+                      }
+                      onClick={() => {
+                        onChange(
+                          option.value
+                        );
+
+                        setOpen(false);
+                        setSearch("");
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        gap-3
+
+                        rounded-[10px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-base
+                        font-bold
+
+                        transition-colors
+
+                        ${
+                          selected
+                            ? `
+                              bg-slate-900
+                              !text-white
+                            `
+                            : `
+                              bg-white
+                              !text-slate-900
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      <span
+                        className="
+                          min-w-0
+                          flex-1
+                          break-words
+                        "
+                      >
+                        {option.label}
+                      </span>
+
+                      {selected && (
+                        <span
+                          className="
+                            shrink-0
+                            !text-white
+                          "
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+              )
+            ) : (
+              <div
+                className="
+                  px-4
+                  py-8
+                  text-center
+                  text-sm
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                {emptyText}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   DATE PICKER CONTROL
+
+   แสดงผลเป็นกล่องแบบ iOS
+   ใช้ native date input overlay เพื่อคงระบบเลือกวันที่
+========================================================= */
+
+function DatePickerControl({
+  name,
+  value,
+  onChange,
+  compact = false,
+}: {
+  name: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <input
+        type="date"
+        name={name}
+        value={value}
+        onChange={(event) =>
+          onChange(
+            event.target.value
+          )
+        }
+        className="
+          absolute
+          inset-0
+          z-20
+          h-full
+          w-full
+          cursor-pointer
+          opacity-0
+        "
+      />
+
+      <div
+        className={`
+          flex
+          w-full
+          items-center
+          justify-between
+          gap-3
+
+          ${
+            compact
+              ? "min-h-[40px] rounded-[12px] px-3"
+              : "min-h-[52px] rounded-[16px] px-4"
+          }
+
+          border-2
+          !border-black
+
+          bg-white
+
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+
+          transition-all
+          duration-200
+        `}
+      >
+        <span
+          className="
+            min-w-0
+            flex-1
+            whitespace-nowrap
+          "
+        >
+          {value
+            ? formatThaiDate(
+                value
+              )
+            : "เลือกวันที่"}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            flex
+            shrink-0
+            items-center
+            justify-center
+
+            rounded-[10px]
+
+            bg-slate-100
+
+            shadow-inner
+
+            ${
+              compact
+                ? "h-8 w-8 text-lg"
+                : "h-10 w-10 text-2xl"
+            }
+          `}
+        >
+          📅
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   FORM
 ========================================================= */
 
 export default function ReceiveForm({
@@ -145,10 +693,6 @@ export default function ReceiveForm({
   materials,
   documentNo,
 }: Props) {
-  /* =======================================================
-     EMPTY ROW
-  ======================================================= */
-
   const emptyRow =
     (): ReceiveRow => ({
       category: "",
@@ -158,10 +702,6 @@ export default function ReceiveForm({
       manufacture: "",
       expiry: "",
     });
-
-  /* =======================================================
-     STATE
-  ======================================================= */
 
   const [items, setItems] =
     useState<ReceiveRow[]>(
@@ -190,9 +730,39 @@ export default function ReceiveForm({
     getTodayInputValue()
   );
 
-  /* =======================================================
-     UPDATE ROW
-  ======================================================= */
+  const [vendorId, setVendorId] =
+    useState("");
+
+  const categoryOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () =>
+        categories.map(
+          (category) => ({
+            value:
+              category.value,
+            label:
+              category.label,
+          })
+        ),
+      []
+    );
+
+  const vendorOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () =>
+        vendors.map(
+          (vendor) => ({
+            value:
+              String(vendor.id),
+            label: vendor.name,
+          })
+        ),
+      [vendors]
+    );
 
   function updateRow(
     index: number,
@@ -214,58 +784,62 @@ export default function ReceiveForm({
     setItems(copy);
   }
 
-  /* =======================================================
-     SHARED CLASSES
-  ======================================================= */
-
-  const labelClass = `
-    mb-2
-    block
-    text-sm
-    font-extrabold
-    !text-slate-800
-    sm:text-base
-  `;
+  /* =========================================================
+     SHARED INPUT
+  ========================================================= */
 
   const inputClass = `
     min-h-[52px]
     w-full
+
     rounded-[16px]
+
     border-2
     !border-black
+
     bg-white
+
     px-4
     py-3
+
     text-base
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
-    hover:!border-black
+
     hover:bg-slate-50
+
     focus:!border-black
     focus:bg-white
     focus:ring-4
     focus:ring-slate-900/10
   `;
 
-  const tableControlClass = `
-    h-10
+  const tableInputClass = `
+    min-h-[40px]
+
     rounded-[12px]
+
     border-2
     !border-black
+
     bg-white
+
     px-3
+
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
-    transition-all
-    duration-200
-    hover:!border-black
+
     focus:!border-black
     focus:ring-4
     focus:ring-slate-900/10
@@ -285,25 +859,39 @@ export default function ReceiveForm({
       "
     >
       {/* =====================================================
+          HIDDEN VENDOR
+      ===================================================== */}
+
+      <input
+        type="hidden"
+        name="vendorId"
+        value={vendorId}
+      />
+
+      {/* =====================================================
           ข้อมูลการรับเข้า
       ===================================================== */}
 
       <section
         className="
+          overflow-visible
+
           rounded-[24px]
+
           border
           border-slate-300
-          bg-white/85
+
+          bg-white/75
+
           p-4
+
           shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
+
           backdrop-blur-xl
+
           sm:p-5
         "
       >
-        {/* ===================================================
-            SECTION HEADER
-        =================================================== */}
-
         <div
           className="
             mb-5
@@ -321,9 +909,11 @@ export default function ReceiveForm({
               items-center
               justify-center
               rounded-[15px]
-              bg-slate-900
+              bg-blue-50
               text-xl
-              shadow-[0_12px_28px_-16px_rgba(15,23,42,0.6)]
+              shadow-sm
+              ring-1
+              ring-blue-100
             "
           >
             🧾
@@ -349,110 +939,59 @@ export default function ReceiveForm({
                 !text-slate-500
               "
             >
-              ระบุวันที่ เอกสาร
-              และผู้จำหน่าย
+              ระบุวันที่ เอกสาร และผู้จำหน่าย
             </p>
           </div>
         </div>
-
-        {/* ===================================================
-            FORM GRID
-        =================================================== */}
 
         <div
           className="
             grid
             min-w-0
+            items-start
             gap-5
             md:grid-cols-2
           "
         >
-          {/* =================================================
+          {/* ===============================================
               วันที่รับเข้า
-          ================================================= */}
+          =============================================== */}
 
           <div className="min-w-0">
             <label
-              className={
-                labelClass
-              }
+              className="
+                mb-2
+                block
+                text-base
+                font-extrabold
+                !text-slate-800
+              "
             >
               วันที่รับเข้า
             </label>
 
-            <div className="relative">
-              <input
-                type="date"
-                name="receiveDate"
-                value={receiveDate}
-                onChange={(e) =>
-                  setReceiveDate(
-                    e.target.value
-                  )
-                }
-                required
-                className="
-                  absolute
-                  inset-0
-                  z-10
-                  h-full
-                  w-full
-                  cursor-pointer
-                  opacity-0
-                "
-              />
-
-              <div
-                className="
-                  flex
-                  min-h-[52px]
-                  w-full
-                  items-center
-                  justify-between
-                  rounded-[16px]
-                  border-2
-                  !border-black
-                  bg-white
-                  px-4
-                  py-3
-                  text-base
-                  font-bold
-                  !text-slate-900
-                  shadow-sm
-                  transition-all
-                  duration-200
-                  hover:bg-slate-50
-                "
-              >
-                <span>
-                  {receiveDate
-                    ? formatThaiShortDate(
-                        receiveDate
-                      )
-                    : "เลือกวันที่"}
-                </span>
-
-                <span
-                  aria-hidden="true"
-                  className="
-                    text-lg
-                  "
-                >
-                  📅
-                </span>
-              </div>
-            </div>
+            <DatePickerControl
+              name="receiveDate"
+              value={receiveDate}
+              onChange={
+                setReceiveDate
+              }
+            />
           </div>
 
-          {/* =================================================
+          {/* ===============================================
               เลขที่เอกสาร
-          ================================================= */}
+          =============================================== */}
 
           <div className="min-w-0">
             <label
-              className={
-                labelClass
-              }
+              className="
+                mb-2
+                block
+                text-base
+                font-extrabold
+                !text-slate-800
+              "
             >
               เลขที่เอกสาร
             </label>
@@ -460,83 +999,98 @@ export default function ReceiveForm({
             <input
               type="text"
               name="documentNo"
-              value={
-                documentValue
-              }
+              value={documentValue}
               readOnly={
                 !isOpeningBalance
               }
-              onChange={(e) =>
+              onChange={(event) =>
                 setDocumentValue(
-                  e.target.value
+                  event.target.value
                 )
               }
-              className={
-                inputClass
-              }
+              className={`
+                ${inputClass}
+                font-extrabold
+                !text-blue-700
+              `}
             />
 
-            {/* ===============================================
-                ยอดยกเข้าระบบ
-            =============================================== */}
-
-            <label
+            <div
               className="
                 mt-3
-                inline-flex
-                cursor-pointer
+                flex
+                min-h-[32px]
                 items-center
-                gap-2.5
-                rounded-[14px]
-                border
-                border-slate-300
-                bg-white
-                px-3
-                py-2
-                text-sm
-                font-bold
-                !text-slate-700
-                shadow-sm
-                transition-colors
-                hover:bg-slate-50
               "
             >
-              <input
-                type="checkbox"
-                checked={
-                  isOpeningBalance
-                }
-                onChange={(e) => {
-                  const checked =
-                    e.target.checked;
-
-                  setIsOpeningBalance(
-                    checked
-                  );
-
-                  setDocumentValue(
-                    checked
-                      ? "ยอดยกเข้าระบบ"
-                      : documentNo
-                  );
-                }}
+              <label
                 className="
-                  h-4
-                  w-4
+                  inline-flex
+                  w-fit
                   cursor-pointer
-                  accent-slate-900
-                "
-              />
+                  items-center
+                  gap-2.5
 
-              <span>
-                ยอดยกเข้าระบบ
-              </span>
-            </label>
+                  whitespace-nowrap
+
+                  rounded-full
+
+                  border
+                  border-slate-300
+
+                  bg-white
+
+                  px-3
+                  py-1.5
+
+                  text-sm
+                  font-bold
+                  !text-slate-700
+
+                  shadow-sm
+                "
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    isOpeningBalance
+                  }
+                  onChange={(
+                    event
+                  ) => {
+                    const checked =
+                      event.target
+                        .checked;
+
+                    setIsOpeningBalance(
+                      checked
+                    );
+
+                    setDocumentValue(
+                      checked
+                        ? "ยอดยกเข้าระบบ"
+                        : documentNo
+                    );
+                  }}
+                  className="
+                    h-4
+                    w-4
+                    shrink-0
+                    cursor-pointer
+                    accent-blue-600
+                  "
+                />
+
+                <span className="whitespace-nowrap">
+                  ยอดยกเข้าระบบ
+                </span>
+              </label>
+            </div>
           </div>
 
-          {/* =================================================
+          {/* ===============================================
               ผู้จำหน่าย
-          ================================================= */}
+          =============================================== */}
 
           <div
             className="
@@ -545,40 +1099,30 @@ export default function ReceiveForm({
             "
           >
             <label
-              className={
-                labelClass
-              }
+              className="
+                mb-2
+                block
+                text-base
+                font-extrabold
+                !text-slate-800
+              "
             >
               ผู้จำหน่าย
             </label>
 
-            <select
-              name="vendorId"
-              required
-              defaultValue=""
-              className={
-                inputClass
+            <SearchableDropdown
+              id="vendorIdDropdown"
+              value={vendorId}
+              options={
+                vendorOptions
               }
-            >
-              <option value="">
-                -- เลือกผู้จำหน่าย --
-              </option>
-
-              {vendors.map(
-                (vendor) => (
-                  <option
-                    key={
-                      vendor.id
-                    }
-                    value={
-                      vendor.id
-                    }
-                  >
-                    {vendor.name}
-                  </option>
-                )
-              )}
-            </select>
+              placeholder="-- เลือกผู้จำหน่าย --"
+              searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
+              emptyText="ไม่พบผู้จำหน่าย"
+              onChange={
+                setVendorId
+              }
+            />
           </div>
         </div>
       </section>
@@ -589,12 +1133,17 @@ export default function ReceiveForm({
 
       <section
         className="
-          overflow-hidden
+          overflow-visible
+
           rounded-[24px]
+
           border
           border-slate-300
-          bg-white/85
+
+          bg-white/80
+
           shadow-[0_16px_40px_-26px_rgba(15,23,42,0.35)]
+
           backdrop-blur-xl
         "
       >
@@ -607,11 +1156,15 @@ export default function ReceiveForm({
             flex
             flex-col
             gap-2
+
             border-b
-            border-slate-300
+            border-black
+
             bg-white/80
+
             px-4
             py-4
+
             sm:flex-row
             sm:items-center
             sm:justify-between
@@ -638,8 +1191,8 @@ export default function ReceiveForm({
                 !text-slate-500
               "
             >
-              ระบุรายการ ราคา
-              จำนวน และข้อมูลวันผลิต/หมดอายุ
+              ระบุรายการ ราคา จำนวน
+              และข้อมูลวันผลิต/หมดอายุ
             </p>
           </div>
 
@@ -648,15 +1201,20 @@ export default function ReceiveForm({
               inline-flex
               w-fit
               items-center
+
               rounded-full
+
               border
               border-slate-300
+
               bg-slate-100/80
+
               px-3
               py-1.5
-              text-sm
+
+              text-xs
               font-extrabold
-              !text-slate-700
+              !text-slate-600
             "
           >
             15 รายการ
@@ -672,13 +1230,14 @@ export default function ReceiveForm({
             w-full
             min-w-0
             overflow-x-auto
+            overflow-y-visible
             overscroll-x-contain
           "
         >
           <table
             className="
               w-full
-              min-w-[1050px]
+              min-w-[1200px]
               border-collapse
               border
               border-black
@@ -740,6 +1299,16 @@ export default function ReceiveForm({
                         row.materialId
                     );
 
+                  const materialOptions: SearchableOption[] =
+                    list.map(
+                      (material) => ({
+                        value: String(
+                          material.id
+                        ),
+                        label: `${material.code} - ${material.name}`,
+                      })
+                    );
+
                   return (
                     <tr
                       key={index}
@@ -756,9 +1325,9 @@ export default function ReceiveForm({
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* =======================================
+                      {/* =====================================
                           ลำดับ
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -775,127 +1344,102 @@ export default function ReceiveForm({
                         {index + 1}
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           หมวดหมู่
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
+                          min-w-[190px]
                           border
                           border-black
                           px-3
                           py-3
                         "
                       >
-                        <select
+                        <input
+                          type="hidden"
                           name={`items[${index}].category`}
                           value={
                             row.category
                           }
+                        />
+
+                        <SearchableDropdown
+                          id={`category-${index}`}
+                          value={
+                            row.category
+                          }
+                          options={
+                            categoryOptions
+                          }
+                          placeholder="เลือกหมวดหมู่"
+                          searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+                          emptyText="ไม่พบหมวดหมู่"
+                          compact
                           onChange={(
-                            e
+                            value
                           ) =>
                             updateRow(
                               index,
                               "category",
-                              e.target
-                                .value
+                              value
                             )
                           }
-                          className={`
-                            ${tableControlClass}
-                            min-w-[170px]
-                          `}
-                        >
-                          <option value="">
-                            เลือกหมวดหมู่
-                          </option>
-
-                          {categories.map(
-                            (
-                              category
-                            ) => (
-                              <option
-                                key={
-                                  category.value
-                                }
-                                value={
-                                  category.value
-                                }
-                              >
-                                {
-                                  category.label
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
+                        />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           รายการพัสดุ
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
+                          min-w-[290px]
                           border
                           border-black
                           px-3
                           py-3
                         "
                       >
-                        <select
+                        <input
+                          type="hidden"
                           name={`items[${index}].materialId`}
                           value={
                             row.materialId
                           }
+                        />
+
+                        <SearchableDropdown
+                          id={`material-${index}`}
+                          value={
+                            row.materialId
+                          }
+                          options={
+                            materialOptions
+                          }
+                          placeholder="เลือกรายการพัสดุ"
+                          searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+                          emptyText="ไม่พบรายการพัสดุ"
+                          disabled={
+                            !row.category
+                          }
+                          compact
                           onChange={(
-                            e
+                            value
                           ) =>
                             updateRow(
                               index,
                               "materialId",
-                              e.target
-                                .value
+                              value
                             )
                           }
-                          className={`
-                            ${tableControlClass}
-                            min-w-[260px]
-                          `}
-                        >
-                          <option value="">
-                            เลือกรายการพัสดุ
-                          </option>
-
-                          {list.map(
-                            (
-                              material
-                            ) => (
-                              <option
-                                key={
-                                  material.id
-                                }
-                                value={
-                                  material.id
-                                }
-                              >
-                                {
-                                  material.code
-                                }{" "}
-                                -{" "}
-                                {
-                                  material.name
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
+                        />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           หน่วย
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -914,25 +1458,31 @@ export default function ReceiveForm({
                             "-"
                           }
                           className="
-                            h-10
+                            min-h-[40px]
                             w-full
                             min-w-[90px]
+
                             rounded-[12px]
+
                             border-2
                             !border-black
+
                             bg-slate-100
+
                             px-2
+
                             text-center
                             font-extrabold
                             !text-slate-700
+
                             outline-none
                           "
                         />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           ราคา
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -952,27 +1502,26 @@ export default function ReceiveForm({
                             row.unitPrice
                           }
                           onChange={(
-                            e
+                            event
                           ) =>
                             updateRow(
                               index,
                               "unitPrice",
-                              e.target
+                              event.target
                                 .value
                             )
                           }
                           className={`
-                            ${tableControlClass}
+                            ${tableInputClass}
                             w-28
                             text-center
-                            tabular-nums
                           `}
                         />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           จำนวน
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -989,184 +1538,83 @@ export default function ReceiveForm({
                           min="1"
                           value={row.qty}
                           onChange={(
-                            e
+                            event
                           ) =>
                             updateRow(
                               index,
                               "qty",
-                              e.target
+                              event.target
                                 .value
                             )
                           }
                           className={`
-                            ${tableControlClass}
+                            ${tableInputClass}
                             w-24
                             text-center
-                            tabular-nums
                           `}
                         />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           วันผลิต
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
+                          min-w-[190px]
                           border
                           border-black
                           px-3
                           py-3
                         "
                       >
-                        <div className="relative">
-                          <input
-                            type="date"
-                            name={`items[${index}].manufacture`}
-                            value={
-                              row.manufacture
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              updateRow(
-                                index,
-                                "manufacture",
-                                e.target
-                                  .value
-                              )
-                            }
-                            className="
-                              absolute
-                              inset-0
-                              z-10
-                              h-full
-                              w-full
-                              cursor-pointer
-                              opacity-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              flex
-                              h-10
-                              w-40
-                              items-center
-                              justify-between
-                              rounded-[12px]
-                              border-2
-                              !border-black
-                              bg-white
-                              px-3
-                              font-bold
-                              !text-slate-900
-                              shadow-sm
-                              transition-colors
-                              hover:bg-slate-50
-                            "
-                          >
-                            <span
-                              className="
-                                whitespace-nowrap
-                                text-sm
-                              "
-                            >
-                              {row.manufacture
-                                ? formatThaiShortDate(
-                                    row.manufacture
-                                  )
-                                : "เลือกวันที่"}
-                            </span>
-
-                            <span
-                              aria-hidden="true"
-                            >
-                              📅
-                            </span>
-                          </div>
-                        </div>
+                        <DatePickerControl
+                          name={`items[${index}].manufacture`}
+                          value={
+                            row.manufacture
+                          }
+                          compact
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "manufacture",
+                              value
+                            )
+                          }
+                        />
                       </td>
 
-                      {/* =======================================
+                      {/* =====================================
                           วันหมดอายุ
-                      ======================================= */}
+                      ===================================== */}
 
                       <td
                         className="
+                          min-w-[190px]
                           border
                           border-black
                           px-3
                           py-3
                         "
                       >
-                        <div className="relative">
-                          <input
-                            type="date"
-                            name={`items[${index}].expiry`}
-                            value={
-                              row.expiry
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              updateRow(
-                                index,
-                                "expiry",
-                                e.target
-                                  .value
-                              )
-                            }
-                            className="
-                              absolute
-                              inset-0
-                              z-10
-                              h-full
-                              w-full
-                              cursor-pointer
-                              opacity-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              flex
-                              h-10
-                              w-40
-                              items-center
-                              justify-between
-                              rounded-[12px]
-                              border-2
-                              !border-black
-                              bg-white
-                              px-3
-                              font-bold
-                              !text-slate-900
-                              shadow-sm
-                              transition-colors
-                              hover:bg-slate-50
-                            "
-                          >
-                            <span
-                              className="
-                                whitespace-nowrap
-                                text-sm
-                              "
-                            >
-                              {row.expiry
-                                ? formatThaiShortDate(
-                                    row.expiry
-                                  )
-                                : "เลือกวันที่"}
-                            </span>
-
-                            <span
-                              aria-hidden="true"
-                            >
-                              📅
-                            </span>
-                          </div>
-                        </div>
+                        <DatePickerControl
+                          name={`items[${index}].expiry`}
+                          value={
+                            row.expiry
+                          }
+                          compact
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "expiry",
+                              value
+                            )
+                          }
+                        />
                       </td>
                     </tr>
                   );
@@ -1186,7 +1634,7 @@ export default function ReceiveForm({
           rounded-[24px]
           border
           border-slate-300
-          bg-white/85
+          bg-white/75
           p-4
           shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
           backdrop-blur-xl
@@ -1194,9 +1642,13 @@ export default function ReceiveForm({
         "
       >
         <label
-          className={
-            labelClass
-          }
+          className="
+            mb-2
+            block
+            text-base
+            font-extrabold
+            !text-slate-800
+          "
         >
           หมายเหตุ
         </label>
@@ -1208,23 +1660,28 @@ export default function ReceiveForm({
             min-h-[120px]
             w-full
             resize-y
+
             rounded-[16px]
+
             border-2
             !border-black
+
             bg-white
+
             p-4
-            text-base
+
             font-bold
             !text-slate-900
+
             shadow-sm
             outline-none
+
             transition-all
             duration-200
+
             placeholder:!text-slate-400
-            hover:!border-black
-            hover:bg-slate-50
+
             focus:!border-black
-            focus:bg-white
             focus:ring-4
             focus:ring-slate-900/10
           "
@@ -1239,9 +1696,11 @@ export default function ReceiveForm({
         className="
           flex
           justify-end
+
           border-t
           border-slate-300
-          pt-6
+
+          pt-5
         "
       >
         <AppButton
