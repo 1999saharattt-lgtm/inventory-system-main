@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
-import AppButton from "@/components/AppButton";
 
 import ReceiveForm from "./ReceiveForm";
 
@@ -124,16 +123,6 @@ export default async function CreateReceivePage() {
         icon="📥"
         title="บันทึกการรับเข้าพัสดุ"
         subtitle="เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ"
-        actions={
-          <AppButton
-            href="/receive"
-            variant="back"
-            size="md"
-            icon={<span>←</span>}
-          >
-            กลับ
-          </AppButton>
-        }
       />
 
       {/* =====================================================
@@ -244,10 +233,6 @@ export default async function CreateReceivePage() {
 
         {/* ===================================================
             FORM
-
-            overflow-visible สำคัญ:
-            Calendar / Dropdown ใน ReceiveForm
-            สามารถลอยออกจากการ์ดได้โดยไม่ถูกตัด
         =================================================== */}
 
         <div
