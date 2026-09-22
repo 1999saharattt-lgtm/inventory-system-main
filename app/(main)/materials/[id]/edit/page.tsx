@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+
 import EditMaterialForm from "./EditMaterialForm";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 type Props = {
   params: Promise<{
@@ -20,11 +23,21 @@ export default async function EditMaterialPage({
      Material
   ========================================================= */
 
-  const material = await prisma.material.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
+  const materialId = Number(id);
+
+  if (
+    !Number.isInteger(materialId) ||
+    materialId <= 0
+  ) {
+    notFound();
+  }
+
+  const material =
+    await prisma.material.findUnique({
+      where: {
+        id: materialId,
+      },
+    });
 
   if (!material) {
     notFound();
@@ -34,11 +47,21 @@ export default async function EditMaterialPage({
      Vendors
   ========================================================= */
 
-  const vendors = await prisma.vendor.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const vendors =
+    await prisma.vendor.findMany({
+      orderBy: {
+        name: "asc",
+      },
+
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <AppPage>
@@ -55,46 +78,17 @@ export default async function EditMaterialPage({
             href={`/materials/category/${material.category}`}
             prefetch
             className="
-              group
               inline-flex
-              h-11
               shrink-0
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              border
-              border-slate-200
-              bg-white/90
-              px-4
-              text-sm
-              font-extrabold
-              !text-slate-800
-              shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:border-slate-300
-              hover:bg-white
-              hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
-              active:translate-y-0
-              active:scale-[0.97]
-              sm:px-5
             "
           >
-            <span
-              className="
-                transition-transform
-                duration-300
-                group-hover:-translate-x-0.5
-              "
+            <AppButton
+              type="button"
+              variant="secondary"
             >
-              ←
-            </span>
-
-            <span>กลับ</span>
+              <span>←</span>
+              <span>กลับ</span>
+            </AppButton>
           </Link>
         }
       />
@@ -111,7 +105,12 @@ export default async function EditMaterialPage({
           justify-center
         "
       >
-        <div className="w-full max-w-4xl">
+        <div
+          className="
+            w-full
+            max-w-4xl
+          "
+        >
           <EditMaterialForm
             material={material}
             vendors={vendors}

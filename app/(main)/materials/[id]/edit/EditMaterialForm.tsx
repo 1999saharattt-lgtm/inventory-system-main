@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
-import { useRouter } from "next/navigation";
+
+import AppButton from "@/components/AppButton";
 
 type Material = {
   id: number;
@@ -21,6 +24,11 @@ type Material = {
 type Vendor = {
   id: number;
   name: string;
+};
+
+type Props = {
+  material: Material;
+  vendors: Vendor[];
 };
 
 const categories = [
@@ -44,25 +52,22 @@ const categoryName: Record<string, string> = {
 export default function EditMaterialForm({
   material,
   vendors,
-}: {
-  material: Material;
-  vendors: Vendor[];
-}) {
+}: Props) {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [category, setCategory] = useState(
-    material.category
-  );
+  const [category, setCategory] =
+    useState(material.category);
 
-  const [name, setName] = useState(
-    material.name
-  );
+  const [name, setName] =
+    useState(material.name);
 
-  const [vendorId, setVendorId] = useState(
-    material.vendorId?.toString() ?? ""
-  );
+  const [vendorId, setVendorId] =
+    useState(
+      material.vendorId?.toString() ?? ""
+    );
 
   /* =========================================================
      Material Names
@@ -96,6 +101,10 @@ export default function EditMaterialForm({
   ) {
     e.preventDefault();
 
+    if (loading) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -108,12 +117,15 @@ export default function EditMaterialForm({
         category,
         name,
         unit,
+
         balance: Number(
           formData.get("balance")
         ),
+
         latestPrice: Number(
           formData.get("latestPrice")
         ),
+
         vendorId: vendorId
           ? Number(vendorId)
           : null,
@@ -123,10 +135,12 @@ export default function EditMaterialForm({
         `/api/materials/${material.id}`,
         {
           method: "PUT",
+
           headers: {
             "Content-Type":
               "application/json",
           },
+
           body: JSON.stringify(body),
         }
       );
@@ -176,31 +190,51 @@ export default function EditMaterialForm({
      Shared UI Classes
   ========================================================= */
 
-  const labelClass =
-    "mb-2 block text-sm font-extrabold !text-slate-700 sm:text-base";
+  const labelClass = `
+    mb-2
+    block
+    text-sm
+    font-extrabold
+    !text-slate-800
+    sm:text-base
+  `;
+
+  /*
+   * =========================================================
+   * INPUT มาตรฐาน
+   * เส้นกรอบสีดำ
+   * =========================================================
+   */
 
   const inputClass = `
     min-h-[52px]
     w-full
     rounded-[16px]
     border
-    border-slate-200
-    bg-white/90
+    border-black
+    bg-white
     px-4
     py-3
     font-bold
     !text-slate-900
-    shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]
+    shadow-sm
     outline-none
     transition-all
-    duration-300
+    duration-200
     placeholder:!text-slate-400
-    hover:border-slate-300
-    focus:border-blue-400
+    hover:bg-slate-50
+    focus:border-blue-500
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
   `;
+
+  /*
+   * =========================================================
+   * SELECT มาตรฐาน
+   * เส้นกรอบสีดำ
+   * =========================================================
+   */
 
   const selectClass = `
     min-h-[52px]
@@ -208,22 +242,26 @@ export default function EditMaterialForm({
     appearance-none
     rounded-[16px]
     border
-    border-slate-200
-    bg-white/90
+    border-black
+    bg-white
     px-4
     py-3
     font-bold
     !text-slate-900
-    shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]
+    shadow-sm
     outline-none
     transition-all
-    duration-300
-    hover:border-slate-300
-    focus:border-blue-400
+    duration-200
+    hover:bg-slate-50
+    focus:border-blue-500
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
   `;
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <form
@@ -235,8 +273,8 @@ export default function EditMaterialForm({
         overflow-hidden
         rounded-[30px]
         border
-        border-white/80
-        bg-white/80
+        border-slate-300
+        bg-white/90
         p-5
         shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
         backdrop-blur-2xl
@@ -267,9 +305,9 @@ export default function EditMaterialForm({
         aria-hidden="true"
         className="
           pointer-events-none
+          absolute
           -bottom-24
           -left-20
-          absolute
           h-64
           w-64
           rounded-full
@@ -289,7 +327,7 @@ export default function EditMaterialForm({
             items-center
             gap-4
             border-b
-            border-slate-200/80
+            border-slate-300
             pb-5
           "
         >
@@ -332,8 +370,7 @@ export default function EditMaterialForm({
                 sm:text-base
               "
             >
-              ตรวจสอบและแก้ไขข้อมูลให้ถูกต้อง
-              ก่อนบันทึก
+              ตรวจสอบและแก้ไขข้อมูลให้ถูกต้องก่อนบันทึก
             </p>
           </div>
         </div>
@@ -378,6 +415,7 @@ export default function EditMaterialForm({
                 setCategory(
                   e.target.value
                 );
+
                 setName("");
               }}
               className={`${selectClass} pr-11`}
@@ -401,7 +439,7 @@ export default function EditMaterialForm({
                 top-1/2
                 -translate-y-1/2
                 text-xs
-                !text-slate-400
+                !text-slate-500
               "
             >
               ▼
@@ -426,9 +464,7 @@ export default function EditMaterialForm({
               id="name"
               value={name}
               onChange={(e) =>
-                setName(
-                  e.target.value
-                )
+                setName(e.target.value)
               }
               className={`${selectClass} pr-11`}
             >
@@ -455,7 +491,7 @@ export default function EditMaterialForm({
                 top-1/2
                 -translate-y-1/2
                 text-xs
-                !text-slate-400
+                !text-slate-500
               "
             >
               ▼
@@ -490,16 +526,14 @@ export default function EditMaterialForm({
                 -- ไม่ระบุผู้จำหน่าย --
               </option>
 
-              {vendors.map(
-                (vendor) => (
-                  <option
-                    key={vendor.id}
-                    value={vendor.id}
-                  >
-                    {vendor.name}
-                  </option>
-                )
-              )}
+              {vendors.map((vendor) => (
+                <option
+                  key={vendor.id}
+                  value={vendor.id}
+                >
+                  {vendor.name}
+                </option>
+              ))}
             </select>
 
             <span
@@ -511,7 +545,7 @@ export default function EditMaterialForm({
                 top-1/2
                 -translate-y-1/2
                 text-xs
-                !text-slate-400
+                !text-slate-500
               "
             >
               ▼
@@ -545,6 +579,7 @@ export default function EditMaterialForm({
               id="balance"
               type="number"
               name="balance"
+              min="0"
               defaultValue={
                 material.balance
               }
@@ -572,12 +607,12 @@ export default function EditMaterialForm({
                 cursor-default
                 rounded-[16px]
                 border
-                border-slate-200
-                bg-slate-100/90
+                border-black
+                bg-slate-100
                 px-4
                 py-3
                 font-bold
-                !text-slate-600
+                !text-slate-700
                 shadow-inner
                 outline-none
               "
@@ -602,11 +637,17 @@ export default function EditMaterialForm({
               id="latestPrice"
               type="number"
               step="0.01"
+              min="0"
               name="latestPrice"
               defaultValue={
                 material.latestPrice
               }
-              className={`${inputClass} pr-16 text-right`}
+              className={`
+                ${inputClass}
+
+                pr-16
+                text-right
+              `}
             />
 
             <span
@@ -618,7 +659,7 @@ export default function EditMaterialForm({
                 -translate-y-1/2
                 text-sm
                 font-extrabold
-                !text-slate-400
+                !text-slate-500
               "
             >
               บาท
@@ -636,89 +677,44 @@ export default function EditMaterialForm({
             flex-col-reverse
             gap-3
             border-t
-            border-slate-200/80
+            border-slate-300
             pt-6
             sm:flex-row
             sm:justify-end
           "
         >
-          {/* ยกเลิก */}
+          {/* =================================================
+              ยกเลิก
+          ================================================= */}
 
-          <button
+          <AppButton
             type="button"
+            variant="secondary"
+            disabled={loading}
             onClick={() =>
               router.push(
                 `/materials/category/${category}`
               )
             }
-            disabled={loading}
             className="
-              inline-flex
-              h-12
               w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              border
-              border-slate-200
-              bg-white/90
-              px-6
-              text-sm
-              font-extrabold
-              !text-slate-700
-              shadow-[0_10px_24px_-16px_rgba(15,23,42,0.3)]
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:border-slate-300
-              hover:bg-white
-              hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
-              active:translate-y-0
-              active:scale-[0.97]
-              disabled:pointer-events-none
-              disabled:opacity-50
               sm:w-auto
               sm:min-w-[120px]
             "
           >
             ยกเลิก
-          </button>
+          </AppButton>
 
-          {/* บันทึก */}
+          {/* =================================================
+              บันทึก
+          ================================================= */}
 
-          <button
+          <AppButton
             type="submit"
+            variant="primary"
             disabled={loading}
             className="
-              group
-              inline-flex
-              h-12
               w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              border
-              border-slate-900
-              bg-slate-900
-              px-6
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-[0_14px_30px_-16px_rgba(15,23,42,0.65)]
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:bg-slate-800
-              hover:shadow-[0_20px_36px_-18px_rgba(15,23,42,0.7)]
-              active:translate-y-0
-              active:scale-[0.97]
-              disabled:pointer-events-none
-              disabled:opacity-60
               sm:w-auto
               sm:min-w-[180px]
             "
@@ -732,8 +728,8 @@ export default function EditMaterialForm({
                     animate-spin
                     rounded-full
                     border-2
-                    border-white/30
-                    border-t-white
+                    border-current
+                    border-t-transparent
                   "
                 />
 
@@ -743,22 +739,14 @@ export default function EditMaterialForm({
               </>
             ) : (
               <>
-                <span
-                  className="
-                    transition-transform
-                    duration-300
-                    group-hover:scale-110
-                  "
-                >
-                  💾
-                </span>
+                <span>💾</span>
 
                 <span>
                   บันทึกการแก้ไข
                 </span>
               </>
             )}
-          </button>
+          </AppButton>
         </div>
       </div>
     </form>

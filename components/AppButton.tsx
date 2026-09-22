@@ -41,7 +41,8 @@ export type AppButtonVariant =
   | "secondary"
   | "outline"
   | "glass"
-  | "white";
+  | "white"
+  | "back";
 
 export type AppButtonSize =
   | "sm"
@@ -132,10 +133,31 @@ const variantClasses: Record<
 
   /* -------------------------------------------------------
      SUCCESS
-     บันทึก / กลับ / ยืนยันเชิงบวก
+     บันทึก / ยืนยันเชิงบวก
   ------------------------------------------------------- */
 
   success: `
+    border-emerald-400/35
+    bg-gradient-to-b
+    from-emerald-500
+    via-emerald-600
+    to-emerald-700
+    !text-white
+
+    shadow-[0_8px_20px_rgba(5,150,105,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+
+    hover:from-emerald-500
+    hover:via-emerald-600
+    hover:to-emerald-700
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
+  `,
+
+  /* -------------------------------------------------------
+     BACK
+     ปุ่มกลับมาตรฐานของระบบ
+  ------------------------------------------------------- */
+
+  back: `
     border-emerald-400/35
     bg-gradient-to-b
     from-emerald-500
@@ -325,15 +347,6 @@ export default function AppButton(
 
   /* =======================================================
      BASE STYLE
-
-     Interaction:
-     Default
-       ↓
-     Hover = ลอยขึ้นเล็กน้อย
-       ↓
-     Press = ยุบลงเหมือนปุ่มจริง
-       ↓
-     Release = คืนตำแหน่งแบบนุ่ม
   ======================================================= */
 
   const baseClassName = `
@@ -397,13 +410,6 @@ export default function AppButton(
 
   const content = (
     <>
-      {/* ===================================================
-          TOP SPECULAR HIGHLIGHT
-
-          แสงสะท้อนบาง ๆ ด้านบน
-          ทำให้ปุ่มดูเป็น Layer แบบ iOS
-      =================================================== */}
-
       <span
         aria-hidden="true"
         className="
@@ -420,12 +426,6 @@ export default function AppButton(
           opacity-80
         "
       />
-
-      {/* ===================================================
-          SOFT LIGHT
-
-          แสงอ่อนภายในปุ่ม
-      =================================================== */}
 
       <span
         aria-hidden="true"
@@ -446,10 +446,6 @@ export default function AppButton(
           group-hover:opacity-100
         "
       />
-
-      {/* ===================================================
-          LEFT ICON
-      =================================================== */}
 
       {icon && (
         <span
@@ -473,10 +469,6 @@ export default function AppButton(
         </span>
       )}
 
-      {/* ===================================================
-          LABEL
-      =================================================== */}
-
       <span
         className="
           relative
@@ -490,10 +482,6 @@ export default function AppButton(
       >
         {children}
       </span>
-
-      {/* ===================================================
-          RIGHT ICON
-      =================================================== */}
 
       {endIcon && (
         <span
