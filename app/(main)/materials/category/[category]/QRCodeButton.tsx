@@ -19,9 +19,12 @@ export default function QRCodeButton({
   const [open, setOpen] = useState(false);
 
   const [qrCode, setQrCode] =
-    useState("");
+    useState<string>("");
 
   const [isGenerating, setIsGenerating] =
+    useState(false);
+
+  const [hasError, setHasError] =
     useState(false);
 
   /* =========================================================
@@ -29,42 +32,58 @@ export default function QRCodeButton({
   ========================================================= */
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
-    let mounted = true;
+    let cancelled = false;
 
     async function generateQRCode() {
       try {
         setIsGenerating(true);
+        setHasError(false);
+        setQrCode("");
 
-        const url = new URL(
-          `/stock-card/material/${materialId}/pdf`,
-          window.location.origin
-        ).toString();
+        /* -----------------------------------------------------
+           URL ที่ QR Code จะเปิด
+        ----------------------------------------------------- */
+
+        const targetUrl =
+          `${window.location.origin}` +
+          `/stock-card/material/${materialId}/pdf`;
+
+        /* -----------------------------------------------------
+           Generate QR
+        ----------------------------------------------------- */
 
         const dataUrl =
-          await QRCode.toDataURL(url, {
-            width: 400,
-            margin: 2,
-            errorCorrectionLevel: "H",
-          });
+          await QRCode.toDataURL(
+            targetUrl,
+            {
+              width: 500,
+              margin: 2,
+              errorCorrectionLevel: "H",
 
-        if (mounted) {
-          setQrCode(dataUrl);
-        }
+              color: {
+                dark: "#000000",
+                light: "#ffffff",
+              },
+            }
+          );
+
+        if (cancelled) return;
+
+        setQrCode(dataUrl);
       } catch (error) {
         console.error(
           "ไม่สามารถสร้าง QR Code ได้:",
           error
         );
 
-        if (mounted) {
-          setQrCode("");
-        }
+        if (cancelled) return;
+
+        setQrCode("");
+        setHasError(true);
       } finally {
-        if (mounted) {
+        if (!cancelled) {
           setIsGenerating(false);
         }
       }
@@ -73,18 +92,16 @@ export default function QRCodeButton({
     generateQRCode();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, [open, materialId]);
 
   /* =========================================================
-     KEYBOARD / BODY SCROLL
+     BODY SCROLL + ESC
   ========================================================= */
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const previousOverflow =
       document.body.style.overflow;
@@ -117,21 +134,39 @@ export default function QRCodeButton({
   }, [open]);
 
   /* =========================================================
-     RENDER
+     OPEN MODAL
+  ========================================================= */
+
+  function handleOpen() {
+    setQrCode("");
+    setHasError(false);
+    setOpen(true);
+  }
+
+  /* =========================================================
+     CLOSE MODAL
+  ========================================================= */
+
+  function handleClose() {
+    setOpen(false);
+  }
+
+  /* =========================================================
+     UI
   ========================================================= */
 
   return (
     <>
       {/* =====================================================
           OPEN BUTTON
-          สีมาจาก AppButton กลางเท่านั้น
+          สีมาจาก AppButton กลาง
       ===================================================== */}
 
       <AppButton
         type="button"
-        variant="primary"
+        variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
         aria-label={`เปิด QR Code ${materialCode}`}
       >
         <span aria-hidden="true">
@@ -161,14 +196,9 @@ export default function QRCodeButton({
             bg-slate-950/40
             p-4
             backdrop-blur-md
-            animate-in
-            fade-in
-            duration-200
             sm:p-6
           "
-          onClick={() =>
-            setOpen(false)
-          }
+          onClick={handleClose}
         >
           {/* =================================================
               MODAL CARD
@@ -182,22 +212,18 @@ export default function QRCodeButton({
               overflow-hidden
               rounded-[32px]
               border
-              border-black
+              border-white/80
               bg-white/95
               shadow-[0_32px_100px_-28px_rgba(15,23,42,0.65)]
               backdrop-blur-2xl
-              animate-in
-              zoom-in-95
-              slide-in-from-bottom-3
-              duration-300
             "
             onClick={(event) =>
               event.stopPropagation()
             }
           >
-            {/* ===============================================
-                AMBIENT GLOW
-            =============================================== */}
+            {/* =================================================
+                AMBIENT
+            ================================================= */}
 
             <div
               aria-hidden="true"
@@ -229,9 +255,9 @@ export default function QRCodeButton({
               "
             />
 
-            {/* ===============================================
+            {/* =================================================
                 MOBILE HANDLE
-            =============================================== */}
+            ================================================= */}
 
             <div
               className="
@@ -252,15 +278,13 @@ export default function QRCodeButton({
               />
             </div>
 
-            {/* ===============================================
-                ICON CLOSE CONTROL
-            =============================================== */}
+            {/* =================================================
+                CLOSE ICON
+            ================================================= */}
 
             <button
               type="button"
-              onClick={() =>
-                setOpen(false)
-              }
+              onClick={handleClose}
               aria-label="ปิด"
               className="
                 absolute
@@ -274,7 +298,7 @@ export default function QRCodeButton({
                 justify-center
                 rounded-full
                 border
-                border-black
+                border-slate-200
                 bg-slate-100/90
                 p-0
                 text-xl
@@ -295,15 +319,15 @@ export default function QRCodeButton({
               ×
             </button>
 
-            {/* ===============================================
+            {/* =================================================
                 HEADER
-            =============================================== */}
+            ================================================= */}
 
             <div
               className="
                 relative
                 border-b
-                border-black
+                border-slate-200/80
                 px-6
                 pb-5
                 pt-8
@@ -347,9 +371,7 @@ export default function QRCodeButton({
                 QR Code พัสดุ
               </h2>
 
-              {/* =============================================
-                  MATERIAL CODE
-              ============================================= */}
+              {/* Material Code */}
 
               <div
                 className="
@@ -360,8 +382,8 @@ export default function QRCodeButton({
                   justify-center
                   rounded-full
                   border
-                  border-black
-                  bg-slate-100/80
+                  border-slate-300
+                  bg-slate-100
                   px-3.5
                   py-1.5
                   text-sm
@@ -373,6 +395,8 @@ export default function QRCodeButton({
                 รหัสพัสดุ :{" "}
                 {materialCode}
               </div>
+
+              {/* Material Name */}
 
               <p
                 className="
@@ -391,9 +415,9 @@ export default function QRCodeButton({
               </p>
             </div>
 
-            {/* ===============================================
+            {/* =================================================
                 CONTENT
-            =============================================== */}
+            ================================================= */}
 
             <div
               className="
@@ -403,9 +427,9 @@ export default function QRCodeButton({
                 sm:px-8
               "
             >
-              {/* =============================================
-                  QR CARD
-              ============================================= */}
+              {/* =================================================
+                  QR CONTAINER
+              ================================================= */}
 
               <div
                 className="
@@ -418,71 +442,115 @@ export default function QRCodeButton({
                   justify-center
                   overflow-hidden
                   rounded-[26px]
-                  border
+                  border-2
                   border-black
                   bg-white
                   p-4
                   shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]
                 "
               >
-                {qrCode ? (
-                  <img
-                    src={qrCode}
-                    alt={`QR Code ${materialCode}`}
-                    className="
-                      h-full
-                      w-full
-                      object-contain
-                    "
-                  />
-                ) : (
+                {/* =============================================
+                    LOADING
+                ============================================= */}
+
+                {isGenerating && (
                   <div
                     className="
                       flex
-                      h-full
-                      w-full
                       flex-col
                       items-center
                       justify-center
                       gap-4
                     "
                   >
-                    {isGenerating && (
-                      <div
-                        aria-hidden="true"
-                        className="
-                          h-9
-                          w-9
-                          animate-spin
-                          rounded-full
-                          border-[3px]
-                          border-slate-200
-                          border-t-slate-800
-                        "
-                      />
-                    )}
-
-                    <span
+                    <div
+                      aria-hidden="true"
                       className="
-                        px-4
-                        text-center
+                        h-10
+                        w-10
+                        animate-spin
+                        rounded-full
+                        border-[3px]
+                        border-slate-200
+                        border-t-slate-900
+                      "
+                    />
+
+                    <p
+                      className="
                         text-sm
                         font-extrabold
-                        leading-relaxed
                         !text-slate-500
                       "
                     >
-                      {isGenerating
-                        ? "กำลังสร้าง QR Code..."
-                        : "ไม่สามารถสร้าง QR Code ได้"}
-                    </span>
+                      กำลังสร้าง QR Code...
+                    </p>
                   </div>
                 )}
+
+                {/* =============================================
+                    QR CODE
+                ============================================= */}
+
+                {!isGenerating &&
+                  qrCode && (
+                    <img
+                      src={qrCode}
+                      alt={`QR Code ${materialCode}`}
+                      width={500}
+                      height={500}
+                      className="
+                        block
+                        h-full
+                        w-full
+                        object-contain
+                      "
+                    />
+                  )}
+
+                {/* =============================================
+                    ERROR
+                ============================================= */}
+
+                {!isGenerating &&
+                  !qrCode &&
+                  hasError && (
+                    <div
+                      className="
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        gap-3
+                        px-5
+                        text-center
+                      "
+                    >
+                      <span
+                        className="
+                          text-3xl
+                        "
+                      >
+                        ⚠️
+                      </span>
+
+                      <p
+                        className="
+                          text-sm
+                          font-extrabold
+                          leading-relaxed
+                          !text-red-600
+                        "
+                      >
+                        ไม่สามารถสร้าง QR Code ได้
+                      </p>
+                    </div>
+                  )}
               </div>
 
-              {/* =============================================
+              {/* =================================================
                   DESCRIPTION
-              ============================================= */}
+              ================================================= */}
 
               <div
                 className="
@@ -490,13 +558,12 @@ export default function QRCodeButton({
                   mt-5
                   max-w-[310px]
                   rounded-[18px]
-                  border
+                  border-2
                   border-black
-                  bg-slate-50/90
+                  bg-slate-50
                   px-4
                   py-3
                   text-center
-                  shadow-inner
                 "
               >
                 <p
@@ -504,7 +571,7 @@ export default function QRCodeButton({
                     text-sm
                     font-extrabold
                     leading-relaxed
-                    !text-slate-600
+                    !text-slate-700
                     sm:text-base
                   "
                 >
@@ -513,19 +580,17 @@ export default function QRCodeButton({
                 </p>
               </div>
 
-              {/* =============================================
+              {/* =================================================
                   CLOSE BUTTON
-                  ใช้สีจาก AppButton กลาง
-              ============================================= */}
+                  ใช้ AppButton กลาง
+              ================================================= */}
 
               <div className="mt-5">
                 <AppButton
                   type="button"
                   variant="primary"
                   size="md"
-                  onClick={() =>
-                    setOpen(false)
-                  }
+                  onClick={handleClose}
                   fullWidth
                 >
                   ปิด
