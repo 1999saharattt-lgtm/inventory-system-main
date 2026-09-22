@@ -45,7 +45,7 @@ export default function MaterialForm({
     useState(false);
 
   /* =========================================================
-     Material Names
+     MATERIAL NAMES
   ========================================================= */
 
   const names = useMemo(() => {
@@ -65,12 +65,15 @@ export default function MaterialForm({
       .map((item) => item.name);
 
     return Array.from(
-      new Set([...oldNames, ...newNames])
+      new Set([
+        ...oldNames,
+        ...newNames,
+      ])
     );
   }, [category, materialMasters]);
 
   /* =========================================================
-     Unit
+     UNIT
   ========================================================= */
 
   const unit =
@@ -78,12 +81,13 @@ export default function MaterialForm({
       ? newUnit.trim()
       : UNITS[name] ??
         materialMasters.find(
-          (item) => item.name === name
+          (item) =>
+            item.name === name
         )?.unit ??
         "";
 
   /* =========================================================
-     Submit
+     SUBMIT
   ========================================================= */
 
   async function handleSubmit(
@@ -93,9 +97,8 @@ export default function MaterialForm({
 
     if (isSubmitting) return;
 
-    const formData = new FormData(
-      e.currentTarget
-    );
+    const formData =
+      new FormData(e.currentTarget);
 
     const materialName =
       name === "__NEW__"
@@ -103,7 +106,9 @@ export default function MaterialForm({
         : name;
 
     if (!materialName) {
-      alert("กรุณาระบุชื่อรายการพัสดุ");
+      alert(
+        "กรุณาระบุชื่อรายการพัสดุ"
+      );
       return;
     }
 
@@ -118,11 +123,16 @@ export default function MaterialForm({
     }
 
     const body = {
-      vendorId: formData.get("vendorId")
-        ? Number(formData.get("vendorId"))
+      vendorId: formData.get(
+        "vendorId"
+      )
+        ? Number(
+            formData.get("vendorId")
+          )
         : null,
 
-      category: categoryMap[category],
+      category:
+        categoryMap[category],
 
       name: materialName,
 
@@ -134,7 +144,9 @@ export default function MaterialForm({
 
       latestPrice: Number(
         Number(
-          formData.get("latestPrice")
+          formData.get(
+            "latestPrice"
+          )
         ).toFixed(2)
       ),
     };
@@ -146,11 +158,15 @@ export default function MaterialForm({
         "/api/materials",
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/json",
           },
-          body: JSON.stringify(body),
+
+          body: JSON.stringify(
+            body
+          ),
         }
       );
 
@@ -184,7 +200,7 @@ export default function MaterialForm({
   }
 
   /* =========================================================
-     Shared Classes
+     SHARED CLASSES
   ========================================================= */
 
   const labelClassName = `
@@ -202,23 +218,24 @@ export default function MaterialForm({
     rounded-[16px]
     border
     border-black
-    bg-white/90
+    bg-white
     px-4
     py-3
     text-base
     font-bold
     !text-slate-900
-    shadow-[0_6px_18px_-14px_rgba(15,23,42,0.3)]
+    shadow-sm
     outline-none
-    backdrop-blur-xl
     transition-all
     duration-200
     placeholder:!text-slate-400
-    hover:border-black
+
+    hover:bg-slate-50
+
     focus:border-black
     focus:bg-white
     focus:ring-4
-    focus:ring-blue-500/10
+    focus:ring-slate-900/10
   `;
 
   /* =========================================================
@@ -229,62 +246,27 @@ export default function MaterialForm({
     <form
       onSubmit={handleSubmit}
       className="
-        relative
         mx-auto
         w-full
         max-w-4xl
         overflow-hidden
         rounded-[30px]
         border
-        border-white/80
-        bg-white/80
-        shadow-[0_24px_70px_-34px_rgba(15,23,42,0.35)]
-        backdrop-blur-2xl
+        border-slate-200
+        bg-slate-50/95
+        shadow-[0_24px_65px_-34px_rgba(15,23,42,0.35)]
+        backdrop-blur-xl
       "
     >
       {/* =====================================================
-          Ambient Decoration
-      ===================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          -right-24
-          -top-24
-          h-72
-          w-72
-          rounded-full
-          bg-blue-200/20
-          blur-3xl
-        "
-      />
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          -bottom-24
-          -left-24
-          h-72
-          w-72
-          rounded-full
-          bg-cyan-200/20
-          blur-3xl
-        "
-      />
-
-      {/* =====================================================
-          Form Header
+          FORM HEADER
       ===================================================== */}
 
       <div
         className="
-          relative
           border-b
-          border-slate-200/80
+          border-slate-200
+          bg-white/70
           px-5
           py-5
           sm:px-8
@@ -307,13 +289,11 @@ export default function MaterialForm({
               items-center
               justify-center
               rounded-[16px]
-              bg-gradient-to-br
-              from-blue-500
-              to-blue-600
+              border
+              border-slate-200
+              bg-white
               text-xl
-              shadow-[0_14px_28px_-16px_rgba(59,130,246,0.65)]
-              ring-1
-              ring-white/40
+              shadow-sm
             "
           >
             📦
@@ -348,12 +328,11 @@ export default function MaterialForm({
       </div>
 
       {/* =====================================================
-          Form Content
+          FORM CONTENT
       ===================================================== */}
 
       <div
         className="
-          relative
           space-y-5
           p-5
           sm:space-y-6
@@ -367,7 +346,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="vendorId"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             ผู้จำหน่าย
           </label>
@@ -376,20 +357,24 @@ export default function MaterialForm({
             id="vendorId"
             name="vendorId"
             defaultValue=""
-            className={inputClassName}
+            className={
+              inputClassName
+            }
           >
             <option value="">
               เลือกผู้จำหน่าย
             </option>
 
-            {vendors.map((vendor) => (
-              <option
-                key={vendor.id}
-                value={vendor.id}
-              >
-                {vendor.name}
-              </option>
-            ))}
+            {vendors.map(
+              (vendor) => (
+                <option
+                  key={vendor.id}
+                  value={vendor.id}
+                >
+                  {vendor.name}
+                </option>
+              )
+            )}
           </select>
         </div>
 
@@ -400,7 +385,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="category"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             หมวดหมู่
           </label>
@@ -409,7 +396,8 @@ export default function MaterialForm({
             id="category"
             value={category}
             onChange={(e) => {
-              const value = e.target.value;
+              const value =
+                e.target.value;
 
               setCategory(value);
               setName("");
@@ -417,20 +405,24 @@ export default function MaterialForm({
               setNewUnit("");
             }}
             required
-            className={inputClassName}
+            className={
+              inputClassName
+            }
           >
             <option value="">
               เลือกหมวดหมู่
             </option>
 
-            {categories.map((c) => (
-              <option
-                key={c}
-                value={c}
-              >
-                {c}
-              </option>
-            ))}
+            {categories.map(
+              (item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              )
+            )}
           </select>
         </div>
 
@@ -441,7 +433,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="materialName"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             รายการพัสดุ
           </label>
@@ -450,13 +444,17 @@ export default function MaterialForm({
             id="materialName"
             value={name}
             onChange={(e) =>
-              setName(e.target.value)
+              setName(
+                e.target.value
+              )
             }
             required
             disabled={!category}
             className={`
               ${inputClassName}
+
               disabled:cursor-not-allowed
+              disabled:border-black
               disabled:bg-slate-100
               disabled:!text-slate-400
               disabled:opacity-70
@@ -468,14 +466,16 @@ export default function MaterialForm({
                 : "กรุณาเลือกหมวดหมู่ก่อน"}
             </option>
 
-            {names.map((item) => (
-              <option
-                key={item}
-                value={item}
-              >
-                {item}
-              </option>
-            ))}
+            {names.map(
+              (item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              )
+            )}
 
             <option value="__NEW__">
               + เพิ่มรายการใหม่...
@@ -483,7 +483,7 @@ export default function MaterialForm({
           </select>
 
           {/* =================================================
-              New Material
+              NEW MATERIAL
           ================================================= */}
 
           {name === "__NEW__" && (
@@ -493,17 +493,19 @@ export default function MaterialForm({
                 space-y-4
                 rounded-[22px]
                 border
-                border-blue-100
-                bg-blue-50/60
+                border-black
+                bg-slate-100/80
                 p-4
-                shadow-inner
+                shadow-sm
                 sm:p-5
               "
             >
               <div>
                 <label
                   htmlFor="newName"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   ชื่อรายการใหม่
                 </label>
@@ -518,14 +520,18 @@ export default function MaterialForm({
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="newUnit"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   หน่วย
                 </label>
@@ -540,7 +546,9 @@ export default function MaterialForm({
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
             </div>
@@ -564,7 +572,9 @@ export default function MaterialForm({
           <div>
             <label
               htmlFor="balance"
-              className={labelClassName}
+              className={
+                labelClassName
+              }
             >
               จำนวน
             </label>
@@ -574,7 +584,10 @@ export default function MaterialForm({
               type="number"
               name="balance"
               defaultValue={0}
-              className={inputClassName}
+              min="0"
+              className={
+                inputClassName
+              }
             />
           </div>
 
@@ -583,7 +596,9 @@ export default function MaterialForm({
           <div>
             <label
               htmlFor="unit"
-              className={labelClassName}
+              className={
+                labelClassName
+              }
             >
               หน่วย
             </label>
@@ -600,13 +615,13 @@ export default function MaterialForm({
                 rounded-[16px]
                 border
                 border-black
-                bg-slate-100/90
+                bg-slate-100
                 px-4
                 py-3
                 text-base
                 font-extrabold
-                !text-slate-600
-                shadow-inner
+                !text-slate-700
+                shadow-sm
                 outline-none
                 placeholder:!text-slate-400
               "
@@ -621,7 +636,9 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="latestPrice"
-            className={labelClassName}
+            className={
+              labelClassName
+            }
           >
             ราคาล่าสุด
           </label>
@@ -638,6 +655,7 @@ export default function MaterialForm({
                 ${inputClassName}
                 pr-16
                 text-right
+                tabular-nums
               `}
             />
 
@@ -651,7 +669,7 @@ export default function MaterialForm({
                 items-center
                 text-sm
                 font-extrabold
-                !text-slate-400
+                !text-slate-500
               "
             >
               บาท
@@ -661,28 +679,25 @@ export default function MaterialForm({
       </div>
 
       {/* =====================================================
-          Buttons
+          ACTIONS
+          ใช้ AppButton กลางเท่านั้น
       ===================================================== */}
 
       <div
         className="
-          relative
           flex
           flex-col-reverse
           gap-3
           border-t
-          border-slate-200/80
-          bg-slate-50/70
+          border-slate-200
+          bg-white/70
           px-5
           py-5
-          backdrop-blur-xl
           sm:flex-row
           sm:justify-end
           sm:px-8
         "
       >
-        {/* Cancel */}
-
         <AppButton
           href="/materials"
           variant="secondary"
@@ -695,13 +710,13 @@ export default function MaterialForm({
           ยกเลิก
         </AppButton>
 
-        {/* Submit */}
-
         <AppButton
           type="submit"
           variant="success"
           size="md"
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting
+          }
           icon={
             isSubmitting ? (
               <span
@@ -711,8 +726,8 @@ export default function MaterialForm({
                   animate-spin
                   rounded-full
                   border-2
-                  border-white/40
-                  border-t-white
+                  border-current
+                  border-t-transparent
                 "
               />
             ) : (

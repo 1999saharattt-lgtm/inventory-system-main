@@ -1,29 +1,36 @@
 import { prisma } from "@/lib/prisma";
 import MaterialForm from "./MaterialForm";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function NewMaterialPage() {
-  /* =========================================================
-     Vendors
-  ========================================================= */
+  /* =======================================================
+     VENDORS
+  ======================================================= */
 
-  const vendors = await prisma.vendor.findMany({
-    orderBy: {
-      name: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const vendors =
+    await prisma.vendor.findMany({
+      orderBy: {
+        name: "asc",
+      },
 
-  /* =========================================================
-     Material Masters
-  ========================================================= */
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  /* =======================================================
+     MATERIAL MASTERS
+  ======================================================= */
 
   const materialMasters =
     await prisma.materialMaster.findMany({
@@ -35,6 +42,7 @@ export default async function NewMaterialPage() {
           name: "asc",
         },
       ],
+
       select: {
         id: true,
         category: true,
@@ -43,14 +51,15 @@ export default async function NewMaterialPage() {
       },
     });
 
-  /* =========================================================
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
-          Header
+          HEADER
+          ใช้ Header กลาง
       ===================================================== */}
 
       <AppPageHeader
@@ -62,46 +71,26 @@ export default async function NewMaterialPage() {
             href="/materials"
             variant="success"
             size="md"
-            icon={<span>←</span>}
           >
-            กลับ
+            <span>←</span>
+            <span>กลับ</span>
           </AppButton>
         }
       />
 
       {/* =====================================================
-          Form Area
+          FORM AREA
+
+          ไม่กำหนดสีพื้นหลัง / Gradient / ปุ่มเฉพาะหน้านี้
+          ให้ MaterialForm และ Component กลางเป็นตัวควบคุม
       ===================================================== */}
 
       <section
         className="
-          relative
           w-full
           min-w-0
         "
       >
-        {/* Ambient Background */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            inset-x-0
-            -top-10
-            -z-10
-            mx-auto
-            h-52
-            max-w-5xl
-            rounded-full
-            bg-gradient-to-r
-            from-blue-100/40
-            via-slate-100/30
-            to-cyan-100/40
-            blur-3xl
-          "
-        />
-
         <MaterialForm
           vendors={vendors}
           materialMasters={materialMasters}
