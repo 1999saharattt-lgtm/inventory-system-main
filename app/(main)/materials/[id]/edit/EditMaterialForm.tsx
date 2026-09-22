@@ -79,8 +79,9 @@ const categoryName: Record<string, string> = {
 
    มาตรฐาน Dropdown ของระบบ
    - พิมพ์ค้นหาได้
-   - กรอบดำ
-   - ไม่ต้องติดตั้ง library เพิ่ม
+   - ไม่มีรูปแว่นขยายในช่องค้นหา
+   - กรอบดำทั้ง Control และ Search Input
+   - ไม่ต้องติดตั้ง Library เพิ่ม
 ========================================================= */
 
 function SearchableDropdown({
@@ -96,11 +97,18 @@ function SearchableDropdown({
   const containerRef =
     useRef<HTMLDivElement>(null);
 
+  const inputRef =
+    useRef<HTMLInputElement>(null);
+
   const [open, setOpen] =
     useState(false);
 
   const [search, setSearch] =
     useState("");
+
+  /* =========================================================
+     SELECTED OPTION
+  ========================================================= */
 
   const selectedOption =
     options.find(
@@ -108,12 +116,16 @@ function SearchableDropdown({
         option.value === value
     );
 
+  /* =========================================================
+     FILTER OPTIONS
+  ========================================================= */
+
   const filteredOptions =
     useMemo(() => {
       const keyword =
-        search.trim().toLocaleLowerCase(
-          "th"
-        );
+        search
+          .trim()
+          .toLocaleLowerCase("th");
 
       if (!keyword) {
         return options;
@@ -129,6 +141,10 @@ function SearchableDropdown({
             .includes(keyword)
       );
     }, [options, search]);
+
+  /* =========================================================
+     CLOSE WHEN CLICK OUTSIDE
+  ========================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -158,11 +174,29 @@ function SearchableDropdown({
     };
   }, []);
 
+  /* =========================================================
+     AUTO FOCUS SEARCH INPUT
+  ========================================================= */
+
   useEffect(() => {
     if (!open) {
       setSearch("");
+      return;
     }
+
+    const timer =
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [open]);
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <div
@@ -180,11 +214,19 @@ function SearchableDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => {
-          if (!disabled) {
-            setOpen(
-              (current) => !current
-            );
+          if (disabled) {
+            return;
           }
+
+          setOpen((current) => {
+            const next = !current;
+
+            if (!next) {
+              setSearch("");
+            }
+
+            return next;
+          });
         }}
         className="
           flex
@@ -193,28 +235,38 @@ function SearchableDropdown({
           items-center
           justify-between
           gap-3
+
           rounded-[16px]
+
           border-2
           !border-black
+
           bg-white
+
           px-4
           py-3
+
           text-left
           text-base
           font-bold
           !text-slate-900
+
           shadow-sm
           outline-none
+
           transition-all
           duration-200
 
+          hover:!border-black
           hover:bg-slate-50
 
           focus:!border-black
+          focus:bg-white
           focus:ring-4
           focus:ring-slate-900/10
 
           disabled:cursor-not-allowed
+          disabled:!border-black
           disabled:bg-slate-100
           disabled:!text-slate-400
           disabled:opacity-70
@@ -242,7 +294,8 @@ function SearchableDropdown({
           className={`
             shrink-0
             text-xs
-            !text-slate-600
+            !text-slate-700
+
             transition-transform
             duration-200
 
@@ -269,84 +322,106 @@ function SearchableDropdown({
             right-0
             top-[calc(100%+8px)]
             z-[100]
+
             overflow-hidden
-            rounded-[18px]
+
+            rounded-[16px]
+
             border-2
             !border-black
+
             bg-white
-            shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)]
+
+            shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
           "
         >
           {/* =================================================
-              SEARCH
+              SEARCH INPUT
+              ไม่มีรูปแว่นขยาย
           ================================================= */}
 
           <div
             className="
-              border-b
-              border-slate-200
+              border-b-2
+              border-black
               bg-slate-50
               p-3
             "
           >
-            <div className="relative">
-              <span
-                aria-hidden="true"
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-y-0
-                  left-4
-                  flex
-                  items-center
-                  text-base
-                "
-              >
-                🔎
-              </span>
-
-              <input
-                type="text"
-                value={search}
-                autoFocus
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              autoComplete="off"
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              onKeyDown={(event) => {
+                if (
+                  event.key ===
+                  "Escape"
+                ) {
+                  setOpen(false);
+                  setSearch("");
                 }
-                onKeyDown={(event) => {
-                  if (
-                    event.key ===
-                    "Escape"
-                  ) {
-                    setOpen(false);
-                  }
-                }}
-                placeholder={
-                  searchPlaceholder
-                }
-                className="
-                  min-h-[46px]
-                  w-full
-                  rounded-[13px]
-                  border-2
-                  !border-black
-                  bg-white
-                  py-2.5
-                  pl-11
-                  pr-4
-                  text-base
-                  font-bold
-                  !text-slate-900
-                  outline-none
-                  placeholder:!text-slate-400
 
-                  focus:!border-black
-                  focus:ring-4
-                  focus:ring-slate-900/10
-                "
-              />
-            </div>
+                if (
+                  event.key ===
+                    "Enter" &&
+                  filteredOptions.length ===
+                    1
+                ) {
+                  event.preventDefault();
+
+                  onChange(
+                    filteredOptions[0]
+                      .value
+                  );
+
+                  setOpen(false);
+                  setSearch("");
+                }
+              }}
+              placeholder={
+                searchPlaceholder
+              }
+              className="
+                min-h-[46px]
+                w-full
+
+                rounded-[12px]
+
+                border-2
+                !border-black
+
+                bg-white
+
+                px-4
+                py-2.5
+
+                text-base
+                font-bold
+                !text-slate-900
+
+                shadow-sm
+                outline-none
+
+                transition-all
+                duration-200
+
+                placeholder:!text-slate-400
+
+                hover:!border-black
+                hover:bg-slate-50
+
+                focus:!border-black
+                focus:bg-white
+                focus:ring-4
+                focus:ring-slate-900/10
+              "
+            />
           </div>
 
           {/* =================================================
@@ -394,12 +469,16 @@ function SearchableDropdown({
                         items-center
                         justify-between
                         gap-3
-                        rounded-[12px]
+
+                        rounded-[10px]
+
                         px-3
-                        py-3
+                        py-2.5
+
                         text-left
                         text-base
                         font-bold
+
                         transition-colors
 
                         ${
@@ -410,7 +489,7 @@ function SearchableDropdown({
                             `
                             : `
                               bg-white
-                              !text-slate-800
+                              !text-slate-900
                               hover:bg-slate-100
                             `
                         }
@@ -428,6 +507,7 @@ function SearchableDropdown({
 
                       {selected && (
                         <span
+                          aria-hidden="true"
                           className="
                             shrink-0
                             !text-white
@@ -444,7 +524,7 @@ function SearchableDropdown({
               <div
                 className="
                   px-4
-                  py-6
+                  py-8
                   text-center
                   text-sm
                   font-bold
@@ -500,14 +580,14 @@ export default function EditMaterialForm({
       ] ?? [];
 
     /*
-     * ป้องกันกรณีชื่อพัสดุเดิม
-     * ไม่มีอยู่ใน MATERIALS
+     * ป้องกันกรณีชื่อพัสดุเดิมไม่มีอยู่ใน MATERIALS
      * แต่มีอยู่ในฐานข้อมูลแล้ว
      */
 
     return Array.from(
       new Set([
         ...categoryMaterials,
+
         ...(material.category ===
           category &&
         material.name
@@ -746,27 +826,30 @@ export default function EditMaterialForm({
     sm:text-base
   `;
 
-  /*
-   * มาตรฐานช่องข้อมูลของระบบ
-   * ทุกช่องใช้กรอบดำ
-   */
-
   const inputClass = `
     min-h-[52px]
     w-full
+
     rounded-[16px]
+
     border-2
     !border-black
+
     bg-white
+
     px-4
     py-3
+
     text-base
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
 
     hover:!border-black
@@ -789,14 +872,22 @@ export default function EditMaterialForm({
         relative
         w-full
         min-w-0
+
         overflow-visible
+
         rounded-[30px]
+
         border
         border-slate-300
+
         bg-white/90
+
         p-5
+
         shadow-[0_24px_70px_-36px_rgba(15,23,42,0.4)]
+
         backdrop-blur-2xl
+
         sm:p-7
         lg:p-8
       "
@@ -812,10 +903,14 @@ export default function EditMaterialForm({
           absolute
           -right-20
           -top-20
+
           h-64
           w-64
+
           rounded-full
+
           bg-blue-400/10
+
           blur-3xl
         "
       />
@@ -827,10 +922,14 @@ export default function EditMaterialForm({
           absolute
           -bottom-24
           -left-20
+
           h-64
           w-64
+
           rounded-full
+
           bg-cyan-400/10
+
           blur-3xl
         "
       />
@@ -845,8 +944,10 @@ export default function EditMaterialForm({
             flex
             items-center
             gap-4
+
             border-b
             border-slate-300
+
             pb-5
           "
         >
@@ -856,11 +957,16 @@ export default function EditMaterialForm({
               h-12
               w-12
               shrink-0
+
               items-center
               justify-center
+
               rounded-[16px]
+
               bg-slate-900
+
               text-xl
+
               shadow-[0_12px_28px_-16px_rgba(15,23,42,0.6)]
             "
           >
@@ -874,6 +980,7 @@ export default function EditMaterialForm({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-2xl
               "
             >
@@ -883,9 +990,11 @@ export default function EditMaterialForm({
             <p
               className="
                 mt-1
+
                 text-sm
                 font-semibold
                 !text-slate-500
+
                 sm:text-base
               "
             >
@@ -920,7 +1029,6 @@ export default function EditMaterialForm({
 
         {/* ===================================================
             หมวดหมู่
-            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -938,7 +1046,7 @@ export default function EditMaterialForm({
               categoryOptions
             }
             placeholder="เลือกหมวดหมู่"
-            searchPlaceholder="ค้นหาหมวดหมู่..."
+            searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
             onChange={(
               selectedCategory
             ) => {
@@ -960,7 +1068,6 @@ export default function EditMaterialForm({
 
         {/* ===================================================
             รายการพัสดุ
-            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -978,7 +1085,7 @@ export default function EditMaterialForm({
               materialOptions
             }
             placeholder="เลือกรายการพัสดุ"
-            searchPlaceholder="ค้นหารายการพัสดุ..."
+            searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
             emptyText="ไม่พบรายการพัสดุ"
             disabled={!category}
             onChange={setName}
@@ -987,7 +1094,6 @@ export default function EditMaterialForm({
 
         {/* ===================================================
             ผู้จำหน่าย
-            Dropdown พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -1005,7 +1111,7 @@ export default function EditMaterialForm({
               vendorOptions
             }
             placeholder="เลือกผู้จำหน่าย"
-            searchPlaceholder="ค้นหาผู้จำหน่าย..."
+            searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
             emptyText="ไม่พบผู้จำหน่าย"
             onChange={
               setVendorId
@@ -1022,11 +1128,10 @@ export default function EditMaterialForm({
             grid
             grid-cols-1
             gap-5
+
             md:grid-cols-2
           "
         >
-          {/* จำนวน */}
-
           <div>
             <label
               htmlFor="balance"
@@ -1051,8 +1156,6 @@ export default function EditMaterialForm({
             />
           </div>
 
-          {/* หน่วย */}
-
           <div>
             <label
               htmlFor="unit"
@@ -1071,18 +1174,26 @@ export default function EditMaterialForm({
               className="
                 min-h-[52px]
                 w-full
+
                 cursor-default
+
                 rounded-[16px]
+
                 border-2
                 !border-black
+
                 bg-slate-100
+
                 px-4
                 py-3
+
                 text-base
                 font-extrabold
                 !text-slate-700
+
                 shadow-sm
                 outline-none
+
                 placeholder:!text-slate-400
               "
             />
@@ -1125,7 +1236,9 @@ export default function EditMaterialForm({
                 absolute
                 right-4
                 top-1/2
+
                 -translate-y-1/2
+
                 text-sm
                 font-extrabold
                 !text-slate-500
@@ -1145,9 +1258,12 @@ export default function EditMaterialForm({
             flex
             flex-col-reverse
             gap-3
+
             border-t
             border-slate-300
+
             pt-6
+
             sm:flex-row
             sm:justify-end
           "
@@ -1182,8 +1298,11 @@ export default function EditMaterialForm({
                   className="
                     h-4
                     w-4
+
                     animate-spin
+
                     rounded-full
+
                     border-2
                     border-current
                     border-t-transparent
