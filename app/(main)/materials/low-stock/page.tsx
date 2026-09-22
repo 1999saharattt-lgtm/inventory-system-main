@@ -1,5 +1,8 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -38,71 +41,88 @@ export default async function LowStockPage({
   searchParams,
 }: LowStockPageProps) {
   const params = await searchParams;
-  const search = (params.q ?? "").trim().toLowerCase();
 
-  // =====================================================
-  // ดึงเฉพาะพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10
-  // แสดงตั้งแต่ 0 - 9
-  // =====================================================
+  const search = (
+    params.q ?? ""
+  )
+    .trim()
+    .toLowerCase();
 
-  const materials = await prisma.material.findMany({
-    where: {
-      balance: {
-        lt: 10,
+  /* =========================================================
+     Load Low Stock Materials
+     แสดงเฉพาะจำนวนคงเหลือน้อยกว่า 10
+     ตั้งแต่ 0 - 9
+  ========================================================= */
+
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        balance: {
+          lt: 10,
+        },
       },
-    },
 
-    orderBy: [
-      {
-        category: "asc",
-      },
-      {
-        code: "asc",
-      },
-    ],
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
 
-    include: {
-      receiveItems: {
-        orderBy: [
-          {
-            receive: {
-              receiveDate: "desc",
+      include: {
+        receiveItems: {
+          orderBy: [
+            {
+              receive: {
+                receiveDate: "desc",
+              },
             },
-          },
-          {
-            id: "desc",
-          },
-        ],
+            {
+              id: "desc",
+            },
+          ],
 
-        include: {
-          receive: {
-            include: {
-              vendor: true,
+          include: {
+            receive: {
+              include: {
+                vendor: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+
+  /* =========================================================
+     Prepare Data
+  ========================================================= */
 
   const data = materials
     .map((material) => {
-      const latestReceive = material.receiveItems[0];
+      const latestReceive =
+        material.receiveItems[0];
 
       return {
         id: material.id,
         category: material.category,
         code: material.code,
         name: material.name,
-        balance: Number(material.balance),
+        balance: Number(
+          material.balance
+        ),
         unit: material.unit,
 
         latestPrice: latestReceive
-          ? Number(latestReceive.unitPrice)
+          ? Number(
+              latestReceive.unitPrice
+            )
           : null,
 
         latestVendor:
-          latestReceive?.receive.vendor?.name ?? "-",
+          latestReceive?.receive.vendor
+            ?.name ?? "-",
       };
     })
     .filter((material) => {
@@ -111,208 +131,238 @@ export default async function LowStockPage({
       }
 
       return (
-        material.code.toLowerCase().includes(search) ||
-        material.name.toLowerCase().includes(search) ||
-        material.unit.toLowerCase().includes(search) ||
-        material.latestVendor.toLowerCase().includes(search)
+        material.code
+          .toLowerCase()
+          .includes(search) ||
+        material.name
+          .toLowerCase()
+          .includes(search) ||
+        material.unit
+          .toLowerCase()
+          .includes(search) ||
+        material.latestVendor
+          .toLowerCase()
+          .includes(search)
       );
     });
 
   const totalLowStock = data.length;
 
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
           Header
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          w-full
-          min-w-0
-          flex-col
-          gap-4
-          rounded-3xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-5
-          text-white
-          shadow-xl
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:p-7
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="⚠️"
+        title="รายการพัสดุใกล้หมด"
+        subtitle="แสดงรายการพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10"
+        actions={
+          <AppButton
+            href="/"
+            variant="secondary"
+            icon={<span>←</span>}
           >
-            ⚠️ รายการพัสดุใกล้หมด
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-bold
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            แสดงรายการพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10
-          </p>
-        </div>
-
-        <Link
-          href="/"
-          className="
-            w-full
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-3
-            text-center
-            text-base
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            sm:w-auto
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
+            กลับ
+          </AppButton>
+        }
+      />
 
       {/* =====================================================
-          Search Box
+          Search
       ===================================================== */}
 
-      <form method="GET">
+      <form
+        method="GET"
+        className="
+          w-full
+          min-w-0
+        "
+      >
         <div
           className="
+            relative
             overflow-hidden
-            rounded-2xl
+            rounded-[24px]
             border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
+            border-slate-300
+            bg-white/90
             p-4
-            shadow-xl
+            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+            backdrop-blur-2xl
+            sm:p-5
           "
         >
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <input
-              type="text"
-              name="q"
-              defaultValue={params.q ?? ""}
-              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-              className="
-                flex-1
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-4
-                py-3
-                text-base
-                font-semibold
-                text-white
-                placeholder:text-slate-400
-                outline-none
-                transition
-                focus:border-cyan-400
-                focus:ring-4
-                focus:ring-cyan-500/20
-              "
-            />
+          {/* Ambient Background */}
 
-            <button
-              type="submit"
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-6
-                py-3
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:shadow-xl
-                active:scale-95
-              "
-            >
-              ค้นหา
-            </button>
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -left-20
+              -top-20
+              h-48
+              w-48
+              rounded-full
+              bg-blue-400/10
+              blur-3xl
+            "
+          />
 
-            {search && (
-              <Link
-                href="/materials/low-stock"
-                className="
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  px-5
-                  py-3
-                  text-center
-                  font-extrabold
-                  !text-white
-                  shadow
-                  transition
-                  hover:scale-105
-                  hover:bg-slate-700
-                  active:scale-95
-                "
-              >
-                ล้างค้นหา
-              </Link>
-            )}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-24
+              right-0
+              h-48
+              w-48
+              rounded-full
+              bg-cyan-400/10
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+              relative
+              flex
+              flex-col
+              gap-3
+              lg:flex-row
+              lg:items-center
+            "
+          >
+            {/* Search Input */}
 
             <div
               className="
-                rounded-xl
-                border
-                border-slate-600
-                bg-slate-800
-                px-5
-                py-3
-                text-center
-                font-extrabold
-                !text-white
+                relative
+                min-w-0
+                flex-1
               "
             >
-              พบ {totalLowStock} รายการ
+              <span
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  left-4
+                  flex
+                  items-center
+                  text-lg
+                "
+              >
+                🔎
+              </span>
+
+              <input
+                type="text"
+                name="q"
+                defaultValue={
+                  params.q ?? ""
+                }
+                placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หน่วย / ผู้จำหน่าย"
+                className="
+                  h-12
+                  w-full
+                  rounded-[16px]
+                  border
+                  border-black
+                  bg-white
+                  py-3
+                  pl-12
+                  pr-4
+                  text-base
+                  font-bold
+                  !text-slate-900
+                  shadow-sm
+                  outline-none
+                  transition-all
+                  duration-200
+                  placeholder:!text-slate-400
+                  hover:bg-slate-50
+                  focus:border-blue-500
+                  focus:bg-white
+                  focus:ring-4
+                  focus:ring-blue-500/10
+                "
+              />
+            </div>
+
+            {/* Search Button */}
+
+            <AppButton
+              type="submit"
+              variant="primary"
+              icon={<span>🔎</span>}
+            >
+              ค้นหา
+            </AppButton>
+
+            {/* Clear Search */}
+
+            {search && (
+              <AppButton
+                href="/materials/low-stock"
+                variant="secondary"
+                icon={<span>✕</span>}
+              >
+                ล้างค้นหา
+              </AppButton>
+            )}
+
+            {/* Result Count */}
+
+            <div
+              className="
+                inline-flex
+                h-11
+                min-w-[124px]
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+                rounded-[14px]
+                border
+                border-slate-300
+                bg-slate-100
+                px-5
+                text-sm
+                font-extrabold
+                !text-slate-700
+                shadow-sm
+                sm:text-base
+              "
+            >
+              <span
+                className="
+                  flex
+                  h-7
+                  min-w-7
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-white
+                  px-2
+                  text-xs
+                  font-black
+                  !text-slate-900
+                  shadow-sm
+                "
+              >
+                {totalLowStock}
+              </span>
+
+              <span>รายการ</span>
             </div>
           </div>
         </div>
@@ -322,408 +372,408 @@ export default async function LowStockPage({
           Category Sections
       ===================================================== */}
 
-      {categories.map((category) => {
-        const categoryMaterials = data.filter(
-          (material) => material.category === category
-        );
+      <div
+        className="
+          w-full
+          min-w-0
+          space-y-6
+        "
+      >
+        {categories.map((category) => {
+          const categoryMaterials =
+            data.filter(
+              (material) =>
+                material.category ===
+                category
+            );
 
-        if (categoryMaterials.length === 0) {
-          return null;
-        }
+          if (
+            categoryMaterials.length ===
+            0
+          ) {
+            return null;
+          }
 
-        return (
-          <section
-            key={category}
-            className="
-              w-full
-              min-w-0
-            "
-          >
-            {/* =================================================
-                Category Header
-            ================================================= */}
-
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                gap-3
-                rounded-t-2xl
-                bg-gradient-to-r
-                from-slate-950
-                via-slate-800
-                to-slate-700
-                px-4
-                py-4
-                text-white
-                sm:px-6
-              "
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="shrink-0 text-2xl">
-                  {categoryIcons[category]}
-                </span>
-
-                <h2
-                  className="
-                    min-w-0
-                    break-words
-                    text-xl
-                    font-extrabold
-                    !text-white
-                    sm:text-2xl
-                  "
-                >
-                  {categoryName[category] ?? category}
-                </h2>
-              </div>
-
-              <span
-                className="
-                  shrink-0
-                  rounded-lg
-                  bg-white/10
-                  px-3
-                  py-2
-                  text-sm
-                  font-bold
-                  !text-white
-                  sm:px-4
-                  sm:text-base
-                "
-              >
-                {categoryMaterials.length} รายการ
-              </span>
-            </div>
-
-            {/* =================================================
-                Table
-                ไม่มีกรอบ wrapper ซ้ำ
-            ================================================= */}
-
-            <div
+          return (
+            <section
+              key={category}
               className="
                 w-full
                 min-w-0
-                max-w-full
-                overflow-x-auto
-                overscroll-x-contain
+                overflow-hidden
+                rounded-[26px]
+                border
+                border-black
+                bg-white
+                shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
               "
             >
-              <table
+              {/* =============================================
+                  Category Header
+              ============================================= */}
+
+              <div
                 className="
-                  w-full
-                  min-w-[900px]
-                  border-collapse
-                  border-x
-                  border-b
-                  border-black
-                  bg-white
+                  flex
+                  min-h-[76px]
+                  items-center
+                  justify-between
+                  gap-3
+                  bg-gradient-to-r
+                  from-slate-950
+                  via-slate-800
+                  to-slate-700
+                  px-4
+                  py-4
+                  sm:px-6
                 "
               >
-                <thead>
-                  <tr>
-                    <th
+                <div
+                  className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-[16px]
+                      bg-white/10
+                      text-2xl
+                      ring-1
+                      ring-white/15
+                    "
+                  >
+                    {
+                      categoryIcons[
+                        category
+                      ]
+                    }
+                  </span>
+
+                  <div className="min-w-0">
+                    <h2
                       className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
+                        break-words
+                        text-xl
+                        font-black
+                        leading-tight
+                        tracking-tight
                         !text-white
+                        sm:text-2xl
                       "
                     >
-                      ลำดับ
-                    </th>
+                      {categoryName[
+                        category
+                      ] ?? category}
+                    </h2>
 
-                    <th
+                    <p
                       className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
+                        mt-1
+                        text-xs
+                        font-bold
+                        !text-slate-300
+                        sm:text-sm
                       "
                     >
-                      รหัสพัสดุ
-                    </th>
+                      รายการที่มีจำนวนคงเหลือน้อยกว่า
+                      10
+                    </p>
+                  </div>
+                </div>
 
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      รายการพัสดุ
-                    </th>
+                <span
+                  className="
+                    inline-flex
+                    h-10
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-white/20
+                    bg-white/10
+                    px-4
+                    text-sm
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  {
+                    categoryMaterials.length
+                  }{" "}
+                  รายการ
+                </span>
+              </div>
 
-                    <th
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      จำนวน
-                    </th>
+              {/* =============================================
+                  Table
+              ============================================= */}
 
-                    <th
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      หน่วย
-                    </th>
-
-                    <th
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      ราคา
-                    </th>
-
-                    <th
-                      className="
-                        border
-                        border-black
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-                        px-4
-                        py-4
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      ผู้จำหน่ายล่าสุด
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {categoryMaterials.map((material, index) => (
-                    <tr
-                      key={material.id}
-                      className="
-                        text-slate-900
-                        transition
-                        hover:bg-blue-50
-                      "
-                    >
-                      <td
-                        className="
-                          whitespace-nowrap
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                        "
-                      >
-                        {index + 1}
-                      </td>
-
-                      <td
-                        className="
-                          whitespace-nowrap
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          text-center
-                          font-bold
-                        "
-                      >
-                        {material.code || "-"}
-                      </td>
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          font-bold
-                        "
-                      >
-                        {material.name || "-"}
-                      </td>
-
-                      <td
-                        className="
-                          whitespace-nowrap
-                          border
-                          border-black
-                          bg-red-50
-                          px-4
-                          py-3
-                          text-center
-                          text-lg
-                          font-extrabold
-                          text-red-700
-                        "
-                      >
-                        {material.balance ?? 0}
-                      </td>
-
-                      <td
-                        className="
-                          whitespace-nowrap
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          text-center
-                          font-semibold
-                        "
-                      >
-                        {material.unit || "-"}
-                      </td>
-
-                      <td
-                        className="
-                          whitespace-nowrap
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          text-right
-                          font-semibold
-                        "
-                      >
-                        {material.latestPrice !== null
-                          ? material.latestPrice.toLocaleString(
-                              "th-TH",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }
-                            )
-                          : "-"}
-                      </td>
-
-                      <td
-                        className="
-                          border
-                          border-black
-                          px-4
-                          py-3
-                          font-semibold
-                        "
-                      >
-                        {material.latestVendor || "-"}
-                      </td>
+              <div
+                className="
+                  w-full
+                  min-w-0
+                  max-w-full
+                  overflow-x-auto
+                  overscroll-x-contain
+                "
+              >
+                <table
+                  className="
+                    w-full
+                    min-w-[900px]
+                    border-collapse
+                    bg-white
+                  "
+                >
+                  <thead>
+                    <tr>
+                      {[
+                        "ลำดับ",
+                        "รหัสพัสดุ",
+                        "รายการพัสดุ",
+                        "จำนวน",
+                        "หน่วย",
+                        "ราคา",
+                        "ผู้จำหน่ายล่าสุด",
+                      ].map((title) => (
+                        <th
+                          key={title}
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            bg-gradient-to-r
+                            from-slate-800
+                            to-slate-700
+                            px-4
+                            py-4
+                            text-center
+                            text-lg
+                            font-extrabold
+                            !text-white
+                          "
+                        >
+                          {title}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+                    {categoryMaterials.map(
+                      (
+                        material,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            material.id
+                          }
+                          className="
+                            bg-white
+                            !text-slate-900
+                            transition-colors
+                            duration-200
+                            hover:bg-blue-50
+                          "
+                        >
+                          {/* ลำดับ */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              text-center
+                              font-bold
+                              !text-slate-900
+                            "
+                          >
+                            {index + 1}
+                          </td>
+
+                          {/* รหัสพัสดุ */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              text-center
+                              font-bold
+                              !text-slate-900
+                            "
+                          >
+                            {material.code ||
+                              "-"}
+                          </td>
+
+                          {/* รายการพัสดุ */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              font-bold
+                              !text-slate-900
+                            "
+                          >
+                            {material.name ||
+                              "-"}
+                          </td>
+
+                          {/* จำนวน */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+                              border
+                              border-black
+                              bg-red-50
+                              px-4
+                              py-3
+                              text-center
+                              text-lg
+                              font-extrabold
+                              !text-red-700
+                            "
+                          >
+                            {material.balance ??
+                              0}
+                          </td>
+
+                          {/* หน่วย */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              text-center
+                              font-semibold
+                              !text-slate-900
+                            "
+                          >
+                            {material.unit ||
+                              "-"}
+                          </td>
+
+                          {/* ราคา */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              text-right
+                              font-semibold
+                              !text-slate-900
+                            "
+                          >
+                            {material.latestPrice !==
+                            null
+                              ? material.latestPrice.toLocaleString(
+                                  "th-TH",
+                                  {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }
+                                )
+                              : "-"}
+                          </td>
+
+                          {/* ผู้จำหน่ายล่าสุด */}
+
+                          <td
+                            className="
+                              border
+                              border-black
+                              px-4
+                              py-3
+                              font-semibold
+                              !text-slate-900
+                            "
+                          >
+                            {material.latestVendor ||
+                              "-"}
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          );
+        })}
+
+        {/* ===================================================
+            Empty State
+        =================================================== */}
+
+        {data.length === 0 && (
+          <div
+            className="
+              rounded-[26px]
+              border
+              border-emerald-300
+              bg-emerald-50
+              p-8
+              text-center
+              shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+            "
+          >
+            <div className="text-5xl">
+              ✅
             </div>
-          </section>
-        );
-      })}
 
-      {/* =====================================================
-          ไม่มีรายการ
-      ===================================================== */}
+            <h2
+              className="
+                mt-4
+                text-2xl
+                font-extrabold
+                !text-emerald-800
+              "
+            >
+              {search
+                ? "ไม่พบพัสดุที่ค้นหา"
+                : "ไม่มีพัสดุใกล้หมด"}
+            </h2>
 
-      {data.length === 0 && (
-        <div
-          className="
-            rounded-2xl
-            border
-            border-emerald-200
-            bg-emerald-50
-            p-8
-            text-center
-            shadow-md
-          "
-        >
-          <div className="text-5xl">✅</div>
-
-          <h2
-            className="
-              mt-4
-              text-2xl
-              font-extrabold
-              text-emerald-800
-            "
-          >
-            {search
-              ? "ไม่พบพัสดุที่ค้นหา"
-              : "ไม่มีพัสดุใกล้หมด"}
-          </h2>
-
-          <p
-            className="
-              mt-2
-              font-semibold
-              text-emerald-700
-            "
-          >
-            {search
-              ? "ลองค้นหาด้วยรหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่ายอื่น"
-              : "ขณะนี้พัสดุทุกรายการมีจำนวนคงเหลือตั้งแต่ 10 รายการขึ้นไป"}
-          </p>
-        </div>
-      )}
-    </div>
+            <p
+              className="
+                mt-2
+                font-semibold
+                !text-emerald-700
+              "
+            >
+              {search
+                ? "ลองค้นหาด้วยรหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่ายอื่น"
+                : "ขณะนี้พัสดุทุกรายการมีจำนวนคงเหลือตั้งแต่ 10 รายการขึ้นไป"}
+            </p>
+          </div>
+        )}
+      </div>
+    </AppPage>
   );
 }
