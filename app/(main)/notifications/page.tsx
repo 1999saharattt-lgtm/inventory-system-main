@@ -67,9 +67,6 @@ export default async function NotificationsPage() {
 
   /* =======================================================
      ADMIN
-
-     เห็นใบเบิกที่รอเจ้าหน้าที่พัสดุตรวจสอบ
-     ของทุกกลุ่มงาน
   ======================================================= */
 
   if (isAdmin) {
@@ -81,7 +78,6 @@ export default async function NotificationsPage() {
 
         include: {
           department: true,
-
           officer: true,
 
           items: {
@@ -118,44 +114,27 @@ export default async function NotificationsPage() {
             w-full
             min-w-0
             overflow-hidden
-            rounded-[28px]
+            rounded-[30px]
             border
-            border-white/80
-            bg-white/80
+            border-slate-200
+            bg-slate-50/95
             p-5
-            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-            backdrop-blur-2xl
+            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+            backdrop-blur-xl
             sm:p-6
           "
         >
-          {/* Ambient Glow */}
-
           <div
             aria-hidden="true"
             className="
               pointer-events-none
               absolute
-              -right-20
+              -right-16
               -top-20
-              h-56
-              w-56
+              h-52
+              w-52
               rounded-full
-              bg-orange-400/10
-              blur-3xl
-            "
-          />
-
-          <div
-            aria-hidden="true"
-            className="
-              pointer-events-none
-              absolute
-              -bottom-24
-              -left-20
-              h-56
-              w-56
-              rounded-full
-              bg-amber-400/10
+              bg-orange-300/10
               blur-3xl
             "
           />
@@ -189,10 +168,10 @@ export default async function NotificationsPage() {
                   justify-center
                   rounded-[18px]
                   border
-                  border-orange-200/70
+                  border-orange-200
                   bg-orange-50
                   !text-orange-600
-                  shadow-[0_12px_26px_-18px_rgba(234,88,12,0.5)]
+                  shadow-sm
                 "
               >
                 <PackageMinus
@@ -213,18 +192,37 @@ export default async function NotificationsPage() {
                   ใบเบิกที่รอดำเนินการ
                 </p>
 
-                <p
+                <div
                   className="
                     mt-1
-                    text-3xl
-                    font-black
-                    tracking-tight
-                    !text-slate-900
-                    sm:text-4xl
+                    flex
+                    items-end
+                    gap-2
                   "
                 >
-                  {pendingIssues.length}
-                </p>
+                  <p
+                    className="
+                      text-3xl
+                      font-black
+                      tracking-tight
+                      !text-slate-900
+                      sm:text-4xl
+                    "
+                  >
+                    {pendingIssues.length}
+                  </p>
+
+                  <span
+                    className="
+                      pb-1
+                      text-sm
+                      font-bold
+                      !text-slate-500
+                    "
+                  >
+                    ใบเบิก
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -236,8 +234,8 @@ export default async function NotificationsPage() {
                 gap-2
                 rounded-full
                 border
-                border-orange-200
-                bg-orange-50/90
+                border-orange-300
+                bg-orange-50
                 px-4
                 py-2
                 text-sm
@@ -252,7 +250,6 @@ export default async function NotificationsPage() {
                   w-2.5
                   rounded-full
                   bg-orange-500
-                  shadow-[0_0_0_4px_rgba(249,115,22,0.12)]
                 "
               />
 
@@ -275,78 +272,58 @@ export default async function NotificationsPage() {
           {pendingIssues.length === 0 ? (
             <div
               className="
-                relative
-                overflow-hidden
-                rounded-[28px]
+                rounded-[30px]
                 border
-                border-white/80
-                bg-white/80
+                border-slate-200
+                bg-slate-50/95
                 px-6
                 py-14
                 text-center
-                shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-                backdrop-blur-2xl
+                shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+                backdrop-blur-xl
               "
             >
               <div
-                aria-hidden="true"
                 className="
-                  pointer-events-none
-                  absolute
-                  left-1/2
-                  top-0
-                  h-40
-                  w-40
-                  -translate-x-1/2
-                  rounded-full
-                  bg-blue-400/10
-                  blur-3xl
+                  mx-auto
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
+                  rounded-[20px]
+                  border
+                  border-slate-200
+                  bg-white
+                  !text-slate-500
+                  shadow-sm
                 "
-              />
-
-              <div className="relative">
-                <div
-                  className="
-                    mx-auto
-                    flex
-                    h-16
-                    w-16
-                    items-center
-                    justify-center
-                    rounded-[20px]
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    !text-slate-500
-                    shadow-[0_12px_28px_-20px_rgba(15,23,42,0.4)]
-                  "
-                >
-                  <Bell size={30} />
-                </div>
-
-                <h2
-                  className="
-                    mt-5
-                    text-xl
-                    font-black
-                    tracking-tight
-                    !text-slate-900
-                    sm:text-2xl
-                  "
-                >
-                  ไม่มีการแจ้งเตือน
-                </h2>
-
-                <p
-                  className="
-                    mt-2
-                    font-semibold
-                    !text-slate-500
-                  "
-                >
-                  ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
-                </p>
+              >
+                <Bell size={30} />
               </div>
+
+              <h2
+                className="
+                  mt-5
+                  text-xl
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+                  sm:text-2xl
+                "
+              >
+                ไม่มีการแจ้งเตือน
+              </h2>
+
+              <p
+                className="
+                  mt-2
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
+              </p>
             </div>
           ) : (
             pendingIssues.map((issue) => (
@@ -359,22 +336,21 @@ export default async function NotificationsPage() {
                   block
                   min-w-0
                   overflow-hidden
-                  rounded-[24px]
+                  rounded-[26px]
                   border
-                  border-white/80
-                  bg-white/85
+                  border-slate-200
+                  bg-slate-50/95
                   p-5
-                  shadow-[0_18px_48px_-28px_rgba(15,23,42,0.32)]
-                  backdrop-blur-2xl
+                  shadow-[0_18px_45px_-30px_rgba(15,23,42,0.35)]
+                  backdrop-blur-xl
                   transition-all
                   duration-300
-                  ease-out
-                  hover:-translate-y-1
-                  hover:border-orange-200
+                  hover:-translate-y-[2px]
+                  hover:border-orange-300
                   hover:bg-white
-                  hover:shadow-[0_26px_60px_-28px_rgba(15,23,42,0.4)]
+                  hover:shadow-[0_22px_50px_-28px_rgba(15,23,42,0.4)]
                   active:translate-y-0
-                  active:scale-[0.99]
+                  active:scale-[0.995]
                   sm:p-6
                 "
               >
@@ -385,30 +361,10 @@ export default async function NotificationsPage() {
                     absolute
                     inset-y-0
                     left-0
-                    w-1
+                    w-[4px]
                     bg-gradient-to-b
                     from-orange-400
                     to-amber-500
-                  "
-                />
-
-                {/* Ambient */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    -right-16
-                    -top-16
-                    h-40
-                    w-40
-                    rounded-full
-                    bg-orange-400/[0.07]
-                    blur-3xl
-                    transition-transform
-                    duration-500
-                    group-hover:scale-125
                   "
                 />
 
@@ -433,13 +389,10 @@ export default async function NotificationsPage() {
                       justify-center
                       rounded-[16px]
                       border
-                      border-orange-200/80
+                      border-orange-200
                       bg-orange-50
                       !text-orange-600
-                      shadow-[0_12px_24px_-18px_rgba(234,88,12,0.5)]
-                      transition-transform
-                      duration-300
-                      group-hover:scale-[1.05]
+                      shadow-sm
                     "
                   >
                     <PackageMinus
@@ -504,69 +457,151 @@ export default async function NotificationsPage() {
                       </span>
                     </div>
 
+                    {/* =====================================
+                        INFORMATION CARDS
+                    ===================================== */}
+
                     <div
                       className="
                         mt-4
                         grid
-                        gap-2
-                        text-sm
-                        font-semibold
-                        !text-slate-600
+                        grid-cols-1
+                        gap-3
                         sm:grid-cols-2
-                        sm:text-base
                       "
                     >
-                      <p>
-                        <span
+                      <div
+                        className="
+                          rounded-[16px]
+                          border
+                          border-slate-200
+                          bg-white/90
+                          px-4
+                          py-3
+                        "
+                      >
+                        <p
                           className="
-                            font-extrabold
-                            !text-slate-900
+                            text-xs
+                            font-bold
+                            !text-slate-500
                           "
                         >
-                          เลขที่ใบเบิก:
-                        </span>{" "}
-                        {issue.documentNo}
-                      </p>
+                          เลขที่ใบเบิก
+                        </p>
 
-                      <p>
-                        <span
+                        <p
                           className="
+                            mt-1
+                            break-words
                             font-extrabold
                             !text-slate-900
                           "
                         >
-                          กลุ่มงาน:
-                        </span>{" "}
-                        {issue.department.name}
-                      </p>
+                          {issue.documentNo}
+                        </p>
+                      </div>
+
+                      <div
+                        className="
+                          rounded-[16px]
+                          border
+                          border-slate-200
+                          bg-blue-50/70
+                          px-4
+                          py-3
+                        "
+                      >
+                        <p
+                          className="
+                            text-xs
+                            font-bold
+                            !text-slate-500
+                          "
+                        >
+                          กลุ่มงาน
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            break-words
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {issue.department.name}
+                        </p>
+                      </div>
 
                       {issue.officer && (
-                        <p>
-                          <span
+                        <div
+                          className="
+                            rounded-[16px]
+                            border
+                            border-slate-200
+                            bg-white/90
+                            px-4
+                            py-3
+                          "
+                        >
+                          <p
                             className="
+                              text-xs
+                              font-bold
+                              !text-slate-500
+                            "
+                          >
+                            ผู้ขอเบิก
+                          </p>
+
+                          <p
+                            className="
+                              mt-1
+                              break-words
                               font-extrabold
                               !text-slate-900
                             "
                           >
-                            ผู้ขอเบิก:
-                          </span>{" "}
-                          {issue.officer.firstName}{" "}
-                          {issue.officer.lastName}
-                        </p>
+                            {issue.officer.firstName}{" "}
+                            {issue.officer.lastName}
+                          </p>
+                        </div>
                       )}
 
-                      <p>
-                        <span
+                      <div
+                        className="
+                          rounded-[16px]
+                          border
+                          border-slate-200
+                          bg-orange-50/70
+                          px-4
+                          py-3
+                        "
+                      >
+                        <p
                           className="
+                            text-xs
+                            font-bold
+                            !text-slate-500
+                          "
+                        >
+                          จำนวนรายการ
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
                             font-extrabold
                             !text-slate-900
                           "
                         >
-                          จำนวนรายการ:
-                        </span>{" "}
-                        {issue.items.length} รายการ
-                      </p>
+                          {issue.items.length} รายการ
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Time */}
 
                     <div
                       className="
@@ -575,7 +610,7 @@ export default async function NotificationsPage() {
                         items-center
                         gap-2
                         border-t
-                        border-slate-200/80
+                        border-slate-200
                         pt-4
                         text-sm
                         font-bold
@@ -616,7 +651,7 @@ export default async function NotificationsPage() {
                       transition-all
                       duration-300
                       group-hover:translate-x-1
-                      group-hover:border-orange-200
+                      group-hover:border-orange-300
                       group-hover:!text-orange-600
                       sm:flex
                     "
@@ -634,7 +669,6 @@ export default async function NotificationsPage() {
 
   /* =======================================================
      STAFF / VIEWER
-
      ไม่พบ Department
   ======================================================= */
 
@@ -649,78 +683,58 @@ export default async function NotificationsPage() {
 
         <section
           className="
-            relative
-            overflow-hidden
-            rounded-[28px]
+            rounded-[30px]
             border
-            border-white/80
-            bg-white/80
+            border-slate-200
+            bg-slate-50/95
             px-6
             py-14
             text-center
-            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-            backdrop-blur-2xl
+            shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+            backdrop-blur-xl
           "
         >
           <div
-            aria-hidden="true"
             className="
-              pointer-events-none
-              absolute
-              left-1/2
-              top-0
-              h-40
-              w-40
-              -translate-x-1/2
-              rounded-full
-              bg-amber-400/10
-              blur-3xl
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-[20px]
+              border
+              border-amber-200
+              bg-amber-50
+              !text-amber-600
+              shadow-sm
             "
-          />
-
-          <div className="relative">
-            <div
-              className="
-                mx-auto
-                flex
-                h-16
-                w-16
-                items-center
-                justify-center
-                rounded-[20px]
-                border
-                border-amber-200
-                bg-amber-50
-                !text-amber-600
-                shadow-[0_12px_28px_-20px_rgba(217,119,6,0.45)]
-              "
-            >
-              <Bell size={30} />
-            </div>
-
-            <h2
-              className="
-                mt-5
-                text-xl
-                font-black
-                tracking-tight
-                !text-slate-900
-                sm:text-2xl
-              "
-            >
-              ไม่สามารถแสดงการแจ้งเตือนได้
-            </h2>
-
-            <p
-              className="
-                mt-2
-                font-semibold
-                !text-slate-500
-              "
-            >
-              บัญชีผู้ใช้งานยังไม่ได้กำหนดกลุ่มงาน
-            </p>
+          >
+            <Bell size={30} />
           </div>
+
+          <h2
+            className="
+              mt-5
+              text-xl
+              font-black
+              tracking-tight
+              !text-slate-900
+              sm:text-2xl
+            "
+          >
+            ไม่สามารถแสดงการแจ้งเตือนได้
+          </h2>
+
+          <p
+            className="
+              mt-2
+              font-semibold
+              !text-slate-500
+            "
+          >
+            บัญชีผู้ใช้งานยังไม่ได้กำหนดกลุ่มงาน
+          </p>
         </section>
       </AppPage>
     );
@@ -730,7 +744,6 @@ export default async function NotificationsPage() {
      STAFF / VIEWER
 
      ใบเบิกที่ ADMIN ดำเนินการแล้ว
-     เฉพาะกลุ่มงานของผู้ใช้งาน
   ======================================================= */
 
   const completedIssues =
@@ -752,7 +765,6 @@ export default async function NotificationsPage() {
 
       include: {
         department: true,
-
         officer: true,
 
         approvedBy: {
@@ -775,13 +787,14 @@ export default async function NotificationsPage() {
     });
 
   /* =======================================================
-     ต้องเป็นรายการที่ ADMIN ดำเนินการเท่านั้น
+     ต้องเป็น ADMIN ดำเนินการเท่านั้น
   ======================================================= */
 
   const adminCompletedIssues =
     completedIssues.filter(
       (issue) =>
-        issue.approvedBy?.role === "ADMIN"
+        issue.approvedBy?.role ===
+        "ADMIN"
     );
 
   const totalIssuedItems =
@@ -790,7 +803,8 @@ export default async function NotificationsPage() {
         total +
         issue.items.reduce(
           (itemTotal, item) =>
-            itemTotal + item.issuedQty,
+            itemTotal +
+            item.issuedQty,
           0
         ),
       0
@@ -822,13 +836,13 @@ export default async function NotificationsPage() {
           w-full
           min-w-0
           overflow-hidden
-          rounded-[28px]
+          rounded-[30px]
           border
-          border-white/80
-          bg-white/80
+          border-slate-200
+          bg-slate-50/95
           p-5
-          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-          backdrop-blur-2xl
+          shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+          backdrop-blur-xl
           sm:p-6
         "
       >
@@ -842,22 +856,7 @@ export default async function NotificationsPage() {
             h-56
             w-56
             rounded-full
-            bg-emerald-400/10
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -bottom-24
-            -left-20
-            h-56
-            w-56
-            rounded-full
-            bg-cyan-400/10
+            bg-emerald-300/10
             blur-3xl
           "
         />
@@ -891,10 +890,10 @@ export default async function NotificationsPage() {
                 justify-center
                 rounded-[18px]
                 border
-                border-emerald-200/70
+                border-emerald-200
                 bg-emerald-50
                 !text-emerald-600
-                shadow-[0_12px_26px_-18px_rgba(5,150,105,0.5)]
+                shadow-sm
               "
             >
               <CheckCircle2
@@ -915,18 +914,37 @@ export default async function NotificationsPage() {
                 ใบเบิกที่ดำเนินการแล้ว
               </p>
 
-              <p
+              <div
                 className="
                   mt-1
-                  text-3xl
-                  font-black
-                  tracking-tight
-                  !text-slate-900
-                  sm:text-4xl
+                  flex
+                  items-end
+                  gap-2
                 "
               >
-                {adminCompletedIssues.length}
-              </p>
+                <p
+                  className="
+                    text-3xl
+                    font-black
+                    tracking-tight
+                    !text-slate-900
+                    sm:text-4xl
+                  "
+                >
+                  {adminCompletedIssues.length}
+                </p>
+
+                <span
+                  className="
+                    pb-1
+                    text-sm
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  ใบเบิก
+                </span>
+              </div>
 
               <p
                 className="
@@ -936,7 +954,8 @@ export default async function NotificationsPage() {
                   !text-slate-500
                 "
               >
-                เบิกจ่ายรวม {totalIssuedItems} หน่วย
+                เบิกจ่ายรวม{" "}
+                {totalIssuedItems} หน่วย
               </p>
             </div>
           </div>
@@ -949,8 +968,8 @@ export default async function NotificationsPage() {
               gap-2
               rounded-full
               border
-              border-emerald-200
-              bg-emerald-50/90
+              border-emerald-300
+              bg-emerald-50
               px-4
               py-2
               text-sm
@@ -977,83 +996,64 @@ export default async function NotificationsPage() {
           space-y-4
         "
       >
-        {adminCompletedIssues.length === 0 ? (
+        {adminCompletedIssues.length ===
+        0 ? (
           <div
             className="
-              relative
-              overflow-hidden
-              rounded-[28px]
+              rounded-[30px]
               border
-              border-white/80
-              bg-white/80
+              border-slate-200
+              bg-slate-50/95
               px-6
               py-14
               text-center
-              shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-              backdrop-blur-2xl
+              shadow-[0_20px_50px_-32px_rgba(15,23,42,0.35)]
+              backdrop-blur-xl
             "
           >
             <div
-              aria-hidden="true"
               className="
-                pointer-events-none
-                absolute
-                left-1/2
-                top-0
-                h-40
-                w-40
-                -translate-x-1/2
-                rounded-full
-                bg-emerald-400/10
-                blur-3xl
+                mx-auto
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
+                rounded-[20px]
+                border
+                border-slate-200
+                bg-white
+                !text-slate-500
+                shadow-sm
               "
-            />
-
-            <div className="relative">
-              <div
-                className="
-                  mx-auto
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-[20px]
-                  border
-                  border-slate-200
-                  bg-slate-50
-                  !text-slate-500
-                  shadow-[0_12px_28px_-20px_rgba(15,23,42,0.4)]
-                "
-              >
-                <Bell size={30} />
-              </div>
-
-              <h2
-                className="
-                  mt-5
-                  text-xl
-                  font-black
-                  tracking-tight
-                  !text-slate-900
-                  sm:text-2xl
-                "
-              >
-                ยังไม่มีการแจ้งเตือน
-              </h2>
-
-              <p
-                className="
-                  mt-2
-                  font-semibold
-                  leading-relaxed
-                  !text-slate-500
-                "
-              >
-                เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
-                จะแสดงผลที่หน้านี้
-              </p>
+            >
+              <Bell size={30} />
             </div>
+
+            <h2
+              className="
+                mt-5
+                text-xl
+                font-black
+                tracking-tight
+                !text-slate-900
+                sm:text-2xl
+              "
+            >
+              ยังไม่มีการแจ้งเตือน
+            </h2>
+
+            <p
+              className="
+                mt-2
+                font-semibold
+                leading-relaxed
+                !text-slate-500
+              "
+            >
+              เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
+              จะแสดงผลที่หน้านี้
+            </p>
           </div>
         ) : (
           adminCompletedIssues.map(
@@ -1083,22 +1083,21 @@ export default async function NotificationsPage() {
                     block
                     min-w-0
                     overflow-hidden
-                    rounded-[24px]
+                    rounded-[26px]
                     border
-                    border-white/80
-                    bg-white/85
+                    border-slate-200
+                    bg-slate-50/95
                     p-5
-                    shadow-[0_18px_48px_-28px_rgba(15,23,42,0.32)]
-                    backdrop-blur-2xl
+                    shadow-[0_18px_45px_-30px_rgba(15,23,42,0.35)]
+                    backdrop-blur-xl
                     transition-all
                     duration-300
-                    ease-out
-                    hover:-translate-y-1
-                    hover:border-emerald-200
+                    hover:-translate-y-[2px]
+                    hover:border-emerald-300
                     hover:bg-white
-                    hover:shadow-[0_26px_60px_-28px_rgba(15,23,42,0.4)]
+                    hover:shadow-[0_22px_50px_-28px_rgba(15,23,42,0.4)]
                     active:translate-y-0
-                    active:scale-[0.99]
+                    active:scale-[0.995]
                     sm:p-6
                   "
                 >
@@ -1109,30 +1108,10 @@ export default async function NotificationsPage() {
                       absolute
                       inset-y-0
                       left-0
-                      w-1
+                      w-[4px]
                       bg-gradient-to-b
                       from-emerald-400
                       to-teal-500
-                    "
-                  />
-
-                  {/* Ambient */}
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      pointer-events-none
-                      absolute
-                      -right-16
-                      -top-16
-                      h-40
-                      w-40
-                      rounded-full
-                      bg-emerald-400/[0.07]
-                      blur-3xl
-                      transition-transform
-                      duration-500
-                      group-hover:scale-125
                     "
                   />
 
@@ -1157,13 +1136,10 @@ export default async function NotificationsPage() {
                         justify-center
                         rounded-[16px]
                         border
-                        border-emerald-200/80
+                        border-emerald-200
                         bg-emerald-50
                         !text-emerald-600
-                        shadow-[0_12px_24px_-18px_rgba(5,150,105,0.5)]
-                        transition-transform
-                        duration-300
-                        group-hover:scale-[1.05]
+                        shadow-sm
                       "
                     >
                       <CheckCircle2
@@ -1223,111 +1199,225 @@ export default async function NotificationsPage() {
                         </span>
                       </div>
 
+                      {/* =====================================
+                          INFORMATION CARDS
+                      ===================================== */}
+
                       <div
                         className="
                           mt-4
                           grid
-                          gap-2
-                          text-sm
-                          font-semibold
-                          !text-slate-600
+                          grid-cols-1
+                          gap-3
                           sm:grid-cols-2
-                          sm:text-base
                         "
                       >
-                        <p>
-                          <span
+                        <div
+                          className="
+                            rounded-[16px]
+                            border
+                            border-slate-200
+                            bg-white/90
+                            px-4
+                            py-3
+                          "
+                        >
+                          <p
                             className="
-                              font-extrabold
-                              !text-slate-900
+                              text-xs
+                              font-bold
+                              !text-slate-500
                             "
                           >
-                            เลขที่ใบเบิก:
-                          </span>{" "}
-                          {issue.documentNo}
-                        </p>
+                            เลขที่ใบเบิก
+                          </p>
 
-                        <p>
-                          <span
+                          <p
                             className="
+                              mt-1
+                              break-words
                               font-extrabold
                               !text-slate-900
                             "
                           >
-                            กลุ่มงาน:
-                          </span>{" "}
-                          {issue.department.name}
-                        </p>
+                            {issue.documentNo}
+                          </p>
+                        </div>
+
+                        <div
+                          className="
+                            rounded-[16px]
+                            border
+                            border-slate-200
+                            bg-blue-50/70
+                            px-4
+                            py-3
+                          "
+                        >
+                          <p
+                            className="
+                              text-xs
+                              font-bold
+                              !text-slate-500
+                            "
+                          >
+                            กลุ่มงาน
+                          </p>
+
+                          <p
+                            className="
+                              mt-1
+                              break-words
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            {issue.department.name}
+                          </p>
+                        </div>
 
                         {issue.officer && (
-                          <p>
-                            <span
+                          <div
+                            className="
+                              rounded-[16px]
+                              border
+                              border-slate-200
+                              bg-white/90
+                              px-4
+                              py-3
+                            "
+                          >
+                            <p
                               className="
+                                text-xs
+                                font-bold
+                                !text-slate-500
+                              "
+                            >
+                              ผู้ขอเบิก
+                            </p>
+
+                            <p
+                              className="
+                                mt-1
+                                break-words
                                 font-extrabold
                                 !text-slate-900
                               "
                             >
-                              ผู้ขอเบิก:
-                            </span>{" "}
-                            {
-                              issue.officer
-                                .firstName
-                            }{" "}
-                            {
-                              issue.officer
-                                .lastName
-                            }
-                          </p>
+                              {
+                                issue.officer
+                                  .firstName
+                              }{" "}
+                              {
+                                issue.officer
+                                  .lastName
+                              }
+                            </p>
+                          </div>
                         )}
 
-                        <p>
-                          <span
+                        <div
+                          className="
+                            rounded-[16px]
+                            border
+                            border-slate-200
+                            bg-slate-100/80
+                            px-4
+                            py-3
+                          "
+                        >
+                          <p
                             className="
-                              font-extrabold
-                              !text-slate-900
+                              text-xs
+                              font-bold
+                              !text-slate-500
                             "
                           >
-                            จำนวนที่ขอเบิก:
-                          </span>{" "}
-                          {requestedTotal} หน่วย
-                        </p>
+                            จำนวนที่ขอเบิก
+                          </p>
 
-                        <p>
-                          <span
+                          <p
                             className="
+                              mt-1
                               font-extrabold
                               !text-slate-900
                             "
                           >
-                            จำนวนที่เบิกจ่ายจริง:
-                          </span>{" "}
-                          <span
+                            {requestedTotal} หน่วย
+                          </p>
+                        </div>
+
+                        <div
+                          className="
+                            rounded-[16px]
+                            border
+                            border-emerald-200
+                            bg-emerald-50
+                            px-4
+                            py-3
+                          "
+                        >
+                          <p
                             className="
-                              font-black
+                              text-xs
+                              font-bold
                               !text-emerald-700
                             "
                           >
+                            จำนวนที่เบิกจ่ายจริง
+                          </p>
+
+                          <p
+                            className="
+                              mt-1
+                              font-black
+                              !text-emerald-800
+                            "
+                          >
                             {issuedTotal} หน่วย
-                          </span>
-                        </p>
+                          </p>
+                        </div>
 
                         {issue.approvedBy && (
-                          <p>
-                            <span
+                          <div
+                            className="
+                              rounded-[16px]
+                              border
+                              border-slate-200
+                              bg-blue-50/70
+                              px-4
+                              py-3
+                            "
+                          >
+                            <p
                               className="
+                                text-xs
+                                font-bold
+                                !text-slate-500
+                              "
+                            >
+                              ดำเนินการโดย
+                            </p>
+
+                            <p
+                              className="
+                                mt-1
+                                break-words
                                 font-extrabold
                                 !text-slate-900
                               "
                             >
-                              ดำเนินการโดย:
-                            </span>{" "}
-                            {
-                              issue.approvedBy
-                                .fullname
-                            }
-                          </p>
+                              {
+                                issue.approvedBy
+                                  .fullname
+                              }
+                            </p>
+                          </div>
                         )}
                       </div>
+
+                      {/* Time */}
 
                       <div
                         className="
@@ -1336,7 +1426,7 @@ export default async function NotificationsPage() {
                           items-center
                           gap-2
                           border-t
-                          border-slate-200/80
+                          border-slate-200
                           pt-4
                           text-sm
                           font-bold
@@ -1377,7 +1467,7 @@ export default async function NotificationsPage() {
                         transition-all
                         duration-300
                         group-hover:translate-x-1
-                        group-hover:border-emerald-200
+                        group-hover:border-emerald-300
                         group-hover:!text-emerald-600
                         sm:flex
                       "
