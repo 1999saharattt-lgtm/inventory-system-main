@@ -7,51 +7,57 @@ import type {
    TYPES
 ========================================================= */
 
-type AppInfoCardProps = {
-  children?: ReactNode;
+type AppTableCardProps = {
+  children: ReactNode;
 
-  label?: ReactNode;
-  value?: ReactNode;
-  icon?: ReactNode;
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  badge?: ReactNode;
 
   className?: string;
-  labelClassName?: string;
-  valueClassName?: string;
-  iconClassName?: string;
+  headerClassName?: string;
+  contentClassName?: string;
+  badgeClassName?: string;
 } & Omit<
-  HTMLAttributes<HTMLDivElement>,
-  "children" | "className"
+  HTMLAttributes<HTMLElement>,
+  "children" | "className" | "title"
 >;
 
 /* =========================================================
-   APP INFO CARD
+   APP TABLE CARD
 ========================================================= */
 
-export default function AppInfoCard({
+export default function AppTableCard({
   children,
-  label,
-  value,
-  icon,
+
+  title,
+  subtitle,
+  badge,
 
   className = "",
-  labelClassName = "",
-  valueClassName = "",
-  iconClassName = "",
+  headerClassName = "",
+  contentClassName = "",
+  badgeClassName = "",
 
   ...props
-}: AppInfoCardProps) {
+}: AppTableCardProps) {
+  const hasHeader =
+    title !== undefined ||
+    subtitle !== undefined ||
+    badge !== undefined;
+
   return (
-    <div
+    <section
       {...props}
       className={`
-        group
-
         relative
+
+        w-full
         min-w-0
 
         overflow-hidden
 
-        rounded-[22px]
+        rounded-[28px]
 
         border
         border-white/80
@@ -61,28 +67,59 @@ export default function AppInfoCard({
         via-white/90
         to-slate-50/85
 
-        shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45),inset_0_1px_0_rgba(255,255,255,0.95)]
+        shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45),inset_0_1px_0_rgba(255,255,255,0.95)]
 
         ring-1
         ring-slate-900/[0.05]
 
         backdrop-blur-2xl
 
-        transition-all
-        duration-300
-
-        hover:-translate-y-[1px]
-
-        hover:border-white
-
-        hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.5),inset_0_1px_0_rgba(255,255,255,1)]
-
         ${className}
       `}
     >
       {/* =====================================================
-          IOS LIGHT EFFECT
+          IOS AMBIENT EFFECT
       ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+          -right-20
+          -top-20
+
+          h-48
+          w-48
+
+          rounded-full
+
+          bg-blue-400/[0.07]
+
+          blur-3xl
+        "
+      />
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+          -bottom-24
+          -left-20
+
+          h-52
+          w-52
+
+          rounded-full
+
+          bg-cyan-400/[0.06]
+
+          blur-3xl
+        "
+      />
 
       <div
         aria-hidden="true"
@@ -99,154 +136,132 @@ export default function AppInfoCard({
           from-transparent
           via-white
           to-transparent
-
-          opacity-90
-        "
-      />
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-
-          absolute
-          -right-10
-          -top-10
-
-          h-28
-          w-28
-
-          rounded-full
-
-          bg-blue-400/[0.07]
-
-          blur-3xl
         "
       />
 
       {/* =====================================================
-          CUSTOM CONTENT MODE
-
-          รองรับ:
-          <AppInfoCard>
-            ...
-          </AppInfoCard>
+          HEADER
       ===================================================== */}
 
-      {children !== undefined ? (
+      {hasHeader && (
         <div
-          className="
-            relative
-            z-10
-            min-w-0
-          "
-        >
-          {children}
-        </div>
-      ) : (
-        /* ===================================================
-           STANDARD INFO MODE
-
-           รองรับ:
-           <AppInfoCard
-             label="วันที่รับเข้า"
-             value="..."
-           />
-        =================================================== */
-
-        <div
-          className="
+          className={`
             relative
             z-10
 
             flex
-            min-h-[96px]
-            min-w-0
-            items-center
+            flex-col
             gap-3
 
-            px-4
-            py-3.5
-          "
+            px-5
+            py-5
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+
+            sm:px-6
+
+            ${headerClassName}
+          `}
         >
-          {icon !== undefined && (
+          {/* =================================================
+              TITLE
+          ================================================= */}
+
+          <div className="min-w-0">
+            {title !== undefined && (
+              <h2
+                className="
+                  text-lg
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+
+                  sm:text-xl
+                "
+              >
+                {title}
+              </h2>
+            )}
+
+            {subtitle !== undefined && (
+              <p
+                className="
+                  mt-1
+
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-500
+                "
+              >
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* =================================================
+              BADGE
+          ================================================= */}
+
+          {badge !== undefined && (
             <div
               className={`
-                flex
-                h-11
-                w-11
+                inline-flex
+                w-fit
                 shrink-0
                 items-center
                 justify-center
+                gap-2
 
-                rounded-[14px]
+                rounded-full
 
                 border
                 border-white/90
 
                 bg-white/80
 
-                text-xl
+                px-3.5
+                py-1.5
 
-                shadow-[0_8px_20px_-14px_rgba(15,23,42,0.45)]
+                text-sm
+                font-extrabold
+                !text-slate-700
+
+                shadow-[0_8px_22px_-14px_rgba(15,23,42,0.45)]
 
                 ring-1
-                ring-slate-900/[0.04]
+                ring-slate-900/[0.05]
 
                 backdrop-blur-xl
 
-                ${iconClassName}
+                ${badgeClassName}
               `}
             >
-              {icon}
+              {badge}
             </div>
           )}
-
-          <div
-            className="
-              min-w-0
-              flex-1
-            "
-          >
-            {label !== undefined && (
-              <div
-                className={`
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-
-                  ${labelClassName}
-                `}
-              >
-                {label}
-              </div>
-            )}
-
-            {value !== undefined && (
-              <div
-                className={`
-                  mt-1.5
-
-                  min-w-0
-
-                  break-words
-
-                  text-base
-                  font-extrabold
-                  leading-relaxed
-                  !text-slate-900
-
-                  sm:text-lg
-
-                  ${valueClassName}
-                `}
-              >
-                {value}
-              </div>
-            )}
-          </div>
         </div>
       )}
-    </div>
+
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
+      <div
+        className={`
+          relative
+          z-10
+
+          w-full
+          min-w-0
+
+          ${contentClassName}
+        `}
+      >
+        {children}
+      </div>
+    </section>
   );
 }
