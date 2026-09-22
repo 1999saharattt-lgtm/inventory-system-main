@@ -63,14 +63,25 @@ export default function MaterialsPage() {
         subtitle="เลือกหมวดหมู่เพื่อดูและจัดการข้อมูลพัสดุ"
         actions={
           <>
+            {/* ===============================================
+                QR CODE รวม
+                เปิด PDF โดยตรงในแท็บใหม่
+            =============================================== */}
+
             <AppButton
-              href="/materials/qr"
+              href="/materials/qr/pdf"
               variant="primary"
               size="md"
+              target="_blank"
             >
               <span>📱</span>
               <span>QR Code รวม</span>
             </AppButton>
+
+            {/* ===============================================
+                รวมรายการพัสดุ
+                เปิด PDF โดยตรงในแท็บใหม่
+            =============================================== */}
 
             <AppButton
               href="/materials/export/pdf"
@@ -264,11 +275,6 @@ export default function MaterialsPage() {
 
               {/* ===============================================
                   OPEN BUTTON
-
-                  การ์ดด้านนอกเป็น Link อยู่แล้ว
-                  จึงไม่ใช้ AppButton href ซ้อน Link
-
-                  Style ให้ตรงกับ AppButton primary
               =============================================== */}
 
               <div
@@ -315,8 +321,6 @@ export default function MaterialsPage() {
                     group-active:scale-[0.97]
                   "
                 >
-                  {/* Highlight */}
-
                   <span
                     aria-hidden="true"
                     className="
