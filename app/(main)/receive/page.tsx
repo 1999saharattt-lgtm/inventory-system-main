@@ -40,7 +40,7 @@ const thaiShortMonths = [
   "พ.ค.",
   "มิ.ย.",
   "ก.ค.",
-  "ส.ค.",
+  "ก.ย.",
   "ก.ย.",
   "ต.ค.",
   "พ.ย.",
@@ -156,6 +156,7 @@ export default async function ReceivePage({
 
   /* =========================================================
      LOAD RECEIVE DATA
+     เรียงวันที่รับเข้าเก่าสุด -> ล่าสุด
   ========================================================= */
 
   const receives =
@@ -176,9 +177,14 @@ export default async function ReceivePage({
           items: true,
         },
 
-        orderBy: {
-          id: "desc",
-        },
+        orderBy: [
+          {
+            receiveDate: "asc",
+          },
+          {
+            id: "asc",
+          },
+        ],
       }
     );
 
@@ -414,7 +420,7 @@ export default async function ReceivePage({
                 !text-slate-500
               "
             >
-              เรียงจากรายการล่าสุด
+              เรียงจากวันที่รับเข้าเก่าสุดไปล่าสุด
             </p>
           </div>
 
@@ -587,7 +593,6 @@ export default async function ReceivePage({
 
                       {/* =======================================
                           วันที่รับเข้า
-                          ไทยแบบย่อ เช่น 22 ก.ย. 69
                       ======================================= */}
 
                       <td
@@ -655,6 +660,7 @@ export default async function ReceivePage({
 
                       {/* =======================================
                           รายละเอียด
+                          ใช้ AppButton ตัวกลาง
                       ======================================= */}
 
                       <td
@@ -672,10 +678,10 @@ export default async function ReceivePage({
                       >
                         <AppButton
                           href={`/receive/${receive.id}`}
-                          variant="outline"
+                          variant="primary"
                           size="sm"
                         >
-                          ดูรายการ
+                          เปิด
                         </AppButton>
                       </td>
 

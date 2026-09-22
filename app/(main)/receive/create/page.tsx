@@ -1,17 +1,24 @@
-import Link from "next/link";
-
 import { prisma } from "@/lib/prisma";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 import ReceiveForm from "./ReceiveForm";
+
+/* =========================================================
+   THAI YEAR
+========================================================= */
 
 function getThaiYear() {
   return String(
     new Date().getFullYear() + 543
   ).slice(-2);
 }
+
+/* =========================================================
+   GENERATE RECEIVE DOCUMENT NUMBER
+========================================================= */
 
 async function generateReceiveNo() {
   const year = getThaiYear();
@@ -38,23 +45,31 @@ async function generateReceiveNo() {
       );
 
     if (match) {
-      const lastNumber = Number(match[1]);
-      const lastYear = match[2];
+      const lastNumber = Number(
+        match[1]
+      );
+
+      const lastYear =
+        match[2];
 
       if (
         lastYear === year &&
         lastNumber >= running
       ) {
-        running = lastNumber + 1;
+        running =
+          lastNumber + 1;
       }
     }
   }
 
-  return `ร.${String(running).padStart(
-    2,
-    "0"
-  )}/${year}`;
+  return `ร.${String(
+    running
+  ).padStart(2, "0")}/${year}`;
 }
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function CreateReceivePage() {
   const [
@@ -62,6 +77,10 @@ export default async function CreateReceivePage() {
     vendors,
     documentNo,
   ] = await Promise.all([
+    /* =======================================================
+       MATERIALS
+    ======================================================= */
+
     prisma.material.findMany({
       orderBy: [
         {
@@ -73,19 +92,31 @@ export default async function CreateReceivePage() {
       ],
     }),
 
+    /* =======================================================
+       VENDORS
+    ======================================================= */
+
     prisma.vendor.findMany({
       orderBy: {
         name: "asc",
       },
     }),
 
+    /* =======================================================
+       DOCUMENT NUMBER
+    ======================================================= */
+
     generateReceiveNo(),
   ]);
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
       <AppPageHeader
@@ -93,60 +124,21 @@ export default async function CreateReceivePage() {
         title="บันทึกการรับเข้าพัสดุ"
         subtitle="เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ"
         actions={
-          <Link
+          <AppButton
             href="/receive"
-            className="
-              group
-              inline-flex
-              h-11
-              min-w-[104px]
-              shrink-0
-              items-center
-              justify-center
-              gap-2
-              whitespace-nowrap
-              rounded-[16px]
-              border
-              border-slate-200
-              bg-white/90
-              px-4
-              text-sm
-              font-extrabold
-              !text-slate-800
-              shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:border-slate-300
-              hover:bg-white
-              hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
-              active:translate-y-0
-              active:scale-[0.97]
-              focus:outline-none
-              focus:ring-4
-              focus:ring-slate-400/15
-              sm:px-5
-            "
+            variant="back"
+            size="md"
+            icon={
+              <span>←</span>
+            }
           >
-            <span
-              className="
-                transition-transform
-                duration-300
-                group-hover:-translate-x-0.5
-              "
-            >
-              ←
-            </span>
-
-            <span>กลับ</span>
-          </Link>
+            กลับ
+          </AppButton>
         }
       />
 
       {/* =====================================================
-          Receive Form
+          RECEIVE FORM CARD
       ===================================================== */}
 
       <section
@@ -154,18 +146,28 @@ export default async function CreateReceivePage() {
           relative
           w-full
           min-w-0
+
           overflow-hidden
+
           rounded-[28px]
+
           border
-          border-white/80
-          bg-white/80
+          border-slate-300
+
+          bg-white/85
+
           p-4
-          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+
+          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
+
           backdrop-blur-2xl
+
           sm:p-6
         "
       >
-        {/* Ambient Background */}
+        {/* ===================================================
+            AMBIENT BACKGROUND
+        =================================================== */}
 
         <div
           aria-hidden="true"
@@ -174,10 +176,14 @@ export default async function CreateReceivePage() {
             absolute
             -right-20
             -top-20
+
             h-52
             w-52
+
             rounded-full
+
             bg-blue-400/10
+
             blur-3xl
           "
         />
@@ -189,19 +195,29 @@ export default async function CreateReceivePage() {
             absolute
             -bottom-24
             -left-20
+
             h-56
             w-56
+
             rounded-full
+
             bg-cyan-400/10
+
             blur-3xl
           "
         />
+
+        {/* ===================================================
+            FORM
+        =================================================== */}
 
         <div className="relative">
           <ReceiveForm
             vendors={vendors}
             materials={materials}
-            documentNo={documentNo}
+            documentNo={
+              documentNo
+            }
           />
         </div>
       </section>
