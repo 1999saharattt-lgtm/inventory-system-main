@@ -1251,6 +1251,9 @@ export default function EditMaterialForm({
 
         {/* ===================================================
             BUTTONS
+
+            ใช้ขนาดจาก AppButton กลางโดยตรง
+            ไม่กำหนด width / min-width ซ้ำในหน้านี้
         =================================================== */}
 
         <div
@@ -1278,11 +1281,6 @@ export default function EditMaterialForm({
                 `/materials/category/${material.category}`
               )
             }
-            className="
-              w-full
-              sm:w-auto
-              sm:min-w-[120px]
-            "
           >
             ยกเลิก
           </AppButton>
@@ -1312,11 +1310,6 @@ export default function EditMaterialForm({
                 <span>💾</span>
               )
             }
-            className="
-              w-full
-              sm:w-auto
-              sm:min-w-[180px]
-            "
           >
             {loading
               ? "กำลังบันทึก..."
