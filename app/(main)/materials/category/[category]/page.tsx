@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 import QRCodeButton from "./QRCodeButton";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   CATEGORY
+========================================================= */
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -64,8 +67,10 @@ type Props = {
 };
 
 /* =========================================================
-   วันที่ไทยแบบย่อ
-   ตัวอย่าง 01 ก.ย. 69
+   THAI SHORT DATE
+
+   ตัวอย่าง:
+   01 ก.ย. 69
 ========================================================= */
 
 const thaiShortMonths = [
@@ -96,9 +101,13 @@ function formatThaiShortDate(
     return "-";
   }
 
-  const day = String(date.getDate()).padStart(2, "0");
+  const day = String(date.getDate()).padStart(
+    2,
+    "0"
+  );
 
-  const month = thaiShortMonths[date.getMonth()];
+  const month =
+    thaiShortMonths[date.getMonth()];
 
   const buddhistYear = String(
     date.getFullYear() + 543
@@ -107,6 +116,10 @@ function formatThaiShortDate(
   return `${day} ${month} ${buddhistYear}`;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CategoryPage({
   params,
   searchParams,
@@ -114,58 +127,64 @@ export default async function CategoryPage({
   const { category } = await params;
   const { search } = await searchParams;
 
-  /* =========================================================
+  /* =======================================================
      DATA
-  ========================================================= */
+  ======================================================= */
 
-  const materials = await prisma.material.findMany({
-    where: {
-      category: category as Category,
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        category: category as Category,
 
-      ...(search
-        ? {
-            OR: [
-              {
-                code: {
-                  contains: search,
+        ...(search
+          ? {
+              OR: [
+                {
+                  code: {
+                    contains: search,
+                  },
                 },
-              },
-              {
-                name: {
-                  contains: search,
+                {
+                  name: {
+                    contains: search,
+                  },
                 },
-              },
-            ],
-          }
-        : {}),
-    },
-
-    include: {
-      receiveItems: {
-        orderBy: {
-          id: "desc",
-        },
-
-        take: 1,
+              ],
+            }
+          : {}),
       },
-    },
 
-    orderBy: {
-      code: "asc",
-    },
-  });
+      include: {
+        receiveItems: {
+          orderBy: {
+            id: "desc",
+          },
+
+          take: 1,
+        },
+      },
+
+      orderBy: {
+        code: "asc",
+      },
+    });
 
   const title =
-    categoryName[category] ?? "รายการพัสดุ";
+    categoryName[category] ??
+    "รายการพัสดุ";
 
   const icon =
     categoryIcon[category] ?? "📦";
 
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
     <AppPage>
-      {/* =====================================================
+      {/* ===================================================
           HEADER
-      ===================================================== */}
+      =================================================== */}
 
       <AppPageHeader
         icon={icon}
@@ -194,26 +213,61 @@ export default async function CategoryPage({
         }
       />
 
-      {/* =====================================================
+      {/* ===================================================
           SEARCH
-      ===================================================== */}
+      =================================================== */}
 
       <section
         className="
+          relative
           w-full
           min-w-0
-          rounded-[24px]
+          overflow-hidden
+          rounded-[28px]
           border
-          border-slate-200
+          border-white/80
           bg-white/80
           p-4
-          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
           backdrop-blur-2xl
           sm:p-5
         "
       >
+        {/* Ambient Glow */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+            h-48
+            w-48
+            rounded-full
+            bg-blue-400/[0.08]
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+            h-48
+            w-48
+            rounded-full
+            bg-cyan-400/[0.07]
+            blur-3xl
+          "
+        />
+
         <form
           className="
+            relative
             flex
             w-full
             min-w-0
@@ -223,9 +277,9 @@ export default async function CategoryPage({
             sm:items-center
           "
         >
-          {/* =================================================
-              Search Input
-          ================================================= */}
+          {/* ===============================================
+              SEARCH INPUT
+          =============================================== */}
 
           <div className="relative min-w-0 flex-1">
             <div
@@ -252,22 +306,24 @@ export default async function CategoryPage({
                 w-full
                 rounded-[16px]
                 border
-                border-black
-                bg-white
+                border-slate-300
+                bg-slate-50/90
                 py-3
                 pl-12
                 pr-4
                 text-base
                 font-bold
                 !text-slate-900
+                shadow-inner
                 outline-none
                 transition-all
                 duration-300
                 placeholder:!text-slate-400
 
-                hover:bg-slate-50
+                hover:border-slate-400
+                hover:bg-white
 
-                focus:border-blue-600
+                focus:border-blue-500
                 focus:bg-white
                 focus:ring-4
                 focus:ring-blue-500/10
@@ -275,9 +331,9 @@ export default async function CategoryPage({
             />
           </div>
 
-          {/* =================================================
-              Search Button
-          ================================================= */}
+          {/* ===============================================
+              SEARCH BUTTON
+          =============================================== */}
 
           <AppButton
             type="submit"
@@ -288,9 +344,9 @@ export default async function CategoryPage({
             <span>ค้นหา</span>
           </AppButton>
 
-          {/* =================================================
-              Clear Search
-          ================================================= */}
+          {/* ===============================================
+              CLEAR SEARCH
+          =============================================== */}
 
           {search && (
             <AppButton
@@ -305,35 +361,36 @@ export default async function CategoryPage({
         </form>
       </section>
 
-      {/* =====================================================
+      {/* ===================================================
           TABLE CARD
-      ===================================================== */}
+      =================================================== */}
 
       <section
         className="
+          relative
           w-full
           min-w-0
           overflow-hidden
           rounded-[28px]
           border
-          border-slate-300
+          border-white/80
           bg-white/85
           shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
           backdrop-blur-2xl
         "
       >
-        {/* ===================================================
-            TABLE HEADER
-        =================================================== */}
+        {/* =================================================
+            TABLE INFORMATION HEADER
+        ================================================= */}
 
         <div
           className="
             flex
             flex-col
-            gap-2
+            gap-3
             border-b
-            border-black
-            bg-white/70
+            border-slate-200
+            bg-slate-50/80
             px-5
             py-4
             sm:flex-row
@@ -369,6 +426,10 @@ export default async function CategoryPage({
             </p>
           </div>
 
+          {/* ===============================================
+              COUNT
+          =============================================== */}
+
           <div
             className="
               inline-flex
@@ -377,13 +438,14 @@ export default async function CategoryPage({
               gap-2
               rounded-full
               border
-              border-slate-300
-              bg-slate-100/80
+              border-slate-200
+              bg-white
               px-3
               py-1.5
               text-sm
               font-extrabold
-              !text-slate-700
+              !text-slate-600
+              shadow-sm
             "
           >
             <span>ทั้งหมด</span>
@@ -391,15 +453,15 @@ export default async function CategoryPage({
             <span
               className="
                 inline-flex
-                min-w-6
+                min-w-7
                 items-center
                 justify-center
                 rounded-full
-                bg-white
+                bg-slate-100
                 px-2
                 py-0.5
+                font-black
                 !text-slate-900
-                shadow-sm
               "
             >
               {materials.length}
@@ -407,63 +469,217 @@ export default async function CategoryPage({
           </div>
         </div>
 
-        {/* ===================================================
-            TABLE
-        =================================================== */}
+        {/* =================================================
+            TABLE SCROLL AREA
+
+            สำคัญ:
+            - overflow อยู่ชั้นนี้
+            - table มี border-collapse
+            - ทุก th / td มี border-black
+            - เส้นตารางจึงคลุมครบทั้งตาราง
+        ================================================= */}
 
         <div
           className="
             w-full
             overflow-x-auto
             overscroll-x-contain
+            bg-white
           "
         >
           <table
             className="
               w-full
               min-w-[1200px]
+              table-fixed
               border-collapse
               border
               border-black
               bg-white
             "
           >
+            {/* =============================================
+                TABLE HEADER
+            ============================================= */}
+
             <thead>
               <tr>
-                {[
-                  "รหัสพัสดุ",
-                  "รายการพัสดุ",
-                  "จำนวน",
-                  "หน่วย",
-                  "ราคาล่าสุด",
-                  "วันผลิต",
-                  "วันหมดอายุ",
-                  "จัดการ",
-                  "QR Code",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-black
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                      sm:text-lg
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                <th
+                  className="
+                    w-[145px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  รหัสพัสดุ
+                </th>
+
+                <th
+                  className="
+                    w-[290px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  รายการพัสดุ
+                </th>
+
+                <th
+                  className="
+                    w-[100px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  จำนวน
+                </th>
+
+                <th
+                  className="
+                    w-[100px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  หน่วย
+                </th>
+
+                <th
+                  className="
+                    w-[130px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  ราคาล่าสุด
+                </th>
+
+                <th
+                  className="
+                    w-[130px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  วันผลิต
+                </th>
+
+                <th
+                  className="
+                    w-[130px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  วันหมดอายุ
+                </th>
+
+                <th
+                  className="
+                    w-[220px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  จัดการ
+                </th>
+
+                <th
+                  className="
+                    w-[130px]
+                    border
+                    border-black
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                    px-4
+                    py-4
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  QR Code
+                </th>
               </tr>
             </thead>
+
+            {/* =============================================
+                TABLE BODY
+            ============================================= */}
 
             <tbody>
               {materials.length > 0 ? (
@@ -485,74 +701,83 @@ export default async function CategoryPage({
                           ${
                             index % 2 === 0
                               ? "bg-white"
-                              : "bg-slate-50/60"
+                              : "bg-slate-50"
                           }
 
-                          hover:bg-blue-50/70
+                          hover:bg-blue-50
                         `}
                       >
-                        {/* ===================================
+                        {/* =================================
                             รหัสพัสดุ
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
-                            font-extrabold
-                            !text-slate-900
+                            text-center
+                            align-middle
                           "
                         >
                           <span
                             className="
                               inline-flex
+                              items-center
+                              justify-center
                               rounded-[10px]
                               border
-                              border-black
+                              border-slate-300
                               bg-slate-100
                               px-2.5
                               py-1
                               text-sm
-                              !text-slate-700
+                              font-extrabold
+                              !text-slate-800
                             "
                           >
                             {material.code}
                           </span>
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             รายการพัสดุ
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            min-w-[240px]
                             border
                             border-black
                             px-4
                             py-3.5
+                            align-middle
                             font-extrabold
                             !text-slate-900
                           "
                         >
-                          {material.name}
+                          <div
+                            className="
+                              break-words
+                              leading-relaxed
+                            "
+                          >
+                            {material.name}
+                          </div>
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             จำนวน
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
                             text-center
+                            align-middle
                             font-extrabold
                             !text-slate-900
                           "
@@ -567,6 +792,7 @@ export default async function CategoryPage({
                               px-3
                               py-1
                               text-sm
+                              font-black
 
                               ${
                                 material.balance <= 0
@@ -579,7 +805,7 @@ export default async function CategoryPage({
                                   : material.balance < 10
                                     ? `
                                       bg-amber-50
-                                      !text-amber-600
+                                      !text-amber-700
                                       ring-1
                                       ring-amber-200
                                     `
@@ -596,18 +822,18 @@ export default async function CategoryPage({
                           </span>
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             หน่วย
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
                             text-center
+                            align-middle
                             font-bold
                             !text-slate-700
                           "
@@ -615,18 +841,18 @@ export default async function CategoryPage({
                           {material.unit}
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             ราคาล่าสุด
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
                             text-right
+                            align-middle
                             font-extrabold
                             tabular-nums
                             !text-slate-900
@@ -641,19 +867,18 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             วันผลิต
-                            รูปแบบ 01 ก.ย. 69
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
                             text-center
+                            align-middle
                             font-bold
                             !text-slate-700
                           "
@@ -663,19 +888,18 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             วันหมดอายุ
-                            รูปแบบ 01 ก.ย. 69
-                        =================================== */}
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3.5
                             text-center
+                            align-middle
                             font-bold
                             !text-slate-700
                           "
@@ -685,17 +909,21 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
+                        {/* =================================
                             จัดการ
-                        =================================== */}
+
+                            สีปุ่มทั้งหมดมาจาก AppButton
+                            ไม่มีการกำหนดสีเฉพาะหน้านี้
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3
+                            text-center
+                            align-middle
                           "
                         >
                           <div
@@ -721,21 +949,27 @@ export default async function CategoryPage({
                           </div>
                         </td>
 
-                        {/* ===================================
-                            QR Code
-                        =================================== */}
+                        {/* =================================
+                            QR CODE
+                        ================================= */}
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
                             px-4
                             py-3
                             text-center
+                            align-middle
                           "
                         >
-                          <div className="flex justify-center">
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+                            "
+                          >
                             <QRCodeButton
                               materialId={
                                 material.id
@@ -754,6 +988,10 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
+                /* ===========================================
+                   EMPTY STATE
+                =========================================== */
+
                 <tr>
                   <td
                     colSpan={9}
@@ -783,9 +1021,11 @@ export default async function CategoryPage({
                           items-center
                           justify-center
                           rounded-[20px]
-                          bg-slate-100
+                          border
+                          border-slate-200
+                          bg-slate-50
                           text-3xl
-                          shadow-inner
+                          shadow-[0_12px_28px_-20px_rgba(15,23,42,0.4)]
                         "
                       >
                         📦
@@ -795,7 +1035,8 @@ export default async function CategoryPage({
                         className="
                           mt-4
                           text-lg
-                          font-extrabold
+                          font-black
+                          tracking-tight
                           !text-slate-900
                         "
                       >
@@ -809,6 +1050,7 @@ export default async function CategoryPage({
                           mt-1
                           text-sm
                           font-semibold
+                          leading-relaxed
                           !text-slate-500
                         "
                       >
