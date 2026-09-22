@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+
 type Receive = {
   id: number;
   receiveDate: Date;
@@ -29,18 +32,18 @@ export default async function ReceivePage({
 }: ReceivePageProps) {
   const params = await searchParams;
 
-  // =====================================================
-  // กำหนดช่วงวันที่สำหรับการกรอง
-  // =====================================================
+  /* =========================================================
+     Date Filter
+  ========================================================= */
 
   const now = new Date();
 
   let startDate: Date | undefined;
   let endDate: Date | undefined;
 
-  // =====================================================
-  // รับเข้าวันนี้
-  // =====================================================
+  /* =========================================================
+     Today
+  ========================================================= */
 
   if (params.date === "today") {
     startDate = new Date(
@@ -64,9 +67,9 @@ export default async function ReceivePage({
     );
   }
 
-  // =====================================================
-  // รับเข้าประจำเดือน
-  // =====================================================
+  /* =========================================================
+     Current Month
+  ========================================================= */
 
   if (params.period === "month") {
     startDate = new Date(
@@ -90,9 +93,9 @@ export default async function ReceivePage({
     );
   }
 
-  // =====================================================
-  // ดึงรายการรับเข้า
-  // =====================================================
+  /* =========================================================
+     Load Receive Data
+  ========================================================= */
 
   const receives = await prisma.receive.findMany({
     where:
@@ -115,212 +118,293 @@ export default async function ReceivePage({
     },
   });
 
+  /* =========================================================
+     Filter Description
+  ========================================================= */
+
+  let filterText = "รายการรับเข้าพัสดุทั้งหมด";
+
+  if (params.date === "today") {
+    filterText = "รายการรับเข้าพัสดุวันนี้";
+  } else if (params.period === "month") {
+    filterText = "รายการรับเข้าพัสดุประจำเดือนนี้";
+  }
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          HEADER
+          Header
       ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="📥"
+        title="รายการรับเข้าพัสดุ"
+        subtitle={filterText}
+        actions={
+          <>
+            {/* เพิ่มรายการ */}
+
+            <Link
+              href="/receive/create"
+              prefetch
+              className="
+                group
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                gap-2
+                whitespace-nowrap
+                rounded-[16px]
+                border
+                border-emerald-500/20
+                bg-emerald-600
+                px-4
+                text-sm
+                font-extrabold
+                !text-white
+                shadow-[0_12px_28px_-16px_rgba(5,150,105,0.55)]
+                transition-all
+                duration-300
+                ease-out
+                hover:-translate-y-0.5
+                hover:bg-emerald-700
+                hover:shadow-[0_18px_34px_-18px_rgba(5,150,105,0.6)]
+                active:translate-y-0
+                active:scale-[0.97]
+                sm:px-5
+              "
+            >
+              <span
+                className="
+                  text-lg
+                  leading-none
+                  transition-transform
+                  duration-300
+                  group-hover:scale-110
+                "
+              >
+                +
+              </span>
+
+              <span>เพิ่มรายการ</span>
+            </Link>
+
+            {/* กลับ */}
+
+            <Link
+              href="/"
+              prefetch
+              className="
+                group
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                gap-2
+                whitespace-nowrap
+                rounded-[16px]
+                border
+                border-slate-200
+                bg-white/90
+                px-4
+                text-sm
+                font-extrabold
+                !text-slate-800
+                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
+                backdrop-blur-xl
+                transition-all
+                duration-300
+                ease-out
+                hover:-translate-y-0.5
+                hover:border-slate-300
+                hover:bg-white
+                hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
+                active:translate-y-0
+                active:scale-[0.97]
+                sm:px-5
+              "
+            >
+              <span
+                className="
+                  transition-transform
+                  duration-300
+                  group-hover:-translate-x-0.5
+                "
+              >
+                ←
+              </span>
+
+              <span>กลับ</span>
+            </Link>
+          </>
+        }
+      />
+
+      {/* =====================================================
+          Summary
+      ===================================================== */}
+
+      <section
         className="
           flex
-          min-h-[110px]
           w-full
           min-w-0
           flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
+          gap-3
+          rounded-[22px]
+          border
+          border-white/80
+          bg-white/75
+          p-4
+          shadow-[0_16px_45px_-28px_rgba(15,23,42,0.3)]
+          backdrop-blur-2xl
           sm:flex-row
           sm:items-center
           sm:justify-between
-          sm:gap-4
-          sm:px-8
-          sm:py-6
         "
       >
-        {/* =================================================
-            ชื่อหน้า
-        ================================================= */}
-
         <div className="min-w-0">
-          <h1
+          <p
             className="
-              break-words
-              text-2xl
+              text-sm
               font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
+              !text-slate-500
             "
           >
-            📥 รายการรับเข้าพัสดุ
-          </h1>
+            สรุปรายการรับเข้า
+          </p>
 
           <p
             className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
+              mt-0.5
+              text-lg
+              font-black
+              !text-slate-900
             "
           >
-            แสดงรายการเอกสารรับเข้าพัสดุทั้งหมด
+            {filterText}
           </p>
         </div>
 
-        {/* =================================================
-            ปุ่มด้านขวา
-        ================================================= */}
-
         <div
           className="
-            flex
-            w-full
+            inline-flex
+            h-10
             shrink-0
-            flex-col
-            gap-2
-            sm:w-auto
-            sm:flex-row
-            sm:items-center
-            sm:gap-3
+            items-center
+            justify-center
+            rounded-[14px]
+            border
+            border-slate-200
+            bg-slate-50
+            px-4
+            text-sm
+            font-extrabold
+            !text-slate-700
           "
         >
-          {/* ===============================================
-              เพิ่มรายการ
-              เปิดฟอร์ม ReceiveForm เดิมที่ /receive/new
-          =============================================== */}
-
-          <Link
-            href="/receive/create"
-            className="
-              w-full
-              shrink-0
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              leading-tight
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
-              hover:shadow-xl
-              sm:w-auto
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            + เพิ่มรายการ
-          </Link>
-
-          {/* ===============================================
-              กลับหน้าแรก
-          =============================================== */}
-
-          <Link
-            href="/"
-            className="
-              w-full
-              shrink-0
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-700
-              to-slate-600
-              px-4
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              leading-tight
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:from-slate-800
-              hover:to-slate-700
-              hover:shadow-xl
-              sm:w-auto
-              sm:px-5
-              sm:py-3
-              sm:text-lg
-            "
-          >
-            ← กลับ
-          </Link>
+          {receives.length.toLocaleString("th-TH")} รายการ
         </div>
-      </div>
+      </section>
 
       {/* =====================================================
-          TABLE
+          Table Card
       ===================================================== */}
 
-      <div
+      <section
         className="
           w-full
           min-w-0
           overflow-hidden
-          rounded-2xl
+          rounded-[28px]
           border
-          border-slate-300
-          bg-white
-          shadow-lg
+          border-white/80
+          bg-white/85
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
         "
       >
+        {/* Table Header */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-3
+            border-b
+            border-slate-200/80
+            px-5
+            py-4
+            sm:px-6
+          "
+        >
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-black
+                tracking-tight
+                !text-slate-900
+                sm:text-xl
+              "
+            >
+              รายการเอกสารรับเข้า
+            </h2>
+
+            <p
+              className="
+                mt-0.5
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              เรียงจากรายการล่าสุด
+            </p>
+          </div>
+
+          <span
+            className="
+              shrink-0
+              rounded-full
+              border
+              border-slate-200
+              bg-slate-50
+              px-3
+              py-1.5
+              text-xs
+              font-extrabold
+              !text-slate-600
+            "
+          >
+            {receives.length.toLocaleString("th-TH")} รายการ
+          </span>
+        </div>
+
+        {/* ===================================================
+            Table
+        =================================================== */}
+
         <div
           className="
             w-full
             min-w-0
             overflow-x-auto
+            overscroll-x-contain
           "
         >
           <table
             className="
               w-full
-              min-w-[900px]
+              min-w-[980px]
               border-collapse
-              border
-              border-black
+              bg-white
             "
           >
             <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                "
-              >
+              <tr>
                 {[
                   "ลำดับ",
                   "วันที่รับเข้า",
@@ -339,15 +423,12 @@ export default async function ReceivePage({
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-                      px-3
-                      py-3
+                      px-4
+                      py-4
                       text-center
-                      text-base
+                      text-lg
                       font-extrabold
                       !text-white
-                      sm:px-4
-                      sm:py-4
-                      sm:text-lg
                     "
                   >
                     {title}
@@ -367,42 +448,40 @@ export default async function ReceivePage({
                       key={receive.id}
                       className="
                         text-slate-900
-                        transition
-                        hover:bg-emerald-50
+                        transition-colors
+                        duration-200
+                        hover:bg-slate-50
                       "
                     >
-                      {/* ===================================
-                          ลำดับ
-                      =================================== */}
+                      {/* ลำดับ */}
 
                       <td
                         className="
                           whitespace-nowrap
                           border
                           border-black
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
                           text-center
-                          font-bold
-                          sm:px-4
+                          font-extrabold
+                          !text-slate-700
                         "
                       >
                         {index + 1}
                       </td>
 
-                      {/* ===================================
-                          วันที่รับเข้า
-                      =================================== */}
+                      {/* วันที่รับเข้า */}
 
                       <td
                         className="
                           whitespace-nowrap
                           border
                           border-black
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
                           text-center
-                          sm:px-4
+                          font-bold
+                          !text-slate-800
                         "
                       >
                         {new Date(
@@ -412,106 +491,105 @@ export default async function ReceivePage({
                         )}
                       </td>
 
-                      {/* ===================================
-                          เลขที่เอกสาร
-                      =================================== */}
+                      {/* เลขที่เอกสาร */}
 
                       <td
                         className="
                           whitespace-nowrap
                           border
                           border-black
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
                           text-center
-                          sm:px-4
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
                         {receive.documentNo}
                       </td>
 
-                      {/* ===================================
-                          ผู้จำหน่าย
-                      =================================== */}
+                      {/* ผู้จำหน่าย */}
 
                       <td
                         className="
                           border
                           border-black
-                          px-3
-                          py-3
-                          sm:px-4
+                          px-4
+                          py-3.5
+                          font-bold
+                          !text-slate-800
                         "
                       >
                         {receive.vendor.name}
                       </td>
 
-                      {/* ===================================
-                          รายละเอียด
-                      =================================== */}
+                      {/* รายละเอียด */}
 
                       <td
                         className="
                           whitespace-nowrap
                           border
                           border-black
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
                           text-center
-                          sm:px-4
                         "
                       >
                         <Link
                           href={`/receive/${receive.id}`}
+                          prefetch
                           className="
-                            inline-block
-                            rounded-lg
-                            bg-slate-800
-                            px-3
-                            py-2
+                            inline-flex
+                            h-9
+                            items-center
+                            justify-center
+                            whitespace-nowrap
+                            rounded-[13px]
+                            border
+                            border-slate-200
+                            bg-white
+                            px-4
                             text-sm
                             font-extrabold
-                            !text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
-                            sm:px-4
-                            sm:text-base
+                            !text-slate-800
+                            shadow-[0_8px_20px_-14px_rgba(15,23,42,0.45)]
+                            transition-all
+                            duration-300
+                            hover:-translate-y-0.5
+                            hover:bg-slate-50
+                            active:translate-y-0
+                            active:scale-[0.97]
                           "
                         >
                           ดูรายการ
                         </Link>
                       </td>
 
-                      {/* ===================================
-                          หมายเหตุ
-                      =================================== */}
+                      {/* หมายเหตุ */}
 
                       <td
                         className="
-                          min-w-[180px]
+                          min-w-[190px]
                           border
                           border-black
-                          px-3
-                          py-3
-                          sm:px-4
+                          px-4
+                          py-3.5
+                          font-semibold
+                          !text-slate-700
                         "
                       >
                         {receive.remark ?? "-"}
                       </td>
 
-                      {/* ===================================
-                          จัดการ
-                      =================================== */}
+                      {/* จัดการ */}
 
                       <td
                         className="
                           whitespace-nowrap
                           border
                           border-black
-                          px-3
-                          py-3
-                          sm:px-4
+                          px-4
+                          py-3.5
                         "
                       >
                         <div
@@ -522,33 +600,34 @@ export default async function ReceivePage({
                             gap-2
                           "
                         >
-                          {/* ===============================
-                              แก้ไข
-                          =============================== */}
-
                           <Link
                             href={`/receive/${receive.id}/edit`}
+                            prefetch
                             className="
-                              rounded-lg
-                              bg-slate-800
-                              px-3
-                              py-2
+                              inline-flex
+                              h-9
+                              min-w-[72px]
+                              items-center
+                              justify-center
+                              rounded-[13px]
+                              border
+                              border-slate-700
+                              bg-slate-900
+                              px-4
                               text-sm
                               font-extrabold
                               !text-white
-                              shadow
-                              transition
-                              hover:bg-slate-700
-                              sm:px-4
-                              sm:text-base
+                              shadow-[0_8px_20px_-14px_rgba(15,23,42,0.6)]
+                              transition-all
+                              duration-300
+                              hover:-translate-y-0.5
+                              hover:bg-slate-800
+                              active:translate-y-0
+                              active:scale-[0.97]
                             "
                           >
                             แก้ไข
                           </Link>
-
-                          {/* ===============================
-                              ลบ
-                          =============================== */}
 
                           <DeleteButton
                             id={receive.id}
@@ -559,31 +638,75 @@ export default async function ReceivePage({
                   )
                 )
               ) : (
-                /* =========================================
-                   ไม่มีข้อมูล
-                ========================================= */
-
                 <tr>
                   <td
                     colSpan={7}
                     className="
                       border
                       border-black
-                      py-12
+                      px-4
+                      py-16
                       text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    ยังไม่มีข้อมูลรับเข้าพัสดุ
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-sm
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-16
+                          w-16
+                          items-center
+                          justify-center
+                          rounded-[20px]
+                          border
+                          border-slate-200
+                          bg-slate-50
+                          text-3xl
+                          shadow-sm
+                        "
+                      >
+                        📥
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+                          text-lg
+                          font-black
+                          !text-slate-800
+                        "
+                      >
+                        ยังไม่มีข้อมูลรับเข้าพัสดุ
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีการบันทึกรับเข้า
+                        รายการจะแสดงในตารางนี้
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </section>
+    </AppPage>
   );
 }

@@ -2,46 +2,66 @@ import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+
 import ReceiveForm from "./ReceiveForm";
 
 function getThaiYear() {
-  return String(new Date().getFullYear() + 543).slice(-2);
+  return String(
+    new Date().getFullYear() + 543
+  ).slice(-2);
 }
 
 async function generateReceiveNo() {
   const year = getThaiYear();
 
-  const receives = await prisma.receive.findMany({
-    where: {
-      documentNo: {
-        startsWith: "ร.",
+  const receives =
+    await prisma.receive.findMany({
+      where: {
+        documentNo: {
+          startsWith: "ร.",
+        },
       },
-    },
-    select: {
-      documentNo: true,
-    },
-  });
+
+      select: {
+        documentNo: true,
+      },
+    });
 
   let running = 1;
 
   for (const receive of receives) {
-    const match = receive.documentNo.match(/^ร\.(\d+)\/(\d+)$/);
+    const match =
+      receive.documentNo.match(
+        /^ร\.(\d+)\/(\d+)$/
+      );
 
     if (match) {
       const lastNumber = Number(match[1]);
       const lastYear = match[2];
 
-      if (lastYear === year && lastNumber >= running) {
+      if (
+        lastYear === year &&
+        lastNumber >= running
+      ) {
         running = lastNumber + 1;
       }
     }
   }
 
-  return `ร.${String(running).padStart(2, "0")}/${year}`;
+  return `ร.${String(running).padStart(
+    2,
+    "0"
+  )}/${year}`;
 }
 
 export default async function CreateReceivePage() {
-  const [materials, vendors, documentNo] = await Promise.all([
+  const [
+    materials,
+    vendors,
+    documentNo,
+  ] = await Promise.all([
     prisma.material.findMany({
       orderBy: [
         {
@@ -63,117 +83,128 @@ export default async function CreateReceivePage() {
   ]);
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
+    <AppPage>
       {/* =====================================================
           Header
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
+      <AppPageHeader
+        icon="📥"
+        title="บันทึกการรับเข้าพัสดุ"
+        subtitle="เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ"
+        actions={
+          <Link
+            href="/receive"
             className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📥 บันทึกการรับเข้าพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
+              group
+              inline-flex
+              h-11
+              min-w-[104px]
+              shrink-0
+              items-center
+              justify-center
+              gap-2
+              whitespace-nowrap
+              rounded-[16px]
+              border
+              border-slate-200
+              bg-white/90
+              px-4
               text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
+              font-extrabold
+              !text-slate-800
+              shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
+              backdrop-blur-xl
+              transition-all
+              duration-300
+              ease-out
+              hover:-translate-y-0.5
+              hover:border-slate-300
+              hover:bg-white
+              hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
+              active:translate-y-0
+              active:scale-[0.97]
+              focus:outline-none
+              focus:ring-4
+              focus:ring-slate-400/15
+              sm:px-5
             "
           >
-            เพิ่มรายการรับเข้าพัสดุเข้าสู่ระบบ
-          </p>
-        </div>
+            <span
+              className="
+                transition-transform
+                duration-300
+                group-hover:-translate-x-0.5
+              "
+            >
+              ←
+            </span>
 
-        <Link
-          href="/receive"
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:shadow-xl
-            sm:px-5
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
+            <span>กลับ</span>
+          </Link>
+        }
+      />
 
       {/* =====================================================
-          Form
+          Receive Form
       ===================================================== */}
 
-      <div
+      <section
         className="
+          relative
           w-full
           min-w-0
           overflow-hidden
-          rounded-2xl
+          rounded-[28px]
           border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-3
-          shadow-xl
+          border-white/80
+          bg-white/80
+          p-4
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
           sm:p-6
         "
       >
-        <ReceiveForm
-          vendors={vendors}
-          materials={materials}
-          documentNo={documentNo}
+        {/* Ambient Background */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+            h-52
+            w-52
+            rounded-full
+            bg-blue-400/10
+            blur-3xl
+          "
         />
-      </div>
-    </div>
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+            h-56
+            w-56
+            rounded-full
+            bg-cyan-400/10
+            blur-3xl
+          "
+        />
+
+        <div className="relative">
+          <ReceiveForm
+            vendors={vendors}
+            materials={materials}
+            documentNo={documentNo}
+          />
+        </div>
+      </section>
+    </AppPage>
   );
 }

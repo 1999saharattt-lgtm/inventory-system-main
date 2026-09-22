@@ -80,9 +80,13 @@ function formatThaiDate(dateString: string) {
     .split("-")
     .map(Number);
 
-  if (!year || !month || !day) return "";
+  if (!year || !month || !day) {
+    return "";
+  }
 
-  return `${day} ${thaiMonths[month - 1]} ${year + 543}`;
+  return `${day} ${
+    thaiMonths[month - 1]
+  } ${year + 543}`;
 }
 
 function getTodayInputValue() {
@@ -90,8 +94,14 @@ function getTodayInputValue() {
 
   return [
     today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
+    String(today.getMonth() + 1).padStart(
+      2,
+      "0"
+    ),
+    String(today.getDate()).padStart(
+      2,
+      "0"
+    ),
   ].join("-");
 }
 
@@ -109,7 +119,9 @@ export default function ReceiveForm({
     expiry: "",
   });
 
-  const [items, setItems] = useState<ReceiveRow[]>(
+  const [items, setItems] = useState<
+    ReceiveRow[]
+  >(
     Array.from(
       {
         length: 15,
@@ -118,14 +130,20 @@ export default function ReceiveForm({
     )
   );
 
-  const [isOpeningBalance, setIsOpeningBalance] =
-    useState(false);
+  const [
+    isOpeningBalance,
+    setIsOpeningBalance,
+  ] = useState(false);
 
-  const [documentValue, setDocumentValue] =
-    useState(documentNo);
+  const [
+    documentValue,
+    setDocumentValue,
+  ] = useState(documentNo);
 
-  const [receiveDate, setReceiveDate] =
-    useState(getTodayInputValue());
+  const [
+    receiveDate,
+    setReceiveDate,
+  ] = useState(getTodayInputValue());
 
   function updateRow(
     index: number,
@@ -147,32 +165,88 @@ export default function ReceiveForm({
   }
 
   return (
-    <div
+    <form
+      action={createReceive}
       className="
         w-full
         min-w-0
-        rounded-2xl
-        border
-        border-slate-200
-        bg-white
-        p-3
-        shadow-xl
-        sm:p-6
+        space-y-6
       "
     >
-      <form
-        action={createReceive}
-        className="space-y-5 sm:space-y-6"
+      {/* =====================================================
+          ข้อมูลการรับเข้า
+      ===================================================== */}
+
+      <section
+        className="
+          rounded-[24px]
+          border
+          border-slate-200/80
+          bg-white/75
+          p-4
+          shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
+          backdrop-blur-xl
+          sm:p-5
+        "
       >
-        {/* ข้อมูลรับเข้า */}
+        <div
+          className="
+            mb-5
+            flex
+            items-center
+            gap-3
+          "
+        >
+          <div
+            className="
+              flex
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
+              rounded-[15px]
+              bg-blue-50
+              text-xl
+              shadow-sm
+              ring-1
+              ring-blue-100
+            "
+          >
+            🧾
+          </div>
+
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-black
+                !text-slate-900
+                sm:text-xl
+              "
+            >
+              ข้อมูลการรับเข้า
+            </h2>
+
+            <p
+              className="
+                mt-0.5
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุวันที่ เอกสาร และผู้จำหน่าย
+            </p>
+          </div>
+        </div>
 
         <div
           className="
             grid
             min-w-0
-            gap-4
+            gap-5
             md:grid-cols-2
-            sm:gap-5
           "
         >
           {/* วันที่รับเข้า */}
@@ -184,8 +258,7 @@ export default function ReceiveForm({
                 block
                 text-base
                 font-extrabold
-                text-slate-900
-                sm:text-lg
+                !text-slate-800
               "
             >
               วันที่รับเข้า
@@ -197,7 +270,9 @@ export default function ReceiveForm({
                 name="receiveDate"
                 value={receiveDate}
                 onChange={(e) =>
-                  setReceiveDate(e.target.value)
+                  setReceiveDate(
+                    e.target.value
+                  )
                 }
                 required
                 className="
@@ -214,26 +289,33 @@ export default function ReceiveForm({
               <div
                 className="
                   flex
-                  min-h-[50px]
+                  h-12
                   w-full
                   items-center
                   justify-between
-                  rounded-xl
+                  rounded-[15px]
                   border
-                  border-slate-300
-                  bg-white
-                  p-3
-                  font-semibold
-                  text-slate-900
+                  border-slate-200
+                  bg-white/90
+                  px-4
+                  font-bold
+                  !text-slate-800
+                  shadow-sm
+                  transition-all
+                  duration-200
+                  hover:border-blue-300
+                  hover:shadow-md
                 "
               >
                 <span>
                   {receiveDate
-                    ? formatThaiDate(receiveDate)
+                    ? formatThaiDate(
+                        receiveDate
+                      )
                     : "เลือกวันที่"}
                 </span>
 
-                <span className="text-xl">
+                <span className="text-lg">
                   📅
                 </span>
               </div>
@@ -249,8 +331,7 @@ export default function ReceiveForm({
                 block
                 text-base
                 font-extrabold
-                text-slate-900
-                sm:text-lg
+                !text-slate-800
               "
             >
               เลขที่เอกสาร
@@ -262,48 +343,63 @@ export default function ReceiveForm({
               value={documentValue}
               readOnly={!isOpeningBalance}
               onChange={(e) =>
-                setDocumentValue(e.target.value)
+                setDocumentValue(
+                  e.target.value
+                )
               }
               className="
+                h-12
                 w-full
                 min-w-0
-                rounded-xl
+                rounded-[15px]
                 border
-                border-slate-300
-                bg-white
-                p-3
+                border-slate-200
+                bg-white/90
+                px-4
                 text-base
                 font-extrabold
-                text-cyan-700
+                !text-blue-700
+                shadow-sm
                 outline-none
-                focus:border-cyan-500
+                transition-all
+                duration-200
+                focus:border-blue-400
                 focus:ring-4
-                focus:ring-cyan-100
-                sm:text-lg
+                focus:ring-blue-500/10
               "
             />
 
             <label
               className="
-                mt-2
-                flex
-                w-fit
+                mt-3
+                inline-flex
                 cursor-pointer
                 items-center
-                gap-2
-                whitespace-nowrap
+                gap-2.5
+                rounded-full
+                border
+                border-slate-200
+                bg-white/70
+                px-3
+                py-1.5
                 text-sm
-                font-semibold
-                text-slate-900
+                font-bold
+                !text-slate-600
+                shadow-sm
+                transition
+                hover:bg-white
               "
             >
               <input
                 type="checkbox"
                 checked={isOpeningBalance}
                 onChange={(e) => {
-                  const checked = e.target.checked;
+                  const checked =
+                    e.target.checked;
 
-                  setIsOpeningBalance(checked);
+                  setIsOpeningBalance(
+                    checked
+                  );
 
                   setDocumentValue(
                     checked
@@ -315,24 +411,24 @@ export default function ReceiveForm({
                   h-4
                   w-4
                   cursor-pointer
+                  accent-blue-600
                 "
               />
 
-              ยอดยกเข้าระบบ
+              <span>ยอดยกเข้าระบบ</span>
             </label>
           </div>
 
           {/* ผู้จำหน่าย */}
 
-          <div className="min-w-0">
+          <div className="min-w-0 md:col-span-2">
             <label
               className="
                 mb-2
                 block
                 text-base
                 font-extrabold
-                text-slate-900
-                sm:text-lg
+                !text-slate-800
               "
             >
               ผู้จำหน่าย
@@ -342,19 +438,23 @@ export default function ReceiveForm({
               name="vendorId"
               required
               className="
+                h-12
                 w-full
                 min-w-0
-                rounded-xl
+                rounded-[15px]
                 border
-                border-slate-300
-                bg-white
-                p-3
-                font-semibold
-                text-slate-900
+                border-slate-200
+                bg-white/90
+                px-4
+                font-bold
+                !text-slate-800
+                shadow-sm
                 outline-none
-                focus:border-cyan-500
+                transition-all
+                duration-200
+                focus:border-blue-400
                 focus:ring-4
-                focus:ring-cyan-100
+                focus:ring-blue-500/10
               "
             >
               <option value="">
@@ -372,17 +472,92 @@ export default function ReceiveForm({
             </select>
           </div>
         </div>
+      </section>
 
-        {/* ตารางรายการรับเข้า */}
+      {/* =====================================================
+          ตารางรายการรับเข้า
+      ===================================================== */}
+
+      <section
+        className="
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-slate-200/80
+          bg-white/80
+          shadow-[0_16px_40px_-26px_rgba(15,23,42,0.35)]
+          backdrop-blur-xl
+        "
+      >
+        {/* Table Title */}
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-2
+            border-b
+            border-slate-200
+            bg-white/80
+            px-4
+            py-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            sm:px-5
+          "
+        >
+          <div>
+            <h2
+              className="
+                text-lg
+                font-black
+                !text-slate-900
+                sm:text-xl
+              "
+            >
+              รายการพัสดุรับเข้า
+            </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุรายการ ราคา จำนวน
+              และข้อมูลวันผลิต/หมดอายุ
+            </p>
+          </div>
+
+          <span
+            className="
+              inline-flex
+              w-fit
+              items-center
+              rounded-full
+              border
+              border-slate-200
+              bg-slate-50
+              px-3
+              py-1.5
+              text-xs
+              font-extrabold
+              !text-slate-500
+            "
+          >
+            15 รายการ
+          </span>
+        </div>
 
         <div
           className="
             w-full
             min-w-0
             overflow-x-auto
-            rounded-2xl
-            bg-white
-            shadow-xl
+            overscroll-x-contain
           "
         >
           <table
@@ -390,6 +565,7 @@ export default function ReceiveForm({
               w-full
               min-w-[1050px]
               border-collapse
+              bg-white
               text-sm
             "
           >
@@ -429,429 +605,569 @@ export default function ReceiveForm({
             </thead>
 
             <tbody>
-              {items.map((row, index) => {
-                const list = materials.filter(
-                  (m) =>
-                    m.category === row.category
-                );
+              {items.map(
+                (row, index) => {
+                  const list =
+                    materials.filter(
+                      (material) =>
+                        material.category ===
+                        row.category
+                    );
 
-                const selected = materials.find(
-                  (m) =>
-                    String(m.id) ===
-                    row.materialId
-                );
+                  const selected =
+                    materials.find(
+                      (material) =>
+                        String(
+                          material.id
+                        ) ===
+                        row.materialId
+                    );
 
-                return (
-                  <tr
-                    key={index}
-                    className="
-                      border-b
-                      border-black
-                      transition
-                      hover:bg-emerald-50
-                    "
-                  >
-                    <td
+                  return (
+                    <tr
+                      key={index}
                       className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                        text-slate-900
+                        transition-colors
+                        duration-200
+                        hover:bg-blue-50/60
                       "
                     >
-                      {index + 1}
-                    </td>
+                      {/* ลำดับ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <select
-                        name={`items[${index}].category`}
-                        value={row.category}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "category",
-                            e.target.value
-                          )
-                        }
+                      <td
                         className="
-                          min-w-[170px]
-                          rounded-xl
                           border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                          font-extrabold
+                          !text-slate-800
                         "
                       >
-                        <option value="">
-                          เลือกหมวดหมู่
-                        </option>
+                        {index + 1}
+                      </td>
 
-                        {categories.map((c) => (
-                          <option
-                            key={c.value}
-                            value={c.value}
-                          >
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                      {/* หมวดหมู่ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <select
-                        name={`items[${index}].materialId`}
-                        value={row.materialId}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "materialId",
-                            e.target.value
-                          )
-                        }
+                      <td
                         className="
-                          min-w-[260px]
-                          rounded-xl
                           border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
+                          border-black
+                          px-3
+                          py-3
                         "
                       >
-                        <option value="">
-                          เลือกรายการพัสดุ
-                        </option>
-
-                        {list.map((m) => (
-                          <option
-                            key={m.id}
-                            value={m.id}
-                          >
-                            {m.code}
-                            {" - "}
-                            {m.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                      "
-                    >
-                      <input
-                        type="text"
-                        readOnly
-                        value={
-                          selected?.unit ?? "-"
-                        }
-                        className="
-                          w-full
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-slate-100
-                          p-2
-                          text-center
-                          font-bold
-                          text-slate-900
-                        "
-                      />
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                      "
-                    >
-                      <input
-                        type="number"
-                        step="0.01"
-                        name={`items[${index}].unitPrice`}
-                        value={row.unitPrice}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "unitPrice",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-28
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-bold
-                          text-slate-900
-                        "
-                      />
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <input
-                        name={`items[${index}].qty`}
-                        type="number"
-                        min="1"
-                        value={row.qty}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "qty",
-                            e.target.value
-                          )
-                        }
-                        className="
-                          w-24
-                          rounded-xl
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-bold
-                          text-slate-900
-                        "
-                      />
-                    </td>
-
-                    {/* วันผลิต */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <div className="relative">
-                        <input
-                          type="date"
-                          name={`items[${index}].manufacture`}
-                          value={row.manufacture}
+                        <select
+                          name={`items[${index}].category`}
+                          value={
+                            row.category
+                          }
                           onChange={(e) =>
                             updateRow(
                               index,
-                              "manufacture",
-                              e.target.value
+                              "category",
+                              e.target
+                                .value
                             )
                           }
                           className="
-                            absolute
-                            inset-0
-                            z-10
-                            h-full
-                            w-full
-                            cursor-pointer
-                            opacity-0
-                          "
-                        />
-
-                        <div
-                          className="
-                            flex
-                            min-h-[42px]
-                            w-36
-                            items-center
-                            justify-between
-                            rounded-xl
+                            h-10
+                            min-w-[170px]
+                            rounded-[12px]
                             border
-                            border-slate-300
+                            border-slate-200
                             bg-white
-                            px-2
-                            py-2
+                            px-3
                             font-bold
-                            text-slate-900
+                            !text-slate-800
+                            shadow-sm
+                            outline-none
+                            transition
+                            focus:border-blue-400
+                            focus:ring-4
+                            focus:ring-blue-500/10
                           "
                         >
-                          <span className="whitespace-nowrap text-sm">
-                            {row.manufacture
-                              ? formatThaiDate(
-                                  row.manufacture
-                                )
-                              : "เลือกวันที่"}
-                          </span>
+                          <option value="">
+                            เลือกหมวดหมู่
+                          </option>
 
-                          <span>📅</span>
-                        </div>
-                      </div>
-                    </td>
+                          {categories.map(
+                            (category) => (
+                              <option
+                                key={
+                                  category.value
+                                }
+                                value={
+                                  category.value
+                                }
+                              >
+                                {
+                                  category.label
+                                }
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </td>
 
-                    {/* วันหมดอายุ */}
+                      {/* รายการพัสดุ */}
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-3
-                      "
-                    >
-                      <div className="relative">
-                        <input
-                          type="date"
-                          name={`items[${index}].expiry`}
-                          value={row.expiry}
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                        "
+                      >
+                        <select
+                          name={`items[${index}].materialId`}
+                          value={
+                            row.materialId
+                          }
                           onChange={(e) =>
                             updateRow(
                               index,
-                              "expiry",
-                              e.target.value
+                              "materialId",
+                              e.target
+                                .value
                             )
                           }
                           className="
-                            absolute
-                            inset-0
-                            z-10
-                            h-full
-                            w-full
-                            cursor-pointer
-                            opacity-0
-                          "
-                        />
-
-                        <div
-                          className="
-                            flex
-                            min-h-[42px]
-                            w-36
-                            items-center
-                            justify-between
-                            rounded-xl
+                            h-10
+                            min-w-[260px]
+                            rounded-[12px]
                             border
-                            border-slate-300
+                            border-slate-200
                             bg-white
-                            px-2
-                            py-2
+                            px-3
                             font-bold
-                            text-slate-900
+                            !text-slate-800
+                            shadow-sm
+                            outline-none
+                            transition
+                            focus:border-blue-400
+                            focus:ring-4
+                            focus:ring-blue-500/10
                           "
                         >
-                          <span className="whitespace-nowrap text-sm">
-                            {row.expiry
-                              ? formatThaiDate(
-                                  row.expiry
-                                )
-                              : "เลือกวันที่"}
-                          </span>
+                          <option value="">
+                            เลือกรายการพัสดุ
+                          </option>
 
-                          <span>📅</span>
+                          {list.map(
+                            (material) => (
+                              <option
+                                key={
+                                  material.id
+                                }
+                                value={
+                                  material.id
+                                }
+                              >
+                                {
+                                  material.code
+                                }{" "}
+                                -{" "}
+                                {
+                                  material.name
+                                }
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </td>
+
+                      {/* หน่วย */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                        "
+                      >
+                        <input
+                          type="text"
+                          readOnly
+                          value={
+                            selected?.unit ??
+                            "-"
+                          }
+                          className="
+                            h-10
+                            w-full
+                            rounded-[12px]
+                            border
+                            border-slate-200
+                            bg-slate-100
+                            px-2
+                            text-center
+                            font-extrabold
+                            !text-slate-700
+                            shadow-none
+                          "
+                        />
+                      </td>
+
+                      {/* ราคา */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                          text-center
+                        "
+                      >
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          name={`items[${index}].unitPrice`}
+                          value={
+                            row.unitPrice
+                          }
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "unitPrice",
+                              e.target
+                                .value
+                            )
+                          }
+                          className="
+                            h-10
+                            w-28
+                            rounded-[12px]
+                            border
+                            border-slate-200
+                            bg-white
+                            px-2
+                            text-center
+                            font-bold
+                            !text-slate-800
+                            shadow-sm
+                            outline-none
+                            transition
+                            focus:border-blue-400
+                            focus:ring-4
+                            focus:ring-blue-500/10
+                          "
+                        />
+                      </td>
+
+                      {/* จำนวน */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                        "
+                      >
+                        <input
+                          name={`items[${index}].qty`}
+                          type="number"
+                          min="1"
+                          value={row.qty}
+                          onChange={(e) =>
+                            updateRow(
+                              index,
+                              "qty",
+                              e.target
+                                .value
+                            )
+                          }
+                          className="
+                            h-10
+                            w-24
+                            rounded-[12px]
+                            border
+                            border-slate-200
+                            bg-white
+                            px-2
+                            text-center
+                            font-bold
+                            !text-slate-800
+                            shadow-sm
+                            outline-none
+                            transition
+                            focus:border-blue-400
+                            focus:ring-4
+                            focus:ring-blue-500/10
+                          "
+                        />
+                      </td>
+
+                      {/* วันผลิต */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                        "
+                      >
+                        <div className="relative">
+                          <input
+                            type="date"
+                            name={`items[${index}].manufacture`}
+                            value={
+                              row.manufacture
+                            }
+                            onChange={(e) =>
+                              updateRow(
+                                index,
+                                "manufacture",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="
+                              absolute
+                              inset-0
+                              z-10
+                              h-full
+                              w-full
+                              cursor-pointer
+                              opacity-0
+                            "
+                          />
+
+                          <div
+                            className="
+                              flex
+                              h-10
+                              w-40
+                              items-center
+                              justify-between
+                              rounded-[12px]
+                              border
+                              border-slate-200
+                              bg-white
+                              px-3
+                              font-bold
+                              !text-slate-800
+                              shadow-sm
+                              transition
+                              hover:border-blue-300
+                            "
+                          >
+                            <span className="whitespace-nowrap text-sm">
+                              {row.manufacture
+                                ? formatThaiDate(
+                                    row.manufacture
+                                  )
+                                : "เลือกวันที่"}
+                            </span>
+
+                            <span>
+                              📅
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+
+                      {/* วันหมดอายุ */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+                          px-3
+                          py-3
+                        "
+                      >
+                        <div className="relative">
+                          <input
+                            type="date"
+                            name={`items[${index}].expiry`}
+                            value={
+                              row.expiry
+                            }
+                            onChange={(e) =>
+                              updateRow(
+                                index,
+                                "expiry",
+                                e.target
+                                  .value
+                              )
+                            }
+                            className="
+                              absolute
+                              inset-0
+                              z-10
+                              h-full
+                              w-full
+                              cursor-pointer
+                              opacity-0
+                            "
+                          />
+
+                          <div
+                            className="
+                              flex
+                              h-10
+                              w-40
+                              items-center
+                              justify-between
+                              rounded-[12px]
+                              border
+                              border-slate-200
+                              bg-white
+                              px-3
+                              font-bold
+                              !text-slate-800
+                              shadow-sm
+                              transition
+                              hover:border-blue-300
+                            "
+                          >
+                            <span className="whitespace-nowrap text-sm">
+                              {row.expiry
+                                ? formatThaiDate(
+                                    row.expiry
+                                  )
+                                : "เลือกวันที่"}
+                            </span>
+
+                            <span>
+                              📅
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+              )}
             </tbody>
           </table>
         </div>
+      </section>
 
-        {/* หมายเหตุ */}
+      {/* =====================================================
+          หมายเหตุ
+      ===================================================== */}
 
-        <div>
-          <label
+      <section
+        className="
+          rounded-[24px]
+          border
+          border-slate-200/80
+          bg-white/75
+          p-4
+          shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
+          backdrop-blur-xl
+          sm:p-5
+        "
+      >
+        <label
+          className="
+            mb-2
+            block
+            text-base
+            font-extrabold
+            !text-slate-800
+          "
+        >
+          หมายเหตุ
+        </label>
+
+        <textarea
+          name="remark"
+          placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+          className="
+            min-h-[120px]
+            w-full
+            resize-y
+            rounded-[16px]
+            border
+            border-slate-200
+            bg-white/90
+            p-4
+            font-bold
+            !text-slate-800
+            shadow-sm
+            outline-none
+            transition-all
+            duration-200
+            placeholder:!text-slate-400
+            focus:border-blue-400
+            focus:ring-4
+            focus:ring-blue-500/10
+          "
+        />
+      </section>
+
+      {/* =====================================================
+          Action
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          justify-end
+          border-t
+          border-slate-200/80
+          pt-5
+        "
+      >
+        <button
+          type="submit"
+          className="
+            group
+            inline-flex
+            h-11
+            w-full
+            items-center
+            justify-center
+            gap-2
+            rounded-[16px]
+            border
+            border-slate-900
+            bg-slate-900
+            px-6
+            text-sm
+            font-extrabold
+            !text-white
+            shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
+            transition-all
+            duration-300
+            ease-out
+            hover:-translate-y-0.5
+            hover:bg-slate-800
+            hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
+            active:translate-y-0
+            active:scale-[0.97]
+            focus:outline-none
+            focus:ring-4
+            focus:ring-slate-400/20
+            sm:w-auto
+            sm:min-w-[150px]
+          "
+        >
+          <span
             className="
-              mb-2
-              block
-              text-base
-              font-extrabold
-              text-slate-900
-              sm:text-lg
+              transition-transform
+              duration-300
+              group-hover:scale-105
             "
           >
-            หมายเหตุ
-          </label>
+            💾
+          </span>
 
-          <textarea
-            name="remark"
-            className="
-              min-h-[120px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              p-3
-              font-semibold
-              text-slate-900
-              outline-none
-              focus:border-cyan-500
-              focus:ring-4
-              focus:ring-cyan-100
-            "
-          />
-        </div>
-
-        {/* ปุ่มบันทึก */}
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              via-green-500
-              to-emerald-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:w-auto
-            "
-          >
-            💾 บันทึก
-          </button>
-        </div>
-      </form>
-    </div>
+          <span>บันทึก</span>
+        </button>
+      </div>
+    </form>
   );
 }
