@@ -7,6 +7,10 @@ import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Props = {
   searchParams: Promise<{
     category?: string;
@@ -26,15 +30,42 @@ const validCategories = [
   "PRINTING",
 ] as const;
 
-function getBackHref(
+type MaterialCategory =
+  (typeof validCategories)[number];
+
+/* =========================================================
+   VALIDATE CATEGORY
+========================================================= */
+
+function getValidCategory(
   category: string | undefined
-) {
+): MaterialCategory | undefined {
+  if (!category) {
+    return undefined;
+  }
+
+  const normalizedCategory =
+    category.toUpperCase();
+
   if (
-    category &&
     validCategories.includes(
-      category as (typeof validCategories)[number]
+      normalizedCategory as MaterialCategory
     )
   ) {
+    return normalizedCategory as MaterialCategory;
+  }
+
+  return undefined;
+}
+
+/* =========================================================
+   BACK HREF
+========================================================= */
+
+function getBackHref(
+  category: MaterialCategory | undefined
+) {
+  if (category) {
     return `/materials/category/${category}`;
   }
 
@@ -48,8 +79,16 @@ function getBackHref(
 export default async function NewMaterialPage({
   searchParams,
 }: Props) {
-  const { category } =
-    await searchParams;
+  /* =======================================================
+     SEARCH PARAMS
+  ======================================================= */
+
+  const params = await searchParams;
+
+  const category =
+    getValidCategory(
+      params.category
+    );
 
   const backHref =
     getBackHref(category);
@@ -132,6 +171,7 @@ export default async function NewMaterialPage({
         <MaterialForm
           vendors={vendors}
           materialMasters={materialMasters}
+          initialCategory={category}
         />
       </section>
     </AppPage>
