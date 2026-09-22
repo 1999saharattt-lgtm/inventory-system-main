@@ -1,7 +1,5 @@
-import Link from "next/link";
-import MaterialForm from "./MaterialForm";
 import { prisma } from "@/lib/prisma";
-
+import MaterialForm from "./MaterialForm";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
@@ -60,19 +58,14 @@ export default async function NewMaterialPage() {
         title="เพิ่มรายการพัสดุ"
         subtitle="เพิ่มข้อมูลพัสดุใหม่เข้าสู่ระบบ"
         actions={
-          <Link
+          <AppButton
             href="/materials"
-            prefetch
-            className="inline-flex"
+            variant="success"
+            size="md"
+            icon={<span>←</span>}
           >
-            <AppButton
-              type="button"
-              variant="back"
-            >
-              <span>←</span>
-              <span>กลับ</span>
-            </AppButton>
-          </Link>
+            กลับ
+          </AppButton>
         }
       />
 
@@ -108,8 +101,6 @@ export default async function NewMaterialPage() {
             blur-3xl
           "
         />
-
-        {/* Material Form */}
 
         <MaterialForm
           vendors={vendors}

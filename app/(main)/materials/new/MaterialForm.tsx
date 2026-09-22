@@ -1,11 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-
 import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
-
 import AppButton from "@/components/AppButton";
 
 type Vendor = {
@@ -52,9 +49,7 @@ export default function MaterialForm({
   ========================================================= */
 
   const names = useMemo(() => {
-    if (!category) {
-      return [];
-    }
+    if (!category) return [];
 
     const oldNames =
       MATERIALS[
@@ -70,10 +65,7 @@ export default function MaterialForm({
       .map((item) => item.name);
 
     return Array.from(
-      new Set([
-        ...oldNames,
-        ...newNames,
-      ])
+      new Set([...oldNames, ...newNames])
     );
   }, [category, materialMasters]);
 
@@ -86,10 +78,7 @@ export default function MaterialForm({
       ? newUnit.trim()
       : UNITS[name] ??
         materialMasters.find(
-          (item) =>
-            item.name === name &&
-            item.category ===
-              categoryMap[category]
+          (item) => item.name === name
         )?.unit ??
         "";
 
@@ -102,9 +91,7 @@ export default function MaterialForm({
   ) {
     e.preventDefault();
 
-    if (isSubmitting) {
-      return;
-    }
+    if (isSubmitting) return;
 
     const formData = new FormData(
       e.currentTarget
@@ -114,11 +101,6 @@ export default function MaterialForm({
       name === "__NEW__"
         ? newName.trim()
         : name;
-
-    if (!categoryMap[category]) {
-      alert("กรุณาเลือกหมวดหมู่");
-      return;
-    }
 
     if (!materialName) {
       alert("กรุณาระบุชื่อรายการพัสดุ");
@@ -130,11 +112,14 @@ export default function MaterialForm({
       return;
     }
 
+    if (!categoryMap[category]) {
+      alert("กรุณาเลือกหมวดหมู่");
+      return;
+    }
+
     const body = {
       vendorId: formData.get("vendorId")
-        ? Number(
-            formData.get("vendorId")
-          )
+        ? Number(formData.get("vendorId"))
         : null,
 
       category: categoryMap[category],
@@ -161,12 +146,10 @@ export default function MaterialForm({
         "/api/materials",
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
           },
-
           body: JSON.stringify(body),
         }
       );
@@ -209,14 +192,9 @@ export default function MaterialForm({
     block
     text-sm
     font-extrabold
-    !text-slate-800
+    !text-slate-700
     sm:text-base
   `;
-
-  /*
-   * ช่องกรอกข้อมูลทั้งหมด
-   * ใช้เส้นสีดำตามมาตรฐานกลางของระบบ
-   */
 
   const inputClassName = `
     min-h-[50px]
@@ -224,19 +202,20 @@ export default function MaterialForm({
     rounded-[16px]
     border
     border-black
-    bg-white
+    bg-white/90
     px-4
     py-3
     text-base
     font-bold
     !text-slate-900
-    shadow-sm
+    shadow-[0_6px_18px_-14px_rgba(15,23,42,0.3)]
     outline-none
+    backdrop-blur-xl
     transition-all
     duration-200
     placeholder:!text-slate-400
-    hover:bg-slate-50
-    focus:border-blue-500
+    hover:border-black
+    focus:border-black
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
@@ -257,8 +236,8 @@ export default function MaterialForm({
         overflow-hidden
         rounded-[30px]
         border
-        border-slate-300
-        bg-white/90
+        border-white/80
+        bg-white/80
         shadow-[0_24px_70px_-34px_rgba(15,23,42,0.35)]
         backdrop-blur-2xl
       "
@@ -305,7 +284,7 @@ export default function MaterialForm({
         className="
           relative
           border-b
-          border-slate-300
+          border-slate-200/80
           px-5
           py-5
           sm:px-8
@@ -430,8 +409,7 @@ export default function MaterialForm({
             id="category"
             value={category}
             onChange={(e) => {
-              const value =
-                e.target.value;
+              const value = e.target.value;
 
               setCategory(value);
               setName("");
@@ -478,7 +456,6 @@ export default function MaterialForm({
             disabled={!category}
             className={`
               ${inputClassName}
-
               disabled:cursor-not-allowed
               disabled:bg-slate-100
               disabled:!text-slate-400
@@ -516,21 +493,17 @@ export default function MaterialForm({
                 space-y-4
                 rounded-[22px]
                 border
-                border-black
+                border-blue-100
                 bg-blue-50/60
                 p-4
                 shadow-inner
                 sm:p-5
               "
             >
-              {/* ชื่อรายการใหม่ */}
-
               <div>
                 <label
                   htmlFor="newName"
-                  className={
-                    labelClassName
-                  }
+                  className={labelClassName}
                 >
                   ชื่อรายการใหม่
                 </label>
@@ -545,20 +518,14 @@ export default function MaterialForm({
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
                   required
-                  className={
-                    inputClassName
-                  }
+                  className={inputClassName}
                 />
               </div>
-
-              {/* หน่วย */}
 
               <div>
                 <label
                   htmlFor="newUnit"
-                  className={
-                    labelClassName
-                  }
+                  className={labelClassName}
                 >
                   หน่วย
                 </label>
@@ -573,9 +540,7 @@ export default function MaterialForm({
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
                   required
-                  className={
-                    inputClassName
-                  }
+                  className={inputClassName}
                 />
               </div>
             </div>
@@ -609,7 +574,6 @@ export default function MaterialForm({
               type="number"
               name="balance"
               defaultValue={0}
-              min="0"
               className={inputClassName}
             />
           </div>
@@ -636,12 +600,12 @@ export default function MaterialForm({
                 rounded-[16px]
                 border
                 border-black
-                bg-slate-100
+                bg-slate-100/90
                 px-4
                 py-3
                 text-base
                 font-extrabold
-                !text-slate-700
+                !text-slate-600
                 shadow-inner
                 outline-none
                 placeholder:!text-slate-400
@@ -672,7 +636,6 @@ export default function MaterialForm({
               min="0"
               className={`
                 ${inputClassName}
-
                 pr-16
                 text-right
               `}
@@ -688,7 +651,7 @@ export default function MaterialForm({
                 items-center
                 text-sm
                 font-extrabold
-                !text-slate-500
+                !text-slate-400
               "
             >
               บาท
@@ -708,7 +671,7 @@ export default function MaterialForm({
           flex-col-reverse
           gap-3
           border-t
-          border-slate-300
+          border-slate-200/80
           bg-slate-50/70
           px-5
           py-5
@@ -718,47 +681,29 @@ export default function MaterialForm({
           sm:px-8
         "
       >
-        {/* =================================================
-            Cancel
-        ================================================= */}
+        {/* Cancel */}
 
-        <Link
+        <AppButton
           href="/materials"
-          prefetch
+          variant="secondary"
+          size="md"
           className="
-            inline-flex
             w-full
             sm:w-auto
           "
         >
-          <AppButton
-            type="button"
-            variant="secondary"
-            className="
-              w-full
-              sm:min-w-[110px]
-            "
-          >
-            ยกเลิก
-          </AppButton>
-        </Link>
+          ยกเลิก
+        </AppButton>
 
-        {/* =================================================
-            Submit
-        ================================================= */}
+        {/* Submit */}
 
         <AppButton
           type="submit"
-          variant="primary"
+          variant="success"
+          size="md"
           disabled={isSubmitting}
-          className="
-            w-full
-            sm:min-w-[130px]
-            sm:w-auto
-          "
-        >
-          {isSubmitting ? (
-            <>
+          icon={
+            isSubmitting ? (
               <span
                 className="
                   h-4
@@ -766,21 +711,22 @@ export default function MaterialForm({
                   animate-spin
                   rounded-full
                   border-2
-                  border-current
-                  border-t-transparent
+                  border-white/40
+                  border-t-white
                 "
               />
-
-              <span>
-                กำลังบันทึก...
-              </span>
-            </>
-          ) : (
-            <>
+            ) : (
               <span>💾</span>
-              <span>บันทึก</span>
-            </>
-          )}
+            )
+          }
+          className="
+            w-full
+            sm:w-auto
+          "
+        >
+          {isSubmitting
+            ? "กำลังบันทึก..."
+            : "บันทึก"}
         </AppButton>
       </div>
     </form>
