@@ -55,29 +55,20 @@ type SearchableSelectProps = {
    CATEGORY
 ========================================================= */
 
-const categoryMap: Record<
-  string,
-  string
-> = {
+const categoryMap: Record<string, string> = {
   "วัสดุสำนักงาน": "OFFICE",
   "วัสดุคอมพิวเตอร์": "COMPUTER",
   "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
-  "วัสดุงานบ้านและงานครัว":
-    "HOUSEHOLD",
+  "วัสดุงานบ้านและงานครัว": "HOUSEHOLD",
   "วัสดุยานพาหนะ": "VEHICLE",
-  "วัสดุสื่อสิ่งพิมพ์":
-    "PRINTING",
+  "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
 };
 
-const categoryCodeToName =
-  Object.fromEntries(
-    Object.entries(categoryMap).map(
-      ([name, code]) => [
-        code,
-        name,
-      ]
-    )
-  ) as Record<string, string>;
+const categoryCodeToName = Object.fromEntries(
+  Object.entries(categoryMap).map(
+    ([name, code]) => [code, name]
+  )
+) as Record<string, string>;
 
 /* =========================================================
    SEARCHABLE SELECT
@@ -122,9 +113,9 @@ function SearchableSelect({
   const filteredOptions =
     useMemo(() => {
       const keyword =
-        search.trim().toLocaleLowerCase(
-          "th"
-        );
+        search
+          .trim()
+          .toLocaleLowerCase("th");
 
       if (!keyword) {
         return options;
@@ -198,7 +189,9 @@ function SearchableSelect({
       ref={containerRef}
       className="relative"
     >
-      {/* Hidden field for required validation */}
+      {/* =====================================================
+          HIDDEN REQUIRED FIELD
+      ===================================================== */}
 
       {required && (
         <input
@@ -217,9 +210,9 @@ function SearchableSelect({
         />
       )}
 
-      {/* ===============================================
-          CONTROL
-      =============================================== */}
+      {/* =====================================================
+          SELECT CONTROL
+      ===================================================== */}
 
       <button
         id={id}
@@ -249,18 +242,25 @@ function SearchableSelect({
           items-center
           justify-between
           gap-3
+
           rounded-[16px]
+
           border-2
           !border-black
+
           bg-white
+
           px-4
           py-3
+
           text-left
           text-base
           font-bold
           !text-slate-900
+
           shadow-sm
           outline-none
+
           transition-all
           duration-200
 
@@ -268,10 +268,12 @@ function SearchableSelect({
           hover:bg-slate-50
 
           focus:!border-black
+          focus:bg-white
           focus:ring-4
           focus:ring-slate-900/10
 
           disabled:cursor-not-allowed
+          disabled:!border-black
           disabled:bg-slate-100
           disabled:!text-slate-400
           disabled:opacity-70
@@ -300,6 +302,7 @@ function SearchableSelect({
             shrink-0
             text-xs
             !text-slate-700
+
             transition-transform
             duration-200
 
@@ -314,9 +317,9 @@ function SearchableSelect({
         </span>
       </button>
 
-      {/* ===============================================
+      {/* =====================================================
           DROPDOWN
-      =============================================== */}
+      ===================================================== */}
 
       {open && !disabled && (
         <div
@@ -326,107 +329,111 @@ function SearchableSelect({
             right-0
             top-[calc(100%+8px)]
             z-50
+
             overflow-hidden
+
             rounded-[16px]
+
             border-2
             !border-black
+
             bg-white
+
             shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
           "
         >
-          {/* =============================================
+          {/* =================================================
               SEARCH INPUT
-          ============================================= */}
+              ไม่มีรูปแว่นขยาย
+          ================================================= */}
 
           <div
             className="
-              border-b
-              border-slate-200
+              border-b-2
+              border-black
               bg-slate-50
               p-3
             "
           >
-            <div className="relative">
-              <div
-                aria-hidden="true"
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-y-0
-                  left-3
-                  flex
-                  items-center
-                  !text-slate-500
-                "
-              >
-                🔎
-              </div>
-
-              <input
-                ref={inputRef}
-                type="text"
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              onKeyDown={(event) => {
+                if (
+                  event.key ===
+                  "Escape"
+                ) {
+                  setOpen(false);
+                  setSearch("");
                 }
-                onKeyDown={(event) => {
-                  if (
-                    event.key ===
-                    "Escape"
-                  ) {
-                    setOpen(false);
-                    setSearch("");
-                  }
 
-                  if (
-                    event.key ===
-                      "Enter" &&
-                    filteredOptions.length ===
-                      1
-                  ) {
-                    event.preventDefault();
+                if (
+                  event.key ===
+                    "Enter" &&
+                  filteredOptions.length ===
+                    1
+                ) {
+                  event.preventDefault();
 
-                    onChange(
-                      filteredOptions[0]
-                        .value
-                    );
+                  onChange(
+                    filteredOptions[0]
+                      .value
+                  );
 
-                    setOpen(false);
-                    setSearch("");
-                  }
-                }}
-                placeholder={
-                  searchPlaceholder
+                  setOpen(false);
+                  setSearch("");
                 }
-                className="
-                  min-h-[44px]
-                  w-full
-                  rounded-[12px]
-                  border-2
-                  !border-black
-                  bg-white
-                  py-2.5
-                  pl-10
-                  pr-3
-                  text-base
-                  font-bold
-                  !text-slate-900
-                  outline-none
-                  placeholder:!text-slate-400
+              }}
+              placeholder={
+                searchPlaceholder
+              }
+              autoComplete="off"
+              className="
+                min-h-[46px]
+                w-full
 
-                  focus:!border-black
-                  focus:ring-4
-                  focus:ring-slate-900/10
-                "
-              />
-            </div>
+                rounded-[12px]
+
+                border-2
+                !border-black
+
+                bg-white
+
+                px-4
+                py-2.5
+
+                text-base
+                font-bold
+                !text-slate-900
+
+                shadow-sm
+                outline-none
+
+                transition-all
+                duration-200
+
+                placeholder:!text-slate-400
+
+                hover:!border-black
+                hover:bg-slate-50
+
+                focus:!border-black
+                focus:bg-white
+                focus:ring-4
+                focus:ring-slate-900/10
+              "
+            />
           </div>
 
-          {/* =============================================
+          {/* =================================================
               OPTIONS
-          ============================================= */}
+          ================================================= */}
 
           <div
             role="listbox"
@@ -469,12 +476,16 @@ function SearchableSelect({
                         items-center
                         justify-between
                         gap-3
+
                         rounded-[10px]
+
                         px-3
                         py-2.5
+
                         text-left
                         text-base
                         font-bold
+
                         transition-colors
 
                         ${
@@ -492,9 +503,7 @@ function SearchableSelect({
                       `}
                     >
                       <span className="min-w-0 break-words">
-                        {
-                          option.label
-                        }
+                        {option.label}
                       </span>
 
                       {active && (
@@ -799,27 +808,30 @@ export default function MaterialForm({
     sm:text-base
   `;
 
-  /*
-   * มาตรฐานช่องข้อมูลของระบบ
-   * ทุกช่องต้องมีกรอบดำ
-   */
-
   const inputClassName = `
     min-h-[50px]
     w-full
+
     rounded-[16px]
+
     border-2
     !border-black
+
     bg-white
+
     px-4
     py-3
+
     text-base
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
 
     hover:!border-black
@@ -842,12 +854,18 @@ export default function MaterialForm({
         mx-auto
         w-full
         max-w-4xl
+
         overflow-visible
+
         rounded-[30px]
+
         border
         border-slate-200
+
         bg-slate-50/95
+
         shadow-[0_24px_65px_-34px_rgba(15,23,42,0.35)]
+
         backdrop-blur-xl
       "
     >
@@ -858,11 +876,15 @@ export default function MaterialForm({
       <div
         className="
           rounded-t-[30px]
+
           border-b
           border-slate-200
+
           bg-white/70
+
           px-5
           py-5
+
           sm:px-8
           sm:py-6
         "
@@ -880,13 +902,19 @@ export default function MaterialForm({
               h-12
               w-12
               shrink-0
+
               items-center
               justify-center
+
               rounded-[16px]
+
               border
               border-slate-200
+
               bg-white
+
               text-xl
+
               shadow-sm
             "
           >
@@ -900,6 +928,7 @@ export default function MaterialForm({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-2xl
               "
             >
@@ -912,6 +941,7 @@ export default function MaterialForm({
                 text-sm
                 font-semibold
                 !text-slate-500
+
                 sm:text-base
               "
             >
@@ -929,13 +959,13 @@ export default function MaterialForm({
         className="
           space-y-5
           p-5
+
           sm:space-y-6
           sm:p-8
         "
       >
         {/* ===================================================
             ผู้จำหน่าย
-            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -964,7 +994,6 @@ export default function MaterialForm({
 
         {/* ===================================================
             หมวดหมู่
-            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -998,7 +1027,6 @@ export default function MaterialForm({
 
         {/* ===================================================
             รายการพัสดุ
-            พิมพ์ค้นหาได้
         =================================================== */}
 
         <div>
@@ -1046,12 +1074,18 @@ export default function MaterialForm({
               className="
                 mt-4
                 space-y-4
+
                 rounded-[22px]
+
                 border-2
                 !border-black
+
                 bg-slate-100/80
+
                 p-4
+
                 shadow-sm
+
                 sm:p-5
               "
             >
@@ -1119,11 +1153,10 @@ export default function MaterialForm({
             grid
             grid-cols-1
             gap-5
+
             md:grid-cols-2
           "
         >
-          {/* จำนวน */}
-
           <div>
             <label
               htmlFor="balance"
@@ -1146,8 +1179,6 @@ export default function MaterialForm({
             />
           </div>
 
-          {/* หน่วย */}
-
           <div>
             <label
               htmlFor="unit"
@@ -1166,18 +1197,26 @@ export default function MaterialForm({
               className="
                 min-h-[50px]
                 w-full
+
                 cursor-default
+
                 rounded-[16px]
+
                 border-2
                 !border-black
+
                 bg-slate-100
+
                 px-4
                 py-3
+
                 text-base
                 font-extrabold
                 !text-slate-700
+
                 shadow-sm
                 outline-none
+
                 placeholder:!text-slate-400
               "
             />
@@ -1220,8 +1259,10 @@ export default function MaterialForm({
                 absolute
                 inset-y-0
                 right-4
+
                 flex
                 items-center
+
                 text-sm
                 font-extrabold
                 !text-slate-500
@@ -1242,12 +1283,17 @@ export default function MaterialForm({
           flex
           flex-col-reverse
           gap-3
+
           rounded-b-[30px]
+
           border-t
           border-slate-200
+
           bg-white/70
+
           px-5
           py-5
+
           sm:flex-row
           sm:justify-end
           sm:px-8
@@ -1279,7 +1325,9 @@ export default function MaterialForm({
                   h-4
                   w-4
                   animate-spin
+
                   rounded-full
+
                   border-2
                   border-current
                   border-t-transparent
