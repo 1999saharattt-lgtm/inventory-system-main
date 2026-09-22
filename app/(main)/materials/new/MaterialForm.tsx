@@ -212,11 +212,16 @@ export default function MaterialForm({
     sm:text-base
   `;
 
+  /*
+   * มาตรฐานช่องข้อมูล
+   * - กรอบดำชัดเจน 2px
+   * - ทุก input / select ใช้รูปแบบเดียวกัน
+   */
   const inputClassName = `
     min-h-[50px]
     w-full
     rounded-[16px]
-    border
+    border-2
     border-black
     bg-white
     px-4
@@ -346,9 +351,7 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="vendorId"
-            className={
-              labelClassName
-            }
+            className={labelClassName}
           >
             ผู้จำหน่าย
           </label>
@@ -357,9 +360,7 @@ export default function MaterialForm({
             id="vendorId"
             name="vendorId"
             defaultValue=""
-            className={
-              inputClassName
-            }
+            className={inputClassName}
           >
             <option value="">
               เลือกผู้จำหน่าย
@@ -385,9 +386,7 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="category"
-            className={
-              labelClassName
-            }
+            className={labelClassName}
           >
             หมวดหมู่
           </label>
@@ -405,9 +404,7 @@ export default function MaterialForm({
               setNewUnit("");
             }}
             required
-            className={
-              inputClassName
-            }
+            className={inputClassName}
           >
             <option value="">
               เลือกหมวดหมู่
@@ -433,9 +430,7 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="materialName"
-            className={
-              labelClassName
-            }
+            className={labelClassName}
           >
             รายการพัสดุ
           </label>
@@ -457,7 +452,7 @@ export default function MaterialForm({
               disabled:border-black
               disabled:bg-slate-100
               disabled:!text-slate-400
-              disabled:opacity-70
+              disabled:opacity-100
             `}
           >
             <option value="">
@@ -492,7 +487,7 @@ export default function MaterialForm({
                 mt-4
                 space-y-4
                 rounded-[22px]
-                border
+                border-2
                 border-black
                 bg-slate-100/80
                 p-4
@@ -503,9 +498,7 @@ export default function MaterialForm({
               <div>
                 <label
                   htmlFor="newName"
-                  className={
-                    labelClassName
-                  }
+                  className={labelClassName}
                 >
                   ชื่อรายการใหม่
                 </label>
@@ -520,18 +513,14 @@ export default function MaterialForm({
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
                   required
-                  className={
-                    inputClassName
-                  }
+                  className={inputClassName}
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="newUnit"
-                  className={
-                    labelClassName
-                  }
+                  className={labelClassName}
                 >
                   หน่วย
                 </label>
@@ -546,9 +535,7 @@ export default function MaterialForm({
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
                   required
-                  className={
-                    inputClassName
-                  }
+                  className={inputClassName}
                 />
               </div>
             </div>
@@ -572,9 +559,7 @@ export default function MaterialForm({
           <div>
             <label
               htmlFor="balance"
-              className={
-                labelClassName
-              }
+              className={labelClassName}
             >
               จำนวน
             </label>
@@ -585,9 +570,7 @@ export default function MaterialForm({
               name="balance"
               defaultValue={0}
               min="0"
-              className={
-                inputClassName
-              }
+              className={inputClassName}
             />
           </div>
 
@@ -596,9 +579,7 @@ export default function MaterialForm({
           <div>
             <label
               htmlFor="unit"
-              className={
-                labelClassName
-              }
+              className={labelClassName}
             >
               หน่วย
             </label>
@@ -613,7 +594,7 @@ export default function MaterialForm({
                 w-full
                 cursor-default
                 rounded-[16px]
-                border
+                border-2
                 border-black
                 bg-slate-100
                 px-4
@@ -636,9 +617,7 @@ export default function MaterialForm({
         <div>
           <label
             htmlFor="latestPrice"
-            className={
-              labelClassName
-            }
+            className={labelClassName}
           >
             ราคาล่าสุด
           </label>
@@ -680,7 +659,7 @@ export default function MaterialForm({
 
       {/* =====================================================
           ACTIONS
-          ใช้ AppButton กลางเท่านั้น
+          สีปุ่มใช้จาก AppButton กลางเท่านั้น
       ===================================================== */}
 
       <div
@@ -714,9 +693,7 @@ export default function MaterialForm({
           type="submit"
           variant="success"
           size="md"
-          disabled={
-            isSubmitting
-          }
+          disabled={isSubmitting}
           icon={
             isSubmitting ? (
               <span
