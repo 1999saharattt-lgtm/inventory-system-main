@@ -124,14 +124,12 @@ export default function QRCodeButton({
     <>
       {/* =====================================================
           OPEN BUTTON
-
-          ใช้ AppButton กลาง
-          ไม่กำหนดสีใน Component นี้
+          สีมาจาก AppButton กลางเท่านั้น
       ===================================================== */}
 
       <AppButton
         type="button"
-        variant="outline"
+        variant="primary"
         size="sm"
         onClick={() => setOpen(true)}
         aria-label={`เปิด QR Code ${materialCode}`}
@@ -184,7 +182,7 @@ export default function QRCodeButton({
               overflow-hidden
               rounded-[32px]
               border
-              border-white/80
+              border-black
               bg-white/95
               shadow-[0_32px_100px_-28px_rgba(15,23,42,0.65)]
               backdrop-blur-2xl
@@ -256,9 +254,6 @@ export default function QRCodeButton({
 
             {/* ===============================================
                 ICON CLOSE CONTROL
-
-                เป็น icon control ของ modal
-                ไม่ใช่ action button ของระบบ
             =============================================== */}
 
             <button
@@ -279,7 +274,7 @@ export default function QRCodeButton({
                 justify-center
                 rounded-full
                 border
-                border-slate-200
+                border-black
                 bg-slate-100/90
                 p-0
                 text-xl
@@ -308,7 +303,7 @@ export default function QRCodeButton({
               className="
                 relative
                 border-b
-                border-slate-200/80
+                border-black
                 px-6
                 pb-5
                 pt-8
@@ -317,8 +312,6 @@ export default function QRCodeButton({
                 sm:pt-9
               "
             >
-              {/* Icon */}
-
               <div
                 className="
                   mx-auto
@@ -341,8 +334,6 @@ export default function QRCodeButton({
                 ▦
               </div>
 
-              {/* Title */}
-
               <h2
                 id="qr-modal-title"
                 className="
@@ -356,7 +347,9 @@ export default function QRCodeButton({
                 QR Code พัสดุ
               </h2>
 
-              {/* Material Code */}
+              {/* =============================================
+                  MATERIAL CODE
+              ============================================= */}
 
               <div
                 className="
@@ -367,7 +360,7 @@ export default function QRCodeButton({
                   justify-center
                   rounded-full
                   border
-                  border-slate-200
+                  border-black
                   bg-slate-100/80
                   px-3.5
                   py-1.5
@@ -380,8 +373,6 @@ export default function QRCodeButton({
                 รหัสพัสดุ :{" "}
                 {materialCode}
               </div>
-
-              {/* Material Name */}
 
               <p
                 className="
@@ -428,12 +419,10 @@ export default function QRCodeButton({
                   overflow-hidden
                   rounded-[26px]
                   border
-                  border-slate-300
+                  border-black
                   bg-white
                   p-4
                   shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]
-                  ring-1
-                  ring-black/[0.02]
                 "
               >
                 {qrCode ? (
@@ -502,7 +491,7 @@ export default function QRCodeButton({
                   max-w-[310px]
                   rounded-[18px]
                   border
-                  border-slate-200
+                  border-black
                   bg-slate-50/90
                   px-4
                   py-3
@@ -526,8 +515,7 @@ export default function QRCodeButton({
 
               {/* =============================================
                   CLOSE BUTTON
-
-                  สีและ Style มาจาก AppButton กลางทั้งหมด
+                  ใช้สีจาก AppButton กลาง
               ============================================= */}
 
               <div className="mt-5">
@@ -538,7 +526,7 @@ export default function QRCodeButton({
                   onClick={() =>
                     setOpen(false)
                   }
-                  className="w-full"
+                  fullWidth
                 >
                   ปิด
                 </AppButton>
