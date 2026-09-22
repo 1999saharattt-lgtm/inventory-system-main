@@ -55,6 +55,16 @@ type SearchableDropdownProps = {
   onChange: (value: string) => void;
 };
 
+type IOSDatePickerProps = {
+  id: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  required?: boolean;
+  compact?: boolean;
+  onChange: (value: string) => void;
+};
+
 /* =========================================================
    CATEGORY
 ========================================================= */
@@ -87,7 +97,7 @@ const categories = [
 ];
 
 /* =========================================================
-   THAI DATE
+   DATE
 ========================================================= */
 
 const thaiMonths = [
@@ -103,6 +113,31 @@ const thaiMonths = [
   "ตุลาคม",
   "พฤศจิกายน",
   "ธันวาคม",
+];
+
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+const weekDays = [
+  "อา",
+  "จ",
+  "อ",
+  "พ",
+  "พฤ",
+  "ศ",
+  "ส",
 ];
 
 function formatThaiDate(
@@ -126,6 +161,32 @@ function formatThaiDate(
   } ${year + 543}`;
 }
 
+function formatThaiShortDate(
+  dateString: string
+) {
+  if (!dateString) {
+    return "";
+  }
+
+  const [year, month, day] =
+    dateString
+      .split("-")
+      .map(Number);
+
+  if (!year || !month || !day) {
+    return "";
+  }
+
+  return `${String(day).padStart(
+    2,
+    "0"
+  )} ${
+    thaiShortMonths[month - 1]
+  } ${String(year + 543).slice(
+    -2
+  )}`;
+}
+
 function getTodayInputValue() {
   const today = new Date();
 
@@ -140,102 +201,276 @@ function getTodayInputValue() {
   ].join("-");
 }
 
-/* =========================================================
-   DATE PICKER
+function dateToInputValue(
+  date: Date
+) {
+  return [
+    date.getFullYear(),
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      date.getDate()
+    ).padStart(2, "0"),
+  ].join("-");
+}
 
-   - กดได้ทั้งช่อง
-   - กดไอคอนปฏิทินได้โดยตรง
-   - ใช้ showPicker เมื่อ Browser รองรับ
-   - กรอบดำมาตรฐานเดียวกับช่องอื่น
+function inputValueToDate(
+  value: string
+) {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] =
+    value
+      .split("-")
+      .map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
+
+function isSameDate(
+  first: Date,
+  second: Date
+) {
+  return (
+    first.getFullYear() ===
+      second.getFullYear() &&
+    first.getMonth() ===
+      second.getMonth() &&
+    first.getDate() ===
+      second.getDate()
+  );
+}
+
+/* =========================================================
+   IOS DATE PICKER
 ========================================================= */
 
-type DatePickerFieldProps = {
-  id: string;
-  name: string;
-  value: string;
-  placeholder?: string;
-  height?: "large" | "table";
-  onChange: (value: string) => void;
-};
-
-function DatePickerField({
+function IOSDatePicker({
   id,
   name,
   value,
   placeholder = "เลือกวันที่",
-  height = "large",
+  required = false,
+  compact = false,
   onChange,
-}: DatePickerFieldProps) {
-  const dateRef =
-    useRef<HTMLInputElement>(null);
+}: IOSDatePickerProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
 
-  function openPicker() {
-    const input =
-      dateRef.current;
+  const selectedDate =
+    inputValueToDate(value);
 
-    if (!input) {
-      return;
+  const [open, setOpen] =
+    useState(false);
+
+  const [viewDate, setViewDate] =
+    useState<Date>(
+      selectedDate ??
+        new Date()
+    );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setViewDate(
+        new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          1
+        )
+      );
     }
+  }, [value]);
 
-    try {
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
       if (
-        typeof input.showPicker ===
-        "function"
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
       ) {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
+        setOpen(false);
       }
-    } catch {
-      input.focus();
-      input.click();
     }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  const calendarDays =
+    useMemo(() => {
+      const year =
+        viewDate.getFullYear();
+
+      const month =
+        viewDate.getMonth();
+
+      const firstDay =
+        new Date(
+          year,
+          month,
+          1
+        );
+
+      const lastDay =
+        new Date(
+          year,
+          month + 1,
+          0
+        );
+
+      const days: Array<
+        Date | null
+      > = [];
+
+      for (
+        let i = 0;
+        i < firstDay.getDay();
+        i++
+      ) {
+        days.push(null);
+      }
+
+      for (
+        let day = 1;
+        day <=
+        lastDay.getDate();
+        day++
+      ) {
+        days.push(
+          new Date(
+            year,
+            month,
+            day
+          )
+        );
+      }
+
+      while (
+        days.length % 7 !== 0
+      ) {
+        days.push(null);
+      }
+
+      return days;
+    }, [viewDate]);
+
+  function previousMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() - 1,
+          1
+        )
+    );
   }
 
-  const isLarge =
-    height === "large";
+  function nextMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() + 1,
+          1
+        )
+    );
+  }
+
+  function selectToday() {
+    const today =
+      new Date();
+
+    onChange(
+      dateToInputValue(today)
+    );
+
+    setViewDate(
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      )
+    );
+
+    setOpen(false);
+  }
 
   return (
     <div
+      ref={containerRef}
       className={`
         relative
         w-full
+        min-w-0
 
         ${
-          isLarge
-            ? "h-[52px]"
-            : "h-[46px]"
+          open
+            ? "z-[500]"
+            : "z-10"
         }
       `}
     >
       <input
-        ref={dateRef}
-        id={id}
-        type="date"
+        type="hidden"
         name={name}
         value={value}
-        onChange={(event) =>
-          onChange(
-            event.target.value
-          )
-        }
-        tabIndex={-1}
-        className="
-          pointer-events-none
-          absolute
-          h-px
-          w-px
-          opacity-0
-        "
+        required={required}
       />
 
+      {/* =====================================================
+          DATE BUTTON
+      ===================================================== */}
+
       <button
+        id={id}
         type="button"
-        onClick={openPicker}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) {
+            const base =
+              selectedDate ??
+              new Date();
+
+            setViewDate(
+              new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                1
+              )
+            );
+          }
+
+          setOpen(
+            (current) =>
+              !current
+          );
+        }}
         className={`
           flex
-          h-full
           w-full
           min-w-0
           items-center
@@ -243,9 +478,9 @@ function DatePickerField({
           gap-3
 
           ${
-            isLarge
-              ? "rounded-[16px] px-4"
-              : "rounded-[12px] px-3"
+            compact
+              ? "h-[46px] rounded-[12px] px-3"
+              : "h-[52px] rounded-[16px] px-4"
           }
 
           border
@@ -258,6 +493,7 @@ function DatePickerField({
           !text-slate-900
 
           shadow-sm
+
           outline-none
 
           transition-all
@@ -274,30 +510,33 @@ function DatePickerField({
           className={`
             min-w-0
             flex-1
-            whitespace-nowrap
-
-            ${
-              isLarge
-                ? "text-base"
-                : "text-sm"
-            }
+            truncate
 
             ${
               value
                 ? "!text-slate-900"
                 : "!text-slate-400"
             }
+
+            ${
+              compact
+                ? "text-sm"
+                : "text-base"
+            }
           `}
         >
           {value
-            ? formatThaiDate(
-                value
-              )
+            ? compact
+              ? formatThaiShortDate(
+                  value
+                )
+              : formatThaiDate(
+                  value
+                )
             : placeholder}
         </span>
 
         <span
-          aria-hidden="true"
           className={`
             flex
             shrink-0
@@ -305,39 +544,374 @@ function DatePickerField({
             justify-center
 
             ${
-              isLarge
-                ? `
-                  h-9
-                  w-9
-                  rounded-[11px]
-                  text-xl
-                `
-                : `
-                  h-7
-                  w-7
-                  rounded-[9px]
-                  text-base
-                `
+              compact
+                ? "h-8 w-8 rounded-[10px] text-base"
+                : "h-9 w-9 rounded-[11px] text-lg"
             }
 
             bg-slate-100
+
             shadow-inner
+
+            transition-all
+            duration-200
+
+            ${
+              open
+                ? "bg-slate-900 !text-white"
+                : ""
+            }
           `}
         >
           📅
         </span>
       </button>
+
+      {/* =====================================================
+          IOS CALENDAR POPOVER
+      ===================================================== */}
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="เลือกวันที่"
+          className={`
+            absolute
+
+            left-0
+            top-[calc(100%+10px)]
+
+            z-[9999]
+
+            ${
+              compact
+                ? "w-[320px]"
+                : "w-[360px]"
+            }
+
+            max-w-[calc(100vw-32px)]
+
+            overflow-hidden
+
+            rounded-[24px]
+
+            border
+            border-slate-200/90
+
+            bg-white/95
+
+            p-3
+
+            shadow-[0_28px_80px_-24px_rgba(15,23,42,0.55)]
+
+            ring-1
+            ring-black/5
+
+            backdrop-blur-2xl
+          `}
+        >
+          {/* ===============================================
+              CALENDAR TOP
+          =============================================== */}
+
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-2
+
+              px-1
+              pb-3
+            "
+          >
+            <button
+              type="button"
+              onClick={
+                previousMonth
+              }
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ‹
+            </button>
+
+            <div
+              className="
+                min-w-0
+                text-center
+              "
+            >
+              <div
+                className="
+                  text-base
+                  font-black
+                  !text-slate-900
+                "
+              >
+                {
+                  thaiMonths[
+                    viewDate.getMonth()
+                  ]
+                }
+              </div>
+
+              <div
+                className="
+                  text-xs
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                พ.ศ.{" "}
+                {viewDate.getFullYear() +
+                  543}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ›
+            </button>
+          </div>
+
+          {/* ===============================================
+              WEEK
+          =============================================== */}
+
+          <div
+            className="
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {weekDays.map(
+              (day) => (
+                <div
+                  key={day}
+                  className="
+                    flex
+                    h-8
+                    items-center
+                    justify-center
+
+                    text-xs
+                    font-extrabold
+                    !text-slate-400
+                  "
+                >
+                  {day}
+                </div>
+              )
+            )}
+
+            {calendarDays.map(
+              (date, index) => {
+                if (!date) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-10"
+                    />
+                  );
+                }
+
+                const selected =
+                  selectedDate
+                    ? isSameDate(
+                        date,
+                        selectedDate
+                      )
+                    : false;
+
+                const today =
+                  isSameDate(
+                    date,
+                    new Date()
+                  );
+
+                return (
+                  <button
+                    key={dateToInputValue(
+                      date
+                    )}
+                    type="button"
+                    onClick={() => {
+                      onChange(
+                        dateToInputValue(
+                          date
+                        )
+                      );
+
+                      setOpen(false);
+                    }}
+                    className={`
+                      relative
+                      flex
+                      h-10
+                      items-center
+                      justify-center
+
+                      rounded-full
+
+                      text-sm
+                      font-extrabold
+
+                      transition-all
+                      duration-150
+
+                      active:scale-90
+
+                      ${
+                        selected
+                          ? `
+                            bg-slate-900
+                            !text-white
+                            shadow-md
+                          `
+                          : today
+                          ? `
+                            bg-blue-50
+                            !text-blue-700
+                            ring-1
+                            ring-blue-200
+                          `
+                          : `
+                            bg-transparent
+                            !text-slate-800
+                            hover:bg-slate-100
+                          `
+                      }
+                    `}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              }
+            )}
+          </div>
+
+          {/* ===============================================
+              CALENDAR FOOTER
+          =============================================== */}
+
+          <div
+            className="
+              mt-3
+              flex
+              items-center
+              justify-between
+              gap-2
+
+              border-t
+              border-slate-200
+
+              pt-3
+            "
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="
+                rounded-full
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-slate-500
+
+                transition-colors
+
+                hover:bg-slate-100
+              "
+            >
+              ล้างวันที่
+            </button>
+
+            <button
+              type="button"
+              onClick={
+                selectToday
+              }
+              className="
+                rounded-full
+
+                bg-slate-900
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-white
+
+                shadow-sm
+
+                transition-all
+
+                hover:bg-slate-800
+                active:scale-95
+              "
+            >
+              วันนี้
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* =========================================================
    SEARCHABLE DROPDOWN
-
-   - พิมพ์ค้นหาได้
-   - ไม่มีแว่นขยาย
-   - กรอบดำ
-   - แสดงเหนือการ์ดและตาราง
 ========================================================= */
 
 function SearchableDropdown({
@@ -375,9 +949,7 @@ function SearchableDropdown({
       const keyword =
         search
           .trim()
-          .toLocaleLowerCase(
-            "th"
-          );
+          .toLocaleLowerCase("th");
 
       if (!keyword) {
         return options;
@@ -438,9 +1010,7 @@ function SearchableDropdown({
       }, 0);
 
     return () => {
-      window.clearTimeout(
-        timer
-      );
+      window.clearTimeout(timer);
     };
   }, [open]);
 
@@ -454,7 +1024,7 @@ function SearchableDropdown({
 
         ${
           open
-            ? "z-[500]"
+            ? "z-[400]"
             : "z-10"
         }
       `}
@@ -516,7 +1086,6 @@ function SearchableDropdown({
           hover:bg-slate-50
 
           focus:!border-black
-          focus:bg-white
           focus:ring-4
           focus:ring-slate-900/10
 
@@ -543,14 +1112,12 @@ function SearchableDropdown({
         </span>
 
         <span
-          aria-hidden="true"
           className={`
             shrink-0
             text-xs
             !text-slate-700
 
             transition-transform
-            duration-200
 
             ${
               open
@@ -575,21 +1142,25 @@ function SearchableDropdown({
 
             overflow-hidden
 
-            rounded-[16px]
+            rounded-[20px]
 
             border
             !border-black
 
-            bg-white
+            bg-white/95
 
-            shadow-[0_24px_60px_-20px_rgba(15,23,42,0.55)]
+            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
+
+            backdrop-blur-2xl
           "
         >
           <div
             className="
               border-b
-              border-black
-              bg-slate-50
+              border-slate-200
+
+              bg-slate-50/90
+
               p-3
             "
           >
@@ -598,12 +1169,9 @@ function SearchableDropdown({
               type="text"
               value={search}
               autoComplete="off"
-              onChange={(
-                event
-              ) =>
+              onChange={(event) =>
                 setSearch(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
               onKeyDown={(
@@ -613,10 +1181,7 @@ function SearchableDropdown({
                   event.key ===
                   "Escape"
                 ) {
-                  setOpen(
-                    false
-                  );
-
+                  setOpen(false);
                   setSearch("");
                 }
 
@@ -633,10 +1198,7 @@ function SearchableDropdown({
                       .value
                   );
 
-                  setOpen(
-                    false
-                  );
-
+                  setOpen(false);
                   setSearch("");
                 }
               }}
@@ -647,7 +1209,7 @@ function SearchableDropdown({
                 h-[46px]
                 w-full
 
-                rounded-[12px]
+                rounded-[14px]
 
                 border
                 !border-black
@@ -665,7 +1227,6 @@ function SearchableDropdown({
 
                 placeholder:!text-slate-400
 
-                focus:!border-black
                 focus:ring-4
                 focus:ring-slate-900/10
               "
@@ -678,7 +1239,9 @@ function SearchableDropdown({
               max-h-[280px]
               overflow-y-auto
               overscroll-contain
+
               bg-white
+
               p-2
             "
           >
@@ -705,13 +1268,8 @@ function SearchableDropdown({
                           option.value
                         );
 
-                        setOpen(
-                          false
-                        );
-
-                        setSearch(
-                          ""
-                        );
+                        setOpen(false);
+                        setSearch("");
                       }}
                       className={`
                         flex
@@ -720,7 +1278,7 @@ function SearchableDropdown({
                         justify-between
                         gap-3
 
-                        rounded-[10px]
+                        rounded-[12px]
 
                         px-3
                         py-2.5
@@ -752,18 +1310,11 @@ function SearchableDropdown({
                           break-words
                         "
                       >
-                        {
-                          option.label
-                        }
+                        {option.label}
                       </span>
 
                       {selected && (
-                        <span
-                          className="
-                            shrink-0
-                            !text-white
-                          "
-                        >
+                        <span className="!text-white">
                           ✓
                         </span>
                       )}
@@ -776,6 +1327,7 @@ function SearchableDropdown({
                 className="
                   px-4
                   py-8
+
                   text-center
                   text-sm
                   font-bold
@@ -848,28 +1400,20 @@ export default function ReceiveForm({
     key: keyof ReceiveRow,
     value: string
   ) {
-    const copy = [
-      ...items,
-    ];
+    const copy = [...items];
 
     copy[index] = {
       ...copy[index],
       [key]: value,
     };
 
-    if (
-      key === "category"
-    ) {
+    if (key === "category") {
       copy[index].materialId =
         "";
     }
 
     setItems(copy);
   }
-
-  /* =========================================================
-     OPTIONS
-  ========================================================= */
 
   const vendorOptions =
     useMemo<
@@ -880,8 +1424,7 @@ export default function ReceiveForm({
           (vendor) => ({
             value:
               vendor.id.toString(),
-            label:
-              vendor.name,
+            label: vendor.name,
           })
         ),
       [vendors]
@@ -890,14 +1433,7 @@ export default function ReceiveForm({
   const categoryOptions =
     useMemo<
       SearchableOption[]
-    >(
-      () => categories,
-      []
-    );
-
-  /* =========================================================
-     SHARED CLASSES
-  ========================================================= */
+    >(() => categories, []);
 
   const labelClass = `
     mb-2
@@ -937,14 +1473,9 @@ export default function ReceiveForm({
     hover:bg-slate-50
 
     focus:!border-black
-    focus:bg-white
     focus:ring-4
     focus:ring-slate-900/10
   `;
-
-  /* =========================================================
-     UI
-  ========================================================= */
 
   return (
     <form
@@ -956,13 +1487,13 @@ export default function ReceiveForm({
       "
     >
       {/* =====================================================
-          ข้อมูลการรับเข้า
+          DOCUMENT INFORMATION
       ===================================================== */}
 
       <section
         className="
           relative
-          z-[100]
+          z-[200]
 
           overflow-visible
 
@@ -982,8 +1513,6 @@ export default function ReceiveForm({
           sm:p-5
         "
       >
-        {/* HEADER */}
-
         <div
           className="
             mb-5
@@ -1008,7 +1537,6 @@ export default function ReceiveForm({
               text-xl
 
               shadow-sm
-
               ring-1
               ring-blue-100
             "
@@ -1058,20 +1586,16 @@ export default function ReceiveForm({
           <div className="min-w-0">
             <label
               htmlFor="receiveDate"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               วันที่รับเข้า
             </label>
 
-            <DatePickerField
+            <IOSDatePicker
               id="receiveDate"
               name="receiveDate"
-              value={
-                receiveDate
-              }
-              placeholder="เลือกวันที่รับเข้า"
+              value={receiveDate}
+              required
               onChange={
                 setReceiveDate
               }
@@ -1083,9 +1607,7 @@ export default function ReceiveForm({
           <div className="min-w-0">
             <label
               htmlFor="documentNo"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               เลขที่เอกสาร
             </label>
@@ -1094,18 +1616,13 @@ export default function ReceiveForm({
               id="documentNo"
               type="text"
               name="documentNo"
-              value={
-                documentValue
-              }
+              value={documentValue}
               readOnly={
                 !isOpeningBalance
               }
-              onChange={(
-                event
-              ) =>
+              onChange={(event) =>
                 setDocumentValue(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
               className={
@@ -1115,27 +1632,35 @@ export default function ReceiveForm({
 
             {/* ยอดยกเข้าระบบ */}
 
-            <div
+            <label
               className="
                 mt-2.5
-                flex
-                min-h-[24px]
+
+                inline-flex
+                w-fit
+                max-w-full
+
+                cursor-pointer
                 items-center
+                gap-2
+
+                whitespace-nowrap
+
+                text-sm
+                font-extrabold
+                !text-slate-700
               "
             >
-              <label
+              <span
                 className="
-                  inline-flex
-                  w-fit
-                  cursor-pointer
+                  relative
+
+                  flex
+                  h-[20px]
+                  w-[20px]
+                  shrink-0
                   items-center
-                  gap-2
-
-                  whitespace-nowrap
-
-                  text-sm
-                  font-extrabold
-                  !text-slate-700
+                  justify-center
                 "
               >
                 <input
@@ -1161,31 +1686,63 @@ export default function ReceiveForm({
                     );
                   }}
                   className="
-                    h-[17px]
-                    w-[17px]
-                    shrink-0
+                    peer
+
+                    absolute
+                    inset-0
+
+                    h-5
+                    w-5
 
                     cursor-pointer
 
-                    rounded-[4px]
+                    appearance-none
+
+                    rounded-[6px]
 
                     border
-                    !border-black
+                    border-slate-400
 
-                    accent-slate-900
+                    bg-white
+
+                    shadow-sm
+
+                    transition-all
+
+                    checked:border-slate-900
+                    checked:bg-slate-900
+
+                    focus:outline-none
+                    focus:ring-4
+                    focus:ring-slate-900/10
                   "
                 />
 
                 <span
                   className="
-                    whitespace-nowrap
+                    pointer-events-none
+
+                    relative
+                    z-10
+
+                    hidden
+
+                    text-[12px]
+                    font-black
                     leading-none
+                    !text-white
+
+                    peer-checked:block
                   "
                 >
-                  ยอดยกเข้าระบบ
+                  ✓
                 </span>
-              </label>
-            </div>
+              </span>
+
+              <span className="whitespace-nowrap">
+                ยอดยกเข้าระบบ
+              </span>
+            </label>
           </div>
 
           {/* ผู้จำหน่าย */}
@@ -1193,8 +1750,7 @@ export default function ReceiveForm({
           <div
             className="
               relative
-              z-[200]
-
+              z-[300]
               min-w-0
 
               md:col-span-2
@@ -1202,9 +1758,7 @@ export default function ReceiveForm({
           >
             <label
               htmlFor="vendorId"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               ผู้จำหน่าย
             </label>
@@ -1229,7 +1783,7 @@ export default function ReceiveForm({
       </section>
 
       {/* =====================================================
-          ตารางรายการรับเข้า
+          TABLE
       ===================================================== */}
 
       <section
@@ -1251,16 +1805,11 @@ export default function ReceiveForm({
           backdrop-blur-xl
         "
       >
-        {/* TABLE TITLE */}
-
         <div
           className="
             flex
             flex-col
             gap-2
-
-            border-b
-            border-black
 
             bg-white/80
 
@@ -1289,6 +1838,7 @@ export default function ReceiveForm({
             <p
               className="
                 mt-1
+
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -1324,8 +1874,6 @@ export default function ReceiveForm({
           </span>
         </div>
 
-        {/* TABLE */}
-
         <div
           className="
             w-full
@@ -1337,7 +1885,7 @@ export default function ReceiveForm({
           <table
             className="
               w-full
-              min-w-[1050px]
+              min-w-[1200px]
 
               border-collapse
 
@@ -1357,56 +1905,47 @@ export default function ReceiveForm({
                   "จำนวน",
                   "วันผลิต",
                   "วันหมดอายุ",
-                ].map(
-                  (title) => (
-                    <th
-                      key={title}
-                      className="
-                        whitespace-nowrap
+                ].map((title) => (
+                  <th
+                    key={title}
+                    className="
+                      whitespace-nowrap
 
-                        border
-                        border-black
+                      border
+                      border-black
 
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
 
-                        px-3
-                        py-4
+                      px-3
+                      py-4
 
-                        text-center
-                        text-lg
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      {title}
-                    </th>
-                  )
-                )}
+                      text-center
+                      text-lg
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    {title}
+                  </th>
+                ))}
               </tr>
             </thead>
 
             <tbody>
               {items.map(
-                (
-                  row,
-                  index
-                ) => {
+                (row, index) => {
                   const list =
                     materials.filter(
-                      (
-                        material
-                      ) =>
+                      (material) =>
                         material.category ===
                         row.category
                     );
 
                   const selected =
                     materials.find(
-                      (
-                        material
-                      ) =>
+                      (material) =>
                         String(
                           material.id
                         ) ===
@@ -1416,23 +1955,17 @@ export default function ReceiveForm({
                   const materialOptions:
                     SearchableOption[] =
                     list.map(
-                      (
-                        material
-                      ) => ({
-                        value:
-                          String(
-                            material.id
-                          ),
-
+                      (material) => ({
+                        value: String(
+                          material.id
+                        ),
                         label: `${material.code} - ${material.name}`,
                       })
                     );
 
                   return (
                     <tr
-                      key={
-                        index
-                      }
+                      key={index}
                       className="
                         transition-colors
                         duration-200
@@ -1457,8 +1990,7 @@ export default function ReceiveForm({
                           !text-slate-800
                         "
                       >
-                        {index +
-                          1}
+                        {index + 1}
                       </td>
 
                       {/* หมวดหมู่ */}
@@ -1608,8 +2140,7 @@ export default function ReceiveForm({
                             updateRow(
                               index,
                               "unitPrice",
-                              event
-                                .target
+                              event.target
                                 .value
                             )
                           }
@@ -1633,7 +2164,6 @@ export default function ReceiveForm({
                             shadow-sm
                             outline-none
 
-                            focus:!border-black
                             focus:ring-4
                             focus:ring-slate-900/10
                           "
@@ -1655,17 +2185,14 @@ export default function ReceiveForm({
                           name={`items[${index}].qty`}
                           type="number"
                           min="1"
-                          value={
-                            row.qty
-                          }
+                          value={row.qty}
                           onChange={(
                             event
                           ) =>
                             updateRow(
                               index,
                               "qty",
-                              event
-                                .target
+                              event.target
                                 .value
                             )
                           }
@@ -1689,7 +2216,6 @@ export default function ReceiveForm({
                             shadow-sm
                             outline-none
 
-                            focus:!border-black
                             focus:ring-4
                             focus:ring-slate-900/10
                           "
@@ -1708,13 +2234,13 @@ export default function ReceiveForm({
                         "
                       >
                         <div className="w-[190px]">
-                          <DatePickerField
+                          <IOSDatePicker
                             id={`manufacture-${index}`}
                             name={`items[${index}].manufacture`}
                             value={
                               row.manufacture
                             }
-                            height="table"
+                            compact
                             placeholder="เลือกวันที่"
                             onChange={(
                               value
@@ -1741,13 +2267,13 @@ export default function ReceiveForm({
                         "
                       >
                         <div className="w-[190px]">
-                          <DatePickerField
+                          <IOSDatePicker
                             id={`expiry-${index}`}
                             name={`items[${index}].expiry`}
                             value={
                               row.expiry
                             }
-                            height="table"
+                            compact
                             placeholder="เลือกวันที่"
                             onChange={(
                               value
@@ -1771,7 +2297,7 @@ export default function ReceiveForm({
       </section>
 
       {/* =====================================================
-          หมายเหตุ
+          REMARK
       ===================================================== */}
 
       <section
@@ -1794,9 +2320,7 @@ export default function ReceiveForm({
       >
         <label
           htmlFor="remark"
-          className={
-            labelClass
-          }
+          className={labelClass}
         >
           หมายเหตุ
         </label>
@@ -1831,7 +2355,6 @@ export default function ReceiveForm({
 
             placeholder:!text-slate-400
 
-            focus:!border-black
             focus:ring-4
             focus:ring-slate-900/10
           "
@@ -1881,7 +2404,11 @@ export default function ReceiveForm({
             transition-all
             duration-300
 
+            hover:-translate-y-0.5
             hover:bg-slate-800
+
+            active:translate-y-0
+            active:scale-[0.97]
 
             focus:outline-none
             focus:ring-4
@@ -1892,9 +2419,7 @@ export default function ReceiveForm({
           "
         >
           <span>💾</span>
-          <span>
-            บันทึก
-          </span>
+          <span>บันทึก</span>
         </button>
       </div>
     </form>
