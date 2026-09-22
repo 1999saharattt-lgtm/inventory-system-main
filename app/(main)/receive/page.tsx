@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import DeleteButton from "./DeleteButton";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 type Receive = {
   id: number;
@@ -27,22 +27,81 @@ type ReceivePageProps = {
   }>;
 };
 
+/* =========================================================
+   วันที่ไทยแบบย่อ
+   ตัวอย่าง 01 ก.ย. 69
+========================================================= */
+
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+function formatThaiShortDate(
+  value: Date | string | null | undefined
+) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  const month =
+    thaiShortMonths[
+      date.getMonth()
+    ];
+
+  const buddhistYear = String(
+    date.getFullYear() + 543
+  ).slice(-2);
+
+  return `${day} ${month} ${buddhistYear}`;
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function ReceivePage({
   searchParams,
 }: ReceivePageProps) {
-  const params = await searchParams;
+  const params =
+    await searchParams;
 
   /* =========================================================
-     Date Filter
+     DATE FILTER
   ========================================================= */
 
   const now = new Date();
 
-  let startDate: Date | undefined;
-  let endDate: Date | undefined;
+  let startDate:
+    | Date
+    | undefined;
+
+  let endDate:
+    | Date
+    | undefined;
 
   /* =========================================================
-     Today
+     TODAY
   ========================================================= */
 
   if (params.date === "today") {
@@ -68,10 +127,12 @@ export default async function ReceivePage({
   }
 
   /* =========================================================
-     Current Month
+     CURRENT MONTH
   ========================================================= */
 
-  if (params.period === "month") {
+  if (
+    params.period === "month"
+  ) {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -94,46 +155,60 @@ export default async function ReceivePage({
   }
 
   /* =========================================================
-     Load Receive Data
+     LOAD RECEIVE DATA
   ========================================================= */
 
-  const receives = await prisma.receive.findMany({
-    where:
-      startDate && endDate
-        ? {
-            receiveDate: {
-              gte: startDate,
-              lt: endDate,
-            },
-          }
-        : undefined,
+  const receives =
+    await prisma.receive.findMany(
+      {
+        where:
+          startDate && endDate
+            ? {
+                receiveDate: {
+                  gte: startDate,
+                  lt: endDate,
+                },
+              }
+            : undefined,
 
-    include: {
-      vendor: true,
-      items: true,
-    },
+        include: {
+          vendor: true,
+          items: true,
+        },
 
-    orderBy: {
-      id: "desc",
-    },
-  });
+        orderBy: {
+          id: "desc",
+        },
+      }
+    );
 
   /* =========================================================
-     Filter Description
+     FILTER DESCRIPTION
   ========================================================= */
 
-  let filterText = "รายการรับเข้าพัสดุทั้งหมด";
+  let filterText =
+    "รายการรับเข้าพัสดุทั้งหมด";
 
-  if (params.date === "today") {
-    filterText = "รายการรับเข้าพัสดุวันนี้";
-  } else if (params.period === "month") {
-    filterText = "รายการรับเข้าพัสดุประจำเดือนนี้";
+  if (
+    params.date === "today"
+  ) {
+    filterText =
+      "รายการรับเข้าพัสดุวันนี้";
+  } else if (
+    params.period === "month"
+  ) {
+    filterText =
+      "รายการรับเข้าพัสดุประจำเดือนนี้";
   }
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
       <AppPageHeader
@@ -142,107 +217,33 @@ export default async function ReceivePage({
         subtitle={filterText}
         actions={
           <>
-            {/* เพิ่มรายการ */}
-
-            <Link
+            <AppButton
               href="/receive/create"
-              prefetch
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                whitespace-nowrap
-                rounded-[16px]
-                border
-                border-emerald-500/20
-                bg-emerald-600
-                px-4
-                text-sm
-                font-extrabold
-                !text-white
-                shadow-[0_12px_28px_-16px_rgba(5,150,105,0.55)]
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:bg-emerald-700
-                hover:shadow-[0_18px_34px_-18px_rgba(5,150,105,0.6)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
+              variant="primary"
+              size="md"
             >
-              <span
-                className="
-                  text-lg
-                  leading-none
-                  transition-transform
-                  duration-300
-                  group-hover:scale-110
-                "
-              >
-                +
+              <span>＋</span>
+              <span>
+                เพิ่มรายการ
               </span>
+            </AppButton>
 
-              <span>เพิ่มรายการ</span>
-            </Link>
-
-            {/* กลับ */}
-
-            <Link
+            <AppButton
               href="/"
-              prefetch
-              className="
-                group
-                inline-flex
-                h-11
-                items-center
-                justify-center
-                gap-2
-                whitespace-nowrap
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-white/90
-                px-4
-                text-sm
-                font-extrabold
-                !text-slate-800
-                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-                backdrop-blur-xl
-                transition-all
-                duration-300
-                ease-out
-                hover:-translate-y-0.5
-                hover:border-slate-300
-                hover:bg-white
-                hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
-                active:translate-y-0
-                active:scale-[0.97]
-                sm:px-5
-              "
+              variant="back"
+              size="md"
+              icon={
+                <span>←</span>
+              }
             >
-              <span
-                className="
-                  transition-transform
-                  duration-300
-                  group-hover:-translate-x-0.5
-                "
-              >
-                ←
-              </span>
-
-              <span>กลับ</span>
-            </Link>
+              กลับ
+            </AppButton>
           </>
         }
       />
 
       {/* =====================================================
-          Summary
+          SUMMARY
       ===================================================== */}
 
       <section
@@ -252,16 +253,24 @@ export default async function ReceivePage({
           min-w-0
           flex-col
           gap-3
-          rounded-[22px]
+
+          rounded-[24px]
+
           border
-          border-white/80
-          bg-white/75
+          border-slate-200
+
+          bg-white/80
+
           p-4
-          shadow-[0_16px_45px_-28px_rgba(15,23,42,0.3)]
+
+          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
+
           backdrop-blur-2xl
+
           sm:flex-row
           sm:items-center
           sm:justify-between
+          sm:p-5
         "
       >
         <div className="min-w-0">
@@ -290,26 +299,55 @@ export default async function ReceivePage({
         <div
           className="
             inline-flex
-            h-10
-            shrink-0
+            w-fit
             items-center
-            justify-center
-            rounded-[14px]
+            gap-2
+
+            rounded-full
+
             border
-            border-slate-200
-            bg-slate-50
-            px-4
+            border-slate-300
+
+            bg-slate-100/80
+
+            px-3
+            py-1.5
+
             text-sm
             font-extrabold
             !text-slate-700
           "
         >
-          {receives.length.toLocaleString("th-TH")} รายการ
+          <span>ทั้งหมด</span>
+
+          <span
+            className="
+              inline-flex
+              min-w-6
+              items-center
+              justify-center
+
+              rounded-full
+
+              bg-white
+
+              px-2
+              py-0.5
+
+              !text-slate-900
+
+              shadow-sm
+            "
+          >
+            {receives.length.toLocaleString(
+              "th-TH"
+            )}
+          </span>
         </div>
       </section>
 
       {/* =====================================================
-          Table Card
+          TABLE CARD
       ===================================================== */}
 
       <section
@@ -317,26 +355,40 @@ export default async function ReceivePage({
           w-full
           min-w-0
           overflow-hidden
+
           rounded-[28px]
+
           border
-          border-white/80
+          border-slate-300
+
           bg-white/85
-          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+
+          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
+
           backdrop-blur-2xl
         "
       >
-        {/* Table Header */}
+        {/* ===================================================
+            TABLE CARD HEADER
+        =================================================== */}
 
         <div
           className="
             flex
-            items-center
-            justify-between
-            gap-3
+            flex-col
+            gap-2
+
             border-b
-            border-slate-200/80
+            border-black
+
+            bg-white/70
+
             px-5
             py-4
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
             sm:px-6
           "
         >
@@ -347,6 +399,7 @@ export default async function ReceivePage({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-xl
               "
             >
@@ -365,32 +418,63 @@ export default async function ReceivePage({
             </p>
           </div>
 
-          <span
+          <div
             className="
-              shrink-0
+              inline-flex
+              w-fit
+              items-center
+              gap-2
+
               rounded-full
+
               border
-              border-slate-200
-              bg-slate-50
+              border-slate-300
+
+              bg-slate-100/80
+
               px-3
               py-1.5
-              text-xs
+
+              text-sm
               font-extrabold
-              !text-slate-600
+              !text-slate-700
             "
           >
-            {receives.length.toLocaleString("th-TH")} รายการ
-          </span>
+            <span>ทั้งหมด</span>
+
+            <span
+              className="
+                inline-flex
+                min-w-6
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-white
+
+                px-2
+                py-0.5
+
+                !text-slate-900
+
+                shadow-sm
+              "
+            >
+              {receives.length.toLocaleString(
+                "th-TH"
+              )}
+            </span>
+          </div>
         </div>
 
         {/* ===================================================
-            Table
+            TABLE
         =================================================== */}
 
         <div
           className="
             w-full
-            min-w-0
             overflow-x-auto
             overscroll-x-contain
           "
@@ -399,7 +483,12 @@ export default async function ReceivePage({
             className="
               w-full
               min-w-[980px]
+
               border-collapse
+
+              border
+              border-black
+
               bg-white
             "
           >
@@ -413,93 +502,128 @@ export default async function ReceivePage({
                   "รายละเอียด",
                   "หมายเหตุ",
                   "จัดการ",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-black
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                ].map(
+                  (tableTitle) => (
+                    <th
+                      key={
+                        tableTitle
+                      }
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {tableTitle}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            <tbody className="text-slate-900">
-              {receives.length > 0 ? (
+            <tbody>
+              {receives.length >
+              0 ? (
                 receives.map(
                   (
                     receive: Receive,
                     index: number
                   ) => (
                     <tr
-                      key={receive.id}
-                      className="
-                        text-slate-900
+                      key={
+                        receive.id
+                      }
+                      className={`
                         transition-colors
                         duration-200
-                        hover:bg-slate-50
-                      "
+
+                        ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
+
+                        hover:bg-blue-50/70
+                      `}
                     >
-                      {/* ลำดับ */}
+                      {/* =======================================
+                          ลำดับ
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
-                          !text-slate-700
+                          !text-slate-900
                         "
                       >
                         {index + 1}
                       </td>
 
-                      {/* วันที่รับเข้า */}
+                      {/* =======================================
+                          วันที่รับเข้า
+                          ไทยแบบย่อ เช่น 22 ก.ย. 69
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-bold
-                          !text-slate-800
+                          !text-slate-700
                         "
                       >
-                        {new Date(
+                        {formatThaiShortDate(
                           receive.receiveDate
-                        ).toLocaleDateString(
-                          "th-TH"
                         )}
                       </td>
 
-                      {/* เลขที่เอกสาร */}
+                      {/* =======================================
+                          เลขที่เอกสาร
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -508,88 +632,88 @@ export default async function ReceivePage({
                         {receive.documentNo}
                       </td>
 
-                      {/* ผู้จำหน่าย */}
+                      {/* =======================================
+                          ผู้จำหน่าย
+                      ======================================= */}
 
                       <td
                         className="
+                          min-w-[200px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
-                          font-bold
-                          !text-slate-800
+
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
                         {receive.vendor.name}
                       </td>
 
-                      {/* รายละเอียด */}
+                      {/* =======================================
+                          รายละเอียด
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
-                          py-3.5
+                          py-3
+
                           text-center
                         "
                       >
-                        <Link
+                        <AppButton
                           href={`/receive/${receive.id}`}
-                          prefetch
-                          className="
-                            inline-flex
-                            h-9
-                            items-center
-                            justify-center
-                            whitespace-nowrap
-                            rounded-[13px]
-                            border
-                            border-slate-200
-                            bg-white
-                            px-4
-                            text-sm
-                            font-extrabold
-                            !text-slate-800
-                            shadow-[0_8px_20px_-14px_rgba(15,23,42,0.45)]
-                            transition-all
-                            duration-300
-                            hover:-translate-y-0.5
-                            hover:bg-slate-50
-                            active:translate-y-0
-                            active:scale-[0.97]
-                          "
+                          variant="outline"
+                          size="sm"
                         >
                           ดูรายการ
-                        </Link>
+                        </AppButton>
                       </td>
 
-                      {/* หมายเหตุ */}
+                      {/* =======================================
+                          หมายเหตุ
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[190px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           font-semibold
                           !text-slate-700
                         "
                       >
-                        {receive.remark ?? "-"}
+                        {receive.remark ??
+                          "-"}
                       </td>
 
-                      {/* จัดการ */}
+                      {/* =======================================
+                          จัดการ
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
-                          py-3.5
+                          py-3
                         "
                       >
                         <div
@@ -600,37 +724,24 @@ export default async function ReceivePage({
                             gap-2
                           "
                         >
-                          <Link
+                          <AppButton
                             href={`/receive/${receive.id}/edit`}
-                            prefetch
-                            className="
-                              inline-flex
-                              h-9
-                              min-w-[72px]
-                              items-center
-                              justify-center
-                              rounded-[13px]
-                              border
-                              border-slate-700
-                              bg-slate-900
-                              px-4
-                              text-sm
-                              font-extrabold
-                              !text-white
-                              shadow-[0_8px_20px_-14px_rgba(15,23,42,0.6)]
-                              transition-all
-                              duration-300
-                              hover:-translate-y-0.5
-                              hover:bg-slate-800
-                              active:translate-y-0
-                              active:scale-[0.97]
-                            "
+                            variant="primary"
+                            size="sm"
                           >
-                            แก้ไข
-                          </Link>
+                            <span>
+                              ✏️
+                            </span>
+
+                            <span>
+                              แก้ไข
+                            </span>
+                          </AppButton>
 
                           <DeleteButton
-                            id={receive.id}
+                            id={
+                              receive.id
+                            }
                           />
                         </div>
                       </td>
@@ -644,8 +755,12 @@ export default async function ReceivePage({
                     className="
                       border
                       border-black
-                      px-4
+
+                      bg-white
+
+                      px-6
                       py-16
+
                       text-center
                     "
                   >
@@ -653,10 +768,9 @@ export default async function ReceivePage({
                       className="
                         mx-auto
                         flex
-                        max-w-sm
+                        max-w-md
                         flex-col
                         items-center
-                        justify-center
                       "
                     >
                       <div
@@ -666,12 +780,14 @@ export default async function ReceivePage({
                           w-16
                           items-center
                           justify-center
+
                           rounded-[20px]
-                          border
-                          border-slate-200
-                          bg-slate-50
+
+                          bg-slate-100
+
                           text-3xl
-                          shadow-sm
+
+                          shadow-inner
                         "
                       >
                         📥
@@ -680,9 +796,10 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-4
+
                           text-lg
-                          font-black
-                          !text-slate-800
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
                         ยังไม่มีข้อมูลรับเข้าพัสดุ
@@ -691,6 +808,7 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           !text-slate-500
