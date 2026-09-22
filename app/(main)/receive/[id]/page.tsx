@@ -1,6 +1,9 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 type Props = {
   params: Promise<{
@@ -24,10 +27,13 @@ type ReceiveItem = {
 };
 
 /* =========================================================
-   CATEGORY
+   CATEGORY LABEL
 ========================================================= */
 
-const categoryLabel: Record<string, string> = {
+const categoryLabel: Record<
+  string,
+  string
+> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
@@ -64,7 +70,9 @@ function formatThaiDate(
 
   const d = new Date(date);
 
-  if (Number.isNaN(d.getTime())) {
+  if (
+    Number.isNaN(d.getTime())
+  ) {
     return "-";
   }
 
@@ -80,13 +88,12 @@ function formatThaiDate(
 function formatMoney(
   value: number | string
 ) {
-  return Number(value).toLocaleString(
-    "th-TH",
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }
-  );
+  return Number(
+    value
+  ).toLocaleString("th-TH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 /* =========================================================
@@ -98,472 +105,541 @@ export default async function ReceiveDetailPage({
 }: Props) {
   const { id } = await params;
 
-  /* =======================================================
-     LOAD RECEIVE
-  ======================================================= */
-
   const receive =
-    await prisma.receive.findUnique({
-      where: {
-        id: Number(id),
-      },
+    await prisma.receive.findUnique(
+      {
+        where: {
+          id: Number(id),
+        },
 
-      include: {
-        vendor: true,
+        include: {
+          vendor: true,
 
-        items: {
-          include: {
-            material: true,
+          items: {
+            include: {
+              material: true,
+            },
           },
         },
-      },
-    });
+      }
+    );
 
   if (!receive) {
     notFound();
   }
 
-  /* =======================================================
-     SHARED STYLE
-  ======================================================= */
-
-  const infoCardClass = `
-    min-w-0
-
-    rounded-[16px]
-
-    border
-    !border-black
-
-    bg-white
-
-    px-4
-    py-3.5
-
-    shadow-sm
-  `;
-
-  const infoLabelClass = `
-    text-sm
-    font-extrabold
-    !text-slate-600
-  `;
-
-  const infoValueClass = `
-    mt-1.5
-
-    min-w-0
-
-    break-words
-
-    text-base
-    font-extrabold
-    !text-slate-900
-
-    sm:text-lg
-  `;
-
-  /* =======================================================
-     UI
-  ======================================================= */
-
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-
-        space-y-4
-
-        overflow-x-hidden
-
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
           HEADER
+          ใช้มาตรฐานเดียวกับหน้าระบบ
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
+      <AppPageHeader
+        icon="📄"
+        title="รายละเอียดเอกสารรับเข้า"
+        subtitle="ตรวจสอบข้อมูลเอกสารและรายการพัสดุรับเข้า"
+        actions={
+          <>
+            <AppButton
+              href={`/receive/${receive.id}/edit`}
+              variant="primary"
+              size="md"
+            >
+              <span>✏️</span>
+              <span>แก้ไข</span>
+            </AppButton>
 
-          items-center
-          justify-between
-          gap-3
-
-          rounded-2xl
-
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-
-          px-3
-          py-4
-
-          text-white
-
-          shadow-xl
-
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-
-              sm:text-3xl
-            "
-          >
-            📄 รายละเอียดเอกสารรับเข้า
-          </h1>
-
-          <p
-            className="
-              mt-2
-
-              break-words
-
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-
-              sm:text-base
-            "
-          >
-            รายละเอียดรายการรับเข้าพัสดุ
-          </p>
-        </div>
-
-        <Link
-          href="/receive"
-          className="
-            inline-flex
-            h-11
-            shrink-0
-
-            items-center
-            justify-center
-            gap-2
-
-            whitespace-nowrap
-
-            rounded-[16px]
-
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-
-            px-4
-
-            text-sm
-            font-extrabold
-            !text-white
-
-            shadow-[0_12px_28px_-16px_rgba(5,150,105,0.55)]
-
-            transition-all
-            duration-300
-            ease-out
-
-            hover:-translate-y-0.5
-            hover:from-emerald-700
-            hover:to-green-600
-            hover:shadow-[0_18px_34px_-18px_rgba(5,150,105,0.6)]
-
-            active:translate-y-0
-            active:scale-[0.97]
-
-            sm:px-5
-            sm:text-base
-          "
-        >
-          <span>←</span>
-          <span>กลับ</span>
-        </Link>
-      </div>
+            <AppButton
+              href="/receive"
+              variant="back"
+              size="md"
+              icon={
+                <span>←</span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
+        }
+      />
 
       {/* =====================================================
-          DOCUMENT INFORMATION
+          DOCUMENT INFORMATION CARD
       ===================================================== */}
 
       <section
         className="
+          relative
           w-full
           min-w-0
+          overflow-hidden
 
-          overflow-visible
-
-          rounded-[24px]
+          rounded-[28px]
 
           border
           border-slate-300
 
-          bg-white/80
+          bg-white/85
 
           p-4
 
-          shadow-[0_16px_40px_-26px_rgba(15,23,42,0.35)]
+          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
 
-          backdrop-blur-xl
+          backdrop-blur-2xl
 
-          sm:p-5
+          sm:p-6
         "
       >
-        {/* =================================================
-            SECTION HEADER
-            ไม่มีเส้นดำด้านล่าง
-        ================================================= */}
+        {/* Ambient background */}
 
         <div
+          aria-hidden="true"
           className="
-            mb-5
-            flex
-            items-center
-            gap-3
+            pointer-events-none
+            absolute
+            -right-20
+            -top-20
+
+            h-52
+            w-52
+
+            rounded-full
+
+            bg-blue-400/10
+
+            blur-3xl
           "
-        >
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-24
+            -left-20
+
+            h-56
+            w-56
+
+            rounded-full
+
+            bg-cyan-400/10
+
+            blur-3xl
+          "
+        />
+
+        <div className="relative">
+          {/* =================================================
+              INNER CARD
+          ================================================= */}
+
           <div
             className="
-              flex
-              h-11
-              w-11
-              shrink-0
+              rounded-[24px]
 
-              items-center
-              justify-center
+              border
+              border-slate-300
 
-              rounded-[15px]
+              bg-white/75
 
-              bg-blue-50
+              p-4
 
-              text-xl
+              shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
 
-              shadow-sm
+              backdrop-blur-xl
 
-              ring-1
-              ring-blue-100
+              sm:p-5
             "
           >
-            🧾
-          </div>
+            {/* ===============================================
+                CARD HEADER
+                ไม่มีเส้นดำใต้หัวข้อ
+            =============================================== */}
 
-          <div className="min-w-0">
-            <h2
+            <div
               className="
-                text-lg
-                font-black
-                !text-slate-900
-
-                sm:text-xl
+                mb-5
+                flex
+                items-center
+                gap-3
               "
             >
-              ข้อมูลเอกสาร
-            </h2>
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  shrink-0
+                  items-center
+                  justify-center
 
-            <p
+                  rounded-[15px]
+
+                  bg-blue-50
+
+                  text-xl
+
+                  shadow-sm
+
+                  ring-1
+                  ring-blue-100
+                "
+              >
+                🧾
+              </div>
+
+              <div className="min-w-0">
+                <h2
+                  className="
+                    text-lg
+                    font-black
+                    !text-slate-900
+
+                    sm:text-xl
+                  "
+                >
+                  ข้อมูลการรับเข้า
+                </h2>
+
+                <p
+                  className="
+                    mt-0.5
+
+                    text-sm
+                    font-semibold
+                    !text-slate-500
+                  "
+                >
+                  วันที่ เอกสาร
+                  และผู้จำหน่าย
+                </p>
+              </div>
+            </div>
+
+            {/* ===============================================
+                INFORMATION GRID
+            =============================================== */}
+
+            <div
               className="
-                mt-0.5
+                grid
+                min-w-0
+                grid-cols-1
+                gap-4
 
-                text-sm
-                font-semibold
-                !text-slate-500
+                md:grid-cols-2
               "
             >
-              ข้อมูลอ้างอิงการรับเข้าพัสดุ
-            </p>
-          </div>
-        </div>
+              {/* =============================================
+                  วันที่รับเข้า
+              ============================================= */}
 
-        {/* =================================================
-            INFORMATION GRID
-        ================================================= */}
+              <div className="min-w-0">
+                <p
+                  className="
+                    mb-2
 
-        <div
-          className="
-            grid
-            grid-cols-1
+                    text-base
+                    font-extrabold
+                    !text-slate-800
+                  "
+                >
+                  วันที่รับเข้า
+                </p>
 
-            gap-4
+                <div
+                  className="
+                    flex
+                    h-[52px]
+                    w-full
+                    min-w-0
+                    items-center
 
-            md:grid-cols-2
-          "
-        >
-          {/* วันที่รับเข้า */}
+                    rounded-[16px]
 
-          <div className={infoCardClass}>
-            <p
-              className={
-                infoLabelClass
-              }
-            >
-              วันที่รับเข้า
-            </p>
+                    border
+                    !border-black
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {formatThaiDate(
-                receive.receiveDate
-              )}
-            </p>
-          </div>
+                    bg-white
 
-          {/* เลขที่เอกสาร */}
+                    px-4
 
-          <div className={infoCardClass}>
-            <p
-              className={
-                infoLabelClass
-              }
-            >
-              เลขที่เอกสาร
-            </p>
+                    text-base
+                    font-bold
+                    !text-slate-900
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {receive.documentNo}
-            </p>
-          </div>
+                    shadow-sm
+                  "
+                >
+                  {formatThaiDate(
+                    receive.receiveDate
+                  )}
+                </div>
+              </div>
 
-          {/* ผู้จำหน่าย */}
+              {/* =============================================
+                  เลขที่เอกสาร
+              ============================================= */}
 
-          <div className={infoCardClass}>
-            <p
-              className={
-                infoLabelClass
-              }
-            >
-              ผู้จำหน่าย
-            </p>
+              <div className="min-w-0">
+                <p
+                  className="
+                    mb-2
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {receive.vendor.name}
-            </p>
-          </div>
+                    text-base
+                    font-extrabold
+                    !text-slate-800
+                  "
+                >
+                  เลขที่เอกสาร
+                </p>
 
-          {/* จำนวนรายการ */}
+                <div
+                  className="
+                    flex
+                    h-[52px]
+                    w-full
+                    min-w-0
+                    items-center
 
-          <div className={infoCardClass}>
-            <p
-              className={
-                infoLabelClass
-              }
-            >
-              จำนวนรายการ
-            </p>
+                    rounded-[16px]
 
-            <p
-              className={
-                infoValueClass
-              }
-            >
-              {receive.items.length}{" "}
-              รายการ
-            </p>
-          </div>
+                    border
+                    !border-black
 
-          {/* หมายเหตุ */}
+                    bg-white
 
-          <div
-            className={`
-              ${infoCardClass}
+                    px-4
 
-              md:col-span-2
-            `}
-          >
-            <p
-              className={
-                infoLabelClass
-              }
-            >
-              หมายเหตุ
-            </p>
+                    text-base
+                    font-bold
+                    !text-slate-900
 
-            <p
-              className="
-                mt-1.5
+                    shadow-sm
+                  "
+                >
+                  <span
+                    className="
+                      min-w-0
+                      truncate
+                    "
+                  >
+                    {receive.documentNo}
+                  </span>
+                </div>
+              </div>
 
-                min-h-[28px]
+              {/* =============================================
+                  ผู้จำหน่าย
+              ============================================= */}
 
-                whitespace-pre-wrap
-                break-words
+              <div
+                className="
+                  min-w-0
 
-                text-base
-                font-bold
-                leading-relaxed
-                !text-slate-900
-              "
-            >
-              {receive.remark || "-"}
-            </p>
+                  md:col-span-2
+                "
+              >
+                <p
+                  className="
+                    mb-2
+
+                    text-base
+                    font-extrabold
+                    !text-slate-800
+                  "
+                >
+                  ผู้จำหน่าย
+                </p>
+
+                <div
+                  className="
+                    flex
+                    min-h-[52px]
+                    w-full
+                    min-w-0
+                    items-center
+
+                    rounded-[16px]
+
+                    border
+                    !border-black
+
+                    bg-white
+
+                    px-4
+                    py-3
+
+                    text-base
+                    font-bold
+                    !text-slate-900
+
+                    shadow-sm
+                  "
+                >
+                  <span
+                    className="
+                      min-w-0
+                      break-words
+                    "
+                  >
+                    {receive.vendor.name}
+                  </span>
+                </div>
+              </div>
+
+              {/* =============================================
+                  จำนวนรายการ
+              ============================================= */}
+
+              <div className="min-w-0">
+                <p
+                  className="
+                    mb-2
+
+                    text-base
+                    font-extrabold
+                    !text-slate-800
+                  "
+                >
+                  จำนวนรายการ
+                </p>
+
+                <div
+                  className="
+                    flex
+                    h-[52px]
+                    w-full
+                    min-w-0
+                    items-center
+
+                    rounded-[16px]
+
+                    border
+                    !border-black
+
+                    bg-white
+
+                    px-4
+
+                    text-base
+                    font-bold
+                    !text-slate-900
+
+                    shadow-sm
+                  "
+                >
+                  {receive.items.length.toLocaleString(
+                    "th-TH"
+                  )}{" "}
+                  รายการ
+                </div>
+              </div>
+
+              {/* =============================================
+                  หมายเหตุ
+              ============================================= */}
+
+              <div className="min-w-0">
+                <p
+                  className="
+                    mb-2
+
+                    text-base
+                    font-extrabold
+                    !text-slate-800
+                  "
+                >
+                  หมายเหตุ
+                </p>
+
+                <div
+                  className="
+                    flex
+                    min-h-[52px]
+                    w-full
+                    min-w-0
+                    items-center
+
+                    rounded-[16px]
+
+                    border
+                    !border-black
+
+                    bg-white
+
+                    px-4
+                    py-3
+
+                    text-base
+                    font-bold
+                    !text-slate-900
+
+                    shadow-sm
+                  "
+                >
+                  <span
+                    className="
+                      min-w-0
+                      whitespace-pre-wrap
+                      break-words
+                    "
+                  >
+                    {receive.remark ||
+                      "-"}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* =====================================================
-          รายการพัสดุ
+          MATERIAL TABLE CARD
       ===================================================== */}
 
       <section
         className="
           w-full
           min-w-0
-
           overflow-hidden
 
-          rounded-[24px]
+          rounded-[28px]
 
           border
           border-slate-300
 
-          bg-white
+          bg-white/85
 
-          shadow-[0_16px_40px_-26px_rgba(15,23,42,0.35)]
+          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
+
+          backdrop-blur-2xl
         "
       >
-        {/* =================================================
-            TABLE HEADER
+        {/* ===================================================
+            TABLE CARD HEADER
             ไม่มีเส้นดำใต้หัวข้อ
-        ================================================= */}
+        =================================================== */}
 
         <div
           className="
             flex
             flex-col
-            gap-2
+            gap-3
 
             bg-white/80
 
-            px-4
-            py-4
+            px-5
+            py-5
 
             sm:flex-row
             sm:items-center
             sm:justify-between
-            sm:px-5
+            sm:px-6
           "
         >
           <div className="min-w-0">
@@ -571,6 +647,7 @@ export default async function ReceiveDetailPage({
               className="
                 text-lg
                 font-black
+                tracking-tight
                 !text-slate-900
 
                 sm:text-xl
@@ -597,9 +674,8 @@ export default async function ReceiveDetailPage({
               inline-flex
               w-fit
               shrink-0
-
               items-center
-              justify-center
+              gap-2
 
               rounded-full
 
@@ -608,8 +684,8 @@ export default async function ReceiveDetailPage({
 
               bg-slate-50
 
-              px-4
-              py-2
+              px-3
+              py-1.5
 
               text-sm
               font-extrabold
@@ -618,20 +694,44 @@ export default async function ReceiveDetailPage({
               shadow-sm
             "
           >
-            {receive.items.length}{" "}
-            รายการ
+            <span>
+              ทั้งหมด
+            </span>
+
+            <span
+              className="
+                inline-flex
+                min-w-6
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-white
+
+                px-2
+                py-0.5
+
+                !text-slate-900
+
+                shadow-sm
+              "
+            >
+              {receive.items.length.toLocaleString(
+                "th-TH"
+              )}
+            </span>
           </div>
         </div>
 
-        {/* =================================================
+        {/* ===================================================
             TABLE
-        ================================================= */}
+        =================================================== */}
 
         <div
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -689,7 +789,7 @@ export default async function ReceiveDetailPage({
               </tr>
             </thead>
 
-            <tbody className="text-slate-900">
+            <tbody>
               {receive.items.length ===
               0 ? (
                 <tr>
@@ -699,16 +799,67 @@ export default async function ReceiveDetailPage({
                       border
                       border-black
 
-                      px-4
-                      py-12
+                      bg-white
+
+                      px-6
+                      py-16
 
                       text-center
-                      text-lg
-                      font-bold
-                      !text-slate-500
                     "
                   >
-                    ไม่พบรายการพัสดุในเอกสารนี้
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-16
+                          w-16
+                          items-center
+                          justify-center
+
+                          rounded-[20px]
+
+                          bg-slate-100
+
+                          text-3xl
+
+                          shadow-inner
+                        "
+                      >
+                        📦
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
+                        ไม่พบรายการพัสดุ
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          !text-slate-500
+                        "
+                      >
+                        เอกสารรับเข้าฉบับนี้ไม่มีรายการพัสดุ
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -724,12 +875,13 @@ export default async function ReceiveDetailPage({
                         duration-200
 
                         ${
-                          index % 2 === 0
+                          index % 2 ===
+                          0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
 
-                        hover:bg-blue-50/60
+                        hover:bg-blue-50/70
                       `}
                     >
                       {/* ลำดับ */}
@@ -737,20 +889,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
                           font-extrabold
-                          !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
+                          !text-slate-900
                         "
                       >
                         {index + 1}
@@ -761,19 +906,12 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
-                          text-sm
-                          font-semibold
+                          px-4
+                          py-3.5
+                          font-bold
                           !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {categoryLabel[
@@ -789,20 +927,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
                           font-extrabold
-                          !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
+                          !text-slate-900
                         "
                       >
                         {item.material
@@ -813,20 +944,13 @@ export default async function ReceiveDetailPage({
 
                       <td
                         className="
-                          min-w-[220px]
-
+                          min-w-[240px]
                           border
                           border-black
-
-                          px-3
-                          py-3
-
-                          text-sm
-                          font-bold
+                          px-4
+                          py-3.5
+                          font-extrabold
                           !text-slate-900
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {item.material
@@ -838,20 +962,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
-                          font-semibold
+                          font-bold
                           !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {item.material
@@ -863,20 +980,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
                           font-extrabold
                           !text-slate-900
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {item.qty}
@@ -887,20 +997,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-right
-                          text-sm
-                          font-bold
+                          font-extrabold
                           !text-slate-900
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {formatMoney(
@@ -913,20 +1016,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
-                          font-semibold
+                          font-bold
                           !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {formatThaiDate(
@@ -939,20 +1035,13 @@ export default async function ReceiveDetailPage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
-                          py-3
-
+                          px-4
+                          py-3.5
                           text-center
-                          text-sm
-                          font-semibold
+                          font-bold
                           !text-slate-800
-
-                          sm:px-4
-                          sm:text-base
                         "
                       >
                         {formatThaiDate(
@@ -967,6 +1056,6 @@ export default async function ReceiveDetailPage({
           </table>
         </div>
       </section>
-    </div>
+    </AppPage>
   );
 }
