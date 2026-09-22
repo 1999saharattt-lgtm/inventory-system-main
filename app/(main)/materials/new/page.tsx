@@ -1,8 +1,10 @@
 import Link from "next/link";
 import MaterialForm from "./MaterialForm";
 import { prisma } from "@/lib/prisma";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
 
 export const dynamic = "force-dynamic";
 
@@ -61,46 +63,15 @@ export default async function NewMaterialPage() {
           <Link
             href="/materials"
             prefetch
-            className="
-              group
-              inline-flex
-              h-11
-              min-w-[104px]
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              border
-              border-slate-200
-              bg-white/90
-              px-4
-              text-sm
-              font-extrabold
-              !text-slate-800
-              shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)]
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:border-slate-300
-              hover:bg-white
-              hover:shadow-[0_16px_30px_-18px_rgba(15,23,42,0.4)]
-              active:translate-y-0
-              active:scale-[0.97]
-            "
+            className="inline-flex"
           >
-            <span
-              className="
-                transition-transform
-                duration-300
-                group-hover:-translate-x-0.5
-              "
+            <AppButton
+              type="button"
+              variant="back"
             >
-              ←
-            </span>
-
-            <span>กลับ</span>
+              <span>←</span>
+              <span>กลับ</span>
+            </AppButton>
           </Link>
         }
       />
