@@ -213,16 +213,17 @@ export default function MaterialForm({
   `;
 
   /*
-   * มาตรฐานช่องข้อมูล
-   * - กรอบดำชัดเจน 2px
-   * - ทุก input / select ใช้รูปแบบเดียวกัน
+   * มาตรฐานช่องข้อมูลของระบบ
+   * - กรอบดำชัดเจน
+   * - ใช้ border-2
+   * - ใช้ !border-black ป้องกัน style อื่น override
    */
   const inputClassName = `
     min-h-[50px]
     w-full
     rounded-[16px]
     border-2
-    border-black
+    !border-black
     bg-white
     px-4
     py-3
@@ -235,9 +236,10 @@ export default function MaterialForm({
     duration-200
     placeholder:!text-slate-400
 
+    hover:!border-black
     hover:bg-slate-50
 
-    focus:border-black
+    focus:!border-black
     focus:bg-white
     focus:ring-4
     focus:ring-slate-900/10
@@ -449,10 +451,10 @@ export default function MaterialForm({
               ${inputClassName}
 
               disabled:cursor-not-allowed
-              disabled:border-black
+              disabled:!border-black
               disabled:bg-slate-100
               disabled:!text-slate-400
-              disabled:opacity-100
+              disabled:opacity-70
             `}
           >
             <option value="">
@@ -488,7 +490,7 @@ export default function MaterialForm({
                 space-y-4
                 rounded-[22px]
                 border-2
-                border-black
+                !border-black
                 bg-slate-100/80
                 p-4
                 shadow-sm
@@ -498,7 +500,9 @@ export default function MaterialForm({
               <div>
                 <label
                   htmlFor="newName"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   ชื่อรายการใหม่
                 </label>
@@ -513,14 +517,18 @@ export default function MaterialForm({
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="newUnit"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   หน่วย
                 </label>
@@ -535,7 +543,9 @@ export default function MaterialForm({
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
             </div>
@@ -595,7 +605,7 @@ export default function MaterialForm({
                 cursor-default
                 rounded-[16px]
                 border-2
-                border-black
+                !border-black
                 bg-slate-100
                 px-4
                 py-3
@@ -693,7 +703,9 @@ export default function MaterialForm({
           type="submit"
           variant="success"
           size="md"
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting
+          }
           icon={
             isSubmitting ? (
               <span
