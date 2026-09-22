@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+
 import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
+
+import AppButton from "@/components/AppButton";
 
 type Vendor = {
   id: number;
@@ -49,21 +52,28 @@ export default function MaterialForm({
   ========================================================= */
 
   const names = useMemo(() => {
-    if (!category) return [];
+    if (!category) {
+      return [];
+    }
 
     const oldNames =
-      MATERIALS[category as keyof typeof MATERIALS] ??
-      [];
+      MATERIALS[
+        category as keyof typeof MATERIALS
+      ] ?? [];
 
     const newNames = materialMasters
       .filter(
         (item) =>
-          item.category === categoryMap[category]
+          item.category ===
+          categoryMap[category]
       )
       .map((item) => item.name);
 
     return Array.from(
-      new Set([...oldNames, ...newNames])
+      new Set([
+        ...oldNames,
+        ...newNames,
+      ])
     );
   }, [category, materialMasters]);
 
@@ -76,7 +86,10 @@ export default function MaterialForm({
       ? newUnit.trim()
       : UNITS[name] ??
         materialMasters.find(
-          (item) => item.name === name
+          (item) =>
+            item.name === name &&
+            item.category ===
+              categoryMap[category]
         )?.unit ??
         "";
 
@@ -89,7 +102,9 @@ export default function MaterialForm({
   ) {
     e.preventDefault();
 
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      return;
+    }
 
     const formData = new FormData(
       e.currentTarget
@@ -99,6 +114,11 @@ export default function MaterialForm({
       name === "__NEW__"
         ? newName.trim()
         : name;
+
+    if (!categoryMap[category]) {
+      alert("กรุณาเลือกหมวดหมู่");
+      return;
+    }
 
     if (!materialName) {
       alert("กรุณาระบุชื่อรายการพัสดุ");
@@ -110,14 +130,11 @@ export default function MaterialForm({
       return;
     }
 
-    if (!categoryMap[category]) {
-      alert("กรุณาเลือกหมวดหมู่");
-      return;
-    }
-
     const body = {
       vendorId: formData.get("vendorId")
-        ? Number(formData.get("vendorId"))
+        ? Number(
+            formData.get("vendorId")
+          )
         : null,
 
       category: categoryMap[category],
@@ -144,10 +161,12 @@ export default function MaterialForm({
         "/api/materials",
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/json",
           },
+
           body: JSON.stringify(body),
         }
       );
@@ -190,30 +209,34 @@ export default function MaterialForm({
     block
     text-sm
     font-extrabold
-    !text-slate-700
+    !text-slate-800
     sm:text-base
   `;
+
+  /*
+   * ช่องกรอกข้อมูลทั้งหมด
+   * ใช้เส้นสีดำตามมาตรฐานกลางของระบบ
+   */
 
   const inputClassName = `
     min-h-[50px]
     w-full
     rounded-[16px]
     border
-    border-slate-200
-    bg-white/90
+    border-black
+    bg-white
     px-4
     py-3
     text-base
     font-bold
     !text-slate-900
-    shadow-[0_6px_18px_-14px_rgba(15,23,42,0.3)]
+    shadow-sm
     outline-none
-    backdrop-blur-xl
     transition-all
     duration-200
     placeholder:!text-slate-400
-    hover:border-slate-300
-    focus:border-blue-400
+    hover:bg-slate-50
+    focus:border-blue-500
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
@@ -234,8 +257,8 @@ export default function MaterialForm({
         overflow-hidden
         rounded-[30px]
         border
-        border-white/80
-        bg-white/80
+        border-slate-300
+        bg-white/90
         shadow-[0_24px_70px_-34px_rgba(15,23,42,0.35)]
         backdrop-blur-2xl
       "
@@ -282,7 +305,7 @@ export default function MaterialForm({
         className="
           relative
           border-b
-          border-slate-200/80
+          border-slate-300
           px-5
           py-5
           sm:px-8
@@ -407,7 +430,8 @@ export default function MaterialForm({
             id="category"
             value={category}
             onChange={(e) => {
-              const value = e.target.value;
+              const value =
+                e.target.value;
 
               setCategory(value);
               setName("");
@@ -454,6 +478,7 @@ export default function MaterialForm({
             disabled={!category}
             className={`
               ${inputClassName}
+
               disabled:cursor-not-allowed
               disabled:bg-slate-100
               disabled:!text-slate-400
@@ -491,17 +516,21 @@ export default function MaterialForm({
                 space-y-4
                 rounded-[22px]
                 border
-                border-blue-100
+                border-black
                 bg-blue-50/60
                 p-4
                 shadow-inner
                 sm:p-5
               "
             >
+              {/* ชื่อรายการใหม่ */}
+
               <div>
                 <label
                   htmlFor="newName"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   ชื่อรายการใหม่
                 </label>
@@ -510,18 +539,26 @@ export default function MaterialForm({
                   id="newName"
                   value={newName}
                   onChange={(e) =>
-                    setNewName(e.target.value)
+                    setNewName(
+                      e.target.value
+                    )
                   }
                   placeholder="กรอกชื่อรายการพัสดุใหม่"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
+
+              {/* หน่วย */}
 
               <div>
                 <label
                   htmlFor="newUnit"
-                  className={labelClassName}
+                  className={
+                    labelClassName
+                  }
                 >
                   หน่วย
                 </label>
@@ -530,11 +567,15 @@ export default function MaterialForm({
                   id="newUnit"
                   value={newUnit}
                   onChange={(e) =>
-                    setNewUnit(e.target.value)
+                    setNewUnit(
+                      e.target.value
+                    )
                   }
                   placeholder="เช่น ชิ้น, กล่อง, อัน"
                   required
-                  className={inputClassName}
+                  className={
+                    inputClassName
+                  }
                 />
               </div>
             </div>
@@ -568,6 +609,7 @@ export default function MaterialForm({
               type="number"
               name="balance"
               defaultValue={0}
+              min="0"
               className={inputClassName}
             />
           </div>
@@ -593,13 +635,13 @@ export default function MaterialForm({
                 cursor-default
                 rounded-[16px]
                 border
-                border-slate-200
-                bg-slate-100/90
+                border-black
+                bg-slate-100
                 px-4
                 py-3
                 text-base
                 font-extrabold
-                !text-slate-600
+                !text-slate-700
                 shadow-inner
                 outline-none
                 placeholder:!text-slate-400
@@ -630,6 +672,7 @@ export default function MaterialForm({
               min="0"
               className={`
                 ${inputClassName}
+
                 pr-16
                 text-right
               `}
@@ -645,7 +688,7 @@ export default function MaterialForm({
                 items-center
                 text-sm
                 font-extrabold
-                !text-slate-400
+                !text-slate-500
               "
             >
               บาท
@@ -665,7 +708,7 @@ export default function MaterialForm({
           flex-col-reverse
           gap-3
           border-t
-          border-slate-200/80
+          border-slate-300
           bg-slate-50/70
           px-5
           py-5
@@ -675,78 +718,43 @@ export default function MaterialForm({
           sm:px-8
         "
       >
-        {/* Cancel */}
+        {/* =================================================
+            Cancel
+        ================================================= */}
 
         <Link
           href="/materials"
           prefetch
           className="
             inline-flex
-            h-11
             w-full
-            items-center
-            justify-center
-            gap-2
-            rounded-[16px]
-            border
-            border-slate-200
-            bg-white
-            px-5
-            text-sm
-            font-extrabold
-            !text-slate-700
-            shadow-[0_8px_20px_-16px_rgba(15,23,42,0.4)]
-            transition-all
-            duration-200
-            ease-out
-            hover:-translate-y-0.5
-            hover:border-slate-300
-            hover:bg-slate-50
-            hover:!text-slate-900
-            active:translate-y-0
-            active:scale-[0.97]
             sm:w-auto
-            sm:min-w-[110px]
           "
         >
-          ยกเลิก
+          <AppButton
+            type="button"
+            variant="secondary"
+            className="
+              w-full
+              sm:min-w-[110px]
+            "
+          >
+            ยกเลิก
+          </AppButton>
         </Link>
 
-        {/* Submit */}
+        {/* =================================================
+            Submit
+        ================================================= */}
 
-        <button
+        <AppButton
           type="submit"
+          variant="primary"
           disabled={isSubmitting}
           className="
-            group
-            inline-flex
-            h-11
             w-full
-            items-center
-            justify-center
-            gap-2
-            rounded-[16px]
-            border
-            border-blue-500
-            bg-blue-600
-            px-5
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-[0_12px_28px_-16px_rgba(37,99,235,0.65)]
-            transition-all
-            duration-200
-            ease-out
-            hover:-translate-y-0.5
-            hover:bg-blue-500
-            hover:shadow-[0_16px_32px_-16px_rgba(37,99,235,0.7)]
-            active:translate-y-0
-            active:scale-[0.97]
-            disabled:pointer-events-none
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-            sm:w-auto
             sm:min-w-[130px]
+            sm:w-auto
           "
         >
           {isSubmitting ? (
@@ -758,29 +766,22 @@ export default function MaterialForm({
                   animate-spin
                   rounded-full
                   border-2
-                  border-white/40
-                  border-t-white
+                  border-current
+                  border-t-transparent
                 "
               />
 
-              <span>กำลังบันทึก...</span>
+              <span>
+                กำลังบันทึก...
+              </span>
             </>
           ) : (
             <>
-              <span
-                className="
-                  transition-transform
-                  duration-200
-                  group-hover:scale-110
-                "
-              >
-                💾
-              </span>
-
+              <span>💾</span>
               <span>บันทึก</span>
             </>
           )}
-        </button>
+        </AppButton>
       </div>
     </form>
   );
