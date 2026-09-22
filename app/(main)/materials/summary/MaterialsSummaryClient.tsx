@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import AppButton from "@/components/AppButton";
 
 type Material = {
   id: number;
@@ -152,6 +153,7 @@ export default function MaterialsSummaryClient({
 
           <div className="relative min-w-0 flex-1">
             <div
+              aria-hidden="true"
               className="
                 pointer-events-none
                 absolute
@@ -177,7 +179,7 @@ export default function MaterialsSummaryClient({
                 w-full
                 rounded-[16px]
                 border
-                border-slate-200
+                border-black
                 bg-white/90
                 py-3
                 pl-12
@@ -190,7 +192,7 @@ export default function MaterialsSummaryClient({
                 transition-all
                 duration-300
                 placeholder:!text-slate-400
-                focus:border-blue-300
+                focus:border-blue-500
                 focus:bg-white
                 focus:ring-4
                 focus:ring-blue-500/10
@@ -200,37 +202,14 @@ export default function MaterialsSummaryClient({
 
           {/* Search Button */}
 
-          <button
+          <AppButton
             type="submit"
-            className="
-              inline-flex
-              h-12
-              shrink-0
-              items-center
-              justify-center
-              gap-2
-              rounded-[16px]
-              border
-              border-slate-800
-              bg-slate-900
-              px-6
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
-              transition-all
-              duration-300
-              ease-out
-              hover:-translate-y-0.5
-              hover:bg-slate-800
-              hover:shadow-[0_18px_34px_-18px_rgba(15,23,42,0.6)]
-              active:translate-y-0
-              active:scale-[0.97]
-            "
+            variant="secondary"
+            size="lg"
+            icon={<span>🔎</span>}
           >
-            <span>🔎</span>
-            <span>ค้นหา</span>
-          </button>
+            ค้นหา
+          </AppButton>
 
           {/* Result Count */}
 
@@ -244,7 +223,7 @@ export default function MaterialsSummaryClient({
               gap-2
               rounded-[16px]
               border
-              border-slate-200
+              border-black
               bg-slate-100/80
               px-5
               text-sm
@@ -262,6 +241,8 @@ export default function MaterialsSummaryClient({
                 items-center
                 justify-center
                 rounded-full
+                border
+                border-black
                 bg-white
                 px-2
                 text-xs
@@ -279,37 +260,15 @@ export default function MaterialsSummaryClient({
           {/* Clear Search */}
 
           {search && (
-            <button
+            <AppButton
               type="button"
+              variant="outline"
+              size="lg"
+              icon={<span>✕</span>}
               onClick={() => setSearch("")}
-              className="
-                inline-flex
-                h-12
-                shrink-0
-                items-center
-                justify-center
-                gap-2
-                rounded-[16px]
-                border
-                border-slate-200
-                bg-white/90
-                px-5
-                text-sm
-                font-extrabold
-                !text-slate-600
-                shadow-[0_10px_24px_-16px_rgba(15,23,42,0.3)]
-                transition-all
-                duration-300
-                hover:-translate-y-0.5
-                hover:bg-white
-                hover:!text-slate-900
-                active:translate-y-0
-                active:scale-[0.97]
-              "
             >
-              <span>✕</span>
-              <span>ล้าง</span>
-            </button>
+              ล้าง
+            </AppButton>
           )}
         </div>
       </div>
@@ -515,8 +474,9 @@ export default function MaterialsSummaryClient({
                       w-full
                       min-w-[950px]
                       border-collapse
+                      border
+                      border-black
                       !rounded-none
-                      !border-0
                       !shadow-none
                     "
                   >
@@ -536,7 +496,7 @@ export default function MaterialsSummaryClient({
                             className="
                               whitespace-nowrap
                               border
-                              border-slate-600
+                              border-black
                               bg-gradient-to-r
                               from-slate-800
                               to-slate-700
@@ -562,7 +522,7 @@ export default function MaterialsSummaryClient({
                             colSpan={7}
                             className="
                               border
-                              border-slate-200
+                              border-black
                               bg-white
                               px-4
                               py-12
@@ -623,7 +583,7 @@ export default function MaterialsSummaryClient({
                                 className="
                                   whitespace-nowrap
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   text-center
@@ -638,7 +598,7 @@ export default function MaterialsSummaryClient({
                                 className="
                                   whitespace-nowrap
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   text-center
@@ -663,7 +623,7 @@ export default function MaterialsSummaryClient({
                               <td
                                 className="
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   font-extrabold
@@ -678,7 +638,7 @@ export default function MaterialsSummaryClient({
                                 className="
                                   whitespace-nowrap
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   text-center
@@ -707,7 +667,7 @@ export default function MaterialsSummaryClient({
                                 className="
                                   whitespace-nowrap
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   text-center
@@ -723,7 +683,7 @@ export default function MaterialsSummaryClient({
                                 className="
                                   whitespace-nowrap
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   text-right
@@ -739,7 +699,7 @@ export default function MaterialsSummaryClient({
                               <td
                                 className="
                                   border
-                                  border-slate-200
+                                  border-black
                                   px-4
                                   py-3.5
                                   font-bold
