@@ -51,7 +51,7 @@ export default function QRCodeButton({
           `/stock-card/material/${materialId}/pdf`;
 
         /* -----------------------------------------------------
-           Generate QR
+           GENERATE QR
         ----------------------------------------------------- */
 
         const dataUrl =
@@ -159,7 +159,8 @@ export default function QRCodeButton({
     <>
       {/* =====================================================
           OPEN BUTTON
-          สีมาจาก AppButton กลาง
+          ไม่มี Icon / Emoji
+          สีและรูปแบบใช้จาก AppButton กลาง
       ===================================================== */}
 
       <AppButton
@@ -169,11 +170,7 @@ export default function QRCodeButton({
         onClick={handleOpen}
         aria-label={`เปิด QR Code ${materialCode}`}
       >
-        <span aria-hidden="true">
-          ▦
-        </span>
-
-        <span>เปิด</span>
+        เปิด
       </AppButton>
 
       {/* =====================================================
