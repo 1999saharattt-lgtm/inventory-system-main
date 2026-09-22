@@ -95,9 +95,13 @@ function formatThaiShortDate(
     return "-";
   }
 
-  const day = String(date.getDate()).padStart(2, "0");
+  const day = String(date.getDate()).padStart(
+    2,
+    "0"
+  );
 
-  const month = thaiShortMonths[date.getMonth()];
+  const month =
+    thaiShortMonths[date.getMonth()];
 
   const buddhistYear = String(
     date.getFullYear() + 543
@@ -117,45 +121,47 @@ export default async function CategoryPage({
      DATA
   ========================================================= */
 
-  const materials = await prisma.material.findMany({
-    where: {
-      category: category as Category,
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        category: category as Category,
 
-      ...(search
-        ? {
-            OR: [
-              {
-                code: {
-                  contains: search,
+        ...(search
+          ? {
+              OR: [
+                {
+                  code: {
+                    contains: search,
+                  },
                 },
-              },
-              {
-                name: {
-                  contains: search,
+                {
+                  name: {
+                    contains: search,
+                  },
                 },
-              },
-            ],
-          }
-        : {}),
-    },
-
-    include: {
-      receiveItems: {
-        orderBy: {
-          id: "desc",
-        },
-
-        take: 1,
+              ],
+            }
+          : {}),
       },
-    },
 
-    orderBy: {
-      code: "asc",
-    },
-  });
+      include: {
+        receiveItems: {
+          orderBy: {
+            id: "desc",
+          },
+
+          take: 1,
+        },
+      },
+
+      orderBy: {
+        code: "asc",
+      },
+    });
 
   const title =
-    categoryName[category] ?? "รายการพัสดุ";
+    categoryName[category] ??
+    "รายการพัสดุ";
 
   const icon =
     categoryIcon[category] ?? "📦";
@@ -309,6 +315,10 @@ export default async function CategoryPage({
           backdrop-blur-2xl
         "
       >
+        {/* ===================================================
+            TABLE CARD HEADER
+        =================================================== */}
+
         <div
           className="
             flex
@@ -474,6 +484,10 @@ export default async function CategoryPage({
                           hover:bg-blue-50/70
                         `}
                       >
+                        {/* ===================================
+                            รหัสพัสดุ
+                        =================================== */}
+
                         <td
                           className="
                             whitespace-nowrap
@@ -481,6 +495,7 @@ export default async function CategoryPage({
                             border-black
                             px-4
                             py-3.5
+                            text-center
                             font-extrabold
                             !text-slate-900
                           "
@@ -488,19 +503,29 @@ export default async function CategoryPage({
                           <span
                             className="
                               inline-flex
+                              min-h-[32px]
+                              min-w-[80px]
+                              items-center
+                              justify-center
                               rounded-[10px]
                               border
                               border-black
-                              bg-slate-100
-                              px-2.5
+                              bg-white
+                              px-3
                               py-1
+                              text-center
                               text-sm
-                              !text-slate-700
+                              font-extrabold
+                              !text-slate-900
                             "
                           >
                             {material.code}
                           </span>
                         </td>
+
+                        {/* ===================================
+                            รายการพัสดุ
+                        =================================== */}
 
                         <td
                           className="
@@ -516,6 +541,10 @@ export default async function CategoryPage({
                           {material.name}
                         </td>
 
+                        {/* ===================================
+                            จำนวน
+                        =================================== */}
+
                         <td
                           className="
                             whitespace-nowrap
@@ -529,43 +558,31 @@ export default async function CategoryPage({
                           "
                         >
                           <span
-                            className={`
+                            className="
                               inline-flex
-                              min-w-[44px]
+                              min-h-[32px]
+                              min-w-[80px]
                               items-center
                               justify-center
-                              rounded-full
+                              rounded-[10px]
+                              border
+                              border-black
+                              bg-white
                               px-3
                               py-1
+                              text-center
                               text-sm
-
-                              ${
-                                material.balance <= 0
-                                  ? `
-                                    bg-red-50
-                                    !text-red-600
-                                    ring-1
-                                    ring-red-200
-                                  `
-                                  : material.balance < 10
-                                    ? `
-                                      bg-amber-50
-                                      !text-amber-600
-                                      ring-1
-                                      ring-amber-200
-                                    `
-                                    : `
-                                      bg-emerald-50
-                                      !text-emerald-700
-                                      ring-1
-                                      ring-emerald-200
-                                    `
-                              }
-                            `}
+                              font-extrabold
+                              !text-slate-900
+                            "
                           >
                             {material.balance}
                           </span>
                         </td>
+
+                        {/* ===================================
+                            หน่วย
+                        =================================== */}
 
                         <td
                           className="
@@ -581,6 +598,10 @@ export default async function CategoryPage({
                         >
                           {material.unit}
                         </td>
+
+                        {/* ===================================
+                            ราคาล่าสุด
+                        =================================== */}
 
                         <td
                           className="
@@ -604,6 +625,10 @@ export default async function CategoryPage({
                           )}
                         </td>
 
+                        {/* ===================================
+                            วันผลิต
+                        =================================== */}
+
                         <td
                           className="
                             whitespace-nowrap
@@ -621,6 +646,10 @@ export default async function CategoryPage({
                           )}
                         </td>
 
+                        {/* ===================================
+                            วันหมดอายุ
+                        =================================== */}
+
                         <td
                           className="
                             whitespace-nowrap
@@ -637,6 +666,10 @@ export default async function CategoryPage({
                             latestReceive?.expiry
                           )}
                         </td>
+
+                        {/* ===================================
+                            จัดการ
+                        =================================== */}
 
                         <td
                           className="
@@ -669,6 +702,10 @@ export default async function CategoryPage({
                             />
                           </div>
                         </td>
+
+                        {/* ===================================
+                            QR CODE
+                        =================================== */}
 
                         <td
                           className="
