@@ -109,10 +109,6 @@ function formatThaiShortDate(
   return `${day} ${month} ${buddhistYear}`;
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 export default async function CategoryPage({
   params,
   searchParams,
@@ -169,10 +165,6 @@ export default async function CategoryPage({
   const icon =
     categoryIcon[category] ?? "📦";
 
-  /* =========================================================
-     UI
-  ========================================================= */
-
   return (
     <AppPage>
       {/* =====================================================
@@ -185,11 +177,6 @@ export default async function CategoryPage({
         subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length} รายการ`}
         actions={
           <>
-            {/* ===============================================
-                เพิ่มรายการ
-                ส่ง category ปัจจุบันไปหน้าเพิ่มรายการ
-            =============================================== */}
-
             <AppButton
               href={`/materials/new?category=${category}`}
               variant="primary"
@@ -198,11 +185,6 @@ export default async function CategoryPage({
               <span>＋</span>
               <span>เพิ่มรายการ</span>
             </AppButton>
-
-            {/* ===============================================
-                กลับ
-                ใช้ variant กลาง
-            =============================================== */}
 
             <AppButton
               href="/materials"
@@ -218,6 +200,9 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
+
+          ไม่มีไอคอนแว่นขยายภายในช่องกรอก
+          คงไอคอนแว่นขยายไว้เฉพาะปุ่มค้นหา
       ===================================================== */}
 
       <section
@@ -245,26 +230,7 @@ export default async function CategoryPage({
             sm:items-center
           "
         >
-          {/* ===============================================
-              ช่องค้นหา
-          =============================================== */}
-
           <div className="relative min-w-0 flex-1">
-            <div
-              aria-hidden="true"
-              className="
-                pointer-events-none
-                absolute
-                inset-y-0
-                left-4
-                flex
-                items-center
-                text-lg
-              "
-            >
-              🔎
-            </div>
-
             <input
               name="search"
               defaultValue={search ?? ""}
@@ -273,12 +239,11 @@ export default async function CategoryPage({
                 min-h-[48px]
                 w-full
                 rounded-[16px]
-                border-2
-                !border-black
+                border
+                border-black
                 bg-white
+                px-4
                 py-3
-                pl-12
-                pr-4
                 text-base
                 font-bold
                 !text-slate-900
@@ -287,20 +252,15 @@ export default async function CategoryPage({
                 duration-300
                 placeholder:!text-slate-400
 
-                hover:!border-black
                 hover:bg-slate-50
 
-                focus:!border-black
+                focus:border-blue-600
                 focus:bg-white
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-blue-500/10
               "
             />
           </div>
-
-          {/* ===============================================
-              ค้นหา
-          =============================================== */}
 
           <AppButton
             type="submit"
@@ -311,14 +271,10 @@ export default async function CategoryPage({
             <span>ค้นหา</span>
           </AppButton>
 
-          {/* ===============================================
-              ล้างการค้นหา
-          =============================================== */}
-
           {search && (
             <AppButton
               href={`/materials/category/${category}`}
-              variant="secondary"
+              variant="outline"
               size="md"
             >
               <span>✕</span>
@@ -392,10 +348,6 @@ export default async function CategoryPage({
             </p>
           </div>
 
-          {/* ===============================================
-              จำนวนรายการ
-          =============================================== */}
-
           <div
             className="
               inline-flex
@@ -436,7 +388,6 @@ export default async function CategoryPage({
 
         {/* ===================================================
             TABLE
-            เหลือ 8 คอลัมน์
         =================================================== */}
 
         <div
@@ -456,10 +407,6 @@ export default async function CategoryPage({
               bg-white
             "
           >
-            {/* =================================================
-                TABLE HEADER
-            ================================================= */}
-
             <thead>
               <tr>
                 {[
@@ -496,10 +443,6 @@ export default async function CategoryPage({
               </tr>
             </thead>
 
-            {/* =================================================
-                TABLE BODY
-            ================================================= */}
-
             <tbody>
               {materials.length > 0 ? (
                 materials.map(
@@ -526,9 +469,7 @@ export default async function CategoryPage({
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* ===================================
-                            รหัสพัสดุ
-                        =================================== */}
+                        {/* รหัสพัสดุ */}
 
                         <td
                           className="
@@ -565,9 +506,7 @@ export default async function CategoryPage({
                           </span>
                         </td>
 
-                        {/* ===================================
-                            รายการพัสดุ
-                        =================================== */}
+                        {/* รายการพัสดุ */}
 
                         <td
                           className="
@@ -583,9 +522,7 @@ export default async function CategoryPage({
                           {material.name}
                         </td>
 
-                        {/* ===================================
-                            จำนวน
-                        =================================== */}
+                        {/* จำนวน */}
 
                         <td
                           className="
@@ -622,9 +559,7 @@ export default async function CategoryPage({
                           </span>
                         </td>
 
-                        {/* ===================================
-                            หน่วย
-                        =================================== */}
+                        {/* หน่วย */}
 
                         <td
                           className="
@@ -641,9 +576,7 @@ export default async function CategoryPage({
                           {material.unit}
                         </td>
 
-                        {/* ===================================
-                            ราคาล่าสุด
-                        =================================== */}
+                        {/* ราคาล่าสุด */}
 
                         <td
                           className="
@@ -667,9 +600,7 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            วันผลิต
-                        =================================== */}
+                        {/* วันผลิต */}
 
                         <td
                           className="
@@ -688,9 +619,7 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            วันหมดอายุ
-                        =================================== */}
+                        {/* วันหมดอายุ */}
 
                         <td
                           className="
@@ -709,9 +638,7 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            จัดการ
-                        =================================== */}
+                        {/* จัดการ */}
 
                         <td
                           className="
@@ -730,11 +657,6 @@ export default async function CategoryPage({
                               gap-2
                             "
                           >
-                            {/* ===============================
-                                แก้ไข
-                                ใช้ primary จาก AppButton กลาง
-                            =============================== */}
-
                             <AppButton
                               href={`/materials/${material.id}/edit`}
                               variant="primary"
@@ -743,10 +665,6 @@ export default async function CategoryPage({
                               <span>✏️</span>
                               <span>แก้ไข</span>
                             </AppButton>
-
-                            {/* ===============================
-                                ลบ
-                            =============================== */}
 
                             <DeleteButton
                               id={material.id}
@@ -758,10 +676,6 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
-                /* =============================================
-                   EMPTY STATE
-                ============================================= */
-
                 <tr>
                   <td
                     colSpan={8}
