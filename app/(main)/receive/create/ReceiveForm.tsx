@@ -142,12 +142,6 @@ function getTodayInputValue() {
 
 /* =========================================================
    SEARCHABLE DROPDOWN
-
-   มาตรฐาน Dropdown ของระบบ
-   - พิมพ์ค้นหาได้
-   - ไม่มีรูปแว่นขยาย
-   - กรอบดำ
-   - Dropdown อยู่เหนือการ์ดด้านล่าง
 ========================================================= */
 
 function SearchableDropdown({
@@ -386,8 +380,6 @@ function SearchableDropdown({
             shadow-[0_24px_60px_-20px_rgba(15,23,42,0.55)]
           "
         >
-          {/* SEARCH */}
-
           <div
             className="
               border-b
@@ -463,8 +455,6 @@ function SearchableDropdown({
               "
             />
           </div>
-
-          {/* OPTIONS */}
 
           <div
             role="listbox"
@@ -650,10 +640,6 @@ export default function ReceiveForm({
     setItems(copy);
   }
 
-  /* =========================================================
-     OPTIONS
-  ========================================================= */
-
   const vendorOptions =
     useMemo<SearchableOption[]>(
       () =>
@@ -672,10 +658,6 @@ export default function ReceiveForm({
       () => categories,
       []
     );
-
-  /* =========================================================
-     SHARED CLASSES
-  ========================================================= */
 
   const labelClass = `
     mb-2
@@ -719,10 +701,6 @@ export default function ReceiveForm({
     focus:ring-slate-900/10
   `;
 
-  /* =========================================================
-     UI
-  ========================================================= */
-
   return (
     <form
       action={createReceive}
@@ -740,27 +718,17 @@ export default function ReceiveForm({
         className="
           relative
           z-[100]
-
           overflow-visible
-
           rounded-[24px]
-
           border
           border-slate-300
-
           bg-white/75
-
           p-4
-
           shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
-
           backdrop-blur-xl
-
           sm:p-5
         "
       >
-        {/* HEADER */}
-
         <div
           className="
             mb-5
@@ -777,15 +745,10 @@ export default function ReceiveForm({
               shrink-0
               items-center
               justify-center
-
               rounded-[15px]
-
               bg-blue-50
-
               text-xl
-
               shadow-sm
-
               ring-1
               ring-blue-100
             "
@@ -799,7 +762,6 @@ export default function ReceiveForm({
                 text-lg
                 font-black
                 !text-slate-900
-
                 sm:text-xl
               "
             >
@@ -825,13 +787,10 @@ export default function ReceiveForm({
             grid
             min-w-0
             gap-5
-
             md:grid-cols-2
           "
         >
-          {/* =================================================
-              วันที่รับเข้า
-          ================================================= */}
+          {/* วันที่รับเข้า */}
 
           <div className="min-w-0">
             <label
@@ -848,11 +807,6 @@ export default function ReceiveForm({
                 w-full
               "
             >
-              {/* 
-                Native date input ครอบทั้งช่อง
-                กดตรงไหนของช่องก็เปิด date picker ได้
-              */}
-
               <input
                 id="receiveDate"
                 type="date"
@@ -868,12 +822,9 @@ export default function ReceiveForm({
                   absolute
                   inset-0
                   z-20
-
                   h-full
                   w-full
-
                   cursor-pointer
-
                   opacity-0
                 "
               />
@@ -881,29 +832,21 @@ export default function ReceiveForm({
               <div
                 className="
                   pointer-events-none
-
                   flex
                   h-[52px]
                   w-full
                   min-w-0
-
                   items-center
                   justify-between
                   gap-3
-
                   rounded-[16px]
-
                   border
                   !border-black
-
                   bg-white
-
                   px-4
-
                   text-base
                   font-bold
                   !text-slate-900
-
                   shadow-sm
                 "
               >
@@ -929,13 +872,9 @@ export default function ReceiveForm({
                     shrink-0
                     items-center
                     justify-center
-
                     rounded-[11px]
-
                     bg-slate-100
-
                     text-xl
-
                     shadow-inner
                   "
                 >
@@ -945,9 +884,7 @@ export default function ReceiveForm({
             </div>
           </div>
 
-          {/* =================================================
-              เลขที่เอกสาร
-          ================================================= */}
+          {/* เลขที่เอกสาร */}
 
           <div className="min-w-0">
             <label
@@ -973,11 +910,7 @@ export default function ReceiveForm({
               className={controlClass}
             />
 
-            {/* ===============================================
-                ยอดยกเข้าระบบ
-                ลดขนาดกล่อง แต่เพิ่มขนาดข้อความ
-                ไม่ให้ข้อความตกบรรทัด
-            =============================================== */}
+            {/* ยอดยกเข้าระบบ */}
 
             <label
               className="
@@ -987,28 +920,10 @@ export default function ReceiveForm({
                 cursor-pointer
                 items-center
                 gap-2
-
                 whitespace-nowrap
-
-                rounded-[12px]
-
-                border
-                border-slate-300
-
-                bg-white
-
-                px-3
-                py-2
-
-                text-sm
+                text-base
                 font-extrabold
                 !text-slate-700
-
-                shadow-sm
-
-                transition-colors
-
-                hover:bg-slate-50
               "
             >
               <input
@@ -1048,16 +963,13 @@ export default function ReceiveForm({
             </label>
           </div>
 
-          {/* =================================================
-              ผู้จำหน่าย
-          ================================================= */}
+          {/* ผู้จำหน่าย */}
 
           <div
             className="
               relative
               z-[200]
               min-w-0
-
               md:col-span-2
             "
           >
@@ -1091,37 +1003,25 @@ export default function ReceiveForm({
         className="
           relative
           z-0
-
           overflow-hidden
-
           rounded-[24px]
-
           border
           border-slate-300
-
           bg-white/80
-
           shadow-[0_16px_40px_-26px_rgba(15,23,42,0.35)]
-
           backdrop-blur-xl
         "
       >
-        {/* TABLE TITLE */}
-
         <div
           className="
             flex
             flex-col
             gap-2
-
             border-b
             border-black
-
             bg-white/80
-
             px-4
             py-4
-
             sm:flex-row
             sm:items-center
             sm:justify-between
@@ -1134,7 +1034,6 @@ export default function ReceiveForm({
                 text-lg
                 font-black
                 !text-slate-900
-
                 sm:text-xl
               "
             >
@@ -1159,17 +1058,12 @@ export default function ReceiveForm({
               inline-flex
               w-fit
               items-center
-
               rounded-full
-
               border
               border-slate-300
-
               bg-slate-50
-
               px-3
               py-1.5
-
               text-xs
               font-extrabold
               !text-slate-500
@@ -1178,8 +1072,6 @@ export default function ReceiveForm({
             15 รายการ
           </span>
         </div>
-
-        {/* TABLE */}
 
         <div
           className="
@@ -1193,11 +1085,8 @@ export default function ReceiveForm({
             className="
               w-full
               min-w-[1050px]
-
               border-collapse
-
               bg-white
-
               text-sm
             "
           >
@@ -1217,17 +1106,13 @@ export default function ReceiveForm({
                     key={title}
                     className="
                       whitespace-nowrap
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       text-lg
                       font-extrabold
@@ -1278,7 +1163,6 @@ export default function ReceiveForm({
                       className="
                         transition-colors
                         duration-200
-
                         hover:bg-blue-50/60
                       "
                     >
@@ -1287,13 +1171,10 @@ export default function ReceiveForm({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           !text-slate-800
@@ -1308,7 +1189,6 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
                         "
@@ -1344,7 +1224,6 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
                         "
@@ -1384,10 +1263,8 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                         "
                       >
@@ -1402,20 +1279,14 @@ export default function ReceiveForm({
                             h-[46px]
                             w-full
                             min-w-[90px]
-
                             rounded-[12px]
-
                             border
-                            border-black
-
+                            !border-black
                             bg-slate-100
-
                             px-2
-
                             text-center
                             font-extrabold
                             !text-slate-700
-
                             outline-none
                           "
                         />
@@ -1427,10 +1298,8 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                         "
                       >
@@ -1455,23 +1324,17 @@ export default function ReceiveForm({
                           className="
                             h-[46px]
                             w-28
-
                             rounded-[12px]
-
                             border
-                            border-black
-
+                            !border-black
                             bg-white
-
                             px-2
-
                             text-center
                             font-bold
                             !text-slate-800
-
                             shadow-sm
                             outline-none
-
+                            focus:!border-black
                             focus:ring-4
                             focus:ring-slate-900/10
                           "
@@ -1484,7 +1347,6 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
                         "
@@ -1507,23 +1369,17 @@ export default function ReceiveForm({
                           className="
                             h-[46px]
                             w-24
-
                             rounded-[12px]
-
                             border
-                            border-black
-
+                            !border-black
                             bg-white
-
                             px-2
-
                             text-center
                             font-bold
                             !text-slate-800
-
                             shadow-sm
                             outline-none
-
+                            focus:!border-black
                             focus:ring-4
                             focus:ring-slate-900/10
                           "
@@ -1536,7 +1392,6 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
                         "
@@ -1568,12 +1423,9 @@ export default function ReceiveForm({
                               absolute
                               inset-0
                               z-20
-
                               h-full
                               w-full
-
                               cursor-pointer
-
                               opacity-0
                             "
                           />
@@ -1581,26 +1433,19 @@ export default function ReceiveForm({
                           <div
                             className="
                               pointer-events-none
-
                               flex
                               h-full
                               w-full
                               items-center
                               justify-between
                               gap-2
-
                               rounded-[12px]
-
                               border
                               border-black
-
                               bg-white
-
                               px-3
-
                               font-bold
                               !text-slate-800
-
                               shadow-sm
                             "
                           >
@@ -1630,7 +1475,6 @@ export default function ReceiveForm({
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
                         "
@@ -1662,12 +1506,9 @@ export default function ReceiveForm({
                               absolute
                               inset-0
                               z-20
-
                               h-full
                               w-full
-
                               cursor-pointer
-
                               opacity-0
                             "
                           />
@@ -1675,26 +1516,19 @@ export default function ReceiveForm({
                           <div
                             className="
                               pointer-events-none
-
                               flex
                               h-full
                               w-full
                               items-center
                               justify-between
                               gap-2
-
                               rounded-[12px]
-
                               border
                               border-black
-
                               bg-white
-
                               px-3
-
                               font-bold
                               !text-slate-800
-
                               shadow-sm
                             "
                           >
@@ -1733,18 +1567,12 @@ export default function ReceiveForm({
       <section
         className="
           rounded-[24px]
-
           border
           border-slate-300
-
           bg-white/75
-
           p-4
-
           shadow-[0_12px_35px_-24px_rgba(15,23,42,0.3)]
-
           backdrop-blur-xl
-
           sm:p-5
         "
       >
@@ -1762,29 +1590,19 @@ export default function ReceiveForm({
           className="
             min-h-[120px]
             w-full
-
             resize-y
-
             rounded-[16px]
-
             border
             border-black
-
             bg-white
-
             p-4
-
             font-bold
             !text-slate-800
-
             shadow-sm
             outline-none
-
             transition-all
             duration-200
-
             placeholder:!text-slate-400
-
             focus:ring-4
             focus:ring-slate-900/10
           "
@@ -1799,10 +1617,8 @@ export default function ReceiveForm({
         className="
           flex
           justify-end
-
           border-t
           border-slate-300
-
           pt-5
         "
       >
@@ -1815,31 +1631,21 @@ export default function ReceiveForm({
             items-center
             justify-center
             gap-2
-
             rounded-[16px]
-
             border
             border-slate-900
-
             bg-slate-900
-
             px-6
-
             text-sm
             font-extrabold
             !text-white
-
             shadow-[0_12px_28px_-16px_rgba(15,23,42,0.55)]
-
             transition-all
             duration-300
-
             hover:bg-slate-800
-
             focus:outline-none
             focus:ring-4
             focus:ring-slate-400/20
-
             sm:w-auto
             sm:min-w-[150px]
           "
