@@ -232,116 +232,13 @@ export default async function ReceivePage({
             size="md"
           >
             <span>＋</span>
+
             <span>
               เพิ่มรายการ
             </span>
           </AppButton>
         }
       />
-
-      {/* =====================================================
-          SUMMARY
-      ===================================================== */}
-
-      <section
-        className="
-          flex
-          w-full
-          min-w-0
-          flex-col
-          gap-3
-
-          rounded-[24px]
-
-          border
-          border-slate-200
-
-          bg-white/80
-
-          p-4
-
-          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
-
-          backdrop-blur-2xl
-
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:p-5
-        "
-      >
-        <div className="min-w-0">
-          <p
-            className="
-              text-sm
-              font-extrabold
-              !text-slate-500
-            "
-          >
-            สรุปรายการรับเข้า
-          </p>
-
-          <p
-            className="
-              mt-0.5
-              text-lg
-              font-black
-              !text-slate-900
-            "
-          >
-            {filterText}
-          </p>
-        </div>
-
-        <div
-          className="
-            inline-flex
-            w-fit
-            items-center
-            gap-2
-
-            rounded-full
-
-            border
-            border-slate-300
-
-            bg-slate-100/80
-
-            px-3
-            py-1.5
-
-            text-sm
-            font-extrabold
-            !text-slate-700
-          "
-        >
-          <span>ทั้งหมด</span>
-
-          <span
-            className="
-              inline-flex
-              min-w-6
-              items-center
-              justify-center
-
-              rounded-full
-
-              bg-white
-
-              px-2
-              py-0.5
-
-              !text-slate-900
-
-              shadow-sm
-            "
-          >
-            {receives.length.toLocaleString(
-              "th-TH"
-            )}
-          </span>
-        </div>
-      </section>
 
       {/* =====================================================
           TABLE CARD
@@ -437,7 +334,9 @@ export default async function ReceivePage({
               !text-slate-700
             "
           >
-            <span>ทั้งหมด</span>
+            <span>
+              ทั้งหมด
+            </span>
 
             <span
               className="
@@ -550,9 +449,7 @@ export default async function ReceivePage({
                         duration-200
 
                         ${
-                          index %
-                            2 ===
-                          0
+                          index % 2 === 0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
