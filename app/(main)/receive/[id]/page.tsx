@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+import AppTableCard from "@/components/AppTableCard";
 
 /* =========================================================
    TYPES
@@ -142,587 +145,143 @@ export default async function ReceiveDetailPage({
 
       {/* =====================================================
           DOCUMENT INFORMATION
+
+          ใช้ AppCard กลางของระบบ
       ===================================================== */}
 
-      <section
+      <AppCard
         className="
           relative
           w-full
           min-w-0
-          overflow-hidden
-
-          rounded-[28px]
-
-          border
-          border-slate-200/90
-
-          bg-white/80
-
+          overflow-visible
           p-4
-
-          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
-
-          ring-1
-          ring-black/[0.025]
-
-          backdrop-blur-2xl
-
           sm:p-5
           lg:p-6
         "
       >
         {/* ===================================================
-            IOS AMBIENT BACKGROUND
-        =================================================== */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-
-            h-48
-            w-48
-
-            rounded-full
-
-            bg-blue-400/[0.07]
-
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -bottom-24
-            -left-20
-
-            h-52
-            w-52
-
-            rounded-full
-
-            bg-cyan-400/[0.07]
-
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            left-1/2
-            top-8
-
-            h-36
-            w-72
-
-            -translate-x-1/2
-
-            rounded-full
-
-            bg-slate-200/20
-
-            blur-3xl
-          "
-        />
-
-        <div
-          className="
-            relative
-            z-10
-          "
-        >
-          {/* =================================================
-              SECTION TITLE
-              ไม่มีเส้นดำใต้หัวข้อ
-          ================================================= */}
-
-          <div className="mb-5">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              ข้อมูลเอกสาร
-            </h2>
-
-            <p
-              className="
-                mt-1
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              ข้อมูลอ้างอิงการรับเข้าพัสดุ
-            </p>
-          </div>
-
-          {/* =================================================
-              INFORMATION GRID
-          ================================================= */}
-
-          <div
-            className="
-              grid
-              grid-cols-1
-              gap-4
-
-              md:grid-cols-2
-            "
-          >
-            {/* ===============================================
-                วันที่รับเข้า
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-h-[96px]
-                flex-col
-                justify-center
-
-                rounded-[18px]
-
-                border
-                !border-black
-
-                bg-white/90
-
-                px-4
-                py-3.5
-
-                shadow-sm
-
-                backdrop-blur-xl
-              "
-            >
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                วันที่รับเข้า
-              </p>
-
-              <p
-                className="
-                  mt-1.5
-
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                {formatThaiDate(
-                  receive.receiveDate
-                )}
-              </p>
-            </div>
-
-            {/* ===============================================
-                เลขที่เอกสาร
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-h-[96px]
-                flex-col
-                justify-center
-
-                rounded-[18px]
-
-                border
-                !border-black
-
-                bg-white/90
-
-                px-4
-                py-3.5
-
-                shadow-sm
-
-                backdrop-blur-xl
-              "
-            >
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                เลขที่เอกสาร
-              </p>
-
-              <p
-                className="
-                  mt-1.5
-
-                  break-words
-
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                {receive.documentNo}
-              </p>
-            </div>
-
-            {/* ===============================================
-                ผู้จำหน่าย
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-h-[96px]
-                flex-col
-                justify-center
-
-                rounded-[18px]
-
-                border
-                !border-black
-
-                bg-white/90
-
-                px-4
-                py-3.5
-
-                shadow-sm
-
-                backdrop-blur-xl
-              "
-            >
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                ผู้จำหน่าย
-              </p>
-
-              <p
-                className="
-                  mt-1.5
-
-                  break-words
-
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                {receive.vendor.name}
-              </p>
-            </div>
-
-            {/* ===============================================
-                จำนวนรายการ
-                อยู่แถวเดียวกับผู้จำหน่าย
-                ขนาดเท่ากันทุกช่อง
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-h-[96px]
-                flex-col
-                justify-center
-
-                rounded-[18px]
-
-                border
-                !border-black
-
-                bg-white/90
-
-                px-4
-                py-3.5
-
-                shadow-sm
-
-                backdrop-blur-xl
-              "
-            >
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                จำนวนรายการ
-              </p>
-
-              <p
-                className="
-                  mt-1.5
-
-                  text-base
-                  font-extrabold
-                  tabular-nums
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                {receive.items.length.toLocaleString(
-                  "th-TH"
-                )}{" "}
-                รายการ
-              </p>
-            </div>
-
-            {/* ===============================================
-                หมายเหตุ
-                ยาวเต็มแถว
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-h-[96px]
-                flex-col
-                justify-center
-
-                rounded-[18px]
-
-                border
-                !border-black
-
-                bg-white/90
-
-                px-4
-                py-3.5
-
-                shadow-sm
-
-                backdrop-blur-xl
-
-                md:col-span-2
-              "
-            >
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                หมายเหตุ
-              </p>
-
-              <p
-                className="
-                  mt-1.5
-
-                  whitespace-pre-wrap
-                  break-words
-
-                  text-base
-                  font-bold
-                  leading-relaxed
-                  !text-slate-900
-                "
-              >
-                {receive.remark || "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          MATERIAL TABLE
-      ===================================================== */}
-
-      <section
-        className="
-          relative
-          w-full
-          min-w-0
-          overflow-hidden
-
-          rounded-[28px]
-
-          border
-          border-slate-200/90
-
-          bg-white/80
-
-          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
-
-          ring-1
-          ring-black/[0.025]
-
-          backdrop-blur-2xl
-        "
-      >
-        {/* ===================================================
-            IOS AMBIENT BACKGROUND
-        =================================================== */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-16
-            -top-16
-
-            h-40
-            w-40
-
-            rounded-full
-
-            bg-blue-400/[0.06]
-
-            blur-3xl
-          "
-        />
-
-        {/* ===================================================
-            TABLE TITLE
+            TITLE
             ไม่มีเส้นดำใต้หัวข้อ
         =================================================== */}
 
-        <div
-          className="
-            relative
-            z-10
-
-            flex
-            flex-col
-            gap-2
-
-            px-5
-            py-5
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              รายการพัสดุรับเข้า
-            </h2>
-
-            <p
-              className="
-                mt-1
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              รายละเอียดพัสดุภายในเอกสารรับเข้าฉบับนี้
-            </p>
-          </div>
-
-          <div
+        <div className="mb-5">
+          <h2
             className="
-              inline-flex
-              w-fit
-              shrink-0
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-slate-200
-
-              bg-slate-100/80
-
-              px-3
-              py-1.5
-
-              text-sm
-              font-extrabold
-              !text-slate-700
-
-              shadow-sm
-
-              backdrop-blur-xl
+              text-lg
+              font-black
+              tracking-tight
+              !text-slate-900
+              sm:text-xl
             "
           >
-            <span>ทั้งหมด</span>
+            ข้อมูลเอกสาร
+          </h2>
 
-            <span
-              className="
-                inline-flex
-                min-w-6
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-white
-
-                px-2
-                py-0.5
-
-                !text-slate-900
-
-                shadow-sm
-              "
-            >
-              {receive.items.length.toLocaleString(
-                "th-TH"
-              )}
-            </span>
-          </div>
+          <p
+            className="
+              mt-1
+              text-sm
+              font-semibold
+              !text-slate-500
+            "
+          >
+            ข้อมูลอ้างอิงการรับเข้าพัสดุ
+          </p>
         </div>
 
+        {/* ===================================================
+            INFORMATION GRID
+        =================================================== */}
+
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            md:grid-cols-2
+          "
+        >
+          {/* =================================================
+              วันที่รับเข้า
+          ================================================= */}
+
+          <AppInfoCard
+            label="วันที่รับเข้า"
+            value={formatThaiDate(
+              receive.receiveDate
+            )}
+          />
+
+          {/* =================================================
+              เลขที่เอกสาร
+          ================================================= */}
+
+          <AppInfoCard
+            label="เลขที่เอกสาร"
+            value={receive.documentNo}
+          />
+
+          {/* =================================================
+              ผู้จำหน่าย
+          ================================================= */}
+
+          <AppInfoCard
+            label="ผู้จำหน่าย"
+            value={receive.vendor.name}
+          />
+
+          {/* =================================================
+              จำนวนรายการ
+              อยู่ระดับเดียวกับผู้จำหน่าย
+          ================================================= */}
+
+          <AppInfoCard
+            label="จำนวนรายการ"
+            value={`${receive.items.length.toLocaleString(
+              "th-TH"
+            )} รายการ`}
+          />
+
+          {/* =================================================
+              หมายเหตุ
+              เต็มความกว้าง 2 คอลัมน์
+          ================================================= */}
+
+          <AppInfoCard
+            label="หมายเหตุ"
+            value={receive.remark || "-"}
+            className="
+              md:col-span-2
+              min-h-[96px]
+            "
+          />
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          MATERIAL TABLE
+
+          ใช้ AppTableCard กลางของระบบ
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการพัสดุรับเข้า"
+        subtitle="รายละเอียดพัสดุภายในเอกสารรับเข้าฉบับนี้"
+        count={receive.items.length}
+        className="
+          w-full
+          min-w-0
+        "
+      >
         {/* ===================================================
             TABLE
         =================================================== */}
 
         <div
           className="
-            relative
-            z-10
-
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -731,12 +290,15 @@ export default async function ReceiveDetailPage({
             className="
               w-full
               min-w-[1100px]
-
               border-collapse
-
               bg-white
+              text-sm
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -780,8 +342,16 @@ export default async function ReceiveDetailPage({
               </tr>
             </thead>
 
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
             <tbody>
               {receive.items.length === 0 ? (
+                /* =============================================
+                   EMPTY STATE
+                ============================================= */
+
                 <tr>
                   <td
                     colSpan={9}
@@ -795,12 +365,71 @@ export default async function ReceiveDetailPage({
                       py-14
 
                       text-center
-                      text-base
-                      font-bold
-                      !text-slate-500
                     "
                   >
-                    ไม่พบรายการพัสดุในเอกสารนี้
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-16
+                          w-16
+                          items-center
+                          justify-center
+
+                          rounded-[20px]
+
+                          border
+                          border-slate-200/80
+
+                          bg-white/90
+
+                          text-3xl
+
+                          shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
+
+                          ring-1
+                          ring-black/[0.025]
+
+                          backdrop-blur-xl
+                        "
+                      >
+                        📦
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+                          !text-slate-900
+                        "
+                      >
+                        ไม่พบรายการพัสดุ
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          !text-slate-500
+                        "
+                      >
+                        ไม่มีรายการพัสดุในเอกสารรับเข้าฉบับนี้
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -824,7 +453,9 @@ export default async function ReceiveDetailPage({
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ลำดับ */}
+                      {/* =======================================
+                          ลำดับ
+                      ======================================= */}
 
                       <td
                         className="
@@ -844,7 +475,9 @@ export default async function ReceiveDetailPage({
                         {index + 1}
                       </td>
 
-                      {/* หมวดหมู่ */}
+                      {/* =======================================
+                          หมวดหมู่
+                      ======================================= */}
 
                       <td
                         className="
@@ -866,7 +499,9 @@ export default async function ReceiveDetailPage({
                           item.material.category}
                       </td>
 
-                      {/* รหัสพัสดุ */}
+                      {/* =======================================
+                          รหัสพัสดุ
+                      ======================================= */}
 
                       <td
                         className="
@@ -883,11 +518,12 @@ export default async function ReceiveDetailPage({
                           !text-slate-900
                         "
                       >
-                        {item.material.code ||
-                          "-"}
+                        {item.material.code || "-"}
                       </td>
 
-                      {/* รายการพัสดุ */}
+                      {/* =======================================
+                          รายการพัสดุ
+                      ======================================= */}
 
                       <td
                         className="
@@ -903,11 +539,12 @@ export default async function ReceiveDetailPage({
                           !text-slate-900
                         "
                       >
-                        {item.material.name ||
-                          "-"}
+                        {item.material.name || "-"}
                       </td>
 
-                      {/* หน่วย */}
+                      {/* =======================================
+                          หน่วย
+                      ======================================= */}
 
                       <td
                         className="
@@ -924,11 +561,12 @@ export default async function ReceiveDetailPage({
                           !text-slate-800
                         "
                       >
-                        {item.material.unit ||
-                          "-"}
+                        {item.material.unit || "-"}
                       </td>
 
-                      {/* จำนวน */}
+                      {/* =======================================
+                          จำนวน
+                      ======================================= */}
 
                       <td
                         className="
@@ -951,7 +589,9 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* ราคาต่อหน่วย */}
+                      {/* =======================================
+                          ราคาต่อหน่วย
+                      ======================================= */}
 
                       <td
                         className="
@@ -974,7 +614,9 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* วันผลิต */}
+                      {/* =======================================
+                          วันผลิต
+                      ======================================= */}
 
                       <td
                         className="
@@ -996,7 +638,9 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* วันหมดอายุ */}
+                      {/* =======================================
+                          วันหมดอายุ
+                      ======================================= */}
 
                       <td
                         className="
@@ -1024,7 +668,7 @@ export default async function ReceiveDetailPage({
             </tbody>
           </table>
         </div>
-      </section>
+      </AppTableCard>
     </AppPage>
   );
 }

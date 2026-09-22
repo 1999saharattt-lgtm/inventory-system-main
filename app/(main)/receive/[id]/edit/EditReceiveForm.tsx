@@ -10,6 +10,8 @@ import {
 import { updateReceive } from "./actions";
 
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppTableCard from "@/components/AppTableCard";
 
 /* =========================================================
    TYPES
@@ -138,9 +140,7 @@ function formatThaiShortDate(
   }
 
   const [year, month, day] =
-    dateString
-      .split("-")
-      .map(Number);
+    dateString.split("-").map(Number);
 
   if (!year || !month || !day) {
     return "";
@@ -191,7 +191,7 @@ function toDateInputValue(
 
 /* =========================================================
    DATE FIELD
-   มาตรฐานปฏิทินของระบบ
+   ปฏิทินมาตรฐานของระบบ
 ========================================================= */
 
 type DateFieldProps = {
@@ -267,22 +267,26 @@ function DateField({
           rounded-[16px]
 
           border
-          !border-black
+          border-slate-300/90
 
-          bg-white
+          bg-white/90
 
           pl-4
           pr-2
 
-          shadow-sm
+          shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+          backdrop-blur-xl
 
           transition-all
           duration-200
 
-          hover:bg-slate-50
+          hover:border-slate-400
+          hover:bg-white
 
+          focus-within:border-slate-400
           focus-within:ring-4
-          focus-within:ring-slate-900/10
+          focus-within:ring-slate-900/[0.06]
         "
       >
         <span
@@ -328,24 +332,27 @@ function DateField({
             rounded-[11px]
 
             border
-            border-slate-200
+            border-slate-200/90
 
-            bg-slate-100/90
+            bg-gradient-to-b
+            from-white
+            to-slate-100
 
             text-lg
 
-            shadow-sm
+            shadow-[0_4px_12px_-8px_rgba(15,23,42,0.5)]
 
             transition-all
             duration-200
 
-            hover:bg-slate-200
+            hover:border-slate-300
+            hover:to-slate-200
 
-            active:scale-95
+            active:scale-[0.96]
 
             focus:outline-none
             focus:ring-4
-            focus:ring-slate-900/10
+            focus:ring-slate-900/[0.06]
           "
         >
           📅
@@ -486,7 +493,7 @@ function SearchableDropdown({
 
         ${
           open
-            ? "z-[999]"
+            ? "z-[9999]"
             : "z-10"
         }
       `}
@@ -518,9 +525,9 @@ function SearchableDropdown({
           rounded-[16px]
 
           border
-          !border-black
+          border-slate-300/90
 
-          bg-white
+          bg-white/90
 
           px-4
 
@@ -529,21 +536,26 @@ function SearchableDropdown({
           font-bold
           !text-slate-900
 
-          shadow-sm
+          shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+          backdrop-blur-xl
+
           outline-none
 
           transition-all
           duration-200
 
-          hover:bg-slate-50
+          hover:border-slate-400
+          hover:bg-white
 
-          focus:!border-black
+          focus:border-slate-400
           focus:bg-white
           focus:ring-4
-          focus:ring-slate-900/10
+          focus:ring-slate-900/[0.06]
 
           disabled:cursor-not-allowed
-          disabled:bg-slate-100
+          disabled:border-slate-200
+          disabled:bg-slate-100/80
           disabled:!text-slate-400
           disabled:opacity-70
         "
@@ -570,7 +582,7 @@ function SearchableDropdown({
           className={`
             shrink-0
             text-xs
-            !text-slate-600
+            !text-slate-500
 
             transition-transform
             duration-200
@@ -594,18 +606,21 @@ function SearchableDropdown({
             right-0
             top-[calc(100%+8px)]
 
-            z-[9999]
+            z-[99999]
 
             overflow-hidden
 
             rounded-[18px]
 
             border
-            !border-black
+            border-slate-300/90
 
             bg-white/95
 
-            shadow-[0_24px_60px_-16px_rgba(15,23,42,0.48)]
+            shadow-[0_24px_60px_-16px_rgba(15,23,42,0.42)]
+
+            ring-1
+            ring-black/[0.03]
 
             backdrop-blur-2xl
           "
@@ -613,7 +628,7 @@ function SearchableDropdown({
           <div
             className="
               border-b
-              border-slate-200
+              border-slate-200/90
 
               bg-slate-50/90
 
@@ -666,7 +681,7 @@ function SearchableDropdown({
                 rounded-[12px]
 
                 border
-                !border-black
+                border-slate-300
 
                 bg-white
 
@@ -681,8 +696,9 @@ function SearchableDropdown({
 
                 placeholder:!text-slate-400
 
+                focus:border-slate-400
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-slate-900/[0.06]
               "
             />
           </div>
@@ -828,60 +844,52 @@ export default function EditReceiveForm({
     );
 
   const [items, setItems] =
-    useState<ReceiveRow[]>(
-      () => {
-        const rows: ReceiveRow[] =
-          receive.items.map(
-            (item) => ({
-              category:
-                item.material.category,
+    useState<ReceiveRow[]>(() => {
+      const rows: ReceiveRow[] =
+        receive.items.map(
+          (item) => ({
+            category:
+              item.material.category,
 
-              materialId:
-                String(
-                  item.materialId
-                ),
+            materialId: String(
+              item.materialId
+            ),
 
-              qty: String(
-                item.qty
-              ),
+            qty: String(item.qty),
 
-              unitPrice:
-                Number(
-                  item.unitPrice
-                ).toFixed(2),
+            unitPrice: Number(
+              item.unitPrice
+            ).toFixed(2),
 
-              manufacture:
-                item.manufacture
-                  ? toDateInputValue(
-                      item.manufacture
-                    )
-                  : "",
+            manufacture:
+              item.manufacture
+                ? toDateInputValue(
+                    item.manufacture
+                  )
+                : "",
 
-              expiry:
-                item.expiry
-                  ? toDateInputValue(
-                      item.expiry
-                    )
-                  : "",
-            })
-          );
+            expiry:
+              item.expiry
+                ? toDateInputValue(
+                    item.expiry
+                  )
+                : "",
+          })
+        );
 
-        while (
-          rows.length < 15
-        ) {
-          rows.push({
-            category: "",
-            materialId: "",
-            qty: "",
-            unitPrice: "",
-            manufacture: "",
-            expiry: "",
-          });
-        }
-
-        return rows;
+      while (rows.length < 15) {
+        rows.push({
+          category: "",
+          materialId: "",
+          qty: "",
+          unitPrice: "",
+          manufacture: "",
+          expiry: "",
+        });
       }
-    );
+
+      return rows;
+    });
 
   function updateRow(
     index: number,
@@ -902,9 +910,7 @@ export default function EditReceiveForm({
           [key]: value,
         };
 
-        if (
-          key === "category"
-        ) {
+        if (key === "category") {
           copy[index].materialId =
             "";
         }
@@ -915,14 +921,13 @@ export default function EditReceiveForm({
   }
 
   const vendorOptions =
-    useMemo<
-      SearchableOption[]
-    >(
+    useMemo<SearchableOption[]>(
       () =>
         vendors.map(
           (vendor) => ({
-            value:
-              String(vendor.id),
+            value: String(
+              vendor.id
+            ),
             label: vendor.name,
           })
         ),
@@ -930,9 +935,7 @@ export default function EditReceiveForm({
     );
 
   const categoryOptions =
-    useMemo<
-      SearchableOption[]
-    >(
+    useMemo<SearchableOption[]>(
       () =>
         categories.map(
           (category) => ({
@@ -948,7 +951,6 @@ export default function EditReceiveForm({
   const labelClass = `
     mb-2
     block
-
     text-base
     font-extrabold
     !text-slate-800
@@ -962,9 +964,9 @@ export default function EditReceiveForm({
     rounded-[16px]
 
     border
-    !border-black
+    border-slate-300/90
 
-    bg-white
+    bg-white/90
 
     px-4
 
@@ -972,7 +974,10 @@ export default function EditReceiveForm({
     font-bold
     !text-slate-900
 
-    shadow-sm
+    shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+    backdrop-blur-xl
+
     outline-none
 
     transition-all
@@ -980,12 +985,13 @@ export default function EditReceiveForm({
 
     placeholder:!text-slate-400
 
-    hover:bg-slate-50
+    hover:border-slate-400
+    hover:bg-white
 
-    focus:!border-black
+    focus:border-slate-400
     focus:bg-white
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-slate-900/[0.06]
   `;
 
   const tableInputClass = `
@@ -994,9 +1000,9 @@ export default function EditReceiveForm({
     rounded-[16px]
 
     border
-    !border-black
+    border-slate-300/90
 
-    bg-white
+    bg-white/95
 
     px-3
 
@@ -1004,7 +1010,8 @@ export default function EditReceiveForm({
     font-bold
     !text-slate-900
 
-    shadow-sm
+    shadow-[0_6px_18px_-16px_rgba(15,23,42,0.45)]
+
     outline-none
 
     transition-all
@@ -1012,12 +1019,12 @@ export default function EditReceiveForm({
 
     placeholder:!text-slate-400
 
-    hover:bg-slate-50
+    hover:border-slate-400
 
-    focus:!border-black
+    focus:border-slate-400
     focus:bg-white
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-slate-900/[0.06]
   `;
 
   return (
@@ -1047,54 +1054,20 @@ export default function EditReceiveForm({
           ข้อมูลการรับเข้า
       ===================================================== */}
 
-      <section
+      <AppCard
         className="
           relative
           z-[200]
-
           overflow-visible
-
-          rounded-[28px]
-
-          border
-          border-slate-200/90
-
-          bg-white/80
-
           p-4
-
-          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
-
-          ring-1
-          ring-black/[0.025]
-
-          backdrop-blur-2xl
-
           sm:p-5
         "
       >
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-16
-            -top-16
-            -z-10
-            h-40
-            w-40
-            rounded-full
-            bg-blue-400/[0.07]
-            blur-3xl
-          "
-        />
-
         <div
           className="
             grid
             min-w-0
             gap-5
-
             md:grid-cols-2
           "
         >
@@ -1147,7 +1120,6 @@ export default function EditReceiveForm({
               relative
               z-[300]
               min-w-0
-
               md:col-span-2
             "
           >
@@ -1173,136 +1145,29 @@ export default function EditReceiveForm({
             />
           </div>
         </div>
-      </section>
+      </AppCard>
 
       {/* =====================================================
           ตารางรายการ
       ===================================================== */}
 
-      <section
+      <AppTableCard
+        title="รายการพัสดุรับเข้า"
+        subtitle="แก้ไขรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ"
+        count={items.length}
         className="
           relative
           z-10
-
-          w-full
-          min-w-0
-
           overflow-visible
-
-          rounded-[28px]
-
-          border
-          border-slate-200/90
-
-          bg-white/80
-
-          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
-
-          ring-1
-          ring-black/[0.025]
-
-          backdrop-blur-2xl
         "
       >
-        <div
-          className="
-            flex
-            flex-col
-            gap-2
-
-            px-5
-            py-4
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              รายการพัสดุรับเข้า
-            </h2>
-
-            <p
-              className="
-                mt-1
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              แก้ไขรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ
-            </p>
-          </div>
-
-          <div
-            className="
-              inline-flex
-              w-fit
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-slate-200
-
-              bg-slate-100/80
-
-              px-3
-              py-1.5
-
-              text-sm
-              font-extrabold
-              !text-slate-700
-
-              shadow-sm
-            "
-          >
-            <span>ทั้งหมด</span>
-
-            <span
-              className="
-                inline-flex
-                min-w-6
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-white
-
-                px-2
-                py-0.5
-
-                !text-slate-900
-
-                shadow-sm
-              "
-            >
-              {items.length}
-            </span>
-          </div>
-        </div>
-
         <div
           className="
             relative
             w-full
             min-w-0
-
             overflow-x-auto
             overflow-y-visible
-
             overscroll-x-contain
           "
         >
@@ -1311,11 +1176,8 @@ export default function EditReceiveForm({
               relative
               w-full
               min-w-[1280px]
-
               border-collapse
-
               bg-white
-
               text-sm
             "
           >
@@ -1381,15 +1243,17 @@ export default function EditReceiveForm({
                     SearchableOption[] =
                     filteredMaterials.map(
                       (material) => ({
-                        value:
-                          String(
-                            material.id
-                          ),
-
+                        value: String(
+                          material.id
+                        ),
                         label: `${material.code} - ${material.name}`,
                       })
                     );
 
+                  /*
+                   * แถวบนต้องมี z-index สูงกว่าแถวล่าง
+                   * เพื่อให้ Dropdown ไม่ถูกแถวถัดไปทับ
+                   */
                   const rowZIndex =
                     items.length -
                     index +
@@ -1441,15 +1305,11 @@ export default function EditReceiveForm({
                         className="
                           relative
                           min-w-[210px]
-
                           overflow-visible
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1482,15 +1342,11 @@ export default function EditReceiveForm({
                         className="
                           relative
                           min-w-[320px]
-
                           overflow-visible
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1533,13 +1389,10 @@ export default function EditReceiveForm({
                       <td
                         className="
                           min-w-[120px]
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1559,9 +1412,9 @@ export default function EditReceiveForm({
                             rounded-[16px]
 
                             border
-                            !border-black
+                            border-slate-300/90
 
-                            bg-slate-100
+                            bg-slate-100/90
 
                             px-3
 
@@ -1580,13 +1433,10 @@ export default function EditReceiveForm({
                       <td
                         className="
                           min-w-[120px]
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1607,7 +1457,6 @@ export default function EditReceiveForm({
                           }
                           className={`
                             ${tableInputClass}
-
                             w-full
                             text-center
                             tabular-nums
@@ -1620,13 +1469,10 @@ export default function EditReceiveForm({
                       <td
                         className="
                           min-w-[150px]
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1650,7 +1496,6 @@ export default function EditReceiveForm({
                           }
                           className={`
                             ${tableInputClass}
-
                             w-full
                             text-right
                             tabular-nums
@@ -1663,13 +1508,10 @@ export default function EditReceiveForm({
                       <td
                         className="
                           min-w-[190px]
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1697,13 +1539,10 @@ export default function EditReceiveForm({
                       <td
                         className="
                           min-w-[190px]
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           align-top
                         "
                       >
@@ -1732,32 +1571,18 @@ export default function EditReceiveForm({
             </tbody>
           </table>
         </div>
-      </section>
+      </AppTableCard>
 
       {/* =====================================================
           หมายเหตุ
       ===================================================== */}
 
-      <section
+      <AppCard
         className="
           relative
-
-          rounded-[28px]
-
-          border
-          border-slate-200/90
-
-          bg-white/80
-
+          z-0
+          overflow-visible
           p-4
-
-          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
-
-          ring-1
-          ring-black/[0.025]
-
-          backdrop-blur-2xl
-
           sm:p-5
         "
       >
@@ -1785,9 +1610,9 @@ export default function EditReceiveForm({
             rounded-[16px]
 
             border
-            !border-black
+            border-slate-300/90
 
-            bg-white
+            bg-white/90
 
             p-4
 
@@ -1795,7 +1620,10 @@ export default function EditReceiveForm({
             font-bold
             !text-slate-900
 
-            shadow-sm
+            shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+            backdrop-blur-xl
+
             outline-none
 
             transition-all
@@ -1803,15 +1631,16 @@ export default function EditReceiveForm({
 
             placeholder:!text-slate-400
 
-            hover:bg-slate-50
+            hover:border-slate-400
+            hover:bg-white
 
-            focus:!border-black
+            focus:border-slate-400
             focus:bg-white
             focus:ring-4
-            focus:ring-slate-900/10
+            focus:ring-slate-900/[0.06]
           "
         />
-      </section>
+      </AppCard>
 
       {/* =====================================================
           ACTION

@@ -4,6 +4,11 @@ import DeleteButton from "./DeleteButton";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Receive = {
   id: number;
@@ -28,7 +33,7 @@ type ReceivePageProps = {
 };
 
 /* =========================================================
-   วันที่ไทยแบบย่อ
+   THAI SHORT DATE
    ตัวอย่าง 01 ก.ย. 69
 ========================================================= */
 
@@ -164,33 +169,31 @@ export default async function ReceivePage({
   ========================================================= */
 
   const receives =
-    await prisma.receive.findMany(
-      {
-        where:
-          startDate && endDate
-            ? {
-                receiveDate: {
-                  gte: startDate,
-                  lt: endDate,
-                },
-              }
-            : undefined,
+    await prisma.receive.findMany({
+      where:
+        startDate && endDate
+          ? {
+              receiveDate: {
+                gte: startDate,
+                lt: endDate,
+              },
+            }
+          : undefined,
 
-        include: {
-          vendor: true,
-          items: true,
+      include: {
+        vendor: true,
+        items: true,
+      },
+
+      orderBy: [
+        {
+          receiveDate: "desc",
         },
-
-        orderBy: [
-          {
-            receiveDate: "desc",
-          },
-          {
-            id: "desc",
-          },
-        ],
-      }
-    );
+        {
+          id: "desc",
+        },
+      ],
+    });
 
   /* =========================================================
      FILTER DESCRIPTION
@@ -230,140 +233,30 @@ export default async function ReceivePage({
             href="/receive/create"
             variant="primary"
             size="md"
+            icon={<span>＋</span>}
           >
-            <span>＋</span>
-
-            <span>
-              เพิ่มรายการ
-            </span>
+            เพิ่มรายการ
           </AppButton>
         }
       />
 
       {/* =====================================================
           TABLE CARD
+
+          ใช้ Component กลางของระบบ
+          เพื่อให้ Card / Border / Shadow / Radius
+          เป็นมาตรฐาน iOS เดียวกันทุกหน้า
       ===================================================== */}
 
-      <section
+      <AppTableCard
+        title="รายการเอกสารรับเข้า"
+        subtitle="เรียงจากวันที่รับเข้าล่าสุด"
+        count={receives.length}
         className="
           w-full
           min-w-0
-          overflow-hidden
-
-          rounded-[28px]
-
-          border
-          border-slate-300
-
-          bg-white/85
-
-          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-
-          backdrop-blur-2xl
         "
       >
-        {/* ===================================================
-            TABLE CARD HEADER
-        =================================================== */}
-
-        <div
-          className="
-            flex
-            flex-col
-            gap-2
-
-            border-b
-            border-black
-
-            bg-white/70
-
-            px-5
-            py-4
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            sm:px-6
-          "
-        >
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              รายการเอกสารรับเข้า
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              เรียงจากวันที่รับเข้าล่าสุด
-            </p>
-          </div>
-
-          <div
-            className="
-              inline-flex
-              w-fit
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-slate-300
-
-              bg-slate-100/80
-
-              px-3
-              py-1.5
-
-              text-sm
-              font-extrabold
-              !text-slate-700
-            "
-          >
-            <span>
-              ทั้งหมด
-            </span>
-
-            <span
-              className="
-                inline-flex
-                min-w-6
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-white
-
-                px-2
-                py-0.5
-
-                !text-slate-900
-
-                shadow-sm
-              "
-            >
-              {receives.length.toLocaleString(
-                "th-TH"
-              )}
-            </span>
-          </div>
-        </div>
-
         {/* ===================================================
             TABLE
         =================================================== */}
@@ -371,6 +264,7 @@ export default async function ReceivePage({
         <div
           className="
             w-full
+            min-w-0
             overflow-x-auto
             overscroll-x-contain
           "
@@ -379,15 +273,15 @@ export default async function ReceivePage({
             className="
               w-full
               min-w-[980px]
-
               border-collapse
-
-              border
-              border-black
-
               bg-white
+              text-sm
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -401,27 +295,20 @@ export default async function ReceivePage({
                 ].map(
                   (tableTitle) => (
                     <th
-                      key={
-                        tableTitle
-                      }
+                      key={tableTitle}
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-4
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
                         !text-white
-
                         sm:text-lg
                       "
                     >
@@ -431,6 +318,10 @@ export default async function ReceivePage({
                 )}
               </tr>
             </thead>
+
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
             <tbody>
               {receives.length >
@@ -445,11 +336,12 @@ export default async function ReceivePage({
                         receive.id
                       }
                       className={`
-                        transition-colors
+                        transition-all
                         duration-200
 
                         ${
-                          index % 2 === 0
+                          index % 2 ===
+                          0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -464,13 +356,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -481,21 +370,18 @@ export default async function ReceivePage({
 
                       {/* =======================================
                           วันที่รับเข้า
-                          ไทยแบบย่อ เช่น 22 ก.ย. 69
                       ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
+                          tabular-nums
                           !text-slate-700
                         "
                       >
@@ -511,13 +397,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -533,18 +416,16 @@ export default async function ReceivePage({
                       <td
                         className="
                           min-w-[200px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {receive.vendor.name}
+                        {receive.vendor
+                          .name}
                       </td>
 
                       {/* =======================================
@@ -554,13 +435,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
-
                           text-center
                         "
                       >
@@ -579,20 +457,26 @@ export default async function ReceivePage({
 
                       <td
                         className="
-                          min-w-[190px]
-
+                          min-w-[220px]
+                          max-w-[360px]
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-semibold
+                          leading-relaxed
                           !text-slate-700
                         "
                       >
-                        {receive.remark ??
-                          "-"}
+                        <div
+                          className="
+                            line-clamp-2
+                            break-words
+                          "
+                        >
+                          {receive.remark ??
+                            "-"}
+                        </div>
                       </td>
 
                       {/* =======================================
@@ -602,10 +486,8 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
                         "
@@ -622,14 +504,13 @@ export default async function ReceivePage({
                             href={`/receive/${receive.id}/edit`}
                             variant="primary"
                             size="sm"
+                            icon={
+                              <span>
+                                ✏️
+                              </span>
+                            }
                           >
-                            <span>
-                              ✏️
-                            </span>
-
-                            <span>
-                              แก้ไข
-                            </span>
+                            แก้ไข
                           </AppButton>
 
                           <DeleteButton
@@ -643,18 +524,19 @@ export default async function ReceivePage({
                   )
                 )
               ) : (
+                /* =============================================
+                   EMPTY STATE
+                ============================================= */
+
                 <tr>
                   <td
                     colSpan={7}
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
@@ -665,6 +547,7 @@ export default async function ReceivePage({
                         max-w-md
                         flex-col
                         items-center
+                        justify-center
                       "
                     >
                       <div
@@ -674,14 +557,15 @@ export default async function ReceivePage({
                           w-16
                           items-center
                           justify-center
-
                           rounded-[20px]
-
-                          bg-slate-100
-
+                          border
+                          border-slate-200/80
+                          bg-white/90
                           text-3xl
-
-                          shadow-inner
+                          shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
+                          ring-1
+                          ring-black/[0.025]
+                          backdrop-blur-xl
                         "
                       >
                         📥
@@ -690,9 +574,9 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
+                          tracking-tight
                           !text-slate-900
                         "
                       >
@@ -702,9 +586,9 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
+                          leading-relaxed
                           !text-slate-500
                         "
                       >
@@ -718,7 +602,7 @@ export default async function ReceivePage({
             </tbody>
           </table>
         </div>
-      </section>
+      </AppTableCard>
     </AppPage>
   );
 }

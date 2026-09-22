@@ -44,21 +44,22 @@ async function generateReceiveNo() {
         /^ร\.(\d+)\/(\d+)$/
       );
 
-    if (match) {
-      const lastNumber = Number(
-        match[1]
-      );
+    if (!match) {
+      continue;
+    }
 
-      const lastYear =
-        match[2];
+    const lastNumber = Number(
+      match[1]
+    );
 
-      if (
-        lastYear === year &&
-        lastNumber >= running
-      ) {
-        running =
-          lastNumber + 1;
-      }
+    const lastYear = match[2];
+
+    if (
+      lastYear === year &&
+      lastNumber >= running
+    ) {
+      running =
+        lastNumber + 1;
     }
   }
 
@@ -128,9 +129,7 @@ export default async function CreateReceivePage() {
             href="/receive"
             variant="back"
             size="md"
-            icon={
-              <span>←</span>
-            }
+            icon={<span>←</span>}
           >
             กลับ
           </AppButton>
@@ -138,73 +137,31 @@ export default async function CreateReceivePage() {
       />
 
       {/* =====================================================
-          RECEIVE FORM CARD
+          RECEIVE FORM
+
+          ReceiveForm จัดการ Card ภายในเองแล้วด้วย:
+          - AppCard
+          - AppInfoCard
+          - AppTableCard
+
+          จึงไม่ครอบ AppCard ซ้ำใน page นี้
       ===================================================== */}
 
-      <section
+      <div
         className="
           relative
+          z-0
           w-full
           min-w-0
           overflow-visible
-          rounded-[28px]
-          border
-          border-slate-300
-          bg-white/85
-          p-4
-          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-          backdrop-blur-2xl
-          sm:p-6
         "
       >
-        {/* ===================================================
-            AMBIENT BACKGROUND
-        =================================================== */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-            h-52
-            w-52
-            rounded-full
-            bg-blue-400/10
-            blur-3xl
-          "
+        <ReceiveForm
+          vendors={vendors}
+          materials={materials}
+          documentNo={documentNo}
         />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -bottom-24
-            -left-20
-            h-56
-            w-56
-            rounded-full
-            bg-cyan-400/10
-            blur-3xl
-          "
-        />
-
-        {/* ===================================================
-            FORM
-        =================================================== */}
-
-        <div className="relative">
-          <ReceiveForm
-            vendors={vendors}
-            materials={materials}
-            documentNo={
-              documentNo
-            }
-          />
-        </div>
-      </section>
+      </div>
     </AppPage>
   );
 }

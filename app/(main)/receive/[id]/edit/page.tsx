@@ -4,8 +4,13 @@ import { notFound } from "next/navigation";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 
 import EditReceiveForm from "./EditReceiveForm";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface Props {
   params: Promise<{
@@ -104,145 +109,32 @@ export default async function EditReceivePage({
       />
 
       {/* =====================================================
-          FORM CARD
+          EDIT RECEIVE FORM CARD
+
+          ใช้ AppCard กลางของระบบ
+          - รูปแบบ iOS / Glass
+          - Border / Radius / Shadow มาตรฐานเดียวกัน
+          - ไม่มีหัวข้อซ้ำด้านใน
+          - ไม่มีเส้นดำใต้หัวข้อ
+          - รองรับ Dropdown / Calendar ที่ลอยออกจาก Card
       ===================================================== */}
 
-      <section
+      <AppCard
         className="
           relative
+          z-0
+
           w-full
           min-w-0
+
           overflow-visible
 
-          rounded-[28px]
+          p-4
 
-          border
-          border-slate-300
-
-          bg-white/85
-
-          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-
-          backdrop-blur-2xl
+          sm:p-5
+          lg:p-6
         "
       >
-        {/* ===================================================
-            AMBIENT BACKGROUND
-        =================================================== */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -right-20
-            -top-20
-
-            h-52
-            w-52
-
-            rounded-full
-
-            bg-blue-400/10
-
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            -bottom-24
-            -left-20
-
-            h-56
-            w-56
-
-            rounded-full
-
-            bg-cyan-400/10
-
-            blur-3xl
-          "
-        />
-
-        {/* ===================================================
-            FORM HEADER
-        =================================================== */}
-
-        <div
-          className="
-            relative
-
-            flex
-            items-center
-            gap-3
-
-            border-b
-            border-black
-
-            bg-white/70
-
-            px-5
-            py-4
-
-            sm:px-6
-          "
-        >
-          <div
-            className="
-              flex
-              h-11
-              w-11
-              shrink-0
-              items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-blue-50
-
-              text-xl
-
-              shadow-sm
-
-              ring-1
-              ring-blue-100
-            "
-          >
-            📝
-          </div>
-
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              ข้อมูลการรับเข้าพัสดุ
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              ตรวจสอบและแก้ไขข้อมูลให้ถูกต้องก่อนบันทึก
-            </p>
-          </div>
-        </div>
-
         {/* ===================================================
             EDIT FORM
         =================================================== */}
@@ -255,9 +147,7 @@ export default async function EditReceivePage({
             w-full
             min-w-0
 
-            p-4
-
-            sm:p-6
+            overflow-visible
           "
         >
           <EditReceiveForm
@@ -266,7 +156,7 @@ export default async function EditReceivePage({
             materials={materials}
           />
         </div>
-      </section>
+      </AppCard>
     </AppPage>
   );
 }
