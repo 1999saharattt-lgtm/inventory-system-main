@@ -6,6 +6,8 @@ import React from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import AppButton from "@/components/AppButton";
+
 type IssueItem = {
   id: number;
   qty: number;
@@ -554,9 +556,6 @@ export default function IssuePdf({
 
           // =================================================
           // BODY
-          //
-          // ลดเหลือ 14 ทั้ง Body
-          // ทุกช่องเท่ากัน
           // =================================================
 
           styles: {
@@ -610,8 +609,6 @@ export default function IssuePdf({
 
           // =================================================
           // HEADER
-          //
-          // ยัง 16 เท่าเดิม
           // =================================================
 
           headStyles: {
@@ -873,38 +870,48 @@ export default function IssuePdf({
     }
   }
 
+  // =====================================================
+  // UI
+  //
+  // ใช้ AppButton ตัวกลาง
+  // เพื่อให้หน้าตาปุ่มเป็นมาตรฐานเดียวกันทั้งระบบ
+  // =====================================================
+
   return (
-    <button
+    <AppButton
       type="button"
-      onClick={
-        exportPdf
-      }
-      disabled={
-        loading
-      }
+      variant="danger"
+      onClick={exportPdf}
+      disabled={loading}
       className="
-        rounded-xl
-        bg-gradient-to-r
-        from-emerald-600
-        to-green-500
-        px-5
-        py-2.5
-        text-sm
-        font-extrabold
-        text-white
-        shadow-lg
-        transition
-        hover:scale-105
-        disabled:cursor-not-allowed
-        disabled:opacity-60
-        sm:px-6
-        sm:py-3
-        sm:text-base
+        w-full
+        sm:w-auto
       "
     >
-      {loading
-        ? "กำลังสร้าง PDF..."
-        : "📄 ส่งออก PDF"}
-    </button>
+      {loading ? (
+        <>
+          <span
+            className="
+              h-4
+              w-4
+              animate-spin
+              rounded-full
+              border-2
+              border-white/40
+              border-t-white
+            "
+          />
+
+          <span>
+            กำลังสร้าง PDF...
+          </span>
+        </>
+      ) : (
+        <>
+          <span>📄</span>
+          <span>ส่งออก PDF</span>
+        </>
+      )}
+    </AppButton>
   );
 }
