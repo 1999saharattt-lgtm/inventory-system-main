@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import EditMaterialForm from "./EditMaterialForm";
 
@@ -74,22 +73,13 @@ export default async function EditMaterialPage({
         title="แก้ไขข้อมูลพัสดุ"
         subtitle="แก้ไขรายละเอียดรายการพัสดุ"
         actions={
-          <Link
+          <AppButton
             href={`/materials/category/${material.category}`}
-            prefetch
-            className="
-              inline-flex
-              shrink-0
-            "
+            variant="secondary"
+            icon={<span>←</span>}
           >
-            <AppButton
-              type="button"
-              variant="secondary"
-            >
-              <span>←</span>
-              <span>กลับ</span>
-            </AppButton>
-          </Link>
+            กลับ
+          </AppButton>
         }
       />
 
