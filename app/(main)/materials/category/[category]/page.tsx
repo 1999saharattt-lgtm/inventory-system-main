@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import DeleteButton from "./DeleteButton";
-import QRCodeButton from "./QRCodeButton";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -110,6 +109,10 @@ function formatThaiShortDate(
   return `${day} ${month} ${buddhistYear}`;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CategoryPage({
   params,
   searchParams,
@@ -166,6 +169,10 @@ export default async function CategoryPage({
   const icon =
     categoryIcon[category] ?? "📦";
 
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <AppPage>
       {/* =====================================================
@@ -179,8 +186,8 @@ export default async function CategoryPage({
         actions={
           <>
             {/* ===============================================
+                เพิ่มรายการ
                 ส่ง category ปัจจุบันไปหน้าเพิ่มรายการ
-                เช่น OFFICE -> /materials/new?category=OFFICE
             =============================================== */}
 
             <AppButton
@@ -191,6 +198,11 @@ export default async function CategoryPage({
               <span>＋</span>
               <span>เพิ่มรายการ</span>
             </AppButton>
+
+            {/* ===============================================
+                กลับ
+                ใช้ variant กลาง
+            =============================================== */}
 
             <AppButton
               href="/materials"
@@ -233,6 +245,10 @@ export default async function CategoryPage({
             sm:items-center
           "
         >
+          {/* ===============================================
+              ช่องค้นหา
+          =============================================== */}
+
           <div className="relative min-w-0 flex-1">
             <div
               aria-hidden="true"
@@ -257,8 +273,8 @@ export default async function CategoryPage({
                 min-h-[48px]
                 w-full
                 rounded-[16px]
-                border
-                border-black
+                border-2
+                !border-black
                 bg-white
                 py-3
                 pl-12
@@ -271,15 +287,20 @@ export default async function CategoryPage({
                 duration-300
                 placeholder:!text-slate-400
 
+                hover:!border-black
                 hover:bg-slate-50
 
-                focus:border-blue-600
+                focus:!border-black
                 focus:bg-white
                 focus:ring-4
-                focus:ring-blue-500/10
+                focus:ring-slate-900/10
               "
             />
           </div>
+
+          {/* ===============================================
+              ค้นหา
+          =============================================== */}
 
           <AppButton
             type="submit"
@@ -290,10 +311,14 @@ export default async function CategoryPage({
             <span>ค้นหา</span>
           </AppButton>
 
+          {/* ===============================================
+              ล้างการค้นหา
+          =============================================== */}
+
           {search && (
             <AppButton
               href={`/materials/category/${category}`}
-              variant="outline"
+              variant="secondary"
               size="md"
             >
               <span>✕</span>
@@ -367,6 +392,10 @@ export default async function CategoryPage({
             </p>
           </div>
 
+          {/* ===============================================
+              จำนวนรายการ
+          =============================================== */}
+
           <div
             className="
               inline-flex
@@ -407,6 +436,7 @@ export default async function CategoryPage({
 
         {/* ===================================================
             TABLE
+            เหลือ 8 คอลัมน์
         =================================================== */}
 
         <div
@@ -419,13 +449,17 @@ export default async function CategoryPage({
           <table
             className="
               w-full
-              min-w-[1200px]
+              min-w-[1100px]
               border-collapse
               border
               border-black
               bg-white
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -437,7 +471,6 @@ export default async function CategoryPage({
                   "วันผลิต",
                   "วันหมดอายุ",
                   "จัดการ",
-                  "QR Code",
                 ].map((tableTitle) => (
                   <th
                     key={tableTitle}
@@ -462,6 +495,10 @@ export default async function CategoryPage({
                 ))}
               </tr>
             </thead>
+
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
             <tbody>
               {materials.length > 0 ? (
@@ -693,46 +730,26 @@ export default async function CategoryPage({
                               gap-2
                             "
                           >
+                            {/* ===============================
+                                แก้ไข
+                                ใช้ primary จาก AppButton กลาง
+                            =============================== */}
+
                             <AppButton
                               href={`/materials/${material.id}/edit`}
-                              variant="outline"
+                              variant="primary"
                               size="sm"
                             >
                               <span>✏️</span>
                               <span>แก้ไข</span>
                             </AppButton>
 
+                            {/* ===============================
+                                ลบ
+                            =============================== */}
+
                             <DeleteButton
                               id={material.id}
-                            />
-                          </div>
-                        </td>
-
-                        {/* ===================================
-                            QR CODE
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-                            px-4
-                            py-3
-                            text-center
-                          "
-                        >
-                          <div className="flex justify-center">
-                            <QRCodeButton
-                              materialId={
-                                material.id
-                              }
-                              materialCode={
-                                material.code
-                              }
-                              materialName={
-                                material.name
-                              }
                             />
                           </div>
                         </td>
@@ -741,9 +758,13 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
+                /* =============================================
+                   EMPTY STATE
+                ============================================= */
+
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={8}
                     className="
                       border
                       border-black
