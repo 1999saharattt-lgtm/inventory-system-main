@@ -112,8 +112,7 @@ const categories = [
 ];
 
 /* =========================================================
-   THAI SHORT DATE
-   ตัวอย่าง 22 ก.ย. 69
+   THAI DATE
 ========================================================= */
 
 const thaiShortMonths = [
@@ -175,9 +174,7 @@ function toDateInputValue(
       ? value
       : new Date(value);
 
-  if (
-    Number.isNaN(date.getTime())
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
@@ -193,13 +190,196 @@ function toDateInputValue(
 }
 
 /* =========================================================
-   SEARCHABLE DROPDOWN
+   DATE FIELD
+   มาตรฐานปฏิทินของระบบ
+========================================================= */
 
-   มาตรฐาน Dropdown ของระบบ
-   - พิมพ์ค้นหาได้
-   - ไม่มีรูปแว่นขยาย
-   - กรอบดำ
-   - Dropdown แสดงเหนือส่วนอื่น
+type DateFieldProps = {
+  id: string;
+  name?: string;
+  value: string;
+  placeholder?: string;
+  compact?: boolean;
+  onChange: (value: string) => void;
+};
+
+function DateField({
+  id,
+  name,
+  value,
+  placeholder = "เลือกวันที่",
+  compact = false,
+  onChange,
+}: DateFieldProps) {
+  const dateRef =
+    useRef<HTMLInputElement>(null);
+
+  function openCalendar() {
+    const input = dateRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    try {
+      if (
+        typeof input.showPicker ===
+        "function"
+      ) {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    } catch {
+      input.focus();
+      input.click();
+    }
+  }
+
+  return (
+    <div
+      className="
+        relative
+        h-[52px]
+        w-full
+        min-w-0
+      "
+    >
+      {name && (
+        <input
+          type="hidden"
+          name={name}
+          value={value}
+        />
+      )}
+
+      <div
+        className="
+          flex
+          h-[52px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-2
+
+          rounded-[16px]
+
+          border
+          !border-black
+
+          bg-white
+
+          pl-4
+          pr-2
+
+          shadow-sm
+
+          transition-all
+          duration-200
+
+          hover:bg-slate-50
+
+          focus-within:ring-4
+          focus-within:ring-slate-900/10
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              compact
+                ? "text-sm"
+                : "text-base"
+            }
+
+            font-bold
+
+            ${
+              value
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {value
+            ? formatThaiShortDate(
+                value
+              )
+            : placeholder}
+        </span>
+
+        <button
+          type="button"
+          aria-label="เปิดปฏิทิน"
+          onClick={openCalendar}
+          className="
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+
+            rounded-[11px]
+
+            border
+            border-slate-200
+
+            bg-slate-100/90
+
+            text-lg
+
+            shadow-sm
+
+            transition-all
+            duration-200
+
+            hover:bg-slate-200
+
+            active:scale-95
+
+            focus:outline-none
+            focus:ring-4
+            focus:ring-slate-900/10
+          "
+        >
+          📅
+        </button>
+
+        <input
+          ref={dateRef}
+          id={id}
+          type="date"
+          value={value}
+          onChange={(event) =>
+            onChange(
+              event.target.value
+            )
+          }
+          tabIndex={-1}
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            bottom-0
+            right-0
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   SEARCHABLE DROPDOWN
 ========================================================= */
 
 function SearchableDropdown({
@@ -224,28 +404,18 @@ function SearchableDropdown({
   const [search, setSearch] =
     useState("");
 
-  /* =========================================================
-     SELECTED OPTION
-  ========================================================= */
-
   const selectedOption =
     options.find(
       (option) =>
         option.value === value
     );
 
-  /* =========================================================
-     FILTER OPTIONS
-  ========================================================= */
-
   const filteredOptions =
     useMemo(() => {
       const keyword =
         search
           .trim()
-          .toLocaleLowerCase(
-            "th"
-          );
+          .toLocaleLowerCase("th");
 
       if (!keyword) {
         return options;
@@ -254,21 +424,13 @@ function SearchableDropdown({
       return options.filter(
         (option) =>
           option.label
-            .toLocaleLowerCase(
-              "th"
-            )
+            .toLocaleLowerCase("th")
             .includes(keyword) ||
           option.value
-            .toLocaleLowerCase(
-              "th"
-            )
+            .toLocaleLowerCase("th")
             .includes(keyword)
       );
     }, [options, search]);
-
-  /* =========================================================
-     CLICK OUTSIDE
-  ========================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -298,10 +460,6 @@ function SearchableDropdown({
     };
   }, []);
 
-  /* =========================================================
-     AUTO FOCUS
-  ========================================================= */
-
   useEffect(() => {
     if (!open) {
       setSearch("");
@@ -321,17 +479,18 @@ function SearchableDropdown({
   return (
     <div
       ref={containerRef}
-      className="
+      className={`
         relative
-        z-[60]
         w-full
         min-w-0
-      "
-    >
-      {/* =====================================================
-          CONTROL
-      ===================================================== */}
 
+        ${
+          open
+            ? "z-[999]"
+            : "z-10"
+        }
+      `}
+    >
       <button
         id={id}
         type="button"
@@ -344,13 +503,12 @@ function SearchableDropdown({
           }
 
           setOpen(
-            (current) =>
-              !current
+            (current) => !current
           );
         }}
         className="
           flex
-          min-h-[52px]
+          h-[52px]
           w-full
           min-w-0
           items-center
@@ -365,7 +523,6 @@ function SearchableDropdown({
           bg-white
 
           px-4
-          py-3
 
           text-left
           text-base
@@ -413,7 +570,7 @@ function SearchableDropdown({
           className={`
             shrink-0
             text-xs
-            !text-slate-700
+            !text-slate-600
 
             transition-transform
             duration-200
@@ -429,10 +586,6 @@ function SearchableDropdown({
         </span>
       </button>
 
-      {/* =====================================================
-          DROPDOWN PANEL
-      ===================================================== */}
-
       {open && !disabled && (
         <div
           className="
@@ -445,25 +598,25 @@ function SearchableDropdown({
 
             overflow-hidden
 
-            rounded-[16px]
+            rounded-[18px]
 
             border
             !border-black
 
-            bg-white
+            bg-white/95
 
-            shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
+            shadow-[0_24px_60px_-16px_rgba(15,23,42,0.48)]
+
+            backdrop-blur-2xl
           "
         >
-          {/* =================================================
-              SEARCH
-          ================================================= */}
-
           <div
             className="
               border-b
-              border-black
-              bg-slate-50
+              border-slate-200
+
+              bg-slate-50/90
+
               p-3
             "
           >
@@ -472,17 +625,12 @@ function SearchableDropdown({
               type="text"
               value={search}
               autoComplete="off"
-              onChange={(
-                event
-              ) =>
+              onChange={(event) =>
                 setSearch(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
-              onKeyDown={(
-                event
-              ) => {
+              onKeyDown={(event) => {
                 if (
                   event.key ===
                   "Escape"
@@ -512,7 +660,7 @@ function SearchableDropdown({
                 searchPlaceholder
               }
               className="
-                min-h-[46px]
+                h-[46px]
                 w-full
 
                 rounded-[12px]
@@ -523,7 +671,6 @@ function SearchableDropdown({
                 bg-white
 
                 px-4
-                py-2.5
 
                 text-base
                 font-bold
@@ -532,31 +679,23 @@ function SearchableDropdown({
                 shadow-sm
                 outline-none
 
-                transition-all
-                duration-200
-
                 placeholder:!text-slate-400
 
-                hover:bg-slate-50
-
-                focus:!border-black
-                focus:bg-white
                 focus:ring-4
                 focus:ring-slate-900/10
               "
             />
           </div>
 
-          {/* =================================================
-              OPTIONS
-          ================================================= */}
-
           <div
             role="listbox"
             className="
-              max-h-[260px]
+              max-h-[280px]
               overflow-y-auto
               overscroll-contain
+
+              bg-white/95
+
               p-2
             "
           >
@@ -583,10 +722,7 @@ function SearchableDropdown({
                           option.value
                         );
 
-                        setOpen(
-                          false
-                        );
-
+                        setOpen(false);
                         setSearch("");
                       }}
                       className={`
@@ -596,7 +732,7 @@ function SearchableDropdown({
                         justify-between
                         gap-3
 
-                        rounded-[10px]
+                        rounded-[12px]
 
                         px-3
                         py-2.5
@@ -605,16 +741,18 @@ function SearchableDropdown({
                         text-base
                         font-bold
 
-                        transition-colors
+                        transition-all
+                        duration-150
 
                         ${
                           selected
                             ? `
                               bg-slate-900
                               !text-white
+                              shadow-sm
                             `
                             : `
-                              bg-white
+                              bg-transparent
                               !text-slate-900
                               hover:bg-slate-100
                             `
@@ -633,7 +771,6 @@ function SearchableDropdown({
 
                       {selected && (
                         <span
-                          aria-hidden="true"
                           className="
                             shrink-0
                             !text-white
@@ -697,8 +834,7 @@ export default function EditReceiveForm({
           receive.items.map(
             (item) => ({
               category:
-                item.material
-                  .category,
+                item.material.category,
 
               materialId:
                 String(
@@ -747,10 +883,6 @@ export default function EditReceiveForm({
       }
     );
 
-  /* =========================================================
-     UPDATE ROW
-  ========================================================= */
-
   function updateRow(
     index: number,
     key: keyof ReceiveRow,
@@ -782,10 +914,6 @@ export default function EditReceiveForm({
     );
   }
 
-  /* =========================================================
-     OPTIONS
-  ========================================================= */
-
   const vendorOptions =
     useMemo<
       SearchableOption[]
@@ -794,11 +922,8 @@ export default function EditReceiveForm({
         vendors.map(
           (vendor) => ({
             value:
-              String(
-                vendor.id
-              ),
-            label:
-              vendor.name,
+              String(vendor.id),
+            label: vendor.name,
           })
         ),
       [vendors]
@@ -820,23 +945,17 @@ export default function EditReceiveForm({
       []
     );
 
-  /* =========================================================
-     SHARED CLASSES
-  ========================================================= */
-
   const labelClass = `
     mb-2
     block
 
-    text-sm
+    text-base
     font-extrabold
     !text-slate-800
-
-    sm:text-base
   `;
 
   const inputClass = `
-    min-h-[52px]
+    h-[52px]
     w-full
     min-w-0
 
@@ -848,7 +967,6 @@ export default function EditReceiveForm({
     bg-white
 
     px-4
-    py-3
 
     text-base
     font-bold
@@ -871,9 +989,9 @@ export default function EditReceiveForm({
   `;
 
   const tableInputClass = `
-    min-h-[42px]
+    h-[52px]
 
-    rounded-[12px]
+    rounded-[16px]
 
     border
     !border-black
@@ -881,7 +999,6 @@ export default function EditReceiveForm({
     bg-white
 
     px-3
-    py-2
 
     text-sm
     font-bold
@@ -903,10 +1020,6 @@ export default function EditReceiveForm({
     focus:ring-slate-900/10
   `;
 
-  /* =========================================================
-     UI
-  ========================================================= */
-
   return (
     <form
       action={updateReceive}
@@ -914,7 +1027,7 @@ export default function EditReceiveForm({
         relative
         w-full
         min-w-0
-        space-y-6
+        space-y-4
         overflow-visible
       "
     >
@@ -931,26 +1044,29 @@ export default function EditReceiveForm({
       />
 
       {/* =====================================================
-          DOCUMENT INFORMATION
+          ข้อมูลการรับเข้า
       ===================================================== */}
 
       <section
         className="
           relative
-          z-[50]
+          z-[200]
 
           overflow-visible
 
-          rounded-[24px]
+          rounded-[28px]
 
           border
-          border-slate-300
+          border-slate-200/90
 
           bg-white/80
 
           p-4
 
-          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
+
+          ring-1
+          ring-black/[0.025]
 
           backdrop-blur-2xl
 
@@ -958,63 +1074,20 @@ export default function EditReceiveForm({
         "
       >
         <div
+          aria-hidden="true"
           className="
-            mb-5
-            flex
-            items-center
-            gap-3
+            pointer-events-none
+            absolute
+            -right-16
+            -top-16
+            -z-10
+            h-40
+            w-40
+            rounded-full
+            bg-blue-400/[0.07]
+            blur-3xl
           "
-        >
-          <div
-            className="
-              flex
-              h-11
-              w-11
-              shrink-0
-              items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-blue-50
-
-              text-xl
-
-              shadow-sm
-
-              ring-1
-              ring-blue-100
-            "
-          >
-            🧾
-          </div>
-
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              ข้อมูลการรับเข้า
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              แก้ไขวันที่ เอกสาร และผู้จำหน่าย
-            </p>
-          </div>
-        </div>
+        />
 
         <div
           className="
@@ -1025,144 +1098,33 @@ export default function EditReceiveForm({
             md:grid-cols-2
           "
         >
-          {/* =================================================
-              วันที่รับเข้า
-          ================================================= */}
+          {/* วันที่รับเข้า */}
 
           <div className="min-w-0">
             <label
               htmlFor="receiveDate"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               วันที่รับเข้า
             </label>
 
-            <div
-              className="
-                relative
-                min-h-[52px]
-                w-full
-              "
-            >
-              <input
-                type="hidden"
-                name="receiveDate"
-                value={receiveDate}
-              />
-
-              <input
-                id="receiveDate"
-                type="date"
-                value={receiveDate}
-                onChange={(
-                  event
-                ) =>
-                  setReceiveDate(
-                    event.target
-                      .value
-                  )
-                }
-                className="
-                  absolute
-                  inset-0
-
-                  z-20
-
-                  h-full
-                  w-full
-
-                  cursor-pointer
-
-                  opacity-0
-                "
-              />
-
-              <div
-                className="
-                  flex
-                  min-h-[52px]
-                  w-full
-                  items-center
-                  justify-between
-                  gap-3
-
-                  rounded-[16px]
-
-                  border
-                  !border-black
-
-                  bg-white
-
-                  px-4
-                  py-3
-
-                  text-base
-                  font-bold
-                  !text-slate-900
-
-                  shadow-sm
-
-                  transition-all
-                  duration-200
-
-                  hover:bg-slate-50
-                "
-              >
-                <span
-                  className={`
-                    min-w-0
-                    flex-1
-                    truncate
-
-                    ${
-                      receiveDate
-                        ? "!text-slate-900"
-                        : "!text-slate-400"
-                    }
-                  `}
-                >
-                  {receiveDate
-                    ? formatThaiShortDate(
-                        receiveDate
-                      )
-                    : "เลือกวันที่รับเข้า"}
-                </span>
-
-                <span
-                  aria-hidden="true"
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    rounded-[11px]
-
-                    bg-slate-100
-
-                    text-xl
-                  "
-                >
-                  📅
-                </span>
-              </div>
-            </div>
+            <DateField
+              id="receiveDate"
+              name="receiveDate"
+              value={receiveDate}
+              placeholder="เลือกวันที่รับเข้า"
+              onChange={
+                setReceiveDate
+              }
+            />
           </div>
 
-          {/* =================================================
-              เลขที่เอกสาร
-          ================================================= */}
+          {/* เลขที่เอกสาร */}
 
           <div className="min-w-0">
             <label
               htmlFor="documentNo"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               เลขที่เอกสาร
             </label>
@@ -1174,21 +1136,16 @@ export default function EditReceiveForm({
               defaultValue={
                 receive.documentNo
               }
-              className={
-                inputClass
-              }
+              className={inputClass}
             />
           </div>
 
-          {/* =================================================
-              ผู้จำหน่าย
-          ================================================= */}
+          {/* ผู้จำหน่าย */}
 
           <div
             className="
               relative
-              z-[100]
-
+              z-[300]
               min-w-0
 
               md:col-span-2
@@ -1196,9 +1153,7 @@ export default function EditReceiveForm({
           >
             <label
               htmlFor="vendorIdControl"
-              className={
-                labelClass
-              }
+              className={labelClass}
             >
               ผู้จำหน่าย
             </label>
@@ -1209,7 +1164,7 @@ export default function EditReceiveForm({
               options={
                 vendorOptions
               }
-              placeholder="เลือกผู้จำหน่าย"
+              placeholder="-- เลือกผู้จำหน่าย --"
               searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
               emptyText="ไม่พบผู้จำหน่าย"
               onChange={
@@ -1221,7 +1176,7 @@ export default function EditReceiveForm({
       </section>
 
       {/* =====================================================
-          MATERIAL TABLE
+          ตารางรายการ
       ===================================================== */}
 
       <section
@@ -1234,32 +1189,26 @@ export default function EditReceiveForm({
 
           overflow-visible
 
-          rounded-[24px]
+          rounded-[28px]
 
           border
-          border-slate-300
+          border-slate-200/90
 
-          bg-white/85
+          bg-white/80
 
-          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
+
+          ring-1
+          ring-black/[0.025]
 
           backdrop-blur-2xl
         "
       >
-        {/* ===================================================
-            TABLE HEADER
-        =================================================== */}
-
         <div
           className="
             flex
             flex-col
             gap-2
-
-            border-b
-            border-black
-
-            bg-white/70
 
             px-5
             py-4
@@ -1285,8 +1234,7 @@ export default function EditReceiveForm({
 
             <p
               className="
-                mt-0.5
-
+                mt-1
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -1306,7 +1254,7 @@ export default function EditReceiveForm({
               rounded-full
 
               border
-              border-slate-300
+              border-slate-200
 
               bg-slate-100/80
 
@@ -1316,11 +1264,11 @@ export default function EditReceiveForm({
               text-sm
               font-extrabold
               !text-slate-700
+
+              shadow-sm
             "
           >
-            <span>
-              ทั้งหมด
-            </span>
+            <span>ทั้งหมด</span>
 
             <span
               className="
@@ -1346,12 +1294,9 @@ export default function EditReceiveForm({
           </div>
         </div>
 
-        {/* ===================================================
-            TABLE
-        =================================================== */}
-
         <div
           className="
+            relative
             w-full
             min-w-0
 
@@ -1363,20 +1308,18 @@ export default function EditReceiveForm({
         >
           <table
             className="
+              relative
               w-full
               min-w-[1280px]
 
               border-collapse
-
-              border
-              border-black
 
               bg-white
 
               text-sm
             "
           >
-            <thead>
+            <thead className="relative z-10">
               <tr>
                 {[
                   "ลำดับ",
@@ -1387,58 +1330,47 @@ export default function EditReceiveForm({
                   "ราคาต่อหน่วย",
                   "วันผลิต",
                   "วันหมดอายุ",
-                ].map(
-                  (title) => (
-                    <th
-                      key={title}
-                      className="
-                        whitespace-nowrap
+                ].map((title) => (
+                  <th
+                    key={title}
+                    className="
+                      whitespace-nowrap
 
-                        border
-                        border-black
+                      border
+                      border-black
 
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
 
-                        px-3
-                        py-4
+                      px-3
+                      py-4
 
-                        text-center
-                        text-base
-                        font-extrabold
-                        !text-white
-
-                        sm:text-lg
-                      "
-                    >
-                      {title}
-                    </th>
-                  )
-                )}
+                      text-center
+                      text-lg
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    {title}
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="relative">
               {items.map(
-                (
-                  row,
-                  index
-                ) => {
+                (row, index) => {
                   const filteredMaterials =
                     materials.filter(
-                      (
-                        material
-                      ) =>
+                      (material) =>
                         material.category ===
                         row.category
                     );
 
                   const selectedMaterial =
                     materials.find(
-                      (
-                        material
-                      ) =>
+                      (material) =>
                         String(
                           material.id
                         ) ===
@@ -1448,9 +1380,7 @@ export default function EditReceiveForm({
                   const materialOptions:
                     SearchableOption[] =
                     filteredMaterials.map(
-                      (
-                        material
-                      ) => ({
+                      (material) => ({
                         value:
                           String(
                             material.id
@@ -1460,38 +1390,43 @@ export default function EditReceiveForm({
                       })
                     );
 
+                  const rowZIndex =
+                    items.length -
+                    index +
+                    20;
+
                   return (
                     <tr
                       key={index}
+                      style={{
+                        position:
+                          "relative",
+                        zIndex:
+                          rowZIndex,
+                      }}
                       className={`
-                        transition-colors
-                        duration-200
-
                         ${
-                          index %
-                            2 ===
+                          index % 2 ===
                           0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
 
+                        transition-colors
+                        duration-200
+
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* =====================================
-                          ลำดับ
-                      ===================================== */}
+                      {/* ลำดับ */}
 
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -1500,15 +1435,14 @@ export default function EditReceiveForm({
                         {index + 1}
                       </td>
 
-                      {/* =====================================
-                          หมวดหมู่
-                      ===================================== */}
+                      {/* หมวดหมู่ */}
 
                       <td
                         className="
                           relative
-
                           min-w-[210px]
+
+                          overflow-visible
 
                           border
                           border-black
@@ -1542,15 +1476,14 @@ export default function EditReceiveForm({
                         />
                       </td>
 
-                      {/* =====================================
-                          รายการพัสดุ
-                      ===================================== */}
+                      {/* รายการพัสดุ */}
 
                       <td
                         className="
                           relative
-
                           min-w-[320px]
+
+                          overflow-visible
 
                           border
                           border-black
@@ -1595,9 +1528,7 @@ export default function EditReceiveForm({
                         />
                       </td>
 
-                      {/* =====================================
-                          หน่วย
-                      ===================================== */}
+                      {/* หน่วย */}
 
                       <td
                         className="
@@ -1620,7 +1551,7 @@ export default function EditReceiveForm({
                             "-"
                           }
                           className="
-                            min-h-[52px]
+                            h-[52px]
                             w-full
 
                             cursor-default
@@ -1633,7 +1564,6 @@ export default function EditReceiveForm({
                             bg-slate-100
 
                             px-3
-                            py-3
 
                             text-center
                             text-base
@@ -1645,9 +1575,7 @@ export default function EditReceiveForm({
                         />
                       </td>
 
-                      {/* =====================================
-                          จำนวน
-                      ===================================== */}
+                      {/* จำนวน */}
 
                       <td
                         className="
@@ -1666,9 +1594,7 @@ export default function EditReceiveForm({
                           type="number"
                           min="1"
                           name={`items[${index}].qty`}
-                          value={
-                            row.qty
-                          }
+                          value={row.qty}
                           onChange={(
                             event
                           ) =>
@@ -1682,18 +1608,14 @@ export default function EditReceiveForm({
                           className={`
                             ${tableInputClass}
 
-                            min-h-[52px]
                             w-full
-
                             text-center
                             tabular-nums
                           `}
                         />
                       </td>
 
-                      {/* =====================================
-                          ราคาต่อหน่วย
-                      ===================================== */}
+                      {/* ราคาต่อหน่วย */}
 
                       <td
                         className="
@@ -1729,18 +1651,14 @@ export default function EditReceiveForm({
                           className={`
                             ${tableInputClass}
 
-                            min-h-[52px]
                             w-full
-
                             text-right
                             tabular-nums
                           `}
                         />
                       </td>
 
-                      {/* =====================================
-                          วันผลิต
-                      ===================================== */}
+                      {/* วันผลิต */}
 
                       <td
                         className="
@@ -1755,124 +1673,26 @@ export default function EditReceiveForm({
                           align-top
                         "
                       >
-                        <div
-                          className="
-                            relative
-                            min-h-[52px]
-                            w-full
-                          "
-                        >
-                          <input
-                            type="hidden"
-                            name={`items[${index}].manufacture`}
-                            value={
-                              row.manufacture
-                            }
-                          />
-
-                          <input
-                            type="date"
-                            value={
-                              row.manufacture
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                index,
-                                "manufacture",
-                                event
-                                  .target
-                                  .value
-                              )
-                            }
-                            className="
-                              absolute
-                              inset-0
-
-                              z-20
-
-                              h-full
-                              w-full
-
-                              cursor-pointer
-
-                              opacity-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              flex
-                              min-h-[52px]
-                              w-full
-                              items-center
-                              justify-between
-                              gap-2
-
-                              rounded-[16px]
-
-                              border
-                              !border-black
-
-                              bg-white
-
-                              px-3
-                              py-3
-
-                              text-sm
-                              font-bold
-                              !text-slate-900
-
-                              shadow-sm
-                            "
-                          >
-                            <span
-                              className={`
-                                min-w-0
-                                flex-1
-                                whitespace-nowrap
-
-                                ${
-                                  row.manufacture
-                                    ? "!text-slate-900"
-                                    : "!text-slate-400"
-                                }
-                              `}
-                            >
-                              {row.manufacture
-                                ? formatThaiShortDate(
-                                    row.manufacture
-                                  )
-                                : "เลือกวันที่"}
-                            </span>
-
-                            <span
-                              aria-hidden="true"
-                              className="
-                                flex
-                                h-8
-                                w-8
-                                shrink-0
-                                items-center
-                                justify-center
-
-                                rounded-[10px]
-
-                                bg-slate-100
-
-                                text-lg
-                              "
-                            >
-                              📅
-                            </span>
-                          </div>
-                        </div>
+                        <DateField
+                          id={`manufacture-${index}`}
+                          name={`items[${index}].manufacture`}
+                          value={
+                            row.manufacture
+                          }
+                          compact
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "manufacture",
+                              value
+                            )
+                          }
+                        />
                       </td>
 
-                      {/* =====================================
-                          วันหมดอายุ
-                      ===================================== */}
+                      {/* วันหมดอายุ */}
 
                       <td
                         className="
@@ -1887,119 +1707,23 @@ export default function EditReceiveForm({
                           align-top
                         "
                       >
-                        <div
-                          className="
-                            relative
-                            min-h-[52px]
-                            w-full
-                          "
-                        >
-                          <input
-                            type="hidden"
-                            name={`items[${index}].expiry`}
-                            value={
-                              row.expiry
-                            }
-                          />
-
-                          <input
-                            type="date"
-                            value={
-                              row.expiry
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                index,
-                                "expiry",
-                                event
-                                  .target
-                                  .value
-                              )
-                            }
-                            className="
-                              absolute
-                              inset-0
-
-                              z-20
-
-                              h-full
-                              w-full
-
-                              cursor-pointer
-
-                              opacity-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              flex
-                              min-h-[52px]
-                              w-full
-                              items-center
-                              justify-between
-                              gap-2
-
-                              rounded-[16px]
-
-                              border
-                              !border-black
-
-                              bg-white
-
-                              px-3
-                              py-3
-
-                              text-sm
-                              font-bold
-                              !text-slate-900
-
-                              shadow-sm
-                            "
-                          >
-                            <span
-                              className={`
-                                min-w-0
-                                flex-1
-                                whitespace-nowrap
-
-                                ${
-                                  row.expiry
-                                    ? "!text-slate-900"
-                                    : "!text-slate-400"
-                                }
-                              `}
-                            >
-                              {row.expiry
-                                ? formatThaiShortDate(
-                                    row.expiry
-                                  )
-                                : "เลือกวันที่"}
-                            </span>
-
-                            <span
-                              aria-hidden="true"
-                              className="
-                                flex
-                                h-8
-                                w-8
-                                shrink-0
-                                items-center
-                                justify-center
-
-                                rounded-[10px]
-
-                                bg-slate-100
-
-                                text-lg
-                              "
-                            >
-                              📅
-                            </span>
-                          </div>
-                        </div>
+                        <DateField
+                          id={`expiry-${index}`}
+                          name={`items[${index}].expiry`}
+                          value={
+                            row.expiry
+                          }
+                          compact
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "expiry",
+                              value
+                            )
+                          }
+                        />
                       </td>
                     </tr>
                   );
@@ -2011,21 +1735,26 @@ export default function EditReceiveForm({
       </section>
 
       {/* =====================================================
-          REMARK
+          หมายเหตุ
       ===================================================== */}
 
       <section
         className="
-          rounded-[24px]
+          relative
+
+          rounded-[28px]
 
           border
-          border-slate-300
+          border-slate-200/90
 
           bg-white/80
 
           p-4
 
-          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
+          shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
+
+          ring-1
+          ring-black/[0.025]
 
           backdrop-blur-2xl
 
@@ -2034,9 +1763,7 @@ export default function EditReceiveForm({
       >
         <label
           htmlFor="remark"
-          className={
-            labelClass
-          }
+          className={labelClass}
         >
           หมายเหตุ
         </label>
@@ -2094,22 +1821,16 @@ export default function EditReceiveForm({
         className="
           flex
           justify-end
-
-          border-t
-          border-slate-300
-
-          pt-6
+          pt-2
         "
       >
         <AppButton
           type="submit"
           variant="success"
           size="md"
-          icon={
-            <span>💾</span>
-          }
+          icon={<span>💾</span>}
         >
-          บันทึกการแก้ไข
+          บันทึก
         </AppButton>
       </div>
     </form>
