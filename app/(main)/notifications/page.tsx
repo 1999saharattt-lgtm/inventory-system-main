@@ -459,6 +459,7 @@ export default async function NotificationsPage() {
 
                     {/* =====================================
                         INFORMATION CARDS
+                        ทุกช่องใช้กรอบสีดำ
                     ===================================== */}
 
                     <div
@@ -470,14 +471,17 @@ export default async function NotificationsPage() {
                         sm:grid-cols-2
                       "
                     >
+                      {/* เลขที่ใบเบิก */}
+
                       <div
                         className="
                           rounded-[16px]
                           border
-                          border-slate-200
+                          border-black
                           bg-white/90
                           px-4
                           py-3
+                          shadow-sm
                         "
                       >
                         <p
@@ -502,14 +506,17 @@ export default async function NotificationsPage() {
                         </p>
                       </div>
 
+                      {/* กลุ่มงาน */}
+
                       <div
                         className="
                           rounded-[16px]
                           border
-                          border-slate-200
+                          border-black
                           bg-blue-50/70
                           px-4
                           py-3
+                          shadow-sm
                         "
                       >
                         <p
@@ -534,15 +541,18 @@ export default async function NotificationsPage() {
                         </p>
                       </div>
 
+                      {/* ผู้ขอเบิก */}
+
                       {issue.officer && (
                         <div
                           className="
                             rounded-[16px]
                             border
-                            border-slate-200
+                            border-black
                             bg-white/90
                             px-4
                             py-3
+                            shadow-sm
                           "
                         >
                           <p
@@ -569,14 +579,17 @@ export default async function NotificationsPage() {
                         </div>
                       )}
 
+                      {/* จำนวนรายการ */}
+
                       <div
                         className="
                           rounded-[16px]
                           border
-                          border-slate-200
+                          border-black
                           bg-orange-50/70
                           px-4
                           py-3
+                          shadow-sm
                         "
                       >
                         <p
@@ -742,7 +755,6 @@ export default async function NotificationsPage() {
 
   /* =======================================================
      STAFF / VIEWER
-
      ใบเบิกที่ ADMIN ดำเนินการแล้ว
   ======================================================= */
 
@@ -1201,6 +1213,7 @@ export default async function NotificationsPage() {
 
                       {/* =====================================
                           INFORMATION CARDS
+                          ทุกช่องใช้กรอบสีดำ
                       ===================================== */}
 
                       <div
@@ -1212,14 +1225,17 @@ export default async function NotificationsPage() {
                           sm:grid-cols-2
                         "
                       >
+                        {/* เลขที่ใบเบิก */}
+
                         <div
                           className="
                             rounded-[16px]
                             border
-                            border-slate-200
+                            border-black
                             bg-white/90
                             px-4
                             py-3
+                            shadow-sm
                           "
                         >
                           <p
@@ -1244,14 +1260,17 @@ export default async function NotificationsPage() {
                           </p>
                         </div>
 
+                        {/* กลุ่มงาน */}
+
                         <div
                           className="
                             rounded-[16px]
                             border
-                            border-slate-200
+                            border-black
                             bg-blue-50/70
                             px-4
                             py-3
+                            shadow-sm
                           "
                         >
                           <p
@@ -1276,15 +1295,18 @@ export default async function NotificationsPage() {
                           </p>
                         </div>
 
+                        {/* ผู้ขอเบิก */}
+
                         {issue.officer && (
                           <div
                             className="
                               rounded-[16px]
                               border
-                              border-slate-200
+                              border-black
                               bg-white/90
                               px-4
                               py-3
+                              shadow-sm
                             "
                           >
                             <p
@@ -1317,14 +1339,17 @@ export default async function NotificationsPage() {
                           </div>
                         )}
 
+                        {/* จำนวนที่ขอเบิก */}
+
                         <div
                           className="
                             rounded-[16px]
                             border
-                            border-slate-200
+                            border-black
                             bg-slate-100/80
                             px-4
                             py-3
+                            shadow-sm
                           "
                         >
                           <p
@@ -1348,14 +1373,17 @@ export default async function NotificationsPage() {
                           </p>
                         </div>
 
+                        {/* จำนวนที่เบิกจ่ายจริง */}
+
                         <div
                           className="
                             rounded-[16px]
                             border
-                            border-emerald-200
+                            border-black
                             bg-emerald-50
                             px-4
                             py-3
+                            shadow-sm
                           "
                         >
                           <p
@@ -1379,15 +1407,18 @@ export default async function NotificationsPage() {
                           </p>
                         </div>
 
+                        {/* ดำเนินการโดย */}
+
                         {issue.approvedBy && (
                           <div
                             className="
                               rounded-[16px]
                               border
-                              border-slate-200
+                              border-black
                               bg-blue-50/70
                               px-4
                               py-3
+                              shadow-sm
                             "
                           >
                             <p
