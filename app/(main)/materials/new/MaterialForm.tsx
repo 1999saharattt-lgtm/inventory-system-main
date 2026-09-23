@@ -58,25 +58,104 @@ type SearchableSelectProps = {
    CATEGORY
 ========================================================= */
 
-const categoryMap: Record<string, string> = {
+const categoryMap: Record<
+  string,
+  string
+> = {
   "วัสดุสำนักงาน": "OFFICE",
-  "วัสดุคอมพิวเตอร์": "COMPUTER",
-  "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
+  "วัสดุคอมพิวเตอร์":
+    "COMPUTER",
+  "วัสดุไฟฟ้าและวิทยุ":
+    "ELECTRIC",
   "วัสดุงานบ้านและงานครัว":
     "HOUSEHOLD",
-  "วัสดุยานพาหนะ": "VEHICLE",
-  "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
+  "วัสดุยานพาหนะ":
+    "VEHICLE",
+  "วัสดุสื่อสิ่งพิมพ์":
+    "PRINTING",
 };
 
 const categoryCodeToName =
   Object.fromEntries(
-    Object.entries(categoryMap).map(
-      ([name, code]) => [
-        code,
-        name,
-      ]
-    )
+    Object.entries(
+      categoryMap
+    ).map(([name, code]) => [
+      code,
+      name,
+    ])
   ) as Record<string, string>;
+
+/* =========================================================
+   MONEY HELPERS
+========================================================= */
+
+function formatMoneyInput(
+  value: string
+) {
+  const cleaned = value
+    .replace(/,/g, "")
+    .replace(/[^\d.]/g, "");
+
+  if (!cleaned) {
+    return "";
+  }
+
+  const firstDot =
+    cleaned.indexOf(".");
+
+  let integerPart =
+    firstDot >= 0
+      ? cleaned.slice(
+          0,
+          firstDot
+        )
+      : cleaned;
+
+  let decimalPart =
+    firstDot >= 0
+      ? cleaned
+          .slice(firstDot + 1)
+          .replace(/\./g, "")
+          .slice(0, 2)
+      : "";
+
+  integerPart =
+    integerPart.replace(
+      /^0+(?=\d)/,
+      ""
+    );
+
+  if (!integerPart) {
+    integerPart = "0";
+  }
+
+  const formattedInteger =
+    Number(
+      integerPart
+    ).toLocaleString("en-US");
+
+  if (firstDot >= 0) {
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
+  return formattedInteger;
+}
+
+function moneyToNumber(
+  value: string
+) {
+  const numberValue = Number(
+    value.replace(/,/g, "")
+  );
+
+  return Number.isFinite(
+    numberValue
+  )
+    ? Number(
+        numberValue.toFixed(2)
+      )
+    : 0;
+}
 
 /* =========================================================
    SEARCHABLE SELECT
@@ -105,19 +184,11 @@ function SearchableSelect({
   const [search, setSearch] =
     useState("");
 
-  /* =======================================================
-     SELECTED
-  ======================================================= */
-
   const selectedOption =
     options.find(
       (option) =>
         option.value === value
     );
-
-  /* =======================================================
-     FILTER
-  ======================================================= */
 
   const filteredOptions =
     useMemo(() => {
@@ -133,17 +204,17 @@ function SearchableSelect({
       return options.filter(
         (option) =>
           option.label
-            .toLocaleLowerCase("th")
+            .toLocaleLowerCase(
+              "th"
+            )
             .includes(keyword) ||
           option.value
-            .toLocaleLowerCase("th")
+            .toLocaleLowerCase(
+              "th"
+            )
             .includes(keyword)
       );
     }, [options, search]);
-
-  /* =======================================================
-     CLICK OUTSIDE
-  ======================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -173,10 +244,6 @@ function SearchableSelect({
     };
   }, []);
 
-  /* =======================================================
-     AUTO FOCUS
-  ======================================================= */
-
   useEffect(() => {
     if (!open) {
       return;
@@ -188,13 +255,11 @@ function SearchableSelect({
       }, 0);
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        timer
+      );
     };
   }, [open]);
-
-  /* =======================================================
-     UI
-  ======================================================= */
 
   return (
     <div
@@ -227,10 +292,6 @@ function SearchableSelect({
         />
       )}
 
-      {/* ===================================================
-          CONTROL
-      =================================================== */}
-
       <button
         id={id}
         type="button"
@@ -242,15 +303,18 @@ function SearchableSelect({
             return;
           }
 
-          setOpen((current) => {
-            const next = !current;
+          setOpen(
+            (current) => {
+              const next =
+                !current;
 
-            if (!next) {
-              setSearch("");
+              if (!next) {
+                setSearch("");
+              }
+
+              return next;
             }
-
-            return next;
-          });
+          );
         }}
         className="
           flex
@@ -334,10 +398,6 @@ function SearchableSelect({
         </span>
       </button>
 
-      {/* ===================================================
-          DROPDOWN
-      =================================================== */}
-
       {open && !disabled && (
         <div
           className="
@@ -360,17 +420,11 @@ function SearchableSelect({
             shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
           "
         >
-          {/* ===============================================
-              SEARCH
-          =============================================== */}
-
           <div
             className="
               border-b
               border-slate-200
-
               bg-slate-50
-
               p-3
             "
           >
@@ -382,17 +436,24 @@ function SearchableSelect({
               placeholder={
                 searchPlaceholder
               }
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setSearch(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
-              onKeyDown={(event) => {
+              onKeyDown={(
+                event
+              ) => {
                 if (
                   event.key ===
                   "Escape"
                 ) {
-                  setOpen(false);
+                  setOpen(
+                    false
+                  );
                   setSearch("");
                 }
 
@@ -409,7 +470,9 @@ function SearchableSelect({
                       .value
                   );
 
-                  setOpen(false);
+                  setOpen(
+                    false
+                  );
                   setSearch("");
                 }
               }}
@@ -448,20 +511,13 @@ function SearchableSelect({
             />
           </div>
 
-          {/* ===============================================
-              OPTIONS
-          =============================================== */}
-
           <div
             role="listbox"
             className="
               max-h-[260px]
-
               overflow-y-auto
               overscroll-contain
-
               bg-white
-
               p-2
             "
           >
@@ -488,7 +544,9 @@ function SearchableSelect({
                           option.value
                         );
 
-                        setOpen(false);
+                        setOpen(
+                          false
+                        );
                         setSearch("");
                       }}
                       className={`
@@ -553,7 +611,6 @@ function SearchableSelect({
                 className="
                   px-4
                   py-8
-
                   text-center
                   text-sm
                   font-bold
@@ -605,6 +662,9 @@ export default function MaterialForm({
   const [newUnit, setNewUnit] =
     useState("");
 
+  const [latestPrice, setLatestPrice] =
+    useState("0.00");
+
   const [
     isSubmitting,
     setIsSubmitting,
@@ -622,11 +682,11 @@ export default function MaterialForm({
           label:
             "-- ไม่ระบุผู้จำหน่าย --",
         },
-
         ...vendors.map(
           (vendor) => ({
-            value:
-              String(vendor.id),
+            value: String(
+              vendor.id
+            ),
             label: vendor.name,
           })
         ),
@@ -650,39 +710,40 @@ export default function MaterialForm({
      MATERIAL NAMES
   ======================================================= */
 
-  const names =
-    useMemo(() => {
-      if (!category) {
-        return [];
-      }
+  const names = useMemo(() => {
+    if (!category) {
+      return [];
+    }
 
-      const oldNames =
-        MATERIALS[
-          category as keyof typeof MATERIALS
-        ] ?? [];
+    const oldNames =
+      MATERIALS[
+        category as keyof typeof MATERIALS
+      ] ?? [];
 
-      const newNames =
-        materialMasters
-          .filter(
-            (item) =>
-              item.category ===
-              categoryMap[category]
-          )
-          .map(
-            (item) =>
-              item.name
-          );
+    const newNames =
+      materialMasters
+        .filter(
+          (item) =>
+            item.category ===
+            categoryMap[
+              category
+            ]
+        )
+        .map(
+          (item) =>
+            item.name
+        );
 
-      return Array.from(
-        new Set([
-          ...oldNames,
-          ...newNames,
-        ])
-      );
-    }, [
-      category,
-      materialMasters,
-    ]);
+    return Array.from(
+      new Set([
+        ...oldNames,
+        ...newNames,
+      ])
+    );
+  }, [
+    category,
+    materialMasters,
+  ]);
 
   const materialOptions =
     useMemo<SearchableOption[]>(
@@ -693,7 +754,6 @@ export default function MaterialForm({
             label: item,
           })
         ),
-
         {
           value: "__NEW__",
           label:
@@ -748,7 +808,6 @@ export default function MaterialForm({
       alert(
         "กรุณาเลือกหมวดหมู่"
       );
-
       return;
     }
 
@@ -756,7 +815,6 @@ export default function MaterialForm({
       alert(
         "กรุณาระบุชื่อรายการพัสดุ"
       );
-
       return;
     }
 
@@ -764,16 +822,14 @@ export default function MaterialForm({
       alert(
         "กรุณาระบุหน่วย"
       );
-
       return;
     }
 
     const body = {
-      code:
-        String(
-          formData.get("code") ??
-            ""
-        ).trim(),
+      code: String(
+        formData.get("code") ??
+          ""
+      ).trim(),
 
       vendorId: vendorId
         ? Number(vendorId)
@@ -790,13 +846,10 @@ export default function MaterialForm({
         formData.get("balance")
       ),
 
-      latestPrice: Number(
-        Number(
-          formData.get(
-            "latestPrice"
-          )
-        ).toFixed(2)
-      ),
+      latestPrice:
+        moneyToNumber(
+          latestPrice
+        ),
     };
 
     try {
@@ -855,11 +908,9 @@ export default function MaterialForm({
   const labelClassName = `
     mb-2
     block
-
     text-sm
     font-extrabold
     !text-slate-700
-
     sm:text-base
   `;
 
@@ -908,24 +959,20 @@ export default function MaterialForm({
       className="
         relative
         z-0
-
         w-full
         min-w-0
-
         overflow-visible
       "
     >
       <AppCard
         className="
           relative
-
           w-full
-
           !overflow-visible
         "
       >
         {/* =================================================
-            FORM HEADER
+            HEADER
         ================================================= */}
 
         <div className="mb-6">
@@ -942,7 +989,6 @@ export default function MaterialForm({
           <p
             className="
               mt-1
-
               text-sm
               font-semibold
               !text-slate-500
@@ -953,36 +999,24 @@ export default function MaterialForm({
         </div>
 
         {/* =================================================
-            FORM GRID
+            GRID
         ================================================= */}
 
         <div
           className="
             relative
-
             grid
             grid-cols-1
             gap-4
-
             overflow-visible
-
             lg:grid-cols-2
           "
         >
-          {/* ===============================================
-              VENDOR
-          =============================================== */}
+          {/* VENDOR */}
 
-          <div
-            className="
-              relative
-              z-50
-            "
-          >
+          <div className="relative z-50">
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="vendorId"
@@ -1009,20 +1043,11 @@ export default function MaterialForm({
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              CATEGORY
-          =============================================== */}
+          {/* CATEGORY */}
 
-          <div
-            className="
-              relative
-              z-50
-            "
-          >
+          <div className="relative z-50">
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="category"
@@ -1048,7 +1073,6 @@ export default function MaterialForm({
                   setCategory(
                     value
                   );
-
                   setName("");
                   setNewName("");
                   setNewUnit("");
@@ -1057,22 +1081,17 @@ export default function MaterialForm({
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              MATERIAL
-          =============================================== */}
+          {/* MATERIAL */}
 
           <div
             className="
               relative
               z-40
-
               lg:col-span-2
             "
           >
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="materialName"
@@ -1115,29 +1134,19 @@ export default function MaterialForm({
                 }}
               />
 
-              {/* ===========================================
-                  NEW MATERIAL
-              =========================================== */}
-
               {name ===
                 "__NEW__" && (
                 <div
                   className="
                     mt-4
-
                     grid
                     grid-cols-1
                     gap-4
-
                     rounded-[16px]
-
                     border
                     border-slate-200
-
                     bg-slate-50
-
                     p-4
-
                     md:grid-cols-2
                   "
                 >
@@ -1209,183 +1218,193 @@ export default function MaterialForm({
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              BALANCE
-          =============================================== */}
+          {/* BALANCE */}
 
-          <div
-            className="
-              relative
-              z-20
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="balance"
-                className={
-                  labelClassName
-                }
-              >
-                จำนวน
-              </label>
+          <AppInfoCard>
+            <label
+              htmlFor="balance"
+              className={
+                labelClassName
+              }
+            >
+              จำนวน
+            </label>
 
+            <input
+              id="balance"
+              type="number"
+              name="balance"
+              defaultValue={0}
+              min="0"
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* UNIT */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="unit"
+              className={
+                labelClassName
+              }
+            >
+              หน่วย
+            </label>
+
+            <input
+              id="unit"
+              value={unit}
+              readOnly
+              placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
+              className="
+                min-h-[50px]
+                w-full
+
+                cursor-default
+
+                rounded-[14px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-4
+                py-3
+
+                text-base
+                font-extrabold
+                !text-slate-700
+
+                shadow-sm
+                outline-none
+
+                placeholder:!text-slate-400
+              "
+            />
+          </AppInfoCard>
+
+          {/* CODE */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="code"
+              className={
+                labelClassName
+              }
+            >
+              รหัสพัสดุ
+            </label>
+
+            <input
+              id="code"
+              name="code"
+              type="text"
+              placeholder="กรอกรหัสพัสดุ"
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* PRICE */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="latestPrice"
+              className={
+                labelClassName
+              }
+            >
+              ราคาล่าสุด
+            </label>
+
+            <div
+              className="
+                flex
+                min-h-[50px]
+                w-full
+                overflow-hidden
+
+                rounded-[14px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                shadow-sm
+
+                transition-all
+                duration-200
+
+                focus-within:border-blue-400
+                focus-within:ring-4
+                focus-within:ring-blue-500/10
+              "
+            >
               <input
-                id="balance"
-                type="number"
-                name="balance"
-                defaultValue={0}
-                min="0"
-                className={
-                  inputClassName
+                id="latestPrice"
+                type="text"
+                inputMode="decimal"
+                value={
+                  latestPrice
                 }
-              />
-            </AppInfoCard>
-          </div>
-
-          {/* ===============================================
-              UNIT
-          =============================================== */}
-
-          <div
-            className="
-              relative
-              z-20
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="unit"
-                className={
-                  labelClassName
-                }
-              >
-                หน่วย
-              </label>
-
-              <input
-                id="unit"
-                value={unit}
-                readOnly
-                placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
+                onChange={(
+                  event
+                ) => {
+                  setLatestPrice(
+                    formatMoneyInput(
+                      event.target
+                        .value
+                    )
+                  );
+                }}
                 className="
-                  min-h-[50px]
-                  w-full
+                  min-w-0
+                  flex-1
 
-                  cursor-default
-
-                  rounded-[14px]
-
-                  border
-                  border-slate-300
-
-                  bg-white
+                  border-0
+                  bg-transparent
 
                   px-4
                   py-3
 
+                  text-right
                   text-base
-                  font-extrabold
-                  !text-slate-700
+                  font-bold
+                  tabular-nums
+                  !text-slate-900
 
-                  shadow-sm
                   outline-none
-
-                  placeholder:!text-slate-400
                 "
               />
-            </AppInfoCard>
-          </div>
 
-          {/* ===============================================
-              CODE
-          =============================================== */}
+              <div
+                className="
+                  flex
+                  shrink-0
+                  items-center
 
-          <div
-            className="
-              relative
-              z-10
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="code"
-                className={
-                  labelClassName
-                }
+                  border-l
+                  border-slate-200
+
+                  bg-slate-50
+
+                  px-4
+
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+                "
               >
-                รหัสพัสดุ
-              </label>
-
-              <input
-                id="code"
-                name="code"
-                type="text"
-                placeholder="กรอกรหัสพัสดุ"
-                className={
-                  inputClassName
-                }
-              />
-            </AppInfoCard>
-          </div>
-
-          {/* ===============================================
-              PRICE
-          =============================================== */}
-
-          <div
-            className="
-              relative
-              z-10
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="latestPrice"
-                className={
-                  labelClassName
-                }
-              >
-                ราคาล่าสุด
-              </label>
-
-              <div className="relative">
-                <input
-                  id="latestPrice"
-                  type="number"
-                  name="latestPrice"
-                  defaultValue="0.00"
-                  step="0.01"
-                  min="0"
-                  className={`
-                    ${inputClassName}
-
-                    pr-16
-                    text-right
-                    tabular-nums
-                  `}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-
-                    absolute
-                    inset-y-0
-                    right-4
-
-                    flex
-                    items-center
-
-                    text-sm
-                    font-extrabold
-                    !text-slate-500
-                  "
-                >
-                  บาท
-                </div>
+                บาท
               </div>
-            </AppInfoCard>
-          </div>
+            </div>
+          </AppInfoCard>
         </div>
 
         {/* =================================================
@@ -1394,9 +1413,6 @@ export default function MaterialForm({
 
         <div
           className="
-            relative
-            z-0
-
             mt-6
 
             flex
@@ -1433,20 +1449,15 @@ export default function MaterialForm({
                   className="
                     h-4
                     w-4
-
                     animate-spin
-
                     rounded-full
-
                     border-2
                     border-current
                     border-t-transparent
                   "
                 />
               ) : (
-                <span>
-                  💾
-                </span>
+                <span>💾</span>
               )
             }
           >

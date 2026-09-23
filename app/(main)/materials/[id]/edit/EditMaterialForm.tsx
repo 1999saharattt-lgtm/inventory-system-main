@@ -73,14 +73,101 @@ const categories = [
   "PRINTING",
 ];
 
-const categoryName: Record<string, string> = {
+const categoryName: Record<
+  string,
+  string
+> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
+
+/* =========================================================
+   MONEY
+========================================================= */
+
+function formatMoneyInput(
+  value: string
+) {
+  const cleaned = value
+    .replace(/,/g, "")
+    .replace(/[^\d.]/g, "");
+
+  if (!cleaned) {
+    return "";
+  }
+
+  const firstDot =
+    cleaned.indexOf(".");
+
+  let integerPart =
+    firstDot >= 0
+      ? cleaned.slice(
+          0,
+          firstDot
+        )
+      : cleaned;
+
+  let decimalPart =
+    firstDot >= 0
+      ? cleaned
+          .slice(firstDot + 1)
+          .replace(/\./g, "")
+          .slice(0, 2)
+      : "";
+
+  integerPart =
+    integerPart.replace(
+      /^0+(?=\d)/,
+      ""
+    );
+
+  if (!integerPart) {
+    integerPart = "0";
+  }
+
+  const formattedInteger =
+    Number(
+      integerPart
+    ).toLocaleString("en-US");
+
+  if (firstDot >= 0) {
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
+  return formattedInteger;
+}
+
+function moneyToNumber(
+  value: string
+) {
+  const numberValue = Number(
+    value.replace(/,/g, "")
+  );
+
+  return Number.isFinite(
+    numberValue
+  )
+    ? Number(
+        numberValue.toFixed(2)
+      )
+    : 0;
+}
+
+function initialMoneyValue(
+  value: number
+) {
+  return Number(
+    value
+  ).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
 /* =========================================================
    SEARCHABLE DROPDOWN
@@ -109,19 +196,11 @@ function SearchableDropdown({
   const [search, setSearch] =
     useState("");
 
-  /* =======================================================
-     SELECTED OPTION
-  ======================================================= */
-
   const selectedOption =
     options.find(
       (option) =>
         option.value === value
     );
-
-  /* =======================================================
-     FILTER
-  ======================================================= */
 
   const filteredOptions =
     useMemo(() => {
@@ -137,17 +216,17 @@ function SearchableDropdown({
       return options.filter(
         (option) =>
           option.label
-            .toLocaleLowerCase("th")
+            .toLocaleLowerCase(
+              "th"
+            )
             .includes(keyword) ||
           option.value
-            .toLocaleLowerCase("th")
+            .toLocaleLowerCase(
+              "th"
+            )
             .includes(keyword)
       );
     }, [options, search]);
-
-  /* =======================================================
-     CLOSE WHEN CLICK OUTSIDE
-  ======================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -177,10 +256,6 @@ function SearchableDropdown({
     };
   }, []);
 
-  /* =======================================================
-     AUTO FOCUS
-  ======================================================= */
-
   useEffect(() => {
     if (!open) {
       return;
@@ -192,13 +267,11 @@ function SearchableDropdown({
       }, 0);
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        timer
+      );
     };
   }, [open]);
-
-  /* =======================================================
-     UI
-  ======================================================= */
 
   return (
     <div
@@ -214,10 +287,6 @@ function SearchableDropdown({
         }
       `}
     >
-      {/* =====================================================
-          REQUIRED FIELD
-      ===================================================== */}
-
       {required && (
         <input
           tabIndex={-1}
@@ -235,10 +304,6 @@ function SearchableDropdown({
         />
       )}
 
-      {/* =====================================================
-          CONTROL
-      ===================================================== */}
-
       <button
         id={id}
         type="button"
@@ -250,15 +315,18 @@ function SearchableDropdown({
             return;
           }
 
-          setOpen((current) => {
-            const next = !current;
+          setOpen(
+            (current) => {
+              const next =
+                !current;
 
-            if (!next) {
-              setSearch("");
+              if (!next) {
+                setSearch("");
+              }
+
+              return next;
             }
-
-            return next;
-          });
+          );
         }}
         className="
           flex
@@ -268,7 +336,7 @@ function SearchableDropdown({
           justify-between
           gap-3
 
-          rounded-[16px]
+          rounded-[14px]
 
           border
           border-slate-300
@@ -342,10 +410,6 @@ function SearchableDropdown({
         </span>
       </button>
 
-      {/* =====================================================
-          DROPDOWN PANEL
-      ===================================================== */}
-
       {open && !disabled && (
         <div
           className="
@@ -368,17 +432,11 @@ function SearchableDropdown({
             shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
           "
         >
-          {/* =================================================
-              SEARCH
-          ================================================= */}
-
           <div
             className="
               border-b
               border-slate-200
-
               bg-slate-50
-
               p-3
             "
           >
@@ -387,17 +445,27 @@ function SearchableDropdown({
               type="text"
               value={search}
               autoComplete="off"
-              onChange={(event) =>
+              placeholder={
+                searchPlaceholder
+              }
+              onChange={(
+                event
+              ) =>
                 setSearch(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
-              onKeyDown={(event) => {
+              onKeyDown={(
+                event
+              ) => {
                 if (
                   event.key ===
                   "Escape"
                 ) {
-                  setOpen(false);
+                  setOpen(
+                    false
+                  );
                   setSearch("");
                 }
 
@@ -414,13 +482,12 @@ function SearchableDropdown({
                       .value
                   );
 
-                  setOpen(false);
+                  setOpen(
+                    false
+                  );
                   setSearch("");
                 }
               }}
-              placeholder={
-                searchPlaceholder
-              }
               className="
                 min-h-[46px]
                 w-full
@@ -456,20 +523,13 @@ function SearchableDropdown({
             />
           </div>
 
-          {/* =================================================
-              OPTIONS
-          ================================================= */}
-
           <div
             role="listbox"
             className="
               max-h-[260px]
-
               overflow-y-auto
               overscroll-contain
-
               bg-white
-
               p-2
             "
           >
@@ -496,7 +556,9 @@ function SearchableDropdown({
                           option.value
                         );
 
-                        setOpen(false);
+                        setOpen(
+                          false
+                        );
                         setSearch("");
                       }}
                       className={`
@@ -561,7 +623,6 @@ function SearchableDropdown({
                 className="
                   px-4
                   py-8
-
                   text-center
                   text-sm
                   font-bold
@@ -579,7 +640,7 @@ function SearchableDropdown({
 }
 
 /* =========================================================
-   EDIT MATERIAL FORM
+   EDIT FORM
 ========================================================= */
 
 export default function EditMaterialForm({
@@ -602,6 +663,13 @@ export default function EditMaterialForm({
     useState(
       material.vendorId?.toString() ??
         ""
+    );
+
+  const [latestPrice, setLatestPrice] =
+    useState(
+      initialMoneyValue(
+        material.latestPrice
+      )
     );
 
   /* =======================================================
@@ -672,8 +740,8 @@ export default function EditMaterialForm({
       () =>
         categories.map(
           (categoryCode) => ({
-            value: categoryCode,
-
+            value:
+              categoryCode,
             label:
               categoryName[
                 categoryCode
@@ -688,8 +756,10 @@ export default function EditMaterialForm({
       () =>
         names.map(
           (materialName) => ({
-            value: materialName,
-            label: materialName,
+            value:
+              materialName,
+            label:
+              materialName,
           })
         ),
       [names]
@@ -708,7 +778,6 @@ export default function EditMaterialForm({
           (vendor) => ({
             value:
               vendor.id.toString(),
-
             label: vendor.name,
           })
         ),
@@ -733,7 +802,6 @@ export default function EditMaterialForm({
       alert(
         "กรุณาเลือกหมวดหมู่"
       );
-
       return;
     }
 
@@ -741,7 +809,6 @@ export default function EditMaterialForm({
       alert(
         "กรุณาเลือกรายการพัสดุ"
       );
-
       return;
     }
 
@@ -749,7 +816,6 @@ export default function EditMaterialForm({
       alert(
         "ไม่พบหน่วยของรายการพัสดุ กรุณาตรวจสอบข้อมูล"
       );
-
       return;
     }
 
@@ -759,8 +825,9 @@ export default function EditMaterialForm({
       );
 
     const body = {
-      code:
-        formData.get("code"),
+      code: formData.get(
+        "code"
+      ),
 
       category,
 
@@ -772,13 +839,10 @@ export default function EditMaterialForm({
         formData.get("balance")
       ),
 
-      latestPrice: Number(
-        Number(
-          formData.get(
-            "latestPrice"
-          )
-        ).toFixed(2)
-      ),
+      latestPrice:
+        moneyToNumber(
+          latestPrice
+        ),
 
       vendorId: vendorId
         ? Number(vendorId)
@@ -830,9 +894,7 @@ export default function EditMaterialForm({
         );
       }
 
-      alert(
-        "บันทึกสำเร็จ"
-      );
+      alert("บันทึกสำเร็จ");
 
       router.push(
         `/materials/category/${category}`
@@ -851,17 +913,15 @@ export default function EditMaterialForm({
   }
 
   /* =======================================================
-     SHARED INPUT
+     CLASSES
   ======================================================= */
 
   const labelClassName = `
     mb-2
     block
-
     text-sm
     font-extrabold
     !text-slate-700
-
     sm:text-base
   `;
 
@@ -869,7 +929,7 @@ export default function EditMaterialForm({
     min-h-[50px]
     w-full
 
-    rounded-[16px]
+    rounded-[14px]
 
     border
     border-slate-300
@@ -909,27 +969,20 @@ export default function EditMaterialForm({
       onSubmit={handleSubmit}
       className="
         relative
-
         z-0
-
         w-full
         min-w-0
-
         overflow-visible
       "
     >
       <AppCard
         className="
           relative
-
           w-full
-
           !overflow-visible
         "
       >
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
 
         <div className="mb-6">
           <h2
@@ -945,47 +998,32 @@ export default function EditMaterialForm({
           <p
             className="
               mt-1
-
               text-sm
               font-semibold
               !text-slate-500
             "
           >
-            ตรวจสอบและแก้ไขรายละเอียดของพัสดุ
+            ตรวจสอบและแก้ไขข้อมูลให้ถูกต้องก่อนบันทึก
           </p>
         </div>
 
-        {/* =================================================
-            GRID
-        ================================================= */}
+        {/* GRID */}
 
         <div
           className="
             relative
-
             grid
             grid-cols-1
             gap-4
-
             overflow-visible
-
             lg:grid-cols-2
           "
         >
-          {/* ===============================================
-              VENDOR
-          =============================================== */}
+          {/* VENDOR */}
 
-          <div
-            className="
-              relative
-              z-50
-            "
-          >
+          <div className="relative z-50">
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="vendorId"
@@ -1012,20 +1050,11 @@ export default function EditMaterialForm({
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              CATEGORY
-          =============================================== */}
+          {/* CATEGORY */}
 
-          <div
-            className="
-              relative
-              z-50
-            "
-          >
+          <div className="relative z-50">
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="category"
@@ -1058,29 +1087,23 @@ export default function EditMaterialForm({
                   setCategory(
                     selectedCategory
                   );
-
                   setName("");
                 }}
               />
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              MATERIAL
-          =============================================== */}
+          {/* MATERIAL */}
 
           <div
             className="
               relative
               z-40
-
               lg:col-span-2
             "
           >
             <AppInfoCard
-              className="
-                !overflow-visible
-              "
+              className="!overflow-visible"
             >
               <label
                 htmlFor="name"
@@ -1104,206 +1127,210 @@ export default function EditMaterialForm({
                 }
                 searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
                 emptyText="ไม่พบรายการพัสดุ"
-                disabled={!category}
+                disabled={
+                  !category
+                }
                 required
-                onChange={setName}
-              />
-            </AppInfoCard>
-          </div>
-
-          {/* ===============================================
-              BALANCE
-          =============================================== */}
-
-          <div
-            className="
-              relative
-              z-20
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="balance"
-                className={
-                  labelClassName
-                }
-              >
-                จำนวน
-              </label>
-
-              <input
-                id="balance"
-                type="number"
-                name="balance"
-                min="0"
-                defaultValue={
-                  material.balance
-                }
-                className={
-                  inputClassName
+                onChange={
+                  setName
                 }
               />
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              UNIT
-          =============================================== */}
+          {/* BALANCE */}
 
-          <div
-            className="
-              relative
-              z-20
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="unit"
-                className={
-                  labelClassName
-                }
-              >
-                หน่วย
-              </label>
+          <AppInfoCard>
+            <label
+              htmlFor="balance"
+              className={
+                labelClassName
+              }
+            >
+              จำนวน
+            </label>
 
+            <input
+              id="balance"
+              type="number"
+              name="balance"
+              min="0"
+              defaultValue={
+                material.balance
+              }
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* UNIT */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="unit"
+              className={
+                labelClassName
+              }
+            >
+              หน่วย
+            </label>
+
+            <input
+              id="unit"
+              value={unit}
+              readOnly
+              placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
+              className="
+                min-h-[50px]
+                w-full
+                cursor-default
+
+                rounded-[14px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-4
+                py-3
+
+                text-base
+                font-extrabold
+                !text-slate-700
+
+                shadow-sm
+                outline-none
+              "
+            />
+          </AppInfoCard>
+
+          {/* CODE */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="code"
+              className={
+                labelClassName
+              }
+            >
+              รหัสพัสดุ
+            </label>
+
+            <input
+              id="code"
+              name="code"
+              defaultValue={
+                material.code
+              }
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* PRICE */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="latestPrice"
+              className={
+                labelClassName
+              }
+            >
+              ราคาล่าสุด
+            </label>
+
+            <div
+              className="
+                flex
+                min-h-[50px]
+                w-full
+                overflow-hidden
+
+                rounded-[14px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                shadow-sm
+
+                transition-all
+                duration-200
+
+                focus-within:border-blue-400
+                focus-within:ring-4
+                focus-within:ring-blue-500/10
+              "
+            >
               <input
-                id="unit"
-                value={unit}
-                readOnly
-                placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
+                id="latestPrice"
+                type="text"
+                inputMode="decimal"
+                value={
+                  latestPrice
+                }
+                onChange={(
+                  event
+                ) => {
+                  setLatestPrice(
+                    formatMoneyInput(
+                      event.target
+                        .value
+                    )
+                  );
+                }}
                 className="
-                  min-h-[50px]
-                  w-full
+                  min-w-0
+                  flex-1
 
-                  cursor-default
-
-                  rounded-[16px]
-
-                  border
-                  border-slate-300
-
-                  bg-slate-100
+                  border-0
+                  bg-transparent
 
                   px-4
                   py-3
 
+                  text-right
                   text-base
-                  font-extrabold
-                  !text-slate-700
+                  font-bold
+                  tabular-nums
+                  !text-slate-900
 
-                  shadow-sm
                   outline-none
-
-                  placeholder:!text-slate-400
                 "
               />
-            </AppInfoCard>
-          </div>
 
-          {/* ===============================================
-              CODE
-          =============================================== */}
+              <div
+                className="
+                  flex
+                  shrink-0
+                  items-center
 
-          <div
-            className="
-              relative
-              z-10
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="code"
-                className={
-                  labelClassName
-                }
+                  border-l
+                  border-slate-200
+
+                  bg-slate-50
+
+                  px-4
+
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+                "
               >
-                รหัสพัสดุ
-              </label>
-
-              <input
-                id="code"
-                name="code"
-                defaultValue={
-                  material.code
-                }
-                className={
-                  inputClassName
-                }
-              />
-            </AppInfoCard>
-          </div>
-
-          {/* ===============================================
-              PRICE
-          =============================================== */}
-
-          <div
-            className="
-              relative
-              z-10
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="latestPrice"
-                className={
-                  labelClassName
-                }
-              >
-                ราคาล่าสุด
-              </label>
-
-              <div className="relative">
-                <input
-                  id="latestPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  name="latestPrice"
-                  defaultValue={
-                    material.latestPrice
-                  }
-                  className={`
-                    ${inputClassName}
-
-                    pr-16
-                    text-right
-                    tabular-nums
-                  `}
-                />
-
-                <div
-                  className="
-                    pointer-events-none
-
-                    absolute
-                    inset-y-0
-                    right-4
-
-                    flex
-                    items-center
-
-                    text-sm
-                    font-extrabold
-                    !text-slate-500
-                  "
-                >
-                  บาท
-                </div>
+                บาท
               </div>
-            </AppInfoCard>
-          </div>
+            </div>
+          </AppInfoCard>
         </div>
 
-        {/* =================================================
-            ACTIONS
-        ================================================= */}
+        {/* ACTIONS */}
 
         <div
           className="
-            relative
-            z-0
-
             mt-6
 
             flex
@@ -1338,20 +1365,15 @@ export default function EditMaterialForm({
                   className="
                     h-4
                     w-4
-
                     animate-spin
-
                     rounded-full
-
                     border-2
                     border-current
                     border-t-transparent
                   "
                 />
               ) : (
-                <span>
-                  💾
-                </span>
+                <span>💾</span>
               )
             }
           >
