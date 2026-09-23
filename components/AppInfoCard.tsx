@@ -7,100 +7,132 @@ import type {
    TYPES
 ========================================================= */
 
-export type AppTableCardProps = {
-  children: ReactNode;
-
-  title?: ReactNode;
-  subtitle?: ReactNode;
+export type AppInfoCardProps = {
+  /*
+   * รูปแบบมาตรฐาน
+   *
+   * <AppInfoCard
+   *   label="วันที่รับเข้า"
+   *   value="22 กันยายน 2569"
+   * />
+   */
+  label?: ReactNode;
+  value?: ReactNode;
 
   /*
-   * รองรับข้อความด้านขวาของหัวตาราง เช่น
-   * badge="15 รายการ"
+   * รองรับการใส่เนื้อหาเอง
+   *
+   * <AppInfoCard>
+   *   ...
+   * </AppInfoCard>
    */
-  badge?: ReactNode;
+  children?: ReactNode;
+
+  /*
+   * Icon ด้านหน้าหัวข้อ
+   */
+  icon?: ReactNode;
 
   className?: string;
-  headerClassName?: string;
   contentClassName?: string;
-  badgeClassName?: string;
+  labelClassName?: string;
+  valueClassName?: string;
 } & Omit<
-  HTMLAttributes<HTMLElement>,
-  "children" | "className" | "title"
+  HTMLAttributes<HTMLDivElement>,
+  | "children"
+  | "className"
 >;
 
 /* =========================================================
-   APP TABLE CARD
+   APP INFO CARD
 ========================================================= */
 
-export default function AppTableCard({
+export default function AppInfoCard({
+  label,
+  value,
   children,
-
-  title,
-  subtitle,
-  badge,
+  icon,
 
   className = "",
-  headerClassName = "",
   contentClassName = "",
-  badgeClassName = "",
+  labelClassName = "",
+  valueClassName = "",
 
   ...props
-}: AppTableCardProps) {
-  const hasHeader =
-    title !== undefined ||
-    subtitle !== undefined ||
-    badge !== undefined;
+}: AppInfoCardProps) {
+  const hasCustomContent =
+    children !== undefined &&
+    children !== null;
 
   return (
-    <section
+    <div
       {...props}
       className={`
+        group
+
         relative
+
+        flex
+        min-h-[96px]
         w-full
         min-w-0
+        flex-col
+        justify-center
 
         overflow-hidden
 
-        rounded-[28px]
+        rounded-[20px]
 
         border
-        border-white/80
+        border-white/90
 
         bg-gradient-to-br
         from-white/95
         via-white/90
         to-slate-50/85
 
-        shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45),inset_0_1px_0_rgba(255,255,255,0.95)]
+        px-4
+        py-3.5
+
+        shadow-[0_14px_36px_-22px_rgba(15,23,42,0.42),inset_0_1px_0_rgba(255,255,255,0.98)]
 
         ring-1
-        ring-slate-900/[0.05]
+        ring-slate-900/[0.06]
 
-        backdrop-blur-2xl
+        backdrop-blur-xl
+
+        transition-all
+        duration-300
+        ease-out
+
+        hover:-translate-y-[1px]
+
+        hover:shadow-[0_18px_42px_-22px_rgba(15,23,42,0.48),inset_0_1px_0_rgba(255,255,255,1)]
 
         ${className}
       `}
     >
       {/* =====================================================
-          IOS AMBIENT BACKGROUND
+          IOS AMBIENT LIGHT
       ===================================================== */}
 
       <div
         aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          -right-20
-          -top-20
 
-          h-48
-          w-48
+          absolute
+          -right-10
+          -top-10
+
+          h-24
+          w-24
 
           rounded-full
 
           bg-blue-400/[0.07]
 
-          blur-3xl
+          blur-2xl
         "
       />
 
@@ -108,29 +140,33 @@ export default function AppTableCard({
         aria-hidden="true"
         className="
           pointer-events-none
-          absolute
-          -bottom-24
-          -left-20
 
-          h-52
-          w-52
+          absolute
+          -bottom-12
+          -left-10
+
+          h-24
+          w-24
 
           rounded-full
 
-          bg-cyan-400/[0.06]
+          bg-cyan-400/[0.05]
 
-          blur-3xl
+          blur-2xl
         "
       />
 
-      {/* แสงสะท้อนด้านบนแบบ iOS */}
+      {/* =====================================================
+          TOP GLASS HIGHLIGHT
+      ===================================================== */}
 
       <div
         aria-hidden="true"
         className="
           pointer-events-none
+
           absolute
-          inset-x-0
+          inset-x-4
           top-0
 
           h-px
@@ -141,111 +177,6 @@ export default function AppTableCard({
           to-transparent
         "
       />
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
-      {hasHeader && (
-        <div
-          className={`
-            relative
-            z-10
-
-            flex
-            flex-col
-            gap-3
-
-            px-5
-            py-5
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            sm:px-6
-
-            ${headerClassName}
-          `}
-        >
-          {/* =================================================
-              TITLE + SUBTITLE
-          ================================================= */}
-
-          <div className="min-w-0">
-            {title !== undefined && (
-              <h2
-                className="
-                  text-lg
-                  font-black
-                  tracking-tight
-                  !text-slate-900
-
-                  sm:text-xl
-                "
-              >
-                {title}
-              </h2>
-            )}
-
-            {subtitle !== undefined && (
-              <p
-                className="
-                  mt-1
-
-                  text-sm
-                  font-semibold
-                  leading-relaxed
-                  !text-slate-500
-                "
-              >
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          {/* =================================================
-              BADGE
-          ================================================= */}
-
-          {badge !== undefined && (
-            <div
-              className={`
-                inline-flex
-                w-fit
-                shrink-0
-                items-center
-                justify-center
-                gap-2
-
-                rounded-full
-
-                border
-                border-white/90
-
-                bg-white/80
-
-                px-3.5
-                py-1.5
-
-                text-sm
-                font-extrabold
-                !text-slate-700
-
-                shadow-[0_8px_22px_-14px_rgba(15,23,42,0.45)]
-
-                ring-1
-                ring-slate-900/[0.05]
-
-                backdrop-blur-xl
-
-                ${badgeClassName}
-              `}
-            >
-              {badge}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* =====================================================
           CONTENT
@@ -262,8 +193,107 @@ export default function AppTableCard({
           ${contentClassName}
         `}
       >
-        {children}
+        {hasCustomContent ? (
+          children
+        ) : (
+          <>
+            {/* =================================================
+                LABEL
+            ================================================= */}
+
+            {(label !== undefined ||
+              icon !== undefined) && (
+              <div
+                className="
+                  flex
+                  min-w-0
+                  items-center
+                  gap-2
+                "
+              >
+                {icon !== undefined && (
+                  <span
+                    className="
+                      flex
+                      h-7
+                      w-7
+                      shrink-0
+                      items-center
+                      justify-center
+
+                      rounded-[9px]
+
+                      border
+                      border-white/90
+
+                      bg-white/75
+
+                      text-sm
+
+                      shadow-sm
+
+                      ring-1
+                      ring-slate-900/[0.05]
+
+                      backdrop-blur-xl
+                    "
+                  >
+                    {icon}
+                  </span>
+                )}
+
+                {label !== undefined && (
+                  <p
+                    className={`
+                      min-w-0
+
+                      text-sm
+                      font-extrabold
+                      !text-slate-500
+
+                      ${labelClassName}
+                    `}
+                  >
+                    {label}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* =================================================
+                VALUE
+            ================================================= */}
+
+            {value !== undefined && (
+              <div
+                className={`
+                  ${
+                    label !== undefined ||
+                    icon !== undefined
+                      ? "mt-1.5"
+                      : ""
+                  }
+
+                  min-w-0
+
+                  break-words
+
+                  text-base
+                  font-extrabold
+                  leading-relaxed
+                  !text-slate-900
+
+                  sm:text-lg
+
+                  ${valueClassName}
+                `}
+              >
+                {value}
+              </div>
+            )}
+          </>
+        )}
       </div>
-    </section>
+    </div>
   );
 }
