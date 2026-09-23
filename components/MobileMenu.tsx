@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   useEffect,
+  useMemo,
   useState,
   type ElementType,
 } from "react";
@@ -68,26 +69,22 @@ const menus: MenuGroup[] = [
         href: "/materials",
         icon: Boxes,
       },
-
       {
         name: "รายการรับเข้า",
         href: "/receive",
         icon: PackagePlus,
         adminOnly: true,
       },
-
       {
         name: "รายการเบิกจ่าย",
         href: "/issue",
         icon: PackageMinus,
       },
-
       {
         name: "บัญชีคุมพัสดุ",
         href: "/stock-card",
         icon: ClipboardList,
       },
-
       {
         name: "ทะเบียนคุมครุภัณฑ์",
         href: "/assets",
@@ -107,7 +104,6 @@ const menus: MenuGroup[] = [
         icon: Truck,
         adminOnly: true,
       },
-
       {
         name: "กลุ่มงาน",
         href: "/departments",
@@ -190,11 +186,13 @@ export default function MobileMenu({
         }
       };
 
-    loadNotifications();
+    void loadNotifications();
 
     const interval =
       window.setInterval(
-        loadNotifications,
+        () => {
+          void loadNotifications();
+        },
         30000
       );
 
@@ -227,6 +225,9 @@ export default function MobileMenu({
       return;
     }
 
+    const previousOverflow =
+      document.body.style.overflow;
+
     document.body.style.overflow =
       "hidden";
 
@@ -247,7 +248,7 @@ export default function MobileMenu({
 
     return () => {
       document.body.style.overflow =
-        "";
+        previousOverflow;
 
       document.removeEventListener(
         "keydown",
@@ -260,44 +261,48 @@ export default function MobileMenu({
      FILTER MENU BY ROLE
   ======================================================= */
 
-  const visibleMenus = menus
-    .filter(
-      (group) =>
-        !group.adminOnly ||
-        role === "ADMIN"
-    )
-    .map((group) => ({
-      ...group,
-
-      items: group.items
-        .map((item) => {
-          if (
-            item.name ===
-            "รายการพัสดุทั้งหมด"
-          ) {
-            return {
-              ...item,
-
-              href:
-                role ===
-                "ADMIN"
-                  ? "/materials"
-                  : "/materials/summary",
-            };
-          }
-
-          return item;
-        })
+  const visibleMenus =
+    useMemo(() => {
+      return menus
         .filter(
-          (item) =>
-            !item.adminOnly ||
+          (group) =>
+            !group.adminOnly ||
             role === "ADMIN"
-        ),
-    }))
-    .filter(
-      (group) =>
-        group.items.length > 0
-    );
+        )
+        .map((group) => ({
+          ...group,
+
+          items: group.items
+            .map((item) => {
+              if (
+                item.name ===
+                "รายการพัสดุทั้งหมด"
+              ) {
+                return {
+                  ...item,
+
+                  href:
+                    role ===
+                    "ADMIN"
+                      ? "/materials"
+                      : "/materials/summary",
+                };
+              }
+
+              return item;
+            })
+            .filter(
+              (item) =>
+                !item.adminOnly ||
+                role === "ADMIN"
+            ),
+        }))
+        .filter(
+          (group) =>
+            group.items.length >
+            0
+        );
+    }, [role]);
 
   /* =======================================================
      ACTIVE
@@ -327,6 +332,69 @@ export default function MobileMenu({
   }
 
   /* =======================================================
+     MOBILE MENU CARD CLASS
+  ======================================================= */
+
+  function menuCardClass(
+    active: boolean
+  ) {
+    return `
+      group
+      relative
+
+      flex
+      min-w-0
+      min-h-[100px]
+
+      flex-col
+      items-center
+      justify-center
+
+      overflow-hidden
+
+      rounded-[20px]
+
+      border
+
+      px-2
+      py-3
+
+      text-center
+
+      outline-none
+
+      transition-all
+      duration-200
+
+      active:scale-[0.96]
+
+      min-[390px]:min-h-[108px]
+      min-[390px]:rounded-[22px]
+
+      ${
+        active
+          ? `
+            border-blue-300/30
+
+            bg-gradient-to-br
+            from-blue-600
+            via-blue-500
+            to-cyan-500
+
+            shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
+          `
+          : `
+            border-white/10
+
+            bg-white/[0.07]
+
+            shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
+          `
+      }
+    `;
+  }
+
+  /* =======================================================
      UI
   ======================================================= */
 
@@ -343,9 +411,8 @@ export default function MobileMenu({
             ? "ปิดเมนู"
             : "เปิดเมนู"
         }
-        aria-expanded={
-          menuOpen
-        }
+        aria-expanded={menuOpen}
+        aria-controls="mobile-system-menu"
         onClick={() =>
           setMenuOpen(
             (current) =>
@@ -357,8 +424,8 @@ export default function MobileMenu({
           relative
 
           inline-flex
-          h-11
-          w-11
+          h-10
+          w-10
           shrink-0
 
           items-center
@@ -366,7 +433,7 @@ export default function MobileMenu({
 
           overflow-hidden
 
-          rounded-[15px]
+          rounded-[13px]
 
           border
           border-white/20
@@ -380,14 +447,20 @@ export default function MobileMenu({
           backdrop-blur-xl
 
           transition-all
-          duration-300
+          duration-200
 
           hover:bg-white/15
 
           active:scale-[0.92]
+
+          sm:h-11
+          sm:w-11
+          sm:rounded-[15px]
+
+          lg:hidden
         "
       >
-        {/* Glass highlight */}
+        {/* GLASS HIGHLIGHT */}
 
         <span
           aria-hidden="true"
@@ -408,7 +481,7 @@ export default function MobileMenu({
 
         {menuOpen ? (
           <X
-            size={22}
+            size={21}
             strokeWidth={2.4}
             className="
               relative
@@ -417,7 +490,7 @@ export default function MobileMenu({
           />
         ) : (
           <Menu
-            size={23}
+            size={22}
             strokeWidth={2.4}
             className="
               relative
@@ -426,16 +499,17 @@ export default function MobileMenu({
           />
         )}
 
-        {/* Notification Dot */}
+        {/* NOTIFICATION DOT */}
 
         {notificationCount >
           0 &&
           !menuOpen && (
             <span
+              aria-hidden="true"
               className="
                 absolute
-                right-[5px]
-                top-[5px]
+                right-[4px]
+                top-[4px]
 
                 h-2
                 w-2
@@ -465,9 +539,9 @@ export default function MobileMenu({
           inset-0
           z-[90]
 
-          bg-slate-950/55
+          bg-slate-950/60
 
-          backdrop-blur-[6px]
+          backdrop-blur-[5px]
 
           transition-all
           duration-300
@@ -494,27 +568,30 @@ export default function MobileMenu({
       =================================================== */}
 
       <aside
-        aria-hidden={
-          !menuOpen
-        }
+        id="mobile-system-menu"
+        aria-hidden={!menuOpen}
         className={`
           fixed
-
           inset-x-0
           bottom-0
 
           z-[100]
 
-          max-h-[92dvh]
+          flex
+          max-h-[94dvh]
+          min-h-0
+          w-full
+          min-w-0
+          flex-col
 
           overflow-hidden
 
-          rounded-t-[32px]
+          rounded-t-[26px]
 
           border-t
           border-white/20
 
-          bg-slate-950/95
+          bg-slate-950/[0.97]
 
           shadow-[0_-24px_80px_-30px_rgba(0,0,0,0.9)]
 
@@ -523,6 +600,13 @@ export default function MobileMenu({
           transition-all
           duration-300
           ease-out
+
+          sm:inset-x-3
+          sm:bottom-3
+          sm:mx-auto
+          sm:max-w-[620px]
+          sm:rounded-[30px]
+          sm:border
 
           lg:hidden
 
@@ -550,13 +634,12 @@ export default function MobileMenu({
           aria-hidden="true"
           className="
             pointer-events-none
-
             absolute
-            -left-16
-            -top-16
+            -left-20
+            -top-20
 
-            h-56
-            w-56
+            h-60
+            w-60
 
             rounded-full
 
@@ -570,13 +653,12 @@ export default function MobileMenu({
           aria-hidden="true"
           className="
             pointer-events-none
-
             absolute
-            -right-20
+            -right-24
             top-40
 
-            h-52
-            w-52
+            h-56
+            w-56
 
             rounded-full
 
@@ -593,6 +675,7 @@ export default function MobileMenu({
         <div
           className="
             relative
+            shrink-0
 
             flex
             justify-center
@@ -603,8 +686,8 @@ export default function MobileMenu({
         >
           <div
             className="
-              h-1.5
-              w-11
+              h-1
+              w-10
 
               rounded-full
 
@@ -620,8 +703,11 @@ export default function MobileMenu({
         <div
           className="
             relative
+            z-10
+            shrink-0
 
             flex
+            min-w-0
             items-center
             justify-between
             gap-3
@@ -629,19 +715,26 @@ export default function MobileMenu({
             border-b
             border-white/10
 
-            px-5
-            pb-4
-            pt-2
+            px-4
+            pb-3
+            pt-1.5
+
+            min-[390px]:px-5
+            min-[390px]:pb-4
           "
         >
           <div className="min-w-0">
             <h2
               className="
-                text-lg
+                truncate
+
+                text-base
                 font-black
                 tracking-tight
 
                 !text-white
+
+                min-[390px]:text-lg
               "
             >
               เมนูระบบ
@@ -651,10 +744,14 @@ export default function MobileMenu({
               className="
                 mt-0.5
 
-                text-xs
+                truncate
+
+                text-[11px]
                 font-semibold
 
                 !text-slate-400
+
+                min-[390px]:text-xs
               "
             >
               เลือกเมนูที่ต้องการใช้งาน
@@ -664,13 +761,11 @@ export default function MobileMenu({
           <button
             type="button"
             aria-label="ปิดเมนู"
-            onClick={
-              closeMenu
-            }
+            onClick={closeMenu}
             className="
               inline-flex
-              h-10
-              w-10
+              h-9
+              w-9
               shrink-0
 
               items-center
@@ -690,43 +785,66 @@ export default function MobileMenu({
               transition-all
               duration-200
 
+              hover:bg-white/15
+
               active:scale-90
+
+              min-[390px]:h-10
+              min-[390px]:w-10
             "
           >
             <X
-              size={20}
+              size={19}
               strokeWidth={2.4}
             />
           </button>
         </div>
 
         {/* =================================================
-            CONTENT
+            SCROLL CONTENT
         ================================================= */}
 
         <div
           className="
             relative
+            z-10
 
-            max-h-[calc(92dvh-92px)]
+            min-h-0
+            flex-1
 
+            overflow-x-hidden
             overflow-y-auto
+
             overscroll-contain
 
-            px-4
-            pb-[calc(24px+env(safe-area-inset-bottom))]
-            pt-4
+            [-webkit-overflow-scrolling:touch]
+
+            px-3
+            pt-3
+
+            pb-[calc(16px+env(safe-area-inset-bottom))]
+
+            min-[390px]:px-4
+            min-[390px]:pt-4
+            min-[390px]:pb-[calc(20px+env(safe-area-inset-bottom))]
           "
         >
           {/* =================================================
-              QUICK MENU
+              QUICK MENU GRID
           ================================================= */}
 
           <div
             className="
               grid
-              grid-cols-3
-              gap-3
+              w-full
+              min-w-0
+
+              grid-cols-2
+
+              gap-2.5
+
+              min-[390px]:grid-cols-3
+              min-[390px]:gap-3
             "
           >
             {/* ===============================================
@@ -736,69 +854,39 @@ export default function MobileMenu({
             <Link
               href="/"
               prefetch
-              onClick={
-                closeMenu
-              }
-              className={`
-                group
-                relative
-
-                flex
-                min-h-[112px]
-                min-w-0
-
-                flex-col
-                items-center
-                justify-center
-
-                overflow-hidden
-
-                rounded-[24px]
-
-                border
-
-                px-2
-                py-3
-
-                text-center
-
-                transition-all
-                duration-200
-
-                active:scale-[0.94]
-
-                ${
-                  pathname === "/"
-                    ? `
-                      border-blue-300/30
-
-                      bg-gradient-to-br
-                      from-blue-600
-                      via-blue-500
-                      to-cyan-500
-
-                      shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
-                    `
-                    : `
-                      border-white/10
-
-                      bg-white/[0.07]
-
-                      shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
-                    `
-                }
-              `}
+              onClick={closeMenu}
+              className={menuCardClass(
+                pathname === "/"
+              )}
             >
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-x-3
+                  top-0
+
+                  h-px
+
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/25
+                  to-transparent
+                "
+              />
+
               <div
                 className="
                   flex
-                  h-12
-                  w-12
+                  h-11
+                  w-11
+                  shrink-0
 
                   items-center
                   justify-center
 
-                  rounded-[17px]
+                  rounded-[15px]
 
                   border
                   border-white/15
@@ -807,11 +895,13 @@ export default function MobileMenu({
 
                   !text-white
 
-                  shadow-inner
+                  min-[390px]:h-12
+                  min-[390px]:w-12
+                  min-[390px]:rounded-[17px]
                 "
               >
                 <LayoutDashboard
-                  size={24}
+                  size={22}
                   strokeWidth={2.2}
                 />
               </div>
@@ -821,13 +911,16 @@ export default function MobileMenu({
                   mt-2
 
                   w-full
+                  min-w-0
 
                   truncate
 
-                  text-[13px]
+                  text-[12px]
                   font-extrabold
 
                   !text-white
+
+                  min-[390px]:text-[13px]
                 "
               >
                 หน้าแรก
@@ -841,73 +934,43 @@ export default function MobileMenu({
             <Link
               href="/notifications"
               prefetch
-              onClick={
-                closeMenu
-              }
-              className={`
-                group
-                relative
-
-                flex
-                min-h-[112px]
-                min-w-0
-
-                flex-col
-                items-center
-                justify-center
-
-                overflow-hidden
-
-                rounded-[24px]
-
-                border
-
-                px-2
-                py-3
-
-                text-center
-
-                transition-all
-                duration-200
-
-                active:scale-[0.94]
-
-                ${
-                  isActive(
-                    "/notifications"
-                  )
-                    ? `
-                      border-blue-300/30
-
-                      bg-gradient-to-br
-                      from-blue-600
-                      via-blue-500
-                      to-cyan-500
-
-                      shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
-                    `
-                    : `
-                      border-white/10
-
-                      bg-white/[0.07]
-
-                      shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
-                    `
-                }
-              `}
+              onClick={closeMenu}
+              className={menuCardClass(
+                isActive(
+                  "/notifications"
+                )
+              )}
             >
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-x-3
+                  top-0
+
+                  h-px
+
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/25
+                  to-transparent
+                "
+              />
+
               <div
                 className="
                   relative
 
                   flex
-                  h-12
-                  w-12
+                  h-11
+                  w-11
+                  shrink-0
 
                   items-center
                   justify-center
 
-                  rounded-[17px]
+                  rounded-[15px]
 
                   border
                   border-white/15
@@ -915,10 +978,14 @@ export default function MobileMenu({
                   bg-white/10
 
                   !text-white
+
+                  min-[390px]:h-12
+                  min-[390px]:w-12
+                  min-[390px]:rounded-[17px]
                 "
               >
                 <Bell
-                  size={24}
+                  size={22}
                   strokeWidth={2.2}
                 />
 
@@ -931,8 +998,8 @@ export default function MobileMenu({
                         -top-2
 
                         flex
-                        h-6
-                        min-w-6
+                        h-5
+                        min-w-5
 
                         items-center
                         justify-center
@@ -941,9 +1008,9 @@ export default function MobileMenu({
 
                         bg-red-500
 
-                        px-1.5
+                        px-1
 
-                        text-[10px]
+                        text-[9px]
                         font-black
 
                         !text-white
@@ -951,7 +1018,10 @@ export default function MobileMenu({
                         ring-2
                         ring-slate-950
 
-                        shadow-lg
+                        min-[390px]:h-6
+                        min-[390px]:min-w-6
+                        min-[390px]:px-1.5
+                        min-[390px]:text-[10px]
                       "
                     >
                       {notificationCount >
@@ -967,13 +1037,16 @@ export default function MobileMenu({
                   mt-2
 
                   w-full
+                  min-w-0
 
                   truncate
 
-                  text-[13px]
+                  text-[12px]
                   font-extrabold
 
                   !text-white
+
+                  min-[390px]:text-[13px]
                 "
               >
                 แจ้งเตือน
@@ -981,7 +1054,7 @@ export default function MobileMenu({
             </Link>
 
             {/* ===============================================
-                ALL NORMAL MENU ITEMS
+                NORMAL MENU ITEMS
             =============================================== */}
 
             {visibleMenus.flatMap(
@@ -1008,57 +1081,11 @@ export default function MobileMenu({
                         onClick={
                           closeMenu
                         }
-                        className={`
-                          group
-                          relative
-
-                          flex
-                          min-h-[112px]
-                          min-w-0
-
-                          flex-col
-                          items-center
-                          justify-center
-
-                          overflow-hidden
-
-                          rounded-[24px]
-
-                          border
-
-                          px-2
-                          py-3
-
-                          text-center
-
-                          transition-all
-                          duration-200
-
-                          active:scale-[0.94]
-
-                          ${
-                            active
-                              ? `
-                                border-blue-300/30
-
-                                bg-gradient-to-br
-                                from-blue-600
-                                via-blue-500
-                                to-cyan-500
-
-                                shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
-                              `
-                              : `
-                                border-white/10
-
-                                bg-white/[0.07]
-
-                                shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
-                              `
-                          }
-                        `}
+                        className={menuCardClass(
+                          active
+                        )}
                       >
-                        {/* Top glass */}
+                        {/* TOP GLASS */}
 
                         <div
                           aria-hidden="true"
@@ -1077,19 +1104,19 @@ export default function MobileMenu({
                           "
                         />
 
-                        {/* Icon */}
+                        {/* ICON */}
 
                         <div
                           className={`
                             flex
-                            h-12
-                            w-12
+                            h-11
+                            w-11
                             shrink-0
 
                             items-center
                             justify-center
 
-                            rounded-[17px]
+                            rounded-[15px]
 
                             border
 
@@ -1097,6 +1124,10 @@ export default function MobileMenu({
 
                             transition-all
                             duration-200
+
+                            min-[390px]:h-12
+                            min-[390px]:w-12
+                            min-[390px]:rounded-[17px]
 
                             ${
                               active
@@ -1112,25 +1143,32 @@ export default function MobileMenu({
                           `}
                         >
                           <Icon
-                            size={24}
+                            size={22}
                             strokeWidth={2.2}
                           />
                         </div>
 
-                        {/* Label */}
+                        {/* LABEL */}
 
                         <span
                           className="
                             mt-2
 
                             line-clamp-2
-                            w-full
 
-                            text-[12px]
+                            w-full
+                            min-w-0
+
+                            break-words
+
+                            text-[11px]
                             font-extrabold
-                            leading-[1.25rem]
+                            leading-[1.1rem]
 
                             !text-white
+
+                            min-[390px]:text-[12px]
+                            min-[390px]:leading-[1.2rem]
                           "
                         >
                           {
@@ -1145,14 +1183,17 @@ export default function MobileMenu({
           </div>
 
           {/* =================================================
-              MENU GROUP SUMMARY
+              GROUP SUMMARY
           ================================================= */}
 
           <div
             className="
-              mt-5
+              mt-4
 
-              space-y-3
+              space-y-2.5
+
+              min-[390px]:mt-5
+              min-[390px]:space-y-3
             "
           >
             {visibleMenus.map(
@@ -1167,18 +1208,23 @@ export default function MobileMenu({
                     }
                     className="
                       flex
+                      min-w-0
                       items-center
                       gap-3
 
-                      rounded-[20px]
+                      rounded-[17px]
 
                       border
                       border-white/10
 
                       bg-white/[0.04]
 
-                      px-4
-                      py-3
+                      px-3
+                      py-2.5
+
+                      min-[390px]:rounded-[20px]
+                      min-[390px]:px-4
+                      min-[390px]:py-3
                     "
                   >
                     <div
@@ -1191,28 +1237,37 @@ export default function MobileMenu({
                         items-center
                         justify-center
 
-                        rounded-[13px]
+                        rounded-[12px]
 
                         bg-white/10
 
                         !text-slate-300
+
+                        min-[390px]:rounded-[13px]
                       "
                     >
                       <GroupIcon
                         size={18}
-                        strokeWidth={
-                          2.2
-                        }
+                        strokeWidth={2.2}
                       />
                     </div>
 
-                    <div className="min-w-0">
+                    <div
+                      className="
+                        min-w-0
+                        flex-1
+                      "
+                    >
                       <p
                         className="
-                          text-sm
+                          truncate
+
+                          text-[13px]
                           font-extrabold
 
                           !text-slate-200
+
+                          min-[390px]:text-sm
                         "
                       >
                         {
@@ -1224,10 +1279,12 @@ export default function MobileMenu({
                         className="
                           mt-0.5
 
-                          text-[11px]
+                          text-[10px]
                           font-semibold
 
                           !text-slate-500
+
+                          min-[390px]:text-[11px]
                         "
                       >
                         {group.items.length.toLocaleString(
@@ -1241,6 +1298,18 @@ export default function MobileMenu({
               }
             )}
           </div>
+
+          {/* =================================================
+              BOTTOM SAFE SPACE
+          ================================================= */}
+
+          <div
+            aria-hidden="true"
+            className="
+              h-2
+              w-full
+            "
+          />
         </div>
       </aside>
     </>
