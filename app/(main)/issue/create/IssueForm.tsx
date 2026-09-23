@@ -31,10 +31,12 @@ type ReceiveLot = {
   id: number;
   materialId: number;
   balance: number;
+
   manufacture:
     | Date
     | string
     | null;
+
   expiry:
     | Date
     | string
@@ -50,6 +52,7 @@ type Officer = {
   id: number;
   firstName: string;
   lastName: string;
+
   departmentId:
     | number
     | null;
@@ -72,6 +75,7 @@ type Props = {
   officers: Officer[];
   documentNo: string;
   initialDepartmentId?: string;
+  isAdmin: boolean;
 };
 
 type ItemRow = {
@@ -94,6 +98,7 @@ type SearchableDropdownProps = {
   searchPlaceholder?: string;
   emptyText?: string;
   disabled?: boolean;
+
   onChange: (
     value: string
   ) => void;
@@ -178,10 +183,13 @@ function formatThaiFullDate(
     return "";
   }
 
-  const [year, month, day] =
-    dateString
-      .split("-")
-      .map(Number);
+  const [
+    year,
+    month,
+    day,
+  ] = dateString
+    .split("-")
+    .map(Number);
 
   if (
     !year ||
@@ -191,7 +199,9 @@ function formatThaiFullDate(
     return "";
   }
 
-  return `${day} ${
+  return `${String(
+    day
+  ).padStart(2, "0")} ${
     thaiMonths[
       month - 1
     ]
@@ -200,6 +210,7 @@ function formatThaiFullDate(
 
 /* =========================================================
    DATE FIELD
+   รูปแบบเดียวกับ RECEIVE
 ========================================================= */
 
 type DateFieldProps = {
@@ -207,6 +218,7 @@ type DateFieldProps = {
   name?: string;
   value: string;
   placeholder?: string;
+
   onChange: (
     value: string
   ) => void;
@@ -389,6 +401,7 @@ function DateField({
 
 /* =========================================================
    SEARCHABLE DROPDOWN
+   รูปแบบเดียวกับ RECEIVE
 ========================================================= */
 
 function SearchableDropdown({
@@ -396,8 +409,10 @@ function SearchableDropdown({
   value,
   options,
   placeholder,
-  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
-  emptyText = "ไม่พบข้อมูล",
+  searchPlaceholder =
+    "พิมพ์เพื่อค้นหา...",
+  emptyText =
+    "ไม่พบข้อมูล",
   disabled = false,
   onChange,
 }: SearchableDropdownProps) {
@@ -411,8 +426,10 @@ function SearchableDropdown({
       null
     );
 
-  const [open, setOpen] =
-    useState(false);
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
 
   const [
     search,
@@ -579,7 +596,7 @@ function SearchableDropdown({
 
           disabled:cursor-not-allowed
           disabled:bg-slate-100
-          disabled:!text-slate-400
+          disabled:!text-slate-500
         "
       >
         <span
@@ -668,8 +685,7 @@ function SearchableDropdown({
                   event
                 ) =>
                   setSearch(
-                    event
-                      .target
+                    event.target
                       .value
                   )
                 }
@@ -683,6 +699,7 @@ function SearchableDropdown({
                     setOpen(
                       false
                     );
+
                     setSearch(
                       ""
                     );
@@ -704,6 +721,7 @@ function SearchableDropdown({
                     setOpen(
                       false
                     );
+
                     setSearch(
                       ""
                     );
@@ -782,6 +800,7 @@ function SearchableDropdown({
                           setOpen(
                             false
                           );
+
                           setSearch(
                             ""
                           );
@@ -862,11 +881,11 @@ function SearchableDropdown({
 
 export default function IssueForm({
   materials,
-  receiveLots,
   departments,
   officers,
   documentNo,
   initialDepartmentId,
+  isAdmin,
 }: Props) {
   /* =======================================================
      DEFAULT DEPARTMENT
@@ -874,12 +893,14 @@ export default function IssueForm({
 
   const defaultDepartmentId =
     initialDepartmentId ||
-    (departments.length ===
-    1
-      ? String(
-          departments[0].id
-        )
-      : "");
+    (
+      departments.length ===
+      1
+        ? String(
+            departments[0].id
+          )
+        : ""
+    );
 
   const [
     departmentId,
@@ -937,7 +958,7 @@ export default function IssueForm({
   );
 
   /* =======================================================
-     FILTER OFFICERS
+     OFFICERS
   ======================================================= */
 
   const filteredOfficers =
@@ -992,6 +1013,7 @@ export default function IssueForm({
             value: String(
               officer.id
             ),
+
             label: `${officer.firstName} ${officer.lastName}`,
           })
         ),
@@ -1063,7 +1085,6 @@ export default function IssueForm({
 
   /* =======================================================
      CENTRAL FORM CLASSES
-     รูปแบบเดียวกับ RECEIVE
   ======================================================= */
 
   const labelClass = `
@@ -1111,6 +1132,8 @@ export default function IssueForm({
 
   const tableInputClass = `
     h-[52px]
+    w-full
+    min-w-0
 
     rounded-[16px]
 
@@ -1186,91 +1209,106 @@ export default function IssueForm({
           sm:p-5
         "
       >
+        {/* =================================================
+            CARD HEADER
+            เลขที่เอกสารอยู่ด้านขวาบน
+        ================================================= */}
+
         <div
           className="
             mb-5
 
             flex
-            items-center
-            gap-3
+            flex-col
+            gap-4
+
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
           "
         >
           <div
             className="
               flex
-              h-11
-              w-11
-              shrink-0
+              min-w-0
               items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-blue-50/90
-
-              text-xl
-
-              shadow-sm
-
-              ring-1
-              ring-blue-100/80
+              gap-3
             "
           >
-            📄
-          </div>
-
-          <div className="min-w-0">
-            <h2
+            <div
               className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
 
-                sm:text-xl
+                rounded-[15px]
+
+                bg-blue-50/90
+
+                text-xl
+
+                shadow-sm
+
+                ring-1
+                ring-blue-100/80
               "
             >
-              ข้อมูลใบเบิก
-            </h2>
+              📄
+            </div>
 
-            <p
-              className="
-                mt-0.5
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-black
+                  tracking-tight
+                  !text-slate-900
 
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              พอ.101 • ใบเบิกพัสดุ
-            </p>
+                  sm:text-xl
+                "
+              >
+                ข้อมูลใบเบิก
+              </h2>
+
+              <p
+                className="
+                  mt-0.5
+
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                พอ.101 • ใบเบิกพัสดุ
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div
-          className="
-            grid
-            min-w-0
-            gap-4
-
-            md:grid-cols-2
-          "
-        >
           {/* ===============================================
-              DOCUMENT NUMBER
+              DOCUMENT NUMBER - SMALL TOP RIGHT
           =============================================== */}
 
-          <AppInfoCard
+          <div
             className="
-              relative
-              overflow-visible
+              w-full
+              shrink-0
+
+              sm:w-[245px]
             "
           >
             <label
               htmlFor="documentNo"
-              className={
-                labelClass
-              }
+              className="
+                mb-1.5
+                block
+
+                text-xs
+                font-extrabold
+                !text-slate-600
+              "
             >
               เลขที่เอกสาร
             </label>
@@ -1294,27 +1332,47 @@ export default function IssueForm({
                 !editDocumentNo
               }
               className={`
-                ${inputClass}
+                h-[40px]
+                w-full
+
+                rounded-[12px]
+
+                border
+                border-slate-200
+
+                px-3
+
+                text-sm
+                font-extrabold
+                !text-slate-900
+
+                shadow-sm
+                outline-none
 
                 ${
-                  !editDocumentNo
-                    ? "cursor-default bg-slate-100"
-                    : ""
+                  editDocumentNo
+                    ? "bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+                    : "cursor-default bg-slate-100"
                 }
               `}
             />
 
+            {/* =============================================
+                CHECKBOX
+                รูปแบบเดียวกับยอดยกเข้าระบบ RECEIVE
+            ============================================= */}
+
             <label
               className="
-                mt-3
+                mt-2
                 flex
                 w-fit
                 cursor-pointer
                 items-center
                 gap-2
 
-                text-sm
-                font-semibold
+                text-xs
+                font-bold
                 !text-slate-600
               "
             >
@@ -1343,16 +1401,66 @@ export default function IssueForm({
                   }
                 }}
                 className="
-                  h-4
-                  w-4
-                  cursor-pointer
+                  peer
+                  sr-only
                 "
               />
 
-              แก้ไขเลขที่เอกสาร
-            </label>
-          </AppInfoCard>
+              <span
+                className="
+                  flex
+                  h-5
+                  w-5
+                  shrink-0
+                  items-center
+                  justify-center
 
+                  rounded-[6px]
+
+                  border
+                  border-slate-300
+
+                  bg-white
+
+                  text-xs
+                  font-black
+                  !text-transparent
+
+                  shadow-sm
+
+                  transition-all
+
+                  peer-checked:border-slate-800
+                  peer-checked:bg-slate-800
+                  peer-checked:!text-white
+
+                  peer-focus:ring-4
+                  peer-focus:ring-slate-200
+                "
+              >
+                ✓
+              </span>
+
+              <span>
+                แก้ไขเลขที่เอกสาร
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* =================================================
+            MAIN INFORMATION
+        ================================================= */}
+
+        <div
+          className="
+            grid
+            min-w-0
+            gap-4
+
+            md:grid-cols-3
+          "
+        >
           {/* ===============================================
               ISSUE DATE
           =============================================== */}
@@ -1414,9 +1522,18 @@ export default function IssueForm({
               placeholder="-- เลือกหน่วยงาน / กลุ่มงาน --"
               searchPlaceholder="พิมพ์ค้นหาหน่วยงาน / กลุ่มงาน..."
               emptyText="ไม่พบหน่วยงาน / กลุ่มงาน"
+              disabled={
+                !isAdmin
+              }
               onChange={(
                 value
               ) => {
+                if (
+                  !isAdmin
+                ) {
+                  return;
+                }
+
                 setDepartmentId(
                   value
                 );
@@ -1426,6 +1543,19 @@ export default function IssueForm({
                 );
               }}
             />
+
+            {!isAdmin && (
+              <p
+                className="
+                  mt-2
+                  text-xs
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                กลุ่มงานถูกกำหนดตามบัญชีผู้ใช้งาน
+              </p>
+            )}
           </AppInfoCard>
 
           {/* ===============================================
@@ -1471,42 +1601,13 @@ export default function IssueForm({
       </AppCard>
 
       {/* ===================================================
-          DESCRIPTION
-      =================================================== */}
-
-      <AppCard
-        className="
-          relative
-          z-10
-
-          p-4
-
-          sm:p-5
-        "
-      >
-        <p
-          className="
-            text-base
-            font-bold
-            leading-relaxed
-            !text-slate-800
-
-            sm:text-lg
-          "
-        >
-          ประสงค์จะขอเบิกสิ่งของต่างๆ
-          สำหรับใช้ในราชการ
-          ดังมีรายการต่อไปนี้
-        </p>
-      </AppCard>
-
-      {/* ===================================================
           TABLE
+          ไม่มีการ์ดข้อความ "ประสงค์จะขอเบิก..."
       =================================================== */}
 
       <AppTableCard
         title="รายการพัสดุที่ขอเบิก"
-        subtitle="พอ.101 • ระบุหมวดหมู่ รายการพัสดุ และจำนวนที่ต้องการเบิก"
+        subtitle="พอ.101 • ระบุหมวดหมู่ รายการพัสดุ จำนวน และหมายเหตุ"
         badge={`${rows.length} รายการ`}
         className="
           relative
@@ -1529,7 +1630,7 @@ export default function IssueForm({
             className="
               relative
               w-full
-              min-w-[1200px]
+              min-w-[1450px]
 
               border-collapse
 
@@ -1552,6 +1653,7 @@ export default function IssueForm({
                   "จำนวนที่ขอเบิก",
                   "จำนวนที่เบิกจ่าย",
                   "หน่วย",
+                  "หมายเหตุ",
                 ].map(
                   (title) => (
                     <th
@@ -1622,6 +1724,7 @@ export default function IssueForm({
                           String(
                             material.id
                           ),
+
                         label:
                           material.code
                             ? `${material.code} - ${material.name}`
@@ -1642,6 +1745,7 @@ export default function IssueForm({
                       style={{
                         position:
                           "relative",
+
                         zIndex:
                           rowZIndex,
                       }}
@@ -1666,6 +1770,8 @@ export default function IssueForm({
 
                       <td
                         className="
+                          w-[70px]
+
                           whitespace-nowrap
 
                           border
@@ -1679,8 +1785,7 @@ export default function IssueForm({
                           !text-slate-900
                         "
                       >
-                        {index +
-                          1}
+                        {index + 1}
                       </td>
 
                       {/* ===================================
@@ -1762,7 +1867,11 @@ export default function IssueForm({
                           options={
                             materialOptions
                           }
-                          placeholder="เลือกรายการพัสดุ"
+                          placeholder={
+                            row.category
+                              ? "เลือกรายการพัสดุ"
+                              : "เลือกหมวดหมู่ก่อน"
+                          }
                           searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
                           emptyText="ไม่พบรายการพัสดุ"
                           disabled={
@@ -1810,15 +1919,12 @@ export default function IssueForm({
                             updateRow(
                               index,
                               "qty",
-                              event
-                                .target
+                              event.target
                                 .value
                             )
                           }
                           className={`
                             ${tableInputClass}
-
-                            w-full
 
                             text-center
                             tabular-nums
@@ -1878,7 +1984,7 @@ export default function IssueForm({
 
                       <td
                         className="
-                          min-w-[140px]
+                          min-w-[130px]
 
                           border
                           border-black
@@ -1897,8 +2003,7 @@ export default function IssueForm({
                             "-"
                           }
                           aria-label={`หน่วยของรายการที่ ${
-                            index +
-                            1
+                            index + 1
                           }`}
                           className="
                             h-[52px]
@@ -1932,6 +2037,46 @@ export default function IssueForm({
                           }
                         />
                       </td>
+
+                      {/* ===================================
+                          REMARK
+                      =================================== */}
+
+                      <td
+                        className="
+                          min-w-[240px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          type="text"
+                          name={`items[${index}].remark`}
+                          value={
+                            row.remark
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateRow(
+                              index,
+                              "remark",
+                              event.target
+                                .value
+                            )
+                          }
+                          placeholder="ระบุหมายเหตุ"
+                          className={
+                            tableInputClass
+                          }
+                        />
+                      </td>
                     </tr>
                   );
                 }
@@ -1943,6 +2088,7 @@ export default function IssueForm({
 
       {/* ===================================================
           ACTION
+          ใช้ AppButton กลาง
       =================================================== */}
 
       <div
@@ -1958,7 +2104,9 @@ export default function IssueForm({
           variant="success"
           size="md"
           icon={
-            <span>
+            <span
+              aria-hidden="true"
+            >
               💾
             </span>
           }

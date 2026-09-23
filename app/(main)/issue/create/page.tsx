@@ -17,9 +17,11 @@ import IssueForm from "./IssueForm";
 ========================================================= */
 
 function getThaiYear() {
-  return String(
+  return (
     new Date().getFullYear() + 543
-  ).slice(-2);
+  )
+    .toString()
+    .slice(-2);
 }
 
 async function generateIssueNo() {
@@ -32,7 +34,6 @@ async function generateIssueNo() {
           startsWith: "จ.",
         },
       },
-
       select: {
         documentNo: true,
       },
@@ -65,11 +66,8 @@ async function generateIssueNo() {
     }
   }
 
-  const running =
-    maxNumber + 1;
-
   return `จ.${String(
-    running
+    maxNumber + 1
   ).padStart(2, "0")}/${year}`;
 }
 
@@ -104,6 +102,9 @@ export default async function CreateIssuePage() {
       session = null;
     }
   }
+
+  const isAdmin =
+    session?.role === "ADMIN";
 
   /* =======================================================
      MATERIALS
@@ -159,11 +160,12 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   let userDepartmentId =
-    session?.departmentId ?? null;
+    session?.departmentId ??
+    null;
 
   if (
     session &&
-    session.role !== "ADMIN" &&
+    !isAdmin &&
     !userDepartmentId
   ) {
     const currentUser =
@@ -184,20 +186,27 @@ export default async function CreateIssuePage() {
 
   /* =======================================================
      DEPARTMENTS
+
+     ADMIN:
+     - เห็นทุกกลุ่มงาน
+     - เปลี่ยนกลุ่มงานได้
+
+     USER:
+     - เห็นเฉพาะกลุ่มงานตนเอง
+     - IssueForm จะล็อกไม่ให้แก้
   ======================================================= */
 
   const departments =
     await prisma.department.findMany({
-      where:
-        session?.role === "ADMIN"
-          ? undefined
-          : userDepartmentId
-            ? {
-                id: userDepartmentId,
-              }
-            : {
-                id: -1,
-              },
+      where: isAdmin
+        ? undefined
+        : userDepartmentId
+          ? {
+              id: userDepartmentId,
+            }
+          : {
+              id: -1,
+            },
 
       orderBy: {
         name: "asc",
@@ -210,27 +219,26 @@ export default async function CreateIssuePage() {
 
   const officers =
     await prisma.officer.findMany({
-      where:
-        session?.role === "ADMIN"
-          ? undefined
-          : userDepartmentId
-            ? {
-                OR: [
-                  {
+      where: isAdmin
+        ? undefined
+        : userDepartmentId
+          ? {
+              OR: [
+                {
+                  departmentId:
+                    userDepartmentId,
+                },
+                {
+                  section: {
                     departmentId:
                       userDepartmentId,
                   },
-                  {
-                    section: {
-                      departmentId:
-                        userDepartmentId,
-                    },
-                  },
-                ],
-              }
-            : {
-                id: -1,
-              },
+                },
+              ],
+            }
+          : {
+              id: -1,
+            },
 
       include: {
         section: true,
@@ -255,7 +263,7 @@ export default async function CreateIssuePage() {
     await generateIssueNo();
 
   const initialDepartmentId =
-    session?.role === "ADMIN"
+    isAdmin
       ? ""
       : userDepartmentId
         ? String(
@@ -274,14 +282,45 @@ export default async function CreateIssuePage() {
         title="บันทึกการเบิกจ่ายพัสดุ"
         subtitle="เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ"
         actions={
-          <AppButton
-            href="/issue"
-            variant="back"
-            size="md"
-            icon={<span>←</span>}
+          <div
+            className="
+              flex
+              flex-wrap
+              items-center
+              justify-end
+              gap-3
+            "
           >
-            กลับ
-          </AppButton>
+            <AppButton
+              href="/issue/create/pdf"
+              variant="pdf"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  📄
+                </span>
+              }
+            >
+              ส่งออก PDF
+            </AppButton>
+
+            <AppButton
+              href="/issue"
+              variant="back"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </div>
         }
       />
 
@@ -300,6 +339,7 @@ export default async function CreateIssuePage() {
         initialDepartmentId={
           initialDepartmentId
         }
+        isAdmin={isAdmin}
       />
     </AppPage>
   );
