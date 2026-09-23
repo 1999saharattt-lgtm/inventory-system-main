@@ -116,8 +116,10 @@ export default async function CreateIssuePage() {
     session?.departmentId ?? null;
 
   /*
-   * ผู้ใช้งานทั่วไปต้องผูกกับกลุ่มงานของตนเอง
-   * ถ้า session ไม่มี departmentId
+   * ผู้ใช้งานทั่วไป
+   * ต้องใช้กลุ่มงานของตนเอง
+   *
+   * ถ้าใน Session ไม่มี departmentId
    * ให้ตรวจจาก User ในฐานข้อมูลอีกครั้ง
    */
 
@@ -170,7 +172,8 @@ export default async function CreateIssuePage() {
 
     /* =====================================================
        RECEIVE LOTS
-       เฉพาะล็อตที่ยังมีคงเหลือ
+
+       โหลดเฉพาะล็อตที่ยังมีจำนวนคงเหลือ
     ===================================================== */
 
     prisma.receiveItem.findMany({
@@ -206,11 +209,11 @@ export default async function CreateIssuePage() {
 
        ADMIN
        - เห็นทุกกลุ่มงาน
-       - สามารถเปลี่ยนกลุ่มงานได้
+       - เปลี่ยนกลุ่มงานได้
 
        USER
        - เห็นเฉพาะกลุ่มงานตัวเอง
-       - IssueForm จะไม่อนุญาตให้เปลี่ยน
+       - เปลี่ยนกลุ่มงานไม่ได้
     ===================================================== */
 
     prisma.department.findMany({
@@ -237,7 +240,8 @@ export default async function CreateIssuePage() {
        - โหลดทั้งหมด
 
        USER
-       - โหลดเฉพาะบุคลากรในกลุ่มงานตนเอง
+       - โหลดเฉพาะบุคลากร
+         ภายในกลุ่มงานของตนเอง
     ===================================================== */
 
     prisma.officer.findMany({
@@ -300,6 +304,12 @@ export default async function CreateIssuePage() {
 
   /* =========================================================
      PERMISSION
+
+     ADMIN
+     - เปลี่ยนกลุ่มงานได้
+
+     USER
+     - ใช้กลุ่มงานตัวเองเท่านั้น
   ========================================================= */
 
   const canChangeDepartment =
@@ -314,7 +324,8 @@ export default async function CreateIssuePage() {
       {/* =====================================================
           HEADER
 
-          ใช้ AppPageHeader กลางเหมือน receive/create
+          ใช้ Component กลาง
+          รูปแบบเดียวกับ receive/create/page.tsx
       ===================================================== */}
 
       <AppPageHeader
@@ -322,59 +333,28 @@ export default async function CreateIssuePage() {
         title="บันทึกการเบิกจ่ายพัสดุ"
         subtitle="เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ"
         actions={
-          <div
-            className="
-              flex
-              flex-wrap
-              items-center
-              justify-end
-              gap-3
-            "
+          <AppButton
+            href="/issue"
+            variant="back"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
           >
-            {/* ===============================================
-                PDF
-
-                AppButton ไม่มี variant="pdf"
-                PDF ใช้ danger ตามมาตรฐานกลาง
-            =============================================== */}
-
-            <AppButton
-              href="/issue/create/pdf"
-              variant="danger"
-              size="md"
-              icon={
-                <span>
-                  📄
-                </span>
-              }
-            >
-              ส่งออก PDF
-            </AppButton>
-
-            {/* ===============================================
-                BACK
-            =============================================== */}
-
-            <AppButton
-              href="/issue"
-              variant="back"
-              size="md"
-              icon={
-                <span>
-                  ←
-                </span>
-              }
-            >
-              กลับ
-            </AppButton>
-          </div>
+            กลับ
+          </AppButton>
         }
       />
 
       {/* =====================================================
           ISSUE FORM CARD
 
-          ใช้ AppCard กลางแบบเดียวกับ receive/create
+          ใช้ AppCard กลางของระบบ
+          รูปแบบเดียวกับ receive/create
       ===================================================== */}
 
       <AppCard
