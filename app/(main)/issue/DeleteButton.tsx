@@ -2,58 +2,50 @@
 
 import { deleteIssue } from "./action";
 
+import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
-  id:number;
+  id: number;
 };
 
+/* =========================================================
+   DELETE BUTTON
+   ใช้ AppButton ตัวกลางของระบบ
+========================================================= */
 
 export default function DeleteButton({
   id,
-}:Props){
-
-
-  async function handleDelete(){
-
-
+}: Props) {
+  async function handleDelete() {
     const confirmDelete =
-      confirm(
+      window.confirm(
         "ต้องการลบใบเบิกนี้หรือไม่?"
       );
 
-
-
-    if(!confirmDelete){
-
+    if (!confirmDelete) {
       return;
-
     }
 
-
-
     await deleteIssue(id);
-
-
   }
 
-
-
-
-
   return (
-
-    <button
-
+    <AppButton
+      type="button"
+      variant="danger"
+      size="sm"
+      icon={
+        <span aria-hidden="true">
+          🗑️
+        </span>
+      }
       onClick={handleDelete}
-
-      className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
-
     >
-
       ลบ
-
-    </button>
-
+    </AppButton>
   );
-
 }

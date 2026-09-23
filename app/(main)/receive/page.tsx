@@ -34,7 +34,7 @@ type ReceivePageProps = {
 
 /* =========================================================
    THAI SHORT DATE
-   ตัวอย่าง 01 ก.ย. 69
+   ตัวอย่าง 23 ก.ย. 69
 ========================================================= */
 
 const thaiShortMonths = [
@@ -65,9 +65,7 @@ function formatThaiShortDate(
     return "-";
   }
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day = date.getDate();
 
   const month =
     thaiShortMonths[
@@ -242,7 +240,6 @@ export default async function ReceivePage({
 
       {/* =====================================================
           TABLE CARD
-          ใช้ Component กลางของระบบ
       ===================================================== */}
 
       <AppTableCard
@@ -253,10 +250,6 @@ export default async function ReceivePage({
           min-w-0
         "
       >
-        {/* ===================================================
-            TABLE
-        =================================================== */}
-
         <div
           className="
             w-full
@@ -324,24 +317,20 @@ export default async function ReceivePage({
             ================================================= */}
 
             <tbody>
-              {receives.length >
-              0 ? (
+              {receives.length > 0 ? (
                 receives.map(
                   (
                     receive: Receive,
                     index: number
                   ) => (
                     <tr
-                      key={
-                        receive.id
-                      }
+                      key={receive.id}
                       className={`
                         transition-all
                         duration-200
 
                         ${
-                          index % 2 ===
-                          0
+                          index % 2 === 0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -356,13 +345,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -378,13 +364,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
                           tabular-nums
@@ -403,13 +386,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -425,21 +405,15 @@ export default async function ReceivePage({
                       <td
                         className="
                           min-w-[200px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {
-                          receive.vendor
-                            .name
-                        }
+                        {receive.vendor.name}
                       </td>
 
                       {/* =======================================
@@ -449,13 +423,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
-
                           text-center
                         "
                       >
@@ -476,13 +447,10 @@ export default async function ReceivePage({
                         className="
                           min-w-[220px]
                           max-w-[360px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-semibold
                           leading-relaxed
                           !text-slate-700
@@ -494,8 +462,7 @@ export default async function ReceivePage({
                             break-words
                           "
                         >
-                          {receive.remark ??
-                            "-"}
+                          {receive.remark ?? "-"}
                         </div>
                       </td>
 
@@ -506,10 +473,8 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
                         "
@@ -536,9 +501,7 @@ export default async function ReceivePage({
                           </AppButton>
 
                           <DeleteButton
-                            id={
-                              receive.id
-                            }
+                            id={receive.id}
                           />
                         </div>
                       </td>
@@ -556,19 +519,15 @@ export default async function ReceivePage({
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
@@ -607,7 +566,6 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           tracking-tight
@@ -620,7 +578,6 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           leading-relaxed

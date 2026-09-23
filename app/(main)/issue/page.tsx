@@ -6,12 +6,12 @@ import {
   type SessionUser,
 } from "@/lib/session";
 
-import DeleteButton from "./DeleteButton";
-
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
+
+import DeleteButton from "./DeleteButton";
 
 /* =========================================================
    TYPES
@@ -56,9 +56,7 @@ type IssuePageProps = {
 
 /* =========================================================
    THAI SHORT DATE
-   ตัวอย่าง:
-   23 ก.ย. 69
-   1 ม.ค. 70
+   ตัวอย่าง 23 ก.ย. 69
 ========================================================= */
 
 const thaiShortMonths = [
@@ -88,11 +86,17 @@ function formatThaiShortDate(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "-";
   }
 
-  const day = date.getDate();
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
 
   const month =
     thaiShortMonths[
@@ -167,12 +171,6 @@ export default async function IssuePage({
 
   /* =========================================================
      DEPARTMENT PERMISSION
-
-     ADMIN
-     - เห็นทุกกลุ่มงาน
-
-     STAFF / VIEWER
-     - เห็นเฉพาะกลุ่มงานของตัวเอง
   ========================================================= */
 
   const issueDepartmentWhere =
@@ -205,7 +203,9 @@ export default async function IssuePage({
      TODAY
   ========================================================= */
 
-  if (params.date === "today") {
+  if (
+    params.date === "today"
+  ) {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -262,7 +262,8 @@ export default async function IssuePage({
   const issueWhere = {
     ...issueDepartmentWhere,
 
-    ...(startDate && endDate
+    ...(startDate &&
+    endDate
       ? {
           issueDate: {
             gte: startDate,
@@ -273,17 +274,26 @@ export default async function IssuePage({
   };
 
   /* =========================================================
-     LOAD ISSUE DATA
+     LOAD ISSUES
 
      เรียง:
-     1. วันที่เบิกจ่ายล่าสุดอยู่ด้านบน
+     1. วันที่ล่าสุดอยู่ด้านบน
      2. วันที่เก่าอยู่ด้านล่าง
-     3. ถ้าวันที่ซ้ำกัน รายการที่บันทึกใหม่กว่าอยู่ด้านบน
+     3. ถ้าวันเดียวกัน ID ใหม่กว่าอยู่ด้านบน
   ========================================================= */
 
   const issues =
     await prisma.issue.findMany({
       where: issueWhere,
+
+      orderBy: [
+        {
+          issueDate: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
 
       include: {
         department: true,
@@ -295,15 +305,6 @@ export default async function IssuePage({
           },
         },
       },
-
-      orderBy: [
-        {
-          issueDate: "desc",
-        },
-        {
-          id: "desc",
-        },
-      ],
     });
 
   /* =========================================================
@@ -357,7 +358,9 @@ export default async function IssuePage({
             href="/issue/create"
             variant="primary"
             size="md"
-            icon={<span>＋</span>}
+            icon={
+              <span>＋</span>
+            }
           >
             เพิ่มรายการ
           </AppButton>
@@ -366,7 +369,6 @@ export default async function IssuePage({
 
       {/* =====================================================
           PENDING ALERT
-          เฉพาะ ADMIN
       ===================================================== */}
 
       {session?.role ===
@@ -374,122 +376,60 @@ export default async function IssuePage({
         pendingCount > 0 && (
           <div
             className="
-              relative
-              overflow-hidden
-
               rounded-[24px]
-
               border
               border-amber-200
-
-              bg-gradient-to-r
-              from-amber-50
-              via-yellow-50
-              to-white
-
+              bg-amber-50
               p-4
               sm:p-5
-
-              shadow-[0_14px_40px_-24px_rgba(120,53,15,0.35)]
             "
           >
             <div
               className="
                 flex
                 flex-col
-                gap-4
-
+                gap-3
                 sm:flex-row
                 sm:items-center
                 sm:justify-between
               "
             >
-              <div
-                className="
-                  flex
-                  min-w-0
-                  items-start
-                  gap-3
-                "
-              >
-                <div
+              <div>
+                <p
                   className="
-                    flex
-                    h-11
-                    w-11
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    rounded-[15px]
-
-                    bg-amber-100
-
-                    text-xl
-
-                    shadow-sm
-
-                    ring-1
-                    ring-amber-200
+                    text-base
+                    font-extrabold
+                    !text-amber-900
+                    sm:text-lg
                   "
                 >
-                  🔔
-                </div>
+                  🔔 มีรายการรอเบิกจ่าย
+                </p>
 
-                <div className="min-w-0">
-                  <p
-                    className="
-                      text-base
-                      font-black
-                      !text-amber-900
-
-                      sm:text-lg
-                    "
-                  >
-                    มีรายการรอเบิกจ่าย
-                  </p>
-
-                  <p
-                    className="
-                      mt-1
-
-                      text-sm
-                      font-semibold
-                      leading-relaxed
-                      !text-amber-800
-                    "
-                  >
-                    มีใบเบิกจำนวน{" "}
-                    {pendingCount}{" "}
-                    รายการ
-                    รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
-                  </p>
-                </div>
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    !text-amber-800
+                  "
+                >
+                  มีใบเบิกจำนวน{" "}
+                  {pendingCount}{" "}
+                  รายการ
+                  รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
+                </p>
               </div>
 
-              <div
+              <span
                 className="
-                  inline-flex
-                  shrink-0
-                  items-center
-                  justify-center
-
-                  rounded-full
-
-                  bg-amber-500
-
-                  px-4
-                  py-2
-
-                  text-sm
+                  whitespace-nowrap
                   font-extrabold
-                  !text-white
-
-                  shadow-sm
+                  !text-amber-900
                 "
               >
                 รอ {pendingCount} รายการ
-              </div>
+              </span>
             </div>
           </div>
         )}
@@ -536,7 +476,7 @@ export default async function IssuePage({
               <tr>
                 {[
                   "ลำดับ",
-                  "วันที่เบิกจ่าย",
+                  "วันที่",
                   "เลขที่เอกสาร",
                   "หน่วยงาน / กลุ่มงาน",
                   "ผู้ขอเบิก",
@@ -587,9 +527,7 @@ export default async function IssuePage({
                     index: number
                   ) => (
                     <tr
-                      key={
-                        issue.id
-                      }
+                      key={issue.id}
                       className={`
                         transition-all
                         duration-200
@@ -611,13 +549,10 @@ export default async function IssuePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -627,19 +562,16 @@ export default async function IssuePage({
                       </td>
 
                       {/* =======================================
-                          วันที่เบิกจ่าย
+                          วันที่
                       ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
                           tabular-nums
@@ -658,19 +590,18 @@ export default async function IssuePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {issue.documentNo}
+                        {
+                          issue.documentNo
+                        }
                       </td>
 
                       {/* =======================================
@@ -680,13 +611,10 @@ export default async function IssuePage({
                       <td
                         className="
                           min-w-[220px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-extrabold
                           !text-slate-900
                         "
@@ -702,13 +630,10 @@ export default async function IssuePage({
                       <td
                         className="
                           min-w-[180px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-extrabold
                           !text-slate-900
                         "
@@ -719,26 +644,96 @@ export default async function IssuePage({
                       </td>
 
                       {/* =======================================
-                          สถานะ
+                          STATUS
                       ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
-                          font-extrabold
-                          !text-slate-900
                         "
                       >
-                        {getStatusLabel(
-                          issue.status
+                        {issue.status ===
+                        "PENDING" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              whitespace-nowrap
+                              rounded-full
+                              bg-amber-100
+                              px-3
+                              py-1.5
+                              text-xs
+                              font-extrabold
+                              !text-amber-800
+                            "
+                          >
+                            🔔 รอเบิกจ่าย
+                          </span>
+                        ) : issue.status ===
+                          "APPROVED" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              whitespace-nowrap
+                              rounded-full
+                              bg-emerald-100
+                              px-3
+                              py-1.5
+                              text-xs
+                              font-extrabold
+                              !text-emerald-800
+                            "
+                          >
+                            ✓ เสร็จสิ้นแล้ว
+                          </span>
+                        ) : issue.status ===
+                          "REJECTED" ? (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              whitespace-nowrap
+                              rounded-full
+                              bg-red-100
+                              px-3
+                              py-1.5
+                              text-xs
+                              font-extrabold
+                              !text-red-800
+                            "
+                          >
+                            ✕ ไม่อนุมัติ
+                          </span>
+                        ) : (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              whitespace-nowrap
+                              rounded-full
+                              bg-slate-100
+                              px-3
+                              py-1.5
+                              text-xs
+                              font-extrabold
+                              !text-slate-700
+                            "
+                          >
+                            {getStatusLabel(
+                              issue.status
+                            )}
+                          </span>
                         )}
                       </td>
 
@@ -749,13 +744,10 @@ export default async function IssuePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
-
                           text-center
                         "
                       >
@@ -775,10 +767,8 @@ export default async function IssuePage({
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3
                         "
@@ -825,19 +815,15 @@ export default async function IssuePage({
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
@@ -852,22 +838,11 @@ export default async function IssuePage({
                           w-16
                           items-center
                           justify-center
-
                           rounded-[20px]
-
                           border
                           border-slate-200/80
-
                           bg-white/90
-
                           text-3xl
-
-                          shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
-
-                          ring-1
-                          ring-black/[0.025]
-
-                          backdrop-blur-xl
                         "
                       >
                         📤
@@ -876,28 +851,26 @@ export default async function IssuePage({
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           tracking-tight
                           !text-slate-900
                         "
                       >
-                        ยังไม่มีข้อมูลเบิกจ่ายพัสดุ
+                        ยังไม่มีรายการเบิกจ่ายพัสดุ
                       </p>
 
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           leading-relaxed
                           !text-slate-500
                         "
                       >
-                        เมื่อมีการบันทึกเบิกจ่าย
-                        รายการจะแสดงในตารางนี้
+                        เมื่อมีการบันทึกรายการเบิกจ่าย
+                        ข้อมูลจะแสดงในตารางนี้
                       </p>
                     </div>
                   </td>
