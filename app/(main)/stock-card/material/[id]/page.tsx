@@ -32,15 +32,11 @@ type Lot = {
    CATEGORY
 ========================================================= */
 
-const categoryName: Record<
-  string,
-  string
-> = {
+const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
@@ -62,11 +58,15 @@ function formatDateAD(
     return "-";
   }
 
-  return `${String(
-    d.getDate()
-  ).padStart(2, "0")}/${String(
+  return `${String(d.getDate()).padStart(
+    2,
+    "0"
+  )}/${String(
     d.getMonth() + 1
-  ).padStart(2, "0")}/${d.getFullYear()}`;
+  ).padStart(
+    2,
+    "0"
+  )}/${d.getFullYear()}`;
 }
 
 /* =========================================================
@@ -189,8 +189,7 @@ export default async function StockCardPage({
   const latestReceiveItem =
     material.receiveItems.length > 0
       ? material.receiveItems[
-          material.receiveItems.length -
-            1
+          material.receiveItems.length - 1
         ]
       : null;
 
@@ -198,12 +197,9 @@ export default async function StockCardPage({
     latestReceiveItem?.receive.vendor
       ?.name ?? "-";
 
-  const latestPrice =
-    latestReceiveItem
-      ? Number(
-          latestReceiveItem.unitPrice
-        )
-      : 0;
+  const latestPrice = latestReceiveItem
+    ? Number(latestReceiveItem.unitPrice)
+    : 0;
 
   /* =======================================================
      FEFO LOTS
@@ -213,7 +209,6 @@ export default async function StockCardPage({
 
   /* =======================================================
      EVENTS
-
      เฉพาะ APPROVED เท่านั้นที่ตัดสต็อก
   ======================================================= */
 
@@ -221,8 +216,7 @@ export default async function StockCardPage({
     ...material.receiveItems.map(
       (item) => ({
         type: "receive" as const,
-        date:
-          item.receive.receiveDate,
+        date: item.receive.receiveDate,
         item,
       })
     ),
@@ -282,18 +276,14 @@ export default async function StockCardPage({
 
   for (const event of events) {
     if (event.type === "receive") {
-      const receiveItem =
-        event.item;
+      const receiveItem = event.item;
 
       lots.push({
         id: receiveItem.id,
-        qty: Number(
-          receiveItem.qty
-        ),
+        qty: Number(receiveItem.qty),
         manufacture:
           receiveItem.manufacture,
-        expiry:
-          receiveItem.expiry,
+        expiry: receiveItem.expiry,
       });
 
       continue;
@@ -307,9 +297,7 @@ export default async function StockCardPage({
     );
 
     const availableLots = lots
-      .filter(
-        (lot) => lot.qty > 0
-      )
+      .filter((lot) => lot.qty > 0)
       .sort((a, b) => {
         const aUnspecified =
           !a.manufacture &&
@@ -352,12 +340,8 @@ export default async function StockCardPage({
             ).getTime()
           : Number.MAX_SAFE_INTEGER;
 
-        if (
-          aExpiry !== bExpiry
-        ) {
-          return (
-            aExpiry - bExpiry
-          );
+        if (aExpiry !== bExpiry) {
+          return aExpiry - bExpiry;
         }
 
         const aManufacture =
@@ -387,9 +371,8 @@ export default async function StockCardPage({
         return a.id - b.id;
       });
 
-    let selectedLot:
-      | Lot
-      | null = null;
+    let selectedLot: Lot | null =
+      null;
 
     for (const lot of availableLots) {
       if (remainingQty <= 0) {
@@ -406,9 +389,7 @@ export default async function StockCardPage({
       }
 
       lot.qty -= issueQty;
-
-      remainingQty -=
-        issueQty;
+      remainingQty -= issueQty;
     }
 
     if (selectedLot) {
@@ -432,30 +413,29 @@ export default async function StockCardPage({
   const rows = [
     ...material.receiveItems.map(
       (item) => ({
-        date:
-          item.receive.receiveDate,
+        date: item.receive.receiveDate,
 
         documentNo:
           item.receive.documentNo,
 
         owner:
-          item.receive.vendor
-            ?.name ?? "-",
+          item.receive.vendor?.name ??
+          "-",
 
         unitPrice: Number(
           item.unitPrice
         ),
 
-        receiveQty:
-          Number(item.qty),
+        receiveQty: Number(
+          item.qty
+        ),
 
         issueQty: 0,
 
         manufacture:
           item.manufacture,
 
-        expiry:
-          item.expiry,
+        expiry: item.expiry,
       })
     ),
 
@@ -467,13 +447,10 @@ export default async function StockCardPage({
       )
       .map((item) => {
         const lot =
-          issueLotMap.get(
-            item.id
-          );
+          issueLotMap.get(item.id);
 
         return {
-          date:
-            item.issue.issueDate,
+          date: item.issue.issueDate,
 
           documentNo:
             item.issue.documentNo,
@@ -482,8 +459,7 @@ export default async function StockCardPage({
             item.issue.department
               ?.name ?? "-",
 
-          unitPrice:
-            latestPrice,
+          unitPrice: latestPrice,
 
           receiveQty: 0,
 
@@ -493,8 +469,7 @@ export default async function StockCardPage({
           ),
 
           manufacture:
-            lot?.manufacture ??
-            null,
+            lot?.manufacture ?? null,
 
           expiry:
             lot?.expiry ?? null,
@@ -502,12 +477,8 @@ export default async function StockCardPage({
       }),
   ].sort(
     (a, b) =>
-      new Date(
-        a.date
-      ).getTime() -
-      new Date(
-        b.date
-      ).getTime()
+      new Date(a.date).getTime() -
+      new Date(b.date).getTime()
   );
 
   /* =======================================================
@@ -534,6 +505,20 @@ export default async function StockCardPage({
   );
 
   /* =======================================================
+     EXPORT MATERIAL
+  ======================================================= */
+
+  const exportMaterial = {
+    ...material,
+
+    vendor:
+      latestReceiveItem?.receive
+        .vendor ?? null,
+
+    latestPrice,
+  };
+
+  /* =======================================================
      UI
   ======================================================= */
 
@@ -541,60 +526,26 @@ export default async function StockCardPage({
     <AppPage>
       {/* =====================================================
           HEADER
-          ใช้ตัวกลาง
+          เหลือเฉพาะปุ่มกลับ
       ===================================================== */}
 
       <AppPageHeader
         icon="📒"
         title="บัญชีพัสดุ"
-        subtitle={
-          material.name
-        }
+        subtitle={material.name}
         actions={
-          <>
-            <ExportPdf
-              material={{
-                ...material,
-
-                vendor:
-                  latestReceiveItem
-                    ?.receive
-                    .vendor ?? null,
-
-                latestPrice,
-              }}
-              rows={stockRows}
-            />
-
-            <ExportExcel
-              material={{
-                ...material,
-
-                vendor:
-                  latestReceiveItem
-                    ?.receive
-                    .vendor ?? null,
-
-                latestPrice,
-              }}
-              rows={stockRows}
-            />
-
-            <AppButton
-              href={`/stock-card/${material.category}`}
-              variant="back"
-              size="md"
-              icon={
-                <span
-                  aria-hidden="true"
-                >
-                  ←
-                </span>
-              }
-            >
-              กลับ
-            </AppButton>
-          </>
+          <AppButton
+            href={`/stock-card/${material.category}`}
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
+          >
+            กลับ
+          </AppButton>
         }
       />
 
@@ -614,7 +565,7 @@ export default async function StockCardPage({
         "
       >
         {/* ===================================================
-            SECTION HEADER
+            SECTION HEADER + EXPORT BUTTONS
         =================================================== */}
 
         <div
@@ -622,57 +573,102 @@ export default async function StockCardPage({
             mb-5
 
             flex
-            items-center
-            gap-3
+            flex-col
+            gap-4
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
+          {/* ===============================================
+              TITLE
+          =============================================== */}
+
           <div
             className="
               flex
-              h-11
-              w-11
-              shrink-0
+              min-w-0
               items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-slate-100
-
-              text-xl
-
-              shadow-sm
+              gap-3
             "
-            aria-hidden="true"
           >
-            📦
+            <div
+              className="
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-[15px]
+
+                bg-slate-100
+
+                text-xl
+
+                shadow-sm
+              "
+              aria-hidden="true"
+            >
+              📦
+            </div>
+
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+
+                  sm:text-xl
+                "
+              >
+                ข้อมูลพัสดุ
+              </h2>
+
+              <p
+                className="
+                  mt-0.5
+
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                รายละเอียดข้อมูลพัสดุและข้อมูลล่าสุด
+              </p>
+            </div>
           </div>
 
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
+          {/* ===============================================
+              EXPORT ACTIONS
+          =============================================== */}
 
-                sm:text-xl
-              "
-            >
-              ข้อมูลพัสดุ
-            </h2>
+          <div
+            className="
+              flex
+              w-full
+              flex-col
+              gap-2
 
-            <p
-              className="
-                mt-0.5
+              sm:w-auto
+              sm:flex-row
+              sm:items-center
+              sm:justify-end
+            "
+          >
+            <ExportPdf
+              material={exportMaterial}
+              rows={stockRows}
+            />
 
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              รายละเอียดข้อมูลพัสดุและข้อมูลล่าสุด
-            </p>
+            <ExportExcel
+              material={exportMaterial}
+              rows={stockRows}
+            />
           </div>
         </div>
 
@@ -693,9 +689,7 @@ export default async function StockCardPage({
             xl:grid-cols-3
           "
         >
-          {/* ===============================================
-              CODE
-          =============================================== */}
+          {/* CODE */}
 
           <AppInfoCard>
             <p
@@ -720,14 +714,11 @@ export default async function StockCardPage({
                 sm:text-lg
               "
             >
-              {material.code ||
-                "-"}
+              {material.code || "-"}
             </p>
           </AppInfoCard>
 
-          {/* ===============================================
-              MATERIAL NAME
-          =============================================== */}
+          {/* MATERIAL NAME */}
 
           <AppInfoCard>
             <p
@@ -752,14 +743,11 @@ export default async function StockCardPage({
                 sm:text-lg
               "
             >
-              {material.name ||
-                "-"}
+              {material.name || "-"}
             </p>
           </AppInfoCard>
 
-          {/* ===============================================
-              CATEGORY
-          =============================================== */}
+          {/* CATEGORY */}
 
           <AppInfoCard>
             <p
@@ -792,9 +780,7 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* ===============================================
-              UNIT
-          =============================================== */}
+          {/* UNIT */}
 
           <AppInfoCard>
             <p
@@ -818,14 +804,11 @@ export default async function StockCardPage({
                 sm:text-lg
               "
             >
-              {material.unit ||
-                "-"}
+              {material.unit || "-"}
             </p>
           </AppInfoCard>
 
-          {/* ===============================================
-              VENDOR
-          =============================================== */}
+          {/* VENDOR */}
 
           <AppInfoCard>
             <p
@@ -854,9 +837,7 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* ===============================================
-              PRICE
-          =============================================== */}
+          {/* PRICE */}
 
           <AppInfoCard>
             <p
@@ -893,7 +874,6 @@ export default async function StockCardPage({
 
       {/* =====================================================
           STOCK TABLE
-          ใช้ AppTableCard ตัวกลาง
       ===================================================== */}
 
       <AppTableCard
@@ -921,10 +901,6 @@ export default async function StockCardPage({
               bg-white
             "
           >
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <thead>
               <tr>
                 {[
@@ -968,10 +944,6 @@ export default async function StockCardPage({
                 )}
               </tr>
             </thead>
-
-            {/* =================================================
-                BODY
-            ================================================= */}
 
             <tbody>
               {stockRows.length ===
@@ -1044,7 +1016,8 @@ export default async function StockCardPage({
                           !text-slate-500
                         "
                       >
-                        เมื่อมีรายการรับเข้าหรือเบิกจ่าย ข้อมูลจะแสดงในส่วนนี้
+                        เมื่อมีรายการรับเข้าหรือเบิกจ่าย
+                        ข้อมูลจะแสดงในส่วนนี้
                       </p>
                     </div>
                   </td>
@@ -1059,8 +1032,7 @@ export default async function StockCardPage({
                         duration-200
 
                         ${
-                          index % 2 ===
-                          0
+                          index % 2 === 0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -1068,10 +1040,6 @@ export default async function StockCardPage({
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* =====================================
-                          DATE
-                      ===================================== */}
-
                       <td
                         className="
                           whitespace-nowrap
@@ -1092,10 +1060,6 @@ export default async function StockCardPage({
                         )}
                       </td>
 
-                      {/* =====================================
-                          DOCUMENT
-                      ===================================== */}
-
                       <td
                         className="
                           min-w-[180px]
@@ -1114,10 +1078,6 @@ export default async function StockCardPage({
                           "-"}
                       </td>
 
-                      {/* =====================================
-                          OWNER
-                      ===================================== */}
-
                       <td
                         className="
                           min-w-[280px]
@@ -1132,13 +1092,8 @@ export default async function StockCardPage({
                           !text-slate-900
                         "
                       >
-                        {row.owner ||
-                          "-"}
+                        {row.owner || "-"}
                       </td>
-
-                      {/* =====================================
-                          PRICE
-                      ===================================== */}
 
                       <td
                         className="
@@ -1162,10 +1117,6 @@ export default async function StockCardPage({
                         )}
                       </td>
 
-                      {/* =====================================
-                          RECEIVE
-                      ===================================== */}
-
                       <td
                         className="
                           min-w-[110px]
@@ -1182,18 +1133,13 @@ export default async function StockCardPage({
                           !text-slate-900
                         "
                       >
-                        {row.receiveQty >
-                        0
+                        {row.receiveQty > 0
                           ? formatNumber(
                               row.receiveQty
                             )
                           : "-"}
                       </td>
 
-                      {/* =====================================
-                          ISSUE
-                      ===================================== */}
-
                       <td
                         className="
                           min-w-[110px]
@@ -1210,17 +1156,12 @@ export default async function StockCardPage({
                           !text-slate-900
                         "
                       >
-                        {row.issueQty >
-                        0
+                        {row.issueQty > 0
                           ? formatNumber(
                               row.issueQty
                             )
                           : "-"}
                       </td>
-
-                      {/* =====================================
-                          BALANCE
-                      ===================================== */}
 
                       <td
                         className="
@@ -1243,10 +1184,6 @@ export default async function StockCardPage({
                         )}
                       </td>
 
-                      {/* =====================================
-                          MANUFACTURE
-                      ===================================== */}
-
                       <td
                         className="
                           min-w-[150px]
@@ -1267,10 +1204,6 @@ export default async function StockCardPage({
                           row.manufacture
                         )}
                       </td>
-
-                      {/* =====================================
-                          EXPIRY
-                      ===================================== */}
 
                       <td
                         className="
