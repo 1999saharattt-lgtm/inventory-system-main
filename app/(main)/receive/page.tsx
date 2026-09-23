@@ -241,18 +241,41 @@ export default async function ReceivePage({
         title="รายการรับเข้าพัสดุ"
         subtitle={filterText}
         actions={
-          <AppButton
-            href="/receive/create"
-            variant="primary"
-            size="md"
-            icon={
-              <span aria-hidden="true">
-                ＋
-              </span>
-            }
-          >
-            เพิ่มรายการ
-          </AppButton>
+          <>
+            {/* ===============================================
+                ADD RECEIVE
+            =============================================== */}
+
+            <AppButton
+              href="/receive/create"
+              variant="primary"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ＋
+                </span>
+              }
+            >
+              เพิ่มรายการ
+            </AppButton>
+
+            {/* ===============================================
+                BACK TO HOME
+            =============================================== */}
+
+            <AppButton
+              href="/"
+              variant="back"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
         }
       />
 
@@ -571,9 +594,7 @@ export default async function ReceivePage({
                           </AppButton>
 
                           <DeleteButton
-                            id={
-                              receive.id
-                            }
+                            id={receive.id}
                           />
                         </div>
                       </td>
