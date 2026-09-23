@@ -34,6 +34,7 @@ async function generateIssueNo() {
           startsWith: "จ.",
         },
       },
+
       select: {
         documentNo: true,
       },
@@ -51,9 +52,8 @@ async function generateIssueNo() {
       continue;
     }
 
-    const number = Number(
-      match[1]
-    );
+    const number =
+      Number(match[1]);
 
     const documentYear =
       match[2];
@@ -66,9 +66,12 @@ async function generateIssueNo() {
     }
   }
 
-  return `จ.${String(
-    maxNumber + 1
-  ).padStart(2, "0")}/${year}`;
+  const running =
+    maxNumber + 1;
+
+  return `จ.${running
+    .toString()
+    .padStart(2, "0")}/${year}`;
 }
 
 /* =========================================================
@@ -160,8 +163,7 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   let userDepartmentId =
-    session?.departmentId ??
-    null;
+    session?.departmentId ?? null;
 
   if (
     session &&
@@ -186,14 +188,6 @@ export default async function CreateIssuePage() {
 
   /* =======================================================
      DEPARTMENTS
-
-     ADMIN:
-     - เห็นทุกกลุ่มงาน
-     - เปลี่ยนกลุ่มงานได้
-
-     USER:
-     - เห็นเฉพาะกลุ่มงานตนเอง
-     - IssueForm จะล็อกไม่ให้แก้
   ======================================================= */
 
   const departments =
@@ -262,6 +256,10 @@ export default async function CreateIssuePage() {
   const documentNo =
     await generateIssueNo();
 
+  /* =======================================================
+     INITIAL DEPARTMENT
+  ======================================================= */
+
   const initialDepartmentId =
     isAdmin
       ? ""
@@ -277,6 +275,10 @@ export default async function CreateIssuePage() {
 
   return (
     <AppPage>
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
       <AppPageHeader
         icon="📤"
         title="บันทึกการเบิกจ่ายพัสดุ"
@@ -296,9 +298,7 @@ export default async function CreateIssuePage() {
               variant="pdf"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span>
                   📄
                 </span>
               }
@@ -311,9 +311,7 @@ export default async function CreateIssuePage() {
               variant="back"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span>
                   ←
                 </span>
               }
@@ -324,12 +322,22 @@ export default async function CreateIssuePage() {
         }
       />
 
+      {/* ===================================================
+          FORM
+
+          ไม่สร้าง Card / Background ครอบ IssueForm
+          IssueForm จัดการ Card ภายในเอง
+          ให้โครงสร้างเหมือน receive
+      =================================================== */}
+
       <IssueForm
         departments={
           departments
         }
         officers={officers}
-        materials={materials}
+        materials={
+          materials
+        }
         receiveLots={
           receiveLots
         }
