@@ -43,7 +43,10 @@ const categoryName: Record<string, string> = {
 
 /* =========================================================
    THAI SHORT DATE
-   ตัวอย่าง: 23 ก.ย. 2569
+   ตัวอย่าง:
+   01 ม.ค. 69
+   02 ก.พ. 69
+   23 ก.ย. 69
 ========================================================= */
 
 const thaiShortMonths = [
@@ -74,9 +77,21 @@ function formatThaiShortDate(
     return "-";
   }
 
-  return `${d.getDate()} ${
-    thaiShortMonths[d.getMonth()]
-  } ${d.getFullYear() + 543}`;
+  const day = String(
+    d.getDate()
+  ).padStart(2, "0");
+
+  const month =
+    thaiShortMonths[d.getMonth()];
+
+  const buddhistYear =
+    d.getFullYear() + 543;
+
+  const shortYear = String(
+    buddhistYear
+  ).slice(-2);
+
+  return `${day} ${month} ${shortYear}`;
 }
 
 /* =========================================================
@@ -985,12 +1000,13 @@ export default async function StockCardPage({
                       `}
                     >
                       {/* =====================================
-                          DATE - วันที่ไทยแบบย่อ
+                          DATE
+                          เช่น 01 ม.ค. 69
                       ===================================== */}
 
                       <td
                         className="
-                          min-w-[145px]
+                          min-w-[130px]
                           whitespace-nowrap
                           border
                           border-black
@@ -1007,12 +1023,14 @@ export default async function StockCardPage({
                       </td>
 
                       {/* =====================================
-                          DOCUMENT NO - กึ่งกลาง
+                          DOCUMENT NO
+                          จัดกึ่งกลาง
                       ===================================== */}
 
                       <td
                         className="
                           min-w-[180px]
+                          whitespace-nowrap
                           border
                           border-black
                           px-4
@@ -1138,12 +1156,13 @@ export default async function StockCardPage({
                       </td>
 
                       {/* =====================================
-                          MANUFACTURE - วันที่ไทยแบบย่อ
+                          MANUFACTURE
+                          เช่น 01 ม.ค. 69
                       ===================================== */}
 
                       <td
                         className="
-                          min-w-[145px]
+                          min-w-[130px]
                           whitespace-nowrap
                           border
                           border-black
@@ -1160,12 +1179,13 @@ export default async function StockCardPage({
                       </td>
 
                       {/* =====================================
-                          EXPIRY - วันที่ไทยแบบย่อ
+                          EXPIRY
+                          เช่น 01 ม.ค. 69
                       ===================================== */}
 
                       <td
                         className="
-                          min-w-[145px]
+                          min-w-[130px]
                           whitespace-nowrap
                           border
                           border-black
