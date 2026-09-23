@@ -164,26 +164,6 @@ export default async function ReceiveDetailPage({
   }
 
   /* =======================================================
-     SUMMARY
-  ======================================================= */
-
-  const totalQty =
-    receive.items.reduce(
-      (total, item) =>
-        total + Number(item.qty),
-      0
-    );
-
-  const totalAmount =
-    receive.items.reduce(
-      (total, item) =>
-        total +
-        Number(item.qty) *
-          Number(item.unitPrice),
-      0
-    );
-
-  /* =======================================================
      UI
   ======================================================= */
 
@@ -839,82 +819,6 @@ export default async function ReceiveDetailPage({
                 )
               )}
             </tbody>
-
-            {/* =================================================
-                SUMMARY
-            ================================================= */}
-
-            {receive.items.length > 0 && (
-              <tfoot>
-                <tr className="bg-slate-50">
-                  <td
-                    colSpan={4}
-                    className="
-                      border
-                      border-black
-
-                      px-4
-                      py-4
-
-                      text-right
-                      font-extrabold
-                      !text-slate-900
-                    "
-                  >
-                    รวม
-                  </td>
-
-                  <td
-                    className="
-                      border
-                      border-black
-
-                      px-3
-                      py-4
-
-                      text-right
-                      font-extrabold
-                      tabular-nums
-                      !text-slate-900
-                    "
-                  >
-                    {formatMoney(
-                      totalAmount
-                    )}
-                  </td>
-
-                  <td
-                    className="
-                      border
-                      border-black
-
-                      px-3
-                      py-4
-
-                      text-center
-                      font-extrabold
-                      tabular-nums
-                      !text-slate-900
-                    "
-                  >
-                    {totalQty.toLocaleString(
-                      "th-TH"
-                    )}
-                  </td>
-
-                  <td
-                    colSpan={2}
-                    className="
-                      border
-                      border-black
-
-                      px-3
-                      py-4
-                    "
-                  />
-                </tr>
-              </tfoot>
-            )}
           </table>
         </div>
       </AppTableCard>
