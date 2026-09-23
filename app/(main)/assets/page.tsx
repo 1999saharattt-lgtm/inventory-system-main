@@ -1,333 +1,425 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { requireLogin } from "@/lib/auth";
 
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function AssetsPage() {
-  /* =====================================================
-     ตรวจสอบผู้ใช้งาน
-  ===================================================== */
+  /* =======================================================
+     USER
+  ======================================================= */
 
-  const user = await requireLogin();
+  const user =
+    await requireLogin();
 
-  /* =====================================================
-     โหลดกลุ่มงาน
-  ===================================================== */
+  /* =======================================================
+     DEPARTMENTS
+  ======================================================= */
 
-  const departments = await prisma.department.findMany({
-    orderBy: {
-      id: "asc",
-    },
-  });
+  const departments =
+    await prisma.department.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
+          ใช้ตัวกลางของระบบ
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          items-start
-          justify-between
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            🗄️ ทะเบียนคุมครุภัณฑ์
-          </h1>
+      <AppPageHeader
+        icon="🗄️"
+        title="ทะเบียนคุมครุภัณฑ์"
+        subtitle="เลือกกลุ่มงานเพื่อดูข้อมูลและทะเบียนครุภัณฑ์"
+        actions={
+          <>
+            {/* ===============================================
+                INSPECTION HISTORY
+            =============================================== */}
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            เลือกกลุ่มงานเพื่อดูข้อมูลและทะเบียนครุภัณฑ์
-          </p>
-        </div>
+            <AppButton
+              href="/assets/inspection-history"
+              variant="secondary"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  📋
+                </span>
+              }
+            >
+              ประวัติการตรวจสอบครุภัณฑ์ประจำปี
+            </AppButton>
 
-        {/* =================================================
-            ปุ่มด้านขวา
-        ================================================= */}
+            {/* ===============================================
+                ANNUAL INSPECTION
+                ADMIN ONLY
+            =============================================== */}
 
-        <div
+            {user.role === "ADMIN" && (
+              <AppButton
+                href="/assets/1/inspection"
+                variant="primary"
+                size="md"
+                icon={
+                  <span aria-hidden="true">
+                    🔎
+                  </span>
+                }
+              >
+                ตรวจสอบรายการครุภัณฑ์ประจำปี
+              </AppButton>
+            )}
+
+            {/* ===============================================
+                BACK
+            =============================================== */}
+
+            <AppButton
+              href="/"
+              variant="back"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
+        }
+      />
+
+      {/* =====================================================
+          DEPARTMENT CARDS
+      ===================================================== */}
+
+      {departments.length > 0 ? (
+        <section
           className="
-            flex
+            grid
             w-full
-            flex-col
-            gap-3
-            sm:w-auto
-            sm:flex-row
-            sm:items-center
+            min-w-0
+
+            grid-cols-1
+            gap-4
+
+            md:grid-cols-2
+
+            xl:grid-cols-3
           "
         >
-          {/* ===============================================
-              ประวัติการตรวจสอบครุภัณฑ์ประจำปี
-          =============================================== */}
+          {departments.map(
+            (department) => (
+              <AppCard
+                key={department.id}
+                className="
+                  group
+                  relative
 
-          <Link
-            href="/assets/inspection-history"
+                  min-w-0
+                  overflow-hidden
+
+                  !p-0
+
+                  transition-all
+                  duration-300
+                  ease-out
+
+                  hover:-translate-y-1
+                  hover:shadow-[0_24px_50px_-28px_rgba(15,23,42,0.4)]
+                "
+              >
+                {/* ===========================================
+                    TOP ACCENT
+                =========================================== */}
+
+                <div
+                  aria-hidden="true"
+                  className="
+                    h-1.5
+                    w-full
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                  "
+                />
+
+                {/* ===========================================
+                    AMBIENT
+                =========================================== */}
+
+                <div
+                  aria-hidden="true"
+                  className="
+                    pointer-events-none
+
+                    absolute
+                    -right-16
+                    -top-16
+
+                    h-40
+                    w-40
+
+                    rounded-full
+
+                    bg-blue-400/[0.08]
+
+                    blur-3xl
+
+                    transition-all
+                    duration-500
+
+                    group-hover:scale-125
+                    group-hover:bg-blue-400/[0.12]
+                  "
+                />
+
+                {/* ===========================================
+                    CONTENT
+                =========================================== */}
+
+                <div
+                  className="
+                    relative
+
+                    flex
+                    min-h-[220px]
+                    min-w-0
+                    flex-col
+
+                    p-5
+
+                    sm:min-h-[230px]
+                    sm:p-6
+                  "
+                >
+                  {/* =========================================
+                      ICON
+                  ========================================= */}
+
+                  <div
+                    className="
+                      flex
+                      h-16
+                      w-16
+                      shrink-0
+
+                      items-center
+                      justify-center
+
+                      rounded-[20px]
+
+                      bg-gradient-to-br
+                      from-slate-800
+                      to-slate-700
+
+                      text-3xl
+
+                      shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
+
+                      ring-1
+                      ring-white/30
+
+                      transition-all
+                      duration-300
+
+                      group-hover:-translate-y-0.5
+                      group-hover:scale-[1.06]
+                    "
+                    aria-hidden="true"
+                  >
+                    🏢
+                  </div>
+
+                  {/* =========================================
+                      TEXT
+                  ========================================= */}
+
+                  <div
+                    className="
+                      mt-5
+                      min-w-0
+                    "
+                  >
+                    <h2
+                      className="
+                        break-words
+
+                        text-xl
+                        font-black
+                        leading-tight
+                        tracking-tight
+                        !text-slate-900
+
+                        sm:text-2xl
+                      "
+                    >
+                      {department.name}
+                    </h2>
+
+                    <p
+                      className="
+                        mt-2
+
+                        break-words
+
+                        text-sm
+                        font-semibold
+                        leading-relaxed
+                        !text-slate-500
+
+                        sm:text-base
+                      "
+                    >
+                      คลิกเพื่อดูทะเบียนครุภัณฑ์ของกลุ่มงาน
+                    </p>
+                  </div>
+
+                  {/* =========================================
+                      ACTION
+                  ========================================= */}
+
+                  <div
+                    className="
+                      mt-auto
+
+                      flex
+                      items-center
+                      justify-end
+
+                      pt-5
+                    "
+                  >
+                    <AppButton
+                      href={`/assets/${department.id}`}
+                      variant="primary"
+                      size="md"
+                      icon={
+                        <span aria-hidden="true">
+                          →
+                        </span>
+                      }
+                    >
+                      เปิด
+                    </AppButton>
+                  </div>
+                </div>
+              </AppCard>
+            )
+          )}
+        </section>
+      ) : (
+        /* ===================================================
+            EMPTY STATE
+        =================================================== */
+
+        <AppCard
+          className="
+            w-full
+            min-w-0
+
+            px-6
+            py-14
+
+            text-center
+          "
+        >
+          <div
             className="
-              inline-flex
-              shrink-0
+              mx-auto
+
+              flex
+              max-w-md
+              flex-col
               items-center
               justify-center
-              whitespace-nowrap
-              rounded-xl
-              border
-              border-white/20
-              bg-white
-              px-4
-              py-3
-              text-center
-              text-sm
-              font-extrabold
-              text-slate-900
-              shadow-lg
-              transition-all
-              duration-200
-              hover:-translate-y-0.5
-              hover:bg-slate-100
-              hover:shadow-xl
-              sm:px-5
-              sm:text-base
             "
           >
-            📋 ประวัติการตรวจสอบครุภัณฑ์ประจำปี
-          </Link>
-
-          {/* ===============================================
-              ตรวจสอบรายการครุภัณฑ์ประจำปี
-
-              ย้ายมาจากหน้า /assets/1
-              เฉพาะ ADMIN
-          =============================================== */}
-
-          {user.role === "ADMIN" && (
-            <Link
-              href="/assets/1/inspection"
-              className="
-                inline-flex
-                shrink-0
-                items-center
-                justify-center
-                whitespace-nowrap
-                rounded-xl
-                border
-                border-white/20
-                bg-white
-                px-4
-                py-3
-                text-center
-                text-sm
-                font-extrabold
-                text-slate-900
-                shadow-lg
-                transition-all
-                duration-200
-                hover:-translate-y-0.5
-                hover:bg-slate-100
-                hover:shadow-xl
-                sm:px-5
-                sm:text-base
-              "
-            >
-              🔎 ตรวจสอบรายการครุภัณฑ์ประจำปี
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* =====================================================
-          Department Cards
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-      >
-        {departments.map((department: any) => (
-          <Link
-            key={department.id}
-            href={`/assets/${department.id}`}
-            className="
-              group
-              overflow-hidden
-              rounded-2xl
-              border
-              border-slate-300
-              bg-white
-              shadow-lg
-              transition-all
-              duration-300
-              hover:-translate-y-1
-              hover:shadow-2xl
-            "
-          >
-            {/* Top Bar */}
-
-            <div
-              className="
-                h-2
-                bg-gradient-to-r
-                from-slate-700
-                to-slate-900
-              "
-            />
+            {/* ===============================================
+                ICON
+            =============================================== */}
 
             <div
               className="
                 flex
-                min-h-[230px]
-                flex-col
+                h-16
+                w-16
+
                 items-center
-                gap-5
-                p-6
-                text-center
+                justify-center
+
+                rounded-[20px]
+
+                border
+                border-slate-200
+
+                bg-slate-50
+
+                text-3xl
+
+                shadow-sm
+              "
+              aria-hidden="true"
+            >
+              🏢
+            </div>
+
+            {/* ===============================================
+                TITLE
+            =============================================== */}
+
+            <h2
+              className="
+                mt-5
+
+                text-xl
+                font-black
+                tracking-tight
+                !text-slate-900
+
+                sm:text-2xl
               "
             >
-              {/* Icon */}
+              ยังไม่มีข้อมูลกลุ่มงาน
+            </h2>
 
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-slate-100
-                  text-4xl
-                  shadow-md
-                  transition
-                  duration-300
-                  group-hover:scale-110
-                "
-              >
-                🏢
-              </div>
+            {/* ===============================================
+                DESCRIPTION
+            =============================================== */}
 
-              {/* Name */}
+            <p
+              className="
+                mt-2
 
-              <div>
-                <h2
-                  className="
-                    mt-3
-                    text-xl
-                    font-extrabold
-                    text-slate-900
-                  "
-                >
-                  {department.name}
-                </h2>
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-slate-500
 
-                <p
-                  className="
-                    mt-2
-                    text-lg
-                    font-semibold
-                    text-slate-600
-                  "
-                >
-                  คลิกเพื่อดูทะเบียนครุภัณฑ์
-                </p>
-              </div>
-
-              {/* Button */}
-
-              <span
-                className="
-                  mt-3
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-950
-                  px-8
-                  py-3
-                  text-lg
-                  font-extrabold
-                  text-white
-                  shadow-lg
-                  transition
-                  group-hover:scale-105
-                "
-              >
-                เปิด
-              </span>
-            </div>
-          </Link>
-        ))}
-
-        {departments.length === 0 && (
-          <div
-            className="
-              col-span-full
-              rounded-2xl
-              border
-              border-slate-300
-              bg-white
-              p-12
-              text-center
-              text-xl
-              font-semibold
-              text-slate-500
-              shadow-lg
-            "
-          >
-            ยังไม่มีข้อมูลกลุ่มงาน
+                sm:text-base
+              "
+            >
+              เมื่อมีการเพิ่มข้อมูลกลุ่มงาน
+              รายการจะแสดงในส่วนนี้
+            </p>
           </div>
-        )}
-      </div>
-    </div>
+        </AppCard>
+      )}
+    </AppPage>
   );
 }
