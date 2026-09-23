@@ -220,14 +220,23 @@ export default async function ReceiveDetailPage({
       <AppCard
         className="
           relative
+          z-[5000]
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
+        {/* ===================================================
+            CARD HEADER
+        =================================================== */}
+
         <div
           className="
             mb-5
+
             flex
             items-center
             gap-3
@@ -241,10 +250,15 @@ export default async function ReceiveDetailPage({
               shrink-0
               items-center
               justify-center
+
               rounded-[15px]
+
               bg-blue-50/90
+
               text-xl
+
               shadow-sm
+
               ring-1
               ring-blue-100/80
             "
@@ -259,6 +273,7 @@ export default async function ReceiveDetailPage({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-xl
               "
             >
@@ -268,6 +283,7 @@ export default async function ReceiveDetailPage({
             <p
               className="
                 mt-0.5
+
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -278,20 +294,29 @@ export default async function ReceiveDetailPage({
           </div>
         </div>
 
+        {/* ===================================================
+            INFORMATION GRID
+        =================================================== */}
+
         <div
           className="
             grid
             min-w-0
             gap-4
+
             md:grid-cols-2
           "
         >
-          {/* วันที่รับเข้า */}
+          {/* =================================================
+              RECEIVE DATE
+          ================================================= */}
 
           <AppInfoCard>
             <div
               className="
                 mb-2
+                block
+
                 text-base
                 font-extrabold
                 !text-slate-800
@@ -302,23 +327,70 @@ export default async function ReceiveDetailPage({
 
             <div
               className="
+                flex
+                h-[52px]
+                w-full
+                min-w-0
+                items-center
+                justify-between
+                gap-3
+
+                rounded-[16px]
+
+                border
+                border-slate-200
+
+                bg-white
+
+                px-4
+
                 text-base
                 font-bold
                 !text-slate-900
+
+                shadow-sm
               "
             >
-              {formatThaiDate(
-                receive.receiveDate
-              )}
+              <span className="min-w-0 truncate">
+                {formatThaiDate(
+                  receive.receiveDate
+                )}
+              </span>
+
+              <span
+                aria-hidden="true"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  shrink-0
+                  items-center
+                  justify-center
+
+                  rounded-[11px]
+
+                  bg-slate-100
+
+                  text-lg
+
+                  shadow-inner
+                "
+              >
+                📅
+              </span>
             </div>
           </AppInfoCard>
 
-          {/* เลขที่เอกสาร */}
+          {/* =================================================
+              DOCUMENT NUMBER
+          ================================================= */}
 
           <AppInfoCard>
             <div
               className="
                 mb-2
+                block
+
                 text-base
                 font-extrabold
                 !text-slate-800
@@ -329,17 +401,37 @@ export default async function ReceiveDetailPage({
 
             <div
               className="
-                break-words
+                flex
+                h-[52px]
+                w-full
+                min-w-0
+                items-center
+
+                rounded-[16px]
+
+                border
+                border-slate-200
+
+                bg-white
+
+                px-4
+
                 text-base
                 font-bold
                 !text-slate-900
+
+                shadow-sm
               "
             >
-              {receive.documentNo || "-"}
+              <span className="min-w-0 truncate">
+                {receive.documentNo || "-"}
+              </span>
             </div>
           </AppInfoCard>
 
-          {/* ผู้จำหน่าย */}
+          {/* =================================================
+              VENDOR
+          ================================================= */}
 
           <AppInfoCard
             className="
@@ -349,6 +441,8 @@ export default async function ReceiveDetailPage({
             <div
               className="
                 mb-2
+                block
+
                 text-base
                 font-extrabold
                 !text-slate-800
@@ -359,13 +453,37 @@ export default async function ReceiveDetailPage({
 
             <div
               className="
-                break-words
+                flex
+                min-h-[52px]
+                w-full
+                min-w-0
+                items-center
+
+                rounded-[16px]
+
+                border
+                border-slate-200
+
+                bg-white
+
+                px-4
+                py-3
+
                 text-base
                 font-bold
                 !text-slate-900
+
+                shadow-sm
               "
             >
-              {receive.vendor?.name || "-"}
+              <span
+                className="
+                  min-w-0
+                  break-words
+                "
+              >
+                {receive.vendor?.name || "-"}
+              </span>
             </div>
           </AppInfoCard>
         </div>
@@ -373,17 +491,17 @@ export default async function ReceiveDetailPage({
 
       {/* =====================================================
           MATERIAL TABLE
-          ใช้ AppTableCard ตัวกลาง
       ===================================================== */}
 
       <AppTableCard
         title="รายการพัสดุรับเข้า"
-        subtitle={`รายละเอียดพัสดุภายในเอกสารรับเข้าฉบับนี้ • ทั้งหมด ${receive.items.length.toLocaleString(
+        subtitle={`รายละเอียดรายการพัสดุที่รับเข้า • ทั้งหมด ${receive.items.length.toLocaleString(
           "th-TH"
         )} รายการ`}
         className="
           relative
           z-10
+
           overflow-visible
         "
       >
@@ -391,6 +509,7 @@ export default async function ReceiveDetailPage({
           className="
             relative
             w-full
+
             overflow-x-auto
             overflow-y-visible
           "
@@ -400,14 +519,17 @@ export default async function ReceiveDetailPage({
               relative
               w-full
               min-w-[1200px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
-            {/* =============================================
+            {/* =================================================
                 TABLE HEADER
-            ============================================= */}
+            ================================================= */}
 
             <thead>
               <tr>
@@ -425,13 +547,17 @@ export default async function ReceiveDetailPage({
                     key={title}
                     className="
                       whitespace-nowrap
+
                       border
                       border-black
+
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
+
                       px-3
                       py-4
+
                       text-center
                       text-lg
                       font-extrabold
@@ -444,9 +570,9 @@ export default async function ReceiveDetailPage({
               </tr>
             </thead>
 
-            {/* =============================================
+            {/* =================================================
                 TABLE BODY
-            ============================================= */}
+            ================================================= */}
 
             <tbody>
               {receive.items.length === 0 ? (
@@ -456,9 +582,14 @@ export default async function ReceiveDetailPage({
                     className="
                       border
                       border-black
+
+                      bg-white
+
                       px-4
-                      py-10
+                      py-12
+
                       text-center
+                      text-base
                       font-bold
                       !text-slate-500
                     "
@@ -483,18 +614,24 @@ export default async function ReceiveDetailPage({
 
                         transition-colors
                         duration-200
+
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ลำดับ */}
+                      {/* =======================================
+                          NUMBER
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                           font-extrabold
                           !text-slate-800
@@ -503,16 +640,21 @@ export default async function ReceiveDetailPage({
                         {index + 1}
                       </td>
 
-                      {/* หมวดหมู่ */}
+                      {/* =======================================
+                          CATEGORY
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[210px]
+
                           border
                           border-black
+
                           px-3
                           py-3
-                          font-semibold
+
+                          font-bold
                           !text-slate-900
                         "
                       >
@@ -522,67 +664,91 @@ export default async function ReceiveDetailPage({
                           item.material.category}
                       </td>
 
-                      {/* รายการพัสดุ */}
+                      {/* =======================================
+                          MATERIAL
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[320px]
+
                           border
                           border-black
+
                           px-3
                           py-3
-                          font-semibold
-                          !text-slate-900
-                        "
-                      >
-                        <div
-                          className="
-                            font-extrabold
-                            !text-slate-900
-                          "
-                        >
-                          {item.material.code ||
-                            "-"}
-                        </div>
 
-                        <div
-                          className="
-                            mt-1
-                            !text-slate-700
-                          "
-                        >
-                          {item.material.name ||
-                            "-"}
-                        </div>
-                      </td>
-
-                      {/* หน่วย */}
-
-                      <td
-                        className="
-                          min-w-[120px]
-                          border
-                          border-black
-                          px-3
-                          py-3
-                          text-center
                           font-bold
                           !text-slate-900
                         "
                       >
-                        {item.material.unit ||
-                          "-"}
+                        <div
+                          className="
+                            flex
+                            min-w-0
+                            flex-col
+                            gap-0.5
+                          "
+                        >
+                          <span
+                            className="
+                              text-xs
+                              font-extrabold
+                              !text-slate-500
+                            "
+                          >
+                            {item.material.code ||
+                              "-"}
+                          </span>
+
+                          <span
+                            className="
+                              break-words
+                              !text-slate-900
+                            "
+                          >
+                            {item.material.name ||
+                              "-"}
+                          </span>
+                        </div>
                       </td>
 
-                      {/* ราคา */}
+                      {/* =======================================
+                          UNIT
+                      ======================================= */}
+
+                      <td
+                        className="
+                          min-w-[120px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          text-center
+                          font-extrabold
+                          !text-slate-700
+                        "
+                      >
+                        {item.material.unit || "-"}
+                      </td>
+
+                      {/* =======================================
+                          PRICE
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[150px]
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-right
                           font-bold
                           tabular-nums
@@ -594,15 +760,20 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* จำนวน */}
+                      {/* =======================================
+                          QTY
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[120px]
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                           font-extrabold
                           tabular-nums
@@ -616,15 +787,20 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* วันผลิต */}
+                      {/* =======================================
+                          MANUFACTURE
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[200px]
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                           font-bold
                           !text-slate-900
@@ -635,15 +811,20 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
 
-                      {/* วันหมดอายุ */}
+                      {/* =======================================
+                          EXPIRY
+                      ======================================= */}
 
                       <td
                         className="
                           min-w-[200px]
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                           font-bold
                           !text-slate-900
@@ -659,9 +840,9 @@ export default async function ReceiveDetailPage({
               )}
             </tbody>
 
-            {/* =============================================
+            {/* =================================================
                 SUMMARY
-            ============================================= */}
+            ================================================= */}
 
             {receive.items.length > 0 && (
               <tfoot>
@@ -671,8 +852,10 @@ export default async function ReceiveDetailPage({
                     className="
                       border
                       border-black
+
                       px-4
                       py-4
+
                       text-right
                       font-extrabold
                       !text-slate-900
@@ -685,8 +868,10 @@ export default async function ReceiveDetailPage({
                     className="
                       border
                       border-black
+
                       px-3
                       py-4
+
                       text-right
                       font-extrabold
                       tabular-nums
@@ -702,8 +887,10 @@ export default async function ReceiveDetailPage({
                     className="
                       border
                       border-black
+
                       px-3
                       py-4
+
                       text-center
                       font-extrabold
                       tabular-nums
@@ -720,6 +907,7 @@ export default async function ReceiveDetailPage({
                     className="
                       border
                       border-black
+
                       px-3
                       py-4
                     "
@@ -733,15 +921,18 @@ export default async function ReceiveDetailPage({
 
       {/* =====================================================
           REMARK
-          อยู่ด้านล่างตารางเหมือนมาตรฐาน
+          อยู่ด้านล่างตารางตามมาตรฐาน
       ===================================================== */}
 
       <AppCard
         className="
           relative
           z-0
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
@@ -749,6 +940,8 @@ export default async function ReceiveDetailPage({
           <div
             className="
               mb-2
+              block
+
               text-base
               font-extrabold
               !text-slate-800
@@ -759,13 +952,27 @@ export default async function ReceiveDetailPage({
 
           <div
             className="
-              min-h-[80px]
+              min-h-[120px]
+              w-full
+
               whitespace-pre-wrap
               break-words
+
+              rounded-[16px]
+
+              border
+              border-slate-200
+
+              bg-white
+
+              p-4
+
               text-base
               font-bold
               leading-relaxed
               !text-slate-900
+
+              shadow-sm
             "
           >
             {receive.remark || "-"}
