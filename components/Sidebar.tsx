@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
   useEffect,
   useRef,
   useState,
 } from "react";
+
 import type { ElementType } from "react";
 
 import {
@@ -21,7 +23,16 @@ import {
   Users,
   Bell,
   ChevronDown,
+  PackageSearch,
+  LibraryBig,
+  Landmark,
+  Info,
+  ArrowRight,
 } from "lucide-react";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type UserRole =
   | "ADMIN"
@@ -37,6 +48,7 @@ type MenuItem = {
 
 type MenuGroup = {
   title: string;
+  icon: ElementType;
   items: MenuItem[];
   adminOnly?: boolean;
 };
@@ -44,6 +56,10 @@ type MenuGroup = {
 type SidebarProps = {
   role: UserRole;
 };
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function Sidebar({
   role,
@@ -61,9 +77,9 @@ export default function Sidebar({
   const [openMenu, setOpenMenu] =
     useState<string | null>(null);
 
-  // =====================================================
-  // โหลดจำนวนแจ้งเตือน
-  // =====================================================
+  /* =======================================================
+     LOAD NOTIFICATIONS
+  ======================================================= */
 
   useEffect(() => {
     let mounted = true;
@@ -100,7 +116,6 @@ export default function Sidebar({
 
     loadNotifications();
 
-    // ตรวจสอบใหม่ทุก 30 วินาที
     const interval =
       window.setInterval(
         loadNotifications,
@@ -109,23 +124,24 @@ export default function Sidebar({
 
     return () => {
       mounted = false;
-      window.clearInterval(interval);
+
+      window.clearInterval(
+        interval
+      );
     };
   }, []);
 
-  // =====================================================
-  // เมื่อเปลี่ยนหน้า
-  // ปิด Dropdown อัตโนมัติ
-  // =====================================================
+  /* =======================================================
+     CLOSE WHEN PATH CHANGES
+  ======================================================= */
 
   useEffect(() => {
     setOpenMenu(null);
   }, [pathname]);
 
-  // =====================================================
-  // ปิด Dropdown เมื่อคลิกด้านนอก
-  // หรือกด Escape
-  // =====================================================
+  /* =======================================================
+     CLOSE OUTSIDE / ESC
+  ======================================================= */
 
   useEffect(() => {
     const handlePointerDown = (
@@ -172,107 +188,118 @@ export default function Sidebar({
     };
   }, []);
 
-  // =====================================================
-  // เมนูหลัก
-  //
-  // หน้าแรก = เข้า Dashboard โดยตรง
-  // การแจ้งเตือน = ต่อจากหน้าแรก
-  // รายการพัสดุ / ทะเบียนคุมพัสดุ / หน่วยงาน / เกี่ยวกับเรา
-  // = Dropdown
-  // =====================================================
+  /* =======================================================
+     MENUS
+  ======================================================= */
 
   const menus: MenuGroup[] = [
     {
       title: "รายการพัสดุ",
+      icon: PackageSearch,
+
       items: [
         {
           name:
             "รายการพัสดุทั้งหมด",
+
           href:
             role === "ADMIN"
               ? "/materials"
               : "/materials/summary",
+
           icon: Boxes,
         },
+
         {
           name: "รายการรับเข้า",
           href: "/receive",
           icon: PackagePlus,
           adminOnly: true,
         },
+
         {
           name:
             "รายการเบิกจ่าย",
+
           href: "/issue",
+
           icon: PackageMinus,
         },
       ],
     },
 
-    // =====================================================
-    // ทะเบียนคุมพัสดุ
-    // =====================================================
-
     {
       title: "ทะเบียนคุมพัสดุ",
+      icon: LibraryBig,
+
       items: [
         {
           name:
             "ทะเบียนคุมบัญชีพัสดุ",
+
           href: "/stock-card",
+
           icon: ClipboardList,
         },
+
         {
           name:
             "ทะเบียนคุมบัญชีครุภัณฑ์",
+
           href: "/assets",
+
           icon: MonitorCog,
         },
       ],
     },
 
-    // =====================================================
-    // หน่วยงาน
-    // =====================================================
-
     {
       title: "หน่วยงาน",
+      icon: Landmark,
+
       items: [
         {
           name: "ผู้จำหน่าย",
+
           href: "/vendors",
+
           icon: Truck,
+
           adminOnly: true,
         },
+
         {
           name: "กลุ่มงาน",
+
           href: "/departments",
+
           icon: Building2,
         },
       ],
     },
 
-    // =====================================================
-    // เกี่ยวกับเรา
-    // =====================================================
-
     {
       title: "เกี่ยวกับเรา",
+      icon: Info,
+
       adminOnly: true,
+
       items: [
         {
           name:
             "ผู้ใช้งานระบบ",
+
           href: "/users",
+
           icon: Users,
         },
       ],
     },
   ];
 
-  // =====================================================
-  // Filter Menu ตาม Role
-  // =====================================================
+  /* =======================================================
+     ROLE FILTER
+  ======================================================= */
 
   const visibleMenus = menus
     .filter(
@@ -282,6 +309,7 @@ export default function Sidebar({
     )
     .map((group) => ({
       ...group,
+
       items: group.items.filter(
         (item) =>
           !item.adminOnly ||
@@ -293,9 +321,9 @@ export default function Sidebar({
         group.items.length > 0
     );
 
-  // =====================================================
-  // ตรวจสอบว่า Dropdown ไหน Active
-  // =====================================================
+  /* =======================================================
+     ACTIVE GROUP
+  ======================================================= */
 
   const isGroupActive = (
     group: MenuGroup
@@ -310,81 +338,114 @@ export default function Sidebar({
     );
   };
 
-  // =====================================================
-  // Shared style
-  // =====================================================
+  /* =======================================================
+     SHARED STYLE
+  ======================================================= */
 
   const mainItemBase = `
     group
     relative
+
     inline-flex
-    h-[54px]
+
+    h-[56px]
     min-w-0
+
     items-center
     justify-center
-    gap-2
-    rounded-[17px]
+
+    gap-2.5
+
+    overflow-hidden
+
+    rounded-[18px]
+
     border
-    px-4
-    text-[15px]
+
+    px-3
+
+    text-[14px]
     font-extrabold
     tracking-tight
+
     transition-all
     duration-300
     ease-out
+
     xl:h-[58px]
-    xl:px-5
-    xl:text-base
-    2xl:text-[17px]
+    xl:px-4
+    xl:text-[15px]
+
+    2xl:px-5
+    2xl:text-base
   `;
 
   const inactiveMainItem = `
     border-transparent
+
     bg-transparent
-    !text-slate-200
+
+    !text-slate-300
+
     hover:-translate-y-0.5
-    hover:border-white/10
-    hover:bg-white/10
+
+    hover:border-white/[0.1]
+
+    hover:bg-white/[0.07]
+
     hover:!text-white
-    hover:shadow-[0_10px_28px_-18px_rgba(0,0,0,0.65)]
+
+    hover:shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)]
+
     active:translate-y-0
-    active:scale-[0.97]
+    active:scale-[0.98]
   `;
 
   const activeMainItem = `
     border-sky-300/20
-    bg-gradient-to-r
-    from-blue-600
-    via-sky-500
-    to-cyan-500
+
+    bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_52%,#06b6d4_100%)]
+
     !text-white
-    shadow-[0_14px_32px_-18px_rgba(14,165,233,0.8)]
+
+    shadow-[0_15px_32px_-17px_rgba(14,165,233,0.85),inset_0_1px_0_rgba(255,255,255,0.2)]
+
     ring-1
-    ring-white/10
-    active:scale-[0.97]
+    ring-white/[0.08]
+
+    active:scale-[0.98]
   `;
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <aside
       className="
         relative
         z-40
+
         hidden
         w-full
+
+        overflow-visible
+
         border-b
-        border-white/10
-        bg-gradient-to-r
-        from-slate-950/95
-        via-slate-900/95
-        to-slate-800/95
-        shadow-[0_16px_38px_-26px_rgba(15,23,42,0.9)]
+        border-white/[0.08]
+
+        bg-[linear-gradient(115deg,rgba(2,6,23,0.98)_0%,rgba(15,23,42,0.97)_45%,rgba(30,41,59,0.96)_100%)]
+
+        shadow-[0_18px_42px_-28px_rgba(2,6,23,0.95)]
+
         backdrop-blur-2xl
+
         lg:block
       "
     >
-      {/* =====================================================
-          Ambient Light
-      ===================================================== */}
+      {/* ===================================================
+          TOP HIGHLIGHT
+      =================================================== */}
 
       <div
         aria-hidden="true"
@@ -393,48 +454,102 @@ export default function Sidebar({
           absolute
           inset-x-0
           top-0
+
           h-px
+
           bg-gradient-to-r
           from-transparent
-          via-white/20
+          via-white/[0.18]
           to-transparent
         "
       />
 
-      {/* =====================================================
-          Main Navigation
-      ===================================================== */}
+      {/* ===================================================
+          AMBIENT LIGHT
+      =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          left-[18%]
+          top-0
+
+          h-20
+          w-60
+
+          rounded-full
+
+          bg-blue-500/[0.06]
+
+          blur-[55px]
+        "
+      />
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          right-[16%]
+          top-0
+
+          h-20
+          w-60
+
+          rounded-full
+
+          bg-cyan-400/[0.05]
+
+          blur-[55px]
+        "
+      />
+
+      {/* ===================================================
+          NAVIGATION CONTAINER
+      =================================================== */}
 
       <div
         ref={navigationRef}
         className="
           relative
+
           mx-auto
+
           flex
-          min-h-[68px]
+          min-h-[72px]
+
           w-full
           max-w-[1920px]
+
           items-center
           justify-center
+
           px-3
           py-2
-          xl:min-h-[72px]
+
+          xl:min-h-[76px]
           xl:px-5
         "
       >
         <nav
           className="
             flex
+
             w-full
             min-w-0
+
             items-center
             justify-center
-            gap-1
-            xl:gap-1.5
+
+            gap-1.5
+
+            xl:gap-2
           "
         >
           {/* =================================================
-              หน้าแรก
+              HOME
           ================================================= */}
 
           <Link
@@ -445,7 +560,9 @@ export default function Sidebar({
             }
             className={`
               ${mainItemBase}
+
               flex-1
+
               ${
                 pathname === "/" &&
                 openMenu === null
@@ -454,16 +571,39 @@ export default function Sidebar({
               }
             `}
           >
-            <LayoutDashboard
-              size={20}
-              strokeWidth={2.4}
+            {/* Icon Tile */}
+
+            <span
               className="
+                relative
+
+                flex
+                h-8
+                w-8
                 shrink-0
-                transition-transform
+
+                items-center
+                justify-center
+
+                rounded-[11px]
+
+                bg-white/[0.07]
+
+                ring-1
+                ring-white/[0.07]
+
+                transition-all
                 duration-300
+
                 group-hover:scale-105
+                group-hover:bg-white/[0.12]
               "
-            />
+            >
+              <LayoutDashboard
+                size={18}
+                strokeWidth={2.4}
+              />
+            </span>
 
             <span className="whitespace-nowrap">
               หน้าแรก
@@ -471,7 +611,7 @@ export default function Sidebar({
           </Link>
 
           {/* =================================================
-              การแจ้งเตือน
+              NOTIFICATIONS
           ================================================= */}
 
           <Link
@@ -482,7 +622,9 @@ export default function Sidebar({
             }
             className={`
               ${mainItemBase}
+
               flex-1
+
               ${
                 pathname ===
                   "/notifications" &&
@@ -492,15 +634,35 @@ export default function Sidebar({
               }
             `}
           >
-            <div className="relative shrink-0">
+            <span
+              className="
+                relative
+
+                flex
+                h-8
+                w-8
+                shrink-0
+
+                items-center
+                justify-center
+
+                rounded-[11px]
+
+                bg-white/[0.07]
+
+                ring-1
+                ring-white/[0.07]
+
+                transition-all
+                duration-300
+
+                group-hover:scale-105
+                group-hover:bg-white/[0.12]
+              "
+            >
               <Bell
-                size={20}
+                size={18}
                 strokeWidth={2.4}
-                className="
-                  transition-transform
-                  duration-300
-                  group-hover:scale-105
-                "
               />
 
               {notificationCount >
@@ -508,17 +670,24 @@ export default function Sidebar({
                 <span
                   className="
                     absolute
-                    -right-1
-                    -top-1
-                    h-2
-                    w-2
+                    -right-0.5
+                    -top-0.5
+
+                    h-2.5
+                    w-2.5
+
                     rounded-full
-                    bg-red-400
-                    shadow-[0_0_10px_rgba(248,113,113,0.9)]
+
+                    border-2
+                    border-slate-900
+
+                    bg-rose-500
+
+                    shadow-[0_0_9px_rgba(244,63,94,0.85)]
                   "
                 />
               )}
-            </div>
+            </span>
 
             <span className="whitespace-nowrap">
               การแจ้งเตือน
@@ -529,23 +698,31 @@ export default function Sidebar({
               <span
                 className="
                   flex
-                  h-6
-                  min-w-6
+
+                  h-[22px]
+                  min-w-[22px]
+
                   items-center
                   justify-center
+
                   rounded-full
+
                   border
-                  border-red-300/20
-                  bg-red-500
+                  border-white/[0.12]
+
+                  bg-rose-500
+
                   px-1.5
-                  text-[11px]
+
+                  text-[10px]
                   font-black
+
                   !text-white
-                  shadow-[0_8px_18px_-10px_rgba(239,68,68,0.9)]
+
+                  shadow-[0_8px_18px_-10px_rgba(244,63,94,0.9)]
                 "
               >
-                {notificationCount >
-                99
+                {notificationCount > 99
                   ? "99+"
                   : notificationCount}
               </span>
@@ -553,7 +730,7 @@ export default function Sidebar({
           </Link>
 
           {/* =================================================
-              Dropdown Menus
+              DROPDOWN GROUPS
           ================================================= */}
 
           {visibleMenus.map(
@@ -565,6 +742,9 @@ export default function Sidebar({
                 openMenu ===
                 group.title;
 
+              const GroupIcon =
+                group.icon;
+
               return (
                 <div
                   key={group.title}
@@ -574,7 +754,9 @@ export default function Sidebar({
                     flex-1
                   "
                 >
-                  {/* Main Group Button */}
+                  {/* =========================================
+                      MAIN GROUP BUTTON
+                  ========================================= */}
 
                   <button
                     type="button"
@@ -590,7 +772,9 @@ export default function Sidebar({
                     }
                     className={`
                       ${mainItemBase}
+
                       w-full
+
                       ${
                         active ||
                         isOpen
@@ -599,20 +783,63 @@ export default function Sidebar({
                       }
                     `}
                   >
-                    <span className="whitespace-nowrap">
+                    {/* Icon */}
+
+                    <span
+                      className="
+                        flex
+                        h-8
+                        w-8
+                        shrink-0
+
+                        items-center
+                        justify-center
+
+                        rounded-[11px]
+
+                        bg-white/[0.07]
+
+                        ring-1
+                        ring-white/[0.07]
+
+                        transition-all
+                        duration-300
+
+                        group-hover:scale-105
+                        group-hover:bg-white/[0.12]
+                      "
+                    >
+                      <GroupIcon
+                        size={18}
+                        strokeWidth={2.35}
+                      />
+                    </span>
+
+                    {/* Text */}
+
+                    <span
+                      className="
+                        min-w-0
+                        whitespace-nowrap
+                      "
+                    >
                       {group.title}
                     </span>
 
+                    {/* Chevron */}
+
                     <ChevronDown
-                      size={17}
-                      strokeWidth={
-                        2.5
-                      }
+                      size={16}
+                      strokeWidth={2.5}
                       className={`
                         shrink-0
+
+                        opacity-80
+
                         transition-transform
                         duration-300
                         ease-out
+
                         ${
                           isOpen
                             ? "rotate-180"
@@ -620,32 +847,69 @@ export default function Sidebar({
                         }
                       `}
                     />
+
+                    {/* Active Shine */}
+
+                    {(active ||
+                      isOpen) && (
+                      <span
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+
+                          absolute
+                          inset-x-5
+                          top-0
+
+                          h-px
+
+                          bg-gradient-to-r
+                          from-transparent
+                          via-white/50
+                          to-transparent
+                        "
+                      />
+                    )}
                   </button>
 
-                  {/* =================================================
-                      Dropdown
-                  ================================================= */}
+                  {/* =========================================
+                      DROPDOWN PANEL
+                  ========================================= */}
 
                   <div
                     className={`
                       absolute
+
                       left-1/2
                       top-full
-                      z-50
+
+                      z-[100]
+
                       mt-3
-                      w-[310px]
+
+                      w-[320px]
+
                       -translate-x-1/2
+
                       overflow-hidden
+
                       rounded-[24px]
+
                       border
-                      border-white/15
-                      bg-slate-950/92
-                      p-2
-                      shadow-[0_24px_70px_-26px_rgba(0,0,0,0.75)]
+                      border-white/[0.12]
+
+                      bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(2,6,23,0.97))]
+
+                      p-2.5
+
+                      shadow-[0_30px_80px_-28px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)]
+
                       backdrop-blur-2xl
+
                       transition-all
                       duration-300
                       ease-out
+
                       ${
                         isOpen
                           ? `
@@ -658,12 +922,14 @@ export default function Sidebar({
                             invisible
                             pointer-events-none
                             -translate-y-2
-                            scale-[0.98]
+                            scale-[0.97]
                             opacity-0
                           `
                       }
                     `}
                   >
+                    {/* Top Highlight */}
+
                     <div
                       aria-hidden="true"
                       className="
@@ -671,13 +937,50 @@ export default function Sidebar({
                         absolute
                         inset-x-8
                         top-0
+
                         h-px
+
                         bg-gradient-to-r
                         from-transparent
-                        via-white/30
+                        via-white/35
                         to-transparent
                       "
                     />
+
+                    {/* Dropdown Title */}
+
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-2
+
+                        px-2.5
+                        pb-2
+                        pt-1.5
+                      "
+                    >
+                      <GroupIcon
+                        size={14}
+                        strokeWidth={2.4}
+                        className="text-sky-400"
+                      />
+
+                      <span
+                        className="
+                          text-[11px]
+                          font-black
+                          uppercase
+                          tracking-[0.08em]
+
+                          !text-slate-400
+                        "
+                      >
+                        {group.title}
+                      </span>
+                    </div>
+
+                    {/* Items */}
 
                     <div className="space-y-1">
                       {group.items.map(
@@ -710,91 +1013,127 @@ export default function Sidebar({
                               }
                               className={`
                                 group/item
+
                                 flex
                                 items-center
+
                                 gap-3
+
                                 rounded-[18px]
+
+                                border
+
                                 px-3
-                                py-3
+                                py-2.5
+
                                 text-sm
                                 font-extrabold
+
                                 transition-all
-                                duration-250
+                                duration-300
                                 ease-out
+
                                 active:scale-[0.985]
+
                                 ${
                                   itemActive
                                     ? `
-                                      bg-gradient-to-r
-                                      from-blue-600
-                                      to-cyan-500
+                                      border-sky-300/20
+
+                                      bg-[linear-gradient(135deg,#2563eb,#0ea5e9,#06b6d4)]
+
                                       !text-white
-                                      shadow-[0_12px_28px_-18px_rgba(14,165,233,0.9)]
+
+                                      shadow-[0_12px_30px_-18px_rgba(14,165,233,0.9),inset_0_1px_0_rgba(255,255,255,0.16)]
                                     `
                                     : `
-                                      !text-slate-100
+                                      border-transparent
+
+                                      !text-slate-200
+
                                       hover:translate-x-0.5
-                                      hover:bg-white/10
+
+                                      hover:border-white/[0.08]
+
+                                      hover:bg-white/[0.07]
+
                                       hover:!text-white
                                     `
                                 }
                               `}
                             >
-                              <div
+                              {/* Item Icon */}
+
+                              <span
                                 className={`
                                   flex
                                   h-10
                                   w-10
                                   shrink-0
+
                                   items-center
                                   justify-center
+
                                   rounded-[14px]
+
                                   border
+
                                   transition-all
                                   duration-300
+
                                   ${
                                     itemActive
                                       ? `
-                                        border-white/20
-                                        bg-white/20
+                                        border-white/[0.18]
+                                        bg-white/[0.16]
                                       `
                                       : `
-                                        border-white/10
-                                        bg-white/5
-                                        group-hover/item:bg-white/10
+                                        border-white/[0.08]
+                                        bg-white/[0.05]
+
+                                        group-hover/item:border-white/[0.12]
+                                        group-hover/item:bg-white/[0.1]
                                       `
                                   }
                                 `}
                               >
                                 <Icon
-                                  size={
-                                    19
-                                  }
-                                  strokeWidth={
-                                    2.3
-                                  }
+                                  size={18}
+                                  strokeWidth={2.3}
                                 />
-                              </div>
-
-                              <span className="min-w-0 flex-1 whitespace-nowrap">
-                                {
-                                  item.name
-                                }
                               </span>
+
+                              {/* Name */}
 
                               <span
                                 className="
+                                  min-w-0
+                                  flex-1
+                                  whitespace-nowrap
+                                "
+                              >
+                                {item.name}
+                              </span>
+
+                              {/* Arrow */}
+
+                              <ArrowRight
+                                size={15}
+                                strokeWidth={2.4}
+                                className="
+                                  shrink-0
+
                                   translate-x-0
-                                  text-slate-400
+
                                   opacity-0
+
                                   transition-all
                                   duration-300
+
                                   group-hover/item:translate-x-0.5
                                   group-hover/item:opacity-100
                                 "
-                              >
-                                →
-                              </span>
+                              />
                             </Link>
                           );
                         }

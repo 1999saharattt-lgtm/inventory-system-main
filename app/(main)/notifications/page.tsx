@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/session";
 
 import {
-  Bell,
   CheckCircle2,
   Clock,
   PackageMinus,
@@ -275,61 +274,21 @@ export default async function NotificationsPage() {
             <AppCard
               className="
                 px-6
-                py-14
+                py-10
                 text-center
+                sm:py-12
               "
             >
-              <div
+              <p
                 className="
-                  mx-auto
-                  flex
-                  max-w-md
-                  flex-col
-                  items-center
-                  justify-center
+                  text-base
+                  font-extrabold
+                  !text-slate-500
+                  sm:text-lg
                 "
               >
-                <div
-                  className="
-                    flex
-                    h-16
-                    w-16
-                    items-center
-                    justify-center
-                    rounded-[20px]
-                    border
-                    border-slate-200
-                    bg-white
-                    !text-slate-500
-                    shadow-sm
-                  "
-                >
-                  <Bell size={30} />
-                </div>
-
-                <h2
-                  className="
-                    mt-5
-                    text-xl
-                    font-black
-                    tracking-tight
-                    !text-slate-900
-                    sm:text-2xl
-                  "
-                >
-                  ไม่มีการแจ้งเตือน
-                </h2>
-
-                <p
-                  className="
-                    mt-2
-                    font-semibold
-                    !text-slate-500
-                  "
-                >
-                  ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
-                </p>
-              </div>
+                ขณะนี้ไม่มีใบเบิกที่รอการดำเนินการ
+              </p>
             </AppCard>
           ) : (
             pendingIssues.map((issue) => (
@@ -586,41 +545,18 @@ export default async function NotificationsPage() {
         <AppCard
           className="
             px-6
-            py-14
+            py-12
             text-center
           "
         >
           <div
             className="
               mx-auto
-              flex
               max-w-md
-              flex-col
-              items-center
-              justify-center
             "
           >
-            <div
-              className="
-                flex
-                h-16
-                w-16
-                items-center
-                justify-center
-                rounded-[20px]
-                border
-                border-amber-200
-                bg-amber-50
-                !text-amber-600
-                shadow-sm
-              "
-            >
-              <Bell size={30} />
-            </div>
-
             <h2
               className="
-                mt-5
                 text-xl
                 font-black
                 tracking-tight
@@ -898,68 +834,25 @@ export default async function NotificationsPage() {
           space-y-4
         "
       >
-        {adminCompletedIssues.length ===
-        0 ? (
+        {adminCompletedIssues.length === 0 ? (
           <AppCard
             className="
               px-6
-              py-14
+              py-10
               text-center
+              sm:py-12
             "
           >
-            <div
+            <p
               className="
-                mx-auto
-                flex
-                max-w-md
-                flex-col
-                items-center
-                justify-center
+                font-semibold
+                leading-relaxed
+                !text-slate-500
               "
             >
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-[20px]
-                  border
-                  border-slate-200
-                  bg-white
-                  !text-slate-500
-                  shadow-sm
-                "
-              >
-                <Bell size={30} />
-              </div>
-
-              <h2
-                className="
-                  mt-5
-                  text-xl
-                  font-black
-                  tracking-tight
-                  !text-slate-900
-                  sm:text-2xl
-                "
-              >
-                ยังไม่มีการแจ้งเตือน
-              </h2>
-
-              <p
-                className="
-                  mt-2
-                  font-semibold
-                  leading-relaxed
-                  !text-slate-500
-                "
-              >
-                เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
-                จะแสดงผลที่หน้านี้
-              </p>
-            </div>
+              เมื่อเจ้าหน้าที่พัสดุดำเนินการใบเบิกแล้ว
+              จะแสดงผลที่หน้านี้
+            </p>
           </AppCard>
         ) : (
           adminCompletedIssues.map(

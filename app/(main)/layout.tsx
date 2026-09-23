@@ -21,9 +21,8 @@ export default async function MainLayout({
       "
     >
       {/* ===================================================
-          Ambient Background
-          พื้นหลังโทน iOS / Glass
-          =================================================== */}
+          PREMIUM AMBIENT BACKGROUND
+      =================================================== */}
 
       <div
         aria-hidden="true"
@@ -31,47 +30,103 @@ export default async function MainLayout({
           pointer-events-none
           fixed
           inset-0
-          -z-20
-          bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.14),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.10),_transparent_26%),linear-gradient(to_bottom,_#f8fafc,_#eef2f7)]
-        "
-      />
+          -z-30
 
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          fixed
-          -left-24
-          top-28
-          -z-10
-          h-80
-          w-80
-          rounded-full
-          bg-blue-300/20
-          blur-3xl
-        "
-      />
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          fixed
-          -right-24
-          top-72
-          -z-10
-          h-96
-          w-96
-          rounded-full
-          bg-emerald-300/15
-          blur-3xl
+          bg-[radial-gradient(circle_at_8%_4%,rgba(59,130,246,0.18),transparent_27%),radial-gradient(circle_at_92%_12%,rgba(16,185,129,0.12),transparent_25%),radial-gradient(circle_at_50%_100%,rgba(14,165,233,0.08),transparent_35%),linear-gradient(to_bottom,#f8fafc_0%,#f1f5f9_45%,#eef2f7_100%)]
         "
       />
 
       {/* ===================================================
-          Header
-          โลโก้ + ชื่อระบบ
-          =================================================== */}
+          LEFT BLUE GLOW
+      =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          fixed
+          -left-32
+          top-24
+          -z-20
+
+          h-[420px]
+          w-[420px]
+
+          rounded-full
+
+          bg-blue-400/15
+
+          blur-[110px]
+        "
+      />
+
+      {/* ===================================================
+          RIGHT GREEN GLOW
+      =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          fixed
+          -right-32
+          top-56
+          -z-20
+
+          h-[480px]
+          w-[480px]
+
+          rounded-full
+
+          bg-emerald-300/10
+
+          blur-[120px]
+        "
+      />
+
+      {/* ===================================================
+          CENTER CYAN GLOW
+      =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          fixed
+          left-1/2
+          top-[420px]
+          -z-20
+
+          h-[420px]
+          w-[700px]
+
+          -translate-x-1/2
+
+          rounded-full
+
+          bg-cyan-300/[0.06]
+
+          blur-[130px]
+        "
+      />
+
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
+      <div
+        className="
+          relative
+          z-[60]
+          w-full
+        "
+      >
+        <Header />
+      </div>
+
+      {/* ===================================================
+          NAVIGATION
+      =================================================== */}
 
       <div
         className="
@@ -80,40 +135,31 @@ export default async function MainLayout({
           w-full
         "
       >
-        <Header />
-      </div>
-
-      {/* ===================================================
-          Navigation
-          เมนูหลักติดกับ Header
-          =================================================== */}
-
-      <div
-        className="
-          relative
-          z-40
-          w-full
-        "
-      >
         <Sidebar role={user.role} />
       </div>
 
       {/* ===================================================
-          Content
-          =================================================== */}
+          CONTENT
+      =================================================== */}
 
       <main
         className="
           relative
           z-10
+
           min-h-[calc(100vh-1px)]
           min-w-0
+
           overflow-x-hidden
+
           bg-transparent
+
           px-2
           py-3
+
           sm:px-3
           sm:py-4
+
           lg:px-4
           lg:py-5
         "
@@ -121,9 +167,11 @@ export default async function MainLayout({
         <div
           className="
             mx-auto
+
             w-full
             min-w-0
             max-w-[1920px]
+
             transition-[opacity,transform]
             duration-300
             ease-out

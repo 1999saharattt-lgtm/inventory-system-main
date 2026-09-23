@@ -30,26 +30,28 @@ const categoryName: Record<string, string> = {
 };
 
 /* =========================================================
-   THAI MONTHS
+   THAI MONTHS - SHORT
 ========================================================= */
 
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
 ];
 
 /* =========================================================
    DATE
+   ตัวอย่าง:
+   2026-09-01 -> 01 ก.ย. 69
 ========================================================= */
 
 function formatThaiDate(date: any) {
@@ -63,9 +65,23 @@ function formatThaiDate(date: any) {
     return "-";
   }
 
-  return `${d.getDate()} ${
-    thaiMonths[d.getMonth()]
-  } ${d.getFullYear() + 543}`;
+  const day = String(
+    d.getDate()
+  ).padStart(2, "0");
+
+  const month =
+    thaiShortMonths[
+      d.getMonth()
+    ];
+
+  const buddhistYear =
+    d.getFullYear() + 543;
+
+  const shortYear = String(
+    buddhistYear
+  ).slice(-2);
+
+  return `${day} ${month} ${shortYear}`;
 }
 
 /* =========================================================
@@ -190,14 +206,6 @@ export default function ExportPdf({
 
       /* ===================================================
          TABLE AREA
-
-         ขอบซ้ายตาราง = 14 mm
-         ขอบขวาตาราง = 14 mm
-
-         A4 Landscape ≈ 297 mm
-
-         ความกว้างตารางประมาณ:
-         297 - 14 - 14 = 269 mm
       =================================================== */
 
       const tableLeftX = 14;
@@ -859,9 +867,6 @@ export default function ExportPdf({
 
   /* =======================================================
      UI
-
-     ใช้ AppButton ตัวกลางของระบบเท่านั้น
-     ไม่กำหนดสี / padding / radius / shadow เอง
   ======================================================= */
 
   return (

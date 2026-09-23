@@ -19,12 +19,21 @@ import {
   Building2,
   Users,
   Bell,
-  ChevronDown,
   Menu,
   X,
+  Package,
+  Building,
+  Info,
 } from "lucide-react";
 
-type UserRole = "ADMIN" | "STAFF" | "VIEWER";
+/* =========================================================
+   TYPES
+========================================================= */
+
+type UserRole =
+  | "ADMIN"
+  | "STAFF"
+  | "VIEWER";
 
 type MenuItem = {
   name: string;
@@ -35,6 +44,7 @@ type MenuItem = {
 
 type MenuGroup = {
   title: string;
+  icon: ElementType;
   items: MenuItem[];
   adminOnly?: boolean;
 };
@@ -44,34 +54,40 @@ type MobileMenuProps = {
 };
 
 /* =========================================================
-   Menu Configuration
-   ========================================================= */
+   MENU CONFIGURATION
+========================================================= */
 
 const menus: MenuGroup[] = [
   {
     title: "รายการพัสดุ",
+    icon: Package,
+
     items: [
       {
         name: "รายการพัสดุทั้งหมด",
         href: "/materials",
         icon: Boxes,
       },
+
       {
         name: "รายการรับเข้า",
         href: "/receive",
         icon: PackagePlus,
         adminOnly: true,
       },
+
       {
         name: "รายการเบิกจ่าย",
         href: "/issue",
         icon: PackageMinus,
       },
+
       {
         name: "บัญชีคุมพัสดุ",
         href: "/stock-card",
         icon: ClipboardList,
       },
+
       {
         name: "ทะเบียนคุมครุภัณฑ์",
         href: "/assets",
@@ -82,6 +98,8 @@ const menus: MenuGroup[] = [
 
   {
     title: "หน่วยงาน",
+    icon: Building,
+
     items: [
       {
         name: "ผู้จำหน่าย",
@@ -89,6 +107,7 @@ const menus: MenuGroup[] = [
         icon: Truck,
         adminOnly: true,
       },
+
       {
         name: "กลุ่มงาน",
         href: "/departments",
@@ -99,7 +118,9 @@ const menus: MenuGroup[] = [
 
   {
     title: "เกี่ยวกับเรา",
+    icon: Info,
     adminOnly: true,
+
     items: [
       {
         name: "ผู้ใช้งานระบบ",
@@ -110,95 +131,112 @@ const menus: MenuGroup[] = [
   },
 ];
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function MobileMenu({
   role,
 }: MobileMenuProps) {
   const pathname = usePathname();
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [
+    menuOpen,
+    setMenuOpen,
+  ] = useState(false);
 
-  const [openMenu, setOpenMenu] = useState<string | null>(
-    null
-  );
+  const [
+    notificationCount,
+    setNotificationCount,
+  ] = useState(0);
 
-  const [notificationCount, setNotificationCount] =
-    useState(0);
-
-  /* =========================================================
-     โหลดจำนวนแจ้งเตือน
-     ========================================================= */
+  /* =======================================================
+     NOTIFICATIONS
+  ======================================================= */
 
   useEffect(() => {
     let mounted = true;
 
-    const loadNotifications = async () => {
-      try {
-        const response = await fetch(
-          "/api/notifications",
-          {
-            cache: "no-store",
+    const loadNotifications =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              "/api/notifications",
+              {
+                cache: "no-store",
+              }
+            );
+
+          if (!response.ok) {
+            return;
           }
-        );
 
-        if (!response.ok) {
-          return;
-        }
+          const data =
+            await response.json();
 
-        const data = await response.json();
-
-        if (mounted) {
-          setNotificationCount(
-            Number(data.count ?? 0)
+          if (mounted) {
+            setNotificationCount(
+              Number(
+                data.count ?? 0
+              )
+            );
+          }
+        } catch (error) {
+          console.error(
+            "ไม่สามารถโหลดจำนวนการแจ้งเตือนได้:",
+            error
           );
         }
-      } catch (error) {
-        console.error(
-          "ไม่สามารถโหลดจำนวนการแจ้งเตือนได้:",
-          error
-        );
-      }
-    };
+      };
 
     loadNotifications();
 
-    const interval = window.setInterval(
-      loadNotifications,
-      30000
-    );
+    const interval =
+      window.setInterval(
+        loadNotifications,
+        30000
+      );
 
     return () => {
       mounted = false;
-      window.clearInterval(interval);
+
+      window.clearInterval(
+        interval
+      );
     };
   }, []);
 
-  /* =========================================================
-     ปิดเมนูเมื่อเปลี่ยนหน้า
-     ========================================================= */
+  /* =======================================================
+     CLOSE WHEN ROUTE CHANGES
+  ======================================================= */
 
   useEffect(() => {
     setMenuOpen(false);
-    setOpenMenu(null);
   }, [pathname]);
 
-  /* =========================================================
-     ป้องกัน Background Scroll + Escape
-     ========================================================= */
+  /* =======================================================
+     BODY SCROLL + ESCAPE
+  ======================================================= */
 
   useEffect(() => {
     if (!menuOpen) {
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
+
       return;
     }
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     const handleKeyDown = (
       event: KeyboardEvent
     ) => {
-      if (event.key === "Escape") {
+      if (
+        event.key === "Escape"
+      ) {
         setMenuOpen(false);
-        setOpenMenu(null);
       }
     };
 
@@ -208,7 +246,9 @@ export default function MobileMenu({
     );
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
+
       document.removeEventListener(
         "keydown",
         handleKeyDown
@@ -216,9 +256,9 @@ export default function MobileMenu({
     };
   }, [menuOpen]);
 
-  /* =========================================================
-     Filter Menu ตาม Role
-     ========================================================= */
+  /* =======================================================
+     FILTER MENU BY ROLE
+  ======================================================= */
 
   const visibleMenus = menus
     .filter(
@@ -229,68 +269,72 @@ export default function MobileMenu({
     .map((group) => ({
       ...group,
 
-      items: group.items.map((item) => {
-        if (
-          item.name ===
-          "รายการพัสดุทั้งหมด"
-        ) {
-          return {
-            ...item,
-            href:
-              role === "ADMIN"
-                ? "/materials"
-                : "/materials/summary",
-          };
-        }
+      items: group.items
+        .map((item) => {
+          if (
+            item.name ===
+            "รายการพัสดุทั้งหมด"
+          ) {
+            return {
+              ...item,
 
-        return item;
-      }),
-    }))
-    .map((group) => ({
-      ...group,
+              href:
+                role ===
+                "ADMIN"
+                  ? "/materials"
+                  : "/materials/summary",
+            };
+          }
 
-      items: group.items.filter(
-        (item) =>
-          !item.adminOnly ||
-          role === "ADMIN"
-      ),
+          return item;
+        })
+        .filter(
+          (item) =>
+            !item.adminOnly ||
+            role === "ADMIN"
+        ),
     }))
     .filter(
       (group) =>
         group.items.length > 0
     );
 
-  /* =========================================================
-     Active Menu
-     ========================================================= */
+  /* =======================================================
+     ACTIVE
+  ======================================================= */
 
-  function isActive(href: string) {
+  function isActive(
+    href: string
+  ) {
     if (href === "/") {
       return pathname === "/";
     }
 
     return (
       pathname === href ||
-      pathname.startsWith(`${href}/`)
+      pathname.startsWith(
+        `${href}/`
+      )
     );
   }
 
-  function isGroupActive(group: MenuGroup) {
-    return group.items.some((item) =>
-      isActive(item.href)
-    );
-  }
+  /* =======================================================
+     CLOSE
+  ======================================================= */
 
   function closeMenu() {
     setMenuOpen(false);
-    setOpenMenu(null);
   }
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <>
-      {/* =====================================================
-          Mobile Trigger
-      ===================================================== */}
+      {/* ===================================================
+          MOBILE TRIGGER
+      =================================================== */}
 
       <button
         type="button"
@@ -299,41 +343,65 @@ export default function MobileMenu({
             ? "ปิดเมนู"
             : "เปิดเมนู"
         }
-        aria-expanded={menuOpen}
+        aria-expanded={
+          menuOpen
+        }
         onClick={() =>
-          setMenuOpen((current) => !current)
+          setMenuOpen(
+            (current) =>
+              !current
+          )
         }
         className="
           group
           relative
+
           inline-flex
           h-11
           w-11
           shrink-0
+
           items-center
           justify-center
+
           overflow-hidden
+
           rounded-[15px]
+
           border
-          border-white/15
+          border-white/20
+
           bg-white/10
+
           !text-white
-          shadow-[0_10px_26px_-18px_rgba(0,0,0,0.75)]
+
+          shadow-[0_10px_28px_-16px_rgba(0,0,0,0.8)]
+
           backdrop-blur-xl
+
           transition-all
           duration-300
-          ease-out
+
           hover:bg-white/15
-          active:scale-[0.94]
+
+          active:scale-[0.92]
         "
       >
+        {/* Glass highlight */}
+
         <span
+          aria-hidden="true"
           className="
             pointer-events-none
             absolute
-            inset-0
-            bg-gradient-to-br
-            from-white/10
+            inset-x-1
+            top-0
+
+            h-px
+
+            bg-gradient-to-r
+            from-transparent
+            via-white/60
             to-transparent
           "
         />
@@ -341,46 +409,53 @@ export default function MobileMenu({
         {menuOpen ? (
           <X
             size={22}
-            strokeWidth={2.5}
+            strokeWidth={2.4}
             className="
               relative
-              transition-transform
-              duration-300
-              group-hover:rotate-6
+              z-10
             "
           />
         ) : (
           <Menu
-            size={22}
-            strokeWidth={2.5}
+            size={23}
+            strokeWidth={2.4}
             className="
               relative
-              transition-transform
-              duration-300
-              group-hover:scale-105
+              z-10
             "
           />
         )}
 
-        {notificationCount > 0 && !menuOpen && (
-          <span
-            className="
-              absolute
-              right-1
-              top-1
-              h-2
-              w-2
-              rounded-full
-              bg-red-400
-              shadow-[0_0_10px_rgba(248,113,113,0.9)]
-            "
-          />
-        )}
+        {/* Notification Dot */}
+
+        {notificationCount >
+          0 &&
+          !menuOpen && (
+            <span
+              className="
+                absolute
+                right-[5px]
+                top-[5px]
+
+                h-2
+                w-2
+
+                rounded-full
+
+                bg-red-400
+
+                ring-2
+                ring-slate-900
+
+                shadow-[0_0_10px_rgba(248,113,113,0.95)]
+              "
+            />
+          )}
       </button>
 
-      {/* =====================================================
-          Backdrop
-      ===================================================== */}
+      {/* ===================================================
+          BACKDROP
+      =================================================== */}
 
       <div
         aria-hidden="true"
@@ -389,11 +464,16 @@ export default function MobileMenu({
           fixed
           inset-0
           z-[90]
-          bg-slate-950/45
-          backdrop-blur-sm
-          transition-opacity
+
+          bg-slate-950/55
+
+          backdrop-blur-[6px]
+
+          transition-all
           duration-300
+
           lg:hidden
+
           ${
             menuOpen
               ? `
@@ -409,63 +489,79 @@ export default function MobileMenu({
         `}
       />
 
-      {/* =====================================================
-          iOS Mobile Sheet
-      ===================================================== */}
+      {/* ===================================================
+          MOBILE BOTTOM SHEET
+      =================================================== */}
 
       <aside
-        aria-hidden={!menuOpen}
+        aria-hidden={
+          !menuOpen
+        }
         className={`
           fixed
-          inset-x-3
-          top-3
+
+          inset-x-0
+          bottom-0
+
           z-[100]
-          max-h-[calc(100vh-24px)]
+
+          max-h-[92dvh]
+
           overflow-hidden
-          rounded-[30px]
-          border
+
+          rounded-t-[32px]
+
+          border-t
           border-white/20
-          bg-slate-950/92
-          shadow-[0_30px_90px_-28px_rgba(0,0,0,0.85)]
+
+          bg-slate-950/95
+
+          shadow-[0_-24px_80px_-30px_rgba(0,0,0,0.9)]
+
           backdrop-blur-3xl
+
           transition-all
           duration-300
           ease-out
+
           lg:hidden
-          sm:inset-x-4
-          sm:top-4
-          sm:max-h-[calc(100vh-32px)]
+
           ${
             menuOpen
               ? `
                 visible
                 translate-y-0
-                scale-100
                 opacity-100
               `
               : `
                 invisible
                 pointer-events-none
-                -translate-y-4
-                scale-[0.97]
+                translate-y-full
                 opacity-0
               `
           }
         `}
       >
-        {/* Ambient */}
+        {/* =================================================
+            AMBIENT LIGHT
+        ================================================= */}
 
         <div
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
-            -left-14
+            -left-16
             -top-16
-            h-40
-            w-40
+
+            h-56
+            w-56
+
             rounded-full
-            bg-blue-400/15
+
+            bg-blue-500/15
+
             blur-3xl
           "
         />
@@ -474,532 +570,677 @@ export default function MobileMenu({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
-            -right-12
-            top-28
-            h-36
-            w-36
+            -right-20
+            top-40
+
+            h-52
+            w-52
+
             rounded-full
-            bg-emerald-400/10
+
+            bg-cyan-400/10
+
             blur-3xl
           "
         />
 
-        {/* Header */}
+        {/* =================================================
+            HANDLE
+        ================================================= */}
 
         <div
           className="
             relative
+
+            flex
+            justify-center
+
+            pb-1
+            pt-2.5
+          "
+        >
+          <div
+            className="
+              h-1.5
+              w-11
+
+              rounded-full
+
+              bg-white/25
+            "
+          />
+        </div>
+
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
+        <div
+          className="
+            relative
+
             flex
             items-center
             justify-between
             gap-3
+
             border-b
             border-white/10
-            px-4
-            py-4
+
+            px-5
+            pb-4
+            pt-2
           "
         >
           <div className="min-w-0">
-            <p
+            <h2
               className="
-                text-base
+                text-lg
                 font-black
+                tracking-tight
+
                 !text-white
               "
             >
               เมนูระบบ
-            </p>
+            </h2>
 
             <p
               className="
                 mt-0.5
+
                 text-xs
                 font-semibold
+
                 !text-slate-400
               "
             >
-              เลือกรายการที่ต้องการใช้งาน
+              เลือกเมนูที่ต้องการใช้งาน
             </p>
           </div>
 
           <button
             type="button"
             aria-label="ปิดเมนู"
-            onClick={closeMenu}
+            onClick={
+              closeMenu
+            }
             className="
               inline-flex
               h-10
               w-10
               shrink-0
+
               items-center
               justify-center
-              rounded-[14px]
+
+              rounded-full
+
               border
               border-white/10
+
               bg-white/10
+
               !text-white
+
+              backdrop-blur-xl
+
               transition-all
-              duration-300
-              hover:bg-white/15
-              active:scale-[0.94]
+              duration-200
+
+              active:scale-90
             "
           >
             <X
               size={20}
-              strokeWidth={2.5}
+              strokeWidth={2.4}
             />
           </button>
         </div>
 
-        {/* Content */}
+        {/* =================================================
+            CONTENT
+        ================================================= */}
 
         <div
           className="
             relative
-            max-h-[calc(100vh-105px)]
+
+            max-h-[calc(92dvh-92px)]
+
             overflow-y-auto
             overscroll-contain
-            px-3
-            py-3
+
+            px-4
+            pb-[calc(24px+env(safe-area-inset-bottom))]
+            pt-4
           "
         >
-          <div className="space-y-2">
+          {/* =================================================
+              QUICK MENU
+          ================================================= */}
+
+          <div
+            className="
+              grid
+              grid-cols-3
+              gap-3
+            "
+          >
             {/* ===============================================
-                หน้าแรก
+                HOME
             =============================================== */}
 
             <Link
               href="/"
               prefetch
-              onClick={closeMenu}
+              onClick={
+                closeMenu
+              }
               className={`
                 group
+                relative
+
                 flex
-                min-h-[54px]
+                min-h-[112px]
+                min-w-0
+
+                flex-col
                 items-center
-                gap-3
-                rounded-[18px]
+                justify-center
+
+                overflow-hidden
+
+                rounded-[24px]
+
                 border
-                px-3
+
+                px-2
                 py-3
-                text-sm
-                font-extrabold
+
+                text-center
+
                 transition-all
-                duration-300
-                active:scale-[0.985]
+                duration-200
+
+                active:scale-[0.94]
+
                 ${
                   pathname === "/"
                     ? `
-                      border-sky-300/20
-                      bg-gradient-to-r
+                      border-blue-300/30
+
+                      bg-gradient-to-br
                       from-blue-600
+                      via-blue-500
                       to-cyan-500
-                      !text-white
-                      shadow-[0_12px_28px_-18px_rgba(14,165,233,0.9)]
+
+                      shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
                     `
                     : `
                       border-white/10
-                      bg-white/5
-                      !text-slate-100
-                      hover:bg-white/10
-                      hover:!text-white
+
+                      bg-white/[0.07]
+
+                      shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
                     `
                 }
               `}
             >
               <div
-                className={`
+                className="
                   flex
-                  h-10
-                  w-10
-                  shrink-0
+                  h-12
+                  w-12
+
                   items-center
                   justify-center
-                  rounded-[14px]
+
+                  rounded-[17px]
+
                   border
-                  ${
-                    pathname === "/"
-                      ? `
-                        border-white/20
-                        bg-white/20
-                      `
-                      : `
-                        border-white/10
-                        bg-white/5
-                      `
-                  }
-                `}
+                  border-white/15
+
+                  bg-white/10
+
+                  !text-white
+
+                  shadow-inner
+                "
               >
                 <LayoutDashboard
-                  size={19}
-                  strokeWidth={2.4}
+                  size={24}
+                  strokeWidth={2.2}
                 />
               </div>
 
-              <span className="flex-1">
-                หน้าแรก
-              </span>
-
               <span
                 className="
-                  text-slate-400
-                  transition-transform
-                  group-hover:translate-x-0.5
+                  mt-2
+
+                  w-full
+
+                  truncate
+
+                  text-[13px]
+                  font-extrabold
+
+                  !text-white
                 "
               >
-                →
+                หน้าแรก
               </span>
             </Link>
 
             {/* ===============================================
-                การแจ้งเตือน
+                NOTIFICATIONS
             =============================================== */}
 
             <Link
               href="/notifications"
               prefetch
-              onClick={closeMenu}
+              onClick={
+                closeMenu
+              }
               className={`
                 group
+                relative
+
                 flex
-                min-h-[54px]
+                min-h-[112px]
+                min-w-0
+
+                flex-col
                 items-center
-                gap-3
-                rounded-[18px]
+                justify-center
+
+                overflow-hidden
+
+                rounded-[24px]
+
                 border
-                px-3
+
+                px-2
                 py-3
-                text-sm
-                font-extrabold
+
+                text-center
+
                 transition-all
-                duration-300
-                active:scale-[0.985]
+                duration-200
+
+                active:scale-[0.94]
+
                 ${
-                  pathname === "/notifications"
+                  isActive(
+                    "/notifications"
+                  )
                     ? `
-                      border-sky-300/20
-                      bg-gradient-to-r
+                      border-blue-300/30
+
+                      bg-gradient-to-br
                       from-blue-600
+                      via-blue-500
                       to-cyan-500
-                      !text-white
-                      shadow-[0_12px_28px_-18px_rgba(14,165,233,0.9)]
+
+                      shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
                     `
                     : `
                       border-white/10
-                      bg-white/5
-                      !text-slate-100
-                      hover:bg-white/10
-                      hover:!text-white
+
+                      bg-white/[0.07]
+
+                      shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
                     `
                 }
               `}
             >
               <div
-                className={`
+                className="
                   relative
+
                   flex
-                  h-10
-                  w-10
-                  shrink-0
+                  h-12
+                  w-12
+
                   items-center
                   justify-center
-                  rounded-[14px]
+
+                  rounded-[17px]
+
                   border
-                  ${
-                    pathname === "/notifications"
-                      ? `
-                        border-white/20
-                        bg-white/20
-                      `
-                      : `
-                        border-white/10
-                        bg-white/5
-                      `
-                  }
-                `}
+                  border-white/15
+
+                  bg-white/10
+
+                  !text-white
+                "
               >
                 <Bell
-                  size={19}
-                  strokeWidth={2.4}
+                  size={24}
+                  strokeWidth={2.2}
                 />
 
-                {notificationCount > 0 && (
-                  <span
-                    className="
-                      absolute
-                      -right-1
-                      -top-1
-                      h-2
-                      w-2
-                      rounded-full
-                      bg-red-400
-                      shadow-[0_0_10px_rgba(248,113,113,0.9)]
-                    "
-                  />
-                )}
+                {notificationCount >
+                  0 && (
+                    <span
+                      className="
+                        absolute
+                        -right-2
+                        -top-2
+
+                        flex
+                        h-6
+                        min-w-6
+
+                        items-center
+                        justify-center
+
+                        rounded-full
+
+                        bg-red-500
+
+                        px-1.5
+
+                        text-[10px]
+                        font-black
+
+                        !text-white
+
+                        ring-2
+                        ring-slate-950
+
+                        shadow-lg
+                      "
+                    >
+                      {notificationCount >
+                      99
+                        ? "99+"
+                        : notificationCount}
+                    </span>
+                  )}
               </div>
 
-              <span className="flex-1">
-                การแจ้งเตือน
-              </span>
+              <span
+                className="
+                  mt-2
 
-              {notificationCount > 0 && (
-                <span
-                  className="
-                    flex
-                    h-7
-                    min-w-7
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-red-500
-                    px-2
-                    text-[11px]
-                    font-black
-                    !text-white
-                    shadow-[0_8px_18px_-10px_rgba(239,68,68,0.9)]
-                  "
-                >
-                  {notificationCount > 99
-                    ? "99+"
-                    : notificationCount}
-                </span>
-              )}
+                  w-full
+
+                  truncate
+
+                  text-[13px]
+                  font-extrabold
+
+                  !text-white
+                "
+              >
+                แจ้งเตือน
+              </span>
             </Link>
 
             {/* ===============================================
-                Groups
+                ALL NORMAL MENU ITEMS
             =============================================== */}
 
-            {visibleMenus.map((group) => {
-              const active =
-                isGroupActive(group);
+            {visibleMenus.flatMap(
+              (group) =>
+                group.items.map(
+                  (item) => {
+                    const Icon =
+                      item.icon;
 
-              const isOpen =
-                openMenu === group.title;
+                    const active =
+                      isActive(
+                        item.href
+                      );
 
-              return (
-                <div
-                  key={group.title}
-                  className="
-                    overflow-hidden
-                    rounded-[20px]
-                    border
-                    border-white/10
-                    bg-white/[0.035]
-                  "
-                >
-                  <button
-                    type="button"
-                    aria-expanded={isOpen}
-                    onClick={() =>
-                      setOpenMenu(
-                        isOpen
-                          ? null
-                          : group.title
-                      )
-                    }
-                    className={`
-                      flex
-                      min-h-[54px]
-                      w-full
-                      items-center
-                      justify-between
-                      gap-3
-                      px-3
-                      py-3
-                      text-left
-                      text-sm
-                      font-extrabold
-                      transition-all
-                      duration-300
-                      active:scale-[0.99]
-                      ${
-                        active || isOpen
-                          ? `
-                            bg-white/10
-                            !text-white
-                          `
-                          : `
-                            bg-transparent
-                            !text-slate-200
-                            hover:bg-white/5
-                            hover:!text-white
-                          `
-                      }
-                    `}
-                  >
-                    <span className="whitespace-nowrap">
-                      {group.title}
-                    </span>
-
-                    <ChevronDown
-                      size={18}
-                      strokeWidth={2.5}
-                      className={`
-                        shrink-0
-                        transition-transform
-                        duration-300
-                        ${
-                          isOpen
-                            ? "rotate-180"
-                            : ""
+                    return (
+                      <Link
+                        key={
+                          item.href
                         }
-                      `}
-                    />
-                  </button>
+                        href={
+                          item.href
+                        }
+                        prefetch
+                        onClick={
+                          closeMenu
+                        }
+                        className={`
+                          group
+                          relative
 
-                  <div
-                    className={`
-                      grid
-                      transition-[grid-template-rows,opacity]
-                      duration-300
-                      ease-out
-                      ${
-                        isOpen
-                          ? `
-                            grid-rows-[1fr]
-                            opacity-100
-                          `
-                          : `
-                            grid-rows-[0fr]
-                            opacity-0
-                          `
-                      }
-                    `}
-                  >
-                    <div className="overflow-hidden">
-                      <div
-                        className="
-                          space-y-1
-                          border-t
-                          border-white/10
-                          p-2
-                        "
-                      >
-                        {group.items.map(
-                          (item) => {
-                            const itemActive =
-                              isActive(
-                                item.href
-                              );
+                          flex
+                          min-h-[112px]
+                          min-w-0
 
-                            const Icon =
-                              item.icon;
+                          flex-col
+                          items-center
+                          justify-center
 
-                            return (
-                              <Link
-                                key={
-                                  item.href
-                                }
-                                href={
-                                  item.href
-                                }
-                                prefetch
-                                onClick={
-                                  closeMenu
-                                }
-                                className={`
-                                  group/item
-                                  flex
-                                  min-h-[50px]
-                                  items-center
-                                  gap-3
-                                  rounded-[16px]
-                                  px-3
-                                  py-2.5
-                                  text-sm
-                                  font-extrabold
-                                  transition-all
-                                  duration-300
-                                  active:scale-[0.985]
-                                  ${
-                                    itemActive
-                                      ? `
-                                        bg-gradient-to-r
-                                        from-blue-600
-                                        to-cyan-500
-                                        !text-white
-                                        shadow-[0_12px_28px_-18px_rgba(14,165,233,0.9)]
-                                      `
-                                      : `
-                                        !text-slate-100
-                                        hover:bg-white/10
-                                        hover:!text-white
-                                      `
-                                  }
-                                `}
-                              >
-                                <div
-                                  className={`
-                                    flex
-                                    h-9
-                                    w-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-[13px]
-                                    border
-                                    ${
-                                      itemActive
-                                        ? `
-                                          border-white/20
-                                          bg-white/20
-                                        `
-                                        : `
-                                          border-white/10
-                                          bg-white/5
-                                          group-hover/item:bg-white/10
-                                        `
-                                    }
-                                  `}
-                                >
-                                  <Icon
-                                    size={18}
-                                    strokeWidth={
-                                      2.3
-                                    }
-                                  />
-                                </div>
+                          overflow-hidden
 
-                                <span
-                                  className="
-                                    min-w-0
-                                    flex-1
-                                  "
-                                >
-                                  {item.name}
-                                </span>
+                          rounded-[24px]
 
-                                <span
-                                  className="
-                                    translate-x-0
-                                    text-slate-400
-                                    opacity-0
-                                    transition-all
-                                    duration-300
-                                    group-hover/item:translate-x-0.5
-                                    group-hover/item:opacity-100
-                                  "
-                                >
-                                  →
-                                </span>
-                              </Link>
-                            );
+                          border
+
+                          px-2
+                          py-3
+
+                          text-center
+
+                          transition-all
+                          duration-200
+
+                          active:scale-[0.94]
+
+                          ${
+                            active
+                              ? `
+                                border-blue-300/30
+
+                                bg-gradient-to-br
+                                from-blue-600
+                                via-blue-500
+                                to-cyan-500
+
+                                shadow-[0_14px_32px_-18px_rgba(14,165,233,0.9)]
+                              `
+                              : `
+                                border-white/10
+
+                                bg-white/[0.07]
+
+                                shadow-[0_12px_28px_-22px_rgba(0,0,0,0.8)]
+                              `
                           }
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                        `}
+                      >
+                        {/* Top glass */}
+
+                        <div
+                          aria-hidden="true"
+                          className="
+                            pointer-events-none
+                            absolute
+                            inset-x-3
+                            top-0
+
+                            h-px
+
+                            bg-gradient-to-r
+                            from-transparent
+                            via-white/25
+                            to-transparent
+                          "
+                        />
+
+                        {/* Icon */}
+
+                        <div
+                          className={`
+                            flex
+                            h-12
+                            w-12
+                            shrink-0
+
+                            items-center
+                            justify-center
+
+                            rounded-[17px]
+
+                            border
+
+                            !text-white
+
+                            transition-all
+                            duration-200
+
+                            ${
+                              active
+                                ? `
+                                  border-white/25
+                                  bg-white/20
+                                `
+                                : `
+                                  border-white/10
+                                  bg-white/10
+                                `
+                            }
+                          `}
+                        >
+                          <Icon
+                            size={24}
+                            strokeWidth={2.2}
+                          />
+                        </div>
+
+                        {/* Label */}
+
+                        <span
+                          className="
+                            mt-2
+
+                            line-clamp-2
+                            w-full
+
+                            text-[12px]
+                            font-extrabold
+                            leading-[1.25rem]
+
+                            !text-white
+                          "
+                        >
+                          {
+                            item.name
+                          }
+                        </span>
+                      </Link>
+                    );
+                  }
+                )
+            )}
           </div>
 
-          {/* Bottom Safe Space */}
+          {/* =================================================
+              MENU GROUP SUMMARY
+          ================================================= */}
 
-          <div className="h-2" />
+          <div
+            className="
+              mt-5
+
+              space-y-3
+            "
+          >
+            {visibleMenus.map(
+              (group) => {
+                const GroupIcon =
+                  group.icon;
+
+                return (
+                  <div
+                    key={
+                      group.title
+                    }
+                    className="
+                      flex
+                      items-center
+                      gap-3
+
+                      rounded-[20px]
+
+                      border
+                      border-white/10
+
+                      bg-white/[0.04]
+
+                      px-4
+                      py-3
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-9
+                        w-9
+                        shrink-0
+
+                        items-center
+                        justify-center
+
+                        rounded-[13px]
+
+                        bg-white/10
+
+                        !text-slate-300
+                      "
+                    >
+                      <GroupIcon
+                        size={18}
+                        strokeWidth={
+                          2.2
+                        }
+                      />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p
+                        className="
+                          text-sm
+                          font-extrabold
+
+                          !text-slate-200
+                        "
+                      >
+                        {
+                          group.title
+                        }
+                      </p>
+
+                      <p
+                        className="
+                          mt-0.5
+
+                          text-[11px]
+                          font-semibold
+
+                          !text-slate-500
+                        "
+                      >
+                        {group.items.length.toLocaleString(
+                          "th-TH"
+                        )}{" "}
+                        เมนู
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
         </div>
       </aside>
     </>
