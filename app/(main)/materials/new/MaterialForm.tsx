@@ -11,6 +11,8 @@ import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
 
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
 
 /* =========================================================
    TYPES
@@ -55,20 +57,32 @@ type SearchableSelectProps = {
    CATEGORY
 ========================================================= */
 
-const categoryMap: Record<string, string> = {
+const categoryMap: Record<
+  string,
+  string
+> = {
   "วัสดุสำนักงาน": "OFFICE",
-  "วัสดุคอมพิวเตอร์": "COMPUTER",
-  "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
-  "วัสดุงานบ้านและงานครัว": "HOUSEHOLD",
-  "วัสดุยานพาหนะ": "VEHICLE",
-  "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
+  "วัสดุคอมพิวเตอร์":
+    "COMPUTER",
+  "วัสดุไฟฟ้าและวิทยุ":
+    "ELECTRIC",
+  "วัสดุงานบ้านและงานครัว":
+    "HOUSEHOLD",
+  "วัสดุยานพาหนะ":
+    "VEHICLE",
+  "วัสดุสื่อสิ่งพิมพ์":
+    "PRINTING",
 };
 
-const categoryCodeToName = Object.fromEntries(
-  Object.entries(categoryMap).map(
-    ([name, code]) => [code, name]
-  )
-) as Record<string, string>;
+const categoryCodeToName =
+  Object.fromEntries(
+    Object.entries(
+      categoryMap
+    ).map(([name, code]) => [
+      code,
+      name,
+    ])
+  ) as Record<string, string>;
 
 /* =========================================================
    SEARCHABLE SELECT
@@ -84,21 +98,21 @@ function SearchableSelect({
   required = false,
   onChange,
 }: SearchableSelectProps) {
-  const [open, setOpen] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
   const containerRef =
     useRef<HTMLDivElement>(null);
 
   const inputRef =
     useRef<HTMLInputElement>(null);
 
-  /* =========================================================
+  const [open, setOpen] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  /* =======================================================
      SELECTED OPTION
-  ========================================================= */
+  ======================================================= */
 
   const selectedOption =
     options.find(
@@ -106,16 +120,18 @@ function SearchableSelect({
         option.value === value
     );
 
-  /* =========================================================
+  /* =======================================================
      FILTER
-  ========================================================= */
+  ======================================================= */
 
   const filteredOptions =
     useMemo(() => {
       const keyword =
         search
           .trim()
-          .toLocaleLowerCase("th");
+          .toLocaleLowerCase(
+            "th"
+          );
 
       if (!keyword) {
         return options;
@@ -124,14 +140,16 @@ function SearchableSelect({
       return options.filter(
         (option) =>
           option.label
-            .toLocaleLowerCase("th")
+            .toLocaleLowerCase(
+              "th"
+            )
             .includes(keyword)
       );
     }, [options, search]);
 
-  /* =========================================================
-     CLOSE WHEN CLICK OUTSIDE
-  ========================================================= */
+  /* =======================================================
+     CLICK OUTSIDE
+  ======================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -161,12 +179,13 @@ function SearchableSelect({
     };
   }, []);
 
-  /* =========================================================
+  /* =======================================================
      FOCUS SEARCH
-  ========================================================= */
+  ======================================================= */
 
   useEffect(() => {
     if (!open) {
+      setSearch("");
       return;
     }
 
@@ -180,19 +199,25 @@ function SearchableSelect({
     };
   }, [open]);
 
-  /* =========================================================
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <div
       ref={containerRef}
-      className="relative"
-    >
-      {/* =====================================================
-          HIDDEN REQUIRED FIELD
-      ===================================================== */}
+      className={`
+        relative
+        w-full
+        min-w-0
 
+        ${
+          open
+            ? "z-[9999]"
+            : "z-10"
+        }
+      `}
+    >
       {required && (
         <input
           tabIndex={-1}
@@ -210,10 +235,6 @@ function SearchableSelect({
         />
       )}
 
-      {/* =====================================================
-          SELECT CONTROL
-      ===================================================== */}
-
       <button
         id={id}
         type="button"
@@ -225,33 +246,28 @@ function SearchableSelect({
             return;
           }
 
-          setOpen((current) => {
-            const next = !current;
-
-            if (!next) {
-              setSearch("");
-            }
-
-            return next;
-          });
+          setOpen(
+            (current) =>
+              !current
+          );
         }}
         className="
           flex
-          min-h-[50px]
+          h-[52px]
           w-full
+          min-w-0
           items-center
           justify-between
           gap-3
 
           rounded-[16px]
 
-          border-2
-          !border-black
+          border
+          border-slate-200
 
           bg-white
 
           px-4
-          py-3
 
           text-left
           text-base
@@ -264,19 +280,17 @@ function SearchableSelect({
           transition-all
           duration-200
 
-          hover:!border-black
+          hover:border-slate-300
           hover:bg-slate-50
 
-          focus:!border-black
-          focus:bg-white
+          focus:border-blue-300
           focus:ring-4
-          focus:ring-slate-900/10
+          focus:ring-blue-100/70
 
           disabled:cursor-not-allowed
-          disabled:!border-black
+          disabled:border-slate-200
           disabled:bg-slate-100
           disabled:!text-slate-400
-          disabled:opacity-70
         "
       >
         <span
@@ -301,7 +315,7 @@ function SearchableSelect({
           className={`
             shrink-0
             text-xs
-            !text-slate-700
+            !text-slate-500
 
             transition-transform
             duration-200
@@ -317,10 +331,6 @@ function SearchableSelect({
         </span>
       </button>
 
-      {/* =====================================================
-          DROPDOWN
-      ===================================================== */}
-
       {open && !disabled && (
         <div
           className="
@@ -328,30 +338,30 @@ function SearchableSelect({
             left-0
             right-0
             top-[calc(100%+8px)]
-            z-50
+
+            z-[99999]
 
             overflow-hidden
 
-            rounded-[16px]
+            rounded-[20px]
 
-            border-2
-            !border-black
+            border
+            border-slate-200
 
-            bg-white
+            bg-white/95
 
-            shadow-[0_18px_45px_-20px_rgba(15,23,42,0.45)]
+            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.35)]
+
+            backdrop-blur-2xl
           "
         >
-          {/* =================================================
-              SEARCH INPUT
-              ไม่มีรูปแว่นขยาย
-          ================================================= */}
-
           <div
             className="
-              border-b-2
-              border-black
-              bg-slate-50
+              border-b
+              border-slate-200
+
+              bg-slate-50/90
+
               p-3
             "
           >
@@ -359,12 +369,18 @@ function SearchableSelect({
               ref={inputRef}
               type="text"
               value={search}
-              onChange={(event) =>
+              autoComplete="off"
+              onChange={(
+                event
+              ) =>
                 setSearch(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
-              onKeyDown={(event) => {
+              onKeyDown={(
+                event
+              ) => {
                 if (
                   event.key ===
                   "Escape"
@@ -393,20 +409,18 @@ function SearchableSelect({
               placeholder={
                 searchPlaceholder
               }
-              autoComplete="off"
               className="
-                min-h-[46px]
+                h-[46px]
                 w-full
 
-                rounded-[12px]
+                rounded-[14px]
 
-                border-2
-                !border-black
+                border
+                border-slate-200
 
                 bg-white
 
                 px-4
-                py-2.5
 
                 text-base
                 font-bold
@@ -415,32 +429,25 @@ function SearchableSelect({
                 shadow-sm
                 outline-none
 
-                transition-all
-                duration-200
-
                 placeholder:!text-slate-400
 
-                hover:!border-black
-                hover:bg-slate-50
-
-                focus:!border-black
-                focus:bg-white
+                focus:border-blue-300
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-blue-100/70
               "
             />
           </div>
 
-          {/* =================================================
-              OPTIONS
-          ================================================= */}
-
           <div
             role="listbox"
             className="
-              max-h-[260px]
+              max-h-[280px]
+
               overflow-y-auto
               overscroll-contain
+
+              bg-white
+
               p-2
             "
           >
@@ -467,8 +474,12 @@ function SearchableSelect({
                           option.value
                         );
 
-                        setOpen(false);
-                        setSearch("");
+                        setOpen(
+                          false
+                        );
+                        setSearch(
+                          ""
+                        );
                       }}
                       className={`
                         flex
@@ -477,7 +488,7 @@ function SearchableSelect({
                         justify-between
                         gap-3
 
-                        rounded-[10px]
+                        rounded-[12px]
 
                         px-3
                         py-2.5
@@ -490,29 +501,27 @@ function SearchableSelect({
 
                         ${
                           active
-                            ? `
-                              bg-slate-900
-                              !text-white
-                            `
-                            : `
-                              bg-white
-                              !text-slate-900
-                              hover:bg-slate-100
-                            `
+                            ? "bg-slate-900 !text-white"
+                            : "bg-white !text-slate-900 hover:bg-slate-100"
                         }
                       `}
                     >
-                      <span className="min-w-0 break-words">
-                        {option.label}
+                      <span
+                        className="
+                          min-w-0
+                          flex-1
+                          break-words
+                        "
+                      >
+                        {
+                          option.label
+                        }
                       </span>
 
                       {active && (
                         <span
                           aria-hidden="true"
-                          className="
-                            shrink-0
-                            !text-white
-                          "
+                          className="!text-white"
                         >
                           ✓
                         </span>
@@ -526,6 +535,7 @@ function SearchableSelect({
                 className="
                   px-4
                   py-8
+
                   text-center
                   text-sm
                   font-bold
@@ -552,8 +562,9 @@ export default function MaterialForm({
   initialCategory = "",
   backHref = "/materials",
 }: Props) {
-  const categories =
-    Object.keys(categoryMap);
+  /* =======================================================
+     STATE
+  ======================================================= */
 
   const initialCategoryName =
     categoryCodeToName[
@@ -564,7 +575,9 @@ export default function MaterialForm({
     useState("");
 
   const [category, setCategory] =
-    useState(initialCategoryName);
+    useState(
+      initialCategoryName
+    );
 
   const [name, setName] =
     useState("");
@@ -580,75 +593,92 @@ export default function MaterialForm({
     setIsSubmitting,
   ] = useState(false);
 
-  /* =========================================================
-     DROPDOWN OPTIONS
-  ========================================================= */
+  /* =======================================================
+     OPTIONS
+  ======================================================= */
 
   const vendorOptions =
-    useMemo<SearchableOption[]>(
+    useMemo<
+      SearchableOption[]
+    >(
       () =>
-        vendors.map((vendor) => ({
-          value: String(vendor.id),
-          label: vendor.name,
-        })),
+        vendors.map(
+          (vendor) => ({
+            value: String(
+              vendor.id
+            ),
+            label:
+              vendor.name,
+          })
+        ),
       [vendors]
     );
 
   const categoryOptions =
-    useMemo<SearchableOption[]>(
+    useMemo<
+      SearchableOption[]
+    >(
       () =>
-        categories.map(
+        Object.keys(
+          categoryMap
+        ).map((item) => ({
+          value: item,
+          label: item,
+        })),
+      []
+    );
+
+  /* =======================================================
+     MATERIAL NAMES
+  ======================================================= */
+
+  const names =
+    useMemo(() => {
+      if (!category) {
+        return [];
+      }
+
+      const oldNames =
+        MATERIALS[
+          category as keyof typeof MATERIALS
+        ] ?? [];
+
+      const newNames =
+        materialMasters
+          .filter(
+            (item) =>
+              item.category ===
+              categoryMap[
+                category
+              ]
+          )
+          .map(
+            (item) =>
+              item.name
+          );
+
+      return Array.from(
+        new Set([
+          ...oldNames,
+          ...newNames,
+        ])
+      );
+    }, [
+      category,
+      materialMasters,
+    ]);
+
+  const materialOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () => [
+        ...names.map(
           (item) => ({
             value: item,
             label: item,
           })
         ),
-      [categories]
-    );
-
-  /* =========================================================
-     MATERIAL NAMES
-  ========================================================= */
-
-  const names = useMemo(() => {
-    if (!category) {
-      return [];
-    }
-
-    const oldNames =
-      MATERIALS[
-        category as keyof typeof MATERIALS
-      ] ?? [];
-
-    const newNames =
-      materialMasters
-        .filter(
-          (item) =>
-            item.category ===
-            categoryMap[category]
-        )
-        .map(
-          (item) => item.name
-        );
-
-    return Array.from(
-      new Set([
-        ...oldNames,
-        ...newNames,
-      ])
-    );
-  }, [
-    category,
-    materialMasters,
-  ]);
-
-  const materialOptions =
-    useMemo<SearchableOption[]>(
-      () => [
-        ...names.map((item) => ({
-          value: item,
-          label: item,
-        })),
 
         {
           value: "__NEW__",
@@ -659,9 +689,9 @@ export default function MaterialForm({
       [names]
     );
 
-  /* =========================================================
+  /* =======================================================
      UNIT
-  ========================================================= */
+  ======================================================= */
 
   const unit =
     name === "__NEW__"
@@ -669,15 +699,18 @@ export default function MaterialForm({
       : UNITS[name] ??
         materialMasters.find(
           (item) =>
-            item.name === name &&
+            item.name ===
+              name &&
             item.category ===
-              categoryMap[category]
+              categoryMap[
+                category
+              ]
         )?.unit ??
         "";
 
-  /* =========================================================
+  /* =======================================================
      SUBMIT
-  ========================================================= */
+  ======================================================= */
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
@@ -698,11 +731,14 @@ export default function MaterialForm({
         ? newName.trim()
         : name;
 
-    if (!categoryMap[category]) {
+    if (
+      !categoryMap[
+        category
+      ]
+    ) {
       alert(
         "กรุณาเลือกหมวดหมู่"
       );
-
       return;
     }
 
@@ -710,7 +746,6 @@ export default function MaterialForm({
       alert(
         "กรุณาระบุชื่อรายการพัสดุ"
       );
-
       return;
     }
 
@@ -718,7 +753,6 @@ export default function MaterialForm({
       alert(
         "กรุณาระบุหน่วย"
       );
-
       return;
     }
 
@@ -728,14 +762,18 @@ export default function MaterialForm({
         : null,
 
       category:
-        categoryMap[category],
+        categoryMap[
+          category
+        ],
 
       name: materialName,
 
       unit,
 
       balance: Number(
-        formData.get("balance")
+        formData.get(
+          "balance"
+        )
       ),
 
       latestPrice: Number(
@@ -748,23 +786,26 @@ export default function MaterialForm({
     };
 
     try {
-      setIsSubmitting(true);
-
-      const res = await fetch(
-        "/api/materials",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify(
-            body
-          ),
-        }
+      setIsSubmitting(
+        true
       );
+
+      const res =
+        await fetch(
+          "/api/materials",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify(
+              body
+            ),
+          }
+        );
 
       if (res.ok) {
         window.location.href =
@@ -773,9 +814,12 @@ export default function MaterialForm({
         return;
       }
 
-      const data = await res
-        .json()
-        .catch(() => null);
+      const data =
+        await res
+          .json()
+          .catch(
+            () => null
+          );
 
       alert(
         data?.message ??
@@ -791,36 +835,38 @@ export default function MaterialForm({
         "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(
+        false
+      );
     }
   }
 
-  /* =========================================================
-     SHARED CLASSES
-  ========================================================= */
+  /* =======================================================
+     STANDARD FIELD CLASSES
+  ======================================================= */
 
-  const labelClassName = `
+  const labelClass = `
     mb-2
     block
-    text-sm
+
+    text-base
     font-extrabold
-    !text-slate-700
-    sm:text-base
+    !text-slate-800
   `;
 
-  const inputClassName = `
-    min-h-[50px]
+  const inputClass = `
+    h-[52px]
     w-full
+    min-w-0
 
     rounded-[16px]
 
-    border-2
-    !border-black
+    border
+    border-slate-200
 
     bg-white
 
     px-4
-    py-3
 
     text-base
     font-bold
@@ -834,102 +880,77 @@ export default function MaterialForm({
 
     placeholder:!text-slate-400
 
-    hover:!border-black
+    hover:border-slate-300
     hover:bg-slate-50
 
-    focus:!border-black
-    focus:bg-white
+    focus:border-blue-300
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-blue-100/70
   `;
 
-  /* =========================================================
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <form
       onSubmit={handleSubmit}
       className="
-        mx-auto
+        relative
         w-full
-        max-w-4xl
+        min-w-0
+
+        space-y-6
 
         overflow-visible
-
-        rounded-[30px]
-
-        border
-        border-slate-200
-
-        bg-slate-50/95
-
-        shadow-[0_24px_65px_-34px_rgba(15,23,42,0.35)]
-
-        backdrop-blur-xl
       "
     >
       {/* =====================================================
-          FORM HEADER
+          MATERIAL INFORMATION
+          ใช้ AppCard กลาง
       ===================================================== */}
 
-      <div
+      <AppCard
         className="
-          rounded-t-[30px]
+          relative
 
-          border-b
-          border-slate-200
+          w-full
+          min-w-0
 
-          bg-white/70
+          overflow-visible
 
-          px-5
-          py-5
+          p-4
 
-          sm:px-8
-          sm:py-6
+          sm:p-5
+          lg:p-6
         "
       >
+        {/* ===================================================
+            CARD TITLE
+        =================================================== */}
+
         <div
           className="
+            mb-5
+
             flex
             items-center
-            gap-4
+            gap-3
           "
         >
           <div
             className="
-              flex
-              h-12
-              w-12
-              shrink-0
-
-              items-center
-              justify-center
-
-              rounded-[16px]
-
-              border
-              border-slate-200
-
-              bg-white
-
-              text-xl
-
-              shadow-sm
+              min-w-0
             "
           >
-            📦
-          </div>
-
-          <div className="min-w-0">
             <h2
               className="
-                text-xl
+                text-lg
                 font-black
                 tracking-tight
                 !text-slate-900
 
-                sm:text-2xl
+                sm:text-xl
               "
             >
               ข้อมูลพัสดุ
@@ -937,231 +958,268 @@ export default function MaterialForm({
 
             <p
               className="
-                mt-1
+                mt-0.5
+
                 text-sm
                 font-semibold
                 !text-slate-500
-
-                sm:text-base
               "
             >
               ระบุรายละเอียดของพัสดุที่ต้องการเพิ่ม
             </p>
           </div>
         </div>
-      </div>
-
-      {/* =====================================================
-          FORM CONTENT
-      ===================================================== */}
-
-      <div
-        className="
-          space-y-5
-          p-5
-
-          sm:space-y-6
-          sm:p-8
-        "
-      >
-        {/* ===================================================
-            ผู้จำหน่าย
-        =================================================== */}
-
-        <div>
-          <label
-            htmlFor="vendorId"
-            className={
-              labelClassName
-            }
-          >
-            ผู้จำหน่าย
-          </label>
-
-          <SearchableSelect
-            id="vendorId"
-            value={vendorId}
-            options={
-              vendorOptions
-            }
-            placeholder="เลือกผู้จำหน่าย"
-            searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
-            onChange={
-              setVendorId
-            }
-          />
-        </div>
 
         {/* ===================================================
-            หมวดหมู่
-        =================================================== */}
-
-        <div>
-          <label
-            htmlFor="category"
-            className={
-              labelClassName
-            }
-          >
-            หมวดหมู่
-          </label>
-
-          <SearchableSelect
-            id="category"
-            value={category}
-            options={
-              categoryOptions
-            }
-            placeholder="เลือกหมวดหมู่"
-            searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
-            required
-            onChange={(value) => {
-              setCategory(value);
-
-              setName("");
-              setNewName("");
-              setNewUnit("");
-            }}
-          />
-        </div>
-
-        {/* ===================================================
-            รายการพัสดุ
-        =================================================== */}
-
-        <div>
-          <label
-            htmlFor="materialName"
-            className={
-              labelClassName
-            }
-          >
-            รายการพัสดุ
-          </label>
-
-          <SearchableSelect
-            id="materialName"
-            value={name}
-            options={
-              materialOptions
-            }
-            placeholder={
-              category
-                ? "เลือกรายการพัสดุ"
-                : "กรุณาเลือกหมวดหมู่ก่อน"
-            }
-            searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
-            disabled={!category}
-            required
-            onChange={(value) => {
-              setName(value);
-
-              if (
-                value !== "__NEW__"
-              ) {
-                setNewName("");
-                setNewUnit("");
-              }
-            }}
-          />
-
-          {/* =================================================
-              NEW MATERIAL
-          ================================================= */}
-
-          {name === "__NEW__" && (
-            <div
-              className="
-                mt-4
-                space-y-4
-
-                rounded-[22px]
-
-                border-2
-                !border-black
-
-                bg-slate-100/80
-
-                p-4
-
-                shadow-sm
-
-                sm:p-5
-              "
-            >
-              <div>
-                <label
-                  htmlFor="newName"
-                  className={
-                    labelClassName
-                  }
-                >
-                  ชื่อรายการใหม่
-                </label>
-
-                <input
-                  id="newName"
-                  value={newName}
-                  onChange={(e) =>
-                    setNewName(
-                      e.target.value
-                    )
-                  }
-                  placeholder="กรอกชื่อรายการพัสดุใหม่"
-                  required
-                  className={
-                    inputClassName
-                  }
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="newUnit"
-                  className={
-                    labelClassName
-                  }
-                >
-                  หน่วย
-                </label>
-
-                <input
-                  id="newUnit"
-                  value={newUnit}
-                  onChange={(e) =>
-                    setNewUnit(
-                      e.target.value
-                    )
-                  }
-                  placeholder="เช่น ชิ้น, กล่อง, อัน"
-                  required
-                  className={
-                    inputClassName
-                  }
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ===================================================
-            จำนวน + หน่วย
+            FORM GRID
         =================================================== */}
 
         <div
           className="
             grid
-            grid-cols-1
-            gap-5
+            min-w-0
+            gap-4
 
             md:grid-cols-2
           "
         >
-          <div>
+          {/* =================================================
+              VENDOR
+          ================================================= */}
+
+          <AppInfoCard
+            className="
+              relative
+              z-[500]
+              overflow-visible
+            "
+          >
+            <label
+              htmlFor="vendorId"
+              className={
+                labelClass
+              }
+            >
+              ผู้จำหน่าย
+            </label>
+
+            <SearchableSelect
+              id="vendorId"
+              value={vendorId}
+              options={
+                vendorOptions
+              }
+              placeholder="เลือกผู้จำหน่าย"
+              searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
+              onChange={
+                setVendorId
+              }
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              CATEGORY
+          ================================================= */}
+
+          <AppInfoCard
+            className="
+              relative
+              z-[400]
+              overflow-visible
+            "
+          >
+            <label
+              htmlFor="category"
+              className={
+                labelClass
+              }
+            >
+              หมวดหมู่
+            </label>
+
+            <SearchableSelect
+              id="category"
+              value={category}
+              options={
+                categoryOptions
+              }
+              placeholder="เลือกหมวดหมู่"
+              searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+              required
+              onChange={(
+                value
+              ) => {
+                setCategory(
+                  value
+                );
+
+                setName("");
+                setNewName("");
+                setNewUnit("");
+              }}
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              MATERIAL
+          ================================================= */}
+
+          <AppInfoCard
+            className="
+              relative
+              z-[300]
+              overflow-visible
+
+              md:col-span-2
+            "
+          >
+            <label
+              htmlFor="materialName"
+              className={
+                labelClass
+              }
+            >
+              รายการพัสดุ
+            </label>
+
+            <SearchableSelect
+              id="materialName"
+              value={name}
+              options={
+                materialOptions
+              }
+              placeholder={
+                category
+                  ? "เลือกรายการพัสดุ"
+                  : "กรุณาเลือกหมวดหมู่ก่อน"
+              }
+              searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+              disabled={
+                !category
+              }
+              required
+              onChange={(
+                value
+              ) => {
+                setName(value);
+
+                if (
+                  value !==
+                  "__NEW__"
+                ) {
+                  setNewName(
+                    ""
+                  );
+                  setNewUnit(
+                    ""
+                  );
+                }
+              }}
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              NEW MATERIAL
+          ================================================= */}
+
+          {name ===
+            "__NEW__" && (
+            <AppInfoCard
+              className="
+                relative
+                z-[200]
+
+                overflow-visible
+
+                md:col-span-2
+              "
+            >
+              <div
+                className="
+                  grid
+                  gap-4
+
+                  md:grid-cols-2
+                "
+              >
+                <div>
+                  <label
+                    htmlFor="newName"
+                    className={
+                      labelClass
+                    }
+                  >
+                    ชื่อรายการใหม่
+                  </label>
+
+                  <input
+                    id="newName"
+                    type="text"
+                    value={
+                      newName
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setNewName(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    placeholder="กรอกชื่อรายการพัสดุใหม่"
+                    required
+                    className={
+                      inputClass
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="newUnit"
+                    className={
+                      labelClass
+                    }
+                  >
+                    หน่วย
+                  </label>
+
+                  <input
+                    id="newUnit"
+                    type="text"
+                    value={
+                      newUnit
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setNewUnit(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    placeholder="เช่น ชิ้น, กล่อง, อัน"
+                    required
+                    className={
+                      inputClass
+                    }
+                  />
+                </div>
+              </div>
+            </AppInfoCard>
+          )}
+
+          {/* =================================================
+              BALANCE
+          ================================================= */}
+
+          <AppInfoCard>
             <label
               htmlFor="balance"
               className={
-                labelClassName
+                labelClass
               }
             >
               จำนวน
@@ -1173,17 +1231,24 @@ export default function MaterialForm({
               name="balance"
               defaultValue={0}
               min="0"
-              className={
-                inputClassName
-              }
-            />
-          </div>
+              className={`
+                ${inputClass}
 
-          <div>
+                text-center
+                tabular-nums
+              `}
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              UNIT
+          ================================================= */}
+
+          <AppInfoCard>
             <label
               htmlFor="unit"
               className={
-                labelClassName
+                labelClass
               }
             >
               หน่วย
@@ -1191,91 +1256,98 @@ export default function MaterialForm({
 
             <input
               id="unit"
+              type="text"
               value={unit}
               readOnly
               placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
               className="
-                min-h-[50px]
+                h-[52px]
                 w-full
+                min-w-0
 
                 cursor-default
 
                 rounded-[16px]
 
-                border-2
-                !border-black
+                border
+                border-slate-200
 
                 bg-slate-100
 
                 px-4
-                py-3
 
                 text-base
                 font-extrabold
                 !text-slate-700
 
-                shadow-sm
                 outline-none
 
                 placeholder:!text-slate-400
               "
             />
-          </div>
-        </div>
+          </AppInfoCard>
 
-        {/* ===================================================
-            ราคาล่าสุด
-        =================================================== */}
+          {/* =================================================
+              PRICE
+          ================================================= */}
 
-        <div>
-          <label
-            htmlFor="latestPrice"
-            className={
-              labelClassName
-            }
+          <AppInfoCard
+            className="
+              md:col-span-2
+            "
           >
-            ราคาล่าสุด
-          </label>
-
-          <div className="relative">
-            <input
-              id="latestPrice"
-              type="number"
-              name="latestPrice"
-              defaultValue="0.00"
-              step="0.01"
-              min="0"
-              className={`
-                ${inputClassName}
-                pr-16
-                text-right
-                tabular-nums
-              `}
-            />
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                inset-y-0
-                right-4
-
-                flex
-                items-center
-
-                text-sm
-                font-extrabold
-                !text-slate-500
-              "
+            <label
+              htmlFor="latestPrice"
+              className={
+                labelClass
+              }
             >
-              บาท
+              ราคาล่าสุด
+            </label>
+
+            <div className="relative">
+              <input
+                id="latestPrice"
+                type="number"
+                name="latestPrice"
+                defaultValue="0.00"
+                step="0.01"
+                min="0"
+                className={`
+                  ${inputClass}
+
+                  pr-16
+                  text-right
+                  tabular-nums
+                `}
+              />
+
+              <div
+                className="
+                  pointer-events-none
+
+                  absolute
+                  inset-y-0
+                  right-4
+
+                  flex
+                  items-center
+
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+                "
+              >
+                บาท
+              </div>
             </div>
-          </div>
+          </AppInfoCard>
         </div>
-      </div>
+      </AppCard>
 
       {/* =====================================================
           ACTIONS
+          ใช้ AppButton กลางทั้งหมด
       ===================================================== */}
 
       <div
@@ -1284,19 +1356,8 @@ export default function MaterialForm({
           flex-col-reverse
           gap-3
 
-          rounded-b-[30px]
-
-          border-t
-          border-slate-200
-
-          bg-white/70
-
-          px-5
-          py-5
-
           sm:flex-row
           sm:justify-end
-          sm:px-8
         "
       >
         <AppButton
@@ -1334,7 +1395,11 @@ export default function MaterialForm({
                 "
               />
             ) : (
-              <span>💾</span>
+              <span
+                aria-hidden="true"
+              >
+                💾
+              </span>
             )
           }
           className="

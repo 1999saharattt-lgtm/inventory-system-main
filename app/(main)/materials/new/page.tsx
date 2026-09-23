@@ -5,7 +5,12 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   searchParams: Promise<{
@@ -29,6 +34,10 @@ const validCategories = [
 type CategoryCode =
   (typeof validCategories)[number];
 
+/* =========================================================
+   CATEGORY VALIDATION
+========================================================= */
+
 function isValidCategory(
   category: string | undefined
 ): category is CategoryCode {
@@ -40,10 +49,16 @@ function isValidCategory(
   );
 }
 
+/* =========================================================
+   BACK URL
+========================================================= */
+
 function getBackHref(
   category: string | undefined
 ) {
-  if (isValidCategory(category)) {
+  if (
+    isValidCategory(category)
+  ) {
     return `/materials/category/${category}`;
   }
 
@@ -57,7 +72,12 @@ function getBackHref(
 export default async function NewMaterialPage({
   searchParams,
 }: Props) {
-  const { category } = await searchParams;
+  /* =======================================================
+     SEARCH PARAMS
+  ======================================================= */
+
+  const { category } =
+    await searchParams;
 
   const initialCategory =
     isValidCategory(category)
@@ -67,9 +87,9 @@ export default async function NewMaterialPage({
   const backHref =
     getBackHref(category);
 
-  /* =========================================================
+  /* =======================================================
      VENDORS
-  ========================================================= */
+  ======================================================= */
 
   const vendors =
     await prisma.vendor.findMany({
@@ -83,9 +103,9 @@ export default async function NewMaterialPage({
       },
     });
 
-  /* =========================================================
+  /* =======================================================
      MATERIAL MASTERS
-  ========================================================= */
+  ======================================================= */
 
   const materialMasters =
     await prisma.materialMaster.findMany({
@@ -106,12 +126,17 @@ export default async function NewMaterialPage({
       },
     });
 
-  /* =========================================================
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <AppPage>
+      {/* =====================================================
+          HEADER
+          ใช้ Component กลางของระบบ
+      ===================================================== */}
+
       <AppPageHeader
         icon="➕"
         title="เพิ่มรายการพัสดุ"
@@ -121,30 +146,36 @@ export default async function NewMaterialPage({
             href={backHref}
             variant="back"
             size="md"
-            icon={<span>←</span>}
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
           >
             กลับ
           </AppButton>
         }
       />
 
-      <section
-        className="
-          w-full
-          min-w-0
-        "
-      >
-        <MaterialForm
-          vendors={vendors}
-          materialMasters={
-            materialMasters
-          }
-          initialCategory={
-            initialCategory
-          }
-          backHref={backHref}
-        />
-      </section>
+      {/* =====================================================
+          FORM
+
+          ไม่สร้าง Card / Background / Container เอง
+          ให้ MaterialForm ใช้ Component กลางของระบบ
+      ===================================================== */}
+
+      <MaterialForm
+        vendors={vendors}
+        materialMasters={
+          materialMasters
+        }
+        initialCategory={
+          initialCategory
+        }
+        backHref={backHref}
+      />
     </AppPage>
   );
 }

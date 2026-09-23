@@ -7,29 +7,44 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function EditMaterialPage({
   params,
 }: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const { id } = await params;
 
-  /* =========================================================
-     MATERIAL
-  ========================================================= */
-
-  const materialId = Number(id);
+  const materialId =
+    Number(id);
 
   if (
-    !Number.isInteger(materialId) ||
+    !Number.isInteger(
+      materialId
+    ) ||
     materialId <= 0
   ) {
     notFound();
   }
+
+  /* =======================================================
+     MATERIAL
+  ======================================================= */
 
   const material =
     await prisma.material.findUnique({
@@ -42,12 +57,9 @@ export default async function EditMaterialPage({
     notFound();
   }
 
-  /* =========================================================
+  /* =======================================================
      VENDORS
-
-     ส่งข้อมูลผู้จำหน่ายไปให้ EditMaterialForm
-     เพื่อใช้ Dropdown แบบพิมพ์ค้นหาได้
-  ========================================================= */
+  ======================================================= */
 
   const vendors =
     await prisma.vendor.findMany({
@@ -61,24 +73,22 @@ export default async function EditMaterialPage({
       },
     });
 
-  /* =========================================================
+  /* =======================================================
      BACK URL
-
-     กลับไปยังหมวดหมู่เดิมของพัสดุ
-     เช่น OFFICE -> /materials/category/OFFICE
-  ========================================================= */
+  ======================================================= */
 
   const backHref =
     `/materials/category/${material.category}`;
 
-  /* =========================================================
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
           HEADER
+          ใช้ตัวกลาง AppPageHeader
       ===================================================== */}
 
       <AppPageHeader
@@ -90,7 +100,13 @@ export default async function EditMaterialPage({
             href={backHref}
             variant="back"
             size="md"
-            icon={<span>←</span>}
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
           >
             กลับ
           </AppButton>
@@ -99,28 +115,17 @@ export default async function EditMaterialPage({
 
       {/* =====================================================
           EDIT MATERIAL FORM
+
+          ไม่สร้าง Card / Container / max-width เอง
+          ให้ EditMaterialForm ใช้ Component กลาง
+          แบบเดียวกับ MaterialForm หน้าเพิ่ม
       ===================================================== */}
 
-      <section
-        className="
-          flex
-          w-full
-          min-w-0
-          justify-center
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-4xl
-          "
-        >
-          <EditMaterialForm
-            material={material}
-            vendors={vendors}
-          />
-        </div>
-      </section>
+      <EditMaterialForm
+        material={material}
+        vendors={vendors}
+        backHref={backHref}
+      />
     </AppPage>
   );
 }
