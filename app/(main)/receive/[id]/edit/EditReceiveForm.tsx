@@ -11,6 +11,7 @@ import { updateReceive } from "./actions";
 
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
 import AppTableCard from "@/components/AppTableCard";
 
 /* =========================================================
@@ -191,7 +192,6 @@ function toDateInputValue(
 
 /* =========================================================
    DATE FIELD
-   ปฏิทินมาตรฐานของระบบ
 ========================================================= */
 
 type DateFieldProps = {
@@ -263,30 +263,18 @@ function DateField({
           items-center
           justify-between
           gap-2
-
           rounded-[16px]
-
           border
-          border-slate-300/90
-
-          bg-white/90
-
+          !border-black
+          bg-white
           pl-4
           pr-2
-
-          shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
-
-          backdrop-blur-xl
-
+          shadow-sm
           transition-all
           duration-200
-
-          hover:border-slate-400
-          hover:bg-white
-
-          focus-within:border-slate-400
+          hover:bg-slate-50
           focus-within:ring-4
-          focus-within:ring-slate-900/[0.06]
+          focus-within:ring-slate-900/10
         "
       >
         <span
@@ -294,15 +282,12 @@ function DateField({
             min-w-0
             flex-1
             truncate
-
             ${
               compact
                 ? "text-sm"
                 : "text-base"
             }
-
             font-bold
-
             ${
               value
                 ? "!text-slate-900"
@@ -328,31 +313,17 @@ function DateField({
             shrink-0
             items-center
             justify-center
-
             rounded-[11px]
-
-            border
-            border-slate-200/90
-
-            bg-gradient-to-b
-            from-white
-            to-slate-100
-
+            bg-slate-100
             text-lg
-
-            shadow-[0_4px_12px_-8px_rgba(15,23,42,0.5)]
-
+            shadow-inner
             transition-all
             duration-200
-
-            hover:border-slate-300
-            hover:to-slate-200
-
+            hover:bg-slate-200
             active:scale-[0.96]
-
             focus:outline-none
             focus:ring-4
-            focus:ring-slate-900/[0.06]
+            focus:ring-slate-900/10
           "
         >
           📅
@@ -490,7 +461,6 @@ function SearchableDropdown({
         relative
         w-full
         min-w-0
-
         ${
           open
             ? "z-[9999]"
@@ -521,43 +491,25 @@ function SearchableDropdown({
           items-center
           justify-between
           gap-3
-
           rounded-[16px]
-
           border
-          border-slate-300/90
-
-          bg-white/90
-
+          !border-black
+          bg-white
           px-4
-
           text-left
           text-base
           font-bold
           !text-slate-900
-
-          shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
-
-          backdrop-blur-xl
-
+          shadow-sm
           outline-none
-
           transition-all
           duration-200
-
-          hover:border-slate-400
-          hover:bg-white
-
-          focus:border-slate-400
-          focus:bg-white
+          hover:bg-slate-50
           focus:ring-4
-          focus:ring-slate-900/[0.06]
-
+          focus:ring-slate-900/10
           disabled:cursor-not-allowed
-          disabled:border-slate-200
-          disabled:bg-slate-100/80
+          disabled:bg-slate-100
           disabled:!text-slate-400
-          disabled:opacity-70
         "
       >
         <span
@@ -565,7 +517,6 @@ function SearchableDropdown({
             min-w-0
             flex-1
             truncate
-
             ${
               selectedOption
                 ? "!text-slate-900"
@@ -582,11 +533,9 @@ function SearchableDropdown({
           className={`
             shrink-0
             text-xs
-            !text-slate-500
-
+            !text-slate-700
             transition-transform
             duration-200
-
             ${
               open
                 ? "rotate-180"
@@ -605,33 +554,21 @@ function SearchableDropdown({
             left-0
             right-0
             top-[calc(100%+8px)]
-
             z-[99999]
-
             overflow-hidden
-
-            rounded-[18px]
-
+            rounded-[20px]
             border
-            border-slate-300/90
-
+            !border-black
             bg-white/95
-
-            shadow-[0_24px_60px_-16px_rgba(15,23,42,0.42)]
-
-            ring-1
-            ring-black/[0.03]
-
+            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
             backdrop-blur-2xl
           "
         >
           <div
             className="
               border-b
-              border-slate-200/90
-
+              border-slate-200
               bg-slate-50/90
-
               p-3
             "
           >
@@ -677,28 +614,19 @@ function SearchableDropdown({
               className="
                 h-[46px]
                 w-full
-
-                rounded-[12px]
-
+                rounded-[14px]
                 border
-                border-slate-300
-
+                !border-black
                 bg-white
-
                 px-4
-
                 text-base
                 font-bold
                 !text-slate-900
-
                 shadow-sm
                 outline-none
-
                 placeholder:!text-slate-400
-
-                focus:border-slate-400
                 focus:ring-4
-                focus:ring-slate-900/[0.06]
+                focus:ring-slate-900/10
               "
             />
           </div>
@@ -709,9 +637,7 @@ function SearchableDropdown({
               max-h-[280px]
               overflow-y-auto
               overscroll-contain
-
-              bg-white/95
-
+              bg-white
               p-2
             "
           >
@@ -747,31 +673,17 @@ function SearchableDropdown({
                         items-center
                         justify-between
                         gap-3
-
                         rounded-[12px]
-
                         px-3
                         py-2.5
-
                         text-left
                         text-base
                         font-bold
-
-                        transition-all
-                        duration-150
-
+                        transition-colors
                         ${
                           selected
-                            ? `
-                              bg-slate-900
-                              !text-white
-                              shadow-sm
-                            `
-                            : `
-                              bg-transparent
-                              !text-slate-900
-                              hover:bg-slate-100
-                            `
+                            ? "bg-slate-900 !text-white"
+                            : "bg-white !text-slate-900 hover:bg-slate-100"
                         }
                       `}
                     >
@@ -786,12 +698,7 @@ function SearchableDropdown({
                       </span>
 
                       {selected && (
-                        <span
-                          className="
-                            shrink-0
-                            !text-white
-                          "
-                        >
+                        <span className="!text-white">
                           ✓
                         </span>
                       )}
@@ -960,71 +867,42 @@ export default function EditReceiveForm({
     h-[52px]
     w-full
     min-w-0
-
     rounded-[16px]
-
     border
-    border-slate-300/90
-
-    bg-white/90
-
+    !border-black
+    bg-white
     px-4
-
     text-base
     font-bold
     !text-slate-900
-
-    shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
-
-    backdrop-blur-xl
-
+    shadow-sm
     outline-none
-
     transition-all
     duration-200
-
     placeholder:!text-slate-400
-
-    hover:border-slate-400
-    hover:bg-white
-
-    focus:border-slate-400
-    focus:bg-white
+    hover:bg-slate-50
     focus:ring-4
-    focus:ring-slate-900/[0.06]
+    focus:ring-slate-900/10
   `;
 
   const tableInputClass = `
     h-[52px]
-
     rounded-[16px]
-
     border
-    border-slate-300/90
-
-    bg-white/95
-
+    !border-black
+    bg-white
     px-3
-
     text-sm
     font-bold
     !text-slate-900
-
-    shadow-[0_6px_18px_-16px_rgba(15,23,42,0.45)]
-
+    shadow-sm
     outline-none
-
     transition-all
     duration-200
-
     placeholder:!text-slate-400
-
-    hover:border-slate-400
-
-    focus:border-slate-400
-    focus:bg-white
+    hover:bg-slate-50
     focus:ring-4
-    focus:ring-slate-900/[0.06]
+    focus:ring-slate-900/10
   `;
 
   return (
@@ -1034,7 +912,7 @@ export default function EditReceiveForm({
         relative
         w-full
         min-w-0
-        space-y-4
+        space-y-6
         overflow-visible
       "
     >
@@ -1051,7 +929,7 @@ export default function EditReceiveForm({
       />
 
       {/* =====================================================
-          ข้อมูลการรับเข้า
+          DOCUMENT INFORMATION
       ===================================================== */}
 
       <AppCard
@@ -1065,15 +943,71 @@ export default function EditReceiveForm({
       >
         <div
           className="
+            mb-5
+            flex
+            items-center
+            gap-3
+          "
+        >
+          <div
+            className="
+              flex
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
+              rounded-[15px]
+              bg-blue-50/90
+              text-xl
+              shadow-sm
+              ring-1
+              ring-blue-100/80
+            "
+          >
+            🧾
+          </div>
+
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-black
+                tracking-tight
+                !text-slate-900
+                sm:text-xl
+              "
+            >
+              ข้อมูลการรับเข้า
+            </h2>
+
+            <p
+              className="
+                mt-0.5
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              แก้ไขวันที่ เอกสาร และผู้จำหน่าย
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="
             grid
             min-w-0
-            gap-5
+            gap-4
             md:grid-cols-2
           "
         >
-          {/* วันที่รับเข้า */}
-
-          <div className="min-w-0">
+          <AppInfoCard
+            className="
+              relative
+              overflow-visible
+            "
+          >
             <label
               htmlFor="receiveDate"
               className={labelClass}
@@ -1090,11 +1024,14 @@ export default function EditReceiveForm({
                 setReceiveDate
               }
             />
-          </div>
+          </AppInfoCard>
 
-          {/* เลขที่เอกสาร */}
-
-          <div className="min-w-0">
+          <AppInfoCard
+            className="
+              relative
+              overflow-visible
+            "
+          >
             <label
               htmlFor="documentNo"
               className={labelClass}
@@ -1111,15 +1048,13 @@ export default function EditReceiveForm({
               }
               className={inputClass}
             />
-          </div>
+          </AppInfoCard>
 
-          {/* ผู้จำหน่าย */}
-
-          <div
+          <AppInfoCard
             className="
               relative
               z-[300]
-              min-w-0
+              overflow-visible
               md:col-span-2
             "
           >
@@ -1143,18 +1078,18 @@ export default function EditReceiveForm({
                 setVendorId
               }
             />
-          </div>
+          </AppInfoCard>
         </div>
       </AppCard>
 
       {/* =====================================================
-          ตารางรายการ
+          MATERIAL TABLE
       ===================================================== */}
 
       <AppTableCard
         title="รายการพัสดุรับเข้า"
         subtitle="แก้ไขรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ"
-        count={items.length}
+        badge={`${items.length} รายการ`}
         className="
           relative
           z-10
@@ -1197,17 +1132,13 @@ export default function EditReceiveForm({
                     key={title}
                     className="
                       whitespace-nowrap
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       text-lg
                       font-extrabold
@@ -1250,10 +1181,6 @@ export default function EditReceiveForm({
                       })
                     );
 
-                  /*
-                   * แถวบนต้องมี z-index สูงกว่าแถวล่าง
-                   * เพื่อให้ Dropdown ไม่ถูกแถวถัดไปทับ
-                   */
                   const rowZIndex =
                     items.length -
                     index +
@@ -1275,15 +1202,11 @@ export default function EditReceiveForm({
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
-
                         transition-colors
                         duration-200
-
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ลำดับ */}
-
                       <td
                         className="
                           whitespace-nowrap
@@ -1298,8 +1221,6 @@ export default function EditReceiveForm({
                       >
                         {index + 1}
                       </td>
-
-                      {/* หมวดหมู่ */}
 
                       <td
                         className="
@@ -1335,8 +1256,6 @@ export default function EditReceiveForm({
                           }
                         />
                       </td>
-
-                      {/* รายการพัสดุ */}
 
                       <td
                         className="
@@ -1384,8 +1303,6 @@ export default function EditReceiveForm({
                         />
                       </td>
 
-                      {/* หน่วย */}
-
                       <td
                         className="
                           min-w-[120px]
@@ -1406,29 +1323,21 @@ export default function EditReceiveForm({
                           className="
                             h-[52px]
                             w-full
-
                             cursor-default
-
                             rounded-[16px]
-
                             border
-                            border-slate-300/90
-
-                            bg-slate-100/90
-
+                            !border-black
+                            bg-slate-100
                             px-3
-
                             text-center
                             text-base
                             font-extrabold
                             !text-slate-700
-
+                            shadow-sm
                             outline-none
                           "
                         />
                       </td>
-
-                      {/* จำนวน */}
 
                       <td
                         className="
@@ -1463,8 +1372,6 @@ export default function EditReceiveForm({
                           `}
                         />
                       </td>
-
-                      {/* ราคาต่อหน่วย */}
 
                       <td
                         className="
@@ -1503,8 +1410,6 @@ export default function EditReceiveForm({
                         />
                       </td>
 
-                      {/* วันผลิต */}
-
                       <td
                         className="
                           min-w-[190px]
@@ -1533,8 +1438,6 @@ export default function EditReceiveForm({
                           }
                         />
                       </td>
-
-                      {/* วันหมดอายุ */}
 
                       <td
                         className="
@@ -1574,7 +1477,7 @@ export default function EditReceiveForm({
       </AppTableCard>
 
       {/* =====================================================
-          หมายเหตุ
+          REMARK
       ===================================================== */}
 
       <AppCard
@@ -1586,60 +1489,45 @@ export default function EditReceiveForm({
           sm:p-5
         "
       >
-        <label
-          htmlFor="remark"
-          className={labelClass}
-        >
-          หมายเหตุ
-        </label>
+        <AppInfoCard>
+          <label
+            htmlFor="remark"
+            className={labelClass}
+          >
+            หมายเหตุ
+          </label>
 
-        <textarea
-          id="remark"
-          name="remark"
-          rows={4}
-          defaultValue={
-            receive.remark ?? ""
-          }
-          placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-          className="
-            min-h-[120px]
-            w-full
-
-            resize-y
-
-            rounded-[16px]
-
-            border
-            border-slate-300/90
-
-            bg-white/90
-
-            p-4
-
-            text-base
-            font-bold
-            !text-slate-900
-
-            shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
-
-            backdrop-blur-xl
-
-            outline-none
-
-            transition-all
-            duration-200
-
-            placeholder:!text-slate-400
-
-            hover:border-slate-400
-            hover:bg-white
-
-            focus:border-slate-400
-            focus:bg-white
-            focus:ring-4
-            focus:ring-slate-900/[0.06]
-          "
-        />
+          <textarea
+            id="remark"
+            name="remark"
+            rows={4}
+            defaultValue={
+              receive.remark ?? ""
+            }
+            placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+            className="
+              min-h-[120px]
+              w-full
+              resize-y
+              rounded-[16px]
+              border
+              !border-black
+              bg-white
+              p-4
+              text-base
+              font-bold
+              !text-slate-900
+              shadow-sm
+              outline-none
+              transition-all
+              duration-200
+              placeholder:!text-slate-400
+              hover:bg-slate-50
+              focus:ring-4
+              focus:ring-slate-900/10
+            "
+          />
+        </AppInfoCard>
       </AppCard>
 
       {/* =====================================================
@@ -1650,7 +1538,7 @@ export default function EditReceiveForm({
         className="
           flex
           justify-end
-          pt-2
+          pt-1
         "
       >
         <AppButton

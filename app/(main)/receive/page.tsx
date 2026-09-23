@@ -242,16 +242,12 @@ export default async function ReceivePage({
 
       {/* =====================================================
           TABLE CARD
-
           ใช้ Component กลางของระบบ
-          เพื่อให้ Card / Border / Shadow / Radius
-          เป็นมาตรฐาน iOS เดียวกันทุกหน้า
       ===================================================== */}
 
       <AppTableCard
         title="รายการเอกสารรับเข้า"
-        subtitle="เรียงจากวันที่รับเข้าล่าสุด"
-        count={receives.length}
+        subtitle={`เรียงจากวันที่รับเข้าล่าสุด • ทั้งหมด ${receives.length} รายการ`}
         className="
           w-full
           min-w-0
@@ -300,15 +296,19 @@ export default async function ReceivePage({
                         whitespace-nowrap
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
+
                         px-4
                         py-4
+
                         text-center
                         text-base
                         font-extrabold
                         !text-white
+
                         sm:text-lg
                       "
                     >
@@ -356,10 +356,13 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -375,10 +378,13 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-bold
                           tabular-nums
@@ -397,10 +403,13 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -416,16 +425,21 @@ export default async function ReceivePage({
                       <td
                         className="
                           min-w-[200px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {receive.vendor
-                          .name}
+                        {
+                          receive.vendor
+                            .name
+                        }
                       </td>
 
                       {/* =======================================
@@ -435,10 +449,13 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3
+
                           text-center
                         "
                       >
@@ -459,10 +476,13 @@ export default async function ReceivePage({
                         className="
                           min-w-[220px]
                           max-w-[360px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           font-semibold
                           leading-relaxed
                           !text-slate-700
@@ -486,8 +506,10 @@ export default async function ReceivePage({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3
                         "
@@ -534,15 +556,19 @@ export default async function ReceivePage({
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
@@ -557,14 +583,21 @@ export default async function ReceivePage({
                           w-16
                           items-center
                           justify-center
+
                           rounded-[20px]
+
                           border
                           border-slate-200/80
+
                           bg-white/90
+
                           text-3xl
+
                           shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
+
                           ring-1
                           ring-black/[0.025]
+
                           backdrop-blur-xl
                         "
                       >
@@ -574,6 +607,7 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
                           tracking-tight
@@ -586,6 +620,7 @@ export default async function ReceivePage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           leading-relaxed

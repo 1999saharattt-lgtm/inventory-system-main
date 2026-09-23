@@ -101,25 +101,42 @@ export default async function ReceiveDetailPage({
 }: Props) {
   const { id } = await params;
 
-  const receive = await prisma.receive.findUnique({
-    where: {
-      id: Number(id),
-    },
+  /* =========================================================
+     RECEIVE
+  ========================================================= */
 
-    include: {
-      vendor: true,
+  const receive =
+    await prisma.receive.findUnique({
+      where: {
+        id: Number(id),
+      },
 
-      items: {
-        include: {
-          material: true,
+      include: {
+        vendor: true,
+
+        items: {
+          include: {
+            material: true,
+          },
+
+          orderBy: {
+            id: "asc",
+          },
         },
       },
-    },
-  });
+    });
+
+  /* =========================================================
+     NOT FOUND
+  ========================================================= */
 
   if (!receive) {
     notFound();
   }
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <AppPage>
@@ -145,8 +162,6 @@ export default async function ReceiveDetailPage({
 
       {/* =====================================================
           DOCUMENT INFORMATION
-
-          ใช้ AppCard กลางของระบบ
       ===================================================== */}
 
       <AppCard
@@ -155,14 +170,15 @@ export default async function ReceiveDetailPage({
           w-full
           min-w-0
           overflow-visible
+
           p-4
+
           sm:p-5
           lg:p-6
         "
       >
         {/* ===================================================
             TITLE
-            ไม่มีเส้นดำใต้หัวข้อ
         =================================================== */}
 
         <div className="mb-5">
@@ -172,6 +188,7 @@ export default async function ReceiveDetailPage({
               font-black
               tracking-tight
               !text-slate-900
+
               sm:text-xl
             "
           >
@@ -181,6 +198,7 @@ export default async function ReceiveDetailPage({
           <p
             className="
               mt-1
+
               text-sm
               font-semibold
               !text-slate-500
@@ -199,6 +217,7 @@ export default async function ReceiveDetailPage({
             grid
             grid-cols-1
             gap-4
+
             md:grid-cols-2
           "
         >
@@ -206,69 +225,179 @@ export default async function ReceiveDetailPage({
               วันที่รับเข้า
           ================================================= */}
 
-          <AppInfoCard
-            label="วันที่รับเข้า"
-            value={formatThaiDate(
-              receive.receiveDate
-            )}
-          />
+          <AppInfoCard>
+            <div
+              className="
+                text-sm
+                font-bold
+                !text-slate-500
+              "
+            >
+              วันที่รับเข้า
+            </div>
+
+            <div
+              className="
+                mt-1.5
+
+                text-base
+                font-extrabold
+                !text-slate-900
+
+                sm:text-lg
+              "
+            >
+              {formatThaiDate(
+                receive.receiveDate
+              )}
+            </div>
+          </AppInfoCard>
 
           {/* =================================================
               เลขที่เอกสาร
           ================================================= */}
 
-          <AppInfoCard
-            label="เลขที่เอกสาร"
-            value={receive.documentNo}
-          />
+          <AppInfoCard>
+            <div
+              className="
+                text-sm
+                font-bold
+                !text-slate-500
+              "
+            >
+              เลขที่เอกสาร
+            </div>
+
+            <div
+              className="
+                mt-1.5
+
+                text-base
+                font-extrabold
+                !text-slate-900
+
+                sm:text-lg
+              "
+            >
+              {receive.documentNo}
+            </div>
+          </AppInfoCard>
 
           {/* =================================================
               ผู้จำหน่าย
           ================================================= */}
 
-          <AppInfoCard
-            label="ผู้จำหน่าย"
-            value={receive.vendor.name}
-          />
+          <AppInfoCard>
+            <div
+              className="
+                text-sm
+                font-bold
+                !text-slate-500
+              "
+            >
+              ผู้จำหน่าย
+            </div>
+
+            <div
+              className="
+                mt-1.5
+
+                break-words
+
+                text-base
+                font-extrabold
+                !text-slate-900
+
+                sm:text-lg
+              "
+            >
+              {receive.vendor.name}
+            </div>
+          </AppInfoCard>
 
           {/* =================================================
               จำนวนรายการ
-              อยู่ระดับเดียวกับผู้จำหน่าย
           ================================================= */}
 
-          <AppInfoCard
-            label="จำนวนรายการ"
-            value={`${receive.items.length.toLocaleString(
-              "th-TH"
-            )} รายการ`}
-          />
+          <AppInfoCard>
+            <div
+              className="
+                text-sm
+                font-bold
+                !text-slate-500
+              "
+            >
+              จำนวนรายการ
+            </div>
+
+            <div
+              className="
+                mt-1.5
+
+                text-base
+                font-extrabold
+                tabular-nums
+                !text-slate-900
+
+                sm:text-lg
+              "
+            >
+              {receive.items.length.toLocaleString(
+                "th-TH"
+              )}{" "}
+              รายการ
+            </div>
+          </AppInfoCard>
 
           {/* =================================================
               หมายเหตุ
-              เต็มความกว้าง 2 คอลัมน์
           ================================================= */}
 
           <AppInfoCard
-            label="หมายเหตุ"
-            value={receive.remark || "-"}
             className="
-              md:col-span-2
               min-h-[96px]
+              md:col-span-2
             "
-          />
+          >
+            <div
+              className="
+                text-sm
+                font-bold
+                !text-slate-500
+              "
+            >
+              หมายเหตุ
+            </div>
+
+            <div
+              className="
+                mt-1.5
+
+                whitespace-pre-wrap
+                break-words
+
+                text-base
+                font-extrabold
+                leading-relaxed
+                !text-slate-900
+              "
+            >
+              {receive.remark || "-"}
+            </div>
+          </AppInfoCard>
         </div>
       </AppCard>
 
       {/* =====================================================
           MATERIAL TABLE
-
-          ใช้ AppTableCard กลางของระบบ
       ===================================================== */}
 
       <AppTableCard
         title="รายการพัสดุรับเข้า"
         subtitle="รายละเอียดพัสดุภายในเอกสารรับเข้าฉบับนี้"
-        count={receive.items.length}
+        badge={`${receive.items.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
           w-full
           min-w-0
@@ -282,6 +411,7 @@ export default async function ReceiveDetailPage({
           className="
             w-full
             min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
@@ -290,8 +420,11 @@ export default async function ReceiveDetailPage({
             className="
               w-full
               min-w-[1100px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
@@ -347,7 +480,8 @@ export default async function ReceiveDetailPage({
             ================================================= */}
 
             <tbody>
-              {receive.items.length === 0 ? (
+              {receive.items.length ===
+              0 ? (
                 /* =============================================
                    EMPTY STATE
                 ============================================= */
@@ -370,6 +504,7 @@ export default async function ReceiveDetailPage({
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
@@ -442,7 +577,8 @@ export default async function ReceiveDetailPage({
                       key={item.id}
                       className={`
                         ${
-                          index % 2 === 0
+                          index % 2 ===
+                          0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -494,9 +630,11 @@ export default async function ReceiveDetailPage({
                         "
                       >
                         {categoryLabel[
-                          item.material.category
+                          item.material
+                            .category
                         ] ??
-                          item.material.category}
+                          item.material
+                            .category}
                       </td>
 
                       {/* =======================================
@@ -518,7 +656,8 @@ export default async function ReceiveDetailPage({
                           !text-slate-900
                         "
                       >
-                        {item.material.code || "-"}
+                        {item.material
+                          .code || "-"}
                       </td>
 
                       {/* =======================================
@@ -539,7 +678,8 @@ export default async function ReceiveDetailPage({
                           !text-slate-900
                         "
                       >
-                        {item.material.name || "-"}
+                        {item.material
+                          .name || "-"}
                       </td>
 
                       {/* =======================================
@@ -561,7 +701,8 @@ export default async function ReceiveDetailPage({
                           !text-slate-800
                         "
                       >
-                        {item.material.unit || "-"}
+                        {item.material
+                          .unit || "-"}
                       </td>
 
                       {/* =======================================

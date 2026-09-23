@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
-import AppCard from "@/components/AppCard";
 
 import EditReceiveForm from "./EditReceiveForm";
 
@@ -109,17 +108,17 @@ export default async function EditReceivePage({
       />
 
       {/* =====================================================
-          EDIT RECEIVE FORM CARD
+          EDIT RECEIVE FORM
 
-          ใช้ AppCard กลางของระบบ
-          - รูปแบบ iOS / Glass
-          - Border / Radius / Shadow มาตรฐานเดียวกัน
-          - ไม่มีหัวข้อซ้ำด้านใน
-          - ไม่มีเส้นดำใต้หัวข้อ
-          - รองรับ Dropdown / Calendar ที่ลอยออกจาก Card
+          EditReceiveForm จัดการ Card ภายในเองแล้วด้วย:
+          - AppCard
+          - AppInfoCard
+          - AppTableCard
+
+          จึงไม่ครอบ AppCard ซ้ำใน page นี้
       ===================================================== */}
 
-      <AppCard
+      <div
         className="
           relative
           z-0
@@ -128,35 +127,14 @@ export default async function EditReceivePage({
           min-w-0
 
           overflow-visible
-
-          p-4
-
-          sm:p-5
-          lg:p-6
         "
       >
-        {/* ===================================================
-            EDIT FORM
-        =================================================== */}
-
-        <div
-          className="
-            relative
-            z-10
-
-            w-full
-            min-w-0
-
-            overflow-visible
-          "
-        >
-          <EditReceiveForm
-            receive={receive}
-            vendors={vendors}
-            materials={materials}
-          />
-        </div>
-      </AppCard>
+        <EditReceiveForm
+          receive={receive}
+          vendors={vendors}
+          materials={materials}
+        />
+      </div>
     </AppPage>
   );
 }
