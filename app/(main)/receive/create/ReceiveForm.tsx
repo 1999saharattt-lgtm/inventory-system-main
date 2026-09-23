@@ -477,7 +477,7 @@ function IOSDatePicker({
           }
 
           border
-          !border-black
+          border-slate-200
 
           bg-white
 
@@ -1003,7 +1003,7 @@ function SearchableDropdown({
           rounded-[16px]
 
           border
-          !border-black
+          border-slate-200
 
           bg-white
 
@@ -1081,7 +1081,7 @@ function SearchableDropdown({
             rounded-[20px]
 
             border
-            !border-black
+            border-slate-200
 
             bg-white/95
 
@@ -1146,7 +1146,7 @@ function SearchableDropdown({
                 rounded-[14px]
 
                 border
-                !border-black
+                border-slate-200
 
                 bg-white
 
@@ -1402,7 +1402,7 @@ export default function ReceiveForm({
     rounded-[16px]
 
     border
-    !border-black
+    border-slate-200
 
     bg-white
 
@@ -1595,7 +1595,7 @@ export default function ReceiveForm({
                 cursor-pointer
 
                 items-center
-                gap-2
+                gap-3
 
                 whitespace-nowrap
 
@@ -1609,8 +1609,8 @@ export default function ReceiveForm({
                   relative
 
                   flex
-                  h-5
-                  w-5
+                  h-4
+                  w-4
                   shrink-0
                   items-center
                   justify-center
@@ -1641,13 +1641,13 @@ export default function ReceiveForm({
                     absolute
                     inset-0
 
-                    h-5
-                    w-5
+                    h-4
+                    w-4
 
                     cursor-pointer
                     appearance-none
 
-                    rounded-[6px]
+                    rounded-[5px]
 
                     border
                     border-slate-400
@@ -1676,7 +1676,7 @@ export default function ReceiveForm({
 
                     hidden
 
-                    text-[12px]
+                    text-[10px]
                     font-black
                     leading-none
                     !text-white
@@ -1993,7 +1993,7 @@ export default function ReceiveForm({
                           rounded-[12px]
 
                           border
-                          !border-black
+                          border-slate-200
 
                           bg-slate-100
 
@@ -2047,7 +2047,7 @@ export default function ReceiveForm({
                           rounded-[12px]
 
                           border
-                          !border-black
+                          border-slate-200
 
                           bg-white
 
@@ -2102,7 +2102,7 @@ export default function ReceiveForm({
                           rounded-[12px]
 
                           border
-                          !border-black
+                          border-slate-200
 
                           bg-white
 
@@ -2245,7 +2245,7 @@ export default function ReceiveForm({
               rounded-[16px]
 
               border
-              !border-black
+              border-slate-200
 
               bg-white
 
