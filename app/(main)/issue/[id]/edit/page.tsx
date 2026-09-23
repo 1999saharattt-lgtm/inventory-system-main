@@ -1,12 +1,21 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+
 import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+
 import EditIssueForm from "./EditIssueForm";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -14,275 +23,236 @@ type Props = {
   }>;
 };
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function EditIssuePage({
   params,
 }: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const { id } = await params;
 
-  // =====================================================
-  // Session
-  // =====================================================
+  const issueId = Number(id);
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  if (
+    !Number.isInteger(issueId) ||
+    issueId <= 0
+  ) {
+    notFound();
+  }
 
-  let session: SessionUser | null = null;
+  /* =======================================================
+     SESSION
+  ======================================================= */
+
+  const cookieStore =
+    await cookies();
+
+  const token =
+    cookieStore.get(
+      "session"
+    )?.value;
+
+  let session:
+    | SessionUser
+    | null = null;
 
   if (token) {
     try {
-      session = await verifySession(token);
+      session =
+        await verifySession(
+          token
+        );
     } catch {
       session = null;
     }
   }
 
-  // =====================================================
-  // ตรวจสอบสิทธิ์ของใบเบิก
-  //
-  // ADMIN:
-  //   แก้ไขใบเบิกได้ทั้งหมด
-  //
-  // ผู้ใช้งานทั่วไป:
-  //   แก้ไขได้เฉพาะใบเบิกของ department ตัวเอง
-  //
-  // ไม่มี departmentId:
-  //   ไม่อนุญาตให้เข้าถึงใบเบิก
-  // =====================================================
+  /* =======================================================
+     ISSUE PERMISSION
+
+     ADMIN
+     - แก้ไขใบเบิกได้ทั้งหมด
+
+     USER
+     - แก้ไขเฉพาะใบเบิกของกลุ่มงานตัวเอง
+
+     ไม่มี departmentId
+     - ไม่อนุญาต
+  ======================================================= */
 
   const issueWhere =
     session?.role === "ADMIN"
       ? {
-          id: Number(id),
+          id: issueId,
         }
       : session?.departmentId
         ? {
-            id: Number(id),
-            departmentId: session.departmentId,
+            id: issueId,
+            departmentId:
+              session.departmentId,
           }
         : {
-            id: Number(id),
+            id: issueId,
             departmentId: -1,
           };
 
-  // =====================================================
-  // ดึงข้อมูลใบเบิก
-  //
-  // ตรวจ department ตั้งแต่ query
-  // =====================================================
+  /* =======================================================
+     LOAD ISSUE
+  ======================================================= */
 
-  const issue = await prisma.issue.findFirst({
-    where: issueWhere,
+  const issue =
+    await prisma.issue.findFirst({
+      where: issueWhere,
 
-    include: {
-      items: {
-        include: {
-          material: true,
+      include: {
+        items: {
+          include: {
+            material: true,
+          },
         },
       },
-    },
-  });
+    });
 
   if (!issue) {
     notFound();
   }
 
-  // =====================================================
-  // Departments
-  //
-  // ADMIN:
-  //   เห็นทุกหน่วยงาน
-  //
-  // ผู้ใช้งานทั่วไป:
-  //   เห็นเฉพาะหน่วยงานตัวเอง
-  // =====================================================
+  /* =======================================================
+     DEPARTMENTS
 
-  const departments = await prisma.department.findMany({
-    where:
-      session?.role === "ADMIN"
-        ? undefined
-        : session?.departmentId
-          ? {
-              id: session.departmentId,
-            }
-          : {
-              id: -1,
-            },
+     ADMIN
+     - ทุกกลุ่มงาน
 
-    orderBy: {
-      name: "asc",
-    },
-  });
+     USER
+     - เฉพาะกลุ่มงานตัวเอง
+  ======================================================= */
 
-  // =====================================================
-  // Materials
-  //
-  // ไม่เปลี่ยน logic เดิม
-  // =====================================================
+  const departments =
+    await prisma.department.findMany({
+      where:
+        session?.role === "ADMIN"
+          ? undefined
+          : session?.departmentId
+            ? {
+                id: session.departmentId,
+              }
+            : {
+                id: -1,
+              },
 
-  const materials = await prisma.material.findMany({
-    orderBy: [
-      {
-        category: "asc",
+      orderBy: {
+        name: "asc",
       },
-      {
-        code: "asc",
+    });
+
+  /* =======================================================
+     MATERIALS
+  ======================================================= */
+
+  const materials =
+    await prisma.material.findMany({
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
+    });
+
+  /* =======================================================
+     RECEIVE ITEMS
+
+     ใช้ balance เดิม
+     ไม่แก้ stock / FEFO logic
+  ======================================================= */
+
+  const receiveItems =
+    await prisma.receiveItem.findMany({
+      where: {
+        balance: {
+          gt: 0,
+        },
       },
-    ],
-  });
 
-  // =====================================================
-  // ล็อตที่ยังมีจำนวนคงเหลือจริง
-  //
-  // ใช้ balance เหมือนเดิม
-  // ไม่แตะ FEFO / stock logic
-  // =====================================================
-
-  const receiveItems = await prisma.receiveItem.findMany({
-    where: {
-      balance: {
-        gt: 0,
+      include: {
+        material: true,
       },
-    },
 
-    include: {
-      material: true,
-    },
+      orderBy: [
+        {
+          expiry: "asc",
+        },
+        {
+          manufacture: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+    });
 
-    orderBy: [
-      {
-        expiry: "asc",
-      },
-    ],
-  });
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+    <AppPage>
+      {/* ===================================================
+          HEADER
+          ใช้ Component กลางของระบบ
+      =================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="🖊️"
+        title="แก้ไขรายการเบิกพัสดุ"
+        subtitle="แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
+        actions={
+          <AppButton
+            href="/issue"
+            variant="back"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
           >
-            🖊️ แก้ไขรายการเบิกพัสดุ
-          </h1>
+            กลับ
+          </AppButton>
+        }
+      />
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            แก้ไขรายละเอียดเอกสารและรายการพัสดุ
-          </p>
-        </div>
+      {/* ===================================================
+          FORM
 
-        <Link
-          href="/issue"
-          className="
-            w-full
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-            sm:px-5
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
+          ไม่สร้าง Card / Background / Gradient
+          ครอบเองใน page
 
-      {/* =====================================================
-          Form / การ์ดข้อมูลเอกสาร
-      ===================================================== */}
+          ให้ EditIssueForm ใช้ Component กลาง
+          แบบเดียวกับ Receive / Issue Create
+      =================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          bg-gradient-to-br
-          from-slate-950
-          to-slate-800
-          p-4
-          !text-white
-          shadow-xl
-          sm:p-6
-        "
-      >
-        <div className="w-full min-w-0 !text-white">
-          <EditIssueForm
-            issue={issue}
-            departments={departments}
-            materials={materials}
-            receiveItems={receiveItems}
-          />
-        </div>
-      </div>
-    </div>
+      <EditIssueForm
+        issue={issue}
+        departments={
+          departments
+        }
+        materials={
+          materials
+        }
+        receiveItems={
+          receiveItems
+        }
+      />
+    </AppPage>
   );
 }
