@@ -1,11 +1,20 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { updateAsset } from "../../action";
-import BackButton from "@/components/BackButton";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+
 import AssetResponsibleFields from "./AssetResponsibleFields";
 
 export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -17,7 +26,7 @@ type Props = {
 
 /* =========================================================
    CATEGORY
-   ========================================================= */
+========================================================= */
 
 const categoryName = {
   DESK: "โต๊ะ",
@@ -29,6 +38,18 @@ const categoryName = {
   TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+} as const;
+
+const categoryIcon = {
+  DESK: "🪑",
+  CHAIR: "💺",
+  AIR_CONDITIONER: "❄️",
+  CABINET: "🗄️",
+  COMPUTER: "💻",
+  PRINTER: "🖨️",
+  TELEPHONE: "☎️",
+  OTHER: "📦",
+  NO_SYSTEM: "📋",
 } as const;
 
 const validCategories = [
@@ -48,18 +69,22 @@ type AssetCategoryValue =
 
 /* =========================================================
    STATUS
-   ========================================================= */
+========================================================= */
 
-const statusName: Record<string, string> = {
+const statusName: Record<
+  string,
+  string
+> = {
   IN_USE: "ยังใช้งาน",
   DAMAGED: "ชำรุด",
-  WAITING_DISPOSAL: "รอจำหน่าย",
+  WAITING_DISPOSAL:
+    "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
 
 /* =========================================================
    PAGE
-   ========================================================= */
+========================================================= */
 
 export default async function EditAssetPage({
   params,
@@ -72,16 +97,25 @@ export default async function EditAssetPage({
 
   /* =======================================================
      PARAMS
-     ======================================================= */
+  ======================================================= */
 
-  const departmentIdNumber = Number(departmentId);
-  const assetIdNumber = Number(assetId);
-  const normalizedCategory = category.toUpperCase();
+  const departmentIdNumber =
+    Number(departmentId);
+
+  const assetIdNumber =
+    Number(assetId);
+
+  const normalizedCategory =
+    category.toUpperCase();
 
   if (
-    !Number.isInteger(departmentIdNumber) ||
+    !Number.isInteger(
+      departmentIdNumber
+    ) ||
     departmentIdNumber <= 0 ||
-    !Number.isInteger(assetIdNumber) ||
+    !Number.isInteger(
+      assetIdNumber
+    ) ||
     assetIdNumber <= 0 ||
     !validCategories.includes(
       normalizedCategory as AssetCategoryValue
@@ -95,88 +129,101 @@ export default async function EditAssetPage({
 
   /* =======================================================
      ASSET
-     ======================================================= */
+  ======================================================= */
 
-  const asset = await prisma.asset.findFirst({
-    where: {
-      id: assetIdNumber,
-      departmentId: departmentIdNumber,
-      category: assetCategory,
-    },
+  const asset =
+    await prisma.asset.findFirst({
+      where: {
+        id: assetIdNumber,
 
-    include: {
-      department: true,
-      section: true,
-      officer: true,
-    },
-  });
+        departmentId:
+          departmentIdNumber,
+
+        category:
+          assetCategory,
+      },
+
+      include: {
+        department: true,
+        section: true,
+        officer: true,
+      },
+    });
 
   if (!asset) {
     notFound();
   }
 
-  const assetIdForUpdate = asset.id;
+  const assetIdForUpdate =
+    asset.id;
 
   /* =======================================================
      SECTIONS
-     ======================================================= */
+  ======================================================= */
 
-  const sections = await prisma.section.findMany({
-    where: {
-      departmentId: departmentIdNumber,
-    },
+  const sections =
+    await prisma.section.findMany({
+      where: {
+        departmentId:
+          departmentIdNumber,
+      },
 
-    select: {
-      id: true,
-      name: true,
-    },
+      select: {
+        id: true,
+        name: true,
+      },
 
-    orderBy: {
-      id: "asc",
-    },
-  });
+      orderBy: {
+        id: "asc",
+      },
+    });
 
   /* =======================================================
      OFFICERS
-     ======================================================= */
+  ======================================================= */
 
-  const officers = await prisma.officer.findMany({
-    where: {
-      OR: [
-        {
-          departmentId: departmentIdNumber,
-        },
-        {
-          section: {
-            is: {
-              departmentId: departmentIdNumber,
+  const officers =
+    await prisma.officer.findMany({
+      where: {
+        OR: [
+          {
+            departmentId:
+              departmentIdNumber,
+          },
+
+          {
+            section: {
+              is: {
+                departmentId:
+                  departmentIdNumber,
+              },
             },
           },
+        ],
+      },
+
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        position: true,
+        sectionId: true,
+      },
+
+      orderBy: [
+        {
+          firstName: "asc",
+        },
+
+        {
+          lastName: "asc",
         },
       ],
-    },
-
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      position: true,
-      sectionId: true,
-    },
-
-    orderBy: [
-      {
-        firstName: "asc",
-      },
-      {
-        lastName: "asc",
-      },
-    ],
-  });
+    });
 
   /* =======================================================
      UPDATE
-     ======================================================= */
+  ======================================================= */
 
   async function submitUpdate(
     formData: FormData
@@ -189,159 +236,198 @@ export default async function EditAssetPage({
     );
   }
 
+  /* =======================================================
+     ROUTES
+  ======================================================= */
+
   const detailPath =
-    `/assets/${departmentIdNumber}/${assetCategory}/${asset.id}`;
+    `/assets/${departmentIdNumber}/${assetCategory.toLowerCase()}/${asset.id}`;
+
+  /* =======================================================
+     SHARED CLASSES
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+    text-sm
+    font-extrabold
+    !text-slate-700
+    sm:text-base
+  `;
+
+  const inputClassName = `
+    min-h-[50px]
+    w-full
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+  `;
+
+  const selectClassName = `
+    min-h-[50px]
+    w-full
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+  `;
 
   /* =======================================================
      UI
-     ======================================================= */
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* ===================================================
+    <AppPage>
+      {/* =====================================================
           HEADER
-          =================================================== */}
+      ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-between
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="✏️"
+        title="แก้ไขข้อมูลครุภัณฑ์"
+        subtitle={`${asset.name} — ${asset.department.name}`}
+        actions={
+          <AppButton
+            href={detailPath}
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
           >
-            ✏️ แก้ไขข้อมูลครุภัณฑ์
-          </h1>
+            กลับ
+          </AppButton>
+        }
+      />
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            {asset.name}
-          </p>
-        </div>
-
-        <BackButton href={detailPath} />
-      </div>
-
-      {/* ===================================================
+      {/* =====================================================
           FORM
-          =================================================== */}
+      ===================================================== */}
 
       <form
         action={submitUpdate}
         className="
           mx-auto
           w-full
-          max-w-4xl
+          max-w-5xl
           space-y-4
+
           sm:space-y-6
         "
       >
         {/* =================================================
-            สถานะครุภัณฑ์
-            ================================================= */}
+            STATUS
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
             w-full
             min-w-0
-            rounded-3xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-6
-            text-white
-            shadow-2xl
-            sm:p-8
+            !overflow-visible
           "
         >
-          <div
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
+          <div className="mb-5">
             <h2
               className="
+                flex
+                items-center
+                gap-2
+
                 text-lg
                 font-extrabold
-                !text-white
+                !text-slate-900
+
                 sm:text-xl
               "
             >
-              📌 สถานะครุภัณฑ์
+              <span aria-hidden="true">
+                📌
+              </span>
+
+              สถานะครุภัณฑ์
             </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              กำหนดสถานะปัจจุบันของครุภัณฑ์
+            </p>
           </div>
 
           <div
             className="
-              mt-4
               grid
+              grid-cols-1
               gap-4
-              sm:grid-cols-2
+
+              lg:grid-cols-2
             "
           >
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="status"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 สถานะ
               </label>
@@ -349,25 +435,12 @@ export default async function EditAssetPage({
               <select
                 id="status"
                 name="status"
-                defaultValue={asset.status}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                defaultValue={
+                  asset.status
+                }
+                className={
+                  selectClassName
+                }
               >
                 <option value="IN_USE">
                   {statusName.IN_USE}
@@ -378,162 +451,157 @@ export default async function EditAssetPage({
                 </option>
 
                 <option value="WAITING_DISPOSAL">
-                  {statusName.WAITING_DISPOSAL}
+                  {
+                    statusName.WAITING_DISPOSAL
+                  }
                 </option>
 
                 <option value="DISPOSED">
-                  {statusName.DISPOSED}
+                  {
+                    statusName.DISPOSED
+                  }
                 </option>
               </select>
 
               <p
                 className="
                   mt-2
-                  text-sm
+                  text-xs
                   font-semibold
-                  !text-slate-400
+                  leading-relaxed
+                  !text-slate-500
+
+                  sm:text-sm
                 "
               >
                 สถานะหลักของครุภัณฑ์สำหรับการควบคุมทะเบียนโดยผู้ดูแลระบบ
               </p>
-            </div>
+            </AppInfoCard>
           </div>
-        </div>
+        </AppCard>
 
         {/* =================================================
-            ข้อมูลครุภัณฑ์
-            ================================================= */}
+            ASSET INFORMATION
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
             w-full
             min-w-0
-            rounded-3xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-6
-            text-white
-            shadow-2xl
-            sm:p-8
+            !overflow-visible
           "
         >
-          <div
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
+          <div className="mb-5">
             <h2
               className="
+                flex
+                items-center
+                gap-2
+
                 text-lg
                 font-extrabold
-                !text-white
+                !text-slate-900
+
                 sm:text-xl
               "
             >
-              📋 ข้อมูลครุภัณฑ์
+              <span aria-hidden="true">
+                📋
+              </span>
+
+              ข้อมูลครุภัณฑ์
             </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              แก้ไขรายละเอียดของครุภัณฑ์
+            </p>
           </div>
 
           <div
             className="
-              mt-4
               grid
+              grid-cols-1
               gap-4
-              sm:grid-cols-2
+
+              lg:grid-cols-2
             "
           >
-            {/* รายการครุภัณฑ์ */}
+            {/* =============================================
+                NAME
+            ============================================= */}
 
-            <div className="min-w-0 sm:col-span-2">
-              <label
-                htmlFor="name"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
-              >
-                รายการครุภัณฑ์ *
-              </label>
+            <div className="lg:col-span-2">
+              <AppInfoCard>
+                <label
+                  htmlFor="name"
+                  className={
+                    labelClassName
+                  }
+                >
+                  รายการครุภัณฑ์{" "}
+                  <span className="!text-red-500">
+                    *
+                  </span>
+                </label>
 
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                defaultValue={asset.name}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
-              />
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  defaultValue={
+                    asset.name
+                  }
+                  placeholder="ระบุรายการครุภัณฑ์"
+                  className={
+                    inputClassName
+                  }
+                />
+              </AppInfoCard>
             </div>
 
-            {/* ประเภท */}
+            {/* =============================================
+                CATEGORY
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="category"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
-                ประเภท *
+                ประเภท{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
               </label>
 
               <select
                 id="category"
                 name="category"
                 required
-                defaultValue={asset.category}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                defaultValue={
+                  asset.category
+                }
+                className={
+                  selectClassName
+                }
               >
-                {Object.entries(categoryName).map(
-                  ([value, label]) => (
+                {Object.entries(
+                  categoryName
+                ).map(
+                  ([
+                    value,
+                    label,
+                  ]) => (
                     <option
                       key={value}
                       value={value}
@@ -543,19 +611,18 @@ export default async function EditAssetPage({
                   )
                 )}
               </select>
-            </div>
+            </AppInfoCard>
 
-            {/* ยี่ห้อ */}
+            {/* =============================================
+                BRAND
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="brand"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 ยี่ห้อ
               </label>
@@ -564,39 +631,26 @@ export default async function EditAssetPage({
                 id="brand"
                 name="brand"
                 type="text"
-                defaultValue={asset.brand ?? ""}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                defaultValue={
+                  asset.brand ?? ""
+                }
+                placeholder="ระบุยี่ห้อ"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
 
-            {/* รุ่น */}
+            {/* =============================================
+                MODEL
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="model"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 รุ่น
               </label>
@@ -605,39 +659,26 @@ export default async function EditAssetPage({
                 id="model"
                 name="model"
                 type="text"
-                defaultValue={asset.model ?? ""}
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                defaultValue={
+                  asset.model ?? ""
+                }
+                placeholder="ระบุรุ่น"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
 
-            {/* Serial Number */}
+            {/* =============================================
+                SERIAL NUMBER
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="serialNumber"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 Serial Number
               </label>
@@ -647,93 +688,81 @@ export default async function EditAssetPage({
                 name="serialNumber"
                 type="text"
                 defaultValue={
-                  asset.serialNumber ?? ""
+                  asset.serialNumber ??
+                  ""
                 }
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                placeholder="ระบุ Serial Number"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
           </div>
-        </div>
+        </AppCard>
 
         {/* =================================================
-            เลขทะเบียนครุภัณฑ์
-            ================================================= */}
+            REGISTRATION
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
             w-full
             min-w-0
-            rounded-3xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-6
-            text-white
-            shadow-2xl
-            sm:p-8
+            !overflow-visible
           "
         >
-          <div
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
+          <div className="mb-5">
             <h2
               className="
+                flex
+                items-center
+                gap-2
+
                 text-lg
                 font-extrabold
-                !text-white
+                !text-slate-900
+
                 sm:text-xl
               "
             >
-              🔖 เลขทะเบียนครุภัณฑ์
+              <span aria-hidden="true">
+                🔖
+              </span>
+
+              เลขทะเบียนครุภัณฑ์
             </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุรหัสทะเบียนและรหัสครุภัณฑ์
+            </p>
           </div>
 
           <div
             className="
-              mt-4
               grid
+              grid-cols-1
               gap-4
-              sm:grid-cols-2
+
+              lg:grid-cols-2
             "
           >
-            {/* GFMIS */}
+            {/* =============================================
+                GFMIS
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="governmentAssetNo"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 รหัส GFMIS
               </label>
@@ -743,40 +772,26 @@ export default async function EditAssetPage({
                 name="governmentAssetNo"
                 type="text"
                 defaultValue={
-                  asset.governmentAssetNo ?? ""
+                  asset.governmentAssetNo ??
+                  ""
                 }
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                placeholder="ระบุรหัส GFMIS"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
 
-            {/* รหัสครุภัณฑ์ */}
+            {/* =============================================
+                OFFICE ASSET NO
+            ============================================= */}
 
-            <div className="min-w-0">
+            <AppInfoCard>
               <label
                 htmlFor="officeAssetNo"
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-200
-                "
+                className={
+                  labelClassName
+                }
               >
                 รหัสครุภัณฑ์
               </label>
@@ -786,72 +801,61 @@ export default async function EditAssetPage({
                 name="officeAssetNo"
                 type="text"
                 defaultValue={
-                  asset.officeAssetNo ?? ""
+                  asset.officeAssetNo ??
+                  ""
                 }
-                className="
-                  mt-2
-                  min-h-[50px]
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  py-3
-                  font-semibold
-                  text-slate-900
-                  outline-none
-                  transition
-                  focus:border-emerald-600
-                  focus:ring-2
-                  focus:ring-emerald-200
-                "
+                placeholder="ระบุรหัสครุภัณฑ์"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
           </div>
-        </div>
+        </AppCard>
 
         {/* =================================================
-            หน่วยงานและผู้รับผิดชอบ
-            ================================================= */}
+            RESPONSIBLE
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
+            relative
             w-full
             min-w-0
-            rounded-3xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-6
-            text-white
-            shadow-2xl
-            sm:p-8
+            !overflow-visible
           "
         >
-          <div
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
+          <div className="mb-5">
             <h2
               className="
+                flex
+                items-center
+                gap-2
+
                 text-lg
                 font-extrabold
-                !text-white
+                !text-slate-900
+
                 sm:text-xl
               "
             >
-              👤 หน่วยงานและผู้รับผิดชอบ
+              <span aria-hidden="true">
+                👤
+              </span>
+
+              หน่วยงานและผู้รับผิดชอบ
             </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุกลุ่มงานและผู้ครอบครองครุภัณฑ์
+            </p>
           </div>
 
           <AssetResponsibleFields
@@ -870,52 +874,62 @@ export default async function EditAssetPage({
               departmentIdNumber
             }
           />
-        </div>
+        </AppCard>
 
         {/* =================================================
-            หมายเหตุ
-            ================================================= */}
+            REMARK
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
             w-full
             min-w-0
-            rounded-3xl
-            border
-            border-slate-700
-            bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
-            p-6
-            text-white
-            shadow-2xl
-            sm:p-8
+            !overflow-visible
           "
         >
-          <div
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-              px-4
-              py-3
-            "
-          >
+          <div className="mb-5">
             <h2
               className="
+                flex
+                items-center
+                gap-2
+
                 text-lg
                 font-extrabold
-                !text-white
+                !text-slate-900
+
                 sm:text-xl
               "
             >
-              📝 หมายเหตุ
+              <span aria-hidden="true">
+                📝
+              </span>
+
+              หมายเหตุ
             </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุรายละเอียดเพิ่มเติมเกี่ยวกับครุภัณฑ์
+            </p>
           </div>
 
-          <div className="mt-4">
+          <AppInfoCard>
+            <label
+              htmlFor="remark"
+              className={
+                labelClassName
+              }
+            >
+              รายละเอียดเพิ่มเติม
+            </label>
+
             <textarea
               id="remark"
               name="remark"
@@ -923,87 +937,94 @@ export default async function EditAssetPage({
               defaultValue={
                 asset.remark ?? ""
               }
+              placeholder="ระบุรายละเอียดเพิ่มเติม"
               className="
-                min-h-[120px]
+                min-h-[130px]
                 w-full
-                rounded-xl
+                resize-y
+
+                rounded-[14px]
+
                 border
                 border-slate-300
+
                 bg-white
+
                 px-4
                 py-3
-                font-semibold
-                text-slate-900
+
+                text-base
+                font-bold
+                leading-relaxed
+                !text-slate-900
+
+                shadow-sm
                 outline-none
-                transition
-                focus:border-emerald-600
-                focus:ring-2
-                focus:ring-emerald-200
+
+                transition-all
+                duration-200
+
+                placeholder:!text-slate-400
+
+                hover:border-slate-400
+                hover:bg-slate-50
+
+                focus:border-blue-400
+                focus:bg-white
+                focus:ring-4
+                focus:ring-blue-500/10
               "
-              placeholder="ระบุรายละเอียดเพิ่มเติม"
             />
-          </div>
-        </div>
+          </AppInfoCard>
+        </AppCard>
 
         {/* =================================================
-            ปุ่ม
-            ================================================= */}
+            ACTIONS
+        ================================================= */}
 
-        <div
+        <AppCard
           className="
-            flex
             w-full
-            flex-col
-            gap-3
-            sm:flex-row
-            sm:justify-end
+            min-w-0
+            !p-4
+
+            sm:!p-5
           "
         >
-          <Link
-            href={detailPath}
+          <div
             className="
-              w-full
-              rounded-xl
-              bg-slate-700
-              px-6
-              py-3
-              text-center
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:bg-slate-800
-              sm:w-auto
-            "
-          >
-            ยกเลิก
-          </Link>
+              flex
+              flex-col-reverse
+              gap-3
 
-          <button
-            type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-6
-              py-3
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              active:scale-[0.98]
-              sm:w-auto
+              sm:flex-row
+              sm:items-center
+              sm:justify-end
             "
           >
-            💾 บันทึกการแก้ไข
-          </button>
-        </div>
+            <AppButton
+              href={detailPath}
+              variant="secondary"
+              size="md"
+            >
+              ยกเลิก
+            </AppButton>
+
+            <AppButton
+              type="submit"
+              variant="success"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  💾
+                </span>
+              }
+            >
+              บันทึกการแก้ไข
+            </AppButton>
+          </div>
+        </AppCard>
       </form>
-    </div>
+    </AppPage>
   );
 }
