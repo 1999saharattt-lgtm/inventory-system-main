@@ -124,13 +124,6 @@ export default async function EditReceivePage({
 
       {/* =====================================================
           EDIT RECEIVE FORM
-
-          สำคัญ:
-          - ไม่กำหนด z-0 ที่ wrapper
-          - ไม่ใช้ overflow-hidden
-          - ปล่อยให้ DatePicker / Dropdown ของ Form
-            สามารถแสดงเหนือ Card และ Table ได้
-          - Card ต่าง ๆ จัดการภายใน EditReceiveForm
       ===================================================== */}
 
       <div
@@ -141,6 +134,21 @@ export default async function EditReceivePage({
           min-w-0
 
           overflow-visible
+
+          rounded-[30px]
+
+          bg-white/70
+
+          p-4
+          sm:p-5
+          lg:p-6
+
+          shadow-[0_18px_50px_-24px_rgba(15,23,42,0.20)]
+
+          ring-1
+          ring-slate-200/70
+
+          backdrop-blur-xl
         "
       >
         <EditReceiveForm
