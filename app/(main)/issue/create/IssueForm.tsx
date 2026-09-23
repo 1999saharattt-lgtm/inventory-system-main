@@ -1677,9 +1677,10 @@ export default function IssueForm({
       >
         <div
           className="
-            text-sm
-            font-bold
-            !text-slate-500
+            text-2xl
+            font-black
+            tracking-tight
+            !text-slate-900
           "
         >
           พอ.101
