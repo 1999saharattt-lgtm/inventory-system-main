@@ -1,10 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { requireLogin } from "@/lib/auth";
-import BackButton from "@/components/BackButton";
+import {
+  notFound,
+  redirect,
+} from "next/navigation";
 
-export const dynamic = "force-dynamic";
+import { requireLogin } from "@/lib/auth";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppTableCard from "@/components/AppTableCard";
+
+import AssetCategorySearch from "./AssetCategorySearch";
+
+export const dynamic =
+  "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -19,12 +34,13 @@ type Props = {
 
 /* =========================================================
    CATEGORY NAME
-   ========================================================= */
+========================================================= */
 
 const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  AIR_CONDITIONER: "เครื่องปรับอากาศ",
+  AIR_CONDITIONER:
+    "เครื่องปรับอากาศ",
   CABINET: "ตู้และชั้นวาง",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
@@ -35,7 +51,7 @@ const categoryName = {
 
 /* =========================================================
    CATEGORY ICON
-   ========================================================= */
+========================================================= */
 
 const categoryIcon = {
   DESK: "🪑",
@@ -51,15 +67,7 @@ const categoryIcon = {
 
 /* =========================================================
    CATEGORY UNIT
-
-   ใช้เป็น fallback เท่านั้น
-
-   ลำดับ:
-   1. Asset.unit
-   2. UNIT:xxx ใน remark
-   3. หน่วยนับ xxx ใน remark
-   4. categoryUnit
-   ========================================================= */
+========================================================= */
 
 const categoryUnit = {
   DESK: "ตัว",
@@ -75,7 +83,7 @@ const categoryUnit = {
 
 /* =========================================================
    VALID CATEGORIES
-   ========================================================= */
+========================================================= */
 
 const validCategories = [
   "DESK",
@@ -94,7 +102,7 @@ type AssetCategory =
 
 /* =========================================================
    NORMALIZE TEXT
-   ========================================================= */
+========================================================= */
 
 function normalizeText(
   value: string | null | undefined
@@ -106,16 +114,7 @@ function normalizeText(
 
 /* =========================================================
    SOURCE ORDER
-
-   Import ของ Department 1 เก็บ marker:
-
-   SOURCE:DEPARTMENT_1:1
-   SOURCE:DEPARTMENT_1:2
-   ...
-   SOURCE:DEPARTMENT_1:446
-
-   ใช้ค่านี้เพื่อเรียงหน้าเว็บตาม Excel ต้นฉบับจริง
-   ========================================================= */
+========================================================= */
 
 function getSourceOrder(
   remark: string | null | undefined
@@ -132,10 +131,14 @@ function getSourceOrder(
     return Number.MAX_SAFE_INTEGER;
   }
 
-  const sourceOrder = Number(match[1]);
+  const sourceOrder = Number(
+    match[1]
+  );
 
   if (
-    !Number.isInteger(sourceOrder) ||
+    !Number.isInteger(
+      sourceOrder
+    ) ||
     sourceOrder <= 0
   ) {
     return Number.MAX_SAFE_INTEGER;
@@ -145,24 +148,14 @@ function getSourceOrder(
 }
 
 /* =========================================================
-   อ่านหน่วย
-
-   ลำดับ:
-   1. unit จาก Asset
-   2. UNIT:xxx ใน remark
-   3. หน่วยนับ xxx ใน remark
-   4. fallback ตามหมวด
-   ========================================================= */
+   ASSET UNIT
+========================================================= */
 
 function getAssetUnit(
   unit: string | null | undefined,
   remark: string | null | undefined,
   fallback: string
 ): string {
-  /* -------------------------------------------------------
-     1. Asset.unit
-     ------------------------------------------------------- */
-
   const databaseUnit =
     normalizeText(unit);
 
@@ -174,17 +167,16 @@ function getAssetUnit(
   }
 
   if (remark) {
-    /* -----------------------------------------------------
-       2. UNIT:xxx
-       ----------------------------------------------------- */
-
-    const unitMarker = remark.match(
-      /(?:^|\|)\s*UNIT:\s*([^|]+)/i
-    );
+    const unitMarker =
+      remark.match(
+        /(?:^|\|)\s*UNIT:\s*([^|]+)/i
+      );
 
     if (unitMarker?.[1]) {
       const value =
-        normalizeText(unitMarker[1]);
+        normalizeText(
+          unitMarker[1]
+        );
 
       if (
         value &&
@@ -194,17 +186,16 @@ function getAssetUnit(
       }
     }
 
-    /* -----------------------------------------------------
-       3. หน่วยนับ xxx
-       ----------------------------------------------------- */
-
-    const thaiUnit = remark.match(
-      /(?:^|\|)\s*หน่วยนับ\s+([^|]+)/i
-    );
+    const thaiUnit =
+      remark.match(
+        /(?:^|\|)\s*หน่วยนับ\s+([^|]+)/i
+      );
 
     if (thaiUnit?.[1]) {
       const value =
-        normalizeText(thaiUnit[1]);
+        normalizeText(
+          thaiUnit[1]
+        );
 
       if (
         value &&
@@ -215,35 +206,18 @@ function getAssetUnit(
     }
   }
 
-  /* -------------------------------------------------------
-     4. fallback
-     ------------------------------------------------------- */
-
   return fallback;
 }
 
 /* =========================================================
-   ผู้รับผิดชอบ
-
-   ลำดับ:
-   1. responsibleName จากทะเบียนต้นฉบับ
-   2. Officer + Section
-   3. Officer
-   4. Section
-   5. -
-
-   สำหรับ "กลุ่มอำนวยการ"
-   ให้แสดงชื่อกลุ่มนำหน้าผู้รับผิดชอบเดิม
-
-   ตัวอย่าง:
-   หน้าห้องหัวหน้าอำนวยการ
-   ->
-   กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
-   ========================================================= */
+   RESPONSIBLE NAME
+========================================================= */
 
 function getResponsibleName(
   asset: {
-    responsibleName: string | null;
+    responsibleName:
+      | string
+      | null;
 
     officer: {
       firstName: string;
@@ -256,10 +230,6 @@ function getResponsibleName(
   },
   departmentName: string
 ): string {
-  /* -------------------------------------------------------
-     1. responsibleName
-     ------------------------------------------------------- */
-
   const original =
     normalizeText(
       asset.responsibleName
@@ -274,10 +244,6 @@ function getResponsibleName(
     responsibleName =
       original;
   } else {
-    /* -----------------------------------------------------
-       2. Officer
-       ----------------------------------------------------- */
-
     const officerName =
       asset.officer
         ? normalizeText(
@@ -285,20 +251,12 @@ function getResponsibleName(
           )
         : "";
 
-    /* -----------------------------------------------------
-       3. Section
-       ----------------------------------------------------- */
-
     const sectionName =
       asset.section
         ? normalizeText(
             asset.section.name
           )
         : "";
-
-    /* -----------------------------------------------------
-       4. Officer + Section
-       ----------------------------------------------------- */
 
     if (
       officerName &&
@@ -316,13 +274,6 @@ function getResponsibleName(
       responsibleName = "-";
     }
   }
-
-  /* -------------------------------------------------------
-     กลุ่มอำนวยการ
-
-     เพิ่มชื่อกลุ่มด้านหน้า
-     แต่ป้องกันไม่ให้ซ้ำ
-     ------------------------------------------------------- */
 
   const normalizedDepartmentName =
     normalizeText(
@@ -359,14 +310,60 @@ function getResponsibleName(
 }
 
 /* =========================================================
+   STATUS
+========================================================= */
+
+function getStatusLabel(
+  status: string
+) {
+  switch (status) {
+    case "IN_USE":
+      return {
+        label: "ยังใช้งาน",
+        className:
+          "bg-emerald-100 !text-emerald-800",
+      };
+
+    case "DAMAGED":
+      return {
+        label: "ชำรุด",
+        className:
+          "bg-orange-100 !text-orange-800",
+      };
+
+    case "WAITING_DISPOSAL":
+      return {
+        label: "รอจำหน่าย",
+        className:
+          "bg-amber-100 !text-amber-800",
+      };
+
+    case "DISPOSED":
+      return {
+        label: "จำหน่ายแล้ว",
+        className:
+          "bg-red-100 !text-red-800",
+      };
+
+    default:
+      return {
+        label: status || "-",
+        className:
+          "bg-slate-100 !text-slate-700",
+      };
+  }
+}
+
+/* =========================================================
    PAGE
-   ========================================================= */
+========================================================= */
 
 export default async function AssetCategoryPage({
   params,
   searchParams,
 }: Props) {
-  await requireLogin();
+  const currentUser =
+    await requireLogin();
 
   const {
     departmentId,
@@ -380,7 +377,9 @@ export default async function AssetCategoryPage({
     Number(departmentId);
 
   if (
-    !Number.isInteger(departmentIdNumber) ||
+    !Number.isInteger(
+      departmentIdNumber
+    ) ||
     departmentIdNumber <= 0
   ) {
     notFound();
@@ -405,7 +404,7 @@ export default async function AssetCategoryPage({
 
   /* =======================================================
      DEPARTMENT
-     ======================================================= */
+  ======================================================= */
 
   const department =
     await prisma.department.findUnique({
@@ -420,26 +419,30 @@ export default async function AssetCategoryPage({
 
   /* =======================================================
      DELETE ASSET
-     ======================================================= */
+  ======================================================= */
 
   async function deleteAsset(
     formData: FormData
   ) {
     "use server";
 
-    const currentUser =
+    const user =
       await requireLogin();
 
     const assetIdRaw =
       String(
-        formData.get("assetId") ?? ""
+        formData.get(
+          "assetId"
+        ) ?? ""
       ).trim();
 
     const assetId =
       Number(assetIdRaw);
 
     if (
-      !Number.isInteger(assetId) ||
+      !Number.isInteger(
+        assetId
+      ) ||
       assetId <= 0
     ) {
       throw new Error(
@@ -448,8 +451,8 @@ export default async function AssetCategoryPage({
     }
 
     if (
-      currentUser.role === "STAFF" &&
-      currentUser.departmentId !==
+      user.role === "STAFF" &&
+      user.departmentId !==
         departmentIdNumber
     ) {
       throw new Error(
@@ -487,21 +490,13 @@ export default async function AssetCategoryPage({
     });
 
     redirect(
-      `/assets/${departmentIdNumber}/${assetCategory}`
+      `/assets/${departmentIdNumber}/${assetCategory.toLowerCase()}`
     );
   }
 
   /* =======================================================
-     ASSETS
-
-     ดึง:
-     - quantity
-     - unit
-     - responsibleName
-     - remark
-
-     โดยตรงจาก Asset
-     ======================================================= */
+     LOAD ASSETS
+  ======================================================= */
 
   const assetsFromDatabase =
     await prisma.asset.findMany({
@@ -515,84 +510,78 @@ export default async function AssetCategoryPage({
         ...(search
           ? {
               OR: [
-                /* รายการ */
-
                 {
                   name: {
-                    contains: search,
+                    contains:
+                      search,
                     mode: "insensitive",
                   },
                 },
-
-                /* GFMIS */
 
                 {
-                  governmentAssetNo: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
+                  governmentAssetNo:
+                    {
+                      contains:
+                        search,
+                      mode: "insensitive",
+                    },
                 },
-
-                /* รหัสครุภัณฑ์ */
 
                 {
                   officeAssetNo: {
-                    contains: search,
+                    contains:
+                      search,
                     mode: "insensitive",
                   },
                 },
-
-                /* ผู้รับผิดชอบต้นฉบับ */
 
                 {
-                  responsibleName: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
+                  responsibleName:
+                    {
+                      contains:
+                        search,
+                      mode: "insensitive",
+                    },
                 },
-
-                /* หน่วย */
 
                 {
                   unit: {
-                    contains: search,
+                    contains:
+                      search,
                     mode: "insensitive",
                   },
                 },
-
-                /* Section */
 
                 {
                   section: {
                     is: {
                       name: {
-                        contains: search,
+                        contains:
+                          search,
                         mode: "insensitive",
                       },
                     },
                   },
                 },
-
-                /* Officer ชื่อ */
 
                 {
                   officer: {
                     is: {
                       firstName: {
-                        contains: search,
+                        contains:
+                          search,
                         mode: "insensitive",
                       },
                     },
                   },
                 },
 
-                /* Officer นามสกุล */
-
                 {
                   officer: {
                     is: {
                       lastName: {
-                        contains: search,
+                        contains:
+                          search,
                         mode: "insensitive",
                       },
                     },
@@ -620,569 +609,703 @@ export default async function AssetCategoryPage({
         },
       },
 
-      /*
-       * ใช้ ID เป็นลำดับสำรอง
-       *
-       * ลำดับจริงจะ sort ด้วย sourceOrder
-       * หลังจากดึงข้อมูลแล้ว
-       */
       orderBy: {
         id: "asc",
       },
     });
 
   /* =======================================================
-     SORT ตาม Excel
+     SORT
+  ======================================================= */
 
-     1. sourceOrder จาก SOURCE:DEPARTMENT_1:x
-     2. ถ้าไม่มี sourceOrder ให้ไว้ท้ายรายการ
-     3. ถ้า sourceOrder เท่ากัน ใช้ id
-     ======================================================= */
+  const assets = [
+    ...assetsFromDatabase,
+  ].sort((a, b) => {
+    const orderA =
+      getSourceOrder(
+        a.remark
+      );
 
-  const assets = [...assetsFromDatabase].sort(
-    (a, b) => {
-      const orderA =
-        getSourceOrder(a.remark);
+    const orderB =
+      getSourceOrder(
+        b.remark
+      );
 
-      const orderB =
-        getSourceOrder(b.remark);
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      return a.id - b.id;
+    if (
+      orderA !== orderB
+    ) {
+      return (
+        orderA - orderB
+      );
     }
-  );
+
+    return a.id - b.id;
+  });
+
+  /* =======================================================
+     PERMISSION
+  ======================================================= */
+
+  const canManage =
+    currentUser.role ===
+      "ADMIN" ||
+    (currentUser.role ===
+      "STAFF" &&
+      currentUser.departmentId ===
+        departmentIdNumber);
 
   /* =======================================================
      UI
-     ======================================================= */
+  ======================================================= */
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden sm:space-y-6">
-      {/* ===================================================
+    <AppPage>
+      {/* =====================================================
           HEADER
-          =================================================== */}
+      ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon={
+          categoryIcon[
+            assetCategory
+          ]
+        }
+        title={
+          categoryName[
+            assetCategory
+          ]
+        }
+        subtitle={`${department.name} — ทะเบียนคุมครุภัณฑ์`}
+        actions={
+          <AppButton
+            href={`/assets/${department.id}`}
+            variant="back"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
           >
-            {categoryIcon[assetCategory]}{" "}
-            {categoryName[assetCategory]}
-          </h1>
+            กลับ
+          </AppButton>
+        }
+      />
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            {department.name} —
-            ทะเบียนคุมครุภัณฑ์
-          </p>
-        </div>
-
-        <BackButton
-          href={`/assets/${department.id}`}
-        />
-      </div>
-
-      {/* ===================================================
+      {/* =====================================================
           SEARCH
-          =================================================== */}
+          ใช้ AppSearchInput ตัวกลาง
+      ===================================================== */}
 
-      <div
+      <AssetCategorySearch
+        initialValue={search}
+        resultCount={
+          assets.length
+        }
+        pathname={`/assets/${department.id}/${assetCategory.toLowerCase()}`}
+      />
+
+      {/* =====================================================
+          SUMMARY
+      ===================================================== */}
+
+      <AppCard
         className="
           w-full
           min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-5
+          !p-4
+
+          sm:!p-5
         "
       >
-        <form
-          method="GET"
+        <div
           className="
             flex
             w-full
             min-w-0
             flex-col
-            gap-3
+            gap-4
+
             sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          <input
-            type="text"
-            name="q"
-            defaultValue={search}
-            placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
-            className="
-              min-w-0
-              flex-1
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
-          />
+          <div className="min-w-0">
+            <p
+              className="
+                text-lg
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              รายการ
+              {
+                categoryName[
+                  assetCategory
+                ]
+              }
+            </p>
 
-          <button
-            type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-3
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:w-auto
-            "
-          >
-            ค้นหา
-          </button>
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              {search
+                ? `ผลการค้นหา ${assets.length.toLocaleString(
+                    "th-TH"
+                  )} รายการ`
+                : `พบทั้งหมด ${assets.length.toLocaleString(
+                    "th-TH"
+                  )} รายการ`}
+            </p>
+          </div>
 
-          {search && (
-            <Link
-              href={`/assets/${department.id}/${assetCategory}`}
+          {canManage && (
+            <AppButton
+              href={`/assets/${department.id}/${assetCategory.toLowerCase()}/new`}
+              variant="primary"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ＋
+                </span>
+              }
               className="
                 w-full
-                rounded-xl
-                bg-slate-600
-                px-5
-                py-3
-                text-center
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:bg-slate-500
+                shrink-0
+
                 sm:w-auto
               "
             >
-              ล้างการค้นหา
-            </Link>
+              เพิ่มครุภัณฑ์
+            </AppButton>
           )}
-        </form>
-      </div>
+        </div>
+      </AppCard>
 
-      {/* ===================================================
-          SUMMARY
-          =================================================== */}
+      {/* =====================================================
+          TABLE
+      ===================================================== */}
 
-      <div
+      <AppTableCard
+        title={`รายการ${categoryName[assetCategory]}`}
+        subtitle={`${department.name} • ทะเบียนคุมครุภัณฑ์`}
+        badge={`${assets.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
-          flex
-          flex-col
-          gap-3
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:p-5
+          w-full
+          min-w-0
         "
       >
-        <div>
-          <p className="text-lg font-extrabold !text-white">
-            รายการ{categoryName[assetCategory]}
-          </p>
-
-          <p className="mt-1 text-sm font-semibold !text-slate-200">
-            {search
-              ? `ผลการค้นหา ${assets.length} รายการ`
-              : `พบทั้งหมด ${assets.length} รายการ`}
-          </p>
-        </div>
-
-        <Link
-          href={`/assets/${department.id}/${assetCategory}/new`}
+        <div
           className="
             w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-5
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            sm:w-auto
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
           "
         >
-          + เพิ่มครุภัณฑ์
-        </Link>
-      </div>
-
-      {/* ===================================================
-          TABLE
-          =================================================== */}
-
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          bg-white
-          shadow-xl
-        "
-      >
-        <div className="overflow-x-auto">
           <table
             className="
               w-full
               min-w-[1500px]
               border-collapse
-              border
-              border-black
+              bg-white
               text-sm
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
-                <th className="w-[5%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  ลำดับ
-                </th>
+                {[
+                  "ลำดับ",
+                  "รหัส GFMIS",
+                  "รหัสครุภัณฑ์",
+                  "รายการครุภัณฑ์",
+                  "จำนวน",
+                  "หน่วย",
+                  "ผู้รับผิดชอบ",
+                  "สถานะ",
+                  "จัดการ",
+                ].map(
+                  (
+                    tableTitle
+                  ) => (
+                    <th
+                      key={
+                        tableTitle
+                      }
+                      className="
+                        whitespace-nowrap
 
-                <th className="w-[13%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  รหัส GFMIS
-                </th>
+                        border
+                        border-black
 
-                <th className="w-[15%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  รหัสครุภัณฑ์
-                </th>
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                <th className="w-[19%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  รายการครุภัณฑ์
-                </th>
+                        px-4
+                        py-4
 
-                <th className="w-[7%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  จำนวน
-                </th>
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
 
-                <th className="w-[7%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  หน่วย
-                </th>
-
-                <th className="w-[16%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  ผู้รับผิดชอบ
-                </th>
-
-                <th className="w-[9%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  สถานะ
-                </th>
-
-                <th className="w-[9%] whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center text-lg font-extrabold !text-white">
-                  จัดการ
-                </th>
+                        sm:text-lg
+                      "
+                    >
+                      {
+                        tableTitle
+                      }
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            <tbody className="text-slate-900">
-              {assets.map(
-                (asset, index) => {
-                  /* =======================================
-                     จำนวนจริงจากฐานข้อมูล
-                     ======================================= */
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
-                  const quantity =
-                    asset.quantity ?? 1;
+            <tbody>
+              {assets.length >
+              0 ? (
+                assets.map(
+                  (
+                    asset,
+                    index
+                  ) => {
+                    const quantity =
+                      asset.quantity ??
+                      1;
 
-                  /* =======================================
-                     หน่วยจริงจากฐานข้อมูล / Excel
-                     ======================================= */
+                    const unit =
+                      getAssetUnit(
+                        asset.unit,
+                        asset.remark,
+                        categoryUnit[
+                          assetCategory
+                        ]
+                      );
 
-                  const unit =
-                    getAssetUnit(
-                      asset.unit,
-                      asset.remark,
-                      categoryUnit[
-                        assetCategory
-                      ]
-                    );
+                    const responsible =
+                      getResponsibleName(
+                        asset,
+                        department.name
+                      );
 
-                  /* =======================================
-                     ผู้รับผิดชอบ
-                     ======================================= */
+                    const status =
+                      getStatusLabel(
+                        asset.status
+                      );
 
-                  const responsible =
-                    getResponsibleName(
-                      asset,
-                      department.name
-                    );
+                    return (
+                      <tr
+                        key={
+                          asset.id
+                        }
+                        className={`
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
 
-                  return (
-                    <tr
-                      key={asset.id}
-                      className="
-                        text-slate-900
-                        transition
-                        hover:bg-emerald-50
-                      "
-                    >
-                      {/* ลำดับ */}
+                          transition-colors
+                          duration-200
 
-                      <td className="border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {index + 1}
-                      </td>
+                          hover:bg-blue-50/70
+                        `}
+                      >
+                        {/* ===================================
+                            ORDER
+                        =================================== */}
 
-                      {/* GFMIS */}
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {(
+                            index +
+                            1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
 
-                      <td className="break-all border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {asset.governmentAssetNo ||
-                          "-"}
-                      </td>
+                        {/* ===================================
+                            GFMIS
+                        =================================== */}
 
-                      {/* รหัสครุภัณฑ์ */}
+                        <td
+                          className="
+                            min-w-[180px]
+                            break-all
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {asset.governmentAssetNo ||
+                            "-"}
+                        </td>
 
-                      <td className="break-all border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {asset.officeAssetNo ||
-                          "-"}
-                      </td>
+                        {/* ===================================
+                            ASSET CODE
+                        =================================== */}
 
-                      {/* รายการ */}
+                        <td
+                          className="
+                            min-w-[200px]
+                            break-all
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {asset.officeAssetNo ||
+                            "-"}
+                        </td>
 
-                      <td className="border border-black px-4 py-3 font-extrabold text-slate-900">
-                        <div className="font-extrabold">
-                          {asset.name}
-                        </div>
+                        {/* ===================================
+                            NAME
+                        =================================== */}
 
-                        {(asset.brand ||
-                          asset.model) && (
-                          <div className="mt-1 text-xs font-semibold text-slate-500">
-                            {[
-                              asset.brand,
-                              asset.model,
-                            ]
-                              .filter(Boolean)
-                              .join(" / ")}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* จำนวน */}
-
-                      <td className="whitespace-nowrap border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {quantity}
-                      </td>
-
-                      {/* หน่วย */}
-
-                      <td className="whitespace-nowrap border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {unit}
-                      </td>
-
-                      {/* ผู้รับผิดชอบ */}
-
-                      <td className="break-words border border-black px-4 py-3 text-center font-extrabold text-slate-900">
-                        {responsible}
-                      </td>
-
-                      {/* สถานะ */}
-
-                      <td className="border border-black px-4 py-3 text-center font-extrabold">
-                        {asset.status ===
-                          "IN_USE" && (
-                          <span className="text-emerald-700">
-                            ยังใช้งาน
-                          </span>
-                        )}
-
-                        {asset.status ===
-                          "DAMAGED" && (
-                          <span className="text-orange-700">
-                            ชำรุด
-                          </span>
-                        )}
-
-                        {asset.status ===
-                          "WAITING_DISPOSAL" && (
-                          <span className="text-amber-700">
-                            รอจำหน่าย
-                          </span>
-                        )}
-
-                        {asset.status ===
-                          "DISPOSED" && (
-                          <span className="text-red-700">
-                            จำหน่ายแล้ว
-                          </span>
-                        )}
-
-                        {![
-                          "IN_USE",
-                          "DAMAGED",
-                          "WAITING_DISPOSAL",
-                          "DISPOSED",
-                        ].includes(
-                          asset.status
-                        ) && (
-                          <span className="text-slate-700">
-                            {asset.status}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* จัดการ */}
-
-                      <td className="border border-black px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Link
-                            href={`/assets/${department.id}/${assetCategory}/${asset.id}`}
+                        <td
+                          className="
+                            min-w-[280px]
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          <div
                             className="
-                              inline-block
-                              whitespace-nowrap
-                              rounded-xl
-                              bg-gradient-to-r
-                              from-slate-950
-                              via-slate-800
-                              to-slate-700
-                              px-4
-                              py-2
                               font-extrabold
-                              !text-white
-                              shadow-lg
-                              transition
-                              hover:scale-105
-                              hover:from-slate-900
-                              hover:via-slate-700
-                              hover:to-slate-600
+                              !text-slate-900
                             "
                           >
-                            ดูรายละเอียด
-                          </Link>
+                            {
+                              asset.name
+                            }
+                          </div>
 
-                          <form action={deleteAsset}>
-                            <input
-                              type="hidden"
-                              name="assetId"
-                              value={asset.id}
-                            />
-
-                            <button
-                              type="submit"
+                          {(asset.brand ||
+                            asset.model) && (
+                            <div
                               className="
-                                whitespace-nowrap
-                                rounded-xl
-                                bg-red-600
-                                px-4
-                                py-2
-                                font-extrabold
-                                !text-white
-                                shadow-lg
-                                transition
-                                hover:scale-105
-                                hover:bg-red-700
+                                mt-1
+                                text-xs
+                                font-semibold
+                                !text-slate-500
                               "
                             >
-                              ลบ
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
+                              {[
+                                asset.brand,
+                                asset.model,
+                              ]
+                                .filter(
+                                  Boolean
+                                )
+                                .join(
+                                  " / "
+                                )}
+                            </div>
+                          )}
+                        </td>
 
-              {/* =================================================
-                  EMPTY
-                  ================================================= */}
+                        {/* ===================================
+                            QUANTITY
+                        =================================== */}
 
-              {assets.length === 0 && (
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {Number(
+                            quantity
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            UNIT
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {unit}
+                        </td>
+
+                        {/* ===================================
+                            RESPONSIBLE
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[240px]
+                            break-words
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {
+                            responsible
+                          }
+                        </td>
+
+                        {/* ===================================
+                            STATUS
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[150px]
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                          "
+                        >
+                          <span
+                            className={`
+                              inline-flex
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+
+                              ${status.className}
+                            `}
+                          >
+                            {
+                              status.label
+                            }
+                          </span>
+                        </td>
+
+                        {/* ===================================
+                            ACTIONS
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[260px]
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+                              gap-2
+                            "
+                          >
+                            <AppButton
+                              href={`/assets/${department.id}/${assetCategory.toLowerCase()}/${asset.id}`}
+                              variant="primary"
+                              size="sm"
+                            >
+                              ดูรายละเอียด
+                            </AppButton>
+
+                            {canManage && (
+                              <form
+                                action={
+                                  deleteAsset
+                                }
+                              >
+                                <input
+                                  type="hidden"
+                                  name="assetId"
+                                  value={
+                                    asset.id
+                                  }
+                                />
+
+                                <AppButton
+                                  type="submit"
+                                  variant="danger"
+                                  size="sm"
+                                >
+                                  ลบ
+                                </AppButton>
+                              </form>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              ) : (
+                /* =============================================
+                   EMPTY
+                ============================================= */
+
                 <tr>
                   <td
                     colSpan={9}
                     className="
                       border
                       border-black
+                      bg-white
                       px-6
-                      py-12
+                      py-16
                       text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    {search
-                      ? `ไม่พบข้อมูลที่ตรงกับ "${search}"`
-                      : "ยังไม่มีครุภัณฑ์ประเภทนี้ในหน่วยงาน"}
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        {search
+                          ? "🔍"
+                          : categoryIcon[
+                              assetCategory
+                            ]}
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+                          !text-slate-900
+                        "
+                      >
+                        {search
+                          ? "ไม่พบข้อมูลที่ค้นหา"
+                          : `ยังไม่มี${categoryName[assetCategory]}ในหน่วยงานนี้`}
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+                          !text-slate-500
+                        "
+                      >
+                        {search
+                          ? `ไม่พบข้อมูลที่ตรงกับ "${search}"`
+                          : "เมื่อมีการเพิ่มครุภัณฑ์ ข้อมูลจะแสดงในตารางนี้"}
+                      </p>
+
+                      {search && (
+                        <div className="mt-5">
+                          <AppButton
+                            href={`/assets/${department.id}/${assetCategory.toLowerCase()}`}
+                            variant="primary"
+                            size="md"
+                          >
+                            แสดงรายการทั้งหมด
+                          </AppButton>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }
