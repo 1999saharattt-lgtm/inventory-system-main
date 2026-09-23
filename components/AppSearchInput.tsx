@@ -1,51 +1,126 @@
 "use client";
 
+import type {
+  ChangeEvent,
+  FormEvent,
+  ReactNode,
+} from "react";
+
 import {
   Search,
   X,
 } from "lucide-react";
 
+import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
 type AppSearchInputProps = {
   value: string;
-  onChange: (value: string) => void;
+
+  onChange: (
+    event: ChangeEvent<HTMLInputElement>
+  ) => void;
+
+  onSubmit?: (
+    event: FormEvent<HTMLFormElement>
+  ) => void;
+
+  onClear?: () => void;
 
   placeholder?: string;
 
-  onSubmit?: () => void;
-  onClear?: () => void;
-
   resultCount?: number;
+
   resultLabel?: string;
 
+  disabled?: boolean;
+
+  autoFocus?: boolean;
+
   className?: string;
+
+  inputClassName?: string;
+
+  leftIcon?: ReactNode;
+
+  showSearchButton?: boolean;
+
+  showClearButton?: boolean;
+
+  searchButtonText?: string;
+
+  clearButtonText?: string;
 };
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function AppSearchInput({
   value,
   onChange,
+  onSubmit,
+
+  onClear,
 
   placeholder = "ค้นหา...",
 
-  onSubmit,
-  onClear,
-
   resultCount,
+
   resultLabel = "รายการ",
 
+  disabled = false,
+
+  autoFocus = false,
+
   className = "",
+
+  inputClassName = "",
+
+  leftIcon,
+
+  showSearchButton = true,
+
+  showClearButton = true,
+
+  searchButtonText = "ค้นหา",
+
+  clearButtonText = "ล้าง",
 }: AppSearchInputProps) {
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
+
   function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    onSubmit?.();
+    if (disabled) {
+      return;
+    }
+
+    onSubmit?.(event);
   }
 
+  /* =======================================================
+     CLEAR
+  ======================================================= */
+
   function handleClear() {
-    onChange("");
+    if (disabled) {
+      return;
+    }
+
     onClear?.();
   }
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <form
@@ -62,24 +137,19 @@ export default function AppSearchInput({
           w-full
           min-w-0
           overflow-hidden
-
           rounded-[24px]
-
           border
-          border-slate-200
-
-          bg-white
-
+          border-white/80
+          bg-white/75
           p-4
-
-          shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]
-
+          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+          backdrop-blur-2xl
           sm:p-5
         "
       >
-        {/* ===================================================
-            AMBIENT
-        =================================================== */}
+        {/* =================================================
+            AMBIENT BACKGROUND
+        ================================================= */}
 
         <div
           aria-hidden="true"
@@ -87,15 +157,11 @@ export default function AppSearchInput({
             pointer-events-none
             absolute
             -left-20
-            -top-24
-
+            -top-20
             h-48
             w-48
-
             rounded-full
-
             bg-blue-400/10
-
             blur-3xl
           "
         />
@@ -107,38 +173,32 @@ export default function AppSearchInput({
             absolute
             -bottom-24
             right-0
-
             h-48
             w-48
-
             rounded-full
-
             bg-cyan-400/10
-
             blur-3xl
           "
         />
 
-        {/* ===================================================
-            CONTENT
-        =================================================== */}
+        {/* =================================================
+            SEARCH ROW
+        ================================================= */}
 
         <div
           className="
             relative
-
             flex
             min-w-0
             flex-col
             gap-3
-
             lg:flex-row
             lg:items-center
           "
         >
-          {/* =================================================
+          {/* ===============================================
               INPUT
-          ================================================= */}
+          =============================================== */}
 
           <div
             className="
@@ -147,175 +207,105 @@ export default function AppSearchInput({
               flex-1
             "
           >
+            {/* Search Icon */}
+
             <div
               aria-hidden="true"
               className="
                 pointer-events-none
-
                 absolute
                 inset-y-0
-                left-0
-
+                left-4
+                z-10
                 flex
-                w-12
                 items-center
                 justify-center
-
-                !text-slate-400
+                !text-slate-500
               "
             >
-              <Search
-                size={20}
-                strokeWidth={2.3}
-              />
+              {leftIcon ?? (
+                <Search
+                  size={20}
+                  strokeWidth={2.3}
+                />
+              )}
             </div>
+
+            {/* Input */}
 
             <input
               type="search"
               value={value}
-              onChange={(event) =>
-                onChange(
-                  event.target.value
-                )
-              }
+              onChange={onChange}
               placeholder={placeholder}
+              disabled={disabled}
+              autoFocus={autoFocus}
               autoComplete="off"
-              className="
+              className={`
                 h-12
                 w-full
                 min-w-0
-
                 rounded-[16px]
-
                 border
                 border-slate-300
-
-                bg-slate-50
-
+                bg-white/90
                 py-3
                 pl-12
-                pr-11
-
+                pr-4
                 text-base
                 font-bold
                 !text-slate-900
-
+                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
                 outline-none
-
                 transition-all
-                duration-200
+                duration-300
 
                 placeholder:font-semibold
                 placeholder:!text-slate-400
 
                 hover:border-slate-400
-                hover:bg-white
 
                 focus:border-blue-500
                 focus:bg-white
                 focus:ring-4
                 focus:ring-blue-500/10
-              "
+
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:!text-slate-400
+                disabled:opacity-70
+
+                ${inputClassName}
+              `}
             />
-
-            {/* ===============================================
-                CLEAR ICON
-            =============================================== */}
-
-            {value && (
-              <button
-                type="button"
-                aria-label="ล้างคำค้นหา"
-                title="ล้างคำค้นหา"
-                onClick={handleClear}
-                className="
-                  absolute
-                  inset-y-0
-                  right-1.5
-
-                  my-auto
-
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-
-                  rounded-[12px]
-
-                  !text-slate-400
-
-                  transition-all
-                  duration-200
-
-                  hover:bg-slate-200
-                  hover:!text-slate-700
-
-                  active:scale-95
-                "
-              >
-                <X
-                  size={18}
-                  strokeWidth={2.5}
-                />
-              </button>
-            )}
           </div>
 
-          {/* =================================================
+          {/* ===============================================
               SEARCH BUTTON
-          ================================================= */}
 
-          <button
-            type="submit"
-            className="
-              inline-flex
-              h-12
-              shrink-0
-              items-center
-              justify-center
-              gap-2
+              ใช้ AppButton ตัวกลางของระบบ
+          =============================================== */}
 
-              rounded-[16px]
+          {showSearchButton && (
+            <AppButton
+              type="submit"
+              variant="secondary"
+              size="lg"
+              disabled={disabled}
+              icon={
+                <Search
+                  size={18}
+                  strokeWidth={2.4}
+                />
+              }
+            >
+              {searchButtonText}
+            </AppButton>
+          )}
 
-              bg-gradient-to-r
-              from-slate-800
-              to-slate-700
-
-              px-5
-
-              text-sm
-              font-extrabold
-              !text-white
-
-              shadow-[0_12px_24px_-16px_rgba(15,23,42,0.65)]
-
-              transition-all
-              duration-200
-
-              hover:-translate-y-0.5
-              hover:from-slate-700
-              hover:to-slate-600
-
-              active:translate-y-0
-              active:scale-[0.97]
-
-              sm:text-base
-            "
-          >
-            <Search
-              size={18}
-              strokeWidth={2.4}
-            />
-
-            <span>
-              ค้นหา
-            </span>
-          </button>
-
-          {/* =================================================
+          {/* ===============================================
               RESULT COUNT
-          ================================================= */}
+          =============================================== */}
 
           {typeof resultCount ===
             "number" && (
@@ -327,42 +317,35 @@ export default function AppSearchInput({
                 items-center
                 justify-center
                 gap-2
-
                 rounded-[16px]
-
                 border
-                border-slate-200
-
-                bg-slate-50
-
+                border-slate-300
+                bg-slate-100/80
                 px-4
-
                 text-sm
                 font-extrabold
-                !text-slate-600
+                !text-slate-700
+                shadow-sm
+                backdrop-blur-xl
+                sm:px-5
               "
             >
               <span
                 className="
-                  inline-flex
+                  flex
+                  h-7
                   min-w-7
                   items-center
                   justify-center
-
                   rounded-full
-
+                  border
+                  border-slate-300
                   bg-white
-
                   px-2
-                  py-1
-
                   text-xs
                   font-black
                   !text-slate-900
-
                   shadow-sm
-                  ring-1
-                  ring-slate-200
                 "
               >
                 {resultCount.toLocaleString(
@@ -370,11 +353,36 @@ export default function AppSearchInput({
                 )}
               </span>
 
-              <span>
+              <span className="whitespace-nowrap">
                 {resultLabel}
               </span>
             </div>
           )}
+
+          {/* ===============================================
+              CLEAR BUTTON
+
+              ใช้ AppButton ตัวกลางของระบบ
+          =============================================== */}
+
+          {showClearButton &&
+            value.trim() !== "" && (
+              <AppButton
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={disabled}
+                onClick={handleClear}
+                icon={
+                  <X
+                    size={18}
+                    strokeWidth={2.4}
+                  />
+                }
+              >
+                {clearButtonText}
+              </AppButton>
+            )}
         </div>
       </div>
     </form>
