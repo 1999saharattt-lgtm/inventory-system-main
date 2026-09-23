@@ -1,18 +1,13 @@
 "use client";
 
 import {
-  useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
-import { updateIssue } from "./action";
-
 import AppButton from "@/components/AppButton";
-import AppCard from "@/components/AppCard";
-import AppInfoCard from "@/components/AppInfoCard";
-import AppTableCard from "@/components/AppTableCard";
+
+import { updateIssue } from "./action";
 
 /* =========================================================
    TYPES
@@ -66,6 +61,12 @@ type Props = {
   departments: Department[];
   materials: Material[];
   receiveItems: ReceiveItem[];
+
+  /*
+   * true  = ADMIN สามารถเปลี่ยนกลุ่มงานได้
+   * false = ผู้ใช้งานทั่วไป ล็อกกลุ่มงาน
+   */
+  canChangeDepartment: boolean;
 };
 
 type IssueRow = {
@@ -76,24 +77,8 @@ type IssueRow = {
   receiveItemId: string;
 };
 
-type SearchableOption = {
-  value: string;
-  label: string;
-};
-
-type SearchableDropdownProps = {
-  id: string;
-  value: string;
-  options: SearchableOption[];
-  placeholder: string;
-  searchPlaceholder?: string;
-  emptyText?: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-};
-
 /* =========================================================
-   CATEGORY
+   CATEGORIES
 ========================================================= */
 
 const categories = [
@@ -127,14 +112,17 @@ const categories = [
    STATUS
 ========================================================= */
 
-const statusName: Record<string, string> = {
+const statusName: Record<
+  string,
+  string
+> = {
   PENDING: "รอ Admin ตรวจสอบ",
   APPROVED: "เบิกจ่ายแล้ว",
   REJECTED: "ไม่อนุมัติ",
 };
 
 /* =========================================================
-   THAI DATE
+   THAI MONTHS
 ========================================================= */
 
 const thaiMonths = [
@@ -152,17 +140,28 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
+/* =========================================================
+   DATE -> YYYY-MM-DD
+========================================================= */
+
 function toDateInputValue(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "";
   }
 
-  if (typeof value === "string") {
-    const match = value.match(
-      /^(\d{4})-(\d{2})-(\d{2})/
-    );
+  if (
+    typeof value === "string"
+  ) {
+    const match =
+      value.match(
+        /^(\d{4})-(\d{2})-(\d{2})/
+      );
 
     if (match) {
       return `${match[1]}-${match[2]}-${match[3]}`;
@@ -174,759 +173,217 @@ function toDateInputValue(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "";
   }
 
-  return [
-    date.getFullYear(),
+  const year =
+    date.getFullYear();
+
+  const month =
     String(
       date.getMonth() + 1
-    ).padStart(2, "0"),
+    ).padStart(2, "0");
+
+  const day =
     String(
       date.getDate()
-    ).padStart(2, "0"),
-  ].join("-");
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
-function formatThaiFullDate(
+/* =========================================================
+   THAI DATE
+========================================================= */
+
+function formatThaiDate(
   dateString: string
 ) {
   if (!dateString) {
     return "";
   }
 
-  const [year, month, day] =
-    dateString.split("-").map(Number);
+  const match =
+    dateString.match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
 
-  if (!year || !month || !day) {
+  if (!match) {
     return "";
   }
 
-  return `${String(day).padStart(
-    2,
-    "0"
-  )} ${
-    thaiMonths[month - 1]
+  const year =
+    Number(match[1]);
+
+  const month =
+    Number(match[2]);
+
+  const day =
+    Number(match[3]);
+
+  if (
+    !year ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return "";
+  }
+
+  return `${String(
+    day
+  ).padStart(2, "0")} ${
+    thaiMonths[
+      month - 1
+    ]
   } ${year + 543}`;
 }
 
 /* =========================================================
-   DATE FIELD
-   รูปแบบเดียวกับ RECEIVE
-========================================================= */
-
-type DateFieldProps = {
-  id: string;
-  name?: string;
-  value: string;
-  placeholder?: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-};
-
-function DateField({
-  id,
-  name,
-  value,
-  placeholder = "เลือกวันที่",
-  disabled = false,
-  onChange,
-}: DateFieldProps) {
-  const dateRef =
-    useRef<HTMLInputElement>(null);
-
-  function openCalendar() {
-    if (disabled) {
-      return;
-    }
-
-    const input = dateRef.current;
-
-    if (!input) {
-      return;
-    }
-
-    try {
-      if (
-        typeof input.showPicker ===
-        "function"
-      ) {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
-      }
-    } catch {
-      input.focus();
-      input.click();
-    }
-  }
-
-  return (
-    <div
-      className="
-        relative
-        h-[52px]
-        w-full
-        min-w-0
-      "
-    >
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={value}
-        />
-      )}
-
-      <div
-        className={`
-          flex
-          h-[52px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-
-          rounded-[16px]
-
-          border
-          border-slate-200
-
-          pl-4
-          pr-2
-
-          shadow-sm
-
-          transition-all
-          duration-200
-
-          ${
-            disabled
-              ? "bg-slate-100"
-              : "bg-white hover:border-slate-300 hover:bg-slate-50 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-100/70"
-          }
-        `}
-      >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            text-base
-            font-bold
-
-            ${
-              value
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
-        >
-          {value
-            ? formatThaiFullDate(
-                value
-              )
-            : placeholder}
-        </span>
-
-        <button
-          type="button"
-          aria-label="เปิดปฏิทิน"
-          disabled={disabled}
-          onClick={openCalendar}
-          className="
-            flex
-            h-9
-            w-9
-            shrink-0
-            items-center
-            justify-center
-
-            rounded-[11px]
-
-            bg-slate-100
-
-            text-lg
-
-            shadow-inner
-
-            transition-all
-            duration-200
-
-            hover:bg-slate-200
-
-            active:scale-[0.96]
-
-            focus:outline-none
-            focus:ring-4
-            focus:ring-blue-100
-
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-          "
-        >
-          📅
-        </button>
-
-        <input
-          ref={dateRef}
-          id={id}
-          type="date"
-          value={value}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-            )
-          }
-          tabIndex={-1}
-          aria-hidden="true"
-          className="
-            pointer-events-none
-            absolute
-            bottom-0
-            right-0
-            h-px
-            w-px
-            opacity-0
-          "
-        />
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   SEARCHABLE DROPDOWN
-   รูปแบบเดียวกับ RECEIVE
-========================================================= */
-
-function SearchableDropdown({
-  id,
-  value,
-  options,
-  placeholder,
-  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
-  emptyText = "ไม่พบข้อมูล",
-  disabled = false,
-  onChange,
-}: SearchableDropdownProps) {
-  const containerRef =
-    useRef<HTMLDivElement>(null);
-
-  const inputRef =
-    useRef<HTMLInputElement>(null);
-
-  const [open, setOpen] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const selectedOption =
-    options.find(
-      (option) =>
-        option.value === value
-    );
-
-  const filteredOptions =
-    useMemo(() => {
-      const keyword =
-        search
-          .trim()
-          .toLocaleLowerCase("th");
-
-      if (!keyword) {
-        return options;
-      }
-
-      return options.filter(
-        (option) =>
-          option.label
-            .toLocaleLowerCase("th")
-            .includes(keyword) ||
-          option.value
-            .toLocaleLowerCase("th")
-            .includes(keyword)
-      );
-    }, [options, search]);
-
-  useEffect(() => {
-    function handleMouseDown(
-      event: MouseEvent
-    ) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
-      ) {
-        setOpen(false);
-        setSearch("");
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handleMouseDown
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleMouseDown
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      setSearch("");
-      return;
-    }
-
-    const timer =
-      window.setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [open]);
-
-  return (
-    <div
-      ref={containerRef}
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${
-          open
-            ? "z-[9999]"
-            : "z-10"
-        }
-      `}
-    >
-      <button
-        id={id}
-        type="button"
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => {
-          if (disabled) {
-            return;
-          }
-
-          setOpen(
-            (current) => !current
-          );
-        }}
-        className="
-          flex
-          h-[52px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-
-          rounded-[16px]
-
-          border
-          border-slate-200
-
-          bg-white
-
-          px-4
-
-          text-left
-          text-base
-          font-bold
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          transition-all
-          duration-200
-
-          hover:border-slate-300
-          hover:bg-slate-50
-
-          focus:border-blue-300
-          focus:ring-4
-          focus:ring-blue-100/70
-
-          disabled:cursor-not-allowed
-          disabled:border-slate-200
-          disabled:bg-slate-100
-          disabled:!text-slate-400
-        "
-      >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            ${
-              selectedOption
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
-        >
-          {selectedOption?.label ??
-            placeholder}
-        </span>
-
-        <span
-          aria-hidden="true"
-          className={`
-            shrink-0
-            text-xs
-            !text-slate-500
-
-            transition-transform
-            duration-200
-
-            ${
-              open
-                ? "rotate-180"
-                : ""
-            }
-          `}
-        >
-          ▼
-        </span>
-      </button>
-
-      {open && !disabled && (
-        <div
-          className="
-            absolute
-            left-0
-            right-0
-            top-[calc(100%+8px)]
-
-            z-[99999]
-
-            overflow-hidden
-
-            rounded-[20px]
-
-            border
-            border-slate-200
-
-            bg-white/95
-
-            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.35)]
-
-            backdrop-blur-2xl
-          "
-        >
-          <div
-            className="
-              border-b
-              border-slate-200
-
-              bg-slate-50/90
-
-              p-3
-            "
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              autoComplete="off"
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
-              onKeyDown={(event) => {
-                if (
-                  event.key ===
-                  "Escape"
-                ) {
-                  setOpen(false);
-                  setSearch("");
-                }
-
-                if (
-                  event.key ===
-                    "Enter" &&
-                  filteredOptions.length ===
-                    1
-                ) {
-                  event.preventDefault();
-
-                  onChange(
-                    filteredOptions[0]
-                      .value
-                  );
-
-                  setOpen(false);
-                  setSearch("");
-                }
-              }}
-              placeholder={
-                searchPlaceholder
-              }
-              className="
-                h-[46px]
-                w-full
-
-                rounded-[14px]
-
-                border
-                border-slate-200
-
-                bg-white
-
-                px-4
-
-                text-base
-                font-bold
-                !text-slate-900
-
-                shadow-sm
-                outline-none
-
-                placeholder:!text-slate-400
-
-                focus:border-blue-300
-                focus:ring-4
-                focus:ring-blue-100/70
-              "
-            />
-          </div>
-
-          <div
-            role="listbox"
-            className="
-              max-h-[280px]
-
-              overflow-y-auto
-              overscroll-contain
-
-              bg-white
-
-              p-2
-            "
-          >
-            {filteredOptions.length >
-            0 ? (
-              filteredOptions.map(
-                (option) => {
-                  const selected =
-                    option.value ===
-                    value;
-
-                  return (
-                    <button
-                      key={
-                        option.value
-                      }
-                      type="button"
-                      role="option"
-                      aria-selected={
-                        selected
-                      }
-                      onClick={() => {
-                        onChange(
-                          option.value
-                        );
-
-                        setOpen(false);
-                        setSearch("");
-                      }}
-                      className={`
-                        flex
-                        w-full
-                        items-center
-                        justify-between
-                        gap-3
-
-                        rounded-[12px]
-
-                        px-3
-                        py-2.5
-
-                        text-left
-                        text-base
-                        font-bold
-
-                        transition-colors
-
-                        ${
-                          selected
-                            ? "bg-slate-900 !text-white"
-                            : "bg-white !text-slate-900 hover:bg-slate-100"
-                        }
-                      `}
-                    >
-                      <span
-                        className="
-                          min-w-0
-                          flex-1
-                          break-words
-                        "
-                      >
-                        {option.label}
-                      </span>
-
-                      {selected && (
-                        <span className="!text-white">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                }
-              )
-            ) : (
-              <div
-                className="
-                  px-4
-                  py-8
-
-                  text-center
-                  text-sm
-                  font-bold
-                  !text-slate-500
-                "
-              >
-                {emptyText}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* =========================================================
-   EDIT ISSUE FORM
+   COMPONENT
 ========================================================= */
 
 export default function EditIssueForm({
   issue,
   departments,
   materials,
+  receiveItems,
+  canChangeDepartment,
 }: Props) {
-  const isPending =
-    issue.status === "PENDING";
-
   /* =======================================================
-     STATE
+     PERMISSION
   ======================================================= */
 
-  const [issueDate, setIssueDate] =
-    useState(
-      toDateInputValue(
-        issue.issueDate
-      )
-    );
+  const isPending =
+    issue.status ===
+    "PENDING";
+
+  /* =======================================================
+     DEPARTMENT
+  ======================================================= */
 
   const [
     departmentId,
     setDepartmentId,
   ] = useState(
     String(
-      issue.departmentId ?? ""
+      issue.departmentId ??
+        ""
     )
   );
 
-  const [items, setItems] =
-    useState<IssueRow[]>(() => {
-      const rows: IssueRow[] =
-        issue.items.map(
-          (item) => ({
-            category:
-              item.material
-                .category ?? "",
-
-            materialId: String(
-              item.materialId
-            ),
-
-            qty: String(
-              item.qty
-            ),
-
-            remark:
-              item.remark ?? "",
-
-            receiveItemId:
-              item.receiveItemId !=
-              null
-                ? String(
-                    item.receiveItemId
-                  )
-                : "",
-          })
-        );
-
-      while (rows.length < 15) {
-        rows.push({
-          category: "",
-          materialId: "",
-          qty: "",
-          remark: "",
-          receiveItemId: "",
-        });
-      }
-
-      return rows;
-    });
-
   /* =======================================================
-     OPTIONS
+     DOCUMENT NUMBER
   ======================================================= */
 
-  const departmentOptions =
-    useMemo<
-      SearchableOption[]
-    >(
-      () =>
-        departments.map(
-          (department) => ({
-            value: String(
-              department.id
-            ),
-            label:
-              department.name,
-          })
-        ),
-      [departments]
+  const [
+    editDocumentNo,
+    setEditDocumentNo,
+  ] = useState(false);
+
+  const [
+    documentValue,
+    setDocumentValue,
+  ] = useState(
+    issue.documentNo
+  );
+
+  /* =======================================================
+     ISSUE DATE
+  ======================================================= */
+
+  const [
+    issueDate,
+    setIssueDate,
+  ] = useState(
+    toDateInputValue(
+      issue.issueDate
+    )
+  );
+
+  /* =======================================================
+     ROWS
+
+     ให้จำนวนแถวเหมือน /issue/create = 18 แถว
+  ======================================================= */
+
+  const [rows, setRows] =
+    useState<IssueRow[]>(
+      () => {
+        const initialRows =
+          issue.items.map(
+            (item) => ({
+              category:
+                item.material
+                  .category ??
+                "",
+
+              materialId:
+                String(
+                  item.materialId
+                ),
+
+              qty:
+                String(
+                  item.qty
+                ),
+
+              remark:
+                item.remark ??
+                "",
+
+              receiveItemId:
+                item.receiveItemId !=
+                null
+                  ? String(
+                      item.receiveItemId
+                    )
+                  : "",
+            })
+          );
+
+        while (
+          initialRows.length <
+          18
+        ) {
+          initialRows.push({
+            category: "",
+            materialId: "",
+            qty: "",
+            remark: "",
+            receiveItemId:
+              "",
+          });
+        }
+
+        return initialRows;
+      }
     );
 
-  const categoryOptions =
-    useMemo<
-      SearchableOption[]
-    >(
-      () =>
-        categories.map(
-          (category) => ({
-            value:
-              category.value,
-            label:
-              category.label,
-          })
-        ),
-      []
-    );
+  /* =======================================================
+     AVAILABLE MATERIAL IDS
+
+     เก็บ receiveItems ไว้ตาม logic เดิม
+     และใช้ตรวจว่าพัสดุมีล็อตคงเหลือ
+
+     รายการเดิมในใบเบิกยังคงแสดงได้
+  ======================================================= */
+
+  const availableMaterialIds =
+    useMemo(() => {
+      return new Set(
+        receiveItems.map(
+          (item) =>
+            item.materialId
+        )
+      );
+    }, [receiveItems]);
 
   /* =======================================================
      UPDATE ROW
@@ -941,12 +398,12 @@ export default function EditIssueForm({
       return;
     }
 
-    setItems(
-      (currentItems) => {
+    setRows(
+      (currentRows) => {
         const copy =
-          currentItems.map(
-            (item) => ({
-              ...item,
+          currentRows.map(
+            (row) => ({
+              ...row,
             })
           );
 
@@ -955,23 +412,41 @@ export default function EditIssueForm({
           [key]: value,
         };
 
-        if (key === "category") {
-          copy[index].materialId =
-            "";
-
-          copy[index].receiveItemId =
-            "";
-
-          copy[index].qty = "";
-        }
+        /* -------------------------------------------------
+           เปลี่ยนหมวดหมู่
+        ------------------------------------------------- */
 
         if (
-          key === "materialId"
+          key === "category"
         ) {
-          copy[index].receiveItemId =
+          copy[
+            index
+          ].materialId = "";
+
+          copy[
+            index
+          ].receiveItemId =
             "";
 
-          copy[index].qty = "";
+          copy[index].qty =
+            "";
+        }
+
+        /* -------------------------------------------------
+           เปลี่ยนพัสดุ
+        ------------------------------------------------- */
+
+        if (
+          key ===
+          "materialId"
+        ) {
+          copy[
+            index
+          ].receiveItemId =
+            "";
+
+          copy[index].qty =
+            "";
         }
 
         return copy;
@@ -980,473 +455,588 @@ export default function EditIssueForm({
   }
 
   /* =======================================================
-     CENTRAL-LIKE INPUT CLASSES
-     สำหรับ input HTML ที่ยังไม่มี component กลาง
-  ======================================================= */
-
-  const labelClass = `
-    mb-2
-    block
-
-    text-base
-    font-extrabold
-    !text-slate-800
-  `;
-
-  const inputClass = `
-    h-[52px]
-    w-full
-    min-w-0
-
-    rounded-[16px]
-
-    border
-    border-slate-200
-
-    bg-white
-
-    px-4
-
-    text-base
-    font-bold
-    !text-slate-900
-
-    shadow-sm
-    outline-none
-
-    transition-all
-    duration-200
-
-    placeholder:!text-slate-400
-
-    hover:border-slate-300
-    hover:bg-slate-50
-
-    focus:border-blue-300
-    focus:ring-4
-    focus:ring-blue-100/70
-
-    disabled:cursor-not-allowed
-    disabled:bg-slate-100
-    disabled:!text-slate-500
-  `;
-
-  const tableInputClass = `
-    h-[52px]
-    w-full
-    min-w-0
-
-    rounded-[16px]
-
-    border
-    border-slate-200
-
-    bg-white
-
-    px-3
-
-    text-sm
-    font-bold
-    !text-slate-900
-
-    shadow-sm
-    outline-none
-
-    transition-all
-    duration-200
-
-    placeholder:!text-slate-400
-
-    hover:border-slate-300
-    hover:bg-slate-50
-
-    focus:border-blue-300
-    focus:ring-4
-    focus:ring-blue-100/70
-
-    disabled:cursor-not-allowed
-    disabled:bg-slate-100
-    disabled:!text-slate-500
-  `;
-
-  /* =======================================================
      UI
   ======================================================= */
 
   return (
-    <form
-      action={
-        isPending
-          ? updateIssue
-          : undefined
-      }
+    <div
       className="
-        relative
         w-full
         min-w-0
-
-        space-y-6
-
-        overflow-visible
+        bg-white
       "
     >
-      <input
-        type="hidden"
-        name="issueId"
-        value={issue.id}
-      />
-
-      <input
-        type="hidden"
-        name="departmentId"
-        value={departmentId}
-      />
-
-      {/* ===================================================
-          STATUS
-      =================================================== */}
-
-      <AppCard
-        className="
-          relative
-          z-[300]
-
-          overflow-visible
-
-          p-4
-
-          sm:p-5
-        "
+      <form
+        action={
+          isPending
+            ? updateIssue
+            : undefined
+        }
+        className="space-y-6"
       >
-        <AppInfoCard>
+        {/* =================================================
+            HIDDEN ISSUE ID
+        ================================================= */}
+
+        <input
+          type="hidden"
+          name="issueId"
+          value={issue.id}
+        />
+
+        {/* =================================================
+            DOCUMENT NUMBER
+            แบบเดียวกับ /issue/create
+            อยู่ด้านบนขวา
+        ================================================= */}
+
+        <div
+          className="
+            flex
+            w-full
+            justify-end
+          "
+        >
           <div
             className="
-              flex
-              flex-col
-              gap-3
-
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
+              w-full
+              max-w-[260px]
             "
           >
-            <div>
-              <p
-                className="
-                  text-base
-                  font-extrabold
-                  !text-slate-800
-                "
-              >
-                สถานะใบเบิก
-              </p>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  !text-slate-500
-                "
-              >
-                สถานะปัจจุบันของเอกสารเบิกจ่ายพัสดุ
-              </p>
-            </div>
-
-            <div
+            <label
               className="
-                inline-flex
-                h-[40px]
-                shrink-0
-                items-center
-                justify-center
-
-                rounded-[14px]
-
-                border
-                border-slate-200
-
-                bg-slate-100
-
-                px-4
-
+                mb-1.5
+                block
                 text-sm
                 font-extrabold
-                !text-slate-800
+                !text-slate-700
               "
-            >
-              {statusName[
-                issue.status
-              ] ?? issue.status}
-            </div>
-          </div>
-        </AppInfoCard>
-      </AppCard>
-
-      {/* ===================================================
-          DOCUMENT INFORMATION
-      =================================================== */}
-
-      <AppCard
-        className="
-          relative
-          z-[200]
-
-          overflow-visible
-
-          p-4
-
-          sm:p-5
-        "
-      >
-        <div
-          className="
-            mb-5
-
-            flex
-            items-center
-            gap-3
-          "
-        >
-          <div
-            className="
-              flex
-              h-11
-              w-11
-              shrink-0
-              items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-blue-50/90
-
-              text-xl
-
-              shadow-sm
-
-              ring-1
-              ring-blue-100/80
-            "
-          >
-            📋
-          </div>
-
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              ข้อมูลเอกสาร
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              แก้ไขวันที่ เลขที่เอกสาร และหน่วยงาน
-            </p>
-          </div>
-        </div>
-
-        <div
-          className="
-            grid
-            min-w-0
-            gap-4
-
-            md:grid-cols-3
-          "
-        >
-          {/* วันที่เบิกจ่าย */}
-
-          <AppInfoCard
-            className="
-              relative
-              overflow-visible
-            "
-          >
-            <label
-              htmlFor="issueDate"
-              className={labelClass}
-            >
-              วันที่เบิกจ่าย
-            </label>
-
-            <DateField
-              id="issueDate"
-              name="issueDate"
-              value={issueDate}
-              placeholder="เลือกวันที่เบิกจ่าย"
-              disabled={!isPending}
-              onChange={
-                setIssueDate
-              }
-            />
-          </AppInfoCard>
-
-          {/* เลขที่เอกสาร */}
-
-          <AppInfoCard
-            className="
-              relative
-              overflow-visible
-            "
-          >
-            <label
-              htmlFor="documentNo"
-              className={labelClass}
             >
               เลขที่เอกสาร
             </label>
 
             <input
-              id="documentNo"
               type="text"
               name="documentNo"
-              defaultValue={
-                issue.documentNo
+              value={
+                documentValue
               }
-              disabled={!isPending}
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setDocumentValue(
+                  event.target
+                    .value
+                )
+              }
+              readOnly={
+                !editDocumentNo ||
+                !isPending
+              }
+              className="
+                h-10
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                text-sm
+                font-extrabold
+                !text-slate-900
+                outline-none
+                transition
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+                read-only:bg-slate-50
+                read-only:!text-slate-700
+              "
             />
-          </AppInfoCard>
 
-          {/* หน่วยงาน */}
+            {isPending && (
+              <label
+                className="
+                  mt-2
+                  flex
+                  w-fit
+                  cursor-pointer
+                  items-center
+                  gap-2
+                  text-xs
+                  font-semibold
+                  !text-slate-600
+                "
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    editDocumentNo
+                  }
+                  onChange={(
+                    event
+                  ) => {
+                    const checked =
+                      event.target
+                        .checked;
 
-          <AppInfoCard
+                    setEditDocumentNo(
+                      checked
+                    );
+
+                    if (
+                      !checked
+                    ) {
+                      setDocumentValue(
+                        issue.documentNo
+                      );
+                    }
+                  }}
+                  className="
+                    h-4
+                    w-4
+                    shrink-0
+                    cursor-pointer
+                    rounded
+                    border-slate-300
+                  "
+                />
+
+                <span>
+                  แก้ไขเลขที่เอกสาร
+                </span>
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* =================================================
+            FORM TITLE
+            แบบเดียวกับ /issue/create
+        ================================================= */}
+
+        <div
+          className="
+            border-b
+            border-slate-200
+            pb-5
+            text-center
+          "
+        >
+          <div
             className="
-              relative
-              z-[400]
-              overflow-visible
+              text-base
+              font-bold
+              !text-slate-600
             "
           >
+            พอ.101
+          </div>
+
+          <h2
+            className="
+              mt-1
+              text-2xl
+              font-extrabold
+              !text-slate-900
+            "
+          >
+            ใบเบิกพัสดุ
+          </h2>
+
+          <div
+            className="
+              mt-3
+              flex
+              justify-center
+            "
+          >
+            <span
+              className={`
+                inline-flex
+                items-center
+                justify-center
+
+                rounded-full
+
+                border
+
+                px-4
+                py-1.5
+
+                text-sm
+                font-extrabold
+
+                ${
+                  issue.status ===
+                  "PENDING"
+                    ? "border-amber-200 bg-amber-50 !text-amber-800"
+                    : issue.status ===
+                        "APPROVED"
+                      ? "border-emerald-200 bg-emerald-50 !text-emerald-800"
+                      : issue.status ===
+                          "REJECTED"
+                        ? "border-red-200 bg-red-50 !text-red-800"
+                        : "border-slate-200 bg-slate-50 !text-slate-700"
+                }
+              `}
+            >
+              {statusName[
+                issue.status
+              ] ??
+                issue.status}
+            </span>
+          </div>
+        </div>
+
+        {/* =================================================
+            DOCUMENT INFORMATION
+            โครงเดียวกับ /issue/create
+        ================================================= */}
+
+        <div
+          className="
+            grid
+            gap-4
+            md:grid-cols-2
+          "
+        >
+          {/* ===============================================
+              ISSUE DATE
+          =============================================== */}
+
+          <div>
             <label
-              htmlFor="departmentIdControl"
-              className={labelClass}
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
+            >
+              วันที่เบิก
+            </label>
+
+            <div
+              className="
+                relative
+                h-11
+                w-full
+              "
+            >
+              <input
+                type="date"
+                name="issueDate"
+                value={
+                  issueDate
+                }
+                onChange={(
+                  event
+                ) =>
+                  setIssueDate(
+                    event.target
+                      .value
+                  )
+                }
+                disabled={
+                  !isPending
+                }
+                required
+                className="
+                  absolute
+                  inset-0
+                  z-10
+                  h-11
+                  w-full
+                  cursor-pointer
+                  opacity-0
+                  disabled:cursor-not-allowed
+                "
+              />
+
+              <div
+                className={`
+                  flex
+                  h-11
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-xl
+                  border
+                  border-slate-300
+                  px-3
+                  text-sm
+                  font-bold
+                  shadow-sm
+
+                  ${
+                    isPending
+                      ? "bg-white !text-slate-900"
+                      : "bg-slate-100 !text-slate-500"
+                  }
+                `}
+              >
+                <span>
+                  {formatThaiDate(
+                    issueDate
+                  )}
+                </span>
+
+                <span
+                  aria-hidden="true"
+                  className="
+                    shrink-0
+                    text-lg
+                  "
+                >
+                  📅
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ===============================================
+              DEPARTMENT
+          =============================================== */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
             >
               หน่วยงาน / กลุ่มงาน
             </label>
 
-            <SearchableDropdown
-              id="departmentIdControl"
-              value={departmentId}
-              options={
-                departmentOptions
+            {/* ------------------------------------------------
+                USER:
+                disabled select ไม่ส่งค่า
+                จึงส่ง departmentId ผ่าน hidden input
+
+                ADMIN:
+                select ส่งค่าปกติ
+            ------------------------------------------------ */}
+
+            {(!canChangeDepartment ||
+              !isPending) && (
+              <input
+                type="hidden"
+                name="departmentId"
+                value={
+                  departmentId
+                }
+              />
+            )}
+
+            <select
+              name={
+                canChangeDepartment &&
+                isPending
+                  ? "departmentId"
+                  : undefined
               }
-              placeholder="-- เลือกหน่วยงาน --"
-              searchPlaceholder="พิมพ์ค้นหาหน่วยงาน..."
-              emptyText="ไม่พบหน่วยงาน"
-              disabled={!isPending}
-              onChange={
-                setDepartmentId
+              value={
+                departmentId
               }
-            />
-          </AppInfoCard>
+              disabled={
+                !canChangeDepartment ||
+                !isPending
+              }
+              required={
+                canChangeDepartment &&
+                isPending
+              }
+              onChange={(
+                event
+              ) => {
+                if (
+                  !canChangeDepartment ||
+                  !isPending
+                ) {
+                  return;
+                }
+
+                setDepartmentId(
+                  event.target
+                    .value
+                );
+              }}
+              className="
+                h-11
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                text-sm
+                font-bold
+                !text-slate-900
+                outline-none
+                transition
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:!text-slate-500
+              "
+            >
+              {canChangeDepartment &&
+                isPending && (
+                  <option value="">
+                    -- เลือกหน่วยงาน --
+                  </option>
+                )}
+
+              {departments.map(
+                (
+                  department
+                ) => (
+                  <option
+                    key={
+                      department.id
+                    }
+                    value={
+                      department.id
+                    }
+                  >
+                    {
+                      department.name
+                    }
+                  </option>
+                )
+              )}
+            </select>
+          </div>
         </div>
-      </AppCard>
 
-      {/* ===================================================
-          MATERIAL TABLE
-      =================================================== */}
+        {/* =================================================
+            MATERIAL TABLE
 
-      <AppTableCard
-        title="รายการพัสดุเบิกจ่าย"
-        subtitle="แก้ไขหมวดหมู่ รายการพัสดุ จำนวน และหมายเหตุ"
-        badge={`${items.length} รายการ`}
-        className="
-          relative
-          z-10
-          overflow-visible
-        "
-      >
+            เหมือน /issue/create
+
+            7 ช่อง:
+            1. ลำดับ
+            2. หมวดหมู่
+            3. รายการพัสดุ
+            4. จำนวนที่ขอเบิก
+            5. จำนวนที่เบิกจ่าย
+            6. หน่วย
+            7. หมายเหตุ
+        ================================================= */}
+
         <div
           className="
-            relative
             w-full
             min-w-0
-
             overflow-x-auto
-            overflow-y-visible
             overscroll-x-contain
           "
         >
           <table
             className="
-              relative
               w-full
-              min-w-[1200px]
-
+              min-w-[1250px]
               border-collapse
-
               bg-white
-
               text-sm
             "
           >
-            <thead className="relative z-10">
+            {/* ===============================================
+                HEADER
+            =============================================== */}
+
+            <thead>
               <tr>
                 {[
                   "ลำดับ",
                   "หมวดหมู่",
                   "รายการพัสดุ",
                   "จำนวนที่ขอเบิก",
+                  "จำนวนที่เบิกจ่าย",
                   "หน่วย",
                   "หมายเหตุ",
                 ].map(
-                  (title) => (
+                  (
+                    tableTitle
+                  ) => (
                     <th
-                      key={title}
+                      key={
+                        tableTitle
+                      }
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
-                        px-3
+                        px-4
                         py-4
-
                         text-center
-                        text-lg
+                        text-base
                         font-extrabold
                         !text-white
                       "
                     >
-                      {title}
+                      {
+                        tableTitle
+                      }
                     </th>
                   )
                 )}
               </tr>
             </thead>
 
-            <tbody className="relative">
-              {items.map(
-                (row, index) => {
+            {/* ===============================================
+                BODY
+            =============================================== */}
+
+            <tbody>
+              {rows.map(
+                (
+                  row,
+                  index
+                ) => {
+                  /*
+                   * รายการพัสดุในหมวด
+                   *
+                   * - รายการเดิมต้องแสดงได้เสมอ
+                   * - รายการอื่นให้เลือกจากพัสดุที่มีล็อตคงเหลือ
+                   */
+
                   const filteredMaterials =
-                    row.category
-                      ? materials.filter(
-                          (
-                            material
-                          ) =>
-                            material.category ===
-                            row.category
-                        )
-                      : [];
+                    materials.filter(
+                      (
+                        material
+                      ) => {
+                        if (
+                          material.category !==
+                          row.category
+                        ) {
+                          return false;
+                        }
+
+                        if (
+                          String(
+                            material.id
+                          ) ===
+                          row.materialId
+                        ) {
+                          return true;
+                        }
+
+                        return availableMaterialIds.has(
+                          material.id
+                        );
+                      }
+                    );
 
                   const selectedMaterial =
                     materials.find(
@@ -1459,35 +1049,17 @@ export default function EditIssueForm({
                         row.materialId
                     );
 
-                  const materialOptions:
-                    SearchableOption[] =
-                    filteredMaterials.map(
-                      (
-                        material
-                      ) => ({
-                        value: String(
-                          material.id
-                        ),
-
-                        label: `${material.code} - ${material.name}`,
-                      })
-                    );
-
-                  const rowZIndex =
-                    items.length -
-                    index +
-                    20;
+                  const unit =
+                    selectedMaterial
+                      ?.unit ?? "";
 
                   return (
                     <tr
                       key={index}
-                      style={{
-                        position:
-                          "relative",
-                        zIndex:
-                          rowZIndex,
-                      }}
                       className={`
+                        transition-colors
+                        duration-200
+
                         ${
                           index %
                             2 ===
@@ -1496,24 +1068,20 @@ export default function EditIssueForm({
                             : "bg-slate-50/60"
                         }
 
-                        transition-colors
-                        duration-200
-
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ลำดับ */}
+                      {/* =====================================
+                          NUMBER
+                      ===================================== */}
 
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -1522,75 +1090,160 @@ export default function EditIssueForm({
                         {index + 1}
                       </td>
 
-                      {/* หมวดหมู่ */}
+                      {/* =====================================
+                          CATEGORY
+                      ===================================== */}
 
                       <td
                         className="
-                          relative
-                          min-w-[220px]
-
-                          overflow-visible
-
+                          min-w-[190px]
                           border
                           border-black
-
                           px-3
                           py-3
-
-                          align-top
                         "
                       >
-                        <SearchableDropdown
-                          id={`category-${index}`}
+                        <select
                           value={
                             row.category
                           }
-                          options={
-                            categoryOptions
-                          }
-                          placeholder="เลือกหมวดหมู่"
-                          searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
-                          emptyText="ไม่พบหมวดหมู่"
                           disabled={
                             !isPending
                           }
                           onChange={(
-                            value
+                            event
                           ) =>
                             updateRow(
                               index,
                               "category",
-                              value
+                              event.target
+                                .value
                             )
                           }
-                        />
+                          className="
+                            h-10
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-3
+                            font-semibold
+                            !text-slate-900
+                            outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:!text-slate-500
+                          "
+                        >
+                          <option value="">
+                            เลือกหมวดหมู่
+                          </option>
+
+                          {categories.map(
+                            (
+                              category
+                            ) => (
+                              <option
+                                key={
+                                  category.value
+                                }
+                                value={
+                                  category.value
+                                }
+                              >
+                                {
+                                  category.label
+                                }
+                              </option>
+                            )
+                          )}
+                        </select>
                       </td>
 
-                      {/* รายการพัสดุ */}
+                      {/* =====================================
+                          MATERIAL
+                      ===================================== */}
 
                       <td
                         className="
-                          relative
-                          min-w-[360px]
-
-                          overflow-visible
-
+                          min-w-[300px]
                           border
                           border-black
-
                           px-3
                           py-3
-
-                          align-top
                         "
                       >
-                        <input
-                          type="hidden"
+                        <select
                           name={`items[${index}].materialId`}
                           value={
                             row.materialId
                           }
-                        />
+                          disabled={
+                            !isPending ||
+                            !row.category
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateRow(
+                              index,
+                              "materialId",
+                              event.target
+                                .value
+                            )
+                          }
+                          className="
+                            h-10
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-3
+                            font-semibold
+                            !text-slate-900
+                            outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:!text-slate-500
+                          "
+                        >
+                          <option value="">
+                            {row.category
+                              ? "เลือกรายการพัสดุ"
+                              : "เลือกหมวดหมู่ก่อน"}
+                          </option>
+
+                          {filteredMaterials.map(
+                            (
+                              material
+                            ) => (
+                              <option
+                                key={
+                                  material.id
+                                }
+                                value={
+                                  material.id
+                                }
+                              >
+                                {
+                                  material.code
+                                }{" "}
+                                -{" "}
+                                {
+                                  material.name
+                                }
+                              </option>
+                            )
+                          )}
+                        </select>
 
                         <input
                           type="hidden"
@@ -1599,63 +1252,32 @@ export default function EditIssueForm({
                             row.receiveItemId
                           }
                         />
-
-                        <SearchableDropdown
-                          id={`material-${index}`}
-                          value={
-                            row.materialId
-                          }
-                          options={
-                            materialOptions
-                          }
-                          placeholder={
-                            row.category
-                              ? "เลือกรายการพัสดุ"
-                              : "เลือกหมวดหมู่ก่อน"
-                          }
-                          searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
-                          emptyText="ไม่พบรายการพัสดุ"
-                          disabled={
-                            !isPending ||
-                            !row.category
-                          }
-                          onChange={(
-                            value
-                          ) =>
-                            updateRow(
-                              index,
-                              "materialId",
-                              value
-                            )
-                          }
-                        />
                       </td>
 
-                      {/* จำนวนที่ขอเบิก */}
+                      {/* =====================================
+                          REQUEST QTY
+                      ===================================== */}
 
                       <td
                         className="
-                          min-w-[160px]
-
+                          min-w-[150px]
                           border
                           border-black
-
                           px-3
                           py-3
-
-                          align-top
+                          text-center
                         "
                       >
                         <input
-                          type="number"
                           name={`items[${index}].qty`}
+                          type="number"
+                          min="1"
                           value={
                             row.qty
                           }
                           disabled={
                             !isPending
                           }
-                          min="1"
                           onChange={(
                             event
                           ) =>
@@ -1666,75 +1288,121 @@ export default function EditIssueForm({
                                 .value
                             )
                           }
-                          className={`
-                            ${tableInputClass}
-
+                          className="
+                            h-10
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-3
                             text-center
-                            tabular-nums
-                          `}
+                            font-bold
+                            !text-slate-900
+                            outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:!text-slate-500
+                          "
                         />
                       </td>
 
-                      {/* หน่วย */}
+                      {/* =====================================
+                          ISSUED QTY
+
+                          หน้าแก้ไขใบเบิก
+                          ไม่แก้จำนวนที่พัสดุจ่าย
+                      ===================================== */}
 
                       <td
                         className="
-                          min-w-[130px]
-
+                          min-w-[150px]
                           border
                           border-black
-
                           px-3
                           py-3
-
-                          align-top
+                          text-center
                         "
                       >
                         <input
                           type="text"
                           readOnly
-                          value={
-                            selectedMaterial?.unit ??
-                            "-"
-                          }
+                          value=""
+                          aria-label={`จำนวนที่เบิกจ่ายรายการที่ ${
+                            index + 1
+                          }`}
                           className="
-                            h-[52px]
+                            h-10
                             w-full
-
-                            cursor-default
-
-                            rounded-[16px]
-
+                            rounded-xl
                             border
-                            border-slate-200
-
+                            border-slate-300
                             bg-slate-100
-
                             px-3
-
                             text-center
-                            text-base
-                            font-extrabold
-                            !text-slate-700
-
+                            font-bold
+                            !text-slate-500
                             outline-none
                           "
                         />
                       </td>
 
-                      {/* หมายเหตุ */}
+                      {/* =====================================
+                          UNIT
+                      ===================================== */}
 
                       <td
                         className="
-                          min-w-[240px]
-
+                          min-w-[120px]
                           border
                           border-black
-
                           px-3
                           py-3
+                        "
+                      >
+                        <input
+                          type="text"
+                          readOnly
+                          value={unit}
+                          aria-label={`หน่วยของรายการที่ ${
+                            index + 1
+                          }`}
+                          className="
+                            h-10
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-slate-50
+                            px-3
+                            text-center
+                            font-bold
+                            !text-slate-700
+                            outline-none
+                          "
+                        />
 
-                          align-top
+                        <input
+                          type="hidden"
+                          name={`items[${index}].unit`}
+                          value={unit}
+                        />
+                      </td>
+
+                      {/* =====================================
+                          REMARK
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[220px]
+                          border
+                          border-black
+                          px-3
+                          py-3
                         "
                       >
                         <input
@@ -1746,7 +1414,6 @@ export default function EditIssueForm({
                           disabled={
                             !isPending
                           }
-                          placeholder="ระบุหมายเหตุ"
                           onChange={(
                             event
                           ) =>
@@ -1757,9 +1424,25 @@ export default function EditIssueForm({
                                 .value
                             )
                           }
-                          className={
-                            tableInputClass
-                          }
+                          placeholder="ระบุหมายเหตุ"
+                          className="
+                            h-10
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-white
+                            px-3
+                            font-semibold
+                            !text-slate-900
+                            outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
+                            disabled:cursor-not-allowed
+                            disabled:bg-slate-100
+                            disabled:!text-slate-500
+                          "
                         />
                       </td>
                     </tr>
@@ -1769,36 +1452,38 @@ export default function EditIssueForm({
             </tbody>
           </table>
         </div>
-      </AppTableCard>
 
-      {/* ===================================================
-          ACTION
-          ใช้ AppButton กลางเท่านั้น
-      =================================================== */}
+        {/* =================================================
+            SUBMIT
+        ================================================= */}
 
-      {isPending && (
-        <div
-          className="
-            flex
-            justify-end
-
-            pt-1
-          "
-        >
-          <AppButton
-            type="submit"
-            variant="success"
-            size="md"
-            icon={
-              <span>
-                💾
-              </span>
-            }
+        {isPending && (
+          <div
+            className="
+              flex
+              justify-end
+              border-t
+              border-slate-200
+              pt-5
+            "
           >
-            บันทึกการแก้ไข
-          </AppButton>
-        </div>
-      )}
-    </form>
+            <AppButton
+              type="submit"
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  💾
+                </span>
+              }
+            >
+              บันทึกการแก้ไข
+            </AppButton>
+          </div>
+        )}
+      </form>
+    </div>
   );
 }

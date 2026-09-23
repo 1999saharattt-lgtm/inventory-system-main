@@ -10,6 +10,7 @@ import {
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 
 import EditIssueForm from "./EditIssueForm";
 
@@ -127,9 +128,11 @@ export default async function EditIssuePage({
 
      ADMIN
      - ทุกกลุ่มงาน
+     - สามารถเปลี่ยนกลุ่มงานได้
 
      USER
      - เฉพาะกลุ่มงานตัวเอง
+     - ไม่สามารถเปลี่ยนกลุ่มงานได้
   ======================================================= */
 
   const departments =
@@ -199,15 +202,23 @@ export default async function EditIssuePage({
     });
 
   /* =======================================================
+     PERMISSION
+  ======================================================= */
+
+  const canChangeDepartment =
+    session?.role === "ADMIN";
+
+  /* =======================================================
      UI
   ======================================================= */
 
   return (
     <AppPage>
-      {/* ===================================================
+      {/* =====================================================
           HEADER
-          ใช้ Component กลางของระบบ
-      =================================================== */}
+
+          รูปแบบเดียวกับ /issue/create
+      ===================================================== */}
 
       <AppPageHeader
         icon="🖊️"
@@ -215,7 +226,7 @@ export default async function EditIssuePage({
         subtitle="แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
         actions={
           <AppButton
-            href="/issue"
+            href={`/issue/${issue.id}`}
             variant="back"
             size="md"
             icon={
@@ -231,28 +242,62 @@ export default async function EditIssuePage({
         }
       />
 
-      {/* ===================================================
-          FORM
+      {/* =====================================================
+          EDIT ISSUE FORM CARD
 
-          ไม่สร้าง Card / Background / Gradient
-          ครอบเองใน page
+          ใช้โครงสร้างเดียวกับ
+          /issue/create
+          /receive/create
+      ===================================================== */}
 
-          ให้ EditIssueForm ใช้ Component กลาง
-          แบบเดียวกับ Receive / Issue Create
-      =================================================== */}
+      <AppCard
+        className="
+          relative
+          z-0
 
-      <EditIssueForm
-        issue={issue}
-        departments={
-          departments
-        }
-        materials={
-          materials
-        }
-        receiveItems={
-          receiveItems
-        }
-      />
+          w-full
+          min-w-0
+
+          overflow-visible
+
+          p-4
+
+          sm:p-5
+          lg:p-6
+        "
+      >
+        {/* ===================================================
+            EDIT ISSUE FORM
+        =================================================== */}
+
+        <div
+          className="
+            relative
+            z-10
+
+            w-full
+            min-w-0
+
+            overflow-visible
+          "
+        >
+          <EditIssueForm
+            issue={issue}
+            departments={
+              departments
+            }
+            materials={
+              materials
+            }
+            receiveItems={
+              receiveItems
+            }
+            canChangeDepartment={
+              canChangeDepartment
+            }
+          />
+        </div>
+      </AppCard>
     </AppPage>
   );
 }
