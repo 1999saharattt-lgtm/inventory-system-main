@@ -32,12 +32,7 @@ const thaiMonthsShort = [
 function startOfDay(date: Date) {
   const result = new Date(date);
 
-  result.setHours(
-    0,
-    0,
-    0,
-    0
-  );
+  result.setHours(0, 0, 0, 0);
 
   return result;
 }
@@ -46,13 +41,7 @@ function startOfMonth(date: Date) {
   const result = new Date(date);
 
   result.setDate(1);
-
-  result.setHours(
-    0,
-    0,
-    0,
-    0
-  );
+  result.setHours(0, 0, 0, 0);
 
   return result;
 }
@@ -1812,9 +1801,15 @@ export default async function Home() {
               </div>
             </div>
 
+            {/* =================================================
+                FIXED:
+                AppButton ไม่มี variant="dark"
+                ใช้ primary ซึ่งรองรับโดย AppButton
+            ================================================= */}
+
             <AppButton
               href="/materials/summary"
-              variant="dark"
+              variant="primary"
               size="md"
               className="
                 mt-2
