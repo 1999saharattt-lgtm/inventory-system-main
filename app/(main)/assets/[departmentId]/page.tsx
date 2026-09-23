@@ -1,10 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+
 import { requireLogin } from "@/lib/auth";
-import BackButton from "@/components/BackButton";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 
 export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -13,12 +22,14 @@ type Props = {
 };
 
 /* =========================================================
-   ชื่อหมวดครุภัณฑ์
+   CATEGORY NAME
 
-   หมายเหตุ:
-   - SHELF รวมแสดงกับ CABINET
-   - MONITOR รวมแสดงกับ COMPUTER
-   ========================================================= */
+   SHELF
+   -> รวมแสดงกับ CABINET
+
+   MONITOR
+   -> รวมแสดงกับ COMPUTER
+========================================================= */
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
@@ -33,8 +44,8 @@ const categoryName: Record<string, string> = {
 };
 
 /* =========================================================
-   Icon ของแต่ละหมวด
-   ========================================================= */
+   CATEGORY ICON
+========================================================= */
 
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
@@ -49,14 +60,17 @@ const categoryIcon: Record<string, string> = {
 };
 
 /* =========================================================
-   ลำดับการแสดงหมวด
+   CATEGORY ORDER
 
    ไม่แสดง SHELF แยก
    ไม่แสดง MONITOR แยก
 
-   SHELF   -> รวมกับ CABINET
-   MONITOR -> รวมกับ COMPUTER
-   ========================================================= */
+   SHELF
+   -> CABINET
+
+   MONITOR
+   -> COMPUTER
+========================================================= */
 
 const categoryOrder = [
   "DESK",
@@ -72,479 +86,521 @@ const categoryOrder = [
 
 /* =========================================================
    PAGE
-   ========================================================= */
+========================================================= */
 
 export default async function DepartmentAssetsPage({
   params,
 }: Props) {
   /* =======================================================
-     ตรวจสอบผู้ใช้งาน
-     ======================================================= */
+     AUTH
+  ======================================================= */
 
   await requireLogin();
 
   /* =======================================================
-     อ่าน Department ID จาก URL
-     ======================================================= */
+     PARAMS
+  ======================================================= */
 
   const { departmentId } = await params;
 
   const id = Number(departmentId);
 
-  if (!Number.isInteger(id) || id <= 0) {
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
     notFound();
   }
 
   /* =======================================================
-     โหลด Department
-     ======================================================= */
+     DEPARTMENT
+  ======================================================= */
 
-  const department = await prisma.department.findUnique({
-    where: {
-      id,
-    },
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id,
+      },
 
-    include: {
-      _count: {
-        select: {
-          assets: true,
+      include: {
+        _count: {
+          select: {
+            assets: true,
+          },
         },
       },
-    },
-  });
+    });
 
   if (!department) {
     notFound();
   }
 
   /* =======================================================
-     โหลดครุภัณฑ์ทั้งหมดของ Department
+     ASSETS
+  ======================================================= */
 
-     responsibleName
-     = ผู้รับผิดชอบตามทะเบียนต้นฉบับ/PDF
-
-     officer
-     = ผู้ครอบครองที่ผูกกับ Officer ในระบบ
-
-     section
-     = งาน/กลุ่มงานย่อยที่ผูกในระบบ
-     ======================================================= */
-
-  const assets = await prisma.asset.findMany({
-    where: {
-      departmentId: id,
-    },
-
-    orderBy: {
-      id: "asc",
-    },
-
-    select: {
-      id: true,
-
-      name: true,
-
-      category: true,
-
-      brand: true,
-
-      model: true,
-
-      serialNumber: true,
-
-      governmentAssetNo: true,
-
-      officeAssetNo: true,
-
-      /* ===============================================
-         ผู้รับผิดชอบตามทะเบียนต้นฉบับ
-         =============================================== */
-
-      responsibleName: true,
-
-      /* ===============================================
-         Department
-         =============================================== */
-
-      departmentId: true,
-
-      department: {
-        select: {
-          name: true,
-        },
+  const assets =
+    await prisma.asset.findMany({
+      where: {
+        departmentId: id,
       },
 
-      /* ===============================================
-         Section
-         =============================================== */
-
-      sectionId: true,
-
-      section: {
-        select: {
-          name: true,
-        },
+      orderBy: {
+        id: "asc",
       },
 
-      /* ===============================================
-         Officer
-         =============================================== */
-
-      officerId: true,
-
-      officer: {
-        select: {
-          firstName: true,
-          lastName: true,
-        },
+      select: {
+        id: true,
+        category: true,
       },
-
-      /* ===============================================
-         สถานะ
-         =============================================== */
-
-      status: true,
-
-      /* ===============================================
-         ข้อมูลเพิ่มเติม
-         =============================================== */
-
-      purchaseDate: true,
-
-      price: true,
-
-      location: true,
-
-      remark: true,
-    },
-  });
+    });
 
   /* =======================================================
-     นับจำนวนครุภัณฑ์แยกตาม Category
-
-     กติกาการรวมหมวดบนหน้าเมนู
+     CATEGORY COUNTS
 
      CABINET
      = CABINET + SHELF
 
      COMPUTER
      = COMPUTER + MONITOR
-     ======================================================= */
+  ======================================================= */
 
-  const categoryCounts = new Map<string, number>();
+  const categoryCounts =
+    new Map<string, number>();
 
   for (const asset of assets) {
-    let displayCategory = asset.category as string;
+    let displayCategory =
+      asset.category as string;
 
-    /*
-     * ชั้นวางรวมอยู่ในหมวดตู้และชั้นวาง
-     */
-
-    if (displayCategory === "SHELF") {
+    if (
+      displayCategory === "SHELF"
+    ) {
       displayCategory = "CABINET";
     }
 
-    /*
-     * จอคอมพิวเตอร์รวมอยู่ในหมวดคอมพิวเตอร์
-     */
-
-    if (displayCategory === "MONITOR") {
-      displayCategory = "COMPUTER";
+    if (
+      displayCategory === "MONITOR"
+    ) {
+      displayCategory =
+        "COMPUTER";
     }
 
     categoryCounts.set(
       displayCategory,
-      (categoryCounts.get(displayCategory) ?? 0) + 1
+      (categoryCounts.get(
+        displayCategory
+      ) ?? 0) + 1
     );
   }
 
   /* =======================================================
-     RENDER
-     ======================================================= */
+     UI
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* ===================================================
-          Header
-          =================================================== */}
+    <AppPage>
+      {/* =====================================================
+          PAGE HEADER
+      ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="🏢"
+        title={department.name}
+        subtitle="เลือกประเภทครุภัณฑ์เพื่อดูทะเบียนคุม"
+        actions={
+          <AppButton
+            href="/assets"
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          SUMMARY
+      ===================================================== */}
+
+      <AppCard
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
+          !p-4
+
+          sm:!p-5
+          lg:!p-6
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            🏢 {department.name}
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            เลือกประเภทครุภัณฑ์เพื่อดูทะเบียนคุม
-          </p>
-        </div>
-
-        <BackButton href="/assets" />
-      </div>
-
-      {/* ===================================================
-          Summary
-          =================================================== */}
-
-      <div
-        className="
-          flex
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-4
-          rounded-2xl
-          border
-          border-slate-900
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-4
-          text-white
-          shadow-xl
-          sm:p-6
-        "
-      >
-        <div className="min-w-0">
-          <p className="text-sm font-bold !text-slate-300">
-            ครุภัณฑ์ทั้งหมดของกลุ่มงาน
-          </p>
-
-          <p className="mt-1 text-3xl font-extrabold !text-white">
-            {department._count.assets} รายการ
-          </p>
-        </div>
-
         <div
           className="
             flex
-            shrink-0
+            w-full
+            min-w-0
             flex-col
-            gap-2
+            gap-4
+
             sm:flex-row
             sm:items-center
+            sm:justify-between
           "
         >
           {/* ===============================================
-              ปุ่มรวมรายการครุภัณฑ์
-              =============================================== */}
+              TOTAL
+          =============================================== */}
 
-          <Link
-            href={`/assets/${department.id}/all`}
-            className="
-              block
-              rounded-xl
-              border
-              border-slate-200
-              bg-white
-              px-4
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              !text-black
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:bg-slate-100
-              sm:px-6
-              sm:py-3
-              sm:text-base
-            "
-          >
-            📋 รายการครุภัณฑ์หลังการตรวจสอบ
-          </Link>
-        </div>
-      </div>
-
-      {/* ===================================================
-          Category Cards
-          =================================================== */}
-
-      <div
-        className="
-          grid
-          gap-5
-          sm:grid-cols-2
-          lg:grid-cols-3
-        "
-      >
-        {categoryOrder.map((category) => {
-          const count = categoryCounts.get(category) ?? 0;
-
-          return (
-            <Link
-              key={category}
-              href={`/assets/${department.id}/${category.toLowerCase()}`}
+          <div className="min-w-0">
+            <p
               className="
-                group
-                overflow-hidden
-                rounded-2xl
-                border
-                border-slate-300
-                bg-white
-                shadow-lg
-                transition-all
-                duration-300
-                hover:-translate-y-1
-                hover:shadow-2xl
+                text-sm
+                font-extrabold
+                !text-slate-500
+
+                sm:text-base
               "
             >
-              {/* ===========================================
-                  Top Bar
-                  =========================================== */}
+              ครุภัณฑ์ทั้งหมดของกลุ่มงาน
+            </p>
 
-              <div
+            <div
+              className="
+                mt-2
+                flex
+                items-end
+                gap-2
+              "
+            >
+              <span
                 className="
-                  h-2
-                  bg-gradient-to-r
-                  from-slate-700
-                  to-slate-900
-                "
-              />
+                  text-3xl
+                  font-black
+                  leading-none
+                  tabular-nums
+                  !text-slate-900
 
-              <div
-                className="
-                  flex
-                  min-h-[220px]
-                  flex-col
-                  items-center
-                  justify-between
-                  gap-4
-                  p-6
-                  text-center
+                  sm:text-4xl
                 "
               >
-                {/* =========================================
-                    Icon
-                    ========================================= */}
+                {department._count.assets.toLocaleString(
+                  "th-TH"
+                )}
+              </span>
 
-                <div
+              <span
+                className="
+                  pb-0.5
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+
+                  sm:text-base
+                "
+              >
+                รายการ
+              </span>
+            </div>
+          </div>
+
+          {/* ===============================================
+              ALL ASSETS
+          =============================================== */}
+
+          <AppButton
+            href={`/assets/${department.id}/all`}
+            variant="primary"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                📋
+              </span>
+            }
+            className="
+              w-full
+              shrink-0
+
+              sm:w-auto
+            "
+          >
+            รายการครุภัณฑ์หลังการตรวจสอบ
+          </AppButton>
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          CATEGORY CARDS
+      ===================================================== */}
+
+      <section
+        className="
+          grid
+          w-full
+          min-w-0
+          grid-cols-1
+          gap-4
+
+          sm:grid-cols-2
+
+          xl:grid-cols-3
+        "
+      >
+        {categoryOrder.map(
+          (category) => {
+            const count =
+              categoryCounts.get(
+                category
+              ) ?? 0;
+
+            return (
+              <Link
+                key={category}
+                href={`/assets/${department.id}/${category.toLowerCase()}`}
+                prefetch
+                className="
+                  group
+                  block
+                  min-w-0
+                "
+              >
+                <AppCard
                   className="
-                    flex
-                    h-16
-                    w-16
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-100
-                    text-4xl
-                    shadow-md
-                    transition
+                    relative
+                    h-full
+                    min-h-[210px]
+                    w-full
+                    min-w-0
+                    overflow-hidden
+
+                    !p-0
+
+                    transition-all
                     duration-300
-                    group-hover:scale-110
+
+                    group-hover:-translate-y-1
+                    group-hover:shadow-xl
+
+                    group-active:translate-y-0
+                    group-active:scale-[0.985]
                   "
                 >
-                  {categoryIcon[category]}
-                </div>
+                  {/* =========================================
+                      TOP ACCENT
+                  ========================================= */}
 
-                {/* =========================================
-                    Name / Count
-                    ========================================= */}
-
-                <div>
-                  <h2
+                  <div
+                    aria-hidden="true"
                     className="
-                      text-xl
-                      font-extrabold
-                      text-slate-900
+                      h-1.5
+                      w-full
+
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
+                    "
+                  />
+
+                  {/* =========================================
+                      CONTENT
+                  ========================================= */}
+
+                  <div
+                    className="
+                      flex
+                      min-h-[208px]
+                      w-full
+                      min-w-0
+                      flex-col
+
+                      p-5
+
+                      sm:p-6
                     "
                   >
-                    {categoryName[category]}
-                  </h2>
+                    {/* =======================================
+                        TOP
+                    ======================================= */}
 
-                  <p
-                    className="
-                      mt-2
-                      text-lg
-                      font-bold
-                      text-slate-600
-                    "
-                  >
-                    {count} รายการ
-                  </p>
-                </div>
+                    <div
+                      className="
+                        flex
+                        min-w-0
+                        items-start
+                        justify-between
+                        gap-4
+                      "
+                    >
+                      {/* ICON */}
 
-                {/* =========================================
-                    Button
-                    ========================================= */}
+                      <div
+                        className="
+                          grid
+                          h-14
+                          w-14
+                          shrink-0
+                          place-items-center
 
-                <span
-                  className="
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-950
-                    px-7
-                    py-2.5
-                    font-extrabold
-                    text-white
-                    shadow-lg
-                    transition
-                    group-hover:scale-105
-                  "
-                >
-                  เปิด
-                </span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+                          rounded-[18px]
+
+                          border
+                          border-slate-200
+
+                          bg-slate-50
+
+                          text-2xl
+
+                          shadow-sm
+
+                          transition-transform
+                          duration-300
+
+                          group-hover:scale-105
+                        "
+                        aria-hidden="true"
+                      >
+                        {
+                          categoryIcon[
+                            category
+                          ]
+                        }
+                      </div>
+
+                      {/* COUNT */}
+
+                      <span
+                        className="
+                          inline-flex
+                          shrink-0
+                          items-center
+                          justify-center
+
+                          whitespace-nowrap
+
+                          rounded-full
+
+                          border
+                          border-slate-200
+
+                          bg-slate-50
+
+                          px-3
+                          py-1.5
+
+                          text-xs
+                          font-extrabold
+                          tabular-nums
+                          !text-slate-600
+
+                          sm:text-sm
+                        "
+                      >
+                        {count.toLocaleString(
+                          "th-TH"
+                        )}{" "}
+                        รายการ
+                      </span>
+                    </div>
+
+                    {/* =======================================
+                        CATEGORY NAME
+                    ======================================= */}
+
+                    <div
+                      className="
+                        mt-5
+                        min-w-0
+                      "
+                    >
+                      <h2
+                        className="
+                          break-words
+
+                          text-xl
+                          font-black
+                          leading-tight
+                          tracking-tight
+                          !text-slate-900
+
+                          sm:text-2xl
+                        "
+                      >
+                        {
+                          categoryName[
+                            category
+                          ]
+                        }
+                      </h2>
+
+                      <p
+                        className="
+                          mt-2
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+                          !text-slate-500
+                        "
+                      >
+                        ดูทะเบียนคุมครุภัณฑ์ในหมวดนี้
+                      </p>
+                    </div>
+
+                    {/* =======================================
+                        FOOTER
+                    ======================================= */}
+
+                    <div
+                      className="
+                        mt-auto
+                        flex
+                        items-center
+                        justify-end
+                        pt-5
+                      "
+                    >
+                      <span
+                        className="
+                          inline-flex
+                          items-center
+                          gap-2
+
+                          text-sm
+                          font-extrabold
+                          !text-slate-700
+
+                          transition-all
+                          duration-300
+
+                          group-hover:!text-slate-950
+                        "
+                      >
+                        <span>
+                          เปิด
+                        </span>
+
+                        <span
+                          aria-hidden="true"
+                          className="
+                            transition-transform
+                            duration-300
+
+                            group-hover:translate-x-1
+                          "
+                        >
+                          →
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </AppCard>
+              </Link>
+            );
+          }
+        )}
+      </section>
+    </AppPage>
   );
 }
