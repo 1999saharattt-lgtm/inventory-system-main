@@ -1,7 +1,19 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+
 import ExportPdf from "./ExportPdf";
 import ExportExcel from "./ExportExcel";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -9,122 +21,217 @@ type Props = {
   }>;
 };
 
-const categoryName: Record<string, string> = {
+type Lot = {
+  id: number;
+  qty: number;
+  manufacture: Date | null;
+  expiry: Date | null;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const categoryName: Record<
+  string,
+  string
+> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-function formatDateAD(date: Date | string) {
+/* =========================================================
+   DATE
+========================================================= */
+
+function formatDateAD(
+  date: Date | string | null
+) {
+  if (!date) {
+    return "-";
+  }
+
   const d = new Date(date);
 
-  return `${String(d.getDate()).padStart(2, "0")}/${String(
+  if (Number.isNaN(d.getTime())) {
+    return "-";
+  }
+
+  return `${String(
+    d.getDate()
+  ).padStart(2, "0")}/${String(
     d.getMonth() + 1
   ).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
-export default async function StockCardPage({ params }: Props) {
-  const { id } = await params;
+/* =========================================================
+   MONEY
+========================================================= */
 
-  const material = await prisma.material.findUnique({
-    where: {
-      id: Number(id),
-    },
+function formatMoney(
+  value: number | string
+) {
+  const numberValue = Number(value);
 
-    include: {
-      vendor: true,
-
-      receiveItems: {
-        include: {
-          receive: {
-            include: {
-              vendor: true,
-            },
-          },
-        },
-
-        orderBy: {
-          receive: {
-            receiveDate: "asc",
-          },
-        },
-      },
-
-      issueItems: {
-        include: {
-          issue: {
-            include: {
-              department: true,
-            },
-          },
-        },
-
-        orderBy: {
-          issue: {
-            issueDate: "asc",
-          },
-        },
-      },
-    },
-  });
-
-  if (!material) {
-    return (
-      <div className="rounded-2xl border border-slate-300 bg-white p-8 text-center text-lg font-bold text-slate-600 shadow-lg">
-        ไม่พบข้อมูลพัสดุ
-      </div>
-    );
+  if (Number.isNaN(numberValue)) {
+    return "0.00";
   }
 
-  // ==========================================
-  // รายการรับเข้าล่าสุด
-  // ==========================================
+  return numberValue.toLocaleString(
+    "th-TH",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
+}
+
+/* =========================================================
+   NUMBER
+========================================================= */
+
+function formatNumber(
+  value: number | string
+) {
+  const numberValue = Number(value);
+
+  if (Number.isNaN(numberValue)) {
+    return "0";
+  }
+
+  return numberValue.toLocaleString(
+    "th-TH"
+  );
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+export default async function StockCardPage({
+  params,
+}: Props) {
+  const { id } = await params;
+
+  /* =======================================================
+     VALIDATE ID
+  ======================================================= */
+
+  const materialId = Number(id);
+
+  if (
+    !Number.isInteger(materialId) ||
+    materialId <= 0
+  ) {
+    notFound();
+  }
+
+  /* =======================================================
+     MATERIAL
+  ======================================================= */
+
+  const material =
+    await prisma.material.findUnique({
+      where: {
+        id: materialId,
+      },
+
+      include: {
+        vendor: true,
+
+        receiveItems: {
+          include: {
+            receive: {
+              include: {
+                vendor: true,
+              },
+            },
+          },
+
+          orderBy: {
+            receive: {
+              receiveDate: "asc",
+            },
+          },
+        },
+
+        issueItems: {
+          include: {
+            issue: {
+              include: {
+                department: true,
+              },
+            },
+          },
+
+          orderBy: {
+            issue: {
+              issueDate: "asc",
+            },
+          },
+        },
+      },
+    });
+
+  if (!material) {
+    notFound();
+  }
+
+  /* =======================================================
+     LATEST RECEIVE
+  ======================================================= */
 
   const latestReceiveItem =
     material.receiveItems.length > 0
       ? material.receiveItems[
-          material.receiveItems.length - 1
+          material.receiveItems.length -
+            1
         ]
       : null;
 
   const latestVendor =
-    latestReceiveItem?.receive.vendor?.name ?? "-";
+    latestReceiveItem?.receive.vendor
+      ?.name ?? "-";
 
-  const latestPrice = latestReceiveItem
-    ? Number(latestReceiveItem.unitPrice)
-    : 0;
+  const latestPrice =
+    latestReceiveItem
+      ? Number(
+          latestReceiveItem.unitPrice
+        )
+      : 0;
 
-  // ==========================================
-  // สร้างข้อมูลล็อตสำหรับจำลอง FEFO
-  // ==========================================
-
-  type Lot = {
-    id: number;
-    qty: number;
-    manufacture: Date | null;
-    expiry: Date | null;
-  };
+  /* =======================================================
+     FEFO LOTS
+  ======================================================= */
 
   const lots: Lot[] = [];
 
-  // ==========================================
-  // รวมรายการรับเข้าและรายการเบิกจ่าย
-  // เฉพาะ APPROVED เท่านั้นที่ตัดสต็อก
-  // ==========================================
+  /* =======================================================
+     EVENTS
+
+     เฉพาะ APPROVED เท่านั้นที่ตัดสต็อก
+  ======================================================= */
 
   const events = [
-    ...material.receiveItems.map((item) => ({
-      type: "receive" as const,
-      date: item.receive.receiveDate,
-      item,
-    })),
+    ...material.receiveItems.map(
+      (item) => ({
+        type: "receive" as const,
+        date:
+          item.receive.receiveDate,
+        item,
+      })
+    ),
 
     ...material.issueItems
       .filter(
-        (item) => item.issue.status === "APPROVED"
+        (item) =>
+          item.issue.status ===
+          "APPROVED"
       )
       .map((item) => ({
         type: "issue" as const,
@@ -157,10 +264,9 @@ export default async function StockCardPage({ params }: Props) {
     return 0;
   });
 
-  // ==========================================
-  // เก็บว่ารายการเบิกแต่ละรายการ
-  // ถูกตัดออกจากล็อตไหน
-  // ==========================================
+  /* =======================================================
+     ISSUE LOT MAP
+  ======================================================= */
 
   const issueLotMap = new Map<
     number,
@@ -170,19 +276,24 @@ export default async function StockCardPage({ params }: Props) {
     }
   >();
 
-  // ==========================================
-  // จำลองการเคลื่อนไหวของสต็อกตาม FEFO
-  // ==========================================
+  /* =======================================================
+     FEFO PROCESS
+  ======================================================= */
 
   for (const event of events) {
     if (event.type === "receive") {
-      const receiveItem = event.item;
+      const receiveItem =
+        event.item;
 
       lots.push({
         id: receiveItem.id,
-        qty: Number(receiveItem.qty),
-        manufacture: receiveItem.manufacture,
-        expiry: receiveItem.expiry,
+        qty: Number(
+          receiveItem.qty
+        ),
+        manufacture:
+          receiveItem.manufacture,
+        expiry:
+          receiveItem.expiry,
       });
 
       continue;
@@ -191,17 +302,22 @@ export default async function StockCardPage({ params }: Props) {
     const issueItem = event.item;
 
     let remainingQty = Number(
-      issueItem.issuedQty ?? issueItem.qty
+      issueItem.issuedQty ??
+        issueItem.qty
     );
 
     const availableLots = lots
-      .filter((lot) => lot.qty > 0)
+      .filter(
+        (lot) => lot.qty > 0
+      )
       .sort((a, b) => {
         const aUnspecified =
-          !a.manufacture && !a.expiry;
+          !a.manufacture &&
+          !a.expiry;
 
         const bUnspecified =
-          !b.manufacture && !b.expiry;
+          !b.manufacture &&
+          !b.expiry;
 
         if (
           aUnspecified &&
@@ -225,28 +341,38 @@ export default async function StockCardPage({ params }: Props) {
         }
 
         const aExpiry = a.expiry
-          ? new Date(a.expiry).getTime()
+          ? new Date(
+              a.expiry
+            ).getTime()
           : Number.MAX_SAFE_INTEGER;
 
         const bExpiry = b.expiry
-          ? new Date(b.expiry).getTime()
+          ? new Date(
+              b.expiry
+            ).getTime()
           : Number.MAX_SAFE_INTEGER;
 
-        if (aExpiry !== bExpiry) {
-          return aExpiry - bExpiry;
+        if (
+          aExpiry !== bExpiry
+        ) {
+          return (
+            aExpiry - bExpiry
+          );
         }
 
-        const aManufacture = a.manufacture
-          ? new Date(
-              a.manufacture
-            ).getTime()
-          : Number.MAX_SAFE_INTEGER;
+        const aManufacture =
+          a.manufacture
+            ? new Date(
+                a.manufacture
+              ).getTime()
+            : Number.MAX_SAFE_INTEGER;
 
-        const bManufacture = b.manufacture
-          ? new Date(
-              b.manufacture
-            ).getTime()
-          : Number.MAX_SAFE_INTEGER;
+        const bManufacture =
+          b.manufacture
+            ? new Date(
+                b.manufacture
+              ).getTime()
+            : Number.MAX_SAFE_INTEGER;
 
         if (
           aManufacture !==
@@ -261,7 +387,9 @@ export default async function StockCardPage({ params }: Props) {
         return a.id - b.id;
       });
 
-    let selectedLot: Lot | null = null;
+    let selectedLot:
+      | Lot
+      | null = null;
 
     for (const lot of availableLots) {
       if (remainingQty <= 0) {
@@ -278,43 +406,58 @@ export default async function StockCardPage({ params }: Props) {
       }
 
       lot.qty -= issueQty;
-      remainingQty -= issueQty;
+
+      remainingQty -=
+        issueQty;
     }
 
     if (selectedLot) {
-      issueLotMap.set(issueItem.id, {
-        manufacture:
-          selectedLot.manufacture,
-        expiry:
-          selectedLot.expiry,
-      });
+      issueLotMap.set(
+        issueItem.id,
+        {
+          manufacture:
+            selectedLot.manufacture,
+
+          expiry:
+            selectedLot.expiry,
+        }
+      );
     }
   }
 
-  // ==========================================
-  // สร้างข้อมูล Stock Card
-  // ==========================================
+  /* =======================================================
+     STOCK CARD ROWS
+  ======================================================= */
 
   const rows = [
-    ...material.receiveItems.map((item) => ({
-      date: item.receive.receiveDate,
+    ...material.receiveItems.map(
+      (item) => ({
+        date:
+          item.receive.receiveDate,
 
-      documentNo:
-        item.receive.documentNo,
+        documentNo:
+          item.receive.documentNo,
 
-      owner:
-        item.receive.vendor?.name ?? "-",
+        owner:
+          item.receive.vendor
+            ?.name ?? "-",
 
-      unitPrice: Number(item.unitPrice),
+        unitPrice: Number(
+          item.unitPrice
+        ),
 
-      receiveQty: item.qty,
+        receiveQty:
+          Number(item.qty),
 
-      issueQty: 0,
+        issueQty: 0,
 
-      manufacture: item.manufacture,
+        manufacture:
+          item.manufacture,
 
-      expiry: item.expiry,
-    })),
+        expiry:
+          item.expiry,
+      })
+    ),
 
     ...material.issueItems
       .filter(
@@ -323,28 +466,35 @@ export default async function StockCardPage({ params }: Props) {
           "APPROVED"
       )
       .map((item) => {
-        const lot = issueLotMap.get(item.id);
+        const lot =
+          issueLotMap.get(
+            item.id
+          );
 
         return {
-          date: item.issue.issueDate,
+          date:
+            item.issue.issueDate,
 
           documentNo:
             item.issue.documentNo,
 
           owner:
-            item.issue.department?.name ??
-            "-",
+            item.issue.department
+              ?.name ?? "-",
 
-          unitPrice: latestPrice,
+          unitPrice:
+            latestPrice,
 
           receiveQty: 0,
 
           issueQty: Number(
-            item.issuedQty ?? item.qty
+            item.issuedQty ??
+              item.qty
           ),
 
           manufacture:
-            lot?.manufacture ?? null,
+            lot?.manufacture ??
+            null,
 
           expiry:
             lot?.expiry ?? null,
@@ -352,185 +502,207 @@ export default async function StockCardPage({ params }: Props) {
       }),
   ].sort(
     (a, b) =>
-      new Date(a.date).getTime() -
-      new Date(b.date).getTime()
+      new Date(
+        a.date
+      ).getTime() -
+      new Date(
+        b.date
+      ).getTime()
   );
 
-  // ==========================================
-  // คำนวณยอดคงเหลือ
-  // ==========================================
+  /* =======================================================
+     BALANCE
+  ======================================================= */
 
   let balance = 0;
 
-  const stockRows = rows.map((row) => {
-    balance += Number(row.receiveQty);
-    balance -= Number(row.issueQty);
+  const stockRows = rows.map(
+    (row) => {
+      balance += Number(
+        row.receiveQty
+      );
 
-    return {
-      ...row,
-      balance,
-    };
-  });
+      balance -= Number(
+        row.issueQty
+      );
+
+      return {
+        ...row,
+        balance,
+      };
+    }
+  );
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
+          ใช้ตัวกลาง
       ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="📒"
+        title="บัญชีพัสดุ"
+        subtitle={
+          material.name
+        }
+        actions={
+          <>
+            <ExportPdf
+              material={{
+                ...material,
+
+                vendor:
+                  latestReceiveItem
+                    ?.receive
+                    .vendor ?? null,
+
+                latestPrice,
+              }}
+              rows={stockRows}
+            />
+
+            <ExportExcel
+              material={{
+                ...material,
+
+                vendor:
+                  latestReceiveItem
+                    ?.receive
+                    .vendor ?? null,
+
+                latestPrice,
+              }}
+              rows={stockRows}
+            />
+
+            <AppButton
+              href={`/stock-card/${material.category}`}
+              variant="back"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
+        }
+      />
+
+      {/* =====================================================
+          MATERIAL INFORMATION
+      ===================================================== */}
+
+      <AppCard
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
+
+          p-4
+
+          sm:p-5
+          lg:p-6
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-4xl
-            "
-          >
-            📒 บัญชีพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-base
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-lg
-            "
-          >
-            {material.name}
-          </p>
-        </div>
+        {/* ===================================================
+            SECTION HEADER
+        =================================================== */}
 
         <div
           className="
+            mb-5
+
             flex
-            shrink-0
             items-center
-            gap-2
-            sm:gap-3
+            gap-3
           "
         >
-          <ExportPdf
-            material={{
-              ...material,
-              vendor:
-                latestReceiveItem?.receive.vendor ??
-                null,
-              latestPrice,
-            }}
-            rows={stockRows}
-          />
-
-          <ExportExcel
-            material={{
-              ...material,
-              vendor:
-                latestReceiveItem?.receive.vendor ??
-                null,
-              latestPrice,
-            }}
-            rows={stockRows}
-          />
-
-          {/* ปุ่มกลับ - ปรับให้เป็นขนาดมาตรฐานเดียวกับหน้าอื่น */}
-          <Link
-            href={`/stock-card/${material.category}`}
+          <div
             className="
+              flex
+              h-11
+              w-11
               shrink-0
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2.5
-              text-center
-              text-base
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
+              items-center
+              justify-center
+
+              rounded-[15px]
+
+              bg-slate-100
+
+              text-xl
+
+              shadow-sm
             "
+            aria-hidden="true"
           >
-            ← กลับ
-          </Link>
+            📦
+          </div>
+
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-black
+                tracking-tight
+                !text-slate-900
+
+                sm:text-xl
+              "
+            >
+              ข้อมูลพัสดุ
+            </h2>
+
+            <p
+              className="
+                mt-0.5
+
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              รายละเอียดข้อมูลพัสดุและข้อมูลล่าสุด
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* =====================================================
-          รายละเอียดพัสดุ
-      ===================================================== */}
+        {/* ===================================================
+            INFO GRID
+        =================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-900
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          p-4
-          shadow-xl
-          sm:p-6
-        "
-      >
         <div
           className="
             grid
+            w-full
             min-w-0
+
             grid-cols-1
             gap-4
-            sm:gap-6
+
             md:grid-cols-2
+            xl:grid-cols-3
           "
         >
-          <div className="min-w-0">
+          {/* ===============================================
+              CODE
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               รหัสพัสดุ
@@ -538,25 +710,31 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
                 break-words
+
                 text-base
-                font-extrabold
-                !text-white
-                sm:text-xl
+                font-black
+                !text-slate-900
+
+                sm:text-lg
               "
             >
-              {material.code || "-"}
+              {material.code ||
+                "-"}
             </p>
-          </div>
+          </AppInfoCard>
 
-          <div className="min-w-0">
+          {/* ===============================================
+              MATERIAL NAME
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               รายการพัสดุ
@@ -564,26 +742,31 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
                 break-words
+
                 text-base
-                font-extrabold
-                leading-tight
-                !text-white
-                sm:text-xl
+                font-black
+                !text-slate-900
+
+                sm:text-lg
               "
             >
-              {material.name || "-"}
+              {material.name ||
+                "-"}
             </p>
-          </div>
+          </AppInfoCard>
 
-          <div className="min-w-0">
+          {/* ===============================================
+              CATEGORY
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               หมวดหมู่
@@ -591,28 +774,34 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
                 break-words
+
                 text-base
-                font-extrabold
-                leading-tight
-                !text-white
-                sm:text-xl
+                font-black
+                !text-slate-900
+
+                sm:text-lg
               "
             >
-              {categoryName[material.category] ??
+              {categoryName[
+                material.category
+              ] ??
                 material.category ??
                 "-"}
             </p>
-          </div>
+          </AppInfoCard>
 
-          <div className="min-w-0">
+          {/* ===============================================
+              UNIT
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               หน่วย
@@ -620,24 +809,30 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
+
                 text-base
-                font-extrabold
-                !text-white
-                sm:text-xl
+                font-black
+                !text-slate-900
+
+                sm:text-lg
               "
             >
-              {material.unit || "-"}
+              {material.unit ||
+                "-"}
             </p>
-          </div>
+          </AppInfoCard>
 
-          <div className="min-w-0">
+          {/* ===============================================
+              VENDOR
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               ผู้จำหน่ายล่าสุด
@@ -645,26 +840,30 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
                 break-words
+
                 text-base
-                font-extrabold
-                leading-tight
-                !text-white
-                sm:text-xl
+                font-black
+                !text-slate-900
+
+                sm:text-lg
               "
             >
               {latestVendor}
             </p>
-          </div>
+          </AppInfoCard>
 
-          <div className="min-w-0">
+          {/* ===============================================
+              PRICE
+          =============================================== */}
+
+          <AppInfoCard>
             <p
               className="
                 text-sm
-                font-bold
-                !text-slate-200
-                sm:text-lg
+                font-extrabold
+                !text-slate-500
               "
             >
               ราคาล่าสุด
@@ -672,57 +871,60 @@ export default async function StockCardPage({ params }: Props) {
 
             <p
               className="
-                mt-1
+                mt-2
+
                 text-base
-                font-extrabold
-                !text-white
-                sm:text-xl
+                font-black
+                tabular-nums
+                !text-slate-900
+
+                sm:text-lg
               "
             >
               {latestReceiveItem
-                ? latestPrice.toLocaleString(
-                    "th-TH",
-                    {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }
-                  )
-                : "-"}{" "}
-              บาท
+                ? `${formatMoney(
+                    latestPrice
+                  )} บาท`
+                : "-"}
             </p>
-          </div>
+          </AppInfoCard>
         </div>
-      </div>
+      </AppCard>
 
       {/* =====================================================
-          ตารางบัญชีพัสดุ
+          STOCK TABLE
+          ใช้ AppTableCard ตัวกลาง
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          overflow-hidden
-          rounded-2xl
-          bg-white
-          shadow-lg
-        "
+      <AppTableCard
+        title="รายการเคลื่อนไหวบัญชีพัสดุ"
+        subtitle={`ประวัติการรับเข้าและเบิกจ่าย • ทั้งหมด ${stockRows.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
       >
         <div
           className="
             w-full
-            max-w-full
+            min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
         >
           <table
             className="
-              w-max
-              min-w-[1000px]
+              w-full
+              min-w-[1300px]
+
               border-collapse
+
+              bg-white
             "
           >
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -735,254 +937,369 @@ export default async function StockCardPage({ params }: Props) {
                   "คงเหลือ",
                   "วันผลิต",
                   "วันหมดอายุ",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-slate-900
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-2
-                      py-2.5
-                      text-center
-                      text-xs
-                      font-extrabold
-                      !text-white
-                      sm:px-4
-                      sm:py-4
-                      sm:text-lg
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                ].map(
+                  (tableTitle) => (
+                    <th
+                      key={tableTitle}
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {tableTitle}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
+            {/* =================================================
+                BODY
+            ================================================= */}
+
             <tbody>
-              {stockRows.length === 0 ? (
+              {stockRows.length ===
+              0 ? (
                 <tr>
                   <td
                     colSpan={9}
                     className="
                       border
-                      border-slate-900
-                      py-10
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
                       text-center
-                      text-sm
-                      font-bold
-                      text-slate-500
-                      sm:py-12
-                      sm:text-lg
                     "
                   >
-                    ยังไม่มีข้อมูล
+                    <div
+                      className="
+                        mx-auto
+
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-16
+                          w-16
+
+                          items-center
+                          justify-center
+
+                          rounded-[20px]
+
+                          bg-slate-100
+
+                          text-3xl
+
+                          shadow-inner
+                        "
+                        aria-hidden="true"
+                      >
+                        📒
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีข้อมูล
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีรายการรับเข้าหรือเบิกจ่าย ข้อมูลจะแสดงในส่วนนี้
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                stockRows.map((row, index) => (
-                  <tr
-                    key={index}
-                    className="
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {formatDateAD(row.date)}
-                    </td>
+                stockRows.map(
+                  (row, index) => (
+                    <tr
+                      key={`${row.documentNo}-${index}`}
+                      className={`
+                        transition-colors
+                        duration-200
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.documentNo}
-                    </td>
-
-                    <td
-                      className="
-                        max-w-[180px]
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:max-w-none
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.owner}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-right
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {Number(
-                        row.unitPrice
-                      ).toLocaleString(
-                        "th-TH",
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
+                        ${
+                          index % 2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
                         }
-                      )}
-                    </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
+                        hover:bg-blue-50/70
+                      `}
                     >
-                      {row.receiveQty > 0
-                        ? row.receiveQty
-                        : "-"}
-                    </td>
+                      {/* =====================================
+                          DATE
+                      ===================================== */}
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.issueQty > 0
-                        ? row.issueQty
-                        : "-"}
-                    </td>
+                      <td
+                        className="
+                          whitespace-nowrap
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-extrabold
-                        text-slate-900
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.balance}
-                    </td>
+                          border
+                          border-black
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.manufacture
-                        ? formatDateAD(
-                            row.manufacture
-                          )
-                        : "-"}
-                    </td>
+                          px-4
+                          py-3.5
 
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-2
-                        py-2.5
-                        text-center
-                        text-xs
-                        font-semibold
-                        text-slate-700
-                        sm:px-4
-                        sm:py-3
-                        sm:text-base
-                      "
-                    >
-                      {row.expiry
-                        ? formatDateAD(
-                            row.expiry
-                          )
-                        : "-"}
-                    </td>
-                  </tr>
-                ))
+                          text-center
+                          font-bold
+                          !text-slate-700
+                        "
+                      >
+                        {formatDateAD(
+                          row.date
+                        )}
+                      </td>
+
+                      {/* =====================================
+                          DOCUMENT
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[180px]
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        {row.documentNo ||
+                          "-"}
+                      </td>
+
+                      {/* =====================================
+                          OWNER
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[280px]
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        {row.owner ||
+                          "-"}
+                      </td>
+
+                      {/* =====================================
+                          PRICE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[150px]
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-right
+                          font-extrabold
+                          tabular-nums
+                          !text-slate-900
+                        "
+                      >
+                        {formatMoney(
+                          row.unitPrice
+                        )}
+                      </td>
+
+                      {/* =====================================
+                          RECEIVE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[110px]
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          font-extrabold
+                          tabular-nums
+                          !text-slate-900
+                        "
+                      >
+                        {row.receiveQty >
+                        0
+                          ? formatNumber(
+                              row.receiveQty
+                            )
+                          : "-"}
+                      </td>
+
+                      {/* =====================================
+                          ISSUE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[110px]
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          font-extrabold
+                          tabular-nums
+                          !text-slate-900
+                        "
+                      >
+                        {row.issueQty >
+                        0
+                          ? formatNumber(
+                              row.issueQty
+                            )
+                          : "-"}
+                      </td>
+
+                      {/* =====================================
+                          BALANCE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[110px]
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          font-black
+                          tabular-nums
+                          !text-slate-900
+                        "
+                      >
+                        {formatNumber(
+                          row.balance
+                        )}
+                      </td>
+
+                      {/* =====================================
+                          MANUFACTURE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[150px]
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          font-bold
+                          !text-slate-700
+                        "
+                      >
+                        {formatDateAD(
+                          row.manufacture
+                        )}
+                      </td>
+
+                      {/* =====================================
+                          EXPIRY
+                      ===================================== */}
+
+                      <td
+                        className="
+                          min-w-[150px]
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          font-bold
+                          !text-slate-700
+                        "
+                      >
+                        {formatDateAD(
+                          row.expiry
+                        )}
+                      </td>
+                    </tr>
+                  )
+                )
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }
