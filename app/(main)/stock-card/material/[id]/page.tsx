@@ -42,10 +42,26 @@ const categoryName: Record<string, string> = {
 };
 
 /* =========================================================
-   DATE
+   THAI SHORT DATE
+   ตัวอย่าง: 23 ก.ย. 2569
 ========================================================= */
 
-function formatDateAD(
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+
+function formatThaiShortDate(
   date: Date | string | null
 ) {
   if (!date) {
@@ -58,15 +74,9 @@ function formatDateAD(
     return "-";
   }
 
-  return `${String(d.getDate()).padStart(
-    2,
-    "0"
-  )}/${String(
-    d.getMonth() + 1
-  ).padStart(
-    2,
-    "0"
-  )}/${d.getFullYear()}`;
+  return `${d.getDate()} ${
+    thaiShortMonths[d.getMonth()]
+  } ${d.getFullYear() + 543}`;
 }
 
 /* =========================================================
@@ -526,7 +536,6 @@ export default async function StockCardPage({
     <AppPage>
       {/* =====================================================
           HEADER
-          เหลือเฉพาะปุ่มกลับ
       ===================================================== */}
 
       <AppPageHeader
@@ -557,9 +566,7 @@ export default async function StockCardPage({
         className="
           w-full
           min-w-0
-
           p-4
-
           sm:p-5
           lg:p-6
         "
@@ -571,20 +578,14 @@ export default async function StockCardPage({
         <div
           className="
             mb-5
-
             flex
             flex-col
             gap-4
-
             sm:flex-row
             sm:items-center
             sm:justify-between
           "
         >
-          {/* ===============================================
-              TITLE
-          =============================================== */}
-
           <div
             className="
               flex
@@ -601,13 +602,9 @@ export default async function StockCardPage({
                 shrink-0
                 items-center
                 justify-center
-
                 rounded-[15px]
-
                 bg-slate-100
-
                 text-xl
-
                 shadow-sm
               "
               aria-hidden="true"
@@ -622,7 +619,6 @@ export default async function StockCardPage({
                   font-black
                   tracking-tight
                   !text-slate-900
-
                   sm:text-xl
                 "
               >
@@ -632,7 +628,6 @@ export default async function StockCardPage({
               <p
                 className="
                   mt-0.5
-
                   text-sm
                   font-semibold
                   !text-slate-500
@@ -643,17 +638,12 @@ export default async function StockCardPage({
             </div>
           </div>
 
-          {/* ===============================================
-              EXPORT ACTIONS
-          =============================================== */}
-
           <div
             className="
               flex
               w-full
               flex-col
               gap-2
-
               sm:w-auto
               sm:flex-row
               sm:items-center
@@ -681,16 +671,12 @@ export default async function StockCardPage({
             grid
             w-full
             min-w-0
-
             grid-cols-1
             gap-4
-
             md:grid-cols-2
             xl:grid-cols-3
           "
         >
-          {/* CODE */}
-
           <AppInfoCard>
             <p
               className="
@@ -706,19 +692,15 @@ export default async function StockCardPage({
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-black
                 !text-slate-900
-
                 sm:text-lg
               "
             >
               {material.code || "-"}
             </p>
           </AppInfoCard>
-
-          {/* MATERIAL NAME */}
 
           <AppInfoCard>
             <p
@@ -735,19 +717,15 @@ export default async function StockCardPage({
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-black
                 !text-slate-900
-
                 sm:text-lg
               "
             >
               {material.name || "-"}
             </p>
           </AppInfoCard>
-
-          {/* CATEGORY */}
 
           <AppInfoCard>
             <p
@@ -764,11 +742,9 @@ export default async function StockCardPage({
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-black
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -779,8 +755,6 @@ export default async function StockCardPage({
                 "-"}
             </p>
           </AppInfoCard>
-
-          {/* UNIT */}
 
           <AppInfoCard>
             <p
@@ -796,19 +770,15 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 text-base
                 font-black
                 !text-slate-900
-
                 sm:text-lg
               "
             >
               {material.unit || "-"}
             </p>
           </AppInfoCard>
-
-          {/* VENDOR */}
 
           <AppInfoCard>
             <p
@@ -825,19 +795,15 @@ export default async function StockCardPage({
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-black
                 !text-slate-900
-
                 sm:text-lg
               "
             >
               {latestVendor}
             </p>
           </AppInfoCard>
-
-          {/* PRICE */}
 
           <AppInfoCard>
             <p
@@ -853,12 +819,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 text-base
                 font-black
                 tabular-nums
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -886,7 +850,6 @@ export default async function StockCardPage({
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -895,9 +858,7 @@ export default async function StockCardPage({
             className="
               w-full
               min-w-[1300px]
-
               border-collapse
-
               bg-white
             "
           >
@@ -919,22 +880,17 @@ export default async function StockCardPage({
                       key={tableTitle}
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-4
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
                         !text-white
-
                         sm:text-lg
                       "
                     >
@@ -946,27 +902,22 @@ export default async function StockCardPage({
             </thead>
 
             <tbody>
-              {stockRows.length ===
-              0 ? (
+              {stockRows.length === 0 ? (
                 <tr>
                   <td
                     colSpan={9}
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
@@ -978,16 +929,11 @@ export default async function StockCardPage({
                           flex
                           h-16
                           w-16
-
                           items-center
                           justify-center
-
                           rounded-[20px]
-
                           bg-slate-100
-
                           text-3xl
-
                           shadow-inner
                         "
                         aria-hidden="true"
@@ -998,7 +944,6 @@ export default async function StockCardPage({
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           !text-slate-900
@@ -1010,7 +955,6 @@ export default async function StockCardPage({
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           !text-slate-500
@@ -1040,36 +984,40 @@ export default async function StockCardPage({
                         hover:bg-blue-50/70
                       `}
                     >
+                      {/* =====================================
+                          DATE - วันที่ไทยแบบย่อ
+                      ===================================== */}
+
                       <td
                         className="
+                          min-w-[145px]
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
                           !text-slate-700
                         "
                       >
-                        {formatDateAD(
+                        {formatThaiShortDate(
                           row.date
                         )}
                       </td>
 
+                      {/* =====================================
+                          DOCUMENT NO - กึ่งกลาง
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[180px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
+                          text-center
                           font-bold
                           !text-slate-900
                         "
@@ -1078,16 +1026,17 @@ export default async function StockCardPage({
                           "-"}
                       </td>
 
+                      {/* =====================================
+                          OWNER
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[280px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           font-bold
                           !text-slate-900
                         "
@@ -1095,17 +1044,18 @@ export default async function StockCardPage({
                         {row.owner || "-"}
                       </td>
 
+                      {/* =====================================
+                          PRICE
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[150px]
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-right
                           font-extrabold
                           tabular-nums
@@ -1117,16 +1067,17 @@ export default async function StockCardPage({
                         )}
                       </td>
 
+                      {/* =====================================
+                          RECEIVE
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[110px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           tabular-nums
@@ -1140,16 +1091,17 @@ export default async function StockCardPage({
                           : "-"}
                       </td>
 
+                      {/* =====================================
+                          ISSUE
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[110px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-extrabold
                           tabular-nums
@@ -1163,16 +1115,17 @@ export default async function StockCardPage({
                           : "-"}
                       </td>
 
+                      {/* =====================================
+                          BALANCE
+                      ===================================== */}
+
                       <td
                         className="
                           min-w-[110px]
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-black
                           tabular-nums
@@ -1184,44 +1137,46 @@ export default async function StockCardPage({
                         )}
                       </td>
 
+                      {/* =====================================
+                          MANUFACTURE - วันที่ไทยแบบย่อ
+                      ===================================== */}
+
                       <td
                         className="
-                          min-w-[150px]
+                          min-w-[145px]
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
                           !text-slate-700
                         "
                       >
-                        {formatDateAD(
+                        {formatThaiShortDate(
                           row.manufacture
                         )}
                       </td>
 
+                      {/* =====================================
+                          EXPIRY - วันที่ไทยแบบย่อ
+                      ===================================== */}
+
                       <td
                         className="
-                          min-w-[150px]
+                          min-w-[145px]
                           whitespace-nowrap
-
                           border
                           border-black
-
                           px-4
                           py-3.5
-
                           text-center
                           font-bold
                           !text-slate-700
                         "
                       >
-                        {formatDateAD(
+                        {formatThaiShortDate(
                           row.expiry
                         )}
                       </td>
