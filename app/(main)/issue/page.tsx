@@ -516,7 +516,6 @@ export default async function IssuePage({
         badge={`${issues.length} รายการ`}
         className="
           relative
-
           overflow-hidden
         "
       >
@@ -640,8 +639,7 @@ export default async function IssuePage({
                     !text-white
                   "
                 >
-                  หน่วยงาน /
-                  กลุ่มงาน
+                  หน่วยงาน / กลุ่มงาน
                 </th>
 
                 <th
@@ -754,8 +752,7 @@ export default async function IssuePage({
                       key={issue.id}
                       className={`
                         ${
-                          index %
-                            2 ===
+                          index % 2 ===
                           0
                             ? "bg-white"
                             : "bg-slate-50/60"
@@ -831,14 +828,8 @@ export default async function IssuePage({
                           !text-slate-900
                         "
                       >
-                        <span
-                          className="
-                            break-words
-                          "
-                        >
-                          {
-                            issue.documentNo
-                          }
+                        <span className="break-words">
+                          {issue.documentNo}
                         </span>
                       </td>
 
@@ -860,15 +851,9 @@ export default async function IssuePage({
                           !text-slate-800
                         "
                       >
-                        <span
-                          className="
-                            break-words
-                          "
-                        >
-                          {issue
-                            .department
-                            ?.name ??
-                            "-"}
+                        <span className="break-words">
+                          {issue.department
+                            ?.name ?? "-"}
                         </span>
                       </td>
 
@@ -890,11 +875,7 @@ export default async function IssuePage({
                           !text-slate-800
                         "
                       >
-                        <span
-                          className="
-                            break-words
-                          "
-                        >
+                        <span className="break-words">
                           {issue.officer
                             ? `${issue.officer.firstName} ${issue.officer.lastName}`
                             : "-"}
@@ -1058,13 +1039,45 @@ export default async function IssuePage({
                           text-center
                         "
                       >
-                        <AppButton
+                        <Link
                           href={`/issue/${issue.id}`}
-                          variant="view"
-                          size="sm"
+                          className="
+                            inline-flex
+                            min-h-[38px]
+                            items-center
+                            justify-center
+
+                            whitespace-nowrap
+
+                            rounded-[10px]
+
+                            bg-slate-800
+
+                            px-4
+                            py-2
+
+                            text-sm
+                            font-extrabold
+                            leading-none
+                            !text-white
+
+                            shadow-sm
+
+                            transition-all
+                            duration-200
+
+                            hover:bg-slate-700
+                            hover:shadow-md
+
+                            active:scale-[0.97]
+
+                            focus:outline-none
+                            focus:ring-4
+                            focus:ring-slate-900/10
+                          "
                         >
                           เปิด
-                        </AppButton>
+                        </Link>
                       </td>
 
                       {/* ===================================
@@ -1091,13 +1104,45 @@ export default async function IssuePage({
                             gap-2
                           "
                         >
-                          <AppButton
+                          <Link
                             href={`/issue/${issue.id}/edit`}
-                            variant="edit"
-                            size="sm"
+                            className="
+                              inline-flex
+                              min-h-[38px]
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-[10px]
+
+                              bg-amber-500
+
+                              px-4
+                              py-2
+
+                              text-sm
+                              font-extrabold
+                              leading-none
+                              !text-white
+
+                              shadow-sm
+
+                              transition-all
+                              duration-200
+
+                              hover:bg-amber-600
+                              hover:shadow-md
+
+                              active:scale-[0.97]
+
+                              focus:outline-none
+                              focus:ring-4
+                              focus:ring-amber-500/20
+                            "
                           >
                             แก้ไข
-                          </AppButton>
+                          </Link>
 
                           <DeleteButton
                             id={issue.id}
