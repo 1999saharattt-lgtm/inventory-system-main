@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
@@ -7,12 +6,12 @@ import {
   type SessionUser,
 } from "@/lib/session";
 
+import DeleteButton from "./DeleteButton";
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
-
-import DeleteButton from "./DeleteButton";
 
 /* =========================================================
    TYPES
@@ -56,51 +55,55 @@ type IssuePageProps = {
 };
 
 /* =========================================================
-   THAI DATE
+   THAI SHORT DATE
+   ตัวอย่าง:
+   23 ก.ย. 69
+   1 ม.ค. 70
 ========================================================= */
 
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
 ];
 
-function formatThaiDate(
-  date: Date | string | null
+function formatThaiShortDate(
+  value: Date | string | null | undefined
 ) {
-  if (!date) {
+  if (!value) {
     return "-";
   }
 
-  const parsedDate =
-    date instanceof Date
-      ? date
-      : new Date(date);
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
 
-  if (
-    Number.isNaN(
-      parsedDate.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "-";
   }
 
-  return `${parsedDate.getDate()} ${
-    thaiMonths[
-      parsedDate.getMonth()
-    ]
-  } ${
-    parsedDate.getFullYear() + 543
-  }`;
+  const day = date.getDate();
+
+  const month =
+    thaiShortMonths[
+      date.getMonth()
+    ];
+
+  const buddhistYear = String(
+    date.getFullYear() + 543
+  ).slice(-2);
+
+  return `${day} ${month} ${buddhistYear}`;
 }
 
 /* =========================================================
@@ -132,16 +135,12 @@ function getStatusLabel(
 export default async function IssuePage({
   searchParams,
 }: IssuePageProps) {
-  /* =======================================================
-     SEARCH PARAMS
-  ======================================================= */
-
   const params =
     await searchParams;
 
-  /* =======================================================
+  /* =========================================================
      SESSION
-  ======================================================= */
+  ========================================================= */
 
   const cookieStore =
     await cookies();
@@ -166,9 +165,15 @@ export default async function IssuePage({
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      DEPARTMENT PERMISSION
-  ======================================================= */
+
+     ADMIN
+     - เห็นทุกกลุ่มงาน
+
+     STAFF / VIEWER
+     - เห็นเฉพาะกลุ่มงานของตัวเอง
+  ========================================================= */
 
   const issueDepartmentWhere =
     session?.role === "ADMIN"
@@ -182,9 +187,9 @@ export default async function IssuePage({
             departmentId: -1,
           };
 
-  /* =======================================================
+  /* =========================================================
      DATE FILTER
-  ======================================================= */
+  ========================================================= */
 
   const now = new Date();
 
@@ -196,13 +201,11 @@ export default async function IssuePage({
     | Date
     | undefined;
 
-  /* =======================================================
+  /* =========================================================
      TODAY
-  ======================================================= */
+  ========================================================= */
 
-  if (
-    params.date === "today"
-  ) {
+  if (params.date === "today") {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -224,9 +227,9 @@ export default async function IssuePage({
     );
   }
 
-  /* =======================================================
-     THIS MONTH
-  ======================================================= */
+  /* =========================================================
+     CURRENT MONTH
+  ========================================================= */
 
   if (
     params.period === "month"
@@ -252,15 +255,14 @@ export default async function IssuePage({
     );
   }
 
-  /* =======================================================
+  /* =========================================================
      WHERE
-  ======================================================= */
+  ========================================================= */
 
   const issueWhere = {
     ...issueDepartmentWhere,
 
-    ...(startDate &&
-    endDate
+    ...(startDate && endDate
       ? {
           issueDate: {
             gte: startDate,
@@ -270,17 +272,18 @@ export default async function IssuePage({
       : {}),
   };
 
-  /* =======================================================
-     LOAD ISSUES
-  ======================================================= */
+  /* =========================================================
+     LOAD ISSUE DATA
+
+     เรียง:
+     1. วันที่เบิกจ่ายล่าสุดอยู่ด้านบน
+     2. วันที่เก่าอยู่ด้านล่าง
+     3. ถ้าวันที่ซ้ำกัน รายการที่บันทึกใหม่กว่าอยู่ด้านบน
+  ========================================================= */
 
   const issues =
     await prisma.issue.findMany({
       where: issueWhere,
-
-      orderBy: {
-        issueDate: "desc",
-      },
 
       include: {
         department: true,
@@ -292,11 +295,20 @@ export default async function IssuePage({
           },
         },
       },
+
+      orderBy: [
+        {
+          issueDate: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
     });
 
-  /* =======================================================
+  /* =========================================================
      PENDING COUNT
-  ======================================================= */
+  ========================================================= */
 
   const pendingCount =
     session?.role === "ADMIN"
@@ -307,78 +319,55 @@ export default async function IssuePage({
         ).length
       : 0;
 
-  /* =======================================================
-     ACTIVE FILTER LABEL
-  ======================================================= */
+  /* =========================================================
+     FILTER DESCRIPTION
+  ========================================================= */
 
-  const filterLabel =
+  let filterText =
+    "รายการเบิกจ่ายพัสดุทั้งหมด";
+
+  if (
     params.date === "today"
-      ? "รายการเบิกจ่ายวันนี้"
-      : params.period ===
-          "month"
-        ? "รายการเบิกจ่ายประจำเดือนนี้"
-        : "รายการเบิกจ่ายทั้งหมด";
+  ) {
+    filterText =
+      "รายการเบิกจ่ายพัสดุวันนี้";
+  } else if (
+    params.period === "month"
+  ) {
+    filterText =
+      "รายการเบิกจ่ายพัสดุประจำเดือนนี้";
+  }
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <AppPage>
-      {/* ===================================================
+      {/* =====================================================
           HEADER
-      =================================================== */}
+      ===================================================== */}
 
       <AppPageHeader
         icon="📤"
         title="รายการเบิกจ่ายพัสดุ"
-        subtitle="แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน"
+        subtitle={filterText}
         actions={
-          <div
-            className="
-              flex
-              flex-wrap
-              items-center
-              justify-end
-              gap-3
-            "
+          <AppButton
+            href="/issue/create"
+            variant="primary"
+            size="md"
+            icon={<span>＋</span>}
           >
-            <AppButton
-              href="/issue/create"
-              variant="success"
-              size="md"
-              icon={
-                <span
-                  aria-hidden="true"
-                >
-                  ＋
-                </span>
-              }
-            >
-              เพิ่มรายการ
-            </AppButton>
-
-            <AppButton
-              href="/"
-              variant="back"
-              size="md"
-              icon={
-                <span
-                  aria-hidden="true"
-                >
-                  ←
-                </span>
-              }
-            >
-              กลับ
-            </AppButton>
-          </div>
+            เพิ่มรายการ
+          </AppButton>
         }
       />
 
-      {/* ===================================================
+      {/* =====================================================
           PENDING ALERT
-      =================================================== */}
+          เฉพาะ ADMIN
+      ===================================================== */}
 
       {session?.role ===
         "ADMIN" &&
@@ -499,31 +488,33 @@ export default async function IssuePage({
                   shadow-sm
                 "
               >
-                รอ {pendingCount}{" "}
-                รายการ
+                รอ {pendingCount} รายการ
               </div>
             </div>
           </div>
         )}
 
-      {/* ===================================================
+      {/* =====================================================
           TABLE CARD
-      =================================================== */}
+          ใช้ Component กลางของระบบ
+      ===================================================== */}
 
       <AppTableCard
-        title="รายการเบิกจ่ายพัสดุ"
-        subtitle={filterLabel}
-        badge={`${issues.length} รายการ`}
+        title="รายการเอกสารเบิกจ่าย"
+        subtitle={`เรียงจากวันที่เบิกจ่ายล่าสุด • ทั้งหมด ${issues.length} รายการ`}
         className="
-          relative
-          overflow-hidden
+          w-full
+          min-w-0
         "
       >
+        {/* ===================================================
+            TABLE
+        =================================================== */}
+
         <div
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -532,213 +523,60 @@ export default async function IssuePage({
             className="
               w-full
               min-w-[1180px]
-
               border-collapse
-
               bg-white
-
               text-sm
             "
           >
-            {/* =============================================
+            {/* =================================================
                 TABLE HEADER
-            ============================================= */}
+            ================================================= */}
 
             <thead>
               <tr>
-                <th
-                  className="
-                    w-[70px]
+                {[
+                  "ลำดับ",
+                  "วันที่เบิกจ่าย",
+                  "เลขที่เอกสาร",
+                  "หน่วยงาน / กลุ่มงาน",
+                  "ผู้ขอเบิก",
+                  "สถานะ",
+                  "รายละเอียด",
+                  "จัดการ",
+                ].map(
+                  (tableTitle) => (
+                    <th
+                      key={tableTitle}
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-black
 
-                    whitespace-nowrap
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                    border
-                    border-slate-700
+                        px-4
+                        py-4
 
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
 
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ลำดับ
-                </th>
-
-                <th
-                  className="
-                    min-w-[160px]
-
-                    whitespace-nowrap
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  วันที่
-                </th>
-
-                <th
-                  className="
-                    min-w-[150px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  เลขที่เอกสาร
-                </th>
-
-                <th
-                  className="
-                    min-w-[220px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หน่วยงาน / กลุ่มงาน
-                </th>
-
-                <th
-                  className="
-                    min-w-[180px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ผู้ขอเบิก
-                </th>
-
-                <th
-                  className="
-                    min-w-[150px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  สถานะ
-                </th>
-
-                <th
-                  className="
-                    min-w-[120px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รายละเอียด
-                </th>
-
-                <th
-                  className="
-                    min-w-[190px]
-
-                    border
-                    border-slate-700
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    text-base
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  จัดการ
-                </th>
+                        sm:text-lg
+                      "
+                    >
+                      {tableTitle}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            {/* =============================================
+            {/* =================================================
                 TABLE BODY
-            ============================================= */}
+            ================================================= */}
 
             <tbody>
               {issues.length >
@@ -749,8 +587,13 @@ export default async function IssuePage({
                     index: number
                   ) => (
                     <tr
-                      key={issue.id}
+                      key={
+                        issue.id
+                      }
                       className={`
+                        transition-all
+                        duration-200
+
                         ${
                           index % 2 ===
                           0
@@ -758,26 +601,24 @@ export default async function IssuePage({
                             : "bg-slate-50/60"
                         }
 
-                        transition-colors
-                        duration-200
-
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ===================================
+                      {/* =======================================
                           ลำดับ
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
-                          border
-                          border-slate-200
+                          whitespace-nowrap
 
-                          px-3
-                          py-3
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
 
                           text-center
-                          text-sm
                           font-extrabold
                           !text-slate-900
                         "
@@ -785,367 +626,188 @@ export default async function IssuePage({
                         {index + 1}
                       </td>
 
-                      {/* ===================================
-                          วันที่
-                      =================================== */}
+                      {/* =======================================
+                          วันที่เบิกจ่าย
+                      ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
 
                           border
-                          border-slate-200
+                          border-black
 
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
 
                           text-center
-                          text-sm
                           font-bold
-                          !text-slate-800
+                          tabular-nums
+                          !text-slate-700
                         "
                       >
-                        {formatThaiDate(
+                        {formatThaiShortDate(
                           issue.issueDate
                         )}
                       </td>
 
-                      {/* ===================================
+                      {/* =======================================
                           เลขที่เอกสาร
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
-                          border
-                          border-slate-200
+                          whitespace-nowrap
 
-                          px-3
-                          py-3
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
 
                           text-center
-                          text-sm
-                          font-bold
+                          font-extrabold
                           !text-slate-900
                         "
                       >
-                        <span className="break-words">
-                          {issue.documentNo}
-                        </span>
+                        {issue.documentNo}
                       </td>
 
-                      {/* ===================================
+                      {/* =======================================
                           หน่วยงาน / กลุ่มงาน
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
+                          min-w-[220px]
+
                           border
-                          border-slate-200
+                          border-black
 
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
 
-                          text-center
-                          text-sm
-                          font-bold
-                          !text-slate-800
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
-                        <span className="break-words">
-                          {issue.department
-                            ?.name ?? "-"}
-                        </span>
+                        {issue.department
+                          ?.name ?? "-"}
                       </td>
 
-                      {/* ===================================
+                      {/* =======================================
                           ผู้ขอเบิก
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
+                          min-w-[180px]
+
                           border
-                          border-slate-200
+                          border-black
 
-                          px-3
-                          py-3
+                          px-4
+                          py-3.5
 
-                          text-center
-                          text-sm
-                          font-bold
-                          !text-slate-800
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
-                        <span className="break-words">
-                          {issue.officer
-                            ? `${issue.officer.firstName} ${issue.officer.lastName}`
-                            : "-"}
-                        </span>
+                        {issue.officer
+                          ? `${issue.officer.firstName} ${issue.officer.lastName}`
+                          : "-"}
                       </td>
 
-                      {/* ===================================
-                          STATUS
-                      =================================== */}
+                      {/* =======================================
+                          สถานะ
+                      ======================================= */}
 
                       <td
                         className="
-                          border
-                          border-slate-200
+                          whitespace-nowrap
 
-                          px-3
-                          py-3
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
 
                           text-center
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
-                        {issue.status ===
-                        "PENDING" ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
-                              gap-1.5
-
-                              whitespace-nowrap
-
-                              rounded-full
-
-                              bg-amber-100
-
-                              px-3
-                              py-1.5
-
-                              text-xs
-                              font-extrabold
-                              !text-amber-800
-
-                              ring-1
-                              ring-amber-200/80
-                            "
-                          >
-                            <span>
-                              🔔
-                            </span>
-
-                            รอเบิกจ่าย
-                          </span>
-                        ) : issue.status ===
-                          "APPROVED" ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
-                              gap-1.5
-
-                              whitespace-nowrap
-
-                              rounded-full
-
-                              bg-emerald-100
-
-                              px-3
-                              py-1.5
-
-                              text-xs
-                              font-extrabold
-                              !text-emerald-800
-
-                              ring-1
-                              ring-emerald-200/80
-                            "
-                          >
-                            <span>
-                              ✓
-                            </span>
-
-                            เสร็จสิ้นแล้ว
-                          </span>
-                        ) : issue.status ===
-                          "REJECTED" ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
-                              gap-1.5
-
-                              whitespace-nowrap
-
-                              rounded-full
-
-                              bg-red-100
-
-                              px-3
-                              py-1.5
-
-                              text-xs
-                              font-extrabold
-                              !text-red-800
-
-                              ring-1
-                              ring-red-200/80
-                            "
-                          >
-                            <span>
-                              ✕
-                            </span>
-
-                            ไม่อนุมัติ
-                          </span>
-                        ) : (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
-
-                              whitespace-nowrap
-
-                              rounded-full
-
-                              bg-slate-100
-
-                              px-3
-                              py-1.5
-
-                              text-xs
-                              font-extrabold
-                              !text-slate-700
-
-                              ring-1
-                              ring-slate-200
-                            "
-                          >
-                            {getStatusLabel(
-                              issue.status
-                            )}
-                          </span>
+                        {getStatusLabel(
+                          issue.status
                         )}
                       </td>
 
-                      {/* ===================================
+                      {/* =======================================
                           รายละเอียด
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
-                          border
-                          border-slate-200
+                          whitespace-nowrap
 
-                          px-3
+                          border
+                          border-black
+
+                          px-4
                           py-3
 
                           text-center
                         "
                       >
-                        <Link
+                        <AppButton
                           href={`/issue/${issue.id}`}
-                          className="
-                            inline-flex
-                            min-h-[38px]
-                            items-center
-                            justify-center
-
-                            whitespace-nowrap
-
-                            rounded-[10px]
-
-                            bg-slate-800
-
-                            px-4
-                            py-2
-
-                            text-sm
-                            font-extrabold
-                            leading-none
-                            !text-white
-
-                            shadow-sm
-
-                            transition-all
-                            duration-200
-
-                            hover:bg-slate-700
-                            hover:shadow-md
-
-                            active:scale-[0.97]
-
-                            focus:outline-none
-                            focus:ring-4
-                            focus:ring-slate-900/10
-                          "
+                          variant="primary"
+                          size="sm"
                         >
                           เปิด
-                        </Link>
+                        </AppButton>
                       </td>
 
-                      {/* ===================================
+                      {/* =======================================
                           จัดการ
-                      =================================== */}
+                      ======================================= */}
 
                       <td
                         className="
+                          whitespace-nowrap
+
                           border
-                          border-slate-200
+                          border-black
 
-                          px-3
+                          px-4
                           py-3
-
-                          text-center
                         "
                       >
                         <div
                           className="
                             flex
-                            flex-wrap
                             items-center
                             justify-center
                             gap-2
                           "
                         >
-                          <Link
+                          <AppButton
                             href={`/issue/${issue.id}/edit`}
-                            className="
-                              inline-flex
-                              min-h-[38px]
-                              items-center
-                              justify-center
-
-                              whitespace-nowrap
-
-                              rounded-[10px]
-
-                              bg-amber-500
-
-                              px-4
-                              py-2
-
-                              text-sm
-                              font-extrabold
-                              leading-none
-                              !text-white
-
-                              shadow-sm
-
-                              transition-all
-                              duration-200
-
-                              hover:bg-amber-600
-                              hover:shadow-md
-
-                              active:scale-[0.97]
-
-                              focus:outline-none
-                              focus:ring-4
-                              focus:ring-amber-500/20
-                            "
+                            variant="primary"
+                            size="sm"
+                            icon={
+                              <span>
+                                ✏️
+                              </span>
+                            }
                           >
                             แก้ไข
-                          </Link>
+                          </AppButton>
 
                           <DeleteButton
-                            id={issue.id}
+                            id={
+                              issue.id
+                            }
                           />
                         </div>
                       </td>
@@ -1153,12 +815,16 @@ export default async function IssuePage({
                   )
                 )
               ) : (
+                /* =============================================
+                   EMPTY STATE
+                ============================================= */
+
                 <tr>
                   <td
                     colSpan={8}
                     className="
                       border
-                      border-slate-200
+                      border-black
 
                       bg-white
 
@@ -1171,6 +837,7 @@ export default async function IssuePage({
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
@@ -1181,18 +848,26 @@ export default async function IssuePage({
                       <div
                         className="
                           flex
-                          h-14
-                          w-14
+                          h-16
+                          w-16
                           items-center
                           justify-center
 
-                          rounded-2xl
+                          rounded-[20px]
 
-                          bg-slate-100
+                          border
+                          border-slate-200/80
 
-                          text-2xl
+                          bg-white/90
 
-                          shadow-inner
+                          text-3xl
+
+                          shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
+
+                          ring-1
+                          ring-black/[0.025]
+
+                          backdrop-blur-xl
                         "
                       >
                         📤
@@ -1202,12 +877,13 @@ export default async function IssuePage({
                         className="
                           mt-4
 
-                          text-base
+                          text-lg
                           font-extrabold
-                          !text-slate-700
+                          tracking-tight
+                          !text-slate-900
                         "
                       >
-                        ยังไม่มีรายการเบิกจ่ายพัสดุ
+                        ยังไม่มีข้อมูลเบิกจ่ายพัสดุ
                       </p>
 
                       <p
@@ -1216,11 +892,12 @@ export default async function IssuePage({
 
                           text-sm
                           font-semibold
-                          !text-slate-400
+                          leading-relaxed
+                          !text-slate-500
                         "
                       >
-                        เมื่อมีการบันทึกรายการเบิกจ่าย
-                        ข้อมูลจะแสดงในตารางนี้
+                        เมื่อมีการบันทึกเบิกจ่าย
+                        รายการจะแสดงในตารางนี้
                       </p>
                     </div>
                   </td>
