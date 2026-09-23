@@ -88,9 +88,9 @@ export default function SearchStockCard({
         w-full
         min-w-0
 
-        p-4
+        !p-2.5
 
-        sm:p-5
+        sm:!p-3
       "
     >
       <form
@@ -100,10 +100,10 @@ export default function SearchStockCard({
           w-full
           min-w-0
           flex-col
-          gap-3
+          gap-2.5
 
           sm:flex-row
-          sm:items-end
+          sm:items-center
         "
       >
         {/* =================================================
@@ -112,25 +112,31 @@ export default function SearchStockCard({
 
         <div
           className="
+            relative
             min-w-0
             flex-1
           "
         >
-          <label
-            htmlFor="stock-card-search"
+          {/* Search Icon */}
+
+          <span
+            aria-hidden="true"
             className="
-              mb-2
-              block
+              pointer-events-none
 
-              text-sm
-              font-extrabold
-              !text-slate-700
+              absolute
+              inset-y-0
+              left-4
 
-              sm:text-base
+              flex
+              items-center
+              justify-center
+
+              text-base
             "
           >
-            ค้นหาพัสดุ
-          </label>
+            🔎
+          </span>
 
           <input
             id="stock-card-search"
@@ -144,20 +150,22 @@ export default function SearchStockCard({
             }
             placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
             className="
-              min-h-[50px]
+              h-11
               w-full
+              min-w-0
 
-              rounded-[16px]
+              rounded-[14px]
 
               border
-              border-slate-200
+              border-slate-300
 
               bg-white
 
-              px-4
-              py-3
+              py-2
+              pl-11
+              pr-4
 
-              text-base
+              text-sm
               font-bold
               !text-slate-900
 
@@ -167,13 +175,16 @@ export default function SearchStockCard({
               transition-all
               duration-200
 
+              placeholder:font-semibold
               placeholder:!text-slate-400
 
-              hover:border-slate-300
+              hover:border-slate-400
 
-              focus:border-slate-400
+              focus:border-blue-400
               focus:ring-4
-              focus:ring-slate-900/5
+              focus:ring-blue-100/70
+
+              sm:text-base
             "
           />
         </div>
@@ -185,29 +196,13 @@ export default function SearchStockCard({
         <div
           className="
             flex
+            w-full
             shrink-0
             gap-2
+
+            sm:w-auto
           "
         >
-          {/* ===============================================
-              CLEAR
-          =============================================== */}
-
-          {defaultSearch && (
-            <AppButton
-              type="button"
-              variant="secondary"
-              size="md"
-              onClick={handleClear}
-              className="
-                flex-1
-                sm:flex-none
-              "
-            >
-              ล้าง
-            </AppButton>
-          )}
-
           {/* ===============================================
               SEARCH
           =============================================== */}
@@ -218,7 +213,7 @@ export default function SearchStockCard({
             size="md"
             icon={
               <span aria-hidden="true">
-                🔍
+                🔎
               </span>
             }
             className="
@@ -228,6 +223,30 @@ export default function SearchStockCard({
           >
             ค้นหา
           </AppButton>
+
+          {/* ===============================================
+              CLEAR
+          =============================================== */}
+
+          {defaultSearch && (
+            <AppButton
+              type="button"
+              variant="outline"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ✕
+                </span>
+              }
+              onClick={handleClear}
+              className="
+                flex-1
+                sm:flex-none
+              "
+            >
+              ล้างการค้นหา
+            </AppButton>
+          )}
         </div>
       </form>
     </AppCard>

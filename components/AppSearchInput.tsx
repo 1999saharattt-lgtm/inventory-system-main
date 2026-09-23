@@ -63,7 +63,6 @@ export default function AppSearchInput({
   value,
   onChange,
   onSubmit,
-
   onClear,
 
   placeholder = "ค้นหา...",
@@ -88,7 +87,7 @@ export default function AppSearchInput({
 
   searchButtonText = "ค้นหา",
 
-  clearButtonText = "ล้าง",
+  clearButtonText = "ล้างการค้นหา",
 }: AppSearchInputProps) {
   /* =======================================================
      SUBMIT
@@ -131,20 +130,31 @@ export default function AppSearchInput({
         ${className}
       `}
     >
+      {/* ===================================================
+          SEARCH CARD
+      =================================================== */}
+
       <div
         className="
           relative
           w-full
           min-w-0
           overflow-hidden
-          rounded-[24px]
+
+          rounded-[20px]
+
           border
-          border-white/80
-          bg-white/75
-          p-4
-          shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
-          backdrop-blur-2xl
-          sm:p-5
+          border-slate-200
+
+          bg-white/90
+
+          p-2.5
+
+          shadow-[0_14px_36px_-28px_rgba(15,23,42,0.35)]
+
+          backdrop-blur-xl
+
+          sm:p-3
         "
       >
         {/* =================================================
@@ -155,13 +165,18 @@ export default function AppSearchInput({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
-            -left-20
+            -left-16
             -top-20
-            h-48
-            w-48
+
+            h-36
+            w-36
+
             rounded-full
-            bg-blue-400/10
+
+            bg-blue-400/[0.07]
+
             blur-3xl
           "
         />
@@ -170,13 +185,18 @@ export default function AppSearchInput({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
-            -bottom-24
+            -bottom-20
             right-0
-            h-48
-            w-48
+
+            h-36
+            w-36
+
             rounded-full
-            bg-cyan-400/10
+
+            bg-cyan-400/[0.06]
+
             blur-3xl
           "
         />
@@ -188,12 +208,16 @@ export default function AppSearchInput({
         <div
           className="
             relative
+
             flex
+            w-full
             min-w-0
             flex-col
-            gap-3
-            lg:flex-row
-            lg:items-center
+
+            gap-2.5
+
+            sm:flex-row
+            sm:items-center
           "
         >
           {/* ===============================================
@@ -207,31 +231,34 @@ export default function AppSearchInput({
               flex-1
             "
           >
-            {/* Search Icon */}
+            {/* SEARCH ICON */}
 
             <div
               aria-hidden="true"
               className="
                 pointer-events-none
+
                 absolute
                 inset-y-0
-                left-4
+                left-3.5
                 z-10
+
                 flex
                 items-center
                 justify-center
+
                 !text-slate-500
               "
             >
               {leftIcon ?? (
                 <Search
-                  size={20}
+                  size={18}
                   strokeWidth={2.3}
                 />
               )}
             </div>
 
-            {/* Input */}
+            {/* INPUT */}
 
             <input
               type="search"
@@ -242,38 +269,48 @@ export default function AppSearchInput({
               autoFocus={autoFocus}
               autoComplete="off"
               className={`
-                h-12
+                h-11
                 w-full
                 min-w-0
-                rounded-[16px]
+
+                rounded-[14px]
+
                 border
                 border-slate-300
-                bg-white/90
-                py-3
-                pl-12
+
+                bg-white
+
+                py-2
+                pl-11
                 pr-4
-                text-base
+
+                text-sm
                 font-bold
                 !text-slate-900
-                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+
+                shadow-sm
+
                 outline-none
+
                 transition-all
-                duration-300
+                duration-200
 
                 placeholder:font-semibold
                 placeholder:!text-slate-400
 
                 hover:border-slate-400
 
-                focus:border-blue-500
+                focus:border-blue-400
                 focus:bg-white
                 focus:ring-4
-                focus:ring-blue-500/10
+                focus:ring-blue-100/70
 
                 disabled:cursor-not-allowed
                 disabled:bg-slate-100
                 disabled:!text-slate-400
                 disabled:opacity-70
+
+                sm:text-base
 
                 ${inputClassName}
               `}
@@ -282,22 +319,26 @@ export default function AppSearchInput({
 
           {/* ===============================================
               SEARCH BUTTON
-
-              ใช้ AppButton ตัวกลางของระบบ
           =============================================== */}
 
           {showSearchButton && (
             <AppButton
               type="submit"
-              variant="secondary"
-              size="lg"
+              variant="primary"
+              size="md"
               disabled={disabled}
               icon={
                 <Search
-                  size={18}
+                  size={17}
                   strokeWidth={2.4}
                 />
               }
+              className="
+                w-full
+                shrink-0
+
+                sm:w-auto
+              "
             >
               {searchButtonText}
             </AppButton>
@@ -312,40 +353,55 @@ export default function AppSearchInput({
             <div
               className="
                 inline-flex
-                h-12
+                h-11
+                w-full
                 shrink-0
+
                 items-center
                 justify-center
                 gap-2
-                rounded-[16px]
+
+                rounded-[14px]
+
                 border
                 border-slate-300
-                bg-slate-100/80
-                px-4
+
+                bg-slate-50
+
+                px-3
+
                 text-sm
                 font-extrabold
                 !text-slate-700
+
                 shadow-sm
-                backdrop-blur-xl
-                sm:px-5
+
+                sm:w-auto
+                sm:px-4
               "
             >
               <span
                 className="
                   flex
-                  h-7
-                  min-w-7
+                  h-6
+                  min-w-6
+
                   items-center
                   justify-center
+
                   rounded-full
+
                   border
                   border-slate-300
+
                   bg-white
-                  px-2
+
+                  px-1.5
+
                   text-xs
                   font-black
+                  tabular-nums
                   !text-slate-900
-                  shadow-sm
                 "
               >
                 {resultCount.toLocaleString(
@@ -361,8 +417,6 @@ export default function AppSearchInput({
 
           {/* ===============================================
               CLEAR BUTTON
-
-              ใช้ AppButton ตัวกลางของระบบ
           =============================================== */}
 
           {showClearButton &&
@@ -370,15 +424,21 @@ export default function AppSearchInput({
               <AppButton
                 type="button"
                 variant="outline"
-                size="lg"
+                size="md"
                 disabled={disabled}
                 onClick={handleClear}
                 icon={
                   <X
-                    size={18}
+                    size={17}
                     strokeWidth={2.4}
                   />
                 }
+                className="
+                  w-full
+                  shrink-0
+
+                  sm:w-auto
+                "
               >
                 {clearButtonText}
               </AppButton>

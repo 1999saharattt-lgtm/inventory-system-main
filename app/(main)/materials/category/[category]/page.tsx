@@ -221,9 +221,7 @@ export default async function CategoryPage({
               variant="primary"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span aria-hidden="true">
                   ＋
                 </span>
               }
@@ -236,9 +234,7 @@ export default async function CategoryPage({
               variant="back"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span aria-hidden="true">
                   ←
                 </span>
               }
@@ -251,17 +247,15 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
-          ใช้ AppCard กลาง
+          ปรับให้เตี้ยและกระชับ
       ===================================================== */}
 
       <AppCard
         className="
           w-full
           min-w-0
-
-          p-4
-
-          sm:p-5
+          !p-2.5
+          sm:!p-3
         "
       >
         <form
@@ -271,7 +265,7 @@ export default async function CategoryPage({
             w-full
             min-w-0
             flex-col
-            gap-3
+            gap-2.5
 
             sm:flex-row
             sm:items-center
@@ -283,33 +277,50 @@ export default async function CategoryPage({
 
           <div
             className="
+              relative
               min-w-0
               flex-1
             "
           >
+            <span
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                left-3.5
+                flex
+                items-center
+                justify-center
+                text-base
+              "
+            >
+              🔎
+            </span>
+
             <input
               type="text"
               name="search"
-              defaultValue={
-                keyword
-              }
+              defaultValue={keyword}
               placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
               autoComplete="off"
               className="
-                h-[52px]
+                h-10
                 w-full
                 min-w-0
 
-                rounded-[16px]
+                rounded-[12px]
 
                 border
-                border-slate-200
+                border-slate-300
 
                 bg-white
 
-                px-4
+                py-2
+                pl-10
+                pr-3
 
-                text-base
+                text-sm
                 font-bold
                 !text-slate-900
 
@@ -319,14 +330,17 @@ export default async function CategoryPage({
                 transition-all
                 duration-200
 
+                placeholder:font-semibold
                 placeholder:!text-slate-400
 
-                hover:border-slate-300
-                hover:bg-slate-50
+                hover:border-slate-400
 
-                focus:border-blue-300
-                focus:ring-4
-                focus:ring-blue-100/70
+                focus:border-blue-400
+                focus:ring-3
+                focus:ring-blue-100/80
+
+                sm:h-11
+                sm:text-base
               "
             />
           </div>
@@ -340,12 +354,16 @@ export default async function CategoryPage({
             variant="primary"
             size="md"
             icon={
-              <span
-                aria-hidden="true"
-              >
+              <span aria-hidden="true">
                 🔎
               </span>
             }
+            className="
+              w-full
+              shrink-0
+
+              sm:w-auto
+            "
           >
             ค้นหา
           </AppButton>
@@ -360,12 +378,16 @@ export default async function CategoryPage({
               variant="outline"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span aria-hidden="true">
                   ✕
                 </span>
               }
+              className="
+                w-full
+                shrink-0
+
+                sm:w-auto
+              "
             >
               ล้างการค้นหา
             </AppButton>
@@ -375,7 +397,6 @@ export default async function CategoryPage({
 
       {/* =====================================================
           TABLE
-          ใช้ AppTableCard กลาง
       ===================================================== */}
 
       <AppTableCard
@@ -397,7 +418,6 @@ export default async function CategoryPage({
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -406,11 +426,8 @@ export default async function CategoryPage({
             className="
               w-full
               min-w-[1100px]
-
               border-collapse
-
               bg-white
-
               text-sm
             "
           >
@@ -468,8 +485,7 @@ export default async function CategoryPage({
             ============================================= */}
 
             <tbody>
-              {materials.length >
-              0 ? (
+              {materials.length > 0 ? (
                 materials.map(
                   (
                     material: Material,
@@ -486,8 +502,7 @@ export default async function CategoryPage({
                         }
                         className={`
                           ${
-                            index %
-                              2 ===
+                            index % 2 ===
                             0
                               ? "bg-white"
                               : "bg-slate-50/60"
@@ -499,20 +514,15 @@ export default async function CategoryPage({
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* ===================================
-                            MATERIAL CODE
-                        =================================== */}
+                        {/* MATERIAL CODE */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-extrabold
                             !text-slate-900
@@ -522,20 +532,15 @@ export default async function CategoryPage({
                             "-"}
                         </td>
 
-                        {/* ===================================
-                            MATERIAL NAME
-                        =================================== */}
+                        {/* MATERIAL NAME */}
 
                         <td
                           className="
                             min-w-[240px]
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             font-extrabold
                             !text-slate-900
                           "
@@ -544,20 +549,15 @@ export default async function CategoryPage({
                             "-"}
                         </td>
 
-                        {/* ===================================
-                            BALANCE
-                        =================================== */}
+                        {/* BALANCE */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-extrabold
                             tabular-nums
@@ -571,20 +571,15 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            UNIT
-                        =================================== */}
+                        {/* UNIT */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
                             !text-slate-700
@@ -594,20 +589,15 @@ export default async function CategoryPage({
                             "-"}
                         </td>
 
-                        {/* ===================================
-                            LATEST PRICE
-                        =================================== */}
+                        {/* LATEST PRICE */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-right
                             font-extrabold
                             tabular-nums
@@ -623,20 +613,15 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            MANUFACTURE
-                        =================================== */}
+                        {/* MANUFACTURE */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
                             !text-slate-700
@@ -647,20 +632,15 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            EXPIRY
-                        =================================== */}
+                        {/* EXPIRY */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
                             !text-slate-700
@@ -671,17 +651,13 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            ACTIONS
-                        =================================== */}
+                        {/* ACTIONS */}
 
                         <td
                           className="
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3
                           "
@@ -699,9 +675,7 @@ export default async function CategoryPage({
                               variant="primary"
                               size="sm"
                               icon={
-                                <span
-                                  aria-hidden="true"
-                                >
+                                <span aria-hidden="true">
                                   ✏️
                                 </span>
                               }
@@ -731,37 +705,28 @@ export default async function CategoryPage({
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
                         items-center
                       "
                     >
-                      <div
-                        className="
-                          text-4xl
-                        "
-                      >
+                      <div className="text-4xl">
                         📦
                       </div>
 
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           !text-slate-900
@@ -775,7 +740,6 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           !text-slate-500

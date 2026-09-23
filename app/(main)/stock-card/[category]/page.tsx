@@ -65,10 +65,18 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
-  const { category } = await params;
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
-  const { search = "" } =
+  const { category } =
+    await params;
+
+  const searchData =
     await searchParams;
+
+  const search =
+    searchData.search?.trim() ?? "";
 
   /* =======================================================
      DATA
@@ -85,12 +93,14 @@ export default async function CategoryPage({
               OR: [
                 {
                   code: {
-                    contains: search,
+                    contains:
+                      search,
                   },
                 },
                 {
                   name: {
-                    contains: search,
+                    contains:
+                      search,
                   },
                 },
               ],
@@ -102,7 +112,8 @@ export default async function CategoryPage({
         receiveItems: {
           orderBy: {
             receive: {
-              receiveDate: "desc",
+              receiveDate:
+                "desc",
             },
           },
 
@@ -143,7 +154,6 @@ export default async function CategoryPage({
     <AppPage>
       {/* =====================================================
           HEADER
-          ใช้ตัวกลางของระบบ
       ===================================================== */}
 
       <AppPageHeader
@@ -170,9 +180,6 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
-
-          ใช้ SearchStockCard เดิม
-          เพื่อไม่กระทบ Logic การค้นหา
       ===================================================== */}
 
       <SearchStockCard
@@ -181,8 +188,7 @@ export default async function CategoryPage({
       />
 
       {/* =====================================================
-          TABLE CARD
-          ใช้ตัวกลางของระบบ
+          TABLE
       ===================================================== */}
 
       <AppTableCard
@@ -196,6 +202,13 @@ export default async function CategoryPage({
                 "th-TH"
               )} รายการ`
         }
+        badge={`${materials.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        className="
+          w-full
+          min-w-0
+        "
       >
         {/* ===================================================
             TABLE SCROLL
@@ -283,7 +296,8 @@ export default async function CategoryPage({
 
                     const latestVendor =
                       latestReceive
-                        ?.receive.vendor
+                        ?.receive
+                        .vendor
                         ?.name ?? "-";
 
                     return (
@@ -306,7 +320,7 @@ export default async function CategoryPage({
                         `}
                       >
                         {/* =====================================
-                            ลำดับ
+                            ORDER
                         ===================================== */}
 
                         <td
@@ -328,7 +342,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            รหัสพัสดุ
+                            CODE
                         ===================================== */}
 
                         <td
@@ -351,7 +365,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            รายการพัสดุ
+                            NAME
                         ===================================== */}
 
                         <td
@@ -373,7 +387,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            หน่วย
+                            UNIT
                         ===================================== */}
 
                         <td
@@ -397,7 +411,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            ผู้จำหน่ายล่าสุด
+                            VENDOR
                         ===================================== */}
 
                         <td
@@ -419,7 +433,6 @@ export default async function CategoryPage({
 
                         {/* =====================================
                             ACTION
-                            ใช้ AppButton ตัวกลาง
                         ===================================== */}
 
                         <td
