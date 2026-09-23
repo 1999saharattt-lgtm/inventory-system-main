@@ -1,184 +1,178 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import SearchStockCard from "./SearchStockCard";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
     category: string;
   }>;
+
   searchParams: Promise<{
     search?: string;
   }>;
 };
 
-const categoryNames: Record<string, string> = {
+type Category =
+  | "OFFICE"
+  | "COMPUTER"
+  | "ELECTRIC"
+  | "HOUSEHOLD"
+  | "VEHICLE"
+  | "PRINTING";
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const categoryNames: Record<
+  string,
+  string
+> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
+
+const categoryIcons: Record<
+  string,
+  string
+> = {
+  OFFICE: "📄",
+  COMPUTER: "💻",
+  ELECTRIC: "⚡",
+  HOUSEHOLD: "🏠",
+  VEHICLE: "🚗",
+  PRINTING: "📰",
+};
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
   const { category } = await params;
-  const { search = "" } = await searchParams;
 
-  const materials = await prisma.material.findMany({
-    where: {
-      category: category as any,
+  const { search = "" } =
+    await searchParams;
 
-      ...(search
-        ? {
-            OR: [
-              {
-                code: {
-                  contains: search,
+  /* =======================================================
+     DATA
+  ======================================================= */
+
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        category:
+          category as Category,
+
+        ...(search
+          ? {
+              OR: [
+                {
+                  code: {
+                    contains: search,
+                  },
                 },
-              },
-              {
-                name: {
-                  contains: search,
+                {
+                  name: {
+                    contains: search,
+                  },
                 },
-              },
-            ],
-          }
-        : {}),
-    },
+              ],
+            }
+          : {}),
+      },
 
-    include: {
-      receiveItems: {
-        orderBy: {
-          receive: {
-            receiveDate: "desc",
+      include: {
+        receiveItems: {
+          orderBy: {
+            receive: {
+              receiveDate: "desc",
+            },
           },
-        },
 
-        take: 1,
+          take: 1,
 
-        include: {
-          receive: {
-            include: {
-              vendor: true,
+          include: {
+            receive: {
+              include: {
+                vendor: true,
+              },
             },
           },
         },
       },
-    },
 
-    orderBy: {
-      code: "asc",
-    },
-  });
+      orderBy: {
+        code: "asc",
+      },
+    });
+
+  /* =======================================================
+     CATEGORY INFORMATION
+  ======================================================= */
+
+  const title =
+    categoryNames[category] ??
+    "รายการบัญชีพัสดุ";
+
+  const icon =
+    categoryIcons[category] ??
+    "📚";
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
+          ใช้ตัวกลางของระบบ
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:gap-4
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon={icon}
+        title={title}
+        subtitle={`รายการบัญชีพัสดุ จำนวน ${materials.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        actions={
+          <AppButton
+            href="/stock-card"
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
           >
-            {categoryNames[category]}
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            รายการบัญชีพัสดุ จำนวน {materials.length} รายการ
-          </p>
-        </div>
-
-        {/* ปุ่มกลับ */}
-
-        <Link
-          href="/stock-card"
-          className="
-            w-full
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:w-auto
-            sm:px-5
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
+            กลับ
+          </AppButton>
+        }
+      />
 
       {/* =====================================================
-          Search
+          SEARCH
+
+          ใช้ SearchStockCard เดิม
+          เพื่อไม่กระทบ Logic การค้นหา
       ===================================================== */}
 
       <SearchStockCard
@@ -187,217 +181,380 @@ export default async function CategoryPage({
       />
 
       {/* =====================================================
-          Table
+          TABLE CARD
+          ใช้ตัวกลางของระบบ
       ===================================================== */}
 
-      <div
-        className="
-          w-full
-          min-w-0
-          max-w-full
-          overflow-x-auto
-          overscroll-x-contain
-        "
+      <AppTableCard
+        title="รายการบัญชีพัสดุ"
+        subtitle={
+          search
+            ? `ผลการค้นหา “${search}” • พบ ${materials.length.toLocaleString(
+                "th-TH"
+              )} รายการ`
+            : `ข้อมูลพัสดุทั้งหมดในหมวดนี้ • ทั้งหมด ${materials.length.toLocaleString(
+                "th-TH"
+              )} รายการ`
+        }
       >
-        <table
+        {/* ===================================================
+            TABLE SCROLL
+        =================================================== */}
+
+        <div
           className="
             w-full
-            min-w-[900px]
-            border-collapse
-            bg-white
+            min-w-0
+
+            overflow-x-auto
+            overscroll-x-contain
           "
         >
-          <thead>
-            <tr>
-              {[
-                "ลำดับ",
-                "รหัสพัสดุ",
-                "รายการพัสดุ",
-                "หน่วย",
-                "ผู้จำหน่ายล่าสุด",
-                "บัญชีพัสดุ",
-              ].map((title) => (
-                <th
-                  key={title}
-                  className="
-                    whitespace-nowrap
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-3
-                    text-center
-                    text-lg
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  {title}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <table
+            className="
+              w-full
+              min-w-[1000px]
 
-          <tbody className="text-slate-900">
-            {materials.length === 0 ? (
+              border-collapse
+
+              bg-white
+            "
+          >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
+            <thead>
               <tr>
-                <td
-                  colSpan={6}
-                  className="
-                    border
-                    border-black
-                    px-3
-                    py-12
-                    text-center
-                    text-lg
-                    font-bold
-                    text-slate-500
-                  "
-                >
-                  ไม่พบข้อมูล
-                </td>
+                {[
+                  "ลำดับ",
+                  "รหัสพัสดุ",
+                  "รายการพัสดุ",
+                  "หน่วย",
+                  "ผู้จำหน่ายล่าสุด",
+                  "บัญชีพัสดุ",
+                ].map(
+                  (tableTitle) => (
+                    <th
+                      key={tableTitle}
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {tableTitle}
+                    </th>
+                  )
+                )}
               </tr>
-            ) : (
-              materials.map((material, index) => {
-                const latestReceive =
-                  material.receiveItems[0];
+            </thead>
 
-                const latestVendor =
-                  latestReceive?.receive.vendor?.name ??
-                  "-";
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
-                const isLastRow =
-                  index === materials.length - 1;
+            <tbody>
+              {materials.length >
+              0 ? (
+                materials.map(
+                  (
+                    material,
+                    index
+                  ) => {
+                    const latestReceive =
+                      material
+                        .receiveItems[0];
 
-                const bottomBorder = isLastRow
-                  ? "border-b-2 border-b-black"
-                  : "";
+                    const latestVendor =
+                      latestReceive
+                        ?.receive.vendor
+                        ?.name ?? "-";
 
-                return (
-                  <tr
-                    key={material.id}
+                    return (
+                      <tr
+                        key={
+                          material.id
+                        }
+                        className={`
+                          transition-colors
+                          duration-200
+
+                          ${
+                            index % 2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
+
+                          hover:bg-blue-50/70
+                        `}
+                      >
+                        {/* =====================================
+                            ลำดับ
+                        ===================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {index + 1}
+                        </td>
+
+                        {/* =====================================
+                            รหัสพัสดุ
+                        ===================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {material.code ||
+                            "-"}
+                        </td>
+
+                        {/* =====================================
+                            รายการพัสดุ
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[280px]
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {material.name ||
+                            "-"}
+                        </td>
+
+                        {/* =====================================
+                            หน่วย
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[120px]
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            text-center
+                            font-bold
+                            !text-slate-700
+                          "
+                        >
+                          {material.unit ||
+                            "-"}
+                        </td>
+
+                        {/* =====================================
+                            ผู้จำหน่ายล่าสุด
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[240px]
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            font-bold
+                            !text-slate-700
+                          "
+                        >
+                          {latestVendor}
+                        </td>
+
+                        {/* =====================================
+                            ACTION
+                            ใช้ AppButton ตัวกลาง
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[140px]
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3
+
+                            text-center
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+                            "
+                          >
+                            <AppButton
+                              href={`/stock-card/material/${material.id}`}
+                              variant="primary"
+                              size="sm"
+                            >
+                              เปิด
+                            </AppButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              ) : (
+                /* =============================================
+                    EMPTY
+                ============================================= */
+
+                <tr>
+                  <td
+                    colSpan={6}
                     className="
-                      text-slate-900
-                      transition
-                      hover:bg-emerald-50
+                      border
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
+                      text-center
                     "
                   >
-                    <td
-                      className={`
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                        ${bottomBorder}
-                      `}
-                    >
-                      {index + 1}
-                    </td>
+                    <div
+                      className="
+                        mx-auto
 
-                    <td
-                      className={`
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                        ${bottomBorder}
-                      `}
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                      "
                     >
-                      {material.code}
-                    </td>
-
-                    <td
-                      className={`
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        font-semibold
-                        ${bottomBorder}
-                      `}
-                    >
-                      {material.name}
-                    </td>
-
-                    <td
-                      className={`
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        ${bottomBorder}
-                      `}
-                    >
-                      {material.unit}
-                    </td>
-
-                    <td
-                      className={`
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        ${bottomBorder}
-                      `}
-                    >
-                      {latestVendor}
-                    </td>
-
-                    <td
-                      className={`
-                        whitespace-nowrap
-                        border
-                        border-black
-                        px-3
-                        py-3
-                        text-center
-                        ${bottomBorder}
-                      `}
-                    >
-                      {/* =====================================
-                          ปุ่มเปิด
-                          ใช้โทน Slate เดียวกับระบบ
-                      ===================================== */}
-
-                      <Link
-                        href={`/stock-card/material/${material.id}`}
+                      <div
                         className="
-                          inline-block
-                          rounded-xl
-                          bg-gradient-to-r
-                          from-slate-800
-                          to-slate-700
-                          px-5
-                          py-2
+                          flex
+                          h-16
+                          w-16
+
+                          items-center
+                          justify-center
+
+                          rounded-[20px]
+
+                          bg-slate-100
+
+                          text-3xl
+
+                          shadow-inner
+                        "
+                        aria-hidden="true"
+                      >
+                        📚
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
                           font-extrabold
-                          !text-white
-                          shadow-lg
-                          transition
-                          hover:scale-105
-                          hover:from-slate-900
-                          hover:to-slate-800
+                          !text-slate-900
                         "
                       >
-                        เปิด
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                        {search
+                          ? "ไม่พบพัสดุที่ค้นหา"
+                          : "ยังไม่มีข้อมูลบัญชีพัสดุ"}
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          !text-slate-500
+                        "
+                      >
+                        {search
+                          ? "ลองค้นหาด้วยรหัสหรือชื่อพัสดุอื่น"
+                          : "เมื่อมีรายการพัสดุ ข้อมูลจะแสดงในส่วนนี้"}
+                      </p>
+
+                      {search && (
+                        <div className="mt-5">
+                          <AppButton
+                            href={`/stock-card/${category}`}
+                            variant="primary"
+                            size="md"
+                          >
+                            แสดงรายการทั้งหมด
+                          </AppButton>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AppTableCard>
+    </AppPage>
   );
 }
