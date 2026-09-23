@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  useMemo,
-  useState,
-} from "react";
+import { useState } from "react";
+
+import AppButton from "@/components/AppButton";
 
 import { createIssue } from "./action";
-
-import AppCard from "@/components/AppCard";
-import AppTableCard from "@/components/AppTableCard";
-import AppButton from "@/components/AppButton";
 
 /* =========================================================
    TYPES
@@ -17,7 +12,6 @@ import AppButton from "@/components/AppButton";
 
 type Material = {
   id: number;
-  code?: string;
   name: string;
   category: string;
   unit: string;
@@ -28,14 +22,8 @@ type ReceiveLot = {
   id: number;
   materialId: number;
   balance: number;
-  manufacture:
-    | Date
-    | string
-    | null;
-  expiry:
-    | Date
-    | string
-    | null;
+  manufacture: Date | string | null;
+  expiry: Date | string | null;
 };
 
 type Department = {
@@ -47,18 +35,14 @@ type Officer = {
   id: number;
   firstName: string;
   lastName: string;
-  departmentId:
-    | number
-    | null;
+  departmentId: number | null;
 
   department?: {
     id: number;
   } | null;
 
   section?: {
-    departmentId:
-      | number
-      | null;
+    departmentId: number | null;
   } | null;
 };
 
@@ -69,7 +53,12 @@ type Props = {
   officers: Officer[];
   documentNo: string;
   initialDepartmentId?: string;
-  isAdmin: boolean;
+
+  /*
+   * true  = ADMIN สามารถเปลี่ยนกลุ่มงานได้
+   * false = ผู้ใช้งานทั่วไป ล็อกกลุ่มงาน
+   */
+  canChangeDepartment: boolean;
 };
 
 type ItemRow = {
@@ -98,8 +87,7 @@ const categories = [
   },
   {
     value: "HOUSEHOLD",
-    label:
-      "วัสดุงานบ้านและงานครัว",
+    label: "วัสดุงานบ้านและงานครัว",
   },
   {
     value: "VEHICLE",
@@ -132,14 +120,13 @@ const thaiMonths = [
 
 /* =========================================================
    CURRENT DATE
+   YYYY-MM-DD
 ========================================================= */
 
 function getCurrentDate() {
-  const now =
-    new Date();
+  const now = new Date();
 
-  const year =
-    now.getFullYear();
+  const year = now.getFullYear();
 
   const month = String(
     now.getMonth() + 1
@@ -172,14 +159,17 @@ function formatThaiDate(
     return "";
   }
 
-  const year =
-    Number(match[1]);
+  const year = Number(
+    match[1]
+  );
 
-  const month =
-    Number(match[2]);
+  const month = Number(
+    match[2]
+  );
 
-  const day =
-    Number(match[3]);
+  const day = Number(
+    match[3]
+  );
 
   if (
     !year ||
@@ -191,20 +181,16 @@ function formatThaiDate(
     return "";
   }
 
-  return `${String(
-    day
-  ).padStart(
+  return `${String(day).padStart(
     2,
     "0"
   )} ${
-    thaiMonths[
-      month - 1
-    ]
+    thaiMonths[month - 1]
   } ${year + 543}`;
 }
 
 /* =========================================================
-   FORM
+   COMPONENT
 ========================================================= */
 
 export default function IssueForm({
@@ -214,10 +200,10 @@ export default function IssueForm({
   officers,
   documentNo,
   initialDepartmentId,
-  isAdmin,
+  canChangeDepartment,
 }: Props) {
   /* =======================================================
-     DEPARTMENT
+     DEFAULT DEPARTMENT
   ======================================================= */
 
   const defaultDepartmentId =
@@ -281,43 +267,34 @@ export default function IssueForm({
       remark: "",
     });
 
-  const [
-    rows,
-    setRows,
-  ] = useState<
-    ItemRow[]
-  >(
-    Array.from(
-      {
-        length: 18,
-      },
-      emptyRow
-    )
-  );
+  /*
+   * พอ.101
+   * 18 รายการ
+   */
+  const [rows, setRows] =
+    useState<ItemRow[]>(
+      Array.from(
+        {
+          length: 18,
+        },
+        emptyRow
+      )
+    );
 
   /* =======================================================
-     OFFICER FILTER
+     FILTER OFFICERS
   ======================================================= */
 
   const filteredOfficers =
-    useMemo(
-      () =>
-        officers.filter(
-          (officer) =>
-            String(
-              officer.departmentId
-            ) ===
-              departmentId ||
-            String(
-              officer.section
-                ?.departmentId
-            ) ===
-              departmentId
-        ),
-      [
-        officers,
-        departmentId,
-      ]
+    officers.filter(
+      (officer) =>
+        String(
+          officer.departmentId
+        ) === departmentId ||
+        String(
+          officer.section
+            ?.departmentId
+        ) === departmentId
     );
 
   /* =======================================================
@@ -329,40 +306,39 @@ export default function IssueForm({
     key: keyof ItemRow,
     value: string
   ) {
-    setRows(
-      (currentRows) => {
-        const copy =
-          currentRows.map(
-            (row) => ({
-              ...row,
-            })
-          );
+    const copy = [
+      ...rows,
+    ];
 
-        copy[index][key] =
-          value;
+    copy[index] = {
+      ...copy[index],
+      [key]: value,
+    };
 
-        if (
-          key === "category"
-        ) {
-          copy[
-            index
-          ].materialId = "";
+    /* -----------------------------------------------------
+       เปลี่ยนหมวดหมู่
+    ----------------------------------------------------- */
 
-          copy[index].qty =
-            "";
-        }
+    if (
+      key === "category"
+    ) {
+      copy[index].materialId =
+        "";
 
-        if (
-          key ===
-          "materialId"
-        ) {
-          copy[index].qty =
-            "";
-        }
+      copy[index].qty = "";
+    }
 
-        return copy;
-      }
-    );
+    /* -----------------------------------------------------
+       เปลี่ยนพัสดุ
+    ----------------------------------------------------- */
+
+    if (
+      key === "materialId"
+    ) {
+      copy[index].qty = "";
+    }
+
+    setRows(copy);
   }
 
   /* =======================================================
@@ -370,440 +346,228 @@ export default function IssueForm({
   ======================================================= */
 
   return (
-    <form
-      action={createIssue}
+    <div
       className="
-        relative
         w-full
         min-w-0
-        space-y-6
-        overflow-visible
+        bg-white
       "
     >
-      {/* ===================================================
-          DOCUMENT / BASIC INFORMATION
-      =================================================== */}
+      <form
+        action={createIssue}
+        className="space-y-6"
+      >
+        {/* =================================================
+            DOCUMENT NUMBER
+        ================================================= */}
 
-      <AppCard>
         <div
           className="
+            flex
             w-full
-            min-w-0
-            space-y-6
+            justify-end
           "
         >
-          {/* ===============================================
-              TOP
-          =============================================== */}
-
           <div
             className="
-              flex
-              flex-col
-              gap-4
-
-              border-b
-              border-slate-200
-
-              pb-5
-
-              lg:flex-row
-              lg:items-start
-              lg:justify-between
+              w-full
+              max-w-[260px]
             "
           >
-            {/* =============================================
-                TITLE
-            ============================================= */}
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                พอ.101
-              </p>
-
-              <h2
-                className="
-                  mt-1
-                  text-xl
-                  font-extrabold
-                  !text-slate-900
-                  sm:text-2xl
-                "
-              >
-                ใบเบิกพัสดุ
-              </h2>
-            </div>
-
-            {/* =============================================
-                DOCUMENT NUMBER
-                ขนาดเล็ก ด้านขวาบน
-            ============================================= */}
-
-            <div
+            <label
               className="
-                w-full
-                lg:w-[260px]
+                mb-1.5
+                block
+                text-sm
+                font-extrabold
+                !text-slate-700
               "
             >
-              <label
-                className="
-                  mb-1.5
-                  block
-                  text-xs
-                  font-extrabold
-                  !text-slate-600
-                "
-              >
-                เลขที่เอกสาร
-              </label>
+              เลขที่เอกสาร
+            </label>
 
+            <input
+              type="text"
+              name="documentNo"
+              value={
+                documentValue
+              }
+              onChange={(e) =>
+                setDocumentValue(
+                  e.target.value
+                )
+              }
+              readOnly={
+                !editDocumentNo
+              }
+              className="
+                h-10
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                text-sm
+                font-extrabold
+                !text-slate-900
+                outline-none
+                transition
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+                read-only:bg-slate-50
+              "
+            />
+
+            <label
+              className="
+                mt-2
+                flex
+                w-fit
+                cursor-pointer
+                items-center
+                gap-2
+                text-xs
+                font-semibold
+                !text-slate-600
+              "
+            >
               <input
-                type="text"
-                name="documentNo"
-                value={
-                  documentValue
+                type="checkbox"
+                checked={
+                  editDocumentNo
                 }
-                onChange={(e) =>
-                  setDocumentValue(
-                    e.target.value
-                  )
-                }
-                readOnly={
-                  !editDocumentNo
-                }
+                onChange={(e) => {
+                  const checked =
+                    e.target.checked;
+
+                  setEditDocumentNo(
+                    checked
+                  );
+
+                  if (
+                    !checked
+                  ) {
+                    setDocumentValue(
+                      documentNo
+                    );
+                  }
+                }}
                 className="
-                  h-10
-                  w-full
-                  rounded-xl
-                  border
+                  h-4
+                  w-4
+                  shrink-0
+                  cursor-pointer
+                  rounded
                   border-slate-300
-                  bg-white
-                  px-3
-                  text-sm
-                  font-extrabold
-                  !text-slate-900
-                  outline-none
-                  transition
-                  focus:border-slate-500
-                  focus:ring-2
-                  focus:ring-slate-200
                 "
               />
 
-              {/* ===========================================
-                  CHECKBOX
-                  รูปแบบเดียวกับยอดยกเข้าระบบ
-              =========================================== */}
-
-              <label
-                className="
-                  mt-2
-                  inline-flex
-                  cursor-pointer
-                  items-center
-                  gap-2
-                  text-xs
-                  font-semibold
-                  !text-slate-600
-                "
-              >
-                <input
-                  type="checkbox"
-                  checked={
-                    editDocumentNo
-                  }
-                  onChange={(e) => {
-                    const checked =
-                      e.target
-                        .checked;
-
-                    setEditDocumentNo(
-                      checked
-                    );
-
-                    if (
-                      !checked
-                    ) {
-                      setDocumentValue(
-                        documentNo
-                      );
-                    }
-                  }}
-                  className="
-                    h-4
-                    w-4
-                    cursor-pointer
-                    rounded
-                    border-slate-300
-                  "
-                />
-
+              <span>
                 แก้ไขเลขที่เอกสาร
-              </label>
-            </div>
+              </span>
+            </label>
           </div>
+        </div>
 
-          {/* ===============================================
-              BASIC INFORMATION
-          =============================================== */}
+        {/* =================================================
+            FORM TITLE
+        ================================================= */}
 
+        <div
+          className="
+            border-b
+            border-slate-200
+            pb-5
+            text-center
+          "
+        >
           <div
             className="
-              grid
-              gap-5
-              lg:grid-cols-3
+              text-base
+              font-bold
+              !text-slate-600
             "
           >
-            {/* =============================================
-                DATE
-            ============================================= */}
+            พอ.101
+          </div>
 
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-700
-                "
-              >
-                วันที่เบิก
-              </label>
+          <h2
+            className="
+              mt-1
+              text-2xl
+              font-extrabold
+              !text-slate-900
+            "
+          >
+            ใบเบิกพัสดุ
+          </h2>
+        </div>
 
-              <div
-                className="
-                  relative
-                  max-w-[280px]
-                "
-              >
-                <input
-                  type="date"
-                  name="issueDate"
-                  value={
-                    issueDate
-                  }
-                  onChange={(
-                    e
-                  ) =>
-                    setIssueDate(
-                      e.target
-                        .value
-                    )
-                  }
-                  required
-                  className="
-                    absolute
-                    inset-0
-                    z-10
-                    h-full
-                    w-full
-                    cursor-pointer
-                    opacity-0
-                  "
-                />
+        {/* =================================================
+            DOCUMENT INFORMATION
+        ================================================= */}
 
-                <div
-                  className="
-                    flex
-                    h-11
-                    w-full
-                    items-center
-                    justify-between
+        <div
+          className="
+            grid
+            gap-4
+            md:grid-cols-3
+          "
+        >
+          {/* ===============================================
+              ISSUE DATE
+          =============================================== */}
 
-                    rounded-xl
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
+            >
+              วันที่เบิก
+            </label>
 
-                    border
-                    border-slate-300
-
-                    bg-white
-
-                    px-3
-
-                    text-sm
-                    font-bold
-                    !text-slate-900
-
-                    shadow-sm
-                  "
-                >
-                  <span>
-                    {formatThaiDate(
-                      issueDate
-                    )}
-                  </span>
-
-                  <span>
-                    📅
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* =============================================
-                DEPARTMENT
-            ============================================= */}
-
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-700
-                "
-              >
-                หน่วยงาน /
-                กลุ่มงาน
-              </label>
-
-              {isAdmin ? (
-                <select
-                  name="departmentId"
-                  required
-                  value={
-                    departmentId
-                  }
-                  onChange={(e) => {
-                    setDepartmentId(
-                      e.target
-                        .value
-                    );
-
-                    setOfficerId(
-                      ""
-                    );
-                  }}
-                  className="
-                    h-11
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-3
-                    text-sm
-                    font-bold
-                    !text-slate-900
-                    outline-none
-                    transition
-                    focus:border-slate-500
-                    focus:ring-2
-                    focus:ring-slate-200
-                  "
-                >
-                  <option value="">
-                    --
-                    เลือกกลุ่มงาน
-                    --
-                  </option>
-
-                  {departments.map(
-                    (
-                      department
-                    ) => (
-                      <option
-                        key={
-                          department.id
-                        }
-                        value={
-                          department.id
-                        }
-                      >
-                        {
-                          department.name
-                        }
-                      </option>
-                    )
-                  )}
-                </select>
-              ) : (
-                <>
-                  <input
-                    type="hidden"
-                    name="departmentId"
-                    value={
-                      departmentId
-                    }
-                  />
-
-                  <div
-                    className="
-                      flex
-                      h-11
-                      w-full
-                      items-center
-
-                      rounded-xl
-
-                      border
-                      border-slate-200
-
-                      bg-slate-100
-
-                      px-3
-
-                      text-sm
-                      font-bold
-                      !text-slate-600
-                    "
-                  >
-                    {departments.find(
-                      (
-                        department
-                      ) =>
-                        String(
-                          department.id
-                        ) ===
-                        departmentId
-                    )?.name ??
-                      "-"}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* =============================================
-                OFFICER
-            ============================================= */}
-
-            <div>
-              <label
-                className="
-                  mb-2
-                  block
-                  text-sm
-                  font-extrabold
-                  !text-slate-700
-                "
-              >
-                ผู้ขอเบิก
-              </label>
-
-              <select
-                name="officerId"
-                value={
-                  officerId
-                }
+            <div
+              className="
+                relative
+                h-11
+                w-full
+              "
+            >
+              <input
+                type="date"
+                name="issueDate"
+                value={issueDate}
                 onChange={(e) =>
-                  setOfficerId(
+                  setIssueDate(
                     e.target.value
                   )
                 }
-                disabled={
-                  !departmentId
-                }
                 required
                 className="
+                  absolute
+                  inset-0
+                  z-10
                   h-11
                   w-full
+                  cursor-pointer
+                  opacity-0
+                "
+              />
+
+              <div
+                className="
+                  flex
+                  h-11
+                  w-full
+                  items-center
+                  justify-between
                   rounded-xl
                   border
                   border-slate-300
@@ -812,59 +576,218 @@ export default function IssueForm({
                   text-sm
                   font-bold
                   !text-slate-900
-                  outline-none
-                  transition
-                  disabled:cursor-not-allowed
-                  disabled:bg-slate-100
-                  disabled:!text-slate-400
-                  focus:border-slate-500
-                  focus:ring-2
-                  focus:ring-slate-200
+                  shadow-sm
                 "
               >
-                <option value="">
-                  --
-                  เลือกผู้ขอเบิก
-                  --
-                </option>
+                <span>
+                  {formatThaiDate(
+                    issueDate
+                  )}
+                </span>
 
-                {filteredOfficers.map(
-                  (officer) => (
-                    <option
-                      key={
-                        officer.id
-                      }
-                      value={
-                        officer.id
-                      }
-                    >
-                      {
-                        officer.firstName
-                      }{" "}
-                      {
-                        officer.lastName
-                      }
-                    </option>
-                  )
-                )}
-              </select>
+                <span
+                  aria-hidden="true"
+                  className="
+                    shrink-0
+                    text-lg
+                  "
+                >
+                  📅
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* ===============================================
+              DEPARTMENT
+          =============================================== */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
+            >
+              หน่วยงาน / กลุ่มงาน
+            </label>
+
+            {/* ------------------------------------------------
+                disabled select จะไม่ส่งค่าตอน submit
+                ผู้ใช้ทั่วไปจึงส่งผ่าน hidden input
+            ------------------------------------------------ */}
+
+            {!canChangeDepartment && (
+              <input
+                type="hidden"
+                name="departmentId"
+                value={
+                  departmentId
+                }
+              />
+            )}
+
+            <select
+              name={
+                canChangeDepartment
+                  ? "departmentId"
+                  : undefined
+              }
+              required={
+                canChangeDepartment
+              }
+              value={
+                departmentId
+              }
+              disabled={
+                !canChangeDepartment
+              }
+              onChange={(e) => {
+                if (
+                  !canChangeDepartment
+                ) {
+                  return;
+                }
+
+                const value =
+                  e.target.value;
+
+                setDepartmentId(
+                  value
+                );
+
+                setOfficerId("");
+              }}
+              className="
+                h-11
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                text-sm
+                font-bold
+                !text-slate-900
+                outline-none
+                transition
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:!text-slate-500
+              "
+            >
+              {canChangeDepartment && (
+                <option value="">
+                  -- เลือกหน่วยงาน --
+                </option>
+              )}
+
+              {departments.map(
+                (department) => (
+                  <option
+                    key={
+                      department.id
+                    }
+                    value={
+                      department.id
+                    }
+                  >
+                    {
+                      department.name
+                    }
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+
+          {/* ===============================================
+              OFFICER
+          =============================================== */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
+            >
+              ผู้ขอเบิก
+            </label>
+
+            <select
+              name="officerId"
+              value={officerId}
+              onChange={(e) =>
+                setOfficerId(
+                  e.target.value
+                )
+              }
+              disabled={
+                !departmentId
+              }
+              required
+              className="
+                h-11
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                bg-white
+                px-3
+                text-sm
+                font-bold
+                !text-slate-900
+                outline-none
+                transition
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:!text-slate-500
+              "
+            >
+              <option value="">
+                -- เลือกผู้ขอเบิก --
+              </option>
+
+              {filteredOfficers.map(
+                (officer) => (
+                  <option
+                    key={
+                      officer.id
+                    }
+                    value={
+                      officer.id
+                    }
+                  >
+                    {
+                      officer.firstName
+                    }{" "}
+                    {
+                      officer.lastName
+                    }
+                  </option>
+                )
+              )}
+            </select>
+          </div>
         </div>
-      </AppCard>
 
-      {/* ===================================================
-          ITEMS TABLE
-      =================================================== */}
+        {/* =================================================
+            TABLE
+        ================================================= */}
 
-      <AppTableCard
-        title="รายการพัสดุที่ขอเบิก"
-        subtitle="แบบ พอ.101"
-        className="
-          w-full
-          min-w-0
-        "
-      >
         <div
           className="
             w-full
@@ -876,16 +799,12 @@ export default function IssueForm({
           <table
             className="
               w-full
-              min-w-[1280px]
+              min-w-[1250px]
               border-collapse
               bg-white
               text-sm
             "
           >
-            {/* =============================================
-                HEADER
-            ============================================= */}
-
             <thead>
               <tr>
                 {[
@@ -897,37 +816,36 @@ export default function IssueForm({
                   "หน่วย",
                   "หมายเหตุ",
                 ].map(
-                  (title) => (
+                  (
+                    tableTitle
+                  ) => (
                     <th
-                      key={title}
+                      key={
+                        tableTitle
+                      }
                       className="
                         whitespace-nowrap
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-4
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
                         !text-white
                       "
                     >
-                      {title}
+                      {
+                        tableTitle
+                      }
                     </th>
                   )
                 )}
               </tr>
             </thead>
-
-            {/* =============================================
-                BODY
-            ============================================= */}
 
             <tbody>
               {rows.map(
@@ -959,30 +877,11 @@ export default function IssueForm({
                     selectedMaterial
                       ?.unit ?? "";
 
-                  const availableBalance =
-                    receiveLots
-                      .filter(
-                        (lot) =>
-                          lot.materialId ===
-                          Number(
-                            row.materialId
-                          )
-                      )
-                      .reduce(
-                        (
-                          total,
-                          lot
-                        ) =>
-                          total +
-                          lot.balance,
-                        0
-                      );
-
                   return (
                     <tr
                       key={index}
                       className={`
-                        transition-all
+                        transition-colors
                         duration-200
 
                         ${
@@ -996,34 +895,32 @@ export default function IssueForm({
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* ===================================
+                      {/* =====================================
                           NUMBER
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
-                          w-[70px]
                           whitespace-nowrap
                           border
                           border-black
-                          px-4
+                          px-3
                           py-3
                           text-center
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {index +
-                          1}
+                        {index + 1}
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           CATEGORY
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
-                          min-w-[220px]
+                          min-w-[190px]
                           border
                           border-black
                           px-3
@@ -1045,7 +942,7 @@ export default function IssueForm({
                             )
                           }
                           className="
-                            h-11
+                            h-10
                             w-full
                             rounded-xl
                             border
@@ -1055,6 +952,9 @@ export default function IssueForm({
                             font-semibold
                             !text-slate-900
                             outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
                           "
                         >
                           <option value="">
@@ -1082,13 +982,13 @@ export default function IssueForm({
                         </select>
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           MATERIAL
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
-                          min-w-[340px]
+                          min-w-[300px]
                           border
                           border-black
                           px-3
@@ -1100,9 +1000,6 @@ export default function IssueForm({
                           value={
                             row.materialId
                           }
-                          disabled={
-                            !row.category
-                          }
                           onChange={(
                             e
                           ) =>
@@ -1113,8 +1010,11 @@ export default function IssueForm({
                                 .value
                             )
                           }
+                          disabled={
+                            !row.category
+                          }
                           className="
-                            h-11
+                            h-10
                             w-full
                             rounded-xl
                             border
@@ -1124,8 +1024,11 @@ export default function IssueForm({
                             font-semibold
                             !text-slate-900
                             outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
+                            disabled:cursor-not-allowed
                             disabled:bg-slate-100
-                            disabled:!text-slate-400
                           "
                         >
                           <option value="">
@@ -1155,9 +1058,9 @@ export default function IssueForm({
                         </select>
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           REQUEST QTY
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -1166,18 +1069,13 @@ export default function IssueForm({
                           border-black
                           px-3
                           py-3
+                          text-center
                         "
                       >
                         <input
                           name={`items[${index}].qty`}
                           type="number"
                           min="1"
-                          max={
-                            availableBalance >
-                            0
-                              ? availableBalance
-                              : undefined
-                          }
                           value={
                             row.qty
                           }
@@ -1192,7 +1090,7 @@ export default function IssueForm({
                             )
                           }
                           className="
-                            h-11
+                            h-10
                             w-full
                             rounded-xl
                             border
@@ -1203,13 +1101,16 @@ export default function IssueForm({
                             font-bold
                             !text-slate-900
                             outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
                           "
                         />
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           APPROVED QTY
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -1218,31 +1119,36 @@ export default function IssueForm({
                           border-black
                           px-3
                           py-3
+                          text-center
                         "
                       >
-                        <div
+                        <input
+                          type="text"
+                          readOnly
+                          value=""
+                          aria-label={`จำนวนที่เบิกจ่ายรายการที่ ${
+                            index +
+                            1
+                          }`}
                           className="
-                            flex
-                            h-11
+                            h-10
                             w-full
-                            items-center
-                            justify-center
                             rounded-xl
                             border
-                            border-slate-200
+                            border-slate-300
                             bg-slate-100
                             px-3
+                            text-center
                             font-bold
-                            !text-slate-400
+                            !text-slate-500
+                            outline-none
                           "
-                        >
-                          -
-                        </div>
+                        />
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           UNIT
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -1253,38 +1159,39 @@ export default function IssueForm({
                           py-3
                         "
                       >
-                        <div
+                        <input
+                          type="text"
+                          readOnly
+                          value={unit}
+                          aria-label={`หน่วยของรายการที่ ${
+                            index +
+                            1
+                          }`}
                           className="
-                            flex
-                            h-11
+                            h-10
                             w-full
-                            items-center
-                            justify-center
                             rounded-xl
                             border
-                            border-slate-200
+                            border-slate-300
                             bg-slate-50
                             px-3
+                            text-center
                             font-bold
                             !text-slate-700
+                            outline-none
                           "
-                        >
-                          {unit ||
-                            "-"}
-                        </div>
+                        />
 
                         <input
                           type="hidden"
                           name={`items[${index}].unit`}
-                          value={
-                            unit
-                          }
+                          value={unit}
                         />
                       </td>
 
-                      {/* ===================================
+                      {/* =====================================
                           REMARK
-                      =================================== */}
+                      ===================================== */}
 
                       <td
                         className="
@@ -1313,7 +1220,7 @@ export default function IssueForm({
                           }
                           placeholder="ระบุหมายเหตุ"
                           className="
-                            h-11
+                            h-10
                             w-full
                             rounded-xl
                             border
@@ -1323,6 +1230,9 @@ export default function IssueForm({
                             font-semibold
                             !text-slate-900
                             outline-none
+                            focus:border-blue-400
+                            focus:ring-2
+                            focus:ring-blue-100
                           "
                         />
                       </td>
@@ -1333,32 +1243,36 @@ export default function IssueForm({
             </tbody>
           </table>
         </div>
-      </AppTableCard>
 
-      {/* ===================================================
-          SAVE
-      =================================================== */}
+        {/* =================================================
+            SUBMIT
+        ================================================= */}
 
-      <div
-        className="
-          flex
-          w-full
-          justify-end
-        "
-      >
-        <AppButton
-          type="submit"
-          variant="success"
-          size="md"
-          icon={
-            <span>
-              💾
-            </span>
-          }
+        <div
+          className="
+            flex
+            justify-end
+            border-t
+            border-slate-200
+            pt-5
+          "
         >
-          บันทึก
-        </AppButton>
-      </div>
-    </form>
+          <AppButton
+            type="submit"
+            variant="success"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                💾
+              </span>
+            }
+          >
+            บันทึก
+          </AppButton>
+        </div>
+      </form>
+    </div>
   );
 }
