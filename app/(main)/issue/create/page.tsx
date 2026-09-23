@@ -1,14 +1,25 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+
 import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+
 import IssueForm from "./IssueForm";
 
+/* =========================================================
+   DOCUMENT NUMBER
+========================================================= */
+
 function getThaiYear() {
-  return (new Date().getFullYear() + 543)
+  return (
+    new Date().getFullYear() + 543
+  )
     .toString()
     .slice(-2);
 }
@@ -16,60 +27,91 @@ function getThaiYear() {
 async function generateIssueNo() {
   const year = getThaiYear();
 
-  const issues = await prisma.issue.findMany({
-    where: {
-      documentNo: {
-        startsWith: "จ.",
+  const issues =
+    await prisma.issue.findMany({
+      where: {
+        documentNo: {
+          startsWith: "จ.",
+        },
       },
-    },
-    select: {
-      documentNo: true,
-    },
-  });
+
+      select: {
+        documentNo: true,
+      },
+    });
 
   let maxNumber = 0;
 
   for (const issue of issues) {
-    const match = issue.documentNo.match(
-      /^จ\.(\d+)\/(\d+)$/
-    );
+    const match =
+      issue.documentNo.match(
+        /^จ\.(\d+)\/(\d+)$/
+      );
 
     if (!match) {
       continue;
     }
 
-    const number = Number(match[1]);
-    const documentYear = match[2];
+    const number =
+      Number(match[1]);
 
-    if (documentYear === year) {
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
+    const documentYear =
+      match[2];
+
+    if (
+      documentYear === year &&
+      number > maxNumber
+    ) {
+      maxNumber = number;
     }
   }
 
-  const running = maxNumber + 1;
+  const running =
+    maxNumber + 1;
 
   return `จ.${running
     .toString()
-    .padStart(2, "0")}/${year}`;
+    .padStart(
+      2,
+      "0"
+    )}/${year}`;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CreateIssuePage() {
-  const cookieStore = await cookies();
+  /* =======================================================
+     SESSION
+  ======================================================= */
+
+  const cookieStore =
+    await cookies();
 
   const token =
-    cookieStore.get("session")?.value;
+    cookieStore.get(
+      "session"
+    )?.value;
 
-  let session: SessionUser | null = null;
+  let session:
+    | SessionUser
+    | null = null;
 
   if (token) {
     try {
-      session = await verifySession(token);
+      session =
+        await verifySession(
+          token
+        );
     } catch {
       session = null;
     }
   }
+
+  /* =======================================================
+     MATERIALS
+  ======================================================= */
 
   const materials =
     await prisma.material.findMany({
@@ -83,6 +125,10 @@ export default async function CreateIssuePage() {
       ],
     });
 
+  /* =======================================================
+     RECEIVE LOTS
+  ======================================================= */
+
   const receiveLots =
     await prisma.receiveItem.findMany({
       where: {
@@ -90,6 +136,7 @@ export default async function CreateIssuePage() {
           gt: 0,
         },
       },
+
       select: {
         id: true,
         materialId: true,
@@ -97,6 +144,7 @@ export default async function CreateIssuePage() {
         manufacture: true,
         expiry: true,
       },
+
       orderBy: [
         {
           expiry: "asc",
@@ -110,8 +158,13 @@ export default async function CreateIssuePage() {
       ],
     });
 
+  /* =======================================================
+     USER DEPARTMENT
+  ======================================================= */
+
   let userDepartmentId =
-    session?.departmentId ?? null;
+    session?.departmentId ??
+    null;
 
   if (
     session &&
@@ -123,15 +176,21 @@ export default async function CreateIssuePage() {
           where: {
             id: session.id,
           },
+
           select: {
             departmentId: true,
           },
         });
 
       userDepartmentId =
-        currentUser?.departmentId ?? null;
+        currentUser?.departmentId ??
+        null;
     }
   }
+
+  /* =======================================================
+     DEPARTMENTS
+  ======================================================= */
 
   const departments =
     await prisma.department.findMany({
@@ -145,10 +204,15 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
+
       orderBy: {
         name: "asc",
       },
     });
+
+  /* =======================================================
+     OFFICERS
+  ======================================================= */
 
   const officers =
     await prisma.officer.findMany({
@@ -173,10 +237,12 @@ export default async function CreateIssuePage() {
             : {
                 id: -1,
               },
+
       include: {
         section: true,
         department: true,
       },
+
       orderBy: [
         {
           firstName: "asc",
@@ -187,144 +253,99 @@ export default async function CreateIssuePage() {
       ],
     });
 
+  /* =======================================================
+     DOCUMENT NUMBER
+  ======================================================= */
+
   const documentNo =
     await generateIssueNo();
+
+  /* =======================================================
+     INITIAL DEPARTMENT
+  ======================================================= */
 
   const initialDepartmentId =
     session?.role === "ADMIN"
       ? ""
       : userDepartmentId
-        ? String(userDepartmentId)
+        ? String(
+            userDepartmentId
+          )
         : "";
 
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =====================================================
-          Header
-      ===================================================== */}
+    <AppPage>
+      {/* ===================================================
+          HEADER
+          ใช้ Component กลางของระบบ
+      =================================================== */}
+
+      <AppPageHeader
+        icon="📤"
+        title="บันทึกการเบิกจ่ายพัสดุ"
+        subtitle="เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ"
+        actions={
+          <AppButton
+            href="/issue"
+            variant="back"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ←
+              </span>
+            }
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* ===================================================
+          FORM
+
+          ไม่สร้าง Card / Background เองที่ page
+          ให้ IssueForm ใช้ Component กลางภายใน
+          เช่นเดียวกับ receive/create
+      =================================================== */}
 
       <div
         className="
-          flex
-          min-h-[110px]
+          relative
+          z-0
+
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📤 บันทึกการเบิกจ่ายพัสดุ
-          </h1>
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ
-          </p>
-        </div>
-
-        <Link
-          href="/issue"
-          className="
-            shrink-0
-            whitespace-nowrap
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            leading-tight
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-base
-          "
-        >
-          ← กลับ
-        </Link>
-      </div>
-
-      {/* =====================================================
-          Form
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:rounded-3xl
-          sm:p-8
+          overflow-visible
         "
       >
         <IssueForm
-          departments={departments}
-          officers={officers}
-          materials={materials}
-          receiveLots={receiveLots}
-          documentNo={documentNo}
+          departments={
+            departments
+          }
+          officers={
+            officers
+          }
+          materials={
+            materials
+          }
+          receiveLots={
+            receiveLots
+          }
+          documentNo={
+            documentNo
+          }
           initialDepartmentId={
             initialDepartmentId
           }
         />
       </div>
-    </div>
+    </AppPage>
   );
 }
