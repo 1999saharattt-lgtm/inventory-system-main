@@ -32,23 +32,16 @@ type Category =
    CATEGORY
 ========================================================= */
 
-const categoryNames: Record<
-  string,
-  string
-> = {
+const categoryNames: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-const categoryIcons: Record<
-  string,
-  string
-> = {
+const categoryIcons: Record<string, string> = {
   OFFICE: "📄",
   COMPUTER: "💻",
   ELECTRIC: "⚡",
@@ -69,14 +62,11 @@ export default async function CategoryPage({
      PARAMS
   ======================================================= */
 
-  const { category } =
-    await params;
+  const { category } = await params;
 
-  const searchData =
-    await searchParams;
+  const { search } = await searchParams;
 
-  const search =
-    searchData.search?.trim() ?? "";
+  const keyword = search?.trim() ?? "";
 
   /* =======================================================
      DATA
@@ -85,22 +75,19 @@ export default async function CategoryPage({
   const materials =
     await prisma.material.findMany({
       where: {
-        category:
-          category as Category,
+        category: category as Category,
 
-        ...(search
+        ...(keyword
           ? {
               OR: [
                 {
                   code: {
-                    contains:
-                      search,
+                    contains: keyword,
                   },
                 },
                 {
                   name: {
-                    contains:
-                      search,
+                    contains: keyword,
                   },
                 },
               ],
@@ -112,8 +99,7 @@ export default async function CategoryPage({
         receiveItems: {
           orderBy: {
             receive: {
-              receiveDate:
-                "desc",
+              receiveDate: "desc",
             },
           },
 
@@ -184,7 +170,8 @@ export default async function CategoryPage({
 
       <SearchStockCard
         category={category}
-        defaultSearch={search}
+        defaultSearch={keyword}
+        resultCount={materials.length}
       />
 
       {/* =====================================================
@@ -194,13 +181,9 @@ export default async function CategoryPage({
       <AppTableCard
         title="รายการบัญชีพัสดุ"
         subtitle={
-          search
-            ? `ผลการค้นหา “${search}” • พบ ${materials.length.toLocaleString(
-                "th-TH"
-              )} รายการ`
-            : `ข้อมูลพัสดุทั้งหมดในหมวดนี้ • ทั้งหมด ${materials.length.toLocaleString(
-                "th-TH"
-              )} รายการ`
+          keyword
+            ? `ผลการค้นหา “${keyword}”`
+            : "ข้อมูลพัสดุทั้งหมดในหมวดนี้"
         }
         badge={`${materials.length.toLocaleString(
           "th-TH"
@@ -218,7 +201,6 @@ export default async function CategoryPage({
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -227,9 +209,7 @@ export default async function CategoryPage({
             className="
               w-full
               min-w-[1000px]
-
               border-collapse
-
               bg-white
             "
           >
@@ -283,8 +263,7 @@ export default async function CategoryPage({
             ================================================= */}
 
             <tbody>
-              {materials.length >
-              0 ? (
+              {materials.length > 0 ? (
                 materials.map(
                   (
                     material,
@@ -310,8 +289,7 @@ export default async function CategoryPage({
                           duration-200
 
                           ${
-                            index % 2 ===
-                            0
+                            index % 2 === 0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
@@ -411,7 +389,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            VENDOR
+                            LATEST VENDOR
                         ===================================== */}
 
                         <td
@@ -471,7 +449,7 @@ export default async function CategoryPage({
                 )
               ) : (
                 /* =============================================
-                    EMPTY
+                    EMPTY STATE
                 ============================================= */
 
                 <tr>
@@ -530,7 +508,7 @@ export default async function CategoryPage({
                           !text-slate-900
                         "
                       >
-                        {search
+                        {keyword
                           ? "ไม่พบพัสดุที่ค้นหา"
                           : "ยังไม่มีข้อมูลบัญชีพัสดุ"}
                       </p>
@@ -544,12 +522,12 @@ export default async function CategoryPage({
                           !text-slate-500
                         "
                       >
-                        {search
+                        {keyword
                           ? "ลองค้นหาด้วยรหัสหรือชื่อพัสดุอื่น"
                           : "เมื่อมีรายการพัสดุ ข้อมูลจะแสดงในส่วนนี้"}
                       </p>
 
-                      {search && (
+                      {keyword && (
                         <div className="mt-5">
                           <AppButton
                             href={`/stock-card/${category}`}
