@@ -4,6 +4,12 @@ import DeleteButton from "./DeleteButton";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   CATEGORY
+========================================================= */
 
 const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
@@ -22,6 +28,10 @@ const categoryIcon: Record<string, string> = {
   VEHICLE: "🚗",
   PRINTING: "📰",
 };
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Category =
   | "OFFICE"
@@ -62,7 +72,7 @@ type Props = {
 };
 
 /* =========================================================
-   วันที่ไทยแบบย่อ
+   THAI SHORT DATE
    ตัวอย่าง 01 ก.ย. 69
 ========================================================= */
 
@@ -94,13 +104,14 @@ function formatThaiShortDate(
     return "-";
   }
 
-  const day = String(date.getDate()).padStart(
-    2,
-    "0"
-  );
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
 
   const month =
-    thaiShortMonths[date.getMonth()];
+    thaiShortMonths[
+      date.getMonth()
+    ];
 
   const buddhistYear = String(
     date.getFullYear() + 543
@@ -109,33 +120,50 @@ function formatThaiShortDate(
   return `${day} ${month} ${buddhistYear}`;
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CategoryPage({
   params,
   searchParams,
 }: Props) {
-  const { category } = await params;
-  const { search } = await searchParams;
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
-  /* =========================================================
+  const { category } =
+    await params;
+
+  const { search } =
+    await searchParams;
+
+  const keyword =
+    search?.trim() ?? "";
+
+  /* =======================================================
      DATA
-  ========================================================= */
+  ======================================================= */
 
   const materials =
     await prisma.material.findMany({
       where: {
-        category: category as Category,
+        category:
+          category as Category,
 
-        ...(search
+        ...(keyword
           ? {
               OR: [
                 {
                   code: {
-                    contains: search,
+                    contains:
+                      keyword,
                   },
                 },
                 {
                   name: {
-                    contains: search,
+                    contains:
+                      keyword,
                   },
                 },
               ],
@@ -158,12 +186,21 @@ export default async function CategoryPage({
       },
     });
 
+  /* =======================================================
+     DISPLAY
+  ======================================================= */
+
   const title =
     categoryName[category] ??
     "รายการพัสดุ";
 
   const icon =
-    categoryIcon[category] ?? "📦";
+    categoryIcon[category] ??
+    "📦";
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <AppPage>
@@ -174,23 +211,37 @@ export default async function CategoryPage({
       <AppPageHeader
         icon={icon}
         title={title}
-        subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length} รายการ`}
+        subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         actions={
           <>
             <AppButton
               href={`/materials/new?category=${category}`}
               variant="primary"
               size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ＋
+                </span>
+              }
             >
-              <span>＋</span>
-              <span>เพิ่มรายการ</span>
+              เพิ่มรายการ
             </AppButton>
 
             <AppButton
               href="/materials"
               variant="back"
               size="md"
-              icon={<span>←</span>}
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ←
+                </span>
+              }
             >
               กลับ
             </AppButton>
@@ -200,56 +251,63 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
-
-          - ไม่มีไอคอนแว่นขยายภายในช่องกรอก
-          - ช่องค้นหาใช้กรอบดำหนา 2px
-          - Hover / Focus ยังคงกรอบดำ
-          - คงไอคอนแว่นขยายไว้เฉพาะปุ่มค้นหา
+          ใช้ AppCard กลาง
       ===================================================== */}
 
-      <section
+      <AppCard
         className="
           w-full
           min-w-0
-          rounded-[24px]
-          border
-          border-slate-200
-          bg-white/80
+
           p-4
-          shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)]
-          backdrop-blur-2xl
+
           sm:p-5
         "
       >
         <form
+          method="GET"
           className="
             flex
             w-full
             min-w-0
             flex-col
             gap-3
+
             sm:flex-row
             sm:items-center
           "
         >
-          <div className="relative min-w-0 flex-1">
+          {/* ===============================================
+              SEARCH INPUT
+          =============================================== */}
+
+          <div
+            className="
+              min-w-0
+              flex-1
+            "
+          >
             <input
+              type="text"
               name="search"
-              defaultValue={search ?? ""}
+              defaultValue={
+                keyword
+              }
               placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
+              autoComplete="off"
               className="
-                min-h-[48px]
+                h-[52px]
                 w-full
+                min-w-0
 
                 rounded-[16px]
 
-                border-2
-                !border-black
+                border
+                border-slate-200
 
                 bg-white
 
                 px-4
-                py-3
 
                 text-base
                 font-bold
@@ -263,148 +321,83 @@ export default async function CategoryPage({
 
                 placeholder:!text-slate-400
 
-                hover:!border-black
+                hover:border-slate-300
                 hover:bg-slate-50
 
-                focus:!border-black
-                focus:bg-white
+                focus:border-blue-300
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-blue-100/70
               "
             />
           </div>
+
+          {/* ===============================================
+              SEARCH BUTTON
+          =============================================== */}
 
           <AppButton
             type="submit"
             variant="primary"
             size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                🔎
+              </span>
+            }
           >
-            <span>🔎</span>
-            <span>ค้นหา</span>
+            ค้นหา
           </AppButton>
 
-          {search && (
+          {/* ===============================================
+              CLEAR SEARCH
+          =============================================== */}
+
+          {keyword && (
             <AppButton
               href={`/materials/category/${category}`}
               variant="outline"
               size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ✕
+                </span>
+              }
             >
-              <span>✕</span>
-              <span>ล้างการค้นหา</span>
+              ล้างการค้นหา
             </AppButton>
           )}
         </form>
-      </section>
+      </AppCard>
 
       {/* =====================================================
-          TABLE CARD
+          TABLE
+          ใช้ AppTableCard กลาง
       ===================================================== */}
 
-      <section
+      <AppTableCard
+        title="รายการพัสดุ"
+        subtitle={
+          keyword
+            ? `ผลการค้นหา “${keyword}”`
+            : "ข้อมูลพัสดุทั้งหมดในหมวดนี้"
+        }
+        badge={`${materials.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
           w-full
           min-w-0
-          overflow-hidden
-          rounded-[28px]
-          border
-          border-slate-300
-          bg-white/85
-          shadow-[0_22px_60px_-32px_rgba(15,23,42,0.4)]
-          backdrop-blur-2xl
         "
       >
-        {/* ===================================================
-            TABLE CARD HEADER
-        =================================================== */}
-
-        <div
-          className="
-            flex
-            flex-col
-            gap-2
-            border-b
-            border-black
-            bg-white/70
-            px-5
-            py-4
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            sm:px-6
-          "
-        >
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-                sm:text-xl
-              "
-            >
-              รายการพัสดุ
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              {search
-                ? `ผลการค้นหา “${search}”`
-                : "ข้อมูลพัสดุทั้งหมดในหมวดนี้"}
-            </p>
-          </div>
-
-          <div
-            className="
-              inline-flex
-              w-fit
-              items-center
-              gap-2
-              rounded-full
-              border
-              border-slate-300
-              bg-slate-100/80
-              px-3
-              py-1.5
-              text-sm
-              font-extrabold
-              !text-slate-700
-            "
-          >
-            <span>ทั้งหมด</span>
-
-            <span
-              className="
-                inline-flex
-                min-w-6
-                items-center
-                justify-center
-                rounded-full
-                bg-white
-                px-2
-                py-0.5
-                !text-slate-900
-                shadow-sm
-              "
-            >
-              {materials.length}
-            </span>
-          </div>
-        </div>
-
-        {/* ===================================================
-            TABLE
-        =================================================== */}
-
         <div
           className="
             w-full
+            min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
@@ -413,12 +406,18 @@ export default async function CategoryPage({
             className="
               w-full
               min-w-[1100px]
+
               border-collapse
-              border
-              border-black
+
               bg-white
+
+              text-sm
             "
           >
+            {/* =============================================
+                TABLE HEADER
+            ============================================= */}
+
             <thead>
               <tr>
                 {[
@@ -430,173 +429,185 @@ export default async function CategoryPage({
                   "วันผลิต",
                   "วันหมดอายุ",
                   "จัดการ",
-                ].map((tableTitle) => (
-                  <th
-                    key={tableTitle}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-black
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-base
-                      font-extrabold
-                      !text-white
-                      sm:text-lg
-                    "
-                  >
-                    {tableTitle}
-                  </th>
-                ))}
+                ].map(
+                  (tableTitle) => (
+                    <th
+                      key={
+                        tableTitle
+                      }
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {tableTitle}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
+            {/* =============================================
+                TABLE BODY
+            ============================================= */}
+
             <tbody>
-              {materials.length > 0 ? (
+              {materials.length >
+              0 ? (
                 materials.map(
                   (
                     material: Material,
                     index
                   ) => {
                     const latestReceive =
-                      material.receiveItems[0];
+                      material
+                        .receiveItems[0];
 
                     return (
                       <tr
-                        key={material.id}
+                        key={
+                          material.id
+                        }
                         className={`
-                          transition-colors
-                          duration-200
-
                           ${
-                            index % 2 === 0
+                            index %
+                              2 ===
+                            0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
 
+                          transition-colors
+                          duration-200
+
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* รหัสพัสดุ */}
+                        {/* ===================================
+                            MATERIAL CODE
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-extrabold
                             !text-slate-900
                           "
                         >
-                          <span
-                            className="
-                              inline-flex
-                              min-h-[32px]
-                              min-w-[80px]
-                              items-center
-                              justify-center
-                              rounded-[10px]
-                              border
-                              border-black
-                              bg-white
-                              px-3
-                              py-1
-                              text-center
-                              text-sm
-                              font-extrabold
-                              !text-slate-900
-                            "
-                          >
-                            {material.code}
-                          </span>
+                          {material.code ||
+                            "-"}
                         </td>
 
-                        {/* รายการพัสดุ */}
+                        {/* ===================================
+                            MATERIAL NAME
+                        =================================== */}
 
                         <td
                           className="
                             min-w-[240px]
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             font-extrabold
                             !text-slate-900
                           "
                         >
-                          {material.name}
+                          {material.name ||
+                            "-"}
                         </td>
 
-                        {/* จำนวน */}
+                        {/* ===================================
+                            BALANCE
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-extrabold
+                            tabular-nums
                             !text-slate-900
                           "
                         >
-                          <span
-                            className="
-                              inline-flex
-                              min-h-[32px]
-                              min-w-[80px]
-                              items-center
-                              justify-center
-                              rounded-[10px]
-                              border
-                              border-black
-                              bg-white
-                              px-3
-                              py-1
-                              text-center
-                              text-sm
-                              font-extrabold
-                              !text-slate-900
-                            "
-                          >
-                            {material.balance}
-                          </span>
+                          {Number(
+                            material.balance
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
                         </td>
 
-                        {/* หน่วย */}
+                        {/* ===================================
+                            UNIT
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
                             !text-slate-700
                           "
                         >
-                          {material.unit}
+                          {material.unit ||
+                            "-"}
                         </td>
 
-                        {/* ราคาล่าสุด */}
+                        {/* ===================================
+                            LATEST PRICE
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-right
                             font-extrabold
                             tabular-nums
@@ -612,15 +623,20 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* วันผลิต */}
+                        {/* ===================================
+                            MANUFACTURE
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
                             !text-slate-700
@@ -631,15 +647,20 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* วันหมดอายุ */}
+                        {/* ===================================
+                            EXPIRY
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
                             !text-slate-700
@@ -650,13 +671,17 @@ export default async function CategoryPage({
                           )}
                         </td>
 
-                        {/* จัดการ */}
+                        {/* ===================================
+                            ACTIONS
+                        =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3
                           "
@@ -673,13 +698,21 @@ export default async function CategoryPage({
                               href={`/materials/${material.id}/edit`}
                               variant="primary"
                               size="sm"
+                              icon={
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  ✏️
+                                </span>
+                              }
                             >
-                              <span>✏️</span>
-                              <span>แก้ไข</span>
+                              แก้ไข
                             </AppButton>
 
                             <DeleteButton
-                              id={material.id}
+                              id={
+                                material.id
+                              }
                             />
                           </div>
                         </td>
@@ -688,21 +721,29 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
+                /* ===========================================
+                   EMPTY STATE
+                =========================================== */
+
                 <tr>
                   <td
                     colSpan={8}
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
@@ -711,15 +752,7 @@ export default async function CategoryPage({
                     >
                       <div
                         className="
-                          flex
-                          h-16
-                          w-16
-                          items-center
-                          justify-center
-                          rounded-[20px]
-                          bg-slate-100
-                          text-3xl
-                          shadow-inner
+                          text-4xl
                         "
                       >
                         📦
@@ -728,12 +761,13 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {search
+                        {keyword
                           ? "ไม่พบพัสดุที่ค้นหา"
                           : "ยังไม่มีพัสดุในหมวดนี้"}
                       </p>
@@ -741,17 +775,18 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           !text-slate-500
                         "
                       >
-                        {search
+                        {keyword
                           ? "ลองค้นหาด้วยรหัสหรือชื่อพัสดุอื่น"
                           : "เมื่อเพิ่มพัสดุ รายการจะแสดงในส่วนนี้"}
                       </p>
 
-                      {search && (
+                      {keyword && (
                         <div className="mt-5">
                           <AppButton
                             href={`/materials/category/${category}`}
@@ -769,7 +804,7 @@ export default async function CategoryPage({
             </tbody>
           </table>
         </div>
-      </section>
+      </AppTableCard>
     </AppPage>
   );
 }
