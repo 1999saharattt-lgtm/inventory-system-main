@@ -1,13 +1,12 @@
 "use client";
 
 import {
-  useMemo,
   useState,
 } from "react";
 
-import AppButton from "@/components/AppButton";
-
 import { updateIssue } from "./action";
+
+import AppButton from "@/components/AppButton";
 
 /* =========================================================
    TYPES
@@ -36,6 +35,21 @@ type ReceiveItem = {
   expiry: Date | null;
 };
 
+type Officer = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  departmentId: number | null;
+
+  department?: {
+    id: number;
+  } | null;
+
+  section?: {
+    departmentId: number | null;
+  } | null;
+};
+
 type IssueItem = {
   materialId: number;
   qty: number;
@@ -52,8 +66,24 @@ type Issue = {
   issueDate: Date | string;
   documentNo: string;
   departmentId: number;
+  officerId?: number | null;
   status: string;
   items: IssueItem[];
+
+  officer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    departmentId: number | null;
+
+    department?: {
+      id: number;
+    } | null;
+
+    section?: {
+      departmentId: number | null;
+    } | null;
+  } | null;
 };
 
 type Props = {
@@ -61,11 +91,7 @@ type Props = {
   departments: Department[];
   materials: Material[];
   receiveItems: ReceiveItem[];
-
-  /*
-   * true  = ADMIN สามารถเปลี่ยนกลุ่มงานได้
-   * false = ผู้ใช้งานทั่วไป ล็อกกลุ่มงาน
-   */
+  officers: Officer[];
   canChangeDepartment: boolean;
 };
 
@@ -78,7 +104,7 @@ type IssueRow = {
 };
 
 /* =========================================================
-   CATEGORIES
+   CATEGORY
 ========================================================= */
 
 const categories = [
@@ -109,19 +135,6 @@ const categories = [
 ];
 
 /* =========================================================
-   STATUS
-========================================================= */
-
-const statusName: Record<
-  string,
-  string
-> = {
-  PENDING: "รอ Admin ตรวจสอบ",
-  APPROVED: "เบิกจ่ายแล้ว",
-  REJECTED: "ไม่อนุมัติ",
-};
-
-/* =========================================================
    THAI MONTHS
 ========================================================= */
 
@@ -141,15 +154,11 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-   DATE -> YYYY-MM-DD
+   DATE INPUT VALUE
 ========================================================= */
 
 function toDateInputValue(
-  value:
-    | Date
-    | string
-    | null
-    | undefined
+  value: Date | string | null | undefined
 ) {
   if (!value) {
     return "";
@@ -181,20 +190,17 @@ function toDateInputValue(
     return "";
   }
 
-  const year =
-    date.getFullYear();
+  return [
+    date.getFullYear(),
 
-  const month =
     String(
       date.getMonth() + 1
-    ).padStart(2, "0");
+    ).padStart(2, "0"),
 
-  const day =
     String(
       date.getDate()
-    ).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+    ).padStart(2, "0"),
+  ].join("-");
 }
 
 /* =========================================================
@@ -238,11 +244,28 @@ function formatThaiDate(
 
   return `${String(
     day
-  ).padStart(2, "0")} ${
+  ).padStart(
+    2,
+    "0"
+  )} ${
     thaiMonths[
       month - 1
     ]
   } ${year + 543}`;
+}
+
+/* =========================================================
+   EMPTY ROW
+========================================================= */
+
+function createEmptyRow(): IssueRow {
+  return {
+    category: "",
+    materialId: "",
+    qty: "",
+    remark: "",
+    receiveItemId: "",
+  };
 }
 
 /* =========================================================
@@ -253,16 +276,24 @@ export default function EditIssueForm({
   issue,
   departments,
   materials,
-  receiveItems,
+  officers,
   canChangeDepartment,
 }: Props) {
+  const isPending =
+    issue.status === "PENDING";
+
   /* =======================================================
-     PERMISSION
+     DATE
   ======================================================= */
 
-  const isPending =
-    issue.status ===
-    "PENDING";
+  const [
+    issueDate,
+    setIssueDate,
+  ] = useState(
+    toDateInputValue(
+      issue.issueDate
+    )
+  );
 
   /* =======================================================
      DEPARTMENT
@@ -279,13 +310,23 @@ export default function EditIssueForm({
   );
 
   /* =======================================================
-     DOCUMENT NUMBER
+     OFFICER
   ======================================================= */
 
   const [
-    editDocumentNo,
-    setEditDocumentNo,
-  ] = useState(false);
+    officerId,
+    setOfficerId,
+  ] = useState(
+    issue.officer?.id
+      ? String(
+          issue.officer.id
+        )
+      : ""
+  );
+
+  /* =======================================================
+     DOCUMENT
+  ======================================================= */
 
   const [
     documentValue,
@@ -294,29 +335,19 @@ export default function EditIssueForm({
     issue.documentNo
   );
 
-  /* =======================================================
-     ISSUE DATE
-  ======================================================= */
-
   const [
-    issueDate,
-    setIssueDate,
-  ] = useState(
-    toDateInputValue(
-      issue.issueDate
-    )
-  );
+    editDocumentNo,
+    setEditDocumentNo,
+  ] = useState(false);
 
   /* =======================================================
-     ROWS
-
-     ให้จำนวนแถวเหมือน /issue/create = 18 แถว
+     ITEMS
   ======================================================= */
 
-  const [rows, setRows] =
+  const [items, setItems] =
     useState<IssueRow[]>(
       () => {
-        const initialRows =
+        const rows =
           issue.items.map(
             (item) => ({
               category:
@@ -348,42 +379,39 @@ export default function EditIssueForm({
             })
           );
 
+        /*
+         * พอ.101
+         * ให้เหมือนหน้า create
+         * 18 แถว
+         */
+
         while (
-          initialRows.length <
-          18
+          rows.length < 18
         ) {
-          initialRows.push({
-            category: "",
-            materialId: "",
-            qty: "",
-            remark: "",
-            receiveItemId:
-              "",
-          });
+          rows.push(
+            createEmptyRow()
+          );
         }
 
-        return initialRows;
+        return rows;
       }
     );
 
   /* =======================================================
-     AVAILABLE MATERIAL IDS
-
-     เก็บ receiveItems ไว้ตาม logic เดิม
-     และใช้ตรวจว่าพัสดุมีล็อตคงเหลือ
-
-     รายการเดิมในใบเบิกยังคงแสดงได้
+     FILTER OFFICERS
   ======================================================= */
 
-  const availableMaterialIds =
-    useMemo(() => {
-      return new Set(
-        receiveItems.map(
-          (item) =>
-            item.materialId
-        )
-      );
-    }, [receiveItems]);
+  const filteredOfficers =
+    officers.filter(
+      (officer) =>
+        String(
+          officer.departmentId
+        ) === departmentId ||
+        String(
+          officer.section
+            ?.departmentId
+        ) === departmentId
+    );
 
   /* =======================================================
      UPDATE ROW
@@ -398,10 +426,10 @@ export default function EditIssueForm({
       return;
     }
 
-    setRows(
-      (currentRows) => {
+    setItems(
+      (current) => {
         const copy =
-          currentRows.map(
+          current.map(
             (row) => ({
               ...row,
             })
@@ -412,37 +440,23 @@ export default function EditIssueForm({
           [key]: value,
         };
 
-        /* -------------------------------------------------
-           เปลี่ยนหมวดหมู่
-        ------------------------------------------------- */
-
         if (
           key === "category"
         ) {
-          copy[
-            index
-          ].materialId = "";
+          copy[index].materialId =
+            "";
 
-          copy[
-            index
-          ].receiveItemId =
+          copy[index].receiveItemId =
             "";
 
           copy[index].qty =
             "";
         }
 
-        /* -------------------------------------------------
-           เปลี่ยนพัสดุ
-        ------------------------------------------------- */
-
         if (
-          key ===
-          "materialId"
+          key === "materialId"
         ) {
-          copy[
-            index
-          ].receiveItemId =
+          copy[index].receiveItemId =
             "";
 
           copy[index].qty =
@@ -475,7 +489,7 @@ export default function EditIssueForm({
         className="space-y-6"
       >
         {/* =================================================
-            HIDDEN ISSUE ID
+            ISSUE ID
         ================================================= */}
 
         <input
@@ -486,8 +500,6 @@ export default function EditIssueForm({
 
         {/* =================================================
             DOCUMENT NUMBER
-            แบบเดียวกับ /issue/create
-            อยู่ด้านบนขวา
         ================================================= */}
 
         <div
@@ -507,6 +519,7 @@ export default function EditIssueForm({
               className="
                 mb-1.5
                 block
+
                 text-sm
                 font-extrabold
                 !text-slate-700
@@ -521,9 +534,7 @@ export default function EditIssueForm({
               value={
                 documentValue
               }
-              onChange={(
-                event
-              ) =>
+              onChange={(event) =>
                 setDocumentValue(
                   event.target
                     .value
@@ -536,21 +547,29 @@ export default function EditIssueForm({
               className="
                 h-10
                 w-full
+
                 rounded-xl
+
                 border
                 border-slate-300
+
                 bg-white
+
                 px-3
+
                 text-sm
                 font-extrabold
                 !text-slate-900
+
                 outline-none
+
                 transition
+
                 focus:border-blue-400
                 focus:ring-2
                 focus:ring-blue-100
+
                 read-only:bg-slate-50
-                read-only:!text-slate-700
               "
             />
 
@@ -563,6 +582,7 @@ export default function EditIssueForm({
                   cursor-pointer
                   items-center
                   gap-2
+
                   text-xs
                   font-semibold
                   !text-slate-600
@@ -611,8 +631,7 @@ export default function EditIssueForm({
         </div>
 
         {/* =================================================
-            FORM TITLE
-            แบบเดียวกับ /issue/create
+            TITLE
         ================================================= */}
 
         <div
@@ -643,66 +662,21 @@ export default function EditIssueForm({
           >
             ใบเบิกพัสดุ
           </h2>
-
-          <div
-            className="
-              mt-3
-              flex
-              justify-center
-            "
-          >
-            <span
-              className={`
-                inline-flex
-                items-center
-                justify-center
-
-                rounded-full
-
-                border
-
-                px-4
-                py-1.5
-
-                text-sm
-                font-extrabold
-
-                ${
-                  issue.status ===
-                  "PENDING"
-                    ? "border-amber-200 bg-amber-50 !text-amber-800"
-                    : issue.status ===
-                        "APPROVED"
-                      ? "border-emerald-200 bg-emerald-50 !text-emerald-800"
-                      : issue.status ===
-                          "REJECTED"
-                        ? "border-red-200 bg-red-50 !text-red-800"
-                        : "border-slate-200 bg-slate-50 !text-slate-700"
-                }
-              `}
-            >
-              {statusName[
-                issue.status
-              ] ??
-                issue.status}
-            </span>
-          </div>
         </div>
 
         {/* =================================================
             DOCUMENT INFORMATION
-            โครงเดียวกับ /issue/create
         ================================================= */}
 
         <div
           className="
             grid
             gap-4
-            md:grid-cols-2
+            md:grid-cols-3
           "
         >
           {/* ===============================================
-              ISSUE DATE
+              DATE
           =============================================== */}
 
           <div>
@@ -728,8 +702,9 @@ export default function EditIssueForm({
               <input
                 type="date"
                 name="issueDate"
-                value={
-                  issueDate
+                value={issueDate}
+                disabled={
+                  !isPending
                 }
                 onChange={(
                   event
@@ -739,43 +714,54 @@ export default function EditIssueForm({
                       .value
                   )
                 }
-                disabled={
-                  !isPending
-                }
-                required
                 className="
                   absolute
                   inset-0
                   z-10
+
                   h-11
                   w-full
+
                   cursor-pointer
                   opacity-0
+
                   disabled:cursor-not-allowed
                 "
               />
 
+              {!isPending && (
+                <input
+                  type="hidden"
+                  name="issueDate"
+                  value={
+                    issueDate
+                  }
+                />
+              )}
+
               <div
-                className={`
+                className="
                   flex
                   h-11
                   w-full
                   items-center
                   justify-between
+
                   rounded-xl
+
                   border
                   border-slate-300
+
+                  bg-white
+
                   px-3
+
                   text-sm
                   font-bold
-                  shadow-sm
+                  !text-slate-900
 
-                  ${
-                    isPending
-                      ? "bg-white !text-slate-900"
-                      : "bg-slate-100 !text-slate-500"
-                  }
-                `}
+                  shadow-sm
+                "
               >
                 <span>
                   {formatThaiDate(
@@ -813,15 +799,6 @@ export default function EditIssueForm({
               หน่วยงาน / กลุ่มงาน
             </label>
 
-            {/* ------------------------------------------------
-                USER:
-                disabled select ไม่ส่งค่า
-                จึงส่ง departmentId ผ่าน hidden input
-
-                ADMIN:
-                select ส่งค่าปกติ
-            ------------------------------------------------ */}
-
             {(!canChangeDepartment ||
               !isPending) && (
               <input
@@ -847,10 +824,6 @@ export default function EditIssueForm({
                 !canChangeDepartment ||
                 !isPending
               }
-              required={
-                canChangeDepartment &&
-                isPending
-              }
               onChange={(
                 event
               ) => {
@@ -865,23 +838,34 @@ export default function EditIssueForm({
                   event.target
                     .value
                 );
+
+                setOfficerId("");
               }}
               className="
                 h-11
                 w-full
+
                 rounded-xl
+
                 border
                 border-slate-300
+
                 bg-white
+
                 px-3
+
                 text-sm
                 font-bold
                 !text-slate-900
+
                 outline-none
+
                 transition
+
                 focus:border-blue-400
                 focus:ring-2
                 focus:ring-blue-100
+
                 disabled:cursor-not-allowed
                 disabled:bg-slate-100
                 disabled:!text-slate-500
@@ -914,27 +898,121 @@ export default function EditIssueForm({
               )}
             </select>
           </div>
+
+          {/* ===============================================
+              REQUESTER
+          =============================================== */}
+
+          <div>
+            <label
+              className="
+                mb-2
+                block
+                text-sm
+                font-extrabold
+                !text-slate-800
+              "
+            >
+              ผู้ขอเบิก
+            </label>
+
+            <select
+              name="officerId"
+              value={
+                officerId
+              }
+              disabled={
+                !isPending ||
+                !departmentId
+              }
+              onChange={(
+                event
+              ) =>
+                setOfficerId(
+                  event.target
+                    .value
+                )
+              }
+              required={
+                isPending
+              }
+              className="
+                h-11
+                w-full
+
+                rounded-xl
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-3
+
+                text-sm
+                font-bold
+                !text-slate-900
+
+                outline-none
+
+                transition
+
+                focus:border-blue-400
+                focus:ring-2
+                focus:ring-blue-100
+
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                disabled:!text-slate-500
+              "
+            >
+              <option value="">
+                -- เลือกผู้ขอเบิก --
+              </option>
+
+              {filteredOfficers.map(
+                (officer) => (
+                  <option
+                    key={
+                      officer.id
+                    }
+                    value={
+                      officer.id
+                    }
+                  >
+                    {
+                      officer.firstName
+                    }{" "}
+                    {
+                      officer.lastName
+                    }
+                  </option>
+                )
+              )}
+            </select>
+
+            {!isPending &&
+              officerId && (
+                <input
+                  type="hidden"
+                  name="officerId"
+                  value={
+                    officerId
+                  }
+                />
+              )}
+          </div>
         </div>
 
         {/* =================================================
-            MATERIAL TABLE
-
-            เหมือน /issue/create
-
-            7 ช่อง:
-            1. ลำดับ
-            2. หมวดหมู่
-            3. รายการพัสดุ
-            4. จำนวนที่ขอเบิก
-            5. จำนวนที่เบิกจ่าย
-            6. หน่วย
-            7. หมายเหตุ
+            TABLE
         ================================================= */}
 
         <div
           className="
             w-full
             min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
@@ -943,15 +1021,14 @@ export default function EditIssueForm({
             className="
               w-full
               min-w-[1250px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
-            {/* ===============================================
-                HEADER
-            =============================================== */}
-
             <thead>
               <tr>
                 {[
@@ -963,79 +1040,48 @@ export default function EditIssueForm({
                   "หน่วย",
                   "หมายเหตุ",
                 ].map(
-                  (
-                    tableTitle
-                  ) => (
+                  (title) => (
                     <th
-                      key={
-                        tableTitle
-                      }
+                      key={title}
                       className="
                         whitespace-nowrap
+
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
+
                         px-4
                         py-4
+
                         text-center
                         text-base
                         font-extrabold
                         !text-white
                       "
                     >
-                      {
-                        tableTitle
-                      }
+                      {title}
                     </th>
                   )
                 )}
               </tr>
             </thead>
 
-            {/* ===============================================
-                BODY
-            =============================================== */}
-
             <tbody>
-              {rows.map(
+              {items.map(
                 (
                   row,
                   index
                 ) => {
-                  /*
-                   * รายการพัสดุในหมวด
-                   *
-                   * - รายการเดิมต้องแสดงได้เสมอ
-                   * - รายการอื่นให้เลือกจากพัสดุที่มีล็อตคงเหลือ
-                   */
-
-                  const filteredMaterials =
+                  const list =
                     materials.filter(
                       (
                         material
-                      ) => {
-                        if (
-                          material.category !==
-                          row.category
-                        ) {
-                          return false;
-                        }
-
-                        if (
-                          String(
-                            material.id
-                          ) ===
-                          row.materialId
-                        ) {
-                          return true;
-                        }
-
-                        return availableMaterialIds.has(
-                          material.id
-                        );
-                      }
+                      ) =>
+                        material.category ===
+                        row.category
                     );
 
                   const selectedMaterial =
@@ -1051,7 +1097,8 @@ export default function EditIssueForm({
 
                   const unit =
                     selectedMaterial
-                      ?.unit ?? "";
+                      ?.unit ??
+                    "";
 
                   return (
                     <tr
@@ -1061,8 +1108,7 @@ export default function EditIssueForm({
                         duration-200
 
                         ${
-                          index %
-                            2 ===
+                          index % 2 ===
                           0
                             ? "bg-white"
                             : "bg-slate-50/60"
@@ -1078,10 +1124,13 @@ export default function EditIssueForm({
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -1097,8 +1146,10 @@ export default function EditIssueForm({
                       <td
                         className="
                           min-w-[190px]
+
                           border
                           border-black
+
                           px-3
                           py-3
                         "
@@ -1123,20 +1174,27 @@ export default function EditIssueForm({
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-white
+
                             px-3
+
                             font-semibold
                             !text-slate-900
+
                             outline-none
+
                             focus:border-blue-400
                             focus:ring-2
                             focus:ring-blue-100
+
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
-                            disabled:!text-slate-500
                           "
                         >
                           <option value="">
@@ -1171,14 +1229,31 @@ export default function EditIssueForm({
                       <td
                         className="
                           min-w-[300px]
+
                           border
                           border-black
+
                           px-3
                           py-3
                         "
                       >
-                        <select
+                        <input
+                          type="hidden"
                           name={`items[${index}].materialId`}
+                          value={
+                            row.materialId
+                          }
+                        />
+
+                        <input
+                          type="hidden"
+                          name={`items[${index}].receiveItemId`}
+                          value={
+                            row.receiveItemId
+                          }
+                        />
+
+                        <select
                           value={
                             row.materialId
                           }
@@ -1199,20 +1274,27 @@ export default function EditIssueForm({
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-white
+
                             px-3
+
                             font-semibold
                             !text-slate-900
+
                             outline-none
+
                             focus:border-blue-400
                             focus:ring-2
                             focus:ring-blue-100
+
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
-                            disabled:!text-slate-500
                           "
                         >
                           <option value="">
@@ -1221,7 +1303,7 @@ export default function EditIssueForm({
                               : "เลือกหมวดหมู่ก่อน"}
                           </option>
 
-                          {filteredMaterials.map(
+                          {list.map(
                             (
                               material
                             ) => (
@@ -1234,24 +1316,12 @@ export default function EditIssueForm({
                                 }
                               >
                                 {
-                                  material.code
-                                }{" "}
-                                -{" "}
-                                {
                                   material.name
                                 }
                               </option>
                             )
                           )}
                         </select>
-
-                        <input
-                          type="hidden"
-                          name={`items[${index}].receiveItemId`}
-                          value={
-                            row.receiveItemId
-                          }
-                        />
                       </td>
 
                       {/* =====================================
@@ -1261,10 +1331,13 @@ export default function EditIssueForm({
                       <td
                         className="
                           min-w-[150px]
+
                           border
                           border-black
+
                           px-3
                           py-3
+
                           text-center
                         "
                       >
@@ -1291,37 +1364,43 @@ export default function EditIssueForm({
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-white
+
                             px-3
+
                             text-center
                             font-bold
                             !text-slate-900
+
                             outline-none
+
                             focus:border-blue-400
                             focus:ring-2
                             focus:ring-blue-100
+
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
-                            disabled:!text-slate-500
                           "
                         />
                       </td>
 
                       {/* =====================================
                           ISSUED QTY
-
-                          หน้าแก้ไขใบเบิก
-                          ไม่แก้จำนวนที่พัสดุจ่าย
                       ===================================== */}
 
                       <td
                         className="
                           min-w-[150px]
+
                           border
                           border-black
+
                           px-3
                           py-3
                           text-center
@@ -1337,14 +1416,20 @@ export default function EditIssueForm({
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-slate-100
+
                             px-3
+
                             text-center
                             font-bold
                             !text-slate-500
+
                             outline-none
                           "
                         />
@@ -1357,8 +1442,10 @@ export default function EditIssueForm({
                       <td
                         className="
                           min-w-[120px]
+
                           border
                           border-black
+
                           px-3
                           py-3
                         "
@@ -1367,20 +1454,23 @@ export default function EditIssueForm({
                           type="text"
                           readOnly
                           value={unit}
-                          aria-label={`หน่วยของรายการที่ ${
-                            index + 1
-                          }`}
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-slate-50
+
                             px-3
+
                             text-center
                             font-bold
                             !text-slate-700
+
                             outline-none
                           "
                         />
@@ -1399,8 +1489,10 @@ export default function EditIssueForm({
                       <td
                         className="
                           min-w-[220px]
+
                           border
                           border-black
+
                           px-3
                           py-3
                         "
@@ -1428,20 +1520,27 @@ export default function EditIssueForm({
                           className="
                             h-10
                             w-full
+
                             rounded-xl
+
                             border
                             border-slate-300
+
                             bg-white
+
                             px-3
+
                             font-semibold
                             !text-slate-900
+
                             outline-none
+
                             focus:border-blue-400
                             focus:ring-2
                             focus:ring-blue-100
+
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
-                            disabled:!text-slate-500
                           "
                         />
                       </td>
@@ -1462,8 +1561,10 @@ export default function EditIssueForm({
             className="
               flex
               justify-end
+
               border-t
               border-slate-200
+
               pt-5
             "
           >

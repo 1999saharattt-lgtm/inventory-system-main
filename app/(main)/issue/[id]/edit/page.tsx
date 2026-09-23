@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import {
+  notFound,
+  redirect,
+} from "next/navigation";
 
 import {
   verifySession,
@@ -73,29 +76,51 @@ export default async function EditIssuePage({
     }
   }
 
+  if (!session) {
+    redirect("/login");
+  }
+
+  /* =======================================================
+     USER DEPARTMENT
+  ======================================================= */
+
+  let userDepartmentId =
+    session.departmentId ?? null;
+
+  if (
+    session.role !== "ADMIN" &&
+    !userDepartmentId
+  ) {
+    const currentUser =
+      await prisma.user.findUnique({
+        where: {
+          id: session.id,
+        },
+
+        select: {
+          departmentId: true,
+        },
+      });
+
+    userDepartmentId =
+      currentUser?.departmentId ??
+      null;
+  }
+
   /* =======================================================
      ISSUE PERMISSION
-
-     ADMIN
-     - แก้ไขใบเบิกได้ทั้งหมด
-
-     USER
-     - แก้ไขเฉพาะใบเบิกของกลุ่มงานตัวเอง
-
-     ไม่มี departmentId
-     - ไม่อนุญาต
   ======================================================= */
 
   const issueWhere =
-    session?.role === "ADMIN"
+    session.role === "ADMIN"
       ? {
           id: issueId,
         }
-      : session?.departmentId
+      : userDepartmentId
         ? {
             id: issueId,
             departmentId:
-              session.departmentId,
+              userDepartmentId,
           }
         : {
             id: issueId,
@@ -111,9 +136,34 @@ export default async function EditIssuePage({
       where: issueWhere,
 
       include: {
+        officer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            departmentId: true,
+
+            department: {
+              select: {
+                id: true,
+              },
+            },
+
+            section: {
+              select: {
+                departmentId: true,
+              },
+            },
+          },
+        },
+
         items: {
           include: {
             material: true,
+          },
+
+          orderBy: {
+            id: "asc",
           },
         },
       },
@@ -124,25 +174,26 @@ export default async function EditIssuePage({
   }
 
   /* =======================================================
-     DEPARTMENTS
-
-     ADMIN
-     - ทุกกลุ่มงาน
-     - สามารถเปลี่ยนกลุ่มงานได้
-
-     USER
-     - เฉพาะกลุ่มงานตัวเอง
-     - ไม่สามารถเปลี่ยนกลุ่มงานได้
+     LOAD FORM DATA
   ======================================================= */
 
-  const departments =
-    await prisma.department.findMany({
+  const [
+    departments,
+    materials,
+    receiveItems,
+    officers,
+  ] = await Promise.all([
+    /* =====================================================
+       DEPARTMENTS
+    ===================================================== */
+
+    prisma.department.findMany({
       where:
-        session?.role === "ADMIN"
+        session.role === "ADMIN"
           ? undefined
-          : session?.departmentId
+          : userDepartmentId
             ? {
-                id: session.departmentId,
+                id: userDepartmentId,
               }
             : {
                 id: -1,
@@ -151,14 +202,13 @@ export default async function EditIssuePage({
       orderBy: {
         name: "asc",
       },
-    });
+    }),
 
-  /* =======================================================
-     MATERIALS
-  ======================================================= */
+    /* =====================================================
+       MATERIALS
+    ===================================================== */
 
-  const materials =
-    await prisma.material.findMany({
+    prisma.material.findMany({
       orderBy: [
         {
           category: "asc",
@@ -167,17 +217,13 @@ export default async function EditIssuePage({
           code: "asc",
         },
       ],
-    });
+    }),
 
-  /* =======================================================
-     RECEIVE ITEMS
+    /* =====================================================
+       RECEIVE ITEMS
+    ===================================================== */
 
-     ใช้ balance เดิม
-     ไม่แก้ stock / FEFO logic
-  ======================================================= */
-
-  const receiveItems =
-    await prisma.receiveItem.findMany({
+    prisma.receiveItem.findMany({
       where: {
         balance: {
           gt: 0,
@@ -199,14 +245,66 @@ export default async function EditIssuePage({
           id: "asc",
         },
       ],
-    });
+    }),
+
+    /* =====================================================
+       OFFICERS
+
+       ADMIN
+       - โหลดทั้งหมด
+
+       USER
+       - โหลดเฉพาะบุคลากรในกลุ่มงานตนเอง
+    ===================================================== */
+
+    prisma.officer.findMany({
+      where:
+        session.role === "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                OR: [
+                  {
+                    departmentId:
+                      userDepartmentId,
+                  },
+                  {
+                    section: {
+                      departmentId:
+                        userDepartmentId,
+                    },
+                  },
+                ],
+              }
+            : {
+                id: -1,
+              },
+
+      include: {
+        department: true,
+        section: true,
+      },
+
+      orderBy: [
+        {
+          firstName: "asc",
+        },
+        {
+          lastName: "asc",
+        },
+      ],
+    }),
+  ]);
 
   /* =======================================================
      PERMISSION
+
+     กลุ่มงาน:
+     ADMIN เท่านั้นที่เปลี่ยนได้
   ======================================================= */
 
   const canChangeDepartment =
-    session?.role === "ADMIN";
+    session.role === "ADMIN";
 
   /* =======================================================
      UI
@@ -216,8 +314,7 @@ export default async function EditIssuePage({
     <AppPage>
       {/* =====================================================
           HEADER
-
-          รูปแบบเดียวกับ /issue/create
+          ให้เหมือน /issue/create
       ===================================================== */}
 
       <AppPageHeader
@@ -226,7 +323,7 @@ export default async function EditIssuePage({
         subtitle="แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
         actions={
           <AppButton
-            href={`/issue/${issue.id}`}
+            href="/issue"
             variant="back"
             size="md"
             icon={
@@ -243,11 +340,8 @@ export default async function EditIssuePage({
       />
 
       {/* =====================================================
-          EDIT ISSUE FORM CARD
-
-          ใช้โครงสร้างเดียวกับ
-          /issue/create
-          /receive/create
+          MAIN CARD
+          รูปแบบเดียวกับ /issue/create
       ===================================================== */}
 
       <AppCard
@@ -266,10 +360,6 @@ export default async function EditIssuePage({
           lg:p-6
         "
       >
-        {/* ===================================================
-            EDIT ISSUE FORM
-        =================================================== */}
-
         <div
           className="
             relative
@@ -291,6 +381,9 @@ export default async function EditIssuePage({
             }
             receiveItems={
               receiveItems
+            }
+            officers={
+              officers
             }
             canChangeDepartment={
               canChangeDepartment
