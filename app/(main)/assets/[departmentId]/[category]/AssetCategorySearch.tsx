@@ -2,6 +2,7 @@
 
 import {
   useState,
+  type FormEvent,
 } from "react";
 
 import {
@@ -14,8 +15,8 @@ import AppSearchInput from "@/components/AppSearchInput";
    TYPES
 ========================================================= */
 
-type Props = {
-  initialValue: string;
+type AssetCategorySearchProps = {
+  initialValue?: string;
   resultCount: number;
   pathname: string;
 };
@@ -25,33 +26,31 @@ type Props = {
 ========================================================= */
 
 export default function AssetCategorySearch({
-  initialValue,
+  initialValue = "",
   resultCount,
   pathname,
-}: Props) {
-  const router =
-    useRouter();
+}: AssetCategorySearchProps) {
+  const router = useRouter();
 
   const [
     search,
     setSearch,
-  ] = useState(
-    initialValue
-  );
+  ] = useState(initialValue);
 
   /* =======================================================
      SEARCH
   ======================================================= */
 
-  function handleSearch() {
+  function handleSubmit(
+    event?: FormEvent
+  ) {
+    event?.preventDefault();
+
     const keyword =
       search.trim();
 
     if (!keyword) {
-      router.push(
-        pathname
-      );
-
+      router.push(pathname);
       return;
     }
 
@@ -69,9 +68,7 @@ export default function AssetCategorySearch({
   function handleClear() {
     setSearch("");
 
-    router.push(
-      pathname
-    );
+    router.push(pathname);
   }
 
   /* =======================================================
@@ -87,7 +84,7 @@ export default function AssetCategorySearch({
         )
       }
       onSubmit={
-        handleSearch
+        handleSubmit
       }
       onClear={
         handleClear
