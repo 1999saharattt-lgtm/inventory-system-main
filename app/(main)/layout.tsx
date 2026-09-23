@@ -111,17 +111,25 @@ export default async function MainLayout({
       />
 
       {/* ===================================================
-          FIXED TOP AREA
+          STICKY TOP AREA
           HEADER + SIDEBAR
-          ติดด้านบนพร้อมกัน
+
+          - Header ไม่เลื่อน
+          - Sidebar ไม่เลื่อน
+          - ทั้งสองส่วนติดด้านบนพร้อมกัน
+          - Content ด้านล่างเลื่อนตามปกติ
       =================================================== */}
 
-      <div
+      <header
         className="
           sticky
           top-0
-          z-[60]
+          z-[100]
+
           w-full
+
+          bg-slate-950
+          shadow-[0_10px_30px_-20px_rgba(15,23,42,0.55)]
         "
       >
         {/* =================================================
@@ -131,7 +139,7 @@ export default async function MainLayout({
         <div
           className="
             relative
-            z-[60]
+            z-[110]
             w-full
           "
         >
@@ -139,23 +147,25 @@ export default async function MainLayout({
         </div>
 
         {/* =================================================
-            NAVIGATION
+            SIDEBAR / NAVIGATION
         ================================================= */}
 
         <div
           className="
             relative
-            z-50
+            z-[100]
             w-full
           "
         >
           <Sidebar role={user.role} />
         </div>
-      </div>
+      </header>
 
       {/* ===================================================
           CONTENT
-          เลื่อนเฉพาะเนื้อหาด้านล่าง
+
+          เลื่อนเฉพาะเนื้อหาส่วนนี้
+          Header + Sidebar จะค้างอยู่ด้านบน
       =================================================== */}
 
       <main
@@ -163,7 +173,7 @@ export default async function MainLayout({
           relative
           z-10
 
-          min-h-[calc(100vh-1px)]
+          min-h-screen
           min-w-0
 
           overflow-x-hidden
