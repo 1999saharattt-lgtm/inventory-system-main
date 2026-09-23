@@ -48,8 +48,6 @@ export default function LoginPage() {
         "
       />
 
-      {/* LEFT GLOW */}
-
       <div
         aria-hidden="true"
         className="
@@ -57,17 +55,13 @@ export default function LoginPage() {
           absolute
           -left-32
           top-20
-
           h-[440px]
           w-[440px]
-
           rounded-full
           bg-blue-400/15
           blur-[110px]
         "
       />
-
-      {/* RIGHT GLOW */}
 
       <div
         aria-hidden="true"
@@ -76,17 +70,13 @@ export default function LoginPage() {
           absolute
           -right-32
           top-1/3
-
           h-[480px]
           w-[480px]
-
           rounded-full
           bg-emerald-300/10
           blur-[120px]
         "
       />
-
-      {/* BOTTOM GLOW */}
 
       <div
         aria-hidden="true"
@@ -95,12 +85,9 @@ export default function LoginPage() {
           absolute
           bottom-[-220px]
           left-1/2
-
           h-[420px]
           w-[760px]
-
           -translate-x-1/2
-
           rounded-full
           bg-cyan-300/10
           blur-[130px]
@@ -146,7 +133,7 @@ export default function LoginPage() {
             relative
 
             flex
-            min-h-[320px]
+            min-h-[300px]
             items-center
             justify-center
 
@@ -158,11 +145,11 @@ export default function LoginPage() {
             to-slate-800
 
             px-6
-            py-10
+            py-9
 
             text-center
 
-            sm:min-h-[380px]
+            sm:min-h-[370px]
             sm:px-10
             sm:py-12
 
@@ -171,7 +158,7 @@ export default function LoginPage() {
             lg:py-14
           "
         >
-          {/* BLUE GLOW */}
+          {/* AMBIENT LIGHT */}
 
           <div
             aria-hidden="true"
@@ -180,17 +167,13 @@ export default function LoginPage() {
               absolute
               -left-28
               -top-28
-
               h-80
               w-80
-
               rounded-full
               bg-blue-400/20
               blur-[90px]
             "
           />
-
-          {/* CYAN GLOW */}
 
           <div
             aria-hidden="true"
@@ -199,17 +182,13 @@ export default function LoginPage() {
               absolute
               -bottom-32
               -right-24
-
               h-96
               w-96
-
               rounded-full
               bg-cyan-400/15
               blur-[100px]
             "
           />
-
-          {/* INNER LIGHT */}
 
           <div
             aria-hidden="true"
@@ -218,34 +197,28 @@ export default function LoginPage() {
               absolute
               left-1/2
               top-1/2
-
               h-[320px]
               w-[320px]
-
               -translate-x-1/2
               -translate-y-1/2
-
               rounded-full
               bg-white/[0.03]
               blur-3xl
             "
           />
 
-          {/* CONTENT */}
+          {/* BRAND CONTENT */}
 
           <div
             className="
               relative
               z-10
-
               mx-auto
               w-full
               max-w-xl
             "
           >
-            {/* =============================================
-                LOGO
-            ============================================= */}
+            {/* LOGO */}
 
             <div className="flex w-full justify-center">
               <div
@@ -293,9 +266,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* =============================================
-                SYSTEM NAME
-            ============================================= */}
+            {/* SYSTEM NAME */}
 
             <div className="mt-6 sm:mt-7">
               <h1
@@ -344,9 +315,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* =============================================
-                DIVIDER
-            ============================================= */}
+            {/* DIVIDER */}
 
             <div
               className="
@@ -365,9 +334,7 @@ export default function LoginPage() {
               "
             />
 
-            {/* =============================================
-                ENGLISH NAME
-            ============================================= */}
+            {/* ENGLISH NAME */}
 
             <p
               className="
@@ -386,7 +353,7 @@ export default function LoginPage() {
         </section>
 
         {/* =================================================
-            RIGHT : LOGIN FORM
+            RIGHT : LOGIN
         ================================================= */}
 
         <section
@@ -397,7 +364,7 @@ export default function LoginPage() {
             items-center
             justify-center
 
-            bg-white/75
+            bg-white/80
 
             px-5
             py-9
@@ -422,10 +389,8 @@ export default function LoginPage() {
               absolute
               -right-20
               -top-20
-
               h-52
               w-52
-
               rounded-full
               bg-blue-300/10
               blur-3xl
@@ -439,11 +404,11 @@ export default function LoginPage() {
 
               mx-auto
               w-full
-              max-w-[430px]
+              max-w-[440px]
             "
           >
             {/* =============================================
-                LOGIN HEADER
+                TOP LOGIN ICON
             ============================================= */}
 
             <div
@@ -459,8 +424,6 @@ export default function LoginPage() {
                 text-center
               "
             >
-              {/* LOGIN ICON */}
-
               <div
                 className="
                   flex
@@ -474,7 +437,7 @@ export default function LoginPage() {
                   border
                   border-slate-200/80
 
-                  bg-white/90
+                  bg-white/95
 
                   !text-blue-600
 
@@ -486,36 +449,16 @@ export default function LoginPage() {
                 aria-hidden="true"
               >
                 <LockKeyhole
-                  size={27}
+                  size={28}
                   strokeWidth={2}
                 />
               </div>
 
-              {/* TITLE */}
-
-              <h2
-                className="
-                  mt-5
-
-                  text-center
-                  text-3xl
-                  font-black
-                  leading-tight
-                  tracking-tight
-                  !text-slate-900
-
-                  sm:text-4xl
-                "
-              >
-                เข้าสู่ระบบ
-              </h2>
-
-              {/* DESCRIPTION */}
+              {/* ไม่มีคำว่า "เข้าสู่ระบบ" ตรงนี้แล้ว */}
 
               <p
                 className="
-                  mt-2
-
+                  mt-4
                   w-full
 
                   text-center
@@ -560,31 +503,50 @@ export default function LoginPage() {
                   รหัสผู้ใช้งาน
                 </label>
 
-                <div className="relative">
-                  {/* ICON AREA */}
+                {/* ICON + INPUT แยกออกจากกัน */}
+
+                <div
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    gap-3
+                  "
+                >
+                  {/* USER ICON OUTSIDE INPUT */}
 
                   <div
-                    aria-hidden="true"
                     className="
-                      pointer-events-none
-                      absolute
-                      inset-y-0
-                      left-0
-                      z-10
-
                       flex
-                      w-14
+                      h-[56px]
+                      w-[56px]
+                      shrink-0
                       items-center
                       justify-center
 
-                      !text-slate-400
+                      rounded-[17px]
+
+                      border
+                      border-slate-200
+
+                      bg-white
+
+                      !text-slate-500
+
+                      shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+                      ring-1
+                      ring-black/[0.02]
                     "
+                    aria-hidden="true"
                   >
                     <UserRound
-                      size={20}
+                      size={21}
                       strokeWidth={2}
                     />
                   </div>
+
+                  {/* USER INPUT */}
 
                   <input
                     id="username"
@@ -595,7 +557,8 @@ export default function LoginPage() {
                     required
                     className="
                       h-[56px]
-                      w-full
+                      min-w-0
+                      flex-1
 
                       rounded-[17px]
 
@@ -604,9 +567,8 @@ export default function LoginPage() {
 
                       bg-slate-50/80
 
+                      px-4
                       py-3
-                      pl-14
-                      pr-4
 
                       text-base
                       font-bold
@@ -655,31 +617,50 @@ export default function LoginPage() {
                   รหัสผ่าน
                 </label>
 
-                <div className="relative">
-                  {/* ICON AREA */}
+                {/* ICON + INPUT แยกออกจากกัน */}
+
+                <div
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    gap-3
+                  "
+                >
+                  {/* PASSWORD ICON OUTSIDE INPUT */}
 
                   <div
-                    aria-hidden="true"
                     className="
-                      pointer-events-none
-                      absolute
-                      inset-y-0
-                      left-0
-                      z-10
-
                       flex
-                      w-14
+                      h-[56px]
+                      w-[56px]
+                      shrink-0
                       items-center
                       justify-center
 
-                      !text-slate-400
+                      rounded-[17px]
+
+                      border
+                      border-slate-200
+
+                      bg-white
+
+                      !text-slate-500
+
+                      shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+
+                      ring-1
+                      ring-black/[0.02]
                     "
+                    aria-hidden="true"
                   >
                     <KeyRound
-                      size={20}
+                      size={21}
                       strokeWidth={2}
                     />
                   </div>
+
+                  {/* PASSWORD INPUT */}
 
                   <input
                     id="password"
@@ -690,7 +671,8 @@ export default function LoginPage() {
                     required
                     className="
                       h-[56px]
-                      w-full
+                      min-w-0
+                      flex-1
 
                       rounded-[17px]
 
@@ -699,9 +681,8 @@ export default function LoginPage() {
 
                       bg-slate-50/80
 
+                      px-4
                       py-3
-                      pl-14
-                      pr-4
 
                       text-base
                       font-bold
@@ -820,7 +801,6 @@ export default function LoginPage() {
               <p
                 className="
                   mt-1
-
                   text-xs
                   font-semibold
                   !text-slate-400
