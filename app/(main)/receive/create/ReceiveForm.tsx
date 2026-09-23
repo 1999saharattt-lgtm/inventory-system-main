@@ -71,6 +71,7 @@ type IOSDatePickerProps = {
   placeholder?: string;
   required?: boolean;
   compact?: boolean;
+  align?: "left" | "right";
   onChange: (value: string) => void;
 };
 
@@ -254,6 +255,64 @@ function isSameDate(
 }
 
 /* =========================================================
+   NUMBER
+========================================================= */
+
+function sanitizeDecimalInput(
+  value: string
+) {
+  const cleaned = value
+    .replace(/,/g, "")
+    .replace(/[^\d.]/g, "");
+
+  const firstDot =
+    cleaned.indexOf(".");
+
+  if (firstDot === -1) {
+    return cleaned;
+  }
+
+  const integerPart =
+    cleaned.slice(0, firstDot);
+
+  const decimalPart = cleaned
+    .slice(firstDot + 1)
+    .replace(/\./g, "")
+    .slice(0, 2);
+
+  return `${integerPart}.${decimalPart}`;
+}
+
+function formatNumberWithCommas(
+  value: string
+) {
+  if (!value) {
+    return "";
+  }
+
+  const normalized =
+    value.replace(/,/g, "");
+
+  const [integerPart, decimalPart] =
+    normalized.split(".");
+
+  const formattedInteger = (
+    integerPart || "0"
+  ).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ","
+  );
+
+  if (normalized.includes(".")) {
+    return `${formattedInteger}.${
+      decimalPart ?? ""
+    }`;
+  }
+
+  return formattedInteger;
+}
+
+/* =========================================================
    IOS DATE PICKER
 ========================================================= */
 
@@ -264,6 +323,7 @@ function IOSDatePicker({
   placeholder = "เลือกวันที่",
   required = false,
   compact = false,
+  align = "left",
   onChange,
 }: IOSDatePickerProps) {
   const containerRef =
@@ -426,7 +486,7 @@ function IOSDatePicker({
 
         ${
           open
-            ? "z-[500]"
+            ? "z-[99999]"
             : "z-10"
         }
       `}
@@ -491,10 +551,12 @@ function IOSDatePicker({
           transition-all
           duration-200
 
+          hover:border-slate-300
           hover:bg-slate-50
 
+          focus:border-blue-300
           focus:ring-4
-          focus:ring-slate-900/10
+          focus:ring-blue-100/70
         `}
       >
         <span
@@ -562,10 +624,15 @@ function IOSDatePicker({
           aria-label="เลือกวันที่"
           className={`
             absolute
-            left-0
             top-[calc(100%+10px)]
 
-            z-[9999]
+            ${
+              align === "right"
+                ? "right-0"
+                : "left-0"
+            }
+
+            z-[999999]
 
             ${
               compact
@@ -580,18 +647,16 @@ function IOSDatePicker({
             rounded-[24px]
 
             border
-            border-slate-200/90
+            border-slate-200
 
-            bg-white/95
+            bg-white
 
             p-3
 
-            shadow-[0_28px_80px_-24px_rgba(15,23,42,0.55)]
+            shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
 
             ring-1
             ring-black/5
-
-            backdrop-blur-2xl
           `}
         >
           <div
@@ -625,7 +690,6 @@ function IOSDatePicker({
                 transition-all
 
                 hover:bg-slate-200
-
                 active:scale-90
               "
             >
@@ -681,7 +745,6 @@ function IOSDatePicker({
                 transition-all
 
                 hover:bg-slate-200
-
                 active:scale-90
               "
             >
@@ -790,10 +853,11 @@ function IOSDatePicker({
           <div
             className="
               mt-3
+
               flex
               items-center
               justify-between
-              gap-2
+              gap-3
 
               border-t
               border-slate-200
@@ -816,6 +880,8 @@ function IOSDatePicker({
                 text-sm
                 font-extrabold
                 !text-slate-500
+
+                transition-colors
 
                 hover:bg-slate-100
               "
@@ -840,8 +906,9 @@ function IOSDatePicker({
 
                 shadow-sm
 
-                hover:bg-slate-800
+                transition-all
 
+                hover:bg-slate-800
                 active:scale-95
               "
             >
@@ -890,10 +957,9 @@ function SearchableDropdown({
 
   const filteredOptions =
     useMemo(() => {
-      const keyword =
-        search
-          .trim()
-          .toLocaleLowerCase("th");
+      const keyword = search
+        .trim()
+        .toLocaleLowerCase("th");
 
       if (!keyword) {
         return options;
@@ -1049,10 +1115,8 @@ function SearchableDropdown({
         <span
           className={`
             shrink-0
-
             text-xs
             !text-slate-700
-
             transition-transform
 
             ${
@@ -1074,7 +1138,7 @@ function SearchableDropdown({
             right-0
             top-[calc(100%+8px)]
 
-            z-[9999]
+            z-[99999]
 
             overflow-hidden
 
@@ -1094,9 +1158,7 @@ function SearchableDropdown({
             className="
               border-b
               border-slate-200
-
               bg-slate-50/90
-
               p-3
             "
           >
@@ -1388,7 +1450,6 @@ export default function ReceiveForm({
   const labelClass = `
     mb-2
     block
-
     text-base
     font-extrabold
     !text-slate-800
@@ -1420,10 +1481,12 @@ export default function ReceiveForm({
 
     placeholder:!text-slate-400
 
+    hover:border-slate-300
     hover:bg-slate-50
 
+    focus:border-blue-300
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-blue-100/70
   `;
 
   return (
@@ -1446,7 +1509,7 @@ export default function ReceiveForm({
       <AppCard
         className="
           relative
-          z-[200]
+          z-[5000]
 
           overflow-visible
 
@@ -1458,7 +1521,6 @@ export default function ReceiveForm({
         <div
           className="
             mb-5
-
             flex
             items-center
             gap-3
@@ -1505,7 +1567,6 @@ export default function ReceiveForm({
             <p
               className="
                 mt-0.5
-
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -1530,6 +1591,7 @@ export default function ReceiveForm({
           <AppInfoCard
             className="
               relative
+              z-[7000]
               overflow-visible
             "
           >
@@ -1545,6 +1607,7 @@ export default function ReceiveForm({
               name="receiveDate"
               value={receiveDate}
               required
+              align="left"
               onChange={
                 setReceiveDate
               }
@@ -1556,6 +1619,7 @@ export default function ReceiveForm({
           <AppInfoCard
             className="
               relative
+              z-20
               overflow-visible
             "
           >
@@ -1584,111 +1648,94 @@ export default function ReceiveForm({
               }
             />
 
+            {/* ยอดยกเข้าระบบ */}
+
             <label
               className="
-                mt-2.5
+                mt-4
 
-                inline-flex
+                flex
                 w-fit
                 max-w-full
 
                 cursor-pointer
+                select-none
 
                 items-center
-                gap-3
-
-                whitespace-nowrap
 
                 text-sm
                 font-extrabold
                 !text-slate-700
               "
             >
-              <span
-                className="
-                  relative
+              <input
+                type="checkbox"
+                checked={
+                  isOpeningBalance
+                }
+                onChange={(event) => {
+                  const checked =
+                    event.target.checked;
 
+                  setIsOpeningBalance(
+                    checked
+                  );
+
+                  setDocumentValue(
+                    checked
+                      ? "ยอดยกเข้าระบบ"
+                      : documentNo
+                  );
+                }}
+                className="
+                  sr-only
+                "
+              />
+
+              <span
+                aria-hidden="true"
+                className={`
                   flex
-                  h-4
-                  w-4
+                  h-[22px]
+                  w-[22px]
+                  min-h-[22px]
+                  min-w-[22px]
                   shrink-0
+
                   items-center
                   justify-center
-                "
-              >
-                <input
-                  type="checkbox"
-                  checked={
+
+                  rounded-[6px]
+
+                  border-2
+
+                  text-[13px]
+                  font-black
+                  leading-none
+
+                  shadow-sm
+
+                  transition-all
+                  duration-200
+
+                  ${
                     isOpeningBalance
+                      ? "border-emerald-600 bg-emerald-600 !text-white shadow-emerald-200"
+                      : "border-slate-300 bg-white !text-transparent hover:border-emerald-400"
                   }
-                  onChange={(event) => {
-                    const checked =
-                      event.target.checked;
-
-                    setIsOpeningBalance(
-                      checked
-                    );
-
-                    setDocumentValue(
-                      checked
-                        ? "ยอดยกเข้าระบบ"
-                        : documentNo
-                    );
-                  }}
-                  className="
-                    peer
-
-                    absolute
-                    inset-0
-
-                    h-4
-                    w-4
-
-                    cursor-pointer
-                    appearance-none
-
-                    rounded-[5px]
-
-                    border
-                    border-slate-400
-
-                    bg-white
-
-                    shadow-sm
-
-                    transition-all
-
-                    checked:border-slate-900
-                    checked:bg-slate-900
-
-                    focus:outline-none
-                    focus:ring-4
-                    focus:ring-slate-900/10
-                  "
-                />
-
-                <span
-                  className="
-                    pointer-events-none
-
-                    relative
-                    z-10
-
-                    hidden
-
-                    text-[10px]
-                    font-black
-                    leading-none
-                    !text-white
-
-                    peer-checked:block
-                  "
-                >
-                  ✓
-                </span>
+                `}
+              >
+                ✓
               </span>
 
-              <span>
+              <span
+                className="
+                  ml-3
+                  block
+                  whitespace-nowrap
+                  leading-[22px]
+                "
+              >
                 ยอดยกเข้าระบบ
               </span>
             </label>
@@ -1699,7 +1746,7 @@ export default function ReceiveForm({
           <AppInfoCard
             className="
               relative
-              z-[300]
+              z-[4000]
 
               overflow-visible
 
@@ -1746,467 +1793,507 @@ export default function ReceiveForm({
           overflow-visible
         "
       >
-        <table
+        <div
           className="
+            relative
             w-full
-            min-w-[1200px]
 
-            border-collapse
-
-            bg-white
-
-            text-sm
+            overflow-x-auto
+            overflow-y-visible
           "
         >
-          <thead>
-            <tr>
-              {[
-                "ลำดับ",
-                "หมวดหมู่",
-                "รายการพัสดุ",
-                "หน่วย",
-                "ราคา",
-                "จำนวน",
-                "วันผลิต",
-                "วันหมดอายุ",
-              ].map((title) => (
-                <th
-                  key={title}
-                  className="
-                    whitespace-nowrap
+          <table
+            className="
+              relative
+              w-full
+              min-w-[1200px]
 
-                    border
-                    border-black
+              border-collapse
 
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
+              bg-white
 
-                    px-3
-                    py-4
+              text-sm
+            "
+          >
+            <thead>
+              <tr>
+                {[
+                  "ลำดับ",
+                  "หมวดหมู่",
+                  "รายการพัสดุ",
+                  "หน่วย",
+                  "ราคา",
+                  "จำนวน",
+                  "วันผลิต",
+                  "วันหมดอายุ",
+                ].map((title) => (
+                  <th
+                    key={title}
+                    className="
+                      whitespace-nowrap
 
-                    text-center
-                    text-lg
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  {title}
-                </th>
-              ))}
-            </tr>
-          </thead>
+                      border
+                      border-black
 
-          <tbody>
-            {items.map(
-              (row, index) => {
-                const list =
-                  materials.filter(
-                    (material) =>
-                      material.category ===
-                      row.category
-                  );
+                      bg-gradient-to-r
+                      from-slate-800
+                      to-slate-700
 
-                const selected =
-                  materials.find(
-                    (material) =>
-                      String(
-                        material.id
-                      ) ===
-                      row.materialId
-                  );
+                      px-3
+                      py-4
 
-                const materialOptions:
-                  SearchableOption[] =
-                  list.map(
-                    (material) => ({
-                      value:
+                      text-center
+                      text-lg
+                      font-extrabold
+                      !text-white
+                    "
+                  >
+                    {title}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {items.map(
+                (row, index) => {
+                  const list =
+                    materials.filter(
+                      (material) =>
+                        material.category ===
+                        row.category
+                    );
+
+                  const selected =
+                    materials.find(
+                      (material) =>
                         String(
                           material.id
-                        ),
+                        ) ===
+                        row.materialId
+                    );
 
-                      label: `${material.code} - ${material.name}`,
-                    })
-                  );
+                  const materialOptions:
+                    SearchableOption[] =
+                    list.map(
+                      (material) => ({
+                        value:
+                          String(
+                            material.id
+                          ),
 
-                const rowZIndex =
-                  items.length -
-                  index +
-                  20;
+                        label: `${material.code} - ${material.name}`,
+                      })
+                    );
 
-                return (
-                  <tr
-                    key={index}
-                    style={{
-                      position:
-                        "relative",
-                      zIndex:
-                        rowZIndex,
-                    }}
-                    className={`
-                      ${
-                        index % 2 ===
-                        0
-                          ? "bg-white"
-                          : "bg-slate-50/50"
-                      }
+                  const rowZIndex =
+                    items.length -
+                    index +
+                    100;
 
-                      transition-colors
-                      duration-200
+                  return (
+                    <tr
+                      key={index}
+                      style={{
+                        position:
+                          "relative",
+                        zIndex:
+                          rowZIndex,
+                      }}
+                      className={`
+                        ${
+                          index % 2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/50"
+                        }
 
-                      hover:bg-blue-50/70
-                    `}
-                  >
-                    {/* ลำดับ */}
+                        transition-colors
+                        duration-200
 
-                    <td
-                      className="
-                        whitespace-nowrap
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        text-center
-                        font-extrabold
-                        !text-slate-800
-                      "
+                        hover:bg-blue-50/70
+                      `}
                     >
-                      {index + 1}
-                    </td>
+                      {/* ลำดับ */}
 
-                    {/* หมวดหมู่ */}
-
-                    <td
-                      className="
-                        relative
-                        min-w-[210px]
-
-                        overflow-visible
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <SearchableDropdown
-                        id={`category-${index}`}
-                        name={`items[${index}].category`}
-                        value={
-                          row.category
-                        }
-                        options={
-                          categoryOptions
-                        }
-                        placeholder="เลือกหมวดหมู่"
-                        searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
-                        emptyText="ไม่พบหมวดหมู่"
-                        onChange={(
-                          value
-                        ) =>
-                          updateRow(
-                            index,
-                            "category",
-                            value
-                          )
-                        }
-                      />
-                    </td>
-
-                    {/* รายการพัสดุ */}
-
-                    <td
-                      className="
-                        relative
-                        min-w-[320px]
-
-                        overflow-visible
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <SearchableDropdown
-                        id={`material-${index}`}
-                        name={`items[${index}].materialId`}
-                        value={
-                          row.materialId
-                        }
-                        options={
-                          materialOptions
-                        }
-                        placeholder="เลือกรายการพัสดุ"
-                        searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
-                        emptyText="ไม่พบรายการพัสดุ"
-                        disabled={
-                          !row.category
-                        }
-                        onChange={(
-                          value
-                        ) =>
-                          updateRow(
-                            index,
-                            "materialId",
-                            value
-                          )
-                        }
-                      />
-                    </td>
-
-                    {/* หน่วย */}
-
-                    <td
-                      className="
-                        min-w-[120px]
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <input
-                        type="text"
-                        readOnly
-                        value={
-                          selected?.unit ??
-                          "-"
-                        }
+                      <td
                         className="
-                          h-[46px]
-                          w-full
-
-                          rounded-[12px]
+                          whitespace-nowrap
 
                           border
-                          border-slate-200
+                          border-black
 
-                          bg-slate-100
-
-                          px-2
+                          px-3
+                          py-3
 
                           text-center
                           font-extrabold
-                          !text-slate-700
-
-                          shadow-sm
-                          outline-none
+                          !text-slate-800
                         "
-                      />
-                    </td>
+                      >
+                        {index + 1}
+                      </td>
 
-                    {/* ราคา */}
+                      {/* หมวดหมู่ */}
 
-                    <td
-                      className="
-                        min-w-[130px]
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        name={`items[${index}].unitPrice`}
-                        value={
-                          row.unitPrice
-                        }
-                        onChange={(event) =>
-                          updateRow(
-                            index,
-                            "unitPrice",
-                            event.target
-                              .value
-                          )
-                        }
+                      <td
                         className="
-                          h-[46px]
-                          w-full
+                          relative
+                          min-w-[210px]
 
-                          rounded-[12px]
+                          overflow-visible
 
                           border
-                          border-slate-200
-
-                          bg-white
+                          border-black
 
                           px-3
+                          py-3
 
-                          text-right
-                          font-bold
-                          tabular-nums
-                          !text-slate-900
-
-                          shadow-sm
-                          outline-none
-
-                          focus:ring-4
-                          focus:ring-slate-900/10
+                          align-top
                         "
-                      />
-                    </td>
+                      >
+                        <SearchableDropdown
+                          id={`category-${index}`}
+                          name={`items[${index}].category`}
+                          value={
+                            row.category
+                          }
+                          options={
+                            categoryOptions
+                          }
+                          placeholder="เลือกหมวดหมู่"
+                          searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+                          emptyText="ไม่พบหมวดหมู่"
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "category",
+                              value
+                            )
+                          }
+                        />
+                      </td>
 
-                    {/* จำนวน */}
+                      {/* รายการพัสดุ */}
 
-                    <td
-                      className="
-                        min-w-[120px]
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <input
-                        name={`items[${index}].qty`}
-                        type="number"
-                        min="1"
-                        value={row.qty}
-                        onChange={(event) =>
-                          updateRow(
-                            index,
-                            "qty",
-                            event.target
-                              .value
-                          )
-                        }
+                      <td
                         className="
-                          h-[46px]
-                          w-full
+                          relative
+                          min-w-[320px]
 
-                          rounded-[12px]
+                          overflow-visible
 
                           border
-                          border-slate-200
+                          border-black
 
-                          bg-white
+                          px-3
+                          py-3
 
-                          px-2
-
-                          text-center
-                          font-bold
-                          tabular-nums
-                          !text-slate-900
-
-                          shadow-sm
-                          outline-none
-
-                          focus:ring-4
-                          focus:ring-slate-900/10
+                          align-top
                         "
-                      />
-                    </td>
-
-                    {/* วันผลิต */}
-
-                    <td
-                      className="
-                        relative
-                        min-w-[200px]
-
-                        overflow-visible
-
-                        border
-                        border-black
-
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <div className="w-[190px]">
-                        <IOSDatePicker
-                          id={`manufacture-${index}`}
-                          name={`items[${index}].manufacture`}
+                      >
+                        <SearchableDropdown
+                          id={`material-${index}`}
+                          name={`items[${index}].materialId`}
                           value={
-                            row.manufacture
+                            row.materialId
                           }
-                          compact
-                          placeholder="เลือกวันที่"
+                          options={
+                            materialOptions
+                          }
+                          placeholder="เลือกรายการพัสดุ"
+                          searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+                          emptyText="ไม่พบรายการพัสดุ"
+                          disabled={
+                            !row.category
+                          }
                           onChange={(
                             value
                           ) =>
                             updateRow(
                               index,
-                              "manufacture",
+                              "materialId",
                               value
                             )
                           }
                         />
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* วันหมดอายุ */}
+                      {/* หน่วย */}
 
-                    <td
-                      className="
-                        relative
-                        min-w-[200px]
+                      <td
+                        className="
+                          min-w-[120px]
 
-                        overflow-visible
+                          border
+                          border-black
 
-                        border
-                        border-black
+                          px-3
+                          py-3
 
-                        px-3
-                        py-3
-
-                        align-top
-                      "
-                    >
-                      <div className="w-[190px]">
-                        <IOSDatePicker
-                          id={`expiry-${index}`}
-                          name={`items[${index}].expiry`}
+                          align-top
+                        "
+                      >
+                        <input
+                          type="text"
+                          readOnly
                           value={
-                            row.expiry
+                            selected?.unit ??
+                            "-"
                           }
-                          compact
-                          placeholder="เลือกวันที่"
-                          onChange={(
-                            value
-                          ) =>
+                          className="
+                            h-[46px]
+                            w-full
+
+                            rounded-[12px]
+
+                            border
+                            border-slate-200
+
+                            bg-slate-100
+
+                            px-2
+
+                            text-center
+                            font-extrabold
+                            !text-slate-700
+
+                            outline-none
+                          "
+                        />
+                      </td>
+
+                      {/* ราคา */}
+
+                      <td
+                        className="
+                          min-w-[150px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          type="hidden"
+                          name={`items[${index}].unitPrice`}
+                          value={
+                            row.unitPrice
+                          }
+                        />
+
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={formatNumberWithCommas(
+                            row.unitPrice
+                          )}
+                          placeholder="0.00"
+                          onChange={(event) => {
+                            const value =
+                              sanitizeDecimalInput(
+                                event.target
+                                  .value
+                              );
+
                             updateRow(
                               index,
-                              "expiry",
+                              "unitPrice",
                               value
+                            );
+                          }}
+                          className="
+                            h-[46px]
+                            w-full
+
+                            rounded-[12px]
+
+                            border
+                            border-slate-200
+
+                            bg-white
+
+                            px-3
+
+                            text-right
+                            font-bold
+                            tabular-nums
+                            !text-slate-900
+
+                            outline-none
+
+                            transition-all
+
+                            focus:border-blue-300
+                            focus:ring-4
+                            focus:ring-blue-100/70
+                          "
+                        />
+                      </td>
+
+                      {/* จำนวน */}
+
+                      <td
+                        className="
+                          min-w-[120px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          name={`items[${index}].qty`}
+                          type="number"
+                          min="1"
+                          value={row.qty}
+                          onChange={(event) =>
+                            updateRow(
+                              index,
+                              "qty",
+                              event.target
+                                .value
                             )
                           }
+                          className="
+                            h-[46px]
+                            w-full
+
+                            rounded-[12px]
+
+                            border
+                            border-slate-200
+
+                            bg-white
+
+                            px-2
+
+                            text-center
+                            font-bold
+                            tabular-nums
+                            !text-slate-900
+
+                            outline-none
+
+                            transition-all
+
+                            focus:border-blue-300
+                            focus:ring-4
+                            focus:ring-blue-100/70
+                          "
                         />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              }
-            )}
-          </tbody>
-        </table>
+                      </td>
+
+                      {/* วันผลิต */}
+
+                      <td
+                        className="
+                          relative
+                          min-w-[200px]
+
+                          overflow-visible
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <div
+                          className="
+                            relative
+                            w-[190px]
+                            overflow-visible
+                          "
+                        >
+                          <IOSDatePicker
+                            id={`manufacture-${index}`}
+                            name={`items[${index}].manufacture`}
+                            value={
+                              row.manufacture
+                            }
+                            compact
+                            align="right"
+                            placeholder="เลือกวันที่"
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "manufacture",
+                                value
+                              )
+                            }
+                          />
+                        </div>
+                      </td>
+
+                      {/* วันหมดอายุ */}
+
+                      <td
+                        className="
+                          relative
+                          min-w-[200px]
+
+                          overflow-visible
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <div
+                          className="
+                            relative
+                            w-[190px]
+                            overflow-visible
+                          "
+                        >
+                          <IOSDatePicker
+                            id={`expiry-${index}`}
+                            name={`items[${index}].expiry`}
+                            value={
+                              row.expiry
+                            }
+                            compact
+                            align="right"
+                            placeholder="เลือกวันที่"
+                            onChange={(
+                              value
+                            ) =>
+                              updateRow(
+                                index,
+                                "expiry",
+                                value
+                              )
+                            }
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+              )}
+            </tbody>
+          </table>
+        </div>
       </AppTableCard>
 
       {/* =====================================================
@@ -2216,6 +2303,7 @@ export default function ReceiveForm({
       <AppCard
         className="
           relative
+          z-0
 
           overflow-visible
 
@@ -2265,8 +2353,9 @@ export default function ReceiveForm({
 
               hover:bg-slate-50
 
+              focus:border-blue-300
               focus:ring-4
-              focus:ring-slate-900/10
+              focus:ring-blue-100/70
             "
           />
         </AppInfoCard>

@@ -118,6 +118,21 @@ const categories = [
    THAI DATE
 ========================================================= */
 
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
 const thaiShortMonths = [
   "ม.ค.",
   "ก.พ.",
@@ -132,6 +147,25 @@ const thaiShortMonths = [
   "พ.ย.",
   "ธ.ค.",
 ];
+
+function formatThaiFullDate(
+  dateString: string
+) {
+  if (!dateString) {
+    return "";
+  }
+
+  const [year, month, day] =
+    dateString.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return "";
+  }
+
+  return `${day} ${
+    thaiMonths[month - 1]
+  } ${year + 543}`;
+}
 
 function formatThaiShortDate(
   dateString: string
@@ -157,6 +191,72 @@ function formatThaiShortDate(
   )} ${
     thaiShortMonths[month - 1]
   } ${thaiYear}`;
+}
+
+/* =========================================================
+   NUMBER FORMAT
+========================================================= */
+
+function sanitizeDecimalInput(
+  value: string
+) {
+  const cleaned =
+    value
+      .replace(/,/g, "")
+      .replace(/[^\d.]/g, "");
+
+  const firstDot =
+    cleaned.indexOf(".");
+
+  if (firstDot === -1) {
+    return cleaned;
+  }
+
+  const integerPart =
+    cleaned.slice(0, firstDot);
+
+  const decimalPart =
+    cleaned
+      .slice(firstDot + 1)
+      .replace(/\./g, "")
+      .slice(0, 2);
+
+  return `${integerPart}.${decimalPart}`;
+}
+
+function formatNumberWithCommas(
+  value: string
+) {
+  if (!value) {
+    return "";
+  }
+
+  const normalized =
+    value.replace(/,/g, "");
+
+  const [integerPart, decimalPart] =
+    normalized.split(".");
+
+  const safeInteger =
+    integerPart === ""
+      ? "0"
+      : integerPart;
+
+  const formattedInteger =
+    safeInteger.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      ","
+    );
+
+  if (
+    normalized.includes(".")
+  ) {
+    return `${formattedInteger}.${
+      decimalPart ?? ""
+    }`;
+  }
+
+  return formattedInteger;
 }
 
 /* =========================================================
@@ -200,6 +300,7 @@ type DateFieldProps = {
   value: string;
   placeholder?: string;
   compact?: boolean;
+  fullDate?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -209,6 +310,7 @@ function DateField({
   value,
   placeholder = "เลือกวันที่",
   compact = false,
+  fullDate = false,
   onChange,
 }: DateFieldProps) {
   const dateRef =
@@ -262,19 +364,29 @@ function DateField({
           min-w-0
           items-center
           justify-between
-          gap-2
+          gap-3
+
           rounded-[16px]
+
           border
-          !border-black
+          border-slate-200
+
           bg-white
+
           pl-4
           pr-2
+
           shadow-sm
+
           transition-all
           duration-200
+
+          hover:border-slate-300
           hover:bg-slate-50
+
+          focus-within:border-blue-300
           focus-within:ring-4
-          focus-within:ring-slate-900/10
+          focus-within:ring-blue-100/70
         "
       >
         <span
@@ -282,12 +394,15 @@ function DateField({
             min-w-0
             flex-1
             truncate
+
             ${
               compact
                 ? "text-sm"
                 : "text-base"
             }
+
             font-bold
+
             ${
               value
                 ? "!text-slate-900"
@@ -296,9 +411,13 @@ function DateField({
           `}
         >
           {value
-            ? formatThaiShortDate(
-                value
-              )
+            ? fullDate
+              ? formatThaiFullDate(
+                  value
+                )
+              : formatThaiShortDate(
+                  value
+                )
             : placeholder}
         </span>
 
@@ -313,17 +432,25 @@ function DateField({
             shrink-0
             items-center
             justify-center
+
             rounded-[11px]
+
             bg-slate-100
+
             text-lg
+
             shadow-inner
+
             transition-all
             duration-200
+
             hover:bg-slate-200
+
             active:scale-[0.96]
+
             focus:outline-none
             focus:ring-4
-            focus:ring-slate-900/10
+            focus:ring-blue-100
           "
         >
           📅
@@ -461,6 +588,7 @@ function SearchableDropdown({
         relative
         w-full
         min-w-0
+
         ${
           open
             ? "z-[9999]"
@@ -491,23 +619,36 @@ function SearchableDropdown({
           items-center
           justify-between
           gap-3
+
           rounded-[16px]
+
           border
-          !border-black
+          border-slate-200
+
           bg-white
+
           px-4
+
           text-left
           text-base
           font-bold
           !text-slate-900
+
           shadow-sm
           outline-none
+
           transition-all
           duration-200
+
+          hover:border-slate-300
           hover:bg-slate-50
+
+          focus:border-blue-300
           focus:ring-4
-          focus:ring-slate-900/10
+          focus:ring-blue-100/70
+
           disabled:cursor-not-allowed
+          disabled:border-slate-200
           disabled:bg-slate-100
           disabled:!text-slate-400
         "
@@ -517,6 +658,7 @@ function SearchableDropdown({
             min-w-0
             flex-1
             truncate
+
             ${
               selectedOption
                 ? "!text-slate-900"
@@ -533,9 +675,11 @@ function SearchableDropdown({
           className={`
             shrink-0
             text-xs
-            !text-slate-700
+            !text-slate-500
+
             transition-transform
             duration-200
+
             ${
               open
                 ? "rotate-180"
@@ -554,13 +698,20 @@ function SearchableDropdown({
             left-0
             right-0
             top-[calc(100%+8px)]
+
             z-[99999]
+
             overflow-hidden
+
             rounded-[20px]
+
             border
-            !border-black
+            border-slate-200
+
             bg-white/95
-            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
+
+            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.35)]
+
             backdrop-blur-2xl
           "
         >
@@ -568,7 +719,9 @@ function SearchableDropdown({
             className="
               border-b
               border-slate-200
+
               bg-slate-50/90
+
               p-3
             "
           >
@@ -614,19 +767,28 @@ function SearchableDropdown({
               className="
                 h-[46px]
                 w-full
+
                 rounded-[14px]
+
                 border
-                !border-black
+                border-slate-200
+
                 bg-white
+
                 px-4
+
                 text-base
                 font-bold
                 !text-slate-900
+
                 shadow-sm
                 outline-none
+
                 placeholder:!text-slate-400
+
+                focus:border-blue-300
                 focus:ring-4
-                focus:ring-slate-900/10
+                focus:ring-blue-100/70
               "
             />
           </div>
@@ -635,9 +797,12 @@ function SearchableDropdown({
             role="listbox"
             className="
               max-h-[280px]
+
               overflow-y-auto
               overscroll-contain
+
               bg-white
+
               p-2
             "
           >
@@ -673,13 +838,18 @@ function SearchableDropdown({
                         items-center
                         justify-between
                         gap-3
+
                         rounded-[12px]
+
                         px-3
                         py-2.5
+
                         text-left
                         text-base
                         font-bold
+
                         transition-colors
+
                         ${
                           selected
                             ? "bg-slate-900 !text-white"
@@ -711,6 +881,7 @@ function SearchableDropdown({
                 className="
                   px-4
                   py-8
+
                   text-center
                   text-sm
                   font-bold
@@ -858,6 +1029,7 @@ export default function EditReceiveForm({
   const labelClass = `
     mb-2
     block
+
     text-base
     font-extrabold
     !text-slate-800
@@ -867,42 +1039,66 @@ export default function EditReceiveForm({
     h-[52px]
     w-full
     min-w-0
+
     rounded-[16px]
+
     border
-    !border-black
+    border-slate-200
+
     bg-white
+
     px-4
+
     text-base
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
+
+    hover:border-slate-300
     hover:bg-slate-50
+
+    focus:border-blue-300
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-blue-100/70
   `;
 
   const tableInputClass = `
     h-[52px]
+
     rounded-[16px]
+
     border
-    !border-black
+    border-slate-200
+
     bg-white
+
     px-3
+
     text-sm
     font-bold
     !text-slate-900
+
     shadow-sm
     outline-none
+
     transition-all
     duration-200
+
     placeholder:!text-slate-400
+
+    hover:border-slate-300
     hover:bg-slate-50
+
+    focus:border-blue-300
     focus:ring-4
-    focus:ring-slate-900/10
+    focus:ring-blue-100/70
   `;
 
   return (
@@ -912,7 +1108,9 @@ export default function EditReceiveForm({
         relative
         w-full
         min-w-0
+
         space-y-6
+
         overflow-visible
       "
     >
@@ -936,14 +1134,18 @@ export default function EditReceiveForm({
         className="
           relative
           z-[200]
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
         <div
           className="
             mb-5
+
             flex
             items-center
             gap-3
@@ -957,10 +1159,15 @@ export default function EditReceiveForm({
               shrink-0
               items-center
               justify-center
+
               rounded-[15px]
+
               bg-blue-50/90
+
               text-xl
+
               shadow-sm
+
               ring-1
               ring-blue-100/80
             "
@@ -975,6 +1182,7 @@ export default function EditReceiveForm({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-xl
               "
             >
@@ -984,6 +1192,7 @@ export default function EditReceiveForm({
             <p
               className="
                 mt-0.5
+
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -999,9 +1208,12 @@ export default function EditReceiveForm({
             grid
             min-w-0
             gap-4
+
             md:grid-cols-2
           "
         >
+          {/* วันที่รับเข้า */}
+
           <AppInfoCard
             className="
               relative
@@ -1020,11 +1232,14 @@ export default function EditReceiveForm({
               name="receiveDate"
               value={receiveDate}
               placeholder="เลือกวันที่รับเข้า"
+              fullDate
               onChange={
                 setReceiveDate
               }
             />
           </AppInfoCard>
+
+          {/* เลขที่เอกสาร */}
 
           <AppInfoCard
             className="
@@ -1050,11 +1265,14 @@ export default function EditReceiveForm({
             />
           </AppInfoCard>
 
+          {/* ผู้จำหน่าย */}
+
           <AppInfoCard
             className="
               relative
               z-[300]
               overflow-visible
+
               md:col-span-2
             "
           >
@@ -1101,6 +1319,7 @@ export default function EditReceiveForm({
             relative
             w-full
             min-w-0
+
             overflow-x-auto
             overflow-y-visible
             overscroll-x-contain
@@ -1111,8 +1330,11 @@ export default function EditReceiveForm({
               relative
               w-full
               min-w-[1280px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
@@ -1132,13 +1354,17 @@ export default function EditReceiveForm({
                     key={title}
                     className="
                       whitespace-nowrap
+
                       border
-                      border-black
+                      border-slate-300
+
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
+
                       px-3
                       py-4
+
                       text-center
                       text-lg
                       font-extrabold
@@ -1202,18 +1428,25 @@ export default function EditReceiveForm({
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
+
                         transition-colors
                         duration-200
+
                         hover:bg-blue-50/70
                       `}
                     >
+                      {/* ลำดับ */}
+
                       <td
                         className="
                           whitespace-nowrap
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           text-center
                           font-extrabold
                           !text-slate-900
@@ -1222,15 +1455,21 @@ export default function EditReceiveForm({
                         {index + 1}
                       </td>
 
+                      {/* หมวดหมู่ */}
+
                       <td
                         className="
                           relative
                           min-w-[210px]
+
                           overflow-visible
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1257,15 +1496,21 @@ export default function EditReceiveForm({
                         />
                       </td>
 
+                      {/* รายการพัสดุ */}
+
                       <td
                         className="
                           relative
                           min-w-[320px]
+
                           overflow-visible
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1303,13 +1548,18 @@ export default function EditReceiveForm({
                         />
                       </td>
 
+                      {/* หน่วย */}
+
                       <td
                         className="
                           min-w-[120px]
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1323,29 +1573,40 @@ export default function EditReceiveForm({
                           className="
                             h-[52px]
                             w-full
+
                             cursor-default
+
                             rounded-[16px]
+
                             border
-                            !border-black
+                            border-slate-200
+
                             bg-slate-100
+
                             px-3
+
                             text-center
                             text-base
                             font-extrabold
                             !text-slate-700
-                            shadow-sm
+
                             outline-none
                           "
                         />
                       </td>
 
+                      {/* จำนวน */}
+
                       <td
                         className="
                           min-w-[120px]
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1366,57 +1627,83 @@ export default function EditReceiveForm({
                           }
                           className={`
                             ${tableInputClass}
+
                             w-full
+
                             text-center
                             tabular-nums
                           `}
                         />
                       </td>
 
+                      {/* ราคาต่อหน่วย */}
+
                       <td
                         className="
-                          min-w-[150px]
+                          min-w-[170px]
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
                         <input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type="hidden"
                           name={`items[${index}].unitPrice`}
                           value={
                             row.unitPrice
                           }
+                        />
+
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={formatNumberWithCommas(
+                            row.unitPrice
+                          )}
+                          placeholder="0.00"
                           onChange={(
                             event
-                          ) =>
+                          ) => {
+                            const rawValue =
+                              sanitizeDecimalInput(
+                                event.target
+                                  .value
+                              );
+
                             updateRow(
                               index,
                               "unitPrice",
-                              event.target
-                                .value
-                            )
-                          }
+                              rawValue
+                            );
+                          }}
                           className={`
                             ${tableInputClass}
+
                             w-full
+
                             text-right
                             tabular-nums
                           `}
                         />
                       </td>
 
+                      {/* วันผลิต */}
+
                       <td
                         className="
                           min-w-[190px]
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1439,13 +1726,18 @@ export default function EditReceiveForm({
                         />
                       </td>
 
+                      {/* วันหมดอายุ */}
+
                       <td
                         className="
                           min-w-[190px]
+
                           border
-                          border-black
+                          border-slate-200
+
                           px-3
                           py-3
+
                           align-top
                         "
                       >
@@ -1484,8 +1776,11 @@ export default function EditReceiveForm({
         className="
           relative
           z-0
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
@@ -1508,23 +1803,36 @@ export default function EditReceiveForm({
             className="
               min-h-[120px]
               w-full
+
               resize-y
+
               rounded-[16px]
+
               border
-              !border-black
+              border-slate-200
+
               bg-white
+
               p-4
+
               text-base
               font-bold
               !text-slate-900
+
               shadow-sm
               outline-none
+
               transition-all
               duration-200
+
               placeholder:!text-slate-400
+
+              hover:border-slate-300
               hover:bg-slate-50
+
+              focus:border-blue-300
               focus:ring-4
-              focus:ring-slate-900/10
+              focus:ring-blue-100/70
             "
           />
         </AppInfoCard>
@@ -1538,6 +1846,7 @@ export default function EditReceiveForm({
         className="
           flex
           justify-end
+
           pt-1
         "
       >
