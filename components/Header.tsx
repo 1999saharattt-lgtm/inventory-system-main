@@ -1,16 +1,7 @@
 import Image from "next/image";
-
 import { logout } from "@/app/logout/action";
 import { requireLogin } from "@/lib/auth";
-
 import MobileMenu from "@/components/MobileMenu";
-import AppButton from "@/components/AppButton";
-
-import {
-  LogOut,
-  UserRound,
-  ShieldCheck,
-} from "lucide-react";
 
 export default async function Header() {
   const user = await requireLogin();
@@ -19,31 +10,25 @@ export default async function Header() {
     <header
       className="
         relative
-
         w-full
-
         overflow-hidden
-
         border-b
-        border-white/[0.08]
-
-        bg-[linear-gradient(115deg,rgba(2,6,23,0.98)_0%,rgba(15,23,42,0.97)_45%,rgba(30,41,59,0.96)_100%)]
-
+        border-white/10
+        bg-gradient-to-r
+        from-slate-950/95
+        via-slate-900/95
+        to-slate-800/95
         px-3
-        py-3
-
-        shadow-[0_18px_50px_-30px_rgba(2,6,23,0.95)]
-
+        py-2.5
+        shadow-[0_14px_40px_-24px_rgba(15,23,42,0.85)]
         backdrop-blur-2xl
-
         sm:px-5
-        sm:py-3.5
-
+        sm:py-3
         md:px-8
       "
     >
       {/* =====================================================
-          TOP INNER HIGHLIGHT
+          Ambient Light
       ===================================================== */}
 
       <div
@@ -51,120 +36,59 @@ export default async function Header() {
         className="
           pointer-events-none
           absolute
-          inset-x-0
-          top-0
-
-          h-px
-
-          bg-gradient-to-r
-          from-transparent
-          via-white/25
-          to-transparent
-        "
-      />
-
-      {/* =====================================================
-          LEFT AMBIENT LIGHT
-      ===================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          -left-20
-          -top-24
-
-          h-56
-          w-56
-
-          rounded-full
-
-          bg-blue-500/20
-
-          blur-[70px]
-        "
-      />
-
-      {/* =====================================================
-          CENTER AMBIENT LIGHT
-      ===================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          left-[42%]
-          -top-24
-
-          h-44
-          w-80
-
-          rounded-full
-
-          bg-sky-400/[0.07]
-
-          blur-[80px]
-        "
-      />
-
-      {/* =====================================================
-          RIGHT AMBIENT LIGHT
-      ===================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          -right-20
+          -left-16
           -top-20
-
-          h-52
-          w-52
-
+          h-44
+          w-44
           rounded-full
+          bg-blue-400/15
+          blur-3xl
+        "
+      />
 
-          bg-emerald-400/[0.12]
-
-          blur-[75px]
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -right-16
+          -top-16
+          h-40
+          w-40
+          rounded-full
+          bg-emerald-400/10
+          blur-3xl
         "
       />
 
       {/* =====================================================
-          CONTENT
+          Header Content
       ===================================================== */}
 
       <div
         className="
           relative
-
           mx-auto
-
           flex
           w-full
           max-w-[1920px]
-
           items-center
           justify-between
-
           gap-3
-
           sm:gap-4
         "
       >
-        {/* ===================================================
-            MOBILE MENU
-        =================================================== */}
+        {/* =====================================================
+            Mobile Menu
+        ===================================================== */}
 
         <div className="shrink-0 lg:hidden">
           <MobileMenu role={user.role} />
         </div>
 
-        {/* ===================================================
-            BRAND
-        =================================================== */}
+        {/* =====================================================
+            Logo + System Name
+        ===================================================== */}
 
         <div className="min-w-0 flex-1">
           <div
@@ -172,77 +96,41 @@ export default async function Header() {
               flex
               min-w-0
               items-center
-
               gap-3
-
               sm:gap-4
             "
           >
-            {/* ===============================================
-                LOGO TILE
-            =============================================== */}
+            {/* =================================================
+                Logo
+            ================================================= */}
 
             <div
               className="
                 group
                 relative
-
-                flex
-                h-[54px]
-                w-[54px]
+                h-12
+                w-12
                 shrink-0
-
-                items-center
-                justify-center
-
                 overflow-hidden
-
-                rounded-[18px]
-
+                rounded-[16px]
                 border
-                border-white/25
-
-                bg-gradient-to-br
-                from-white
-                via-slate-50
-                to-slate-100
-
-                shadow-[0_14px_35px_-16px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,1)]
-
+                border-white/20
+                bg-white/95
+                shadow-[0_10px_30px_-14px_rgba(0,0,0,0.65)]
                 ring-1
-                ring-black/[0.06]
-
+                ring-white/10
                 transition-all
                 duration-300
                 ease-out
-
                 hover:-translate-y-0.5
-                hover:scale-[1.025]
-
-                hover:shadow-[0_18px_40px_-16px_rgba(14,165,233,0.4),inset_0_1px_0_rgba(255,255,255,1)]
-
-                sm:h-[60px]
-                sm:w-[60px]
-
-                md:h-[66px]
-                md:w-[66px]
-                md:rounded-[20px]
+                hover:scale-[1.03]
+                hover:shadow-[0_14px_34px_-14px_rgba(59,130,246,0.45)]
+                sm:h-14
+                sm:w-14
+                md:h-16
+                md:w-16
               "
             >
-              <div
-                aria-hidden="true"
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-x-2
-                  top-1
-
-                  h-px
-
-                  bg-white
-                "
-              />
-
               <Image
                 src="/images/dohl-logo.png"
                 alt="โลโก้กรมอนามัย"
@@ -250,228 +138,131 @@ export default async function Header() {
                 priority
                 className="
                   object-contain
-
-                  p-1.5
-
+                  p-1
                   transition-transform
                   duration-300
-
-                  group-hover:scale-[1.035]
+                  group-hover:scale-[1.03]
                 "
-                sizes="66px"
+                sizes="64px"
               />
             </div>
 
-            {/* ===============================================
-                SYSTEM NAME
-            =============================================== */}
+            {/* =================================================
+                System Name
+            ================================================= */}
 
             <div className="min-w-0">
-              <div
+              {/* Thai Name */}
+
+              <h1
                 className="
-                  flex
-                  min-w-0
-                  items-center
-                  gap-2
+                  truncate
+                  text-lg
+                  font-black
+                  tracking-tight
+                  !text-white
+                  sm:text-xl
+                  md:text-2xl
+                  lg:text-3xl
                 "
               >
-                <h1
-                  className="
-                    truncate
+                ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
+              </h1>
 
-                    text-lg
-                    font-black
-                    tracking-[-0.025em]
+              {/* English Name */}
 
-                    !text-white
-
-                    sm:text-xl
-
-                    md:text-2xl
-
-                    xl:text-[27px]
-                  "
-                >
-                  ระบบบริหารคลังพัสดุ สำนักอนามัยการเจริญพันธุ์
-                </h1>
-              </div>
-
-              <div
+              <p
                 className="
                   mt-1
                   hidden
-
-                  items-center
-                  gap-2
-
-                  md:flex
+                  truncate
+                  text-sm
+                  font-bold
+                  tracking-[0.03em]
+                  !text-slate-200
+                  md:block
+                  md:text-base
+                  lg:text-lg
                 "
               >
-                <span
-                  className="
-                    h-1
-                    w-1
-
-                    shrink-0
-
-                    rounded-full
-
-                    bg-sky-400
-
-                    shadow-[0_0_8px_rgba(56,189,248,0.75)]
-                  "
-                />
-
-                <p
-                  className="
-                    truncate
-
-                    text-[11px]
-                    font-semibold
-                    tracking-[0.025em]
-
-                    !text-slate-300
-
-                    lg:text-xs
-                  "
-                >
-                  Reproductive Health Inventory Management System
-                </p>
-              </div>
+                Reproductive Health Inventory Management System
+              </p>
             </div>
           </div>
         </div>
 
-        {/* ===================================================
-            RIGHT ACTIONS
-        =================================================== */}
+        {/* =====================================================
+            User Area
+        ===================================================== */}
 
         <div
           className="
             flex
             shrink-0
-
             items-center
-
             gap-2
-
             sm:gap-3
           "
         >
           {/* =================================================
-              USER CARD
+              User Information
           ================================================= */}
 
           <div
             className="
               group
-
               hidden
-
               items-center
-
               gap-2.5
-
-              rounded-[20px]
-
+              rounded-[18px]
               border
-              border-white/[0.12]
-
-              bg-white/[0.07]
-
+              border-white/15
+              bg-white/10
               px-3
               py-2
-
-              shadow-[0_12px_30px_-20px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.08)]
-
-              backdrop-blur-2xl
-
+              shadow-[0_10px_26px_-18px_rgba(0,0,0,0.7)]
+              backdrop-blur-xl
               transition-all
               duration-300
-              ease-out
-
-              hover:-translate-y-0.5
-              hover:border-white/[0.18]
-              hover:bg-white/[0.1]
-
+              hover:bg-white/15
               sm:flex
-
-              md:px-3.5
+              sm:px-3.5
             "
           >
-            {/* Avatar */}
+            {/* User Icon */}
 
             <div
               className="
-                relative
-
                 flex
-                h-10
-                w-10
+                h-9
+                w-9
                 shrink-0
-
                 items-center
                 justify-center
-
-                rounded-[14px]
-
-                border
-                border-white/[0.1]
-
-                bg-gradient-to-br
-                from-white/[0.16]
-                to-white/[0.06]
-
-                shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]
-
+                rounded-[13px]
+                bg-white/15
+                text-base
+                ring-1
+                ring-white/10
                 transition-transform
                 duration-300
-
-                group-hover:scale-[1.04]
+                group-hover:scale-105
               "
             >
-              <UserRound
-                size={19}
-                strokeWidth={2.2}
-                className="text-slate-100"
-              />
-
-              <span
-                className="
-                  absolute
-                  -bottom-0.5
-                  -right-0.5
-
-                  h-3
-                  w-3
-
-                  rounded-full
-
-                  border-2
-                  border-slate-900
-
-                  bg-emerald-400
-
-                  shadow-[0_0_9px_rgba(52,211,153,0.75)]
-                "
-              />
+              👤
             </div>
 
-            {/* User Details */}
+            {/* User Name + Role */}
 
             <div className="min-w-0 text-right">
               <div
                 className="
                   max-w-[130px]
-
                   truncate
                   whitespace-nowrap
-
                   text-sm
                   font-extrabold
-
                   !text-white
-
                   md:max-w-[180px]
                 "
               >
@@ -481,26 +272,28 @@ export default async function Header() {
               <div
                 className="
                   mt-0.5
-
                   flex
                   items-center
                   justify-end
-
-                  gap-1
-
+                  gap-1.5
                   whitespace-nowrap
-
-                  text-[10px]
+                  text-[11px]
                   font-extrabold
                   uppercase
-                  tracking-[0.06em]
-
+                  tracking-wide
                   !text-sky-300
                 "
               >
-                <ShieldCheck
-                  size={11}
-                  strokeWidth={2.4}
+                {/* Online Status */}
+
+                <span
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-emerald-400
+                    shadow-[0_0_10px_rgba(52,211,153,0.7)]
+                  "
                 />
 
                 {user.role}
@@ -509,7 +302,7 @@ export default async function Header() {
           </div>
 
           {/* =================================================
-              MOBILE USER
+              Mobile User Badge
           ================================================= */}
 
           <div
@@ -517,54 +310,79 @@ export default async function Header() {
               flex
               h-10
               w-10
-
               items-center
               justify-center
-
               rounded-[14px]
-
               border
-              border-white/[0.12]
-
-              bg-white/[0.08]
-
-              shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
-
+              border-white/15
+              bg-white/10
+              text-base
+              shadow-sm
               backdrop-blur-xl
-
               sm:hidden
             "
             title={`${user.fullname} · ${user.role}`}
           >
-            <UserRound
-              size={18}
-              strokeWidth={2.2}
-              className="text-white"
-            />
+            👤
           </div>
 
           {/* =================================================
-              LOGOUT
-              ใช้ AppButton กลาง
+              Logout
           ================================================= */}
 
           <form action={logout}>
-            <AppButton
+            <button
               type="submit"
-              variant="danger"
-              size="md"
-              icon={
-                <LogOut
-                  size={17}
-                  strokeWidth={2.4}
-                  aria-hidden="true"
-                />
-              }
+              className="
+                group
+                inline-flex
+                h-10
+                items-center
+                justify-center
+                gap-2
+                whitespace-nowrap
+                rounded-[14px]
+                border
+                border-red-300/20
+                bg-gradient-to-r
+                from-red-600
+                to-rose-500
+                px-3
+                text-sm
+                font-extrabold
+                !text-white
+                shadow-[0_10px_24px_-14px_rgba(239,68,68,0.75)]
+                transition-all
+                duration-300
+                ease-out
+                hover:-translate-y-0.5
+                hover:from-red-700
+                hover:to-rose-600
+                hover:shadow-[0_14px_28px_-14px_rgba(239,68,68,0.85)]
+                active:translate-y-0
+                active:scale-[0.96]
+                sm:h-11
+                sm:px-4
+              "
             >
+              {/* Logout Icon */}
+
+              <span
+                className="
+                  transition-transform
+                  duration-300
+                  group-hover:-translate-x-0.5
+                "
+              >
+                ↪
+              </span>
+
+              {/* Logout Text */}
+
               <span className="hidden sm:inline">
                 ออกจากระบบ
               </span>
-            </AppButton>
+            </button>
           </form>
         </div>
       </div>
