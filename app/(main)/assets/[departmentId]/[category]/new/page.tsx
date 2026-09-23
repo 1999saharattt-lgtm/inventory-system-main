@@ -103,7 +103,15 @@ function normalizeText(
 export default async function NewAssetPage({
   params,
 }: Props) {
+  /* =======================================================
+     AUTH
+  ======================================================= */
+
   const user = await requireLogin();
+
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
   const {
     departmentId,
@@ -189,6 +197,10 @@ export default async function NewAssetPage({
   if (!department) {
     notFound();
   }
+
+  /* =======================================================
+     BACK URL
+  ======================================================= */
 
   const backHref =
     `/assets/${department.id}/${assetCategory.toLowerCase()}`;
@@ -289,28 +301,6 @@ export default async function NewAssetPage({
         ) ?? ""
       ).trim();
 
-    const purchaseDateRaw =
-      String(
-        formData.get(
-          "purchaseDate"
-        ) ?? ""
-      ).trim();
-
-    const priceRaw =
-      String(
-        formData.get("price") ??
-          ""
-      ).trim();
-
-    const location =
-      normalizeText(
-        String(
-          formData.get(
-            "location"
-          ) ?? ""
-        )
-      );
-
     const remark =
       normalizeText(
         String(
@@ -374,7 +364,7 @@ export default async function NewAssetPage({
       ];
 
     /* =====================================================
-       DEPARTMENT
+       CHECK DEPARTMENT
     ===================================================== */
 
     const targetDepartment =
@@ -621,58 +611,6 @@ export default async function NewAssetPage({
     }
 
     /* =====================================================
-       PRICE
-    ===================================================== */
-
-    let price:
-      | number
-      | null = null;
-
-    if (priceRaw) {
-      price =
-        Number(priceRaw);
-
-      if (
-        !Number.isFinite(
-          price
-        ) ||
-        price < 0
-      ) {
-        throw new Error(
-          "ราคาครุภัณฑ์ไม่ถูกต้อง"
-        );
-      }
-    }
-
-    /* =====================================================
-       PURCHASE DATE
-    ===================================================== */
-
-    let purchaseDate:
-      | Date
-      | null = null;
-
-    if (purchaseDateRaw) {
-      const parsedDate =
-        new Date(
-          `${purchaseDateRaw}T00:00:00`
-        );
-
-      if (
-        Number.isNaN(
-          parsedDate.getTime()
-        )
-      ) {
-        throw new Error(
-          "วันที่ได้มาไม่ถูกต้อง"
-        );
-      }
-
-      purchaseDate =
-        parsedDate;
-    }
-
-    /* =====================================================
        CREATE
     ===================================================== */
 
@@ -716,13 +654,6 @@ export default async function NewAssetPage({
         responsibleName,
 
         status: "IN_USE",
-
-        purchaseDate,
-
-        price,
-
-        location:
-          location || null,
 
         remark:
           remark || null,
@@ -1187,189 +1118,6 @@ export default async function NewAssetPage({
                 }
               />
             </AppInfoCard>
-          </div>
-
-          {/* =================================================
-              ADDITIONAL INFORMATION
-          ================================================= */}
-
-          <div
-            className="
-              mt-6
-              border-t
-              border-slate-200
-              pt-6
-            "
-          >
-            <div className="mb-4">
-              <h3
-                className="
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                ข้อมูลเพิ่มเติม
-              </h3>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  !text-slate-500
-                "
-              >
-                ระบุวันที่ได้มา ราคา และสถานที่ตั้ง
-              </p>
-            </div>
-
-            <div
-              className="
-                grid
-                grid-cols-1
-                gap-4
-
-                lg:grid-cols-2
-              "
-            >
-              {/* PURCHASE DATE */}
-
-              <AppInfoCard>
-                <label
-                  htmlFor="purchaseDate"
-                  className={
-                    labelClassName
-                  }
-                >
-                  วันที่ได้มา
-                </label>
-
-                <input
-                  id="purchaseDate"
-                  name="purchaseDate"
-                  type="date"
-                  className={
-                    inputClassName
-                  }
-                />
-              </AppInfoCard>
-
-              {/* PRICE */}
-
-              <AppInfoCard>
-                <label
-                  htmlFor="price"
-                  className={
-                    labelClassName
-                  }
-                >
-                  ราคา
-                </label>
-
-                <div
-                  className="
-                    flex
-                    min-h-[50px]
-                    w-full
-                    overflow-hidden
-
-                    rounded-[14px]
-
-                    border
-                    border-slate-300
-
-                    bg-white
-
-                    shadow-sm
-
-                    transition-all
-                    duration-200
-
-                    focus-within:border-blue-400
-                    focus-within:ring-4
-                    focus-within:ring-blue-500/10
-                  "
-                >
-                  <input
-                    id="price"
-                    name="price"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="0.00"
-                    className="
-                      min-w-0
-                      flex-1
-
-                      border-0
-                      bg-transparent
-
-                      px-4
-                      py-3
-
-                      text-right
-                      text-base
-                      font-bold
-                      tabular-nums
-                      !text-slate-900
-
-                      outline-none
-
-                      placeholder:!text-slate-400
-                    "
-                  />
-
-                  <div
-                    className="
-                      flex
-                      shrink-0
-                      items-center
-
-                      border-l
-                      border-slate-200
-
-                      bg-slate-50
-
-                      px-4
-
-                      text-sm
-                      font-extrabold
-                      !text-slate-500
-                    "
-                  >
-                    บาท
-                  </div>
-                </div>
-              </AppInfoCard>
-
-              {/* LOCATION */}
-
-              <div className="lg:col-span-2">
-                <AppInfoCard>
-                  <label
-                    htmlFor="location"
-                    className={
-                      labelClassName
-                    }
-                  >
-                    สถานที่ตั้ง
-                  </label>
-
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    placeholder="กรอกสถานที่ตั้ง"
-                    className={
-                      inputClassName
-                    }
-                  />
-                </AppInfoCard>
-              </div>
-            </div>
           </div>
 
           {/* =================================================
