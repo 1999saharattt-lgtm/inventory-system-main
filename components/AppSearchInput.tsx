@@ -3,7 +3,6 @@
 import type {
   ChangeEvent,
   FormEvent,
-  ReactNode,
 } from "react";
 
 import {
@@ -44,8 +43,6 @@ type AppSearchInputProps = {
 
   inputClassName?: string;
 
-  leftIcon?: ReactNode;
-
   showSearchButton?: boolean;
 
   showClearButton?: boolean;
@@ -63,6 +60,7 @@ export default function AppSearchInput({
   value,
   onChange,
   onSubmit,
+
   onClear,
 
   placeholder = "ค้นหา...",
@@ -79,15 +77,13 @@ export default function AppSearchInput({
 
   inputClassName = "",
 
-  leftIcon,
-
   showSearchButton = true,
 
   showClearButton = true,
 
   searchButtonText = "ค้นหา",
 
-  clearButtonText = "ล้างการค้นหา",
+  clearButtonText = "ล้าง",
 }: AppSearchInputProps) {
   /* =======================================================
      SUBMIT
@@ -127,6 +123,7 @@ export default function AppSearchInput({
       className={`
         w-full
         min-w-0
+
         ${className}
       `}
     >
@@ -137,22 +134,24 @@ export default function AppSearchInput({
       <div
         className="
           relative
+
           w-full
           min-w-0
+
           overflow-hidden
 
-          rounded-[20px]
+          rounded-[22px]
 
           border
-          border-slate-200
+          border-white/80
 
-          bg-white/90
+          bg-white/80
 
-          p-2.5
+          p-3
 
-          shadow-[0_14px_36px_-28px_rgba(15,23,42,0.35)]
+          shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]
 
-          backdrop-blur-xl
+          backdrop-blur-2xl
 
           sm:p-3
         "
@@ -167,15 +166,15 @@ export default function AppSearchInput({
             pointer-events-none
 
             absolute
-            -left-16
-            -top-20
+            -left-20
+            -top-24
 
-            h-36
-            w-36
+            h-44
+            w-44
 
             rounded-full
 
-            bg-blue-400/[0.07]
+            bg-blue-400/[0.08]
 
             blur-3xl
           "
@@ -186,16 +185,16 @@ export default function AppSearchInput({
           className="
             pointer-events-none
 
+            -bottom-24
             absolute
-            -bottom-20
             right-0
 
-            h-36
-            w-36
+            h-44
+            w-44
 
             rounded-full
 
-            bg-cyan-400/[0.06]
+            bg-cyan-400/[0.08]
 
             blur-3xl
           "
@@ -212,54 +211,26 @@ export default function AppSearchInput({
             flex
             w-full
             min-w-0
+
             flex-col
 
             gap-2.5
 
-            sm:flex-row
-            sm:items-center
+            md:flex-row
+            md:items-center
           "
         >
           {/* ===============================================
-              INPUT
+              SEARCH INPUT
+              ไม่มีไอคอนแว่นขยายภายในช่อง
           =============================================== */}
 
           <div
             className="
-              relative
               min-w-0
               flex-1
             "
           >
-            {/* SEARCH ICON */}
-
-            <div
-              aria-hidden="true"
-              className="
-                pointer-events-none
-
-                absolute
-                inset-y-0
-                left-3.5
-                z-10
-
-                flex
-                items-center
-                justify-center
-
-                !text-slate-500
-              "
-            >
-              {leftIcon ?? (
-                <Search
-                  size={18}
-                  strokeWidth={2.3}
-                />
-              )}
-            </div>
-
-            {/* INPUT */}
-
             <input
               type="search"
               value={value}
@@ -268,8 +239,10 @@ export default function AppSearchInput({
               disabled={disabled}
               autoFocus={autoFocus}
               autoComplete="off"
+              aria-label={placeholder}
               className={`
                 h-11
+
                 w-full
                 min-w-0
 
@@ -280,15 +253,13 @@ export default function AppSearchInput({
 
                 bg-white
 
-                py-2
-                pl-11
-                pr-4
+                px-4
 
                 text-sm
                 font-bold
                 !text-slate-900
 
-                shadow-sm
+                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
 
                 outline-none
 
@@ -300,16 +271,18 @@ export default function AppSearchInput({
 
                 hover:border-slate-400
 
-                focus:border-blue-400
+                focus:border-blue-500
                 focus:bg-white
+
                 focus:ring-4
-                focus:ring-blue-100/70
+                focus:ring-blue-500/10
 
                 disabled:cursor-not-allowed
                 disabled:bg-slate-100
                 disabled:!text-slate-400
                 disabled:opacity-70
 
+                sm:h-12
                 sm:text-base
 
                 ${inputClassName}
@@ -318,131 +291,155 @@ export default function AppSearchInput({
           </div>
 
           {/* ===============================================
-              SEARCH BUTTON
+              ACTION AREA
           =============================================== */}
 
-          {showSearchButton && (
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={disabled}
-              icon={
-                <Search
-                  size={17}
-                  strokeWidth={2.4}
-                />
-              }
-              className="
-                w-full
-                shrink-0
+          <div
+            className="
+              flex
+              min-w-0
 
-                sm:w-auto
-              "
-            >
-              {searchButtonText}
-            </AppButton>
-          )}
+              flex-wrap
+              items-center
 
-          {/* ===============================================
-              RESULT COUNT
-          =============================================== */}
+              gap-2
 
-          {typeof resultCount ===
-            "number" && (
-            <div
-              className="
-                inline-flex
-                h-11
-                w-full
-                shrink-0
+              md:flex-nowrap
+              md:shrink-0
+            "
+          >
+            {/* =============================================
+                SEARCH BUTTON
+            ============================================= */}
 
-                items-center
-                justify-center
-                gap-2
-
-                rounded-[14px]
-
-                border
-                border-slate-300
-
-                bg-slate-50
-
-                px-3
-
-                text-sm
-                font-extrabold
-                !text-slate-700
-
-                shadow-sm
-
-                sm:w-auto
-                sm:px-4
-              "
-            >
-              <span
+            {showSearchButton && (
+              <AppButton
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={disabled}
+                icon={
+                  <Search
+                    size={17}
+                    strokeWidth={2.5}
+                  />
+                }
                 className="
-                  flex
-                  h-6
-                  min-w-6
+                  flex-1
+                  sm:flex-none
+                "
+              >
+                {searchButtonText}
+              </AppButton>
+            )}
+
+            {/* =============================================
+                RESULT COUNT
+            ============================================= */}
+
+            {typeof resultCount ===
+              "number" && (
+              <div
+                className="
+                  inline-flex
+
+                  h-11
+                  shrink-0
 
                   items-center
                   justify-center
 
-                  rounded-full
+                  gap-2
+
+                  rounded-[14px]
 
                   border
                   border-slate-300
 
-                  bg-white
+                  bg-slate-50
 
-                  px-1.5
+                  px-3
 
                   text-xs
-                  font-black
-                  tabular-nums
-                  !text-slate-900
+                  font-extrabold
+                  !text-slate-600
+
+                  shadow-sm
+
+                  sm:h-12
+                  sm:px-4
+                  sm:text-sm
                 "
               >
-                {resultCount.toLocaleString(
-                  "th-TH"
-                )}
-              </span>
+                <span
+                  className="
+                    inline-flex
 
-              <span className="whitespace-nowrap">
-                {resultLabel}
-              </span>
-            </div>
-          )}
+                    h-7
+                    min-w-7
 
-          {/* ===============================================
-              CLEAR BUTTON
-          =============================================== */}
+                    items-center
+                    justify-center
 
-          {showClearButton &&
-            value.trim() !== "" && (
-              <AppButton
-                type="button"
-                variant="outline"
-                size="md"
-                disabled={disabled}
-                onClick={handleClear}
-                icon={
-                  <X
-                    size={17}
-                    strokeWidth={2.4}
-                  />
-                }
-                className="
-                  w-full
-                  shrink-0
+                    rounded-full
 
-                  sm:w-auto
-                "
-              >
-                {clearButtonText}
-              </AppButton>
+                    border
+                    border-slate-300
+
+                    bg-white
+
+                    px-2
+
+                    text-[11px]
+                    font-black
+                    tabular-nums
+                    !text-slate-800
+
+                    shadow-sm
+                  "
+                >
+                  {resultCount.toLocaleString(
+                    "th-TH"
+                  )}
+                </span>
+
+                <span
+                  className="
+                    whitespace-nowrap
+                  "
+                >
+                  {resultLabel}
+                </span>
+              </div>
             )}
+
+            {/* =============================================
+                CLEAR BUTTON
+            ============================================= */}
+
+            {showClearButton &&
+              value.trim() !== "" && (
+                <AppButton
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  disabled={disabled}
+                  onClick={handleClear}
+                  icon={
+                    <X
+                      size={17}
+                      strokeWidth={2.4}
+                    />
+                  }
+                  className="
+                    flex-1
+                    sm:flex-none
+                  "
+                >
+                  {clearButtonText}
+                </AppButton>
+              )}
+          </div>
         </div>
       </div>
     </form>
