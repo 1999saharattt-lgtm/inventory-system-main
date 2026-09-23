@@ -9,6 +9,10 @@ import {
 import AppSearchInput from "@/components/AppSearchInput";
 import AppTableCard from "@/components/AppTableCard";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Material = {
   id: number;
   category: string;
@@ -23,10 +27,7 @@ type Material = {
 type Props = {
   materials: Material[];
   categories: string[];
-  categoryName: Record<
-    string,
-    string
-  >;
+  categoryName: Record<string, string>;
   role?: string;
 };
 
@@ -34,10 +35,7 @@ type Props = {
    CATEGORY
 ========================================================= */
 
-const categoryIcon: Record<
-  string,
-  string
-> = {
+const categoryIcon: Record<string, string> = {
   OFFICE: "📄",
   COMPUTER: "💻",
   ELECTRIC: "⚡",
@@ -46,27 +44,13 @@ const categoryIcon: Record<
   PRINTING: "📰",
 };
 
-const categoryColor: Record<
-  string,
-  string
-> = {
-  OFFICE:
-    "from-blue-500 to-blue-700",
-
-  COMPUTER:
-    "from-violet-500 to-violet-700",
-
-  ELECTRIC:
-    "from-amber-400 to-amber-600",
-
-  HOUSEHOLD:
-    "from-emerald-500 to-emerald-700",
-
-  VEHICLE:
-    "from-red-500 to-red-700",
-
-  PRINTING:
-    "from-cyan-500 to-cyan-700",
+const categoryColor: Record<string, string> = {
+  OFFICE: "from-blue-500 to-blue-700",
+  COMPUTER: "from-violet-500 to-violet-700",
+  ELECTRIC: "from-amber-400 to-amber-600",
+  HOUSEHOLD: "from-emerald-500 to-emerald-700",
+  VEHICLE: "from-red-500 to-red-700",
+  PRINTING: "from-cyan-500 to-cyan-700",
 };
 
 /* =========================================================
@@ -126,19 +110,13 @@ export default function MaterialsSummaryClient({
           return (
             material.code
               ?.toLowerCase()
-              .includes(
-                keyword
-              ) ||
+              .includes(keyword) ||
             material.name
               ?.toLowerCase()
-              .includes(
-                keyword
-              ) ||
+              .includes(keyword) ||
             material.latestVendor
               ?.toLowerCase()
-              .includes(
-                keyword
-              )
+              .includes(keyword)
           );
         }
       );
@@ -146,6 +124,42 @@ export default function MaterialsSummaryClient({
       materials,
       keyword,
     ]);
+
+  /* =======================================================
+     SEARCH COMPONENT
+
+     ใช้ AppSearchInput ตัวกลางทั้งหมด
+     - ช่องค้นหา
+     - ปุ่มค้นหา
+     - จำนวนผลลัพธ์
+     - ปุ่มล้าง
+  ======================================================= */
+
+  const searchBox = (
+    <AppSearchInput
+      value={search}
+      onChange={(event) =>
+        setSearch(
+          event.target.value
+        )
+      }
+      onSubmit={() => {
+        /* Search ทำแบบ realtime อยู่แล้ว */
+      }}
+      onClear={() =>
+        setSearch("")
+      }
+      placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / ผู้จำหน่าย"
+      resultCount={
+        filteredMaterials.length
+      }
+      resultLabel="รายการ"
+      showSearchButton
+      showClearButton
+      searchButtonText="ค้นหา"
+      clearButtonText="ล้าง"
+    />
+  );
 
   /* =======================================================
      ADMIN
@@ -157,9 +171,7 @@ export default function MaterialsSummaryClient({
         className="
           w-full
           min-w-0
-
           space-y-5
-
           sm:space-y-6
         "
       >
@@ -167,15 +179,7 @@ export default function MaterialsSummaryClient({
             SEARCH
         =============================================== */}
 
-        <AppSearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / ผู้จำหน่าย"
-          resultCount={
-            filteredMaterials.length
-          }
-          resultLabel="รายการ"
-        />
+        {searchBox}
 
         {/* ===============================================
             CATEGORY TABLES
@@ -185,7 +189,6 @@ export default function MaterialsSummaryClient({
           className="
             w-full
             min-w-0
-
             space-y-6
           "
         >
@@ -214,7 +217,6 @@ export default function MaterialsSummaryClient({
                     className="
                       w-full
                       min-w-0
-
                       overflow-x-auto
                       overscroll-x-contain
                     "
@@ -223,9 +225,7 @@ export default function MaterialsSummaryClient({
                       className="
                         w-full
                         min-w-[950px]
-
                         border-collapse
-
                         bg-white
                       "
                     >
@@ -249,17 +249,13 @@ export default function MaterialsSummaryClient({
                                 }
                                 className="
                                   whitespace-nowrap
-
                                   border
                                   border-black
-
                                   bg-gradient-to-r
                                   from-slate-800
                                   to-slate-700
-
                                   px-4
                                   py-4
-
                                   text-center
                                   text-lg
                                   font-extrabold
@@ -286,12 +282,9 @@ export default function MaterialsSummaryClient({
                               className="
                                 border
                                 border-black
-
                                 bg-white
-
                                 px-4
                                 py-12
-
                                 text-center
                               "
                             >
@@ -311,11 +304,8 @@ export default function MaterialsSummaryClient({
                                     w-12
                                     items-center
                                     justify-center
-
                                     rounded-full
-
                                     bg-slate-100
-
                                     text-xl
                                   "
                                 >
@@ -366,13 +356,10 @@ export default function MaterialsSummaryClient({
                                 <td
                                   className="
                                     whitespace-nowrap
-
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     text-center
                                     font-bold
                                     !text-slate-700
@@ -387,13 +374,10 @@ export default function MaterialsSummaryClient({
                                 <td
                                   className="
                                     whitespace-nowrap
-
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     text-center
                                     font-extrabold
                                     !text-slate-900
@@ -409,10 +393,8 @@ export default function MaterialsSummaryClient({
                                   className="
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     font-extrabold
                                     !text-slate-900
                                   "
@@ -426,13 +408,10 @@ export default function MaterialsSummaryClient({
                                 <td
                                   className="
                                     whitespace-nowrap
-
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     text-center
                                     font-black
                                     tabular-nums
@@ -452,13 +431,10 @@ export default function MaterialsSummaryClient({
                                 <td
                                   className="
                                     whitespace-nowrap
-
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     text-center
                                     font-bold
                                     !text-slate-700
@@ -473,13 +449,10 @@ export default function MaterialsSummaryClient({
                                 <td
                                   className="
                                     whitespace-nowrap
-
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     text-right
                                     font-extrabold
                                     tabular-nums
@@ -497,10 +470,8 @@ export default function MaterialsSummaryClient({
                                   className="
                                     border
                                     border-black
-
                                     px-4
                                     py-3.5
-
                                     font-bold
                                     !text-slate-700
                                   "
@@ -533,9 +504,7 @@ export default function MaterialsSummaryClient({
       className="
         w-full
         min-w-0
-
         space-y-5
-
         sm:space-y-6
       "
     >
@@ -543,15 +512,7 @@ export default function MaterialsSummaryClient({
           SEARCH
       =============================================== */}
 
-      <AppSearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / ผู้จำหน่าย"
-        resultCount={
-          filteredMaterials.length
-        }
-        resultLabel="รายการ"
-      />
+      {searchBox}
 
       {/* ===============================================
           CATEGORY CARDS
@@ -562,10 +523,8 @@ export default function MaterialsSummaryClient({
           grid
           w-full
           min-w-0
-
           grid-cols-1
           gap-4
-
           md:grid-cols-2
           xl:grid-cols-3
         "
@@ -595,42 +554,37 @@ export default function MaterialsSummaryClient({
                   relative
                   min-w-0
                   overflow-hidden
-
                   rounded-[28px]
-
                   border
                   border-slate-200
-
                   bg-white
-
                   shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]
-
                   transition-all
                   duration-300
                   ease-out
-
                   hover:-translate-y-1
                   hover:border-slate-300
                   hover:shadow-[0_24px_50px_-28px_rgba(15,23,42,0.4)]
-
                   active:translate-y-0
                   active:scale-[0.985]
                 "
               >
-                {/* ACCENT */}
+                {/* =========================================
+                    ACCENT
+                ========================================= */}
 
                 <div
                   className={`
                     h-1.5
                     w-full
-
                     bg-gradient-to-r
-
                     ${color}
                   `}
                 />
 
-                {/* AMBIENT */}
+                {/* =========================================
+                    AMBIENT
+                ========================================= */}
 
                 <div
                   aria-hidden="true"
@@ -639,23 +593,15 @@ export default function MaterialsSummaryClient({
                     absolute
                     -right-12
                     -top-12
-
                     h-36
                     w-36
-
                     rounded-full
-
                     bg-gradient-to-br
-
                     ${color}
-
                     opacity-[0.08]
-
                     blur-3xl
-
                     transition-all
                     duration-500
-
                     group-hover:scale-125
                     group-hover:opacity-[0.14]
                   `}
@@ -664,19 +610,18 @@ export default function MaterialsSummaryClient({
                 <div
                   className="
                     relative
-
                     flex
                     min-h-[220px]
                     min-w-0
                     flex-col
-
                     p-5
-
                     sm:min-h-[235px]
                     sm:p-6
                   "
                 >
-                  {/* ICON */}
+                  {/* =======================================
+                      ICON
+                  ======================================= */}
 
                   <div
                     className={`
@@ -686,26 +631,17 @@ export default function MaterialsSummaryClient({
                       shrink-0
                       items-center
                       justify-center
-
                       rounded-[20px]
-
                       bg-gradient-to-br
-
                       ${color}
-
                       text-3xl
-
                       shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
-
                       ring-1
                       ring-white/30
-
                       transition-all
                       duration-300
-
                       group-hover:-translate-y-0.5
                       group-hover:scale-[1.06]
-
                       group-active:scale-[0.96]
                     `}
                   >
@@ -714,19 +650,19 @@ export default function MaterialsSummaryClient({
                     ] ?? "📦"}
                   </div>
 
-                  {/* CONTENT */}
+                  {/* =======================================
+                      CONTENT
+                  ======================================= */}
 
                   <div className="mt-5 min-w-0">
                     <h2
                       className="
                         break-words
-
                         text-xl
                         font-black
                         leading-tight
                         tracking-tight
                         !text-slate-900
-
                         sm:text-2xl
                       "
                     >
@@ -738,14 +674,11 @@ export default function MaterialsSummaryClient({
                     <p
                       className="
                         mt-2
-
                         break-words
-
                         text-sm
                         font-semibold
                         leading-relaxed
                         !text-slate-500
-
                         sm:text-base
                       "
                     >
@@ -753,17 +686,17 @@ export default function MaterialsSummaryClient({
                     </p>
                   </div>
 
-                  {/* FOOTER */}
+                  {/* =======================================
+                      FOOTER
+                  ======================================= */}
 
                   <div
                     className="
                       mt-auto
-
                       flex
                       items-center
                       justify-between
                       gap-3
-
                       pt-5
                     "
                   >
@@ -772,17 +705,12 @@ export default function MaterialsSummaryClient({
                         inline-flex
                         items-center
                         justify-center
-
                         rounded-full
-
                         border
                         border-slate-200
-
                         bg-slate-50
-
                         px-3
                         py-1.5
-
                         text-xs
                         font-extrabold
                         !text-slate-600
@@ -801,24 +729,16 @@ export default function MaterialsSummaryClient({
                         items-center
                         justify-center
                         gap-2
-
                         rounded-[14px]
-
                         bg-slate-900
-
                         px-4
-
                         text-sm
                         font-extrabold
                         !text-white
-
                         shadow-[0_10px_24px_-16px_rgba(15,23,42,0.55)]
-
                         transition-all
                         duration-300
-
                         group-hover:bg-slate-800
-
                         group-active:scale-[0.96]
                       "
                     >
@@ -830,7 +750,6 @@ export default function MaterialsSummaryClient({
                         className="
                           transition-transform
                           duration-300
-
                           group-hover:translate-x-1
                         "
                       >
