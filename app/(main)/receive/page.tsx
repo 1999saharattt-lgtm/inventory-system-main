@@ -604,6 +604,7 @@ export default async function ReceivePage({
               ) : (
                 /* =============================================
                    EMPTY STATE
+                   ไม่มีปุ่มเพิ่มรายการด้านล่าง
                 ============================================= */
 
                 <tr>
@@ -684,25 +685,6 @@ export default async function ReceivePage({
                         เมื่อมีการบันทึกรับเข้า
                         รายการจะแสดงในตารางนี้
                       </p>
-
-                      {/* ACTION */}
-
-                      <div className="mt-5">
-                        <AppButton
-                          href="/receive/create"
-                          variant="primary"
-                          size="md"
-                          icon={
-                            <span
-                              aria-hidden="true"
-                            >
-                              ＋
-                            </span>
-                          }
-                        >
-                          เพิ่มรายการ
-                        </AppButton>
-                      </div>
                     </div>
                   </td>
                 </tr>
