@@ -26,14 +26,10 @@ type Props = {
    CATEGORY
 ========================================================= */
 
-const categoryName: Record<
-  string,
-  string
-> = {
+const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  AIR_CONDITIONER:
-    "เครื่องปรับอากาศ",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
   CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
@@ -58,150 +54,51 @@ type AssetCategoryValue =
   (typeof validCategories)[number];
 
 /* =========================================================
-   ASSET STATUS
+   STATUS
 ========================================================= */
 
-const statusName: Record<
-  string,
-  string
-> = {
-  IN_USE: "ยังใช้งาน",
+const statusName: Record<string, string> = {
+  IN_USE: "ใช้งานได้",
   DAMAGED: "ชำรุด",
-  WAITING_DISPOSAL:
-    "รอจำหน่าย",
+  WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
-};
 
-const statusClass: Record<
-  string,
-  string
-> = {
-  IN_USE:
-    "bg-emerald-100 !text-emerald-800 border-emerald-300",
-
-  DAMAGED:
-    "bg-orange-100 !text-orange-800 border-orange-300",
-
-  WAITING_DISPOSAL:
-    "bg-amber-100 !text-amber-800 border-amber-300",
-
-  DISPOSED:
-    "bg-slate-200 !text-slate-700 border-slate-400",
-};
-
-/* =========================================================
-   INSPECTION STATUS
-========================================================= */
-
-const inspectionStatusName: Record<
-  string,
-  string
-> = {
-  IN_USE: "ยังใช้งานอยู่",
+  // รองรับสถานะที่อาจมีอยู่ในข้อมูลเดิม
+  DETERIORATED: "เสื่อมสภาพ",
+  UNUSABLE: "ใช้งานไม่ได้",
   RETURNED: "ส่งคืน",
-  DAMAGED: "ชำรุด",
   MISSING: "สูญหาย",
   NOT_FOUND: "ไม่พบครุภัณฑ์",
 };
 
-const inspectionStatusClass: Record<
-  string,
-  string
-> = {
+const statusClass: Record<string, string> = {
   IN_USE:
-    "bg-emerald-100 !text-emerald-800 border-emerald-300",
-
-  RETURNED:
-    "bg-blue-100 !text-blue-800 border-blue-300",
+    "border-emerald-300 bg-emerald-100 !text-emerald-800",
 
   DAMAGED:
-    "bg-amber-100 !text-amber-800 border-amber-300",
+    "border-orange-300 bg-orange-100 !text-orange-800",
+
+  WAITING_DISPOSAL:
+    "border-amber-300 bg-amber-100 !text-amber-800",
+
+  DISPOSED:
+    "border-slate-400 bg-slate-200 !text-slate-700",
+
+  DETERIORATED:
+    "border-amber-300 bg-amber-100 !text-amber-800",
+
+  UNUSABLE:
+    "border-red-300 bg-red-100 !text-red-800",
+
+  RETURNED:
+    "border-blue-300 bg-blue-100 !text-blue-800",
 
   MISSING:
-    "bg-red-100 !text-red-800 border-red-300",
+    "border-red-300 bg-red-100 !text-red-800",
 
   NOT_FOUND:
-    "bg-red-100 !text-red-800 border-red-300",
+    "border-red-300 bg-red-100 !text-red-800",
 };
-
-/* =========================================================
-   DATE
-========================================================= */
-
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
-];
-
-function formatThaiDate(
-  date: Date | string | null
-) {
-  if (!date) {
-    return "-";
-  }
-
-  const parsedDate =
-    new Date(date);
-
-  if (
-    Number.isNaN(
-      parsedDate.getTime()
-    )
-  ) {
-    return "-";
-  }
-
-  return `${parsedDate.getDate()} ${
-    thaiMonths[
-      parsedDate.getMonth()
-    ]
-  } ${
-    parsedDate.getFullYear() +
-    543
-  }`;
-}
-
-/* =========================================================
-   QUARTER
-========================================================= */
-
-function formatQuarter(
-  quarter: string | null
-) {
-  if (!quarter) {
-    return "-";
-  }
-
-  const quarterMap: Record<
-    string,
-    string
-  > = {
-    Q1: "ไตรมาสที่ 1",
-    Q2: "ไตรมาสที่ 2",
-    Q3: "ไตรมาสที่ 3",
-    Q4: "ไตรมาสที่ 4",
-
-    "1": "ไตรมาสที่ 1",
-    "2": "ไตรมาสที่ 2",
-    "3": "ไตรมาสที่ 3",
-    "4": "ไตรมาสที่ 4",
-  };
-
-  return (
-    quarterMap[quarter] ??
-    quarter
-  );
-}
 
 /* =========================================================
    PAGE
@@ -230,13 +127,9 @@ export default async function AssetDetailPage({
     category.toUpperCase();
 
   if (
-    !Number.isInteger(
-      departmentIdNumber
-    ) ||
+    !Number.isInteger(departmentIdNumber) ||
     departmentIdNumber <= 0 ||
-    !Number.isInteger(
-      assetIdNumber
-    ) ||
+    !Number.isInteger(assetIdNumber) ||
     assetIdNumber <= 0 ||
     !validCategories.includes(
       normalizedCategory as AssetCategoryValue
@@ -256,41 +149,20 @@ export default async function AssetDetailPage({
     await prisma.asset.findFirst({
       where: {
         id: assetIdNumber,
-
-        departmentId:
-          departmentIdNumber,
-
-        category:
-          assetCategory,
+        departmentId: departmentIdNumber,
+        category: assetCategory,
       },
 
       include: {
         department: true,
         section: true,
         officer: true,
-
-        inspections: {
-          orderBy: {
-            inspectionDate:
-              "desc",
-          },
-
-          take: 4,
-        },
       },
     });
 
   if (!asset) {
     notFound();
   }
-
-  /* =======================================================
-     LATEST INSPECTION
-  ======================================================= */
-
-  const latestInspection =
-    asset.inspections[0] ??
-    null;
 
   /* =======================================================
      OFFICER
@@ -314,6 +186,18 @@ export default async function AssetDetailPage({
 
   const categoryPath =
     `/assets/${departmentIdNumber}/${asset.category.toLowerCase()}`;
+
+  /* =======================================================
+     STATUS DISPLAY
+  ======================================================= */
+
+  const thaiStatus =
+    statusName[asset.status] ??
+    "ไม่ระบุสถานะ";
+
+  const thaiStatusClass =
+    statusClass[asset.status] ??
+    "border-slate-300 bg-slate-100 !text-slate-700";
 
   /* =======================================================
      SHARED UI
@@ -408,7 +292,7 @@ export default async function AssetDetailPage({
         "
       >
         {/* =================================================
-            HEADER
+            CARD HEADER
         ================================================= */}
 
         <div
@@ -446,6 +330,10 @@ export default async function AssetDetailPage({
             </p>
           </div>
 
+          {/* ===============================================
+              STATUS
+          =============================================== */}
+
           <div
             className="
               flex
@@ -469,34 +357,27 @@ export default async function AssetDetailPage({
                 inline-flex
                 items-center
                 justify-center
+                whitespace-nowrap
 
                 rounded-full
-
                 border
 
-                px-3
+                px-4
                 py-1.5
 
-                text-xs
+                text-sm
                 font-extrabold
 
-                ${
-                  statusClass[
-                    asset.status
-                  ] ??
-                  "border-slate-300 bg-slate-100 !text-slate-700"
-                }
+                ${thaiStatusClass}
               `}
             >
-              {statusName[
-                asset.status
-              ] ?? asset.status}
+              {thaiStatus}
             </span>
           </div>
         </div>
 
         {/* =================================================
-            ASSET INFORMATION
+            INFORMATION GRID
         ================================================= */}
 
         <div
@@ -508,23 +389,17 @@ export default async function AssetDetailPage({
             lg:grid-cols-2
           "
         >
-          {/* NAME */}
+          {/* =================================================
+              NAME
+          ================================================= */}
 
           <div className="lg:col-span-2">
             <AppInfoCard>
-              <p
-                className={
-                  labelClassName
-                }
-              >
+              <p className={labelClassName}>
                 รายการครุภัณฑ์
               </p>
 
-              <div
-                className={
-                  valueClassName
-                }
-              >
+              <div className={valueClassName}>
                 <span className="break-words">
                   {asset.name}
                 </span>
@@ -532,84 +407,60 @@ export default async function AssetDetailPage({
             </AppInfoCard>
           </div>
 
-          {/* CATEGORY */}
+          {/* =================================================
+              CATEGORY
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               ประเภท
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               {categoryName[
                 asset.category
-              ] ?? asset.category}
+              ] ?? "-"}
             </div>
           </AppInfoCard>
 
-          {/* BRAND */}
+          {/* =================================================
+              BRAND
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               ยี่ห้อ
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               {asset.brand ?? "-"}
             </div>
           </AppInfoCard>
 
-          {/* MODEL */}
+          {/* =================================================
+              MODEL
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               รุ่น
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               {asset.model ?? "-"}
             </div>
           </AppInfoCard>
 
-          {/* SERIAL */}
+          {/* =================================================
+              SERIAL NUMBER
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               Serial Number
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-all">
                 {asset.serialNumber ??
                   "-"}
@@ -617,22 +468,16 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
-          {/* GFMIS */}
+          {/* =================================================
+              GFMIS
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               รหัส GFMIS
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-all">
                 {asset.governmentAssetNo ??
                   "-"}
@@ -640,22 +485,16 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
-          {/* ASSET CODE */}
+          {/* =================================================
+              ASSET CODE
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               รหัสครุภัณฑ์
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-all">
                 {asset.officeAssetNo ??
                   "-"}
@@ -663,47 +502,32 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
-          {/* DEPARTMENT */}
+          {/* =================================================
+              DEPARTMENT
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               หน่วยงาน
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-words">
-                {
-                  asset.department
-                    .name
-                }
+                {asset.department.name}
               </span>
             </div>
           </AppInfoCard>
 
-          {/* SECTION */}
+          {/* =================================================
+              SECTION
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               กลุ่มงาน
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-words">
                 {asset.section?.name ??
                   "-"}
@@ -711,22 +535,16 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
-          {/* OFFICER */}
+          {/* =================================================
+              OFFICER
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               ผู้ครอบครอง
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-words">
                 {officerFullName}
               </span>
@@ -737,6 +555,7 @@ export default async function AssetDetailPage({
                 mt-2
                 text-xs
                 font-semibold
+                leading-relaxed
                 !text-slate-500
               "
             >
@@ -744,22 +563,16 @@ export default async function AssetDetailPage({
             </p>
           </AppInfoCard>
 
-          {/* POSITION */}
+          {/* =================================================
+              POSITION
+          ================================================= */}
 
           <AppInfoCard>
-            <p
-              className={
-                labelClassName
-              }
-            >
+            <p className={labelClassName}>
               ตำแหน่ง
             </p>
 
-            <div
-              className={
-                valueClassName
-              }
-            >
+            <div className={valueClassName}>
               <span className="break-words">
                 {officerPosition}
               </span>
@@ -770,6 +583,7 @@ export default async function AssetDetailPage({
                 mt-2
                 text-xs
                 font-semibold
+                leading-relaxed
                 !text-slate-500
               "
             >
@@ -777,7 +591,9 @@ export default async function AssetDetailPage({
             </p>
           </AppInfoCard>
 
-          {/* REMARK */}
+          {/* =================================================
+              REMARK
+          ================================================= */}
 
           {asset.remark && (
             <div className="lg:col-span-2">
@@ -811,291 +627,6 @@ export default async function AssetDetailPage({
         </div>
 
         {/* =================================================
-            INSPECTION
-        ================================================= */}
-
-        <div
-          className="
-            mt-6
-
-            border-t
-            border-slate-200
-
-            pt-6
-          "
-        >
-          <div
-            className="
-              mb-5
-              flex
-              flex-col
-              gap-3
-
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
-            <div>
-              <h2
-                className="
-                  text-lg
-                  font-extrabold
-                  !text-slate-900
-                "
-              >
-                ผลการตรวจสอบล่าสุด
-              </h2>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  !text-slate-500
-                "
-              >
-                ข้อมูลการตรวจสอบครุภัณฑ์ครั้งล่าสุด
-              </p>
-            </div>
-
-            <AppButton
-              href={`${assetBasePath}/inspection`}
-              variant="secondary"
-              size="md"
-              icon={
-                <span aria-hidden="true">
-                  🔍
-                </span>
-              }
-            >
-              ดูประวัติการตรวจสอบ
-            </AppButton>
-          </div>
-
-          {latestInspection ? (
-            <div
-              className="
-                grid
-                grid-cols-1
-                gap-4
-
-                md:grid-cols-2
-                xl:grid-cols-4
-              "
-            >
-              {/* ROUND */}
-
-              <AppInfoCard>
-                <p
-                  className={
-                    labelClassName
-                  }
-                >
-                  รอบการตรวจสอบ
-                </p>
-
-                <div
-                  className={
-                    valueClassName
-                  }
-                >
-                  ปี{" "}
-                  {
-                    latestInspection.year
-                  }{" "}
-                  /{" "}
-                  {formatQuarter(
-                    latestInspection.quarter
-                  )}
-                </div>
-              </AppInfoCard>
-
-              {/* DATE */}
-
-              <AppInfoCard>
-                <p
-                  className={
-                    labelClassName
-                  }
-                >
-                  วันที่ตรวจสอบ
-                </p>
-
-                <div
-                  className={
-                    valueClassName
-                  }
-                >
-                  {formatThaiDate(
-                    latestInspection.inspectionDate
-                  )}
-                </div>
-              </AppInfoCard>
-
-              {/* RESULT */}
-
-              <AppInfoCard>
-                <p
-                  className={
-                    labelClassName
-                  }
-                >
-                  ผลการตรวจสอบ
-                </p>
-
-                <div
-                  className={`
-                    ${valueClassName}
-                    justify-center
-                  `}
-                >
-                  <span
-                    className={`
-                      inline-flex
-                      items-center
-                      justify-center
-
-                      rounded-full
-                      border
-
-                      px-3
-                      py-1.5
-
-                      text-xs
-                      font-extrabold
-
-                      ${
-                        inspectionStatusClass[
-                          latestInspection
-                            .status
-                        ] ??
-                        "border-slate-300 bg-slate-100 !text-slate-700"
-                      }
-                    `}
-                  >
-                    {inspectionStatusName[
-                      latestInspection
-                        .status
-                    ] ??
-                      latestInspection.status}
-                  </span>
-                </div>
-              </AppInfoCard>
-
-              {/* INSPECTOR */}
-
-              <AppInfoCard>
-                <p
-                  className={
-                    labelClassName
-                  }
-                >
-                  ผู้ตรวจครุภัณฑ์
-                </p>
-
-                <div
-                  className={
-                    valueClassName
-                  }
-                >
-                  <span className="break-words">
-                    {latestInspection.inspectorName ??
-                      "-"}
-                  </span>
-                </div>
-              </AppInfoCard>
-
-              {/* CONDITION */}
-
-              {latestInspection.condition && (
-                <div
-                  className="
-                    md:col-span-2
-                    xl:col-span-4
-                  "
-                >
-                  <AppInfoCard>
-                    <p
-                      className={
-                        labelClassName
-                      }
-                    >
-                      สภาพครุภัณฑ์
-                    </p>
-
-                    <div
-                      className={
-                        valueClassName
-                      }
-                    >
-                      <span className="break-words">
-                        {
-                          latestInspection.condition
-                        }
-                      </span>
-                    </div>
-                  </AppInfoCard>
-                </div>
-              )}
-
-              {/* INSPECTION REMARK */}
-
-              {latestInspection.remark && (
-                <div
-                  className="
-                    md:col-span-2
-                    xl:col-span-4
-                  "
-                >
-                  <AppInfoCard>
-                    <p
-                      className={
-                        labelClassName
-                      }
-                    >
-                      หมายเหตุการตรวจ
-                    </p>
-
-                    <div
-                      className={`
-                        ${valueClassName}
-                        items-start
-                      `}
-                    >
-                      <span
-                        className="
-                          break-words
-                          whitespace-pre-wrap
-                        "
-                      >
-                        {
-                          latestInspection.remark
-                        }
-                      </span>
-                    </div>
-                  </AppInfoCard>
-                </div>
-              )}
-            </div>
-          ) : (
-            <AppInfoCard>
-              <div
-                className="
-                  py-8
-                  text-center
-                  text-sm
-                  font-semibold
-                  !text-slate-500
-                "
-              >
-                ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
-              </div>
-            </AppInfoCard>
-          )}
-        </div>
-
-        {/* =================================================
             ACTIONS
         ================================================= */}
 
@@ -1116,19 +647,6 @@ export default async function AssetDetailPage({
             sm:justify-end
           "
         >
-          <AppButton
-            href={`${assetBasePath}/inspection/new`}
-            variant="success"
-            size="md"
-            icon={
-              <span aria-hidden="true">
-                🔍
-              </span>
-            }
-          >
-            บันทึกผลการตรวจ
-          </AppButton>
-
           <AppButton
             href={`${assetBasePath}/disposal`}
             variant="danger"
