@@ -15,15 +15,22 @@ export default async function AssetsPage() {
      USER
   ======================================================= */
 
-  const user =
-    await requireLogin();
+  const user = await requireLogin();
 
   /* =======================================================
      DEPARTMENTS
+
+     ไม่แสดงกลุ่ม "ผู้บริหาร"
   ======================================================= */
 
   const departments =
     await prisma.department.findMany({
+      where: {
+        name: {
+          not: "ผู้บริหาร",
+        },
+      },
+
       orderBy: {
         id: "asc",
       },
@@ -37,7 +44,6 @@ export default async function AssetsPage() {
     <AppPage>
       {/* =====================================================
           HEADER
-          ใช้ตัวกลางของระบบ
       ===================================================== */}
 
       <AppPageHeader
@@ -82,29 +88,12 @@ export default async function AssetsPage() {
                 ตรวจสอบรายการครุภัณฑ์ประจำปี
               </AppButton>
             )}
-
-            {/* ===============================================
-                BACK
-            =============================================== */}
-
-            <AppButton
-              href="/"
-              variant="back"
-              size="md"
-              icon={
-                <span aria-hidden="true">
-                  ←
-                </span>
-              }
-            >
-              กลับ
-            </AppButton>
           </>
         }
       />
 
       {/* =====================================================
-          DEPARTMENT CARDS
+          DEPARTMENT GRID
       ===================================================== */}
 
       {departments.length > 0 ? (
@@ -113,12 +102,10 @@ export default async function AssetsPage() {
             grid
             w-full
             min-w-0
-
             grid-cols-1
             gap-4
 
             md:grid-cols-2
-
             xl:grid-cols-3
           "
         >
@@ -127,197 +114,112 @@ export default async function AssetsPage() {
               <AppCard
                 key={department.id}
                 className="
-                  group
-                  relative
-
+                  flex
+                  min-h-[230px]
                   min-w-0
-                  overflow-hidden
-
-                  !p-0
-
-                  transition-all
-                  duration-300
-                  ease-out
-
-                  hover:-translate-y-1
-                  hover:shadow-[0_24px_50px_-28px_rgba(15,23,42,0.4)]
+                  flex-col
+                  items-center
+                  justify-center
+                  text-center
                 "
               >
                 {/* ===========================================
-                    TOP ACCENT
-                =========================================== */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    h-1.5
-                    w-full
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                  "
-                />
-
-                {/* ===========================================
-                    AMBIENT
-                =========================================== */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-
-                    absolute
-                    -right-16
-                    -top-16
-
-                    h-40
-                    w-40
-
-                    rounded-full
-
-                    bg-blue-400/[0.08]
-
-                    blur-3xl
-
-                    transition-all
-                    duration-500
-
-                    group-hover:scale-125
-                    group-hover:bg-blue-400/[0.12]
-                  "
-                />
-
-                {/* ===========================================
-                    CONTENT
+                    ICON
                 =========================================== */}
 
                 <div
                   className="
-                    relative
-
                     flex
-                    min-h-[220px]
-                    min-w-0
-                    flex-col
-
-                    p-5
-
-                    sm:min-h-[230px]
-                    sm:p-6
+                    w-full
+                    items-center
+                    justify-center
+                    text-center
                   "
                 >
-                  {/* =========================================
-                      ICON
-                  ========================================= */}
-
                   <div
                     className="
-                      flex
+                      grid
                       h-16
                       w-16
                       shrink-0
-
-                      items-center
-                      justify-center
-
-                      rounded-[20px]
-
-                      bg-gradient-to-br
-                      from-slate-800
-                      to-slate-700
-
-                      text-3xl
-
-                      shadow-[0_16px_30px_-18px_rgba(15,23,42,0.5)]
-
-                      ring-1
-                      ring-white/30
-
-                      transition-all
-                      duration-300
-
-                      group-hover:-translate-y-0.5
-                      group-hover:scale-[1.06]
+                      place-items-center
+                      text-center
                     "
                     aria-hidden="true"
                   >
-                    🏢
-                  </div>
-
-                  {/* =========================================
-                      TEXT
-                  ========================================= */}
-
-                  <div
-                    className="
-                      mt-5
-                      min-w-0
-                    "
-                  >
-                    <h2
+                    <span
                       className="
-                        break-words
-
-                        text-xl
-                        font-black
-                        leading-tight
-                        tracking-tight
-                        !text-slate-900
-
-                        sm:text-2xl
+                        block
+                        text-center
+                        text-3xl
+                        leading-none
                       "
                     >
-                      {department.name}
-                    </h2>
-
-                    <p
-                      className="
-                        mt-2
-
-                        break-words
-
-                        text-sm
-                        font-semibold
-                        leading-relaxed
-                        !text-slate-500
-
-                        sm:text-base
-                      "
-                    >
-                      คลิกเพื่อดูทะเบียนครุภัณฑ์ของกลุ่มงาน
-                    </p>
+                      🏢
+                    </span>
                   </div>
+                </div>
 
-                  {/* =========================================
-                      ACTION
-                  ========================================= */}
+                {/* ===========================================
+                    INFORMATION
+                =========================================== */}
 
-                  <div
+                <div
+                  className="
+                    mt-4
+                    w-full
+                    min-w-0
+                    text-center
+                  "
+                >
+                  <h2
                     className="
-                      mt-auto
-
-                      flex
-                      items-center
-                      justify-end
-
-                      pt-5
+                      w-full
+                      break-words
+                      text-center
+                      text-xl
+                      font-extrabold
+                      !text-slate-900
                     "
                   >
-                    <AppButton
-                      href={`/assets/${department.id}`}
-                      variant="primary"
-                      size="md"
-                      icon={
-                        <span aria-hidden="true">
-                          →
-                        </span>
-                      }
-                    >
-                      เปิด
-                    </AppButton>
-                  </div>
+                    {department.name}
+                  </h2>
+
+                  <p
+                    className="
+                      mt-2
+                      w-full
+                      break-words
+                      text-center
+                      text-sm
+                      font-semibold
+                      !text-slate-500
+                    "
+                  >
+                    คลิกเพื่อดูทะเบียนครุภัณฑ์
+                  </p>
+                </div>
+
+                {/* ===========================================
+                    ACTION
+                =========================================== */}
+
+                <div
+                  className="
+                    mt-5
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                  "
+                >
+                  <AppButton
+                    href={`/assets/${department.id}`}
+                    variant="primary"
+                    size="md"
+                  >
+                    เปิด
+                  </AppButton>
                 </div>
               </AppCard>
             )
@@ -325,96 +227,93 @@ export default async function AssetsPage() {
         </section>
       ) : (
         /* ===================================================
-            EMPTY STATE
+           EMPTY STATE
         =================================================== */
 
         <AppCard
           className="
+            flex
+            min-h-[230px]
             w-full
             min-w-0
-
-            px-6
-            py-14
-
+            flex-col
+            items-center
+            justify-center
             text-center
           "
         >
+          {/* ===============================================
+              ICON
+          =============================================== */}
+
           <div
             className="
-              mx-auto
-
               flex
-              max-w-md
-              flex-col
+              w-full
               items-center
               justify-center
+              text-center
             "
           >
-            {/* ===============================================
-                ICON
-            =============================================== */}
-
             <div
               className="
-                flex
+                grid
                 h-16
                 w-16
-
-                items-center
-                justify-center
-
-                rounded-[20px]
-
-                border
-                border-slate-200
-
-                bg-slate-50
-
-                text-3xl
-
-                shadow-sm
+                shrink-0
+                place-items-center
+                text-center
               "
               aria-hidden="true"
             >
-              🏢
+              <span
+                className="
+                  block
+                  text-center
+                  text-3xl
+                  leading-none
+                "
+              >
+                🏢
+              </span>
             </div>
+          </div>
 
-            {/* ===============================================
-                TITLE
-            =============================================== */}
+          {/* ===============================================
+              INFORMATION
+          =============================================== */}
 
+          <div
+            className="
+              mt-4
+              w-full
+              min-w-0
+              text-center
+            "
+          >
             <h2
               className="
-                mt-5
-
+                w-full
+                text-center
                 text-xl
-                font-black
-                tracking-tight
+                font-extrabold
                 !text-slate-900
-
-                sm:text-2xl
               "
             >
               ยังไม่มีข้อมูลกลุ่มงาน
             </h2>
 
-            {/* ===============================================
-                DESCRIPTION
-            =============================================== */}
-
             <p
               className="
                 mt-2
-
+                w-full
+                text-center
                 text-sm
                 font-semibold
-                leading-relaxed
                 !text-slate-500
-
-                sm:text-base
               "
             >
-              เมื่อมีการเพิ่มข้อมูลกลุ่มงาน
+              เมื่อมีข้อมูลกลุ่มงาน
               รายการจะแสดงในส่วนนี้
             </p>
           </div>
