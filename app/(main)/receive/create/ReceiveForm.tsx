@@ -423,6 +423,7 @@ function IOSDatePicker({
         relative
         w-full
         min-w-0
+
         ${
           open
             ? "z-[500]"
@@ -612,13 +613,19 @@ function IOSDatePicker({
                 w-10
                 items-center
                 justify-center
+
                 rounded-full
+
                 bg-slate-100
+
                 text-xl
                 font-black
                 !text-slate-800
+
                 transition-all
+
                 hover:bg-slate-200
+
                 active:scale-90
               "
             >
@@ -662,13 +669,19 @@ function IOSDatePicker({
                 w-10
                 items-center
                 justify-center
+
                 rounded-full
+
                 bg-slate-100
+
                 text-xl
                 font-black
                 !text-slate-800
+
                 transition-all
+
                 hover:bg-slate-200
+
                 active:scale-90
               "
             >
@@ -692,6 +705,7 @@ function IOSDatePicker({
                     h-8
                     items-center
                     justify-center
+
                     text-xs
                     font-extrabold
                     !text-slate-400
@@ -747,10 +761,14 @@ function IOSDatePicker({
                       h-10
                       items-center
                       justify-center
+
                       rounded-full
+
                       text-sm
                       font-extrabold
+
                       transition-all
+
                       active:scale-90
 
                       ${
@@ -776,8 +794,10 @@ function IOSDatePicker({
               items-center
               justify-between
               gap-2
+
               border-t
               border-slate-200
+
               pt-3
             "
           >
@@ -789,11 +809,14 @@ function IOSDatePicker({
               }}
               className="
                 rounded-full
+
                 px-4
                 py-2
+
                 text-sm
                 font-extrabold
                 !text-slate-500
+
                 hover:bg-slate-100
               "
             >
@@ -805,14 +828,20 @@ function IOSDatePicker({
               onClick={selectToday}
               className="
                 rounded-full
+
                 bg-slate-900
+
                 px-4
                 py-2
+
                 text-sm
                 font-extrabold
                 !text-white
+
                 shadow-sm
+
                 hover:bg-slate-800
+
                 active:scale-95
               "
             >
@@ -1020,8 +1049,10 @@ function SearchableDropdown({
         <span
           className={`
             shrink-0
+
             text-xs
             !text-slate-700
+
             transition-transform
 
             ${
@@ -1063,7 +1094,9 @@ function SearchableDropdown({
             className="
               border-b
               border-slate-200
+
               bg-slate-50/90
+
               p-3
             "
           >
@@ -1138,9 +1171,12 @@ function SearchableDropdown({
             role="listbox"
             className="
               max-h-[280px]
+
               overflow-y-auto
               overscroll-contain
+
               bg-white
+
               p-2
             "
           >
@@ -1219,6 +1255,7 @@ function SearchableDropdown({
                 className="
                   px-4
                   py-8
+
                   text-center
                   text-sm
                   font-bold
@@ -1291,26 +1328,30 @@ export default function ReceiveForm({
     key: keyof ReceiveRow,
     value: string
   ) {
-    const copy =
-      items.map(
-        (item) => ({
-          ...item,
-        })
-      );
+    setItems(
+      (currentItems) => {
+        const copy =
+          currentItems.map(
+            (item) => ({
+              ...item,
+            })
+          );
 
-    copy[index] = {
-      ...copy[index],
-      [key]: value,
-    };
+        copy[index] = {
+          ...copy[index],
+          [key]: value,
+        };
 
-    if (
-      key === "category"
-    ) {
-      copy[index].materialId =
-        "";
-    }
+        if (
+          key === "category"
+        ) {
+          copy[index].materialId =
+            "";
+        }
 
-    setItems(copy);
+        return copy;
+      }
+    );
   }
 
   const vendorOptions =
@@ -1332,13 +1373,22 @@ export default function ReceiveForm({
     useMemo<
       SearchableOption[]
     >(
-      () => categories,
+      () =>
+        categories.map(
+          (category) => ({
+            value:
+              category.value,
+            label:
+              category.label,
+          })
+        ),
       []
     );
 
   const labelClass = `
     mb-2
     block
+
     text-base
     font-extrabold
     !text-slate-800
@@ -1383,7 +1433,9 @@ export default function ReceiveForm({
         relative
         w-full
         min-w-0
+
         space-y-6
+
         overflow-visible
       "
     >
@@ -1395,14 +1447,18 @@ export default function ReceiveForm({
         className="
           relative
           z-[200]
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
         <div
           className="
             mb-5
+
             flex
             items-center
             gap-3
@@ -1439,6 +1495,7 @@ export default function ReceiveForm({
                 font-black
                 tracking-tight
                 !text-slate-900
+
                 sm:text-xl
               "
             >
@@ -1448,6 +1505,7 @@ export default function ReceiveForm({
             <p
               className="
                 mt-0.5
+
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -1463,6 +1521,7 @@ export default function ReceiveForm({
             grid
             min-w-0
             gap-4
+
             md:grid-cols-2
           "
         >
@@ -1528,13 +1587,18 @@ export default function ReceiveForm({
             <label
               className="
                 mt-2.5
+
                 inline-flex
                 w-fit
                 max-w-full
+
                 cursor-pointer
+
                 items-center
                 gap-2
+
                 whitespace-nowrap
+
                 text-sm
                 font-extrabold
                 !text-slate-700
@@ -1543,6 +1607,7 @@ export default function ReceiveForm({
               <span
                 className="
                   relative
+
                   flex
                   h-5
                   w-5
@@ -1572,20 +1637,30 @@ export default function ReceiveForm({
                   }}
                   className="
                     peer
+
                     absolute
                     inset-0
+
                     h-5
                     w-5
+
                     cursor-pointer
                     appearance-none
+
                     rounded-[6px]
+
                     border
                     border-slate-400
+
                     bg-white
+
                     shadow-sm
+
                     transition-all
+
                     checked:border-slate-900
                     checked:bg-slate-900
+
                     focus:outline-none
                     focus:ring-4
                     focus:ring-slate-900/10
@@ -1595,13 +1670,17 @@ export default function ReceiveForm({
                 <span
                   className="
                     pointer-events-none
+
                     relative
                     z-10
+
                     hidden
+
                     text-[12px]
                     font-black
                     leading-none
                     !text-white
+
                     peer-checked:block
                   "
                 >
@@ -1621,7 +1700,9 @@ export default function ReceiveForm({
             className="
               relative
               z-[300]
+
               overflow-visible
+
               md:col-span-2
             "
           >
@@ -1657,11 +1738,11 @@ export default function ReceiveForm({
 
       <AppTableCard
         title="รายการพัสดุรับเข้า"
-        subtitle="ระบุรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ"
-        badge="15 รายการ"
+        subtitle={`ระบุรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ • ทั้งหมด ${items.length} รายการ`}
         className="
           relative
           z-10
+
           overflow-visible
         "
       >
@@ -1669,8 +1750,11 @@ export default function ReceiveForm({
           className="
             w-full
             min-w-[1200px]
+
             border-collapse
+
             bg-white
+
             text-sm
           "
         >
@@ -1690,6 +1774,7 @@ export default function ReceiveForm({
                   key={title}
                   className="
                     whitespace-nowrap
+
                     border
                     border-black
 
@@ -1735,18 +1820,15 @@ export default function ReceiveForm({
                   SearchableOption[] =
                   list.map(
                     (material) => ({
-                      value: String(
-                        material.id
-                      ),
+                      value:
+                        String(
+                          material.id
+                        ),
 
                       label: `${material.code} - ${material.name}`,
                     })
                   );
 
-                /*
-                 * ให้แถวบนมี z-index สูงกว่าแถวล่าง
-                 * Dropdown จะไม่ถูกแถวถัดไปทับ
-                 */
                 const rowZIndex =
                   items.length -
                   index +
@@ -1780,10 +1862,13 @@ export default function ReceiveForm({
                     <td
                       className="
                         whitespace-nowrap
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         text-center
                         font-extrabold
                         !text-slate-800
@@ -1798,11 +1883,15 @@ export default function ReceiveForm({
                       className="
                         relative
                         min-w-[210px]
+
                         overflow-visible
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -1836,11 +1925,15 @@ export default function ReceiveForm({
                       className="
                         relative
                         min-w-[320px]
+
                         overflow-visible
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -1876,10 +1969,13 @@ export default function ReceiveForm({
                     <td
                       className="
                         min-w-[120px]
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -1918,10 +2014,13 @@ export default function ReceiveForm({
                     <td
                       className="
                         min-w-[130px]
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -1973,10 +2072,13 @@ export default function ReceiveForm({
                     <td
                       className="
                         min-w-[120px]
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -2026,11 +2128,15 @@ export default function ReceiveForm({
                       className="
                         relative
                         min-w-[200px]
+
                         overflow-visible
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -2062,11 +2168,15 @@ export default function ReceiveForm({
                       className="
                         relative
                         min-w-[200px]
+
                         overflow-visible
+
                         border
                         border-black
+
                         px-3
                         py-3
+
                         align-top
                       "
                     >
@@ -2106,8 +2216,11 @@ export default function ReceiveForm({
       <AppCard
         className="
           relative
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 
 import ReceiveForm from "./ReceiveForm";
 
@@ -52,7 +53,8 @@ async function generateReceiveNo() {
       match[1]
     );
 
-    const lastYear = match[2];
+    const lastYear =
+      match[2];
 
     if (
       lastYear === year &&
@@ -137,31 +139,56 @@ export default async function CreateReceivePage() {
       />
 
       {/* =====================================================
-          RECEIVE FORM
+          RECEIVE FORM CARD
 
-          ReceiveForm จัดการ Card ภายในเองแล้วด้วย:
-          - AppCard
+          ใช้ AppCard กลางของระบบ
+          เพื่อให้ Card หลักของหน้า Create
+          เป็นมาตรฐานเดียวกับหน้าอื่น
+
+          ภายใน ReceiveForm สามารถใช้:
           - AppInfoCard
           - AppTableCard
-
-          จึงไม่ครอบ AppCard ซ้ำใน page นี้
+          ได้ตามปกติ
       ===================================================== */}
 
-      <div
+      <AppCard
         className="
           relative
           z-0
+
           w-full
           min-w-0
+
           overflow-visible
+
+          p-4
+
+          sm:p-5
+          lg:p-6
         "
       >
-        <ReceiveForm
-          vendors={vendors}
-          materials={materials}
-          documentNo={documentNo}
-        />
-      </div>
+        {/* ===================================================
+            RECEIVE FORM
+        =================================================== */}
+
+        <div
+          className="
+            relative
+            z-10
+
+            w-full
+            min-w-0
+
+            overflow-visible
+          "
+        >
+          <ReceiveForm
+            vendors={vendors}
+            materials={materials}
+            documentNo={documentNo}
+          />
+        </div>
+      </AppCard>
     </AppPage>
   );
 }
