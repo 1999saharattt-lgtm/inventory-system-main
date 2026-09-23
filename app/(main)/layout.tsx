@@ -15,7 +15,6 @@ export default async function MainLayout({
         relative
         isolate
         min-h-screen
-        overflow-x-hidden
         bg-slate-100
         text-slate-900
       "
@@ -111,25 +110,18 @@ export default async function MainLayout({
       />
 
       {/* ===================================================
-          STICKY TOP AREA
-          HEADER + SIDEBAR
+          FIXED HEADER + SIDEBAR
 
-          - Header ไม่เลื่อน
-          - Sidebar ไม่เลื่อน
-          - ทั้งสองส่วนติดด้านบนพร้อมกัน
-          - Content ด้านล่างเลื่อนตามปกติ
+          ส่วนนี้จะไม่เลื่อนตามหน้า
       =================================================== */}
 
-      <header
+      <div
         className="
-          sticky
+          fixed
+          inset-x-0
           top-0
           z-[100]
-
           w-full
-
-          bg-slate-950
-          shadow-[0_10px_30px_-20px_rgba(15,23,42,0.55)]
         "
       >
         {/* =================================================
@@ -147,7 +139,7 @@ export default async function MainLayout({
         </div>
 
         {/* =================================================
-            SIDEBAR / NAVIGATION
+            SIDEBAR
         ================================================= */}
 
         <div
@@ -159,13 +151,15 @@ export default async function MainLayout({
         >
           <Sidebar role={user.role} />
         </div>
-      </header>
+      </div>
 
       {/* ===================================================
           CONTENT
 
-          เลื่อนเฉพาะเนื้อหาส่วนนี้
-          Header + Sidebar จะค้างอยู่ด้านบน
+          สำคัญ:
+          ต้องชดเชยความสูง Header + Sidebar
+
+          จากหน้าตาระบบปัจจุบันประมาณ 176px
       =================================================== */}
 
       <main
@@ -180,30 +174,40 @@ export default async function MainLayout({
 
           bg-transparent
 
-          px-2
-          py-3
-
-          sm:px-3
-          sm:py-4
-
-          lg:px-4
-          lg:py-5
+          pt-[176px]
         "
       >
+        {/* =================================================
+            PAGE SPACING
+        ================================================= */}
+
         <div
           className="
-            mx-auto
+            px-2
+            py-3
 
-            w-full
-            min-w-0
-            max-w-[1920px]
+            sm:px-3
+            sm:py-4
 
-            transition-[opacity,transform]
-            duration-300
-            ease-out
+            lg:px-4
+            lg:py-5
           "
         >
-          {children}
+          <div
+            className="
+              mx-auto
+
+              w-full
+              min-w-0
+              max-w-[1920px]
+
+              transition-[opacity,transform]
+              duration-300
+              ease-out
+            "
+          >
+            {children}
+          </div>
         </div>
       </main>
     </div>
