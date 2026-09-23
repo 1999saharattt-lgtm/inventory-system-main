@@ -73,15 +73,11 @@ const categories = [
   "PRINTING",
 ];
 
-const categoryName: Record<
-  string,
-  string
-> = {
+const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
@@ -238,7 +234,8 @@ function SearchableDropdown({
           }
 
           setOpen((current) => {
-            const next = !current;
+            const next =
+              !current;
 
             if (!next) {
               setSearch("");
@@ -1229,6 +1226,9 @@ export default function EditMaterialForm({
 
         {/* =================================================
             ACTIONS
+
+            AppButton ที่มี href เป็น Link
+            จึงไม่ส่ง disabled เข้าไป
         ================================================= */}
 
         <div
@@ -1252,7 +1252,6 @@ export default function EditMaterialForm({
             href={backHref}
             variant="secondary"
             size="md"
-            disabled={loading}
             className="
               w-full
               sm:w-auto
