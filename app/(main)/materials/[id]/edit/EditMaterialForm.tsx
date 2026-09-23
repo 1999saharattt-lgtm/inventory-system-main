@@ -12,8 +12,6 @@ import { MATERIALS } from "@/lib/materials";
 import { UNITS } from "@/lib/units";
 
 import AppButton from "@/components/AppButton";
-import AppCard from "@/components/AppCard";
-import AppInfoCard from "@/components/AppInfoCard";
 
 /* =========================================================
    TYPES
@@ -48,7 +46,7 @@ type SearchableOption = {
   label: string;
 };
 
-type SearchableDropdownProps = {
+type SearchableSelectProps = {
   id: string;
   value: string;
   options: SearchableOption[];
@@ -64,54 +62,56 @@ type SearchableDropdownProps = {
    CATEGORY
 ========================================================= */
 
-const categories = [
-  "OFFICE",
-  "COMPUTER",
-  "ELECTRIC",
-  "HOUSEHOLD",
-  "VEHICLE",
-  "PRINTING",
-];
-
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+const categoryMap: Record<string, string> = {
+  "วัสดุสำนักงาน": "OFFICE",
+  "วัสดุคอมพิวเตอร์": "COMPUTER",
+  "วัสดุไฟฟ้าและวิทยุ": "ELECTRIC",
+  "วัสดุงานบ้านและงานครัว": "HOUSEHOLD",
+  "วัสดุยานพาหนะ": "VEHICLE",
+  "วัสดุสื่อสิ่งพิมพ์": "PRINTING",
 };
 
+const categoryCodeToName =
+  Object.fromEntries(
+    Object.entries(categoryMap).map(
+      ([name, code]) => [
+        code,
+        name,
+      ]
+    )
+  ) as Record<string, string>;
+
 /* =========================================================
-   SEARCHABLE DROPDOWN
+   SEARCHABLE SELECT
+   ใช้หน้าตาเดียวกับหน้า /materials/new
 ========================================================= */
 
-function SearchableDropdown({
+function SearchableSelect({
   id,
   value,
   options,
   placeholder,
   searchPlaceholder = "พิมพ์เพื่อค้นหา...",
-  emptyText = "ไม่พบข้อมูล",
+  emptyText = "ไม่พบข้อมูลที่ค้นหา",
   disabled = false,
   required = false,
   onChange,
-}: SearchableDropdownProps) {
-  const containerRef =
-    useRef<HTMLDivElement>(null);
-
-  const inputRef =
-    useRef<HTMLInputElement>(null);
-
+}: SearchableSelectProps) {
   const [open, setOpen] =
     useState(false);
 
   const [search, setSearch] =
     useState("");
 
-  /* =======================================================
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const inputRef =
+    useRef<HTMLInputElement>(null);
+
+  /* =========================================================
      SELECTED OPTION
-  ======================================================= */
+  ========================================================= */
 
   const selectedOption =
     options.find(
@@ -119,9 +119,9 @@ function SearchableDropdown({
         option.value === value
     );
 
-  /* =======================================================
+  /* =========================================================
      FILTER
-  ======================================================= */
+  ========================================================= */
 
   const filteredOptions =
     useMemo(() => {
@@ -138,16 +138,13 @@ function SearchableDropdown({
         (option) =>
           option.label
             .toLocaleLowerCase("th")
-            .includes(keyword) ||
-          option.value
-            .toLocaleLowerCase("th")
             .includes(keyword)
       );
     }, [options, search]);
 
-  /* =======================================================
+  /* =========================================================
      CLOSE WHEN CLICK OUTSIDE
-  ======================================================= */
+  ========================================================= */
 
   useEffect(() => {
     function handleMouseDown(
@@ -177,9 +174,9 @@ function SearchableDropdown({
     };
   }, []);
 
-  /* =======================================================
-     AUTO FOCUS
-  ======================================================= */
+  /* =========================================================
+     FOCUS SEARCH
+  ========================================================= */
 
   useEffect(() => {
     if (!open) {
@@ -196,15 +193,19 @@ function SearchableDropdown({
     };
   }, [open]);
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <div
       ref={containerRef}
       className="relative"
     >
+      {/* =====================================================
+          HIDDEN REQUIRED FIELD
+      ===================================================== */}
+
       {required && (
         <input
           tabIndex={-1}
@@ -222,6 +223,10 @@ function SearchableDropdown({
         />
       )}
 
+      {/* =====================================================
+          SELECT CONTROL
+      ===================================================== */}
+
       <button
         id={id}
         type="button"
@@ -234,8 +239,7 @@ function SearchableDropdown({
           }
 
           setOpen((current) => {
-            const next =
-              !current;
+            const next = !current;
 
             if (!next) {
               setSearch("");
@@ -326,6 +330,10 @@ function SearchableDropdown({
         </span>
       </button>
 
+      {/* =====================================================
+          DROPDOWN
+      ===================================================== */}
+
       {open && !disabled && (
         <div
           className="
@@ -359,7 +367,6 @@ function SearchableDropdown({
               ref={inputRef}
               type="text"
               value={search}
-              autoComplete="off"
               onChange={(event) =>
                 setSearch(
                   event.target.value
@@ -394,6 +401,7 @@ function SearchableDropdown({
               placeholder={
                 searchPlaceholder
               }
+              autoComplete="off"
               className="
                 min-h-[46px]
                 w-full
@@ -444,7 +452,7 @@ function SearchableDropdown({
             0 ? (
               filteredOptions.map(
                 (option) => {
-                  const selected =
+                  const active =
                     option.value ===
                     value;
 
@@ -456,7 +464,7 @@ function SearchableDropdown({
                       type="button"
                       role="option"
                       aria-selected={
-                        selected
+                        active
                       }
                       onClick={() => {
                         onChange(
@@ -485,7 +493,7 @@ function SearchableDropdown({
                         transition-colors
 
                         ${
-                          selected
+                          active
                             ? `
                               bg-slate-900
                               !text-white
@@ -498,17 +506,11 @@ function SearchableDropdown({
                         }
                       `}
                     >
-                      <span
-                        className="
-                          min-w-0
-                          flex-1
-                          break-words
-                        "
-                      >
+                      <span className="min-w-0 break-words">
                         {option.label}
                       </span>
 
-                      {selected && (
+                      {active && (
                         <span
                           aria-hidden="true"
                           className="
@@ -555,14 +557,17 @@ export default function EditMaterialForm({
 }: Props) {
   const router = useRouter();
 
-  const [loading, setLoading] =
+  const [isSubmitting, setIsSubmitting] =
     useState(false);
 
-  const [category, setCategory] =
-    useState(material.category);
+  /* =========================================================
+     INITIAL VALUES
+  ========================================================= */
 
-  const [name, setName] =
-    useState(material.name);
+  const initialCategoryName =
+    categoryCodeToName[
+      material.category
+    ] ?? "";
 
   const [vendorId, setVendorId] =
     useState(
@@ -570,95 +575,18 @@ export default function EditMaterialForm({
         ""
     );
 
-  /* =======================================================
-     MATERIAL NAMES
-  ======================================================= */
+  const [category, setCategory] =
+    useState(initialCategoryName);
 
-  const names = useMemo(() => {
-    const thaiCategory =
-      categoryName[category];
+  const [name, setName] =
+    useState(material.name);
 
-    const categoryMaterials =
-      MATERIALS[
-        thaiCategory as keyof typeof MATERIALS
-      ] ?? [];
+  /* =========================================================
+     DROPDOWN OPTIONS
+  ========================================================= */
 
-    return Array.from(
-      new Set([
-        ...categoryMaterials,
-
-        ...(material.category ===
-          category &&
-        material.name
-          ? [material.name]
-          : []),
-      ])
-    );
-  }, [
-    category,
-    material.category,
-    material.name,
-  ]);
-
-  /* =======================================================
-     UNIT
-  ======================================================= */
-
-  const unit = useMemo(() => {
-    if (!name) {
-      return "";
-    }
-
-    const mappedUnit =
-      UNITS[name];
-
-    if (mappedUnit) {
-      return mappedUnit;
-    }
-
-    if (
-      name === material.name
-    ) {
-      return material.unit;
-    }
-
-    return "";
-  }, [
-    name,
-    material.name,
-    material.unit,
-  ]);
-
-  /* =======================================================
-     OPTIONS
-  ======================================================= */
-
-  const categoryOptions =
-    useMemo<SearchableOption[]>(
-      () =>
-        categories.map(
-          (categoryCode) => ({
-            value: categoryCode,
-            label:
-              categoryName[
-                categoryCode
-              ],
-          })
-        ),
-      []
-    );
-
-  const materialOptions =
-    useMemo<SearchableOption[]>(
-      () =>
-        names.map(
-          (materialName) => ({
-            value: materialName,
-            label: materialName,
-          })
-        ),
-      [names]
-    );
+  const categories =
+    Object.keys(categoryMap);
 
   const vendorOptions =
     useMemo<SearchableOption[]>(
@@ -668,35 +596,102 @@ export default function EditMaterialForm({
           label:
             "-- ไม่ระบุผู้จำหน่าย --",
         },
-
-        ...vendors.map(
-          (vendor) => ({
-            value:
-              vendor.id.toString(),
-            label: vendor.name,
-          })
-        ),
+        ...vendors.map((vendor) => ({
+          value: String(vendor.id),
+          label: vendor.name,
+        })),
       ],
       [vendors]
     );
 
-  /* =======================================================
+  const categoryOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        categories.map(
+          (item) => ({
+            value: item,
+            label: item,
+          })
+        ),
+      [categories]
+    );
+
+  /* =========================================================
+     MATERIAL NAMES
+  ========================================================= */
+
+  const names = useMemo(() => {
+    if (!category) {
+      return [];
+    }
+
+    const oldNames =
+      MATERIALS[
+        category as keyof typeof MATERIALS
+      ] ?? [];
+
+    return Array.from(
+      new Set([
+        ...oldNames,
+
+        ...(
+          material.category ===
+            categoryMap[category] &&
+          material.name
+            ? [material.name]
+            : []
+        ),
+      ])
+    );
+  }, [
+    category,
+    material.category,
+    material.name,
+  ]);
+
+  const materialOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        names.map((item) => ({
+          value: item,
+          label: item,
+        })),
+      [names]
+    );
+
+  /* =========================================================
+     UNIT
+  ========================================================= */
+
+  const unit =
+    UNITS[name] ??
+    (
+      name === material.name
+        ? material.unit
+        : ""
+    );
+
+  /* =========================================================
      SUBMIT
-  ======================================================= */
+  ========================================================= */
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
 
-    if (loading) {
+    if (isSubmitting) {
       return;
     }
 
-    if (!category) {
+    const categoryCode =
+      categoryMap[category];
+
+    if (!categoryCode) {
       alert(
         "กรุณาเลือกหมวดหมู่"
       );
+
       return;
     }
 
@@ -704,6 +699,7 @@ export default function EditMaterialForm({
       alert(
         "กรุณาเลือกรายการพัสดุ"
       );
+
       return;
     }
 
@@ -711,6 +707,7 @@ export default function EditMaterialForm({
       alert(
         "ไม่พบหน่วยของรายการพัสดุ กรุณาตรวจสอบข้อมูล"
       );
+
       return;
     }
 
@@ -723,7 +720,12 @@ export default function EditMaterialForm({
       code:
         formData.get("code"),
 
-      category,
+      vendorId: vendorId
+        ? Number(vendorId)
+        : null,
+
+      category:
+        categoryCode,
 
       name,
 
@@ -740,14 +742,10 @@ export default function EditMaterialForm({
           )
         ).toFixed(2)
       ),
-
-      vendorId: vendorId
-        ? Number(vendorId)
-        : null,
     };
 
     try {
-      setLoading(true);
+      setIsSubmitting(true);
 
       const res = await fetch(
         `/api/materials/${material.id}`,
@@ -794,24 +792,29 @@ export default function EditMaterialForm({
       alert("บันทึกสำเร็จ");
 
       router.push(
-        `/materials/category/${category}`
+        `/materials/category/${categoryCode}`
       );
 
       router.refresh();
     } catch (error) {
+      console.error(
+        "เกิดข้อผิดพลาดในการแก้ไขพัสดุ:",
+        error
+      );
+
       alert(
         error instanceof Error
           ? error.message
-          : "เกิดข้อผิดพลาด"
+          : "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      SHARED CLASSES
-  ======================================================= */
+  ========================================================= */
 
   const labelClassName = `
     mb-2
@@ -857,41 +860,59 @@ export default function EditMaterialForm({
     focus:ring-slate-900/10
   `;
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+     โครงสร้างเดียวกับหน้า /materials/new
+  ========================================================= */
 
   return (
     <form
       onSubmit={handleSubmit}
       className="
+        mx-auto
         w-full
-        min-w-0
+        max-w-4xl
+
+        overflow-visible
+
+        rounded-[30px]
+
+        border
+        border-slate-200
+
+        bg-slate-50/95
+
+        shadow-[0_24px_65px_-34px_rgba(15,23,42,0.35)]
+
+        backdrop-blur-xl
       "
     >
-      <AppCard
-        className="
-          mx-auto
-          w-full
-          max-w-4xl
+      {/* =====================================================
+          FORM HEADER
+          เหมือนหน้าเพิ่ม
+      ===================================================== */}
 
-          overflow-visible
+      <div
+        className="
+          rounded-t-[30px]
+
+          border-b
+          border-slate-200
+
+          bg-white/70
+
+          px-5
+          py-5
+
+          sm:px-8
+          sm:py-6
         "
       >
-        {/* =================================================
-            FORM HEADER
-        ================================================= */}
-
         <div
           className="
             flex
             items-center
             gap-4
-
-            border-b
-            border-slate-200
-
-            pb-5
           "
         >
           <div
@@ -900,6 +921,7 @@ export default function EditMaterialForm({
               h-12
               w-12
               shrink-0
+
               items-center
               justify-center
 
@@ -915,7 +937,7 @@ export default function EditMaterialForm({
               shadow-sm
             "
           >
-            ✏️
+            📦
           </div>
 
           <div className="min-w-0">
@@ -935,7 +957,6 @@ export default function EditMaterialForm({
             <p
               className="
                 mt-1
-
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -943,358 +964,356 @@ export default function EditMaterialForm({
                 sm:text-base
               "
             >
-              ตรวจสอบและแก้ไขข้อมูลให้ถูกต้องก่อนบันทึก
+              ระบุรายละเอียดของพัสดุที่ต้องการแก้ไข
             </p>
           </div>
         </div>
+      </div>
 
-        {/* =================================================
-            FORM CONTENT
-        ================================================= */}
+      {/* =====================================================
+          FORM CONTENT
+      ===================================================== */}
+
+      <div
+        className="
+          space-y-5
+          p-5
+
+          sm:space-y-6
+          sm:p-8
+        "
+      >
+        {/* ===================================================
+            รหัสพัสดุ
+        =================================================== */}
+
+        <div>
+          <label
+            htmlFor="code"
+            className={
+              labelClassName
+            }
+          >
+            รหัสพัสดุ
+          </label>
+
+          <input
+            id="code"
+            name="code"
+            defaultValue={
+              material.code
+            }
+            className={
+              inputClassName
+            }
+          />
+        </div>
+
+        {/* ===================================================
+            ผู้จำหน่าย
+        =================================================== */}
+
+        <div>
+          <label
+            htmlFor="vendorId"
+            className={
+              labelClassName
+            }
+          >
+            ผู้จำหน่าย
+          </label>
+
+          <SearchableSelect
+            id="vendorId"
+            value={vendorId}
+            options={
+              vendorOptions
+            }
+            placeholder="เลือกผู้จำหน่าย"
+            searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
+            onChange={
+              setVendorId
+            }
+          />
+        </div>
+
+        {/* ===================================================
+            หมวดหมู่
+        =================================================== */}
+
+        <div>
+          <label
+            htmlFor="category"
+            className={
+              labelClassName
+            }
+          >
+            หมวดหมู่
+          </label>
+
+          <SearchableSelect
+            id="category"
+            value={category}
+            options={
+              categoryOptions
+            }
+            placeholder="เลือกหมวดหมู่"
+            searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+            required
+            onChange={(value) => {
+              if (
+                value === category
+              ) {
+                return;
+              }
+
+              setCategory(value);
+              setName("");
+            }}
+          />
+        </div>
+
+        {/* ===================================================
+            รายการพัสดุ
+        =================================================== */}
+
+        <div>
+          <label
+            htmlFor="materialName"
+            className={
+              labelClassName
+            }
+          >
+            รายการพัสดุ
+          </label>
+
+          <SearchableSelect
+            id="materialName"
+            value={name}
+            options={
+              materialOptions
+            }
+            placeholder={
+              category
+                ? "เลือกรายการพัสดุ"
+                : "กรุณาเลือกหมวดหมู่ก่อน"
+            }
+            searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+            emptyText="ไม่พบรายการพัสดุ"
+            disabled={!category}
+            required
+            onChange={setName}
+          />
+        </div>
+
+        {/* ===================================================
+            จำนวน + หน่วย
+        =================================================== */}
 
         <div
           className="
-            mt-6
-            space-y-5
+            grid
+            grid-cols-1
+            gap-5
 
-            sm:space-y-6
+            md:grid-cols-2
           "
         >
-          {/* ===============================================
-              CODE
-          =============================================== */}
-
-          <AppInfoCard>
+          <div>
             <label
-              htmlFor="code"
+              htmlFor="balance"
               className={
                 labelClassName
               }
             >
-              รหัสพัสดุ
+              จำนวน
             </label>
 
             <input
-              id="code"
-              name="code"
+              id="balance"
+              type="number"
+              name="balance"
               defaultValue={
-                material.code
+                material.balance
               }
+              min="0"
               className={
                 inputClassName
               }
             />
-          </AppInfoCard>
-
-          {/* ===============================================
-              CATEGORY
-          =============================================== */}
-
-          <AppInfoCard>
-            <label
-              htmlFor="category"
-              className={
-                labelClassName
-              }
-            >
-              หมวดหมู่
-            </label>
-
-            <SearchableDropdown
-              id="category"
-              value={category}
-              options={
-                categoryOptions
-              }
-              placeholder="เลือกหมวดหมู่"
-              searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
-              required
-              onChange={(
-                selectedCategory
-              ) => {
-                if (
-                  selectedCategory ===
-                  category
-                ) {
-                  return;
-                }
-
-                setCategory(
-                  selectedCategory
-                );
-
-                setName("");
-              }}
-            />
-          </AppInfoCard>
-
-          {/* ===============================================
-              MATERIAL
-          =============================================== */}
-
-          <AppInfoCard>
-            <label
-              htmlFor="name"
-              className={
-                labelClassName
-              }
-            >
-              รายการพัสดุ
-            </label>
-
-            <SearchableDropdown
-              id="name"
-              value={name}
-              options={
-                materialOptions
-              }
-              placeholder={
-                category
-                  ? "เลือกรายการพัสดุ"
-                  : "กรุณาเลือกหมวดหมู่ก่อน"
-              }
-              searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
-              emptyText="ไม่พบรายการพัสดุ"
-              disabled={!category}
-              required
-              onChange={setName}
-            />
-          </AppInfoCard>
-
-          {/* ===============================================
-              VENDOR
-          =============================================== */}
-
-          <AppInfoCard>
-            <label
-              htmlFor="vendorId"
-              className={
-                labelClassName
-              }
-            >
-              ผู้จำหน่าย
-            </label>
-
-            <SearchableDropdown
-              id="vendorId"
-              value={vendorId}
-              options={
-                vendorOptions
-              }
-              placeholder="เลือกผู้จำหน่าย"
-              searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
-              emptyText="ไม่พบผู้จำหน่าย"
-              onChange={
-                setVendorId
-              }
-            />
-          </AppInfoCard>
-
-          {/* ===============================================
-              BALANCE + UNIT
-          =============================================== */}
-
-          <div
-            className="
-              grid
-              grid-cols-1
-              gap-5
-
-              md:grid-cols-2
-            "
-          >
-            <AppInfoCard>
-              <label
-                htmlFor="balance"
-                className={
-                  labelClassName
-                }
-              >
-                จำนวน
-              </label>
-
-              <input
-                id="balance"
-                type="number"
-                name="balance"
-                min="0"
-                defaultValue={
-                  material.balance
-                }
-                className={
-                  inputClassName
-                }
-              />
-            </AppInfoCard>
-
-            <AppInfoCard>
-              <label
-                htmlFor="unit"
-                className={
-                  labelClassName
-                }
-              >
-                หน่วย
-              </label>
-
-              <input
-                id="unit"
-                value={unit}
-                readOnly
-                placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
-                className="
-                  min-h-[50px]
-                  w-full
-
-                  cursor-default
-
-                  rounded-[16px]
-
-                  border-2
-                  !border-black
-
-                  bg-slate-100
-
-                  px-4
-                  py-3
-
-                  text-base
-                  font-extrabold
-                  !text-slate-700
-
-                  shadow-sm
-                  outline-none
-
-                  placeholder:!text-slate-400
-                "
-              />
-            </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              PRICE
-          =============================================== */}
-
-          <AppInfoCard>
+          <div>
             <label
-              htmlFor="latestPrice"
+              htmlFor="unit"
               className={
                 labelClassName
               }
             >
-              ราคาล่าสุด
+              หน่วย
             </label>
 
-            <div className="relative">
-              <input
-                id="latestPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                name="latestPrice"
-                defaultValue={
-                  material.latestPrice
-                }
-                className={`
-                  ${inputClassName}
-                  pr-16
-                  text-right
-                  tabular-nums
-                `}
-              />
+            <input
+              id="unit"
+              value={unit}
+              readOnly
+              placeholder="เลือกพัสดุเพื่อแสดงหน่วย"
+              className="
+                min-h-[50px]
+                w-full
 
-              <div
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-y-0
-                  right-4
+                cursor-default
 
-                  flex
-                  items-center
+                rounded-[16px]
 
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
-                "
-              >
-                บาท
-              </div>
-            </div>
-          </AppInfoCard>
+                border-2
+                !border-black
+
+                bg-slate-100
+
+                px-4
+                py-3
+
+                text-base
+                font-extrabold
+                !text-slate-700
+
+                shadow-sm
+                outline-none
+
+                placeholder:!text-slate-400
+              "
+            />
+          </div>
         </div>
 
-        {/* =================================================
-            ACTIONS
+        {/* ===================================================
+            ราคาล่าสุด
+        =================================================== */}
 
-            AppButton ที่มี href เป็น Link
-            จึงไม่ส่ง disabled เข้าไป
-        ================================================= */}
+        <div>
+          <label
+            htmlFor="latestPrice"
+            className={
+              labelClassName
+            }
+          >
+            ราคาล่าสุด
+          </label>
 
-        <div
+          <div className="relative">
+            <input
+              id="latestPrice"
+              type="number"
+              name="latestPrice"
+              defaultValue={
+                material.latestPrice
+              }
+              step="0.01"
+              min="0"
+              className={`
+                ${inputClassName}
+                pr-16
+                text-right
+                tabular-nums
+              `}
+            />
+
+            <div
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                right-4
+
+                flex
+                items-center
+
+                text-sm
+                font-extrabold
+                !text-slate-500
+              "
+            >
+              บาท
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          ACTIONS
+          เหมือนหน้า /materials/new
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          flex-col-reverse
+          gap-3
+
+          rounded-b-[30px]
+
+          border-t
+          border-slate-200
+
+          bg-white/70
+
+          px-5
+          py-5
+
+          sm:flex-row
+          sm:justify-end
+          sm:px-8
+        "
+      >
+        <AppButton
+          href={backHref}
+          variant="secondary"
+          size="md"
           className="
-            mt-6
-
-            flex
-            flex-col-reverse
-            gap-3
-
-            border-t
-            border-slate-200
-
-            pt-5
-
-            sm:flex-row
-            sm:justify-end
+            w-full
+            sm:w-auto
           "
         >
-          <AppButton
-            href={backHref}
-            variant="secondary"
-            size="md"
-            className="
-              w-full
-              sm:w-auto
-            "
-          >
-            ยกเลิก
-          </AppButton>
+          ยกเลิก
+        </AppButton>
 
-          <AppButton
-            type="submit"
-            variant="success"
-            size="md"
-            disabled={loading}
-            icon={
-              loading ? (
-                <span
-                  className="
-                    h-4
-                    w-4
-                    animate-spin
+        <AppButton
+          type="submit"
+          variant="success"
+          size="md"
+          disabled={
+            isSubmitting
+          }
+          icon={
+            isSubmitting ? (
+              <span
+                className="
+                  h-4
+                  w-4
+                  animate-spin
 
-                    rounded-full
+                  rounded-full
 
-                    border-2
-                    border-current
-                    border-t-transparent
-                  "
-                />
-              ) : (
-                <span>💾</span>
-              )
-            }
-            className="
-              w-full
-              sm:w-auto
-            "
-          >
-            {loading
-              ? "กำลังบันทึก..."
-              : "บันทึก"}
-          </AppButton>
-        </div>
-      </AppCard>
+                  border-2
+                  border-current
+                  border-t-transparent
+                "
+              />
+            ) : (
+              <span>💾</span>
+            )
+          }
+          className="
+            w-full
+            sm:w-auto
+          "
+        >
+          {isSubmitting
+            ? "กำลังบันทึก..."
+            : "บันทึก"}
+        </AppButton>
+      </div>
     </form>
   );
 }
