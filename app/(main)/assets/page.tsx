@@ -7,6 +7,13 @@ import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 
 /* =========================================================
+   CONSTANTS
+========================================================= */
+
+const HIDDEN_DEPARTMENT_NAME =
+  "ผู้บริหารสำนักอนามัยการเจริญพันธุ์";
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -20,21 +27,33 @@ export default async function AssetsPage() {
   /* =======================================================
      DEPARTMENTS
 
-     ไม่แสดงกลุ่ม "ผู้บริหาร"
+     โหลดข้อมูลกลุ่มงานตามเดิมทั้งหมด
   ======================================================= */
 
   const departments =
     await prisma.department.findMany({
-      where: {
-        name: {
-          not: "ผู้บริหาร",
-        },
-      },
-
       orderBy: {
         id: "asc",
       },
     });
+
+  /* =======================================================
+     DISPLAY DEPARTMENTS
+
+     ซ่อนเฉพาะการ์ด
+     "ผู้บริหารสำนักอนามัยการเจริญพันธุ์"
+
+     ไม่แก้ชื่อในฐานข้อมูล
+     ไม่แก้ Query
+     ไม่กระทบกลุ่มงานอื่น
+  ======================================================= */
+
+  const displayDepartments =
+    departments.filter(
+      (department) =>
+        department.name.trim() !==
+        HIDDEN_DEPARTMENT_NAME
+    );
 
   /* =======================================================
      UI
@@ -96,7 +115,7 @@ export default async function AssetsPage() {
           DEPARTMENT GRID
       ===================================================== */}
 
-      {departments.length > 0 ? (
+      {displayDepartments.length > 0 ? (
         <section
           className="
             grid
@@ -109,7 +128,7 @@ export default async function AssetsPage() {
             xl:grid-cols-3
           "
         >
-          {departments.map(
+          {displayDepartments.map(
             (department) => (
               <AppCard
                 key={department.id}
