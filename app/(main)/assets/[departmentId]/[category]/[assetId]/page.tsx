@@ -1,9 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { AssetCategory } from "@prisma/client";
 
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+
 export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -15,7 +24,7 @@ type Props = {
 
 /* =========================================================
    CATEGORY
-   ========================================================= */
+========================================================= */
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
@@ -27,6 +36,18 @@ const categoryName: Record<string, string> = {
   TELEPHONE: "เครื่องโทรศัพท์",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+};
+
+const categoryIcon: Record<string, string> = {
+  DESK: "🪑",
+  CHAIR: "💺",
+  AIR_CONDITIONER: "❄️",
+  CABINET: "🗄️",
+  COMPUTER: "💻",
+  PRINTER: "🖨️",
+  TELEPHONE: "☎️",
+  OTHER: "📦",
+  NO_SYSTEM: "📋",
 };
 
 const validCategories = [
@@ -46,7 +67,7 @@ type AssetCategoryValue =
 
 /* =========================================================
    ASSET STATUS
-   ========================================================= */
+========================================================= */
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
@@ -57,21 +78,21 @@ const statusName: Record<string, string> = {
 
 const statusClass: Record<string, string> = {
   IN_USE:
-    "bg-emerald-100 text-emerald-800 border-emerald-300",
+    "border-emerald-200 bg-emerald-100 !text-emerald-800",
 
   DAMAGED:
-    "bg-orange-100 text-orange-800 border-orange-300",
+    "border-orange-200 bg-orange-100 !text-orange-800",
 
   WAITING_DISPOSAL:
-    "bg-amber-100 text-amber-800 border-amber-300",
+    "border-amber-200 bg-amber-100 !text-amber-800",
 
   DISPOSED:
-    "bg-slate-200 text-slate-700 border-slate-400",
+    "border-slate-300 bg-slate-200 !text-slate-700",
 };
 
 /* =========================================================
    INSPECTION STATUS
-   ========================================================= */
+========================================================= */
 
 const inspectionStatusName: Record<string, string> = {
   IN_USE: "ยังใช้งานอยู่",
@@ -83,24 +104,24 @@ const inspectionStatusName: Record<string, string> = {
 
 const inspectionStatusClass: Record<string, string> = {
   IN_USE:
-    "bg-emerald-100 text-emerald-800 border-emerald-300",
+    "border-emerald-200 bg-emerald-100 !text-emerald-800",
 
   RETURNED:
-    "bg-blue-100 text-blue-800 border-blue-300",
+    "border-blue-200 bg-blue-100 !text-blue-800",
 
   DAMAGED:
-    "bg-amber-100 text-amber-800 border-amber-300",
+    "border-amber-200 bg-amber-100 !text-amber-800",
 
   MISSING:
-    "bg-red-100 text-red-800 border-red-300",
+    "border-red-200 bg-red-100 !text-red-800",
 
   NOT_FOUND:
-    "bg-red-100 text-red-800 border-red-300",
+    "border-red-200 bg-red-100 !text-red-800",
 };
 
 /* =========================================================
    DATE
-   ========================================================= */
+========================================================= */
 
 const thaiMonths = [
   "มกราคม",
@@ -126,18 +147,27 @@ function formatThaiDate(
 
   const parsedDate = new Date(date);
 
-  if (Number.isNaN(parsedDate.getTime())) {
+  if (
+    Number.isNaN(
+      parsedDate.getTime()
+    )
+  ) {
     return "-";
   }
 
   return `${parsedDate.getDate()} ${
-    thaiMonths[parsedDate.getMonth()]
-  } ${parsedDate.getFullYear() + 543}`;
+    thaiMonths[
+      parsedDate.getMonth()
+    ]
+  } ${
+    parsedDate.getFullYear() +
+    543
+  }`;
 }
 
 /* =========================================================
    QUARTER
-   ========================================================= */
+========================================================= */
 
 function formatQuarter(
   quarter: string | null
@@ -146,7 +176,10 @@ function formatQuarter(
     return "-";
   }
 
-  const quarterMap: Record<string, string> = {
+  const quarterMap: Record<
+    string,
+    string
+  > = {
     Q1: "ไตรมาสที่ 1",
     Q2: "ไตรมาสที่ 2",
     Q3: "ไตรมาสที่ 3",
@@ -158,12 +191,160 @@ function formatQuarter(
     "4": "ไตรมาสที่ 4",
   };
 
-  return quarterMap[quarter] ?? quarter;
+  return (
+    quarterMap[quarter] ??
+    quarter
+  );
+}
+
+/* =========================================================
+   DETAIL FIELD
+========================================================= */
+
+function DetailField({
+  label,
+  value,
+  helper,
+  fullWidth = false,
+}: {
+  label: string;
+  value:
+    | string
+    | number
+    | null
+    | undefined;
+  helper?: string;
+  fullWidth?: boolean;
+}) {
+  const displayValue =
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+      ? "-"
+      : String(value);
+
+  return (
+    <div
+      className={`
+        min-w-0
+
+        ${
+          fullWidth
+            ? "sm:col-span-2"
+            : ""
+        }
+      `}
+    >
+      <AppInfoCard className="h-full">
+        <p
+          className="
+            text-sm
+            font-extrabold
+            !text-slate-600
+
+            sm:text-base
+          "
+        >
+          {label}
+        </p>
+
+        <p
+          className="
+            mt-2
+            break-words
+            text-base
+            font-extrabold
+            leading-relaxed
+            !text-slate-900
+          "
+        >
+          {displayValue}
+        </p>
+
+        {helper && (
+          <p
+            className="
+              mt-2
+              text-xs
+              font-semibold
+              leading-relaxed
+              !text-slate-500
+            "
+          >
+            {helper}
+          </p>
+        )}
+      </AppInfoCard>
+    </div>
+  );
+}
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+function SectionHeader({
+  icon,
+  title,
+  action,
+}: {
+  icon: string;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div
+      className="
+        mb-5
+        flex
+        flex-col
+        gap-3
+
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+      "
+    >
+      <div className="min-w-0">
+        <h2
+          className="
+            flex
+            items-center
+            gap-2
+
+            text-lg
+            font-extrabold
+            tracking-tight
+            !text-slate-900
+
+            sm:text-xl
+          "
+        >
+          <span
+            aria-hidden="true"
+            className="shrink-0"
+          >
+            {icon}
+          </span>
+
+          <span className="min-w-0">
+            {title}
+          </span>
+        </h2>
+      </div>
+
+      {action && (
+        <div className="shrink-0">
+          {action}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* =========================================================
    PAGE
-   ========================================================= */
+========================================================= */
 
 export default async function AssetDetailPage({
   params,
@@ -176,7 +357,7 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      PARAMS
-     ======================================================= */
+  ======================================================= */
 
   const departmentIdNumber =
     Number(departmentId);
@@ -188,9 +369,13 @@ export default async function AssetDetailPage({
     category.toUpperCase();
 
   if (
-    !Number.isInteger(departmentIdNumber) ||
+    !Number.isInteger(
+      departmentIdNumber
+    ) ||
     departmentIdNumber <= 0 ||
-    !Number.isInteger(assetIdNumber) ||
+    !Number.isInteger(
+      assetIdNumber
+    ) ||
     assetIdNumber <= 0 ||
     !validCategories.includes(
       normalizedCategory as AssetCategoryValue
@@ -204,14 +389,16 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      ASSET
-     ======================================================= */
+  ======================================================= */
 
   const asset =
     await prisma.asset.findFirst({
       where: {
         id: assetIdNumber,
+
         departmentId:
           departmentIdNumber,
+
         category:
           assetCategory,
       },
@@ -223,7 +410,8 @@ export default async function AssetDetailPage({
 
         inspections: {
           orderBy: {
-            inspectionDate: "desc",
+            inspectionDate:
+              "desc",
           },
 
           take: 4,
@@ -237,14 +425,15 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      LATEST INSPECTION
-     ======================================================= */
+  ======================================================= */
 
   const latestInspection =
-    asset.inspections[0] ?? null;
+    asset.inspections[0] ??
+    null;
 
   /* =======================================================
-     OFFICER DATA
-     ======================================================= */
+     OFFICER
+  ======================================================= */
 
   const officerFullName =
     asset.officer
@@ -257,1308 +446,666 @@ export default async function AssetDetailPage({
 
   /* =======================================================
      ROUTES
-     ======================================================= */
+  ======================================================= */
 
   const assetBasePath =
-    `/assets/${departmentIdNumber}/${asset.category}/${asset.id}`;
+    `/assets/${departmentIdNumber}/${asset.category.toLowerCase()}/${asset.id}`;
 
   const categoryPath =
-    `/assets/${departmentIdNumber}/${asset.category}`;
+    `/assets/${departmentIdNumber}/${asset.category.toLowerCase()}`;
 
   /* =======================================================
      UI
-     ======================================================= */
+  ======================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* ===================================================
+    <AppPage>
+      {/* =====================================================
           HEADER
-          =================================================== */}
+      ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon={
+          categoryIcon[
+            asset.category
+          ] ?? "📋"
+        }
+        title="รายละเอียดครุภัณฑ์"
+        subtitle={`${asset.name} — ${asset.department.name}`}
+        actions={
+          <>
+            <AppButton
+              href={`${assetBasePath}/edit`}
+              variant="danger"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ✏️
+                </span>
+              }
+            >
+              แก้ไข
+            </AppButton>
+
+            <AppButton
+              href={categoryPath}
+              variant="back"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
+        }
+      />
+
+      {/* =====================================================
+          ASSET INFORMATION
+      ===================================================== */}
+
+      <AppCard
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          justify-between
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:px-8
-          sm:py-6
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📋 รายละเอียดครุภัณฑ์
-          </h1>
+        <SectionHeader
+          icon="📋"
+          title="ข้อมูลครุภัณฑ์"
+          action={
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+              "
+            >
+              <span
+                className="
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+                "
+              >
+                สถานะ
+              </span>
 
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            {asset.name} — ทะเบียนคุมครุภัณฑ์
-          </p>
-        </div>
+              <span
+                className={`
+                  inline-flex
+                  items-center
+                  justify-center
+
+                  whitespace-nowrap
+
+                  rounded-full
+                  border
+
+                  px-3
+                  py-1.5
+
+                  text-xs
+                  font-extrabold
+
+                  ${
+                    statusClass[
+                      asset.status
+                    ] ??
+                    "border-slate-200 bg-slate-100 !text-slate-700"
+                  }
+                `}
+              >
+                {statusName[
+                  asset.status
+                ] ??
+                  asset.status}
+              </span>
+            </div>
+          }
+        />
 
         <div
           className="
-            flex
-            w-full
-            flex-col
-            gap-2
-            sm:w-auto
-            sm:flex-row
+            grid
+            grid-cols-1
+            gap-4
+
+            sm:grid-cols-2
           "
         >
-          <Link
-            href={categoryPath}
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-auto
-            "
-          >
-            ← กลับ
-          </Link>
+          <DetailField
+            label="รายการครุภัณฑ์"
+            value={asset.name}
+            fullWidth
+          />
 
-          <Link
-            href={`${assetBasePath}/edit`}
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-red-600
-              to-red-500
-              px-5
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-red-700
-              hover:to-red-600
-              sm:w-auto
-            "
-          >
-            ✏️ แก้ไข
-          </Link>
+          <DetailField
+            label="ประเภท"
+            value={
+              categoryName[
+                asset.category
+              ] ??
+              asset.category
+            }
+          />
+
+          <DetailField
+            label="ยี่ห้อ"
+            value={asset.brand}
+          />
+
+          <DetailField
+            label="รุ่น"
+            value={asset.model}
+          />
+
+          <DetailField
+            label="Serial Number"
+            value={
+              asset.serialNumber
+            }
+          />
+
+          <DetailField
+            label="จำนวน"
+            value={
+              asset.quantity ?? 1
+            }
+          />
+
+          <DetailField
+            label="หน่วย"
+            value={asset.unit}
+          />
         </div>
-      </div>
+      </AppCard>
 
-      {/* ===================================================
-          ข้อมูลครุภัณฑ์
-          =================================================== */}
+      {/* =====================================================
+          ASSET REGISTRATION
+      ===================================================== */}
 
-      <div
+      <AppCard
         className="
-          mx-auto
           w-full
-          max-w-4xl
           min-w-0
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-6
-          text-white
-          shadow-2xl
-          sm:p-8
         "
       >
+        <SectionHeader
+          icon="🔖"
+          title="เลขทะเบียนครุภัณฑ์"
+        />
+
         <div
           className="
-            flex
-            items-center
-            justify-between
-            gap-3
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-3
+            grid
+            grid-cols-1
+            gap-4
+
+            sm:grid-cols-2
           "
         >
-          <h2
-            className="
-              min-w-0
-              text-lg
-              font-extrabold
-              !text-white
-              sm:text-xl
-            "
-          >
-            📋 ข้อมูลครุภัณฑ์
-          </h2>
+          <DetailField
+            label="รหัส GFMIS"
+            value={
+              asset.governmentAssetNo
+            }
+          />
 
+          <DetailField
+            label="รหัสครุภัณฑ์"
+            value={
+              asset.officeAssetNo
+            }
+          />
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          RESPONSIBLE
+      ===================================================== */}
+
+      <AppCard
+        className="
+          w-full
+          min-w-0
+        "
+      >
+        <SectionHeader
+          icon="👤"
+          title="หน่วยงานและผู้รับผิดชอบ"
+        />
+
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+
+            sm:grid-cols-2
+          "
+        >
+          <DetailField
+            label="หน่วยงาน"
+            value={
+              asset.department.name
+            }
+          />
+
+          <DetailField
+            label="กลุ่มงาน"
+            value={
+              asset.section?.name ??
+              "-"
+            }
+          />
+
+          <DetailField
+            label="ผู้ครอบครอง"
+            value={officerFullName}
+            helper="ผู้ครอบครองที่เลือกจากรายชื่อเจ้าหน้าที่ในระบบ"
+          />
+
+          <DetailField
+            label="ตำแหน่ง"
+            value={officerPosition}
+            helper="ตำแหน่งตามผู้ครอบครองที่เลือก"
+          />
+
+          {asset.remark && (
+            <DetailField
+              label="หมายเหตุ"
+              value={asset.remark}
+              fullWidth
+            />
+          )}
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          LATEST INSPECTION
+      ===================================================== */}
+
+      <AppCard
+        className="
+          w-full
+          min-w-0
+        "
+      >
+        <SectionHeader
+          icon="🔍"
+          title="ผลการตรวจสอบล่าสุด"
+          action={
+            <AppButton
+              href={`${assetBasePath}/inspection`}
+              variant="secondary"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  📋
+                </span>
+              }
+            >
+              ดูประวัติการตรวจสอบ
+            </AppButton>
+          }
+        />
+
+        {latestInspection ? (
           <div
             className="
-              flex
-              shrink-0
-              items-center
-              gap-2
+              grid
+              grid-cols-1
+              gap-4
+
+              sm:grid-cols-2
+
+              xl:grid-cols-4
             "
           >
-            <span
-              className="
-                hidden
-                text-sm
-                font-extrabold
-                !text-slate-200
-                sm:inline
-              "
-            >
-              สถานะครุภัณฑ์
-            </span>
+            {/* =============================================
+                ROUND
+            ============================================= */}
 
-            <span
-              className="
-                text-xs
-                font-extrabold
-                !text-slate-200
-                sm:hidden
-              "
-            >
-              สถานะ
-            </span>
+            <DetailField
+              label="รอบการตรวจสอบ"
+              value={`ปี ${
+                latestInspection.year
+              } / ${formatQuarter(
+                latestInspection.quarter
+              )}`}
+            />
 
-            <span
-              className={`
-                inline-flex
-                rounded-xl
-                border
-                px-3
-                py-1.5
-                text-sm
-                font-extrabold
-                ${
-                  statusClass[asset.status] ??
-                  "border-slate-300 bg-slate-100 text-slate-700"
-                }
-              `}
-            >
-              {statusName[asset.status] ??
-                asset.status}
-            </span>
-          </div>
-        </div>
+            {/* =============================================
+                DATE
+            ============================================= */}
 
-        <div
-          className="
-            mt-4
-            grid
-            gap-4
-            sm:grid-cols-2
-          "
-        >
-          {/* รายการ */}
+            <DetailField
+              label="วันที่ตรวจสอบ"
+              value={formatThaiDate(
+                latestInspection.inspectionDate
+              )}
+            />
 
-          <div className="min-w-0 sm:col-span-2">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              รายการครุภัณฑ์
-            </p>
+            {/* =============================================
+                INSPECTION STATUS
+            ============================================= */}
 
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
+            <AppInfoCard>
               <p
                 className="
-                  break-words
-                  text-lg
+                  text-sm
                   font-extrabold
-                  text-slate-900
+                  !text-slate-600
+
+                  sm:text-base
                 "
               >
-                {asset.name}
+                ผลการตรวจสอบ
               </p>
-            </div>
-          </div>
 
-          {/* ประเภท */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              ประเภท
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
+              <div
                 className="
-                  break-words
-                  font-extrabold
-                  text-slate-900
+                  mt-3
+                  flex
+                  min-h-[32px]
+                  items-center
                 "
               >
-                {categoryName[
-                  asset.category
-                ] ?? asset.category}
-              </p>
-            </div>
-          </div>
-
-          {/* ยี่ห้อ */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              ยี่ห้อ
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-words
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                {asset.brand ?? "-"}
-              </p>
-            </div>
-          </div>
-
-          {/* รุ่น */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              รุ่น
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-words
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                {asset.model ?? "-"}
-              </p>
-            </div>
-          </div>
-
-          {/* Serial Number */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              Serial Number
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-all
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                {asset.serialNumber ?? "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===================================================
-          เลขทะเบียนครุภัณฑ์
-          =================================================== */}
-
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-4xl
-          min-w-0
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-6
-          text-white
-          shadow-2xl
-          sm:p-8
-        "
-      >
-        <h2
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-3
-            text-lg
-            font-extrabold
-            !text-white
-            sm:text-xl
-          "
-        >
-          🔖 เลขทะเบียนครุภัณฑ์
-        </h2>
-
-        <div
-          className="
-            mt-4
-            grid
-            gap-4
-            sm:grid-cols-2
-          "
-        >
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              รหัส GFMIS
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-all
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                {asset.governmentAssetNo ??
-                  "-"}
-              </p>
-            </div>
-          </div>
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              รหัสครุภัณฑ์
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-all
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                {asset.officeAssetNo ?? "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===================================================
-          หน่วยงานและผู้รับผิดชอบ
-          =================================================== */}
-
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-4xl
-          min-w-0
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-6
-          text-white
-          shadow-2xl
-          sm:p-8
-        "
-      >
-        <h2
-          className="
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-3
-            text-lg
-            font-extrabold
-            !text-white
-            sm:text-xl
-          "
-        >
-          👤 หน่วยงานและผู้รับผิดชอบ
-        </h2>
-
-        <div
-          className="
-            mt-4
-            grid
-            items-start
-            gap-4
-            sm:grid-cols-2
-          "
-        >
-          {/* หน่วยงาน */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              หน่วยงาน
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-extrabold
-                text-slate-900
-                shadow-md
-              "
-            >
-              <p className="break-words">
-                {asset.department.name}
-              </p>
-            </div>
-          </div>
-
-          {/* กลุ่มงาน */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              กลุ่มงาน
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-extrabold
-                text-slate-900
-                shadow-md
-              "
-            >
-              <p className="break-words">
-                {asset.section?.name ?? "-"}
-              </p>
-            </div>
-          </div>
-
-          {/* ผู้ครอบครอง */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              ผู้ครอบครอง
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-extrabold
-                text-slate-900
-                shadow-md
-              "
-            >
-              <p className="break-words">
-                {officerFullName}
-              </p>
-            </div>
-
-            <p
-              className="
-                mt-2
-                text-sm
-                font-semibold
-                !text-slate-400
-              "
-            >
-              ผู้ครอบครองที่เลือกจากรายชื่อเจ้าหน้าที่ในระบบ
-            </p>
-          </div>
-
-          {/* ตำแหน่ง */}
-
-          <div className="min-w-0">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              ตำแหน่ง
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                font-extrabold
-                text-slate-900
-                shadow-md
-              "
-            >
-              <p className="break-words">
-                {officerPosition}
-              </p>
-            </div>
-
-            <p
-              className="
-                mt-2
-                text-sm
-                font-semibold
-                !text-slate-400
-              "
-            >
-              ตำแหน่งตามผู้ครอบครองที่เลือก
-            </p>
-          </div>
-        </div>
-
-        {/* หมายเหตุ */}
-
-        {asset.remark && (
-          <div className="mt-6">
-            <p
-              className="
-                text-sm
-                font-extrabold
-                !text-slate-200
-              "
-            >
-              หมายเหตุ
-            </p>
-
-            <div
-              className="
-                mt-2
-                min-h-[50px]
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-4
-                py-3
-                shadow-md
-              "
-            >
-              <p
-                className="
-                  break-words
-                  whitespace-pre-wrap
-                  font-semibold
-                  text-slate-900
-                "
-              >
-                {asset.remark}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ===================================================
-          ผลการตรวจสอบล่าสุด
-          =================================================== */}
-
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-4xl
-          min-w-0
-          rounded-3xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          via-slate-900
-          to-slate-800
-          p-6
-          text-white
-          shadow-2xl
-          sm:p-8
-        "
-      >
-        <div
-          className="
-            flex
-            flex-col
-            gap-3
-            rounded-xl
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
-            px-4
-            py-3
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <h2
-            className="
-              text-lg
-              font-extrabold
-              !text-white
-              sm:text-xl
-            "
-          >
-            🔍 ผลการตรวจสอบล่าสุด
-          </h2>
-
-          <Link
-            href={`${assetBasePath}/inspection`}
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2
-              text-center
-              text-sm
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-auto
-            "
-          >
-            ดูประวัติการตรวจสอบ
-          </Link>
-        </div>
-
-        <div className="mt-4">
-          {latestInspection ? (
-            <div
-              className="
-                grid
-                gap-4
-                sm:grid-cols-2
-                lg:grid-cols-4
-              "
-            >
-              {/* รอบการตรวจสอบ */}
-
-              <div className="min-w-0">
-                <p
-                  className="
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  รอบการตรวจสอบ
-                </p>
-
-                <div
-                  className="
-                    mt-2
-                    flex
-                    min-h-[50px]
+                <span
+                  className={`
+                    inline-flex
                     items-center
                     justify-center
-                    rounded-xl
+
+                    rounded-full
                     border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    text-center
-                    shadow-md
-                  "
-                >
-                  <p
-                    className="
-                      break-words
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    ปี{" "}
-                    {latestInspection.year}{" "}
-                    /{" "}
-                    {formatQuarter(
-                      latestInspection.quarter
-                    )}
-                  </p>
-                </div>
-              </div>
 
-              {/* วันที่ตรวจสอบ */}
+                    px-3
+                    py-1.5
 
-              <div className="min-w-0">
-                <p
-                  className="
                     text-sm
                     font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  วันที่ตรวจสอบ
-                </p>
 
-                <div
-                  className="
-                    mt-2
-                    flex
-                    min-h-[50px]
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    text-center
-                    shadow-md
-                  "
+                    ${
+                      inspectionStatusClass[
+                        latestInspection
+                          .status
+                      ] ??
+                      "border-slate-200 bg-slate-100 !text-slate-700"
+                    }
+                  `}
                 >
-                  <p
-                    className="
-                      break-words
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {formatThaiDate(
-                      latestInspection.inspectionDate
-                    )}
-                  </p>
-                </div>
+                  {inspectionStatusName[
+                    latestInspection
+                      .status
+                  ] ??
+                    latestInspection
+                      .status}
+                </span>
               </div>
+            </AppInfoCard>
 
-              {/* ผลการตรวจสอบ */}
+            {/* =============================================
+                INSPECTOR
+            ============================================= */}
 
-              <div className="min-w-0">
-                <p
-                  className="
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  ผลการตรวจสอบ
-                </p>
+            <DetailField
+              label="ผู้ตรวจครุภัณฑ์"
+              value={
+                latestInspection.inspectorName ??
+                "-"
+              }
+            />
 
-                <div
-                  className="
-                    mt-2
-                    flex
-                    min-h-[50px]
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-2
-                    text-center
-                    shadow-md
-                  "
-                >
-                  <span
-                    className={`
-                      inline-flex
-                      rounded-lg
-                      border
-                      px-3
-                      py-1.5
-                      text-center
-                      text-sm
-                      font-extrabold
-                      ${
-                        inspectionStatusClass[
-                          latestInspection.status
-                        ] ??
-                        "border-slate-300 bg-slate-100 text-slate-700"
-                      }
-                    `}
-                  >
-                    {inspectionStatusName[
-                      latestInspection.status
-                    ] ??
-                      latestInspection.status}
-                  </span>
-                </div>
-              </div>
+            {/* =============================================
+                CONDITION
+            ============================================= */}
 
-              {/* ผู้ตรวจครุภัณฑ์ */}
+            {latestInspection.condition && (
+              <div
+                className="
+                  min-w-0
 
-              <div className="min-w-0">
-                <p
-                  className="
-                    text-sm
-                    font-extrabold
-                    !text-slate-200
-                  "
-                >
-                  ผู้ตรวจครุภัณฑ์
-                </p>
-
-                <div
-                  className="
-                    mt-2
-                    flex
-                    min-h-[50px]
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-slate-300
-                    bg-white
-                    px-4
-                    py-3
-                    text-center
-                    shadow-md
-                  "
-                >
-                  <p
-                    className="
-                      break-words
-                      text-center
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    {latestInspection.inspectorName ??
-                      "-"}
-                  </p>
-                </div>
-              </div>
-
-              {/* สภาพครุภัณฑ์ */}
-
-              {latestInspection.condition && (
-                <div
-                  className="
-                    min-w-0
-                    sm:col-span-2
-                    lg:col-span-4
-                  "
-                >
+                  sm:col-span-2
+                  xl:col-span-4
+                "
+              >
+                <AppInfoCard>
                   <p
                     className="
                       text-sm
                       font-extrabold
-                      !text-slate-200
+                      !text-slate-600
+
+                      sm:text-base
                     "
                   >
                     สภาพครุภัณฑ์
                   </p>
 
-                  <div
+                  <p
                     className="
                       mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      text-center
-                      shadow-md
+                      break-words
+                      whitespace-pre-wrap
+
+                      text-base
+                      font-semibold
+                      leading-relaxed
+                      !text-slate-900
                     "
                   >
-                    <p
-                      className="
-                        break-words
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {latestInspection.condition}
-                    </p>
-                  </div>
-                </div>
-              )}
+                    {
+                      latestInspection.condition
+                    }
+                  </p>
+                </AppInfoCard>
+              </div>
+            )}
 
-              {/* หมายเหตุการตรวจ */}
+            {/* =============================================
+                INSPECTION REMARK
+            ============================================= */}
 
-              {latestInspection.remark && (
-                <div
-                  className="
-                    min-w-0
-                    sm:col-span-2
-                    lg:col-span-4
-                  "
-                >
+            {latestInspection.remark && (
+              <div
+                className="
+                  min-w-0
+
+                  sm:col-span-2
+                  xl:col-span-4
+                "
+              >
+                <AppInfoCard>
                   <p
                     className="
                       text-sm
                       font-extrabold
-                      !text-slate-200
+                      !text-slate-600
+
+                      sm:text-base
                     "
                   >
                     หมายเหตุการตรวจ
                   </p>
 
-                  <div
+                  <p
                     className="
                       mt-2
-                      flex
-                      min-h-[50px]
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      py-3
-                      text-center
-                      shadow-md
+                      break-words
+                      whitespace-pre-wrap
+
+                      text-base
+                      font-semibold
+                      leading-relaxed
+                      !text-slate-900
                     "
                   >
-                    <p
-                      className="
-                        break-words
-                        whitespace-pre-wrap
-                        text-center
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {latestInspection.remark}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div
-              className="
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                p-8
-                text-center
-                font-semibold
-                text-slate-500
-                shadow-md
-              "
-            >
-              ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
-            </div>
-          )}
-        </div>
-      </div>
+                    {
+                      latestInspection.remark
+                    }
+                  </p>
+                </AppInfoCard>
+              </div>
+            )}
+          </div>
+        ) : (
+          <AppInfoCard
+            className="
+              flex
+              min-h-[160px]
+              items-center
+              justify-center
+              text-center
+            "
+          >
+            <div>
+              <div
+                className="
+                  text-3xl
+                "
+                aria-hidden="true"
+              >
+                🔍
+              </div>
 
-      {/* ===================================================
-          การดำเนินการ
-          =================================================== */}
+              <p
+                className="
+                  mt-3
+                  text-base
+                  font-extrabold
+                  !text-slate-900
+                "
+              >
+                ยังไม่มีประวัติการตรวจสอบครุภัณฑ์
+              </p>
 
-      <div
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                เมื่อมีการบันทึกผลการตรวจสอบ
+                ข้อมูลล่าสุดจะแสดงในส่วนนี้
+              </p>
+            </div>
+          </AppInfoCard>
+        )}
+      </AppCard>
+
+      {/* =====================================================
+          ACTIONS
+      ===================================================== */}
+
+      <AppCard
         className="
-          mx-auto
-          flex
           w-full
-          max-w-4xl
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:justify-end
+          min-w-0
+          !p-4
+
+          sm:!p-5
         "
       >
-        {/* บันทึกผลการตรวจ - สีเขียว */}
-
-        <Link
-          href={`${assetBasePath}/inspection/new`}
+        <div
           className="
+            flex
             w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            active:scale-[0.98]
-            sm:w-auto
+            min-w-0
+            flex-col
+            gap-3
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          🔍 บันทึกผลการตรวจ
-        </Link>
+          <div className="min-w-0">
+            <p
+              className="
+                text-base
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              การดำเนินการ
+            </p>
 
-        {/* การจำหน่าย - สีแดง */}
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              บันทึกผลการตรวจสอบหรือดำเนินการจำหน่ายครุภัณฑ์
+            </p>
+          </div>
 
-        <Link
-          href={`${assetBasePath}/disposal`}
-          className="
-            w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-red-600
-            to-red-500
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-red-700
-            hover:to-red-600
-            active:scale-[0.98]
-            sm:w-auto
-          "
-        >
-          📦 การจำหน่าย
-        </Link>
-      </div>
-    </div>
+          <div
+            className="
+              flex
+              w-full
+              flex-col
+              gap-2
+
+              sm:w-auto
+              sm:flex-row
+            "
+          >
+            <AppButton
+              href={`${assetBasePath}/inspection/new`}
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  🔍
+                </span>
+              }
+              className="
+                w-full
+                sm:w-auto
+              "
+            >
+              บันทึกผลการตรวจ
+            </AppButton>
+
+            <AppButton
+              href={`${assetBasePath}/disposal`}
+              variant="danger"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  📦
+                </span>
+              }
+              className="
+                w-full
+                sm:w-auto
+              "
+            >
+              การจำหน่าย
+            </AppButton>
+          </div>
+        </div>
+      </AppCard>
+    </AppPage>
   );
 }
