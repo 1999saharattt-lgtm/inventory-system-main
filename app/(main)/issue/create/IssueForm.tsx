@@ -1,10 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { createIssue } from "./action";
+
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Material = {
   id: number;
+  code?: string;
   name: string;
   category: string;
   unit: string;
@@ -15,8 +31,14 @@ type ReceiveLot = {
   id: number;
   materialId: number;
   balance: number;
-  manufacture: Date | string | null;
-  expiry: Date | string | null;
+  manufacture:
+    | Date
+    | string
+    | null;
+  expiry:
+    | Date
+    | string
+    | null;
 };
 
 type Department = {
@@ -28,14 +50,18 @@ type Officer = {
   id: number;
   firstName: string;
   lastName: string;
-  departmentId: number | null;
+  departmentId:
+    | number
+    | null;
 
   department?: {
     id: number;
   } | null;
 
   section?: {
-    departmentId: number | null;
+    departmentId:
+      | number
+      | null;
   } | null;
 };
 
@@ -55,6 +81,28 @@ type ItemRow = {
   remark: string;
 };
 
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  disabled?: boolean;
+  onChange: (
+    value: string
+  ) => void;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
 const categories = [
   {
     value: "OFFICE",
@@ -62,29 +110,34 @@ const categories = [
   },
   {
     value: "COMPUTER",
-    label: "วัสดุคอมพิวเตอร์",
+    label:
+      "วัสดุคอมพิวเตอร์",
   },
   {
     value: "ELECTRIC",
-    label: "วัสดุไฟฟ้าและวิทยุ",
+    label:
+      "วัสดุไฟฟ้าและวิทยุ",
   },
   {
     value: "HOUSEHOLD",
-    label: "วัสดุงานบ้านและงานครัว",
+    label:
+      "วัสดุงานบ้านและงานครัว",
   },
   {
     value: "VEHICLE",
-    label: "วัสดุยานพาหนะ",
+    label:
+      "วัสดุยานพาหนะ",
   },
   {
     value: "PRINTING",
-    label: "วัสดุสื่อสิ่งพิมพ์",
+    label:
+      "วัสดุสื่อสิ่งพิมพ์",
   },
 ];
 
-// =====================================================
-// เดือนภาษาไทย
-// =====================================================
+/* =========================================================
+   THAI DATE
+========================================================= */
 
 const thaiMonths = [
   "มกราคม",
@@ -101,62 +154,711 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-// =====================================================
-// วันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
-// ใช้สำหรับ value ของ input date
-// =====================================================
-
 function getCurrentDate() {
   const now = new Date();
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(
-    2,
-    "0"
-  );
-  const day = String(now.getDate()).padStart(
-    2,
-    "0"
-  );
+  const year =
+    now.getFullYear();
+
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
-// =====================================================
-// แปลง YYYY-MM-DD เป็น วัน เดือน ปี พ.ศ.
-// =====================================================
-
-function formatThaiDate(dateString: string) {
+function formatThaiFullDate(
+  dateString: string
+) {
   if (!dateString) {
     return "";
   }
 
-  const match = dateString.match(
-    /^(\d{4})-(\d{2})-(\d{2})$/
-  );
-
-  if (!match) {
-    return "";
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
+  const [year, month, day] =
+    dateString
+      .split("-")
+      .map(Number);
 
   if (
     !year ||
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31
+    !month ||
+    !day
   ) {
     return "";
   }
 
-  return `${day} ${thaiMonths[month - 1]} ${
-    year + 543
-  }`;
+  return `${day} ${
+    thaiMonths[
+      month - 1
+    ]
+  } ${year + 543}`;
 }
+
+/* =========================================================
+   DATE FIELD
+========================================================= */
+
+type DateFieldProps = {
+  id: string;
+  name?: string;
+  value: string;
+  placeholder?: string;
+  onChange: (
+    value: string
+  ) => void;
+};
+
+function DateField({
+  id,
+  name,
+  value,
+  placeholder = "เลือกวันที่",
+  onChange,
+}: DateFieldProps) {
+  const dateRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
+  function openCalendar() {
+    const input =
+      dateRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    try {
+      if (
+        typeof input.showPicker ===
+        "function"
+      ) {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    } catch {
+      input.focus();
+      input.click();
+    }
+  }
+
+  return (
+    <div
+      className="
+        relative
+        h-[52px]
+        w-full
+        min-w-0
+      "
+    >
+      {name && (
+        <input
+          type="hidden"
+          name={name}
+          value={value}
+        />
+      )}
+
+      <div
+        className="
+          flex
+          h-[52px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[16px]
+
+          border
+          border-slate-200
+
+          bg-white
+
+          pl-4
+          pr-2
+
+          shadow-sm
+
+          transition-all
+          duration-200
+
+          hover:border-slate-300
+          hover:bg-slate-50
+
+          focus-within:border-blue-300
+          focus-within:ring-4
+          focus-within:ring-blue-100/70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            text-base
+            font-bold
+
+            ${
+              value
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {value
+            ? formatThaiFullDate(
+                value
+              )
+            : placeholder}
+        </span>
+
+        <button
+          type="button"
+          aria-label="เปิดปฏิทิน"
+          onClick={
+            openCalendar
+          }
+          className="
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+
+            rounded-[11px]
+
+            bg-slate-100
+
+            text-lg
+
+            shadow-inner
+
+            transition-all
+            duration-200
+
+            hover:bg-slate-200
+
+            active:scale-[0.96]
+
+            focus:outline-none
+            focus:ring-4
+            focus:ring-blue-100
+          "
+        >
+          📅
+        </button>
+
+        <input
+          ref={dateRef}
+          id={id}
+          type="date"
+          value={value}
+          onChange={(
+            event
+          ) =>
+            onChange(
+              event.target.value
+            )
+          }
+          tabIndex={-1}
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            bottom-0
+            right-0
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   SEARCHABLE DROPDOWN
+========================================================= */
+
+function SearchableDropdown({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
+  emptyText = "ไม่พบข้อมูล",
+  disabled = false,
+  onChange,
+}: SearchableDropdownProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const inputRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [
+    search,
+    setSearch,
+  ] = useState("");
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.value ===
+        value
+    );
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLocaleLowerCase(
+            "th"
+          );
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(
+              keyword
+            ) ||
+          option.value
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(
+              keyword
+            )
+      );
+    }, [
+      options,
+      search,
+    ]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+
+    const timer =
+      window.setTimeout(
+        () => {
+          inputRef.current?.focus();
+        },
+        0
+      );
+
+    return () => {
+      window.clearTimeout(
+        timer
+      );
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`
+        relative
+        w-full
+        min-w-0
+
+        ${
+          open
+            ? "z-[9999]"
+            : "z-10"
+        }
+      `}
+    >
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+
+          setOpen(
+            (current) =>
+              !current
+          );
+        }}
+        className="
+          flex
+          h-[52px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[16px]
+
+          border
+          border-slate-200
+
+          bg-white
+
+          px-4
+
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:border-slate-300
+          hover:bg-slate-50
+
+          focus:border-blue-300
+          focus:ring-4
+          focus:ring-blue-100/70
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-100
+          disabled:!text-slate-400
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-500
+
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {open &&
+        !disabled && (
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-[calc(100%+8px)]
+
+              z-[99999]
+
+              overflow-hidden
+
+              rounded-[20px]
+
+              border
+              border-slate-200
+
+              bg-white/95
+
+              shadow-[0_28px_70px_-22px_rgba(15,23,42,0.35)]
+
+              backdrop-blur-2xl
+            "
+          >
+            <div
+              className="
+                border-b
+                border-slate-200
+
+                bg-slate-50/90
+
+                p-3
+              "
+            >
+              <input
+                ref={
+                  inputRef
+                }
+                type="text"
+                value={
+                  search
+                }
+                autoComplete="off"
+                onChange={(
+                  event
+                ) =>
+                  setSearch(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(
+                      false
+                    );
+                    setSearch(
+                      ""
+                    );
+                  }
+
+                  if (
+                    event.key ===
+                      "Enter" &&
+                    filteredOptions.length ===
+                      1
+                  ) {
+                    event.preventDefault();
+
+                    onChange(
+                      filteredOptions[0]
+                        .value
+                    );
+
+                    setOpen(
+                      false
+                    );
+                    setSearch(
+                      ""
+                    );
+                  }
+                }}
+                placeholder={
+                  searchPlaceholder
+                }
+                className="
+                  h-[46px]
+                  w-full
+
+                  rounded-[14px]
+
+                  border
+                  border-slate-200
+
+                  bg-white
+
+                  px-4
+
+                  text-base
+                  font-bold
+                  !text-slate-900
+
+                  shadow-sm
+                  outline-none
+
+                  placeholder:!text-slate-400
+
+                  focus:border-blue-300
+                  focus:ring-4
+                  focus:ring-blue-100/70
+                "
+              />
+            </div>
+
+            <div
+              role="listbox"
+              className="
+                max-h-[280px]
+
+                overflow-y-auto
+                overscroll-contain
+
+                bg-white
+
+                p-2
+              "
+            >
+              {filteredOptions.length >
+              0 ? (
+                filteredOptions.map(
+                  (
+                    option
+                  ) => {
+                    const selected =
+                      option.value ===
+                      value;
+
+                    return (
+                      <button
+                        key={
+                          option.value
+                        }
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selected
+                        }
+                        onClick={() => {
+                          onChange(
+                            option.value
+                          );
+
+                          setOpen(
+                            false
+                          );
+                          setSearch(
+                            ""
+                          );
+                        }}
+                        className={`
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-[12px]
+
+                          px-3
+                          py-2.5
+
+                          text-left
+                          text-base
+                          font-bold
+
+                          transition-colors
+
+                          ${
+                            selected
+                              ? "bg-slate-900 !text-white"
+                              : "bg-white !text-slate-900 hover:bg-slate-100"
+                          }
+                        `}
+                      >
+                        <span
+                          className="
+                            min-w-0
+                            flex-1
+                            break-words
+                          "
+                        >
+                          {
+                            option.label
+                          }
+                        </span>
+
+                        {selected && (
+                          <span className="!text-white">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )
+              ) : (
+                <div
+                  className="
+                    px-4
+                    py-8
+
+                    text-center
+                    text-sm
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  {
+                    emptyText
+                  }
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+    </div>
+  );
+}
+
+/* =========================================================
+   ISSUE FORM
+========================================================= */
 
 export default function IssueForm({
   materials,
@@ -166,46 +868,66 @@ export default function IssueForm({
   documentNo,
   initialDepartmentId,
 }: Props) {
-  // =====================================================
-  // กลุ่มงาน
-  //
-  // 1. ใช้ initialDepartmentId จาก User ก่อน
-  // 2. ถ้าไม่มี ให้เลือกอัตโนมัติเมื่อมี department เดียว
-  // =====================================================
+  /* =======================================================
+     DEFAULT DEPARTMENT
+  ======================================================= */
 
   const defaultDepartmentId =
     initialDepartmentId ||
-    (departments.length === 1
-      ? String(departments[0].id)
+    (departments.length ===
+    1
+      ? String(
+          departments[0].id
+        )
       : "");
 
-  const [departmentId, setDepartmentId] =
-    useState(defaultDepartmentId);
+  const [
+    departmentId,
+    setDepartmentId,
+  ] = useState(
+    defaultDepartmentId
+  );
 
-  const [officerId, setOfficerId] = useState("");
+  const [
+    officerId,
+    setOfficerId,
+  ] = useState("");
 
-  const [editDocumentNo, setEditDocumentNo] =
-    useState(false);
+  const [
+    editDocumentNo,
+    setEditDocumentNo,
+  ] = useState(false);
 
-  const [documentValue, setDocumentValue] =
-    useState(documentNo);
+  const [
+    documentValue,
+    setDocumentValue,
+  ] = useState(
+    documentNo
+  );
 
-  // =====================================================
-  // วันที่เบิก
-  // =====================================================
+  const [
+    issueDate,
+    setIssueDate,
+  ] = useState(
+    getCurrentDate()
+  );
 
-  const [issueDate, setIssueDate] =
-    useState(getCurrentDate());
+  /* =======================================================
+     ROWS
+  ======================================================= */
 
-  const emptyRow = (): ItemRow => ({
-    category: "",
-    materialId: "",
-    qty: "",
-    remark: "",
-  });
+  const emptyRow =
+    (): ItemRow => ({
+      category: "",
+      materialId: "",
+      qty: "",
+      remark: "",
+    });
 
-  // พอ.101 มี 18 รายการ
-  const [rows, setRows] = useState<ItemRow[]>(
+  const [
+    rows,
+    setRows,
+  ] = useState<ItemRow[]>(
     Array.from(
       {
         length: 18,
@@ -214,850 +936,1036 @@ export default function IssueForm({
     )
   );
 
-  // =====================================================
-  // กรองผู้ขอเบิกตามกลุ่มงาน
-  //
-  // รองรับทั้ง:
-  // - officer.departmentId
-  // - officer.section.departmentId
-  // =====================================================
+  /* =======================================================
+     FILTER OFFICERS
+  ======================================================= */
 
-  const filteredOfficers = officers.filter(
-    (officer) =>
-      String(officer.departmentId) ===
-        departmentId ||
-      String(
-        officer.section?.departmentId
-      ) === departmentId
-  );
+  const filteredOfficers =
+    useMemo(
+      () =>
+        officers.filter(
+          (officer) =>
+            String(
+              officer.departmentId
+            ) ===
+              departmentId ||
+            String(
+              officer.section
+                ?.departmentId
+            ) ===
+              departmentId
+        ),
+      [
+        officers,
+        departmentId,
+      ]
+    );
+
+  /* =======================================================
+     OPTIONS
+  ======================================================= */
+
+  const departmentOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () =>
+        departments.map(
+          (department) => ({
+            value: String(
+              department.id
+            ),
+            label:
+              department.name,
+          })
+        ),
+      [departments]
+    );
+
+  const officerOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () =>
+        filteredOfficers.map(
+          (officer) => ({
+            value: String(
+              officer.id
+            ),
+            label: `${officer.firstName} ${officer.lastName}`,
+          })
+        ),
+      [filteredOfficers]
+    );
+
+  const categoryOptions =
+    useMemo<
+      SearchableOption[]
+    >(
+      () =>
+        categories.map(
+          (category) => ({
+            value:
+              category.value,
+            label:
+              category.label,
+          })
+        ),
+      []
+    );
+
+  /* =======================================================
+     UPDATE ROW
+  ======================================================= */
 
   function updateRow(
     index: number,
     key: keyof ItemRow,
     value: string
   ) {
-    const copy = [...rows];
+    setRows(
+      (currentRows) => {
+        const copy =
+          currentRows.map(
+            (row) => ({
+              ...row,
+            })
+          );
 
-    copy[index] = {
-      ...copy[index],
-      [key]: value,
-    };
+        copy[index] = {
+          ...copy[index],
+          [key]: value,
+        };
 
-    // เปลี่ยนหมวดหมู่
-    // ต้องล้างพัสดุและจำนวนเดิม
-    if (key === "category") {
-      copy[index].materialId = "";
-      copy[index].qty = "";
-    }
+        if (
+          key === "category"
+        ) {
+          copy[
+            index
+          ].materialId = "";
 
-    // เปลี่ยนพัสดุ
-    // ต้องล้างจำนวนเดิม
-    if (key === "materialId") {
-      copy[index].qty = "";
-    }
+          copy[index].qty =
+            "";
+        }
 
-    setRows(copy);
+        if (
+          key ===
+          "materialId"
+        ) {
+          copy[index].qty =
+            "";
+        }
+
+        return copy;
+      }
+    );
   }
 
+  /* =======================================================
+     CENTRAL FORM CLASSES
+     รูปแบบเดียวกับ RECEIVE
+  ======================================================= */
+
+  const labelClass = `
+    mb-2
+    block
+
+    text-base
+    font-extrabold
+    !text-slate-800
+  `;
+
+  const inputClass = `
+    h-[52px]
+    w-full
+    min-w-0
+
+    rounded-[16px]
+
+    border
+    border-slate-200
+
+    bg-white
+
+    px-4
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-300
+    hover:bg-slate-50
+
+    focus:border-blue-300
+    focus:ring-4
+    focus:ring-blue-100/70
+  `;
+
+  const tableInputClass = `
+    h-[52px]
+
+    rounded-[16px]
+
+    border
+    border-slate-200
+
+    bg-white
+
+    px-3
+
+    text-sm
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-300
+    hover:bg-slate-50
+
+    focus:border-blue-300
+    focus:ring-4
+    focus:ring-blue-100/70
+  `;
+
   return (
-    <div
+    <form
+      action={createIssue}
       className="
-        mx-auto
-        max-w-[1600px]
-        rounded-2xl
-        border
-        border-slate-300
-        bg-white
-        p-4
-        shadow-xl
-        sm:p-6
+        relative
+        w-full
+        min-w-0
+
+        space-y-6
+
+        overflow-visible
       "
     >
-      <form
-        action={createIssue}
-        className="space-y-6"
-      >
-        {/* =====================================================
-            หัวแบบฟอร์ม พอ.101
-        ===================================================== */}
+      {/* ===================================================
+          HIDDEN VALUES
+      =================================================== */}
 
+      <input
+        type="hidden"
+        name="departmentId"
+        value={departmentId}
+      />
+
+      <input
+        type="hidden"
+        name="officerId"
+        value={officerId}
+      />
+
+      {/* ===================================================
+          DOCUMENT INFORMATION
+      =================================================== */}
+
+      <AppCard
+        className="
+          relative
+          z-[200]
+
+          overflow-visible
+
+          p-4
+
+          sm:p-5
+        "
+      >
         <div
           className="
-            relative
-            border-b
-            border-slate-300
-            pb-6
+            mb-5
+
+            flex
+            items-center
+            gap-3
           "
         >
-          {/* เลขที่เอกสาร */}
-
           <div
             className="
-              mb-4
               flex
-              justify-end
-            "
-          >
-            <div className="w-full sm:w-[300px]">
-              <label
-                className="
-                  mb-2
-                  block
-                  text-base
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                เลขที่เอกสาร
-              </label>
+              h-11
+              w-11
+              shrink-0
+              items-center
+              justify-center
 
-              <input
-                type="text"
-                name="documentNo"
-                value={documentValue}
-                onChange={(e) =>
-                  setDocumentValue(
-                    e.target.value
-                  )
-                }
-                readOnly={!editDocumentNo}
-                className="
-                  w-full
-                  rounded-lg
-                  border
-                  border-slate-300
-                  bg-white
-                  p-2.5
-                  text-base
-                  font-extrabold
-                  text-slate-900
-                  outline-none
-                  focus:border-cyan-500
-                  focus:ring-2
-                  focus:ring-cyan-100
-                "
-              />
+              rounded-[15px]
 
-              <label
-                className="
-                  mt-2
-                  flex
-                  w-fit
-                  cursor-pointer
-                  items-center
-                  gap-2
-                  whitespace-nowrap
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                "
-              >
-                <input
-                  type="checkbox"
-                  checked={editDocumentNo}
-                  onChange={(e) => {
-                    const checked =
-                      e.target.checked;
+              bg-blue-50/90
 
-                    setEditDocumentNo(
-                      checked
-                    );
-
-                    if (!checked) {
-                      setDocumentValue(
-                        documentNo
-                      );
-                    }
-                  }}
-                  className="
-                    h-4
-                    w-4
-                    shrink-0
-                    cursor-pointer
-                  "
-                />
-
-                <span>
-                  แก้ไขเลขที่เอกสาร
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* พอ.101 */}
-
-          <div
-            className="
-              text-center
               text-xl
-              font-bold
-              text-slate-900
+
+              shadow-sm
+
+              ring-1
+              ring-blue-100/80
             "
           >
-            พอ.101
+            📄
           </div>
 
-          {/* ใบเบิกพัสดุ */}
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-black
+                tracking-tight
+                !text-slate-900
 
-          <h1
-            className="
-              mt-1
-              text-center
-              text-2xl
-              font-extrabold
-              text-slate-900
-            "
-          >
-            ใบเบิกพัสดุ
-          </h1>
+                sm:text-xl
+              "
+            >
+              ข้อมูลใบเบิก
+            </h2>
+
+            <p
+              className="
+                mt-0.5
+
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              พอ.101 • ใบเบิกพัสดุ
+            </p>
+          </div>
         </div>
-
-        {/* =====================================================
-            ข้อมูลใบเบิก
-        ===================================================== */}
 
         <div
           className="
             grid
+            min-w-0
             gap-4
+
             md:grid-cols-2
           "
         >
-          {/* วันที่เบิก */}
+          {/* ===============================================
+              DOCUMENT NUMBER
+          =============================================== */}
 
-          <div>
+          <AppInfoCard
+            className="
+              relative
+              overflow-visible
+            "
+          >
+            <label
+              htmlFor="documentNo"
+              className={
+                labelClass
+              }
+            >
+              เลขที่เอกสาร
+            </label>
+
+            <input
+              id="documentNo"
+              type="text"
+              name="documentNo"
+              value={
+                documentValue
+              }
+              onChange={(
+                event
+              ) =>
+                setDocumentValue(
+                  event.target
+                    .value
+                )
+              }
+              readOnly={
+                !editDocumentNo
+              }
+              className={`
+                ${inputClass}
+
+                ${
+                  !editDocumentNo
+                    ? "cursor-default bg-slate-100"
+                    : ""
+                }
+              `}
+            />
+
             <label
               className="
-                mb-2
-                block
-                text-base
-                font-extrabold
-                text-slate-900
+                mt-3
+                flex
+                w-fit
+                cursor-pointer
+                items-center
+                gap-2
+
+                text-sm
+                font-semibold
+                !text-slate-600
               "
+            >
+              <input
+                type="checkbox"
+                checked={
+                  editDocumentNo
+                }
+                onChange={(
+                  event
+                ) => {
+                  const checked =
+                    event.target
+                      .checked;
+
+                  setEditDocumentNo(
+                    checked
+                  );
+
+                  if (
+                    !checked
+                  ) {
+                    setDocumentValue(
+                      documentNo
+                    );
+                  }
+                }}
+                className="
+                  h-4
+                  w-4
+                  cursor-pointer
+                "
+              />
+
+              แก้ไขเลขที่เอกสาร
+            </label>
+          </AppInfoCard>
+
+          {/* ===============================================
+              ISSUE DATE
+          =============================================== */}
+
+          <AppInfoCard
+            className="
+              relative
+              overflow-visible
+            "
+          >
+            <label
+              htmlFor="issueDate"
+              className={
+                labelClass
+              }
             >
               วันที่เบิก
             </label>
 
-            <div className="relative">
-              <input
-                type="date"
-                name="issueDate"
-                value={issueDate}
-                onChange={(e) =>
-                  setIssueDate(e.target.value)
-                }
-                required
-                className="
-                  absolute
-                  inset-0
-                  z-10
-                  h-full
-                  w-full
-                  cursor-pointer
-                  opacity-0
-                "
-              />
+            <DateField
+              id="issueDate"
+              name="issueDate"
+              value={issueDate}
+              placeholder="เลือกวันที่เบิก"
+              onChange={
+                setIssueDate
+              }
+            />
+          </AppInfoCard>
 
-              <div
-                className="
-                  flex
-                  min-h-[50px]
-                  w-full
-                  items-center
-                  justify-between
-                  rounded-lg
-                  border
-                  border-slate-300
-                  bg-white
-                  p-2.5
-                  font-semibold
-                  text-slate-900
-                "
-              >
-                <span>
-                  {formatThaiDate(issueDate)}
-                </span>
+          {/* ===============================================
+              DEPARTMENT
+          =============================================== */}
 
-                <span className="text-xl">
-                  📅
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* หน่วยงาน */}
-
-          <div>
+          <AppInfoCard
+            className="
+              relative
+              z-[500]
+              overflow-visible
+            "
+          >
             <label
-              className="
-                mb-2
-                block
-                text-base
-                font-extrabold
-                text-slate-900
-              "
+              htmlFor="departmentIdControl"
+              className={
+                labelClass
+              }
             >
               หน่วยงาน / กลุ่มงาน
             </label>
 
-            <select
-              name="departmentId"
-              required
-              value={departmentId}
-              onChange={(e) => {
-                const value =
-                  e.target.value;
+            <SearchableDropdown
+              id="departmentIdControl"
+              value={
+                departmentId
+              }
+              options={
+                departmentOptions
+              }
+              placeholder="-- เลือกหน่วยงาน / กลุ่มงาน --"
+              searchPlaceholder="พิมพ์ค้นหาหน่วยงาน / กลุ่มงาน..."
+              emptyText="ไม่พบหน่วยงาน / กลุ่มงาน"
+              onChange={(
+                value
+              ) => {
+                setDepartmentId(
+                  value
+                );
 
-                setDepartmentId(value);
-
-                // เปลี่ยนกลุ่มงาน
-                // ต้องล้างผู้ขอเบิกเดิม
-                setOfficerId("");
+                setOfficerId(
+                  ""
+                );
               }}
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
-                outline-none
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
-              "
-            >
-              {!defaultDepartmentId && (
-                <option value="">
-                  -- เลือกหน่วยงาน --
-                </option>
-              )}
+            />
+          </AppInfoCard>
 
-              {departments.map(
-                (department) => (
-                  <option
-                    key={department.id}
-                    value={department.id}
-                  >
-                    {department.name}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
+          {/* ===============================================
+              OFFICER
+          =============================================== */}
 
-          {/* ผู้ขอเบิก */}
-
-          <div>
+          <AppInfoCard
+            className="
+              relative
+              z-[400]
+              overflow-visible
+            "
+          >
             <label
-              className="
-                mb-2
-                block
-                text-base
-                font-extrabold
-                text-slate-900
-              "
+              htmlFor="officerIdControl"
+              className={
+                labelClass
+              }
             >
               ผู้ขอเบิก
             </label>
 
-            <select
-              name="officerId"
-              value={officerId}
-              onChange={(e) =>
-                setOfficerId(
-                  e.target.value
-                )
+            <SearchableDropdown
+              id="officerIdControl"
+              value={
+                officerId
               }
-              disabled={!departmentId}
-              required
-              className="
-                w-full
-                rounded-lg
-                border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
-                outline-none
-                disabled:bg-slate-100
-                focus:border-cyan-500
-                focus:ring-2
-                focus:ring-cyan-100
-              "
-            >
-              <option value="">
-                -- เลือกผู้ขอเบิก --
-              </option>
-
-              {filteredOfficers.map(
-                (officer) => (
-                  <option
-                    key={officer.id}
-                    value={officer.id}
-                  >
-                    {officer.firstName}{" "}
-                    {officer.lastName}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
+              options={
+                officerOptions
+              }
+              placeholder="-- เลือกผู้ขอเบิก --"
+              searchPlaceholder="พิมพ์ค้นหาผู้ขอเบิก..."
+              emptyText="ไม่พบผู้ขอเบิก"
+              disabled={
+                !departmentId
+              }
+              onChange={
+                setOfficerId
+              }
+            />
+          </AppInfoCard>
         </div>
+      </AppCard>
 
-        {/* =====================================================
-            ข้อความนำหน้าตาราง
-        ===================================================== */}
+      {/* ===================================================
+          DESCRIPTION
+      =================================================== */}
 
-        <div
+      <AppCard
+        className="
+          relative
+          z-10
+
+          p-4
+
+          sm:p-5
+        "
+      >
+        <p
           className="
-            pt-2
-            text-lg
-            font-semibold
-            text-slate-900
+            text-base
+            font-bold
+            leading-relaxed
+            !text-slate-800
+
+            sm:text-lg
           "
         >
-          ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ
+          ประสงค์จะขอเบิกสิ่งของต่างๆ
+          สำหรับใช้ในราชการ
           ดังมีรายการต่อไปนี้
-        </div>
+        </p>
+      </AppCard>
 
-        {/* =====================================================
-            ตารางรายการ พอ.101
-        ===================================================== */}
+      {/* ===================================================
+          TABLE
+      =================================================== */}
 
+      <AppTableCard
+        title="รายการพัสดุที่ขอเบิก"
+        subtitle="พอ.101 • ระบุหมวดหมู่ รายการพัสดุ และจำนวนที่ต้องการเบิก"
+        badge={`${rows.length} รายการ`}
+        className="
+          relative
+          z-10
+          overflow-visible
+        "
+      >
         <div
           className="
+            relative
+            w-full
+            min-w-0
+
             overflow-x-auto
-            rounded-xl
-            bg-white
+            overflow-y-visible
+            overscroll-x-contain
           "
         >
           <table
             className="
+              relative
               w-full
-              min-w-[1100px]
+              min-w-[1200px]
+
               border-collapse
+
+              bg-white
+
               text-sm
             "
           >
-            <thead>
+            <thead
+              className="
+                relative
+                z-10
+              "
+            >
               <tr>
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  ลำดับ
-                </th>
+                {[
+                  "ลำดับ",
+                  "หมวดหมู่",
+                  "รายการพัสดุ",
+                  "จำนวนที่ขอเบิก",
+                  "จำนวนที่เบิกจ่าย",
+                  "หน่วย",
+                ].map(
+                  (title) => (
+                    <th
+                      key={title}
+                      className="
+                        whitespace-nowrap
 
-                <th
-                  className="
-                    w-[18%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  หมวดหมู่
-                </th>
+                        border
+                        border-black
 
-                <th
-                  className="
-                    w-[35%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  รายการพัสดุ
-                </th>
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  จำนวนที่ขอเบิก
-                </th>
+                        px-3
+                        py-4
 
-                <th
-                  className="
-                    w-[13%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  จำนวนที่เบิกจ่าย
-                </th>
-
-                <th
-                  className="
-                    w-[14%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-2
-                    py-3
-                    text-center
-                    font-extrabold
-                    text-white
-                  "
-                >
-                  หน่วย
-                </th>
+                        text-center
+                        text-lg
+                        font-extrabold
+                        !text-white
+                      "
+                    >
+                      {title}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            <tbody>
-              {rows.map((row, index) => {
-                const list =
-                  materials.filter(
-                    (material) =>
-                      material.category ===
-                      row.category
-                  );
+            <tbody className="relative">
+              {rows.map(
+                (
+                  row,
+                  index
+                ) => {
+                  const filteredMaterials =
+                    materials.filter(
+                      (
+                        material
+                      ) =>
+                        material.category ===
+                        row.category
+                    );
 
-                const selectedMaterial =
-                  materials.find(
-                    (material) =>
-                      String(material.id) ===
-                      row.materialId
-                  );
+                  const selectedMaterial =
+                    materials.find(
+                      (
+                        material
+                      ) =>
+                        String(
+                          material.id
+                        ) ===
+                        row.materialId
+                    );
 
-                const unit =
-                  selectedMaterial?.unit ?? "";
+                  const unit =
+                    selectedMaterial?.unit ??
+                    "";
 
-                return (
-                  <tr
-                    key={index}
-                    className="
-                      transition
-                      hover:bg-emerald-50
-                    "
-                  >
-                    {/* ลำดับ */}
+                  const materialOptions:
+                    SearchableOption[] =
+                    filteredMaterials.map(
+                      (
+                        material
+                      ) => ({
+                        value:
+                          String(
+                            material.id
+                          ),
+                        label:
+                          material.code
+                            ? `${material.code} - ${material.name}`
+                            : material.name,
+                      })
+                    );
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                        font-bold
-                        text-slate-900
-                      "
-                    >
-                      {index + 1}
-                    </td>
+                  const rowZIndex =
+                    rows.length -
+                    index +
+                    20;
 
-                    {/* หมวดหมู่ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                      "
-                    >
-                      <select
-                        value={
-                          row.category
+                  return (
+                    <tr
+                      key={
+                        index
+                      }
+                      style={{
+                        position:
+                          "relative",
+                        zIndex:
+                          rowZIndex,
+                      }}
+                      className={`
+                        ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
                         }
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "category",
-                            e.target.value
-                          )
-                        }
+
+                        transition-colors
+                        duration-200
+
+                        hover:bg-blue-50/70
+                      `}
+                    >
+                      {/* ===================================
+                          INDEX
+                      =================================== */}
+
+                      <td
                         className="
-                          w-full
-                          rounded-lg
+                          whitespace-nowrap
+
                           border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
+                          border-black
+
+                          px-3
+                          py-3
+
+                          text-center
+                          font-extrabold
+                          !text-slate-900
                         "
                       >
-                        <option value="">
-                          เลือกหมวดหมู่
-                        </option>
+                        {index +
+                          1}
+                      </td>
 
-                        {categories.map(
-                          (category) => (
-                            <option
-                              key={
-                                category.value
-                              }
-                              value={
-                                category.value
-                              }
-                            >
-                              {category.label}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </td>
+                      {/* ===================================
+                          CATEGORY
+                      =================================== */}
 
-                    {/* รายการพัสดุ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                      "
-                    >
-                      <select
-                        name={`items[${index}].materialId`}
-                        value={
-                          row.materialId
-                        }
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "materialId",
-                            e.target.value
-                          )
-                        }
+                      <td
                         className="
-                          w-full
-                          rounded-lg
+                          relative
+                          min-w-[220px]
+
+                          overflow-visible
+
                           border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
                         "
                       >
-                        <option value="">
-                          เลือกรายการพัสดุ
-                        </option>
+                        <SearchableDropdown
+                          id={`category-${index}`}
+                          value={
+                            row.category
+                          }
+                          options={
+                            categoryOptions
+                          }
+                          placeholder="เลือกหมวดหมู่"
+                          searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
+                          emptyText="ไม่พบหมวดหมู่"
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "category",
+                              value
+                            )
+                          }
+                        />
+                      </td>
 
-                        {list.map(
-                          (material) => (
-                            <option
-                              key={
-                                material.id
-                              }
-                              value={
-                                material.id
-                              }
-                            >
-                              {material.name}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </td>
+                      {/* ===================================
+                          MATERIAL
+                      =================================== */}
 
-                    {/* จำนวนที่ขอเบิก */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                      "
-                    >
-                      <input
-                        name={`items[${index}].qty`}
-                        type="number"
-                        min="1"
-                        value={row.qty}
-                        onChange={(e) =>
-                          updateRow(
-                            index,
-                            "qty",
-                            e.target.value
-                          )
-                        }
+                      <td
                         className="
-                          w-full
-                          rounded-lg
+                          relative
+                          min-w-[340px]
+
+                          overflow-visible
+
                           border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-bold
-                          text-slate-900
-                          outline-none
-                          focus:border-cyan-500
-                          focus:ring-2
-                          focus:ring-cyan-100
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
                         "
-                      />
-                    </td>
+                      >
+                        <input
+                          type="hidden"
+                          name={`items[${index}].materialId`}
+                          value={
+                            row.materialId
+                          }
+                        />
 
-                    {/* จำนวนที่เบิกจ่าย */}
+                        <SearchableDropdown
+                          id={`material-${index}`}
+                          value={
+                            row.materialId
+                          }
+                          options={
+                            materialOptions
+                          }
+                          placeholder="เลือกรายการพัสดุ"
+                          searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
+                          emptyText="ไม่พบรายการพัสดุ"
+                          disabled={
+                            !row.category
+                          }
+                          onChange={(
+                            value
+                          ) =>
+                            updateRow(
+                              index,
+                              "materialId",
+                              value
+                            )
+                          }
+                        />
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                        text-center
-                      "
-                    >
-                      <input
-                        type="text"
-                        readOnly
-                        value=""
+                      {/* ===================================
+                          REQUEST QTY
+                      =================================== */}
+
+                      <td
                         className="
-                          w-full
-                          rounded-lg
+                          min-w-[160px]
+
                           border
-                          border-slate-300
-                          bg-slate-100
-                          p-2
-                          text-center
-                          font-bold
-                          text-slate-900
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
                         "
-                      />
-                    </td>
+                      >
+                        <input
+                          name={`items[${index}].qty`}
+                          type="number"
+                          min="1"
+                          value={
+                            row.qty
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateRow(
+                              index,
+                              "qty",
+                              event
+                                .target
+                                .value
+                            )
+                          }
+                          className={`
+                            ${tableInputClass}
 
-                    {/* หน่วย */}
+                            w-full
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-2
-                        py-2
-                      "
-                    >
-                      <input
-                        type="text"
-                        readOnly
-                        value={unit}
-                        aria-label={`หน่วยของรายการที่ ${index + 1}`}
+                            text-center
+                            tabular-nums
+                          `}
+                        />
+                      </td>
+
+                      {/* ===================================
+                          APPROVED QTY
+                      =================================== */}
+
+                      <td
                         className="
-                          w-full
-                          rounded-lg
-                          border
-                          border-slate-300
-                          bg-white
-                          p-2
-                          text-center
-                          font-semibold
-                          text-slate-900
-                          outline-none
-                        "
-                      />
+                          min-w-[160px]
 
-                      <input
-                        type="hidden"
-                        name={`items[${index}].unit`}
-                        value={unit}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          type="text"
+                          readOnly
+                          value=""
+                          className="
+                            h-[52px]
+                            w-full
+
+                            cursor-default
+
+                            rounded-[16px]
+
+                            border
+                            border-slate-200
+
+                            bg-slate-100
+
+                            px-3
+
+                            text-center
+                            text-base
+                            font-extrabold
+                            !text-slate-700
+
+                            outline-none
+                          "
+                        />
+                      </td>
+
+                      {/* ===================================
+                          UNIT
+                      =================================== */}
+
+                      <td
+                        className="
+                          min-w-[140px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          type="text"
+                          readOnly
+                          value={
+                            unit ||
+                            "-"
+                          }
+                          aria-label={`หน่วยของรายการที่ ${
+                            index +
+                            1
+                          }`}
+                          className="
+                            h-[52px]
+                            w-full
+
+                            cursor-default
+
+                            rounded-[16px]
+
+                            border
+                            border-slate-200
+
+                            bg-slate-100
+
+                            px-3
+
+                            text-center
+                            text-base
+                            font-extrabold
+                            !text-slate-700
+
+                            outline-none
+                          "
+                        />
+
+                        <input
+                          type="hidden"
+                          name={`items[${index}].unit`}
+                          value={
+                            unit
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                }
+              )}
             </tbody>
           </table>
         </div>
+      </AppTableCard>
 
-        {/* =====================================================
-            ปุ่มบันทึก
-        ===================================================== */}
+      {/* ===================================================
+          ACTION
+      =================================================== */}
 
-        <div
-          className="
-            flex
-            justify-end
-            pt-2
-          "
+      <div
+        className="
+          flex
+          justify-end
+
+          pt-1
+        "
+      >
+        <AppButton
+          type="submit"
+          variant="success"
+          size="md"
+          icon={
+            <span>
+              💾
+            </span>
+          }
         >
-          <button
-            type="submit"
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              via-green-500
-              to-emerald-500
-              px-8
-              py-3
-              text-lg
-              font-extrabold
-              text-white
-              shadow-lg
-              transition
-              hover:scale-105
-            "
-          >
-            💾 บันทึก
-          </button>
-        </div>
-      </form>
-    </div>
+          บันทึก
+        </AppButton>
+      </div>
+    </form>
   );
 }

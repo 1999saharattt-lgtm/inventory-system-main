@@ -17,11 +17,9 @@ import IssueForm from "./IssueForm";
 ========================================================= */
 
 function getThaiYear() {
-  return (
+  return String(
     new Date().getFullYear() + 543
-  )
-    .toString()
-    .slice(-2);
+  ).slice(-2);
 }
 
 async function generateIssueNo() {
@@ -52,8 +50,9 @@ async function generateIssueNo() {
       continue;
     }
 
-    const number =
-      Number(match[1]);
+    const number = Number(
+      match[1]
+    );
 
     const documentYear =
       match[2];
@@ -69,12 +68,9 @@ async function generateIssueNo() {
   const running =
     maxNumber + 1;
 
-  return `จ.${running
-    .toString()
-    .padStart(
-      2,
-      "0"
-    )}/${year}`;
+  return `จ.${String(
+    running
+  ).padStart(2, "0")}/${year}`;
 }
 
 /* =========================================================
@@ -163,29 +159,27 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   let userDepartmentId =
-    session?.departmentId ??
-    null;
+    session?.departmentId ?? null;
 
   if (
     session &&
-    session.role !== "ADMIN"
+    session.role !== "ADMIN" &&
+    !userDepartmentId
   ) {
-    if (!userDepartmentId) {
-      const currentUser =
-        await prisma.user.findUnique({
-          where: {
-            id: session.id,
-          },
+    const currentUser =
+      await prisma.user.findUnique({
+        where: {
+          id: session.id,
+        },
 
-          select: {
-            departmentId: true,
-          },
-        });
+        select: {
+          departmentId: true,
+        },
+      });
 
-      userDepartmentId =
-        currentUser?.departmentId ??
-        null;
-    }
+    userDepartmentId =
+      currentUser?.departmentId ??
+      null;
   }
 
   /* =======================================================
@@ -260,10 +254,6 @@ export default async function CreateIssuePage() {
   const documentNo =
     await generateIssueNo();
 
-  /* =======================================================
-     INITIAL DEPARTMENT
-  ======================================================= */
-
   const initialDepartmentId =
     session?.role === "ADMIN"
       ? ""
@@ -279,11 +269,6 @@ export default async function CreateIssuePage() {
 
   return (
     <AppPage>
-      {/* ===================================================
-          HEADER
-          ใช้ Component กลางของระบบ
-      =================================================== */}
-
       <AppPageHeader
         icon="📤"
         title="บันทึกการเบิกจ่ายพัสดุ"
@@ -293,59 +278,29 @@ export default async function CreateIssuePage() {
             href="/issue"
             variant="back"
             size="md"
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                ←
-              </span>
-            }
+            icon={<span>←</span>}
           >
             กลับ
           </AppButton>
         }
       />
 
-      {/* ===================================================
-          FORM
-
-          ไม่สร้าง Card / Background เองที่ page
-          ให้ IssueForm ใช้ Component กลางภายใน
-          เช่นเดียวกับ receive/create
-      =================================================== */}
-
-      <div
-        className="
-          relative
-          z-0
-
-          w-full
-          min-w-0
-
-          overflow-visible
-        "
-      >
-        <IssueForm
-          departments={
-            departments
-          }
-          officers={
-            officers
-          }
-          materials={
-            materials
-          }
-          receiveLots={
-            receiveLots
-          }
-          documentNo={
-            documentNo
-          }
-          initialDepartmentId={
-            initialDepartmentId
-          }
-        />
-      </div>
+      <IssueForm
+        departments={
+          departments
+        }
+        officers={officers}
+        materials={materials}
+        receiveLots={
+          receiveLots
+        }
+        documentNo={
+          documentNo
+        }
+        initialDepartmentId={
+          initialDepartmentId
+        }
+      />
     </AppPage>
   );
 }
