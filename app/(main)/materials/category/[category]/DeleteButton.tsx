@@ -4,9 +4,17 @@ import { useState } from "react";
 
 import AppButton from "@/components/AppButton";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Props = {
   id: number;
 };
+
+/* =========================================================
+   DELETE BUTTON
+========================================================= */
 
 export default function DeleteButton({
   id,
@@ -23,9 +31,10 @@ export default function DeleteButton({
       return;
     }
 
-    const confirmed = window.confirm(
-      "ต้องการลบพัสดุนี้ใช่หรือไม่?"
-    );
+    const confirmed =
+      window.confirm(
+        "ต้องการลบพัสดุนี้ใช่หรือไม่?"
+      );
 
     if (!confirmed) {
       return;
@@ -34,19 +43,22 @@ export default function DeleteButton({
     try {
       setIsDeleting(true);
 
-      const response = await fetch(
-        `/api/materials/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response =
+        await fetch(
+          `/api/materials/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
 
       /* =====================================================
          SUCCESS
       ===================================================== */
 
       if (response.ok) {
-        window.alert("ลบสำเร็จ");
+        window.alert(
+          "ลบสำเร็จ"
+        );
 
         window.location.reload();
 
@@ -57,9 +69,10 @@ export default function DeleteButton({
          API ERROR
       ===================================================== */
 
-      const data = await response
-        .json()
-        .catch(() => null);
+      const data =
+        await response
+          .json()
+          .catch(() => null);
 
       window.alert(
         data?.message ??
@@ -80,12 +93,13 @@ export default function DeleteButton({
   }
 
   /* =========================================================
-     RENDER
+     UI
 
-     สำคัญ:
-     - สีปุ่มใช้ AppButton ตัวกลาง
-     - ปุ่มลบใช้ variant="danger"
-     - ไม่กำหนดสีเฉพาะใน Component นี้
+     ใช้ AppButton ตัวกลางทั้งหมด
+     - สี = danger
+     - ขนาด = sm
+     - disabled = AppButton จัดการ
+     - ไม่กำหนด className ของปุ่มเอง
   ========================================================= */
 
   return (
@@ -95,19 +109,13 @@ export default function DeleteButton({
       size="sm"
       onClick={handleDelete}
       disabled={isDeleting}
-      aria-label={
-        isDeleting
-          ? "กำลังลบพัสดุ"
-          : "ลบพัสดุ"
-      }
-    >
-      {isDeleting ? (
-        <>
+      icon={
+        isDeleting ? (
           <span
             aria-hidden="true"
             className="
-              h-3.5
-              w-3.5
+              h-4
+              w-4
               animate-spin
               rounded-full
               border-2
@@ -115,18 +123,16 @@ export default function DeleteButton({
               border-t-transparent
             "
           />
-
-          <span>กำลังลบ...</span>
-        </>
-      ) : (
-        <>
+        ) : (
           <span aria-hidden="true">
             🗑️
           </span>
-
-          <span>ลบ</span>
-        </>
-      )}
+        )
+      }
+    >
+      {isDeleting
+        ? "กำลังลบ..."
+        : "ลบ"}
     </AppButton>
   );
 }
