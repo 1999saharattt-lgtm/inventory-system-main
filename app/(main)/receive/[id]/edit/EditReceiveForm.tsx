@@ -9,10 +9,10 @@ import {
 
 import { updateReceive } from "./actions";
 
-import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppInfoCard from "@/components/AppInfoCard";
 import AppTableCard from "@/components/AppTableCard";
+import AppButton from "@/components/AppButton";
 
 /* =========================================================
    TYPES
@@ -74,12 +74,25 @@ type SearchableOption = {
 
 type SearchableDropdownProps = {
   id: string;
+  name?: string;
   value: string;
   options: SearchableOption[];
   placeholder: string;
   searchPlaceholder?: string;
   emptyText?: string;
   disabled?: boolean;
+  required?: boolean;
+  onChange: (value: string) => void;
+};
+
+type IOSDatePickerProps = {
+  id: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  required?: boolean;
+  compact?: boolean;
+  align?: "left" | "right";
   onChange: (value: string) => void;
 };
 
@@ -115,7 +128,7 @@ const categories = [
 ];
 
 /* =========================================================
-   THAI DATE
+   DATE
 ========================================================= */
 
 const thaiMonths = [
@@ -148,7 +161,17 @@ const thaiShortMonths = [
   "ธ.ค.",
 ];
 
-function formatThaiFullDate(
+const weekDays = [
+  "อา",
+  "จ",
+  "อ",
+  "พ",
+  "พฤ",
+  "ศ",
+  "ส",
+];
+
+function formatThaiDate(
   dateString: string
 ) {
   if (!dateString) {
@@ -181,29 +204,120 @@ function formatThaiShortDate(
     return "";
   }
 
-  const thaiYear = String(
-    year + 543
-  ).slice(-2);
-
   return `${String(day).padStart(
     2,
     "0"
   )} ${
     thaiShortMonths[month - 1]
-  } ${thaiYear}`;
+  } ${String(year + 543).slice(-2)}`;
+}
+
+function dateToInputValue(
+  date: Date
+) {
+  return [
+    date.getFullYear(),
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      date.getDate()
+    ).padStart(2, "0"),
+  ].join("-");
+}
+
+function inputValueToDate(
+  value: string
+) {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] =
+    value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
+
+function isSameDate(
+  first: Date,
+  second: Date
+) {
+  return (
+    first.getFullYear() ===
+      second.getFullYear() &&
+    first.getMonth() ===
+      second.getMonth() &&
+    first.getDate() ===
+      second.getDate()
+  );
+}
+
+function toDateInputValue(
+  value: Date | string | null
+) {
+  if (!value) {
+    return "";
+  }
+
+  if (value instanceof Date) {
+    if (
+      Number.isNaN(
+        value.getTime()
+      )
+    ) {
+      return "";
+    }
+
+    return dateToInputValue(
+      value
+    );
+  }
+
+  /*
+   * ถ้าฐานข้อมูลส่ง YYYY-MM-DD หรือ ISO string มา
+   * ใช้ส่วนวันที่โดยตรงก่อน เพื่อไม่ให้ timezone
+   * ทำให้วันที่เลื่อนไปวันก่อน/วันถัดไป
+   */
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})/
+  );
+
+  if (match) {
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+
+  const date = new Date(value);
+
+  if (
+    Number.isNaN(date.getTime())
+  ) {
+    return "";
+  }
+
+  return dateToInputValue(
+    date
+  );
 }
 
 /* =========================================================
-   NUMBER FORMAT
+   NUMBER
 ========================================================= */
 
 function sanitizeDecimalInput(
   value: string
 ) {
-  const cleaned =
-    value
-      .replace(/,/g, "")
-      .replace(/[^\d.]/g, "");
+  const cleaned = value
+    .replace(/,/g, "")
+    .replace(/[^\d.]/g, "");
 
   const firstDot =
     cleaned.indexOf(".");
@@ -215,11 +329,10 @@ function sanitizeDecimalInput(
   const integerPart =
     cleaned.slice(0, firstDot);
 
-  const decimalPart =
-    cleaned
-      .slice(firstDot + 1)
-      .replace(/\./g, "")
-      .slice(0, 2);
+  const decimalPart = cleaned
+    .slice(firstDot + 1)
+    .replace(/\./g, "")
+    .slice(0, 2);
 
   return `${integerPart}.${decimalPart}`;
 }
@@ -237,16 +350,12 @@ function formatNumberWithCommas(
   const [integerPart, decimalPart] =
     normalized.split(".");
 
-  const safeInteger =
-    integerPart === ""
-      ? "0"
-      : integerPart;
-
-  const formattedInteger =
-    safeInteger.replace(
-      /\B(?=(\d{3})+(?!\d))/g,
-      ","
-    );
+  const formattedInteger = (
+    integerPart || "0"
+  ).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ","
+  );
 
   if (
     normalized.includes(".")
@@ -260,123 +369,248 @@ function formatNumberWithCommas(
 }
 
 /* =========================================================
-   DATE INPUT VALUE
+   IOS DATE PICKER
 ========================================================= */
 
-function toDateInputValue(
-  value: Date | string | null
-) {
-  if (!value) {
-    return "";
-  }
-
-  const date =
-    value instanceof Date
-      ? value
-      : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return [
-    date.getFullYear(),
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0"),
-    String(
-      date.getDate()
-    ).padStart(2, "0"),
-  ].join("-");
-}
-
-/* =========================================================
-   DATE FIELD
-========================================================= */
-
-type DateFieldProps = {
-  id: string;
-  name?: string;
-  value: string;
-  placeholder?: string;
-  compact?: boolean;
-  fullDate?: boolean;
-  onChange: (value: string) => void;
-};
-
-function DateField({
+function IOSDatePicker({
   id,
   name,
   value,
   placeholder = "เลือกวันที่",
+  required = false,
   compact = false,
-  fullDate = false,
+  align = "left",
   onChange,
-}: DateFieldProps) {
-  const dateRef =
-    useRef<HTMLInputElement>(null);
+}: IOSDatePickerProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
 
-  function openCalendar() {
-    const input = dateRef.current;
+  const selectedDate =
+    inputValueToDate(value);
 
-    if (!input) {
-      return;
+  const [open, setOpen] =
+    useState(false);
+
+  const [viewDate, setViewDate] =
+    useState<Date>(
+      selectedDate ??
+        new Date()
+    );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setViewDate(
+        new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          1
+        )
+      );
     }
+  }, [value]);
 
-    try {
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
       if (
-        typeof input.showPicker ===
-        "function"
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
       ) {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
+        setOpen(false);
       }
-    } catch {
-      input.focus();
-      input.click();
     }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  const calendarDays =
+    useMemo(() => {
+      const year =
+        viewDate.getFullYear();
+
+      const month =
+        viewDate.getMonth();
+
+      const firstDay =
+        new Date(
+          year,
+          month,
+          1
+        );
+
+      const lastDay =
+        new Date(
+          year,
+          month + 1,
+          0
+        );
+
+      const days: Array<
+        Date | null
+      > = [];
+
+      for (
+        let i = 0;
+        i <
+        firstDay.getDay();
+        i++
+      ) {
+        days.push(null);
+      }
+
+      for (
+        let day = 1;
+        day <=
+        lastDay.getDate();
+        day++
+      ) {
+        days.push(
+          new Date(
+            year,
+            month,
+            day
+          )
+        );
+      }
+
+      while (
+        days.length % 7 !==
+        0
+      ) {
+        days.push(null);
+      }
+
+      return days;
+    }, [viewDate]);
+
+  function previousMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() -
+            1,
+          1
+        )
+    );
+  }
+
+  function nextMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() +
+            1,
+          1
+        )
+    );
+  }
+
+  function selectToday() {
+    const today =
+      new Date();
+
+    onChange(
+      dateToInputValue(today)
+    );
+
+    setViewDate(
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      )
+    );
+
+    setOpen(false);
   }
 
   return (
     <div
-      className="
+      ref={containerRef}
+      className={`
         relative
-        h-[52px]
         w-full
         min-w-0
-      "
-    >
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={value}
-        />
-      )}
 
-      <div
-        className="
+        ${
+          open
+            ? "z-[99999]"
+            : "z-10"
+        }
+      `}
+    >
+      <input
+        type="hidden"
+        name={name}
+        value={value}
+        required={required}
+      />
+
+      <button
+        id={id}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) {
+            const base =
+              selectedDate ??
+              new Date();
+
+            setViewDate(
+              new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                1
+              )
+            );
+          }
+
+          setOpen(
+            (current) =>
+              !current
+          );
+        }}
+        className={`
           flex
-          h-[52px]
           w-full
           min-w-0
           items-center
           justify-between
           gap-3
 
-          rounded-[16px]
+          ${
+            compact
+              ? "h-[46px] rounded-[12px] px-3"
+              : "h-[52px] rounded-[16px] px-4"
+          }
 
           border
           border-slate-200
 
           bg-white
 
-          pl-4
-          pr-2
+          text-left
+          font-bold
+          !text-slate-900
 
           shadow-sm
+          outline-none
 
           transition-all
           duration-200
@@ -384,10 +618,10 @@ function DateField({
           hover:border-slate-300
           hover:bg-slate-50
 
-          focus-within:border-blue-300
-          focus-within:ring-4
-          focus-within:ring-blue-100/70
-        "
+          focus:border-blue-300
+          focus:ring-4
+          focus:ring-blue-100/70
+        `}
       >
         <span
           className={`
@@ -396,89 +630,368 @@ function DateField({
             truncate
 
             ${
-              compact
-                ? "text-sm"
-                : "text-base"
-            }
-
-            font-bold
-
-            ${
               value
                 ? "!text-slate-900"
                 : "!text-slate-400"
             }
+
+            ${
+              compact
+                ? "text-sm"
+                : "text-base"
+            }
           `}
         >
           {value
-            ? fullDate
-              ? formatThaiFullDate(
+            ? compact
+              ? formatThaiShortDate(
                   value
                 )
-              : formatThaiShortDate(
+              : formatThaiDate(
                   value
                 )
             : placeholder}
         </span>
 
-        <button
-          type="button"
-          aria-label="เปิดปฏิทิน"
-          onClick={openCalendar}
-          className="
+        <span
+          className={`
             flex
-            h-9
-            w-9
             shrink-0
             items-center
             justify-center
 
-            rounded-[11px]
+            ${
+              compact
+                ? "h-8 w-8 rounded-[10px] text-base"
+                : "h-9 w-9 rounded-[11px] text-lg"
+            }
 
-            bg-slate-100
-
-            text-lg
+            ${
+              open
+                ? "bg-slate-900 !text-white"
+                : "bg-slate-100"
+            }
 
             shadow-inner
 
             transition-all
             duration-200
-
-            hover:bg-slate-200
-
-            active:scale-[0.96]
-
-            focus:outline-none
-            focus:ring-4
-            focus:ring-blue-100
-          "
+          `}
         >
           📅
-        </button>
+        </span>
+      </button>
 
-        <input
-          ref={dateRef}
-          id={id}
-          type="date"
-          value={value}
-          onChange={(event) =>
-            onChange(
-              event.target.value
-            )
-          }
-          tabIndex={-1}
-          aria-hidden="true"
-          className="
-            pointer-events-none
+      {open && (
+        <div
+          role="dialog"
+          aria-label="เลือกวันที่"
+          className={`
             absolute
-            bottom-0
-            right-0
-            h-px
-            w-px
-            opacity-0
-          "
-        />
-      </div>
+            top-[calc(100%+10px)]
+
+            ${
+              align === "right"
+                ? "right-0"
+                : "left-0"
+            }
+
+            z-[999999]
+
+            ${
+              compact
+                ? "w-[320px]"
+                : "w-[360px]"
+            }
+
+            max-w-[calc(100vw-32px)]
+
+            overflow-hidden
+
+            rounded-[24px]
+
+            border
+            border-slate-200
+
+            bg-white
+
+            p-3
+
+            shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
+
+            ring-1
+            ring-black/5
+          `}
+        >
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-2
+              px-1
+              pb-3
+            "
+          >
+            <button
+              type="button"
+              onClick={
+                previousMonth
+              }
+              className="
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ‹
+            </button>
+
+            <div className="text-center">
+              <div
+                className="
+                  text-base
+                  font-black
+                  !text-slate-900
+                "
+              >
+                {
+                  thaiMonths[
+                    viewDate.getMonth()
+                  ]
+                }
+              </div>
+
+              <div
+                className="
+                  text-xs
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                พ.ศ.{" "}
+                {viewDate.getFullYear() +
+                  543}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                nextMonth
+              }
+              className="
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ›
+            </button>
+          </div>
+
+          <div
+            className="
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {weekDays.map(
+              (day) => (
+                <div
+                  key={day}
+                  className="
+                    flex
+                    h-8
+                    items-center
+                    justify-center
+
+                    text-xs
+                    font-extrabold
+                    !text-slate-400
+                  "
+                >
+                  {day}
+                </div>
+              )
+            )}
+
+            {calendarDays.map(
+              (
+                date,
+                index
+              ) => {
+                if (!date) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-10"
+                    />
+                  );
+                }
+
+                const selected =
+                  selectedDate
+                    ? isSameDate(
+                        date,
+                        selectedDate
+                      )
+                    : false;
+
+                const today =
+                  isSameDate(
+                    date,
+                    new Date()
+                  );
+
+                return (
+                  <button
+                    key={dateToInputValue(
+                      date
+                    )}
+                    type="button"
+                    onClick={() => {
+                      onChange(
+                        dateToInputValue(
+                          date
+                        )
+                      );
+
+                      setOpen(
+                        false
+                      );
+                    }}
+                    className={`
+                      flex
+                      h-10
+                      items-center
+                      justify-center
+
+                      rounded-full
+
+                      text-sm
+                      font-extrabold
+
+                      transition-all
+
+                      active:scale-90
+
+                      ${
+                        selected
+                          ? "bg-slate-900 !text-white shadow-md"
+                          : today
+                          ? "bg-blue-50 !text-blue-700 ring-1 ring-blue-200"
+                          : "bg-transparent !text-slate-800 hover:bg-slate-100"
+                      }
+                    `}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              }
+            )}
+          </div>
+
+          <div
+            className="
+              mt-3
+
+              flex
+              items-center
+              justify-between
+              gap-3
+
+              border-t
+              border-slate-200
+
+              pt-3
+            "
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="
+                rounded-full
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-slate-500
+
+                transition-colors
+
+                hover:bg-slate-100
+              "
+            >
+              ล้างวันที่
+            </button>
+
+            <button
+              type="button"
+              onClick={
+                selectToday
+              }
+              className="
+                rounded-full
+
+                bg-slate-900
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-white
+
+                shadow-sm
+
+                transition-all
+
+                hover:bg-slate-800
+                active:scale-95
+              "
+            >
+              วันนี้
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -489,12 +1002,14 @@ function DateField({
 
 function SearchableDropdown({
   id,
+  name,
   value,
   options,
   placeholder,
   searchPlaceholder = "พิมพ์เพื่อค้นหา...",
   emptyText = "ไม่พบข้อมูล",
   disabled = false,
+  required = false,
   onChange,
 }: SearchableDropdownProps) {
   const containerRef =
@@ -520,7 +1035,9 @@ function SearchableDropdown({
       const keyword =
         search
           .trim()
-          .toLocaleLowerCase("th");
+          .toLocaleLowerCase(
+            "th"
+          );
 
       if (!keyword) {
         return options;
@@ -529,11 +1046,19 @@ function SearchableDropdown({
       return options.filter(
         (option) =>
           option.label
-            .toLocaleLowerCase("th")
-            .includes(keyword) ||
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(
+              keyword
+            ) ||
           option.value
-            .toLocaleLowerCase("th")
-            .includes(keyword)
+            .toLocaleLowerCase(
+              "th"
+            )
+            .includes(
+              keyword
+            )
       );
     }, [options, search]);
 
@@ -572,12 +1097,17 @@ function SearchableDropdown({
     }
 
     const timer =
-      window.setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+      window.setTimeout(
+        () => {
+          inputRef.current?.focus();
+        },
+        0
+      );
 
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        timer
+      );
     };
   }, [open]);
 
@@ -591,11 +1121,20 @@ function SearchableDropdown({
 
         ${
           open
-            ? "z-[9999]"
+            ? "z-[1000]"
             : "z-10"
         }
       `}
     >
+      {name && (
+        <input
+          type="hidden"
+          name={name}
+          value={value}
+          required={required}
+        />
+      )}
+
       <button
         id={id}
         type="button"
@@ -603,13 +1142,12 @@ function SearchableDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => {
-          if (disabled) {
-            return;
+          if (!disabled) {
+            setOpen(
+              (current) =>
+                !current
+            );
           }
-
-          setOpen(
-            (current) => !current
-          );
         }}
         className="
           flex
@@ -638,17 +1176,13 @@ function SearchableDropdown({
           outline-none
 
           transition-all
-          duration-200
 
-          hover:border-slate-300
           hover:bg-slate-50
 
-          focus:border-blue-300
           focus:ring-4
-          focus:ring-blue-100/70
+          focus:ring-slate-900/10
 
           disabled:cursor-not-allowed
-          disabled:border-slate-200
           disabled:bg-slate-100
           disabled:!text-slate-400
         "
@@ -671,14 +1205,13 @@ function SearchableDropdown({
         </span>
 
         <span
-          aria-hidden="true"
           className={`
             shrink-0
+
             text-xs
-            !text-slate-500
+            !text-slate-700
 
             transition-transform
-            duration-200
 
             ${
               open
@@ -691,209 +1224,228 @@ function SearchableDropdown({
         </span>
       </button>
 
-      {open && !disabled && (
-        <div
-          className="
-            absolute
-            left-0
-            right-0
-            top-[calc(100%+8px)]
-
-            z-[99999]
-
-            overflow-hidden
-
-            rounded-[20px]
-
-            border
-            border-slate-200
-
-            bg-white/95
-
-            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.35)]
-
-            backdrop-blur-2xl
-          "
-        >
+      {open &&
+        !disabled && (
           <div
             className="
-              border-b
+              absolute
+              left-0
+              right-0
+              top-[calc(100%+8px)]
+
+              z-[99999]
+
+              overflow-hidden
+
+              rounded-[20px]
+
+              border
               border-slate-200
 
-              bg-slate-50/90
+              bg-white/95
 
-              p-3
+              shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
+
+              backdrop-blur-2xl
             "
           >
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              autoComplete="off"
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
-              onKeyDown={(event) => {
-                if (
-                  event.key ===
-                  "Escape"
-                ) {
-                  setOpen(false);
-                  setSearch("");
-                }
-
-                if (
-                  event.key ===
-                    "Enter" &&
-                  filteredOptions.length ===
-                    1
-                ) {
-                  event.preventDefault();
-
-                  onChange(
-                    filteredOptions[0]
-                      .value
-                  );
-
-                  setOpen(false);
-                  setSearch("");
-                }
-              }}
-              placeholder={
-                searchPlaceholder
-              }
+            <div
               className="
-                h-[46px]
-                w-full
-
-                rounded-[14px]
-
-                border
+                border-b
                 border-slate-200
+
+                bg-slate-50/90
+
+                p-3
+              "
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                autoComplete="off"
+                onChange={(
+                  event
+                ) =>
+                  setSearch(
+                    event.target
+                      .value
+                  )
+                }
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(
+                      false
+                    );
+                    setSearch(
+                      ""
+                    );
+                  }
+
+                  if (
+                    event.key ===
+                      "Enter" &&
+                    filteredOptions.length ===
+                      1
+                  ) {
+                    event.preventDefault();
+
+                    onChange(
+                      filteredOptions[0]
+                        .value
+                    );
+
+                    setOpen(
+                      false
+                    );
+                    setSearch(
+                      ""
+                    );
+                  }
+                }}
+                placeholder={
+                  searchPlaceholder
+                }
+                className="
+                  h-[46px]
+                  w-full
+
+                  rounded-[14px]
+
+                  border
+                  border-slate-200
+
+                  bg-white
+
+                  px-4
+
+                  text-base
+                  font-bold
+                  !text-slate-900
+
+                  shadow-sm
+                  outline-none
+
+                  placeholder:!text-slate-400
+
+                  focus:ring-4
+                  focus:ring-slate-900/10
+                "
+              />
+            </div>
+
+            <div
+              role="listbox"
+              className="
+                max-h-[280px]
+
+                overflow-y-auto
+                overscroll-contain
 
                 bg-white
 
-                px-4
-
-                text-base
-                font-bold
-                !text-slate-900
-
-                shadow-sm
-                outline-none
-
-                placeholder:!text-slate-400
-
-                focus:border-blue-300
-                focus:ring-4
-                focus:ring-blue-100/70
+                p-2
               "
-            />
-          </div>
+            >
+              {filteredOptions.length >
+              0 ? (
+                filteredOptions.map(
+                  (option) => {
+                    const selected =
+                      option.value ===
+                      value;
 
-          <div
-            role="listbox"
-            className="
-              max-h-[280px]
-
-              overflow-y-auto
-              overscroll-contain
-
-              bg-white
-
-              p-2
-            "
-          >
-            {filteredOptions.length >
-            0 ? (
-              filteredOptions.map(
-                (option) => {
-                  const selected =
-                    option.value ===
-                    value;
-
-                  return (
-                    <button
-                      key={
-                        option.value
-                      }
-                      type="button"
-                      role="option"
-                      aria-selected={
-                        selected
-                      }
-                      onClick={() => {
-                        onChange(
+                    return (
+                      <button
+                        key={
                           option.value
-                        );
-
-                        setOpen(false);
-                        setSearch("");
-                      }}
-                      className={`
-                        flex
-                        w-full
-                        items-center
-                        justify-between
-                        gap-3
-
-                        rounded-[12px]
-
-                        px-3
-                        py-2.5
-
-                        text-left
-                        text-base
-                        font-bold
-
-                        transition-colors
-
-                        ${
-                          selected
-                            ? "bg-slate-900 !text-white"
-                            : "bg-white !text-slate-900 hover:bg-slate-100"
                         }
-                      `}
-                    >
-                      <span
-                        className="
-                          min-w-0
-                          flex-1
-                          break-words
-                        "
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selected
+                        }
+                        onClick={() => {
+                          onChange(
+                            option.value
+                          );
+
+                          setOpen(
+                            false
+                          );
+                          setSearch(
+                            ""
+                          );
+                        }}
+                        className={`
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-[12px]
+
+                          px-3
+                          py-2.5
+
+                          text-left
+                          text-base
+                          font-bold
+
+                          transition-colors
+
+                          ${
+                            selected
+                              ? "bg-slate-900 !text-white"
+                              : "bg-white !text-slate-900 hover:bg-slate-100"
+                          }
+                        `}
                       >
-                        {option.label}
-                      </span>
-
-                      {selected && (
-                        <span className="!text-white">
-                          ✓
+                        <span
+                          className="
+                            min-w-0
+                            flex-1
+                            break-words
+                          "
+                        >
+                          {
+                            option.label
+                          }
                         </span>
-                      )}
-                    </button>
-                  );
-                }
-              )
-            ) : (
-              <div
-                className="
-                  px-4
-                  py-8
 
-                  text-center
-                  text-sm
-                  font-bold
-                  !text-slate-500
-                "
-              >
-                {emptyText}
-              </div>
-            )}
+                        {selected && (
+                          <span className="!text-white">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )
+              ) : (
+                <div
+                  className="
+                    px-4
+                    py-8
+
+                    text-center
+                    text-sm
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  {emptyText}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
@@ -907,6 +1459,16 @@ export default function EditReceiveForm({
   vendors,
   materials,
 }: Props) {
+  const emptyRow =
+    (): ReceiveRow => ({
+      category: "",
+      materialId: "",
+      qty: "",
+      unitPrice: "",
+      manufacture: "",
+      expiry: "",
+    });
+
   const [receiveDate, setReceiveDate] =
     useState(
       toDateInputValue(
@@ -914,60 +1476,91 @@ export default function EditReceiveForm({
       )
     );
 
-  const [vendorId, setVendorId] =
-    useState(
-      String(
-        receive.vendorId ?? ""
-      )
-    );
+  const [
+    vendorId,
+    setVendorId,
+  ] = useState(
+    String(
+      receive.vendorId ?? ""
+    )
+  );
+
+  const [
+    isOpeningBalance,
+    setIsOpeningBalance,
+  ] = useState(
+    receive.documentNo ===
+      "ยอดยกเข้าระบบ"
+  );
+
+  const [
+    documentValue,
+    setDocumentValue,
+  ] = useState(
+    receive.documentNo
+  );
+
+  const [
+    normalDocumentNo,
+    setNormalDocumentNo,
+  ] = useState(
+    receive.documentNo ===
+      "ยอดยกเข้าระบบ"
+      ? ""
+      : receive.documentNo
+  );
 
   const [items, setItems] =
-    useState<ReceiveRow[]>(() => {
-      const rows: ReceiveRow[] =
-        receive.items.map(
-          (item) => ({
-            category:
-              item.material.category,
+    useState<ReceiveRow[]>(
+      () => {
+        const rows =
+          receive.items.map(
+            (item) => ({
+              category:
+                item.material
+                  .category,
 
-            materialId: String(
-              item.materialId
-            ),
+              materialId:
+                String(
+                  item.materialId
+                ),
 
-            qty: String(item.qty),
+              qty: String(
+                item.qty
+              ),
 
-            unitPrice: Number(
-              item.unitPrice
-            ).toFixed(2),
+              unitPrice:
+                Number(
+                  item.unitPrice
+                ).toFixed(2),
 
-            manufacture:
-              item.manufacture
-                ? toDateInputValue(
-                    item.manufacture
-                  )
-                : "",
+              manufacture:
+                item.manufacture
+                  ? toDateInputValue(
+                      item.manufacture
+                    )
+                  : "",
 
-            expiry:
-              item.expiry
-                ? toDateInputValue(
-                    item.expiry
-                  )
-                : "",
-          })
-        );
+              expiry:
+                item.expiry
+                  ? toDateInputValue(
+                      item.expiry
+                    )
+                  : "",
+            })
+          );
 
-      while (rows.length < 15) {
-        rows.push({
-          category: "",
-          materialId: "",
-          qty: "",
-          unitPrice: "",
-          manufacture: "",
-          expiry: "",
-        });
+        while (
+          rows.length < 15
+        ) {
+          rows.push(
+            emptyRow()
+          );
+        }
+
+        return rows;
       }
-
-      return rows;
-    });
+    );
 
   function updateRow(
     index: number,
@@ -988,7 +1581,9 @@ export default function EditReceiveForm({
           [key]: value,
         };
 
-        if (key === "category") {
+        if (
+          key === "category"
+        ) {
           copy[index].materialId =
             "";
         }
@@ -999,13 +1594,14 @@ export default function EditReceiveForm({
   }
 
   const vendorOptions =
-    useMemo<SearchableOption[]>(
+    useMemo<
+      SearchableOption[]
+    >(
       () =>
         vendors.map(
           (vendor) => ({
-            value: String(
-              vendor.id
-            ),
+            value:
+              vendor.id.toString(),
             label: vendor.name,
           })
         ),
@@ -1013,7 +1609,9 @@ export default function EditReceiveForm({
     );
 
   const categoryOptions =
-    useMemo<SearchableOption[]>(
+    useMemo<
+      SearchableOption[]
+    >(
       () =>
         categories.map(
           (category) => ({
@@ -1035,7 +1633,7 @@ export default function EditReceiveForm({
     !text-slate-800
   `;
 
-  const inputClass = `
+  const controlClass = `
     h-[52px]
     w-full
     min-w-0
@@ -1050,38 +1648,6 @@ export default function EditReceiveForm({
     px-4
 
     text-base
-    font-bold
-    !text-slate-900
-
-    shadow-sm
-    outline-none
-
-    transition-all
-    duration-200
-
-    placeholder:!text-slate-400
-
-    hover:border-slate-300
-    hover:bg-slate-50
-
-    focus:border-blue-300
-    focus:ring-4
-    focus:ring-blue-100/70
-  `;
-
-  const tableInputClass = `
-    h-[52px]
-
-    rounded-[16px]
-
-    border
-    border-slate-200
-
-    bg-white
-
-    px-3
-
-    text-sm
     font-bold
     !text-slate-900
 
@@ -1120,12 +1686,6 @@ export default function EditReceiveForm({
         value={receive.id}
       />
 
-      <input
-        type="hidden"
-        name="vendorId"
-        value={vendorId}
-      />
-
       {/* =====================================================
           DOCUMENT INFORMATION
       ===================================================== */}
@@ -1133,7 +1693,7 @@ export default function EditReceiveForm({
       <AppCard
         className="
           relative
-          z-[200]
+          z-[5000]
 
           overflow-visible
 
@@ -1198,7 +1758,7 @@ export default function EditReceiveForm({
                 !text-slate-500
               "
             >
-              แก้ไขวันที่ เอกสาร และผู้จำหน่าย
+              ระบุวันที่ เอกสาร และผู้จำหน่าย
             </p>
           </div>
         </div>
@@ -1217,22 +1777,27 @@ export default function EditReceiveForm({
           <AppInfoCard
             className="
               relative
+              z-[7000]
               overflow-visible
             "
           >
             <label
               htmlFor="receiveDate"
-              className={labelClass}
+              className={
+                labelClass
+              }
             >
               วันที่รับเข้า
             </label>
 
-            <DateField
+            <IOSDatePicker
               id="receiveDate"
               name="receiveDate"
-              value={receiveDate}
-              placeholder="เลือกวันที่รับเข้า"
-              fullDate
+              value={
+                receiveDate
+              }
+              required
+              align="left"
               onChange={
                 setReceiveDate
               }
@@ -1244,12 +1809,15 @@ export default function EditReceiveForm({
           <AppInfoCard
             className="
               relative
+              z-20
               overflow-visible
             "
           >
             <label
               htmlFor="documentNo"
-              className={labelClass}
+              className={
+                labelClass
+              }
             >
               เลขที่เอกสาร
             </label>
@@ -1258,11 +1826,149 @@ export default function EditReceiveForm({
               id="documentNo"
               type="text"
               name="documentNo"
-              defaultValue={
-                receive.documentNo
+              value={
+                documentValue
               }
-              className={inputClass}
+              readOnly={
+                !isOpeningBalance
+              }
+              onChange={(
+                event
+              ) => {
+                const value =
+                  event.target
+                    .value;
+
+                setDocumentValue(
+                  value
+                );
+
+                if (
+                  !isOpeningBalance
+                ) {
+                  setNormalDocumentNo(
+                    value
+                  );
+                }
+              }}
+              className={
+                controlClass
+              }
             />
+
+            {/* ยอดยกเข้าระบบ */}
+
+            <label
+              className="
+                mt-4
+
+                flex
+                w-fit
+                max-w-full
+
+                cursor-pointer
+                select-none
+
+                items-center
+
+                text-sm
+                font-extrabold
+                !text-slate-700
+              "
+            >
+              <input
+                type="checkbox"
+                checked={
+                  isOpeningBalance
+                }
+                onChange={(
+                  event
+                ) => {
+                  const checked =
+                    event.target
+                      .checked;
+
+                  if (
+                    checked
+                  ) {
+                    if (
+                      documentValue !==
+                      "ยอดยกเข้าระบบ"
+                    ) {
+                      setNormalDocumentNo(
+                        documentValue
+                      );
+                    }
+
+                    setIsOpeningBalance(
+                      true
+                    );
+
+                    setDocumentValue(
+                      "ยอดยกเข้าระบบ"
+                    );
+
+                    return;
+                  }
+
+                  setIsOpeningBalance(
+                    false
+                  );
+
+                  setDocumentValue(
+                    normalDocumentNo
+                  );
+                }}
+                className="sr-only"
+              />
+
+              <span
+                aria-hidden="true"
+                className={`
+                  flex
+                  h-[22px]
+                  w-[22px]
+                  min-h-[22px]
+                  min-w-[22px]
+                  shrink-0
+
+                  items-center
+                  justify-center
+
+                  rounded-[6px]
+
+                  border-2
+
+                  text-[13px]
+                  font-black
+                  leading-none
+
+                  shadow-sm
+
+                  transition-all
+                  duration-200
+
+                  ${
+                    isOpeningBalance
+                      ? "border-emerald-600 bg-emerald-600 !text-white shadow-emerald-200"
+                      : "border-slate-300 bg-white !text-transparent hover:border-emerald-400"
+                  }
+                `}
+              >
+                ✓
+              </span>
+
+              <span
+                className="
+                  ml-3
+                  block
+                  whitespace-nowrap
+                  leading-[22px]
+                "
+              >
+                ยอดยกเข้าระบบ
+              </span>
+            </label>
           </AppInfoCard>
 
           {/* ผู้จำหน่าย */}
@@ -1270,21 +1976,25 @@ export default function EditReceiveForm({
           <AppInfoCard
             className="
               relative
-              z-[300]
+              z-[4000]
+
               overflow-visible
 
               md:col-span-2
             "
           >
             <label
-              htmlFor="vendorIdControl"
-              className={labelClass}
+              htmlFor="vendorId"
+              className={
+                labelClass
+              }
             >
               ผู้จำหน่าย
             </label>
 
             <SearchableDropdown
-              id="vendorIdControl"
+              id="vendorId"
+              name="vendorId"
               value={vendorId}
               options={
                 vendorOptions
@@ -1292,6 +2002,7 @@ export default function EditReceiveForm({
               placeholder="-- เลือกผู้จำหน่าย --"
               searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
               emptyText="ไม่พบผู้จำหน่าย"
+              required
               onChange={
                 setVendorId
               }
@@ -1306,11 +2017,11 @@ export default function EditReceiveForm({
 
       <AppTableCard
         title="รายการพัสดุรับเข้า"
-        subtitle="แก้ไขรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ"
-        badge={`${items.length} รายการ`}
+        subtitle={`ระบุรายการ ราคา จำนวน และข้อมูลวันผลิต/หมดอายุ • ทั้งหมด ${items.length} รายการ`}
         className="
           relative
           z-10
+
           overflow-visible
         "
       >
@@ -1318,18 +2029,16 @@ export default function EditReceiveForm({
           className="
             relative
             w-full
-            min-w-0
 
             overflow-x-auto
             overflow-y-visible
-            overscroll-x-contain
           "
         >
           <table
             className="
               relative
               w-full
-              min-w-[1280px]
+              min-w-[1200px]
 
               border-collapse
 
@@ -1338,58 +2047,67 @@ export default function EditReceiveForm({
               text-sm
             "
           >
-            <thead className="relative z-10">
+            <thead>
               <tr>
                 {[
                   "ลำดับ",
                   "หมวดหมู่",
                   "รายการพัสดุ",
                   "หน่วย",
+                  "ราคา",
                   "จำนวน",
-                  "ราคาต่อหน่วย",
                   "วันผลิต",
                   "วันหมดอายุ",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
+                ].map(
+                  (title) => (
+                    <th
+                      key={title}
+                      className="
+                        whitespace-nowrap
 
-                      border
-                      border-slate-300
+                        border
+                        border-black
 
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                      px-3
-                      py-4
+                        px-3
+                        py-4
 
-                      text-center
-                      text-lg
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                        text-center
+                        text-lg
+                        font-extrabold
+                        !text-white
+                      "
+                    >
+                      {title}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            <tbody className="relative">
+            <tbody>
               {items.map(
-                (row, index) => {
-                  const filteredMaterials =
+                (
+                  row,
+                  index
+                ) => {
+                  const list =
                     materials.filter(
-                      (material) =>
+                      (
+                        material
+                      ) =>
                         material.category ===
                         row.category
                     );
 
-                  const selectedMaterial =
+                  const selected =
                     materials.find(
-                      (material) =>
+                      (
+                        material
+                      ) =>
                         String(
                           material.id
                         ) ===
@@ -1398,11 +2116,15 @@ export default function EditReceiveForm({
 
                   const materialOptions:
                     SearchableOption[] =
-                    filteredMaterials.map(
-                      (material) => ({
-                        value: String(
-                          material.id
-                        ),
+                    list.map(
+                      (
+                        material
+                      ) => ({
+                        value:
+                          String(
+                            material.id
+                          ),
+
                         label: `${material.code} - ${material.name}`,
                       })
                     );
@@ -1410,11 +2132,13 @@ export default function EditReceiveForm({
                   const rowZIndex =
                     items.length -
                     index +
-                    20;
+                    100;
 
                   return (
                     <tr
-                      key={index}
+                      key={
+                        index
+                      }
                       style={{
                         position:
                           "relative",
@@ -1423,10 +2147,11 @@ export default function EditReceiveForm({
                       }}
                       className={`
                         ${
-                          index % 2 ===
+                          index %
+                            2 ===
                           0
                             ? "bg-white"
-                            : "bg-slate-50/60"
+                            : "bg-slate-50/50"
                         }
 
                         transition-colors
@@ -1442,17 +2167,18 @@ export default function EditReceiveForm({
                           whitespace-nowrap
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
 
                           text-center
                           font-extrabold
-                          !text-slate-900
+                          !text-slate-800
                         "
                       >
-                        {index + 1}
+                        {index +
+                          1}
                       </td>
 
                       {/* หมวดหมู่ */}
@@ -1465,7 +2191,7 @@ export default function EditReceiveForm({
                           overflow-visible
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1475,6 +2201,7 @@ export default function EditReceiveForm({
                       >
                         <SearchableDropdown
                           id={`category-${index}`}
+                          name={`items[${index}].category`}
                           value={
                             row.category
                           }
@@ -1506,7 +2233,7 @@ export default function EditReceiveForm({
                           overflow-visible
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1514,16 +2241,9 @@ export default function EditReceiveForm({
                           align-top
                         "
                       >
-                        <input
-                          type="hidden"
-                          name={`items[${index}].materialId`}
-                          value={
-                            row.materialId
-                          }
-                        />
-
                         <SearchableDropdown
                           id={`material-${index}`}
+                          name={`items[${index}].materialId`}
                           value={
                             row.materialId
                           }
@@ -1555,7 +2275,7 @@ export default function EditReceiveForm({
                           min-w-[120px]
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1567,83 +2287,40 @@ export default function EditReceiveForm({
                           type="text"
                           readOnly
                           value={
-                            selectedMaterial?.unit ??
+                            selected?.unit ??
                             "-"
                           }
                           className="
-                            h-[52px]
+                            h-[46px]
                             w-full
 
-                            cursor-default
-
-                            rounded-[16px]
+                            rounded-[12px]
 
                             border
                             border-slate-200
 
                             bg-slate-100
 
-                            px-3
+                            px-2
 
                             text-center
-                            text-base
                             font-extrabold
                             !text-slate-700
 
+                            shadow-sm
                             outline-none
                           "
                         />
                       </td>
 
-                      {/* จำนวน */}
+                      {/* ราคา */}
 
                       <td
                         className="
-                          min-w-[120px]
+                          min-w-[150px]
 
                           border
-                          border-slate-200
-
-                          px-3
-                          py-3
-
-                          align-top
-                        "
-                      >
-                        <input
-                          type="number"
-                          min="1"
-                          name={`items[${index}].qty`}
-                          value={row.qty}
-                          onChange={(
-                            event
-                          ) =>
-                            updateRow(
-                              index,
-                              "qty",
-                              event.target
-                                .value
-                            )
-                          }
-                          className={`
-                            ${tableInputClass}
-
-                            w-full
-
-                            text-center
-                            tabular-nums
-                          `}
-                        />
-                      </td>
-
-                      {/* ราคาต่อหน่วย */}
-
-                      <td
-                        className="
-                          min-w-[170px]
-
-                          border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1669,26 +2346,107 @@ export default function EditReceiveForm({
                           onChange={(
                             event
                           ) => {
-                            const rawValue =
+                            const value =
                               sanitizeDecimalInput(
-                                event.target
+                                event
+                                  .target
                                   .value
                               );
 
                             updateRow(
                               index,
                               "unitPrice",
-                              rawValue
+                              value
                             );
                           }}
-                          className={`
-                            ${tableInputClass}
-
+                          className="
+                            h-[46px]
                             w-full
 
+                            rounded-[12px]
+
+                            border
+                            border-slate-200
+
+                            bg-white
+
+                            px-3
+
                             text-right
+                            font-bold
                             tabular-nums
-                          `}
+                            !text-slate-900
+
+                            outline-none
+
+                            transition-all
+
+                            focus:border-blue-300
+                            focus:ring-4
+                            focus:ring-blue-100/70
+                          "
+                        />
+                      </td>
+
+                      {/* จำนวน */}
+
+                      <td
+                        className="
+                          min-w-[120px]
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          align-top
+                        "
+                      >
+                        <input
+                          name={`items[${index}].qty`}
+                          type="number"
+                          min="1"
+                          value={
+                            row.qty
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            updateRow(
+                              index,
+                              "qty",
+                              event
+                                .target
+                                .value
+                            )
+                          }
+                          className="
+                            h-[46px]
+                            w-full
+
+                            rounded-[12px]
+
+                            border
+                            border-slate-200
+
+                            bg-white
+
+                            px-2
+
+                            text-center
+                            font-bold
+                            tabular-nums
+                            !text-slate-900
+
+                            outline-none
+
+                            transition-all
+
+                            focus:border-blue-300
+                            focus:ring-4
+                            focus:ring-blue-100/70
+                          "
                         />
                       </td>
 
@@ -1696,10 +2454,13 @@ export default function EditReceiveForm({
 
                       <td
                         className="
-                          min-w-[190px]
+                          relative
+                          min-w-[200px]
+
+                          overflow-visible
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1707,33 +2468,46 @@ export default function EditReceiveForm({
                           align-top
                         "
                       >
-                        <DateField
-                          id={`manufacture-${index}`}
-                          name={`items[${index}].manufacture`}
-                          value={
-                            row.manufacture
-                          }
-                          compact
-                          onChange={(
-                            value
-                          ) =>
-                            updateRow(
-                              index,
-                              "manufacture",
+                        <div
+                          className="
+                            relative
+                            w-[190px]
+                            overflow-visible
+                          "
+                        >
+                          <IOSDatePicker
+                            id={`manufacture-${index}`}
+                            name={`items[${index}].manufacture`}
+                            value={
+                              row.manufacture
+                            }
+                            compact
+                            align="right"
+                            placeholder="เลือกวันที่"
+                            onChange={(
                               value
-                            )
-                          }
-                        />
+                            ) =>
+                              updateRow(
+                                index,
+                                "manufacture",
+                                value
+                              )
+                            }
+                          />
+                        </div>
                       </td>
 
                       {/* วันหมดอายุ */}
 
                       <td
                         className="
-                          min-w-[190px]
+                          relative
+                          min-w-[200px]
+
+                          overflow-visible
 
                           border
-                          border-slate-200
+                          border-black
 
                           px-3
                           py-3
@@ -1741,23 +2515,33 @@ export default function EditReceiveForm({
                           align-top
                         "
                       >
-                        <DateField
-                          id={`expiry-${index}`}
-                          name={`items[${index}].expiry`}
-                          value={
-                            row.expiry
-                          }
-                          compact
-                          onChange={(
-                            value
-                          ) =>
-                            updateRow(
-                              index,
-                              "expiry",
+                        <div
+                          className="
+                            relative
+                            w-[190px]
+                            overflow-visible
+                          "
+                        >
+                          <IOSDatePicker
+                            id={`expiry-${index}`}
+                            name={`items[${index}].expiry`}
+                            value={
+                              row.expiry
+                            }
+                            compact
+                            align="right"
+                            placeholder="เลือกวันที่"
+                            onChange={(
                               value
-                            )
-                          }
-                        />
+                            ) =>
+                              updateRow(
+                                index,
+                                "expiry",
+                                value
+                              )
+                            }
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1787,7 +2571,9 @@ export default function EditReceiveForm({
         <AppInfoCard>
           <label
             htmlFor="remark"
-            className={labelClass}
+            className={
+              labelClass
+            }
           >
             หมายเหตุ
           </label>
@@ -1795,9 +2581,9 @@ export default function EditReceiveForm({
           <textarea
             id="remark"
             name="remark"
-            rows={4}
             defaultValue={
-              receive.remark ?? ""
+              receive.remark ??
+              ""
             }
             placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
             className="
@@ -1827,7 +2613,6 @@ export default function EditReceiveForm({
 
               placeholder:!text-slate-400
 
-              hover:border-slate-300
               hover:bg-slate-50
 
               focus:border-blue-300
@@ -1846,7 +2631,6 @@ export default function EditReceiveForm({
         className="
           flex
           justify-end
-
           pt-1
         "
       >
@@ -1854,7 +2638,9 @@ export default function EditReceiveForm({
           type="submit"
           variant="success"
           size="md"
-          icon={<span>💾</span>}
+          icon={
+            <span>💾</span>
+          }
         >
           บันทึก
         </AppButton>

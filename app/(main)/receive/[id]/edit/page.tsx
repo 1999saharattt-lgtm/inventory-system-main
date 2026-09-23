@@ -27,13 +27,30 @@ export default async function EditReceivePage({
   const { id } = await params;
 
   /* =========================================================
-     RECEIVE
+     VALIDATE ID
   ========================================================= */
 
-  const receive =
-    await prisma.receive.findUnique({
+  const receiveId = Number(id);
+
+  if (
+    !Number.isInteger(receiveId) ||
+    receiveId <= 0
+  ) {
+    notFound();
+  }
+
+  /* =========================================================
+     DATA
+  ========================================================= */
+
+  const [
+    receive,
+    materials,
+    vendors,
+  ] = await Promise.all([
+    prisma.receive.findUnique({
       where: {
-        id: Number(id),
+        id: receiveId,
       },
 
       include: {
@@ -47,7 +64,25 @@ export default async function EditReceivePage({
           },
         },
       },
-    });
+    }),
+
+    prisma.material.findMany({
+      orderBy: [
+        {
+          category: "asc",
+        },
+        {
+          code: "asc",
+        },
+      ],
+    }),
+
+    prisma.vendor.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    }),
+  ]);
 
   /* =========================================================
      NOT FOUND
@@ -56,30 +91,6 @@ export default async function EditReceivePage({
   if (!receive) {
     notFound();
   }
-
-  /* =========================================================
-     MATERIALS + VENDORS
-  ========================================================= */
-
-  const [materials, vendors] =
-    await Promise.all([
-      prisma.material.findMany({
-        orderBy: [
-          {
-            category: "asc",
-          },
-          {
-            code: "asc",
-          },
-        ],
-      }),
-
-      prisma.vendor.findMany({
-        orderBy: {
-          name: "asc",
-        },
-      }),
-    ]);
 
   /* =========================================================
      UI
@@ -100,7 +111,11 @@ export default async function EditReceivePage({
             href="/receive"
             variant="back"
             size="md"
-            icon={<span>←</span>}
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
           >
             กลับ
           </AppButton>
@@ -110,18 +125,17 @@ export default async function EditReceivePage({
       {/* =====================================================
           EDIT RECEIVE FORM
 
-          EditReceiveForm จัดการ Card ภายในเองแล้วด้วย:
-          - AppCard
-          - AppInfoCard
-          - AppTableCard
-
-          จึงไม่ครอบ AppCard ซ้ำใน page นี้
+          สำคัญ:
+          - ไม่กำหนด z-0 ที่ wrapper
+          - ไม่ใช้ overflow-hidden
+          - ปล่อยให้ DatePicker / Dropdown ของ Form
+            สามารถแสดงเหนือ Card และ Table ได้
+          - Card ต่าง ๆ จัดการภายใน EditReceiveForm
       ===================================================== */}
 
       <div
         className="
           relative
-          z-0
 
           w-full
           min-w-0
