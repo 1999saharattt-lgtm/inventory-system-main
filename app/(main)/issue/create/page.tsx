@@ -9,6 +9,7 @@ import {
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
 
 import IssueForm from "./IssueForm";
 
@@ -17,11 +18,9 @@ import IssueForm from "./IssueForm";
 ========================================================= */
 
 function getThaiYear() {
-  return (
+  return String(
     new Date().getFullYear() + 543
-  )
-    .toString()
-    .slice(-2);
+  ).slice(-2);
 }
 
 async function generateIssueNo() {
@@ -52,8 +51,9 @@ async function generateIssueNo() {
       continue;
     }
 
-    const number =
-      Number(match[1]);
+    const number = Number(
+      match[1]
+    );
 
     const documentYear =
       match[2];
@@ -69,9 +69,9 @@ async function generateIssueNo() {
   const running =
     maxNumber + 1;
 
-  return `จ.${running
-    .toString()
-    .padStart(2, "0")}/${year}`;
+  return `จ.${String(
+    running
+  ).padStart(2, "0")}/${year}`;
 }
 
 /* =========================================================
@@ -105,9 +105,6 @@ export default async function CreateIssuePage() {
       session = null;
     }
   }
-
-  const isAdmin =
-    session?.role === "ADMIN";
 
   /* =======================================================
      MATERIALS
@@ -163,44 +160,55 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   let userDepartmentId =
-    session?.departmentId ?? null;
+    session?.departmentId ??
+    null;
 
   if (
     session &&
-    !isAdmin &&
-    !userDepartmentId
+    session.role !== "ADMIN"
   ) {
-    const currentUser =
-      await prisma.user.findUnique({
-        where: {
-          id: session.id,
-        },
+    if (!userDepartmentId) {
+      const currentUser =
+        await prisma.user.findUnique({
+          where: {
+            id: session.id,
+          },
 
-        select: {
-          departmentId: true,
-        },
-      });
+          select: {
+            departmentId: true,
+          },
+        });
 
-    userDepartmentId =
-      currentUser?.departmentId ??
-      null;
+      userDepartmentId =
+        currentUser?.departmentId ??
+        null;
+    }
   }
 
   /* =======================================================
      DEPARTMENTS
+
+     ADMIN
+     - เลือกกลุ่มงานได้
+
+     USER
+     - เห็นเฉพาะกลุ่มงานตัวเอง
+     - IssueForm จะล็อกไม่ให้เปลี่ยน
   ======================================================= */
 
   const departments =
     await prisma.department.findMany({
-      where: isAdmin
-        ? undefined
-        : userDepartmentId
-          ? {
-              id: userDepartmentId,
-            }
-          : {
-              id: -1,
-            },
+      where:
+        session?.role ===
+        "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                id: userDepartmentId,
+              }
+            : {
+                id: -1,
+              },
 
       orderBy: {
         name: "asc",
@@ -213,26 +221,28 @@ export default async function CreateIssuePage() {
 
   const officers =
     await prisma.officer.findMany({
-      where: isAdmin
-        ? undefined
-        : userDepartmentId
-          ? {
-              OR: [
-                {
-                  departmentId:
-                    userDepartmentId,
-                },
-                {
-                  section: {
+      where:
+        session?.role ===
+        "ADMIN"
+          ? undefined
+          : userDepartmentId
+            ? {
+                OR: [
+                  {
                     departmentId:
                       userDepartmentId,
                   },
-                },
-              ],
-            }
-          : {
-              id: -1,
-            },
+                  {
+                    section: {
+                      departmentId:
+                        userDepartmentId,
+                    },
+                  },
+                ],
+              }
+            : {
+                id: -1,
+              },
 
       include: {
         section: true,
@@ -261,13 +271,20 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   const initialDepartmentId =
-    isAdmin
+    session?.role === "ADMIN"
       ? ""
       : userDepartmentId
         ? String(
             userDepartmentId
           )
         : "";
+
+  /* =======================================================
+     PERMISSION
+  ======================================================= */
+
+  const canChangeDepartment =
+    session?.role === "ADMIN";
 
   /* =======================================================
      UI
@@ -293,12 +310,21 @@ export default async function CreateIssuePage() {
               gap-3
             "
           >
+            {/* =============================================
+                PDF
+
+                ใช้ danger จาก AppButton กลาง
+                ไม่สร้าง variant pdf เพิ่มเอง
+            ============================================= */}
+
             <AppButton
               href="/issue/create/pdf"
-              variant="pdf"
+              variant="danger"
               size="md"
               icon={
-                <span>
+                <span
+                  aria-hidden="true"
+                >
                   📄
                 </span>
               }
@@ -306,12 +332,18 @@ export default async function CreateIssuePage() {
               ส่งออก PDF
             </AppButton>
 
+            {/* =============================================
+                BACK
+            ============================================= */}
+
             <AppButton
               href="/issue"
               variant="back"
               size="md"
               icon={
-                <span>
+                <span
+                  aria-hidden="true"
+                >
                   ←
                 </span>
               }
@@ -323,32 +355,42 @@ export default async function CreateIssuePage() {
       />
 
       {/* ===================================================
-          FORM
+          FORM CARD
 
-          ไม่สร้าง Card / Background ครอบ IssueForm
-          IssueForm จัดการ Card ภายในเอง
-          ให้โครงสร้างเหมือน receive
+          ใช้ AppTableCard กลาง
+          ไม่สร้างพื้นหลัง Card เอง
       =================================================== */}
 
-      <IssueForm
-        departments={
-          departments
-        }
-        officers={officers}
-        materials={
-          materials
-        }
-        receiveLots={
-          receiveLots
-        }
-        documentNo={
-          documentNo
-        }
-        initialDepartmentId={
-          initialDepartmentId
-        }
-        isAdmin={isAdmin}
-      />
+      <AppTableCard
+        title="ใบเบิกพัสดุ"
+        subtitle="แบบ พอ.101"
+        className="
+          w-full
+          min-w-0
+        "
+      >
+        <IssueForm
+          departments={
+            departments
+          }
+          officers={officers}
+          materials={
+            materials
+          }
+          receiveLots={
+            receiveLots
+          }
+          documentNo={
+            documentNo
+          }
+          initialDepartmentId={
+            initialDepartmentId
+          }
+          canChangeDepartment={
+            canChangeDepartment
+          }
+        />
+      </AppTableCard>
     </AppPage>
   );
 }
