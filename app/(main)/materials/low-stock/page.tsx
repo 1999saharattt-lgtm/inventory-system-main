@@ -19,15 +19,6 @@ const categoryName: Record<string, string> = {
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-const categoryIcons: Record<string, string> = {
-  OFFICE: "📄",
-  COMPUTER: "💻",
-  ELECTRIC: "⚡",
-  HOUSEHOLD: "🏠",
-  VEHICLE: "🚗",
-  PRINTING: "📰",
-};
-
 const categories = [
   "OFFICE",
   "COMPUTER",
@@ -60,11 +51,9 @@ export default async function LowStockPage({
 
   const params = await searchParams;
 
-  const keyword =
-    params.q?.trim() ?? "";
+  const keyword = params.q?.trim() ?? "";
 
-  const search =
-    keyword.toLowerCase();
+  const search = keyword.toLowerCase();
 
   /* =======================================================
      LOAD LOW STOCK MATERIALS
@@ -75,46 +64,45 @@ export default async function LowStockPage({
      - ใกล้หมด = 1 - 9
   ======================================================= */
 
-  const materials =
-    await prisma.material.findMany({
-      where: {
-        balance: {
-          lt: 10,
-        },
+  const materials = await prisma.material.findMany({
+    where: {
+      balance: {
+        lt: 10,
       },
+    },
 
-      orderBy: [
-        {
-          category: "asc",
-        },
-        {
-          code: "asc",
-        },
-      ],
+    orderBy: [
+      {
+        category: "asc",
+      },
+      {
+        code: "asc",
+      },
+    ],
 
-      include: {
-        receiveItems: {
-          orderBy: [
-            {
-              receive: {
-                receiveDate: "desc",
-              },
-            },
-            {
-              id: "desc",
-            },
-          ],
-
-          include: {
+    include: {
+      receiveItems: {
+        orderBy: [
+          {
             receive: {
-              include: {
-                vendor: true,
-              },
+              receiveDate: "desc",
+            },
+          },
+          {
+            id: "desc",
+          },
+        ],
+
+        include: {
+          receive: {
+            include: {
+              vendor: true,
             },
           },
         },
       },
-    });
+    },
+  });
 
   /* =======================================================
      PREPARE DATA
@@ -122,38 +110,27 @@ export default async function LowStockPage({
 
   const data = materials
     .map((material) => {
-      const latestReceive =
-        material.receiveItems[0];
+      const latestReceive = material.receiveItems[0];
 
       return {
         id: material.id,
 
-        category:
-          material.category,
+        category: material.category,
 
-        code:
-          material.code,
+        code: material.code,
 
-        name:
-          material.name,
+        name: material.name,
 
-        balance: Number(
-          material.balance
-        ),
+        balance: Number(material.balance),
 
-        unit:
-          material.unit,
+        unit: material.unit,
 
-        latestPrice:
-          latestReceive
-            ? Number(
-                latestReceive.unitPrice
-              )
-            : null,
+        latestPrice: latestReceive
+          ? Number(latestReceive.unitPrice)
+          : null,
 
         latestVendor:
-          latestReceive?.receive
-            .vendor?.name ?? "-",
+          latestReceive?.receive.vendor?.name ?? "-",
       };
     })
     .filter((material) => {
@@ -181,21 +158,17 @@ export default async function LowStockPage({
      COUNT
   ======================================================= */
 
-  const totalLowStock =
-    data.length;
+  const totalLowStock = data.length;
 
-  const outOfStockCount =
-    data.filter(
-      (material) =>
-        material.balance <= 0
-    ).length;
+  const outOfStockCount = data.filter(
+    (material) => material.balance <= 0
+  ).length;
 
-  const lowStockCount =
-    data.filter(
-      (material) =>
-        material.balance > 0 &&
-        material.balance < 10
-    ).length;
+  const lowStockCount = data.filter(
+    (material) =>
+      material.balance > 0 &&
+      material.balance < 10
+  ).length;
 
   /* =======================================================
      UI
@@ -229,167 +202,251 @@ export default async function LowStockPage({
 
       {/* =====================================================
           SEARCH
+
+          รูปแบบเดียวกับ AppSearchInput ใน Materials Summary
+          ไม่มีไอคอนแว่นขยายในช่อง Input
       ===================================================== */}
 
-      <AppCard
+      <form
+        method="GET"
         className="
           w-full
           min-w-0
-
-          !p-2.5
-
-          sm:!p-3
         "
       >
-        <form
-          method="GET"
+        <div
           className="
-            flex
+            relative
             w-full
             min-w-0
-            flex-col
-            gap-2.5
+            overflow-hidden
 
-            sm:flex-row
-            sm:items-center
+            rounded-[24px]
+
+            border
+            border-white/80
+
+            bg-white/75
+
+            p-4
+
+            shadow-[0_20px_55px_-30px_rgba(15,23,42,0.35)]
+
+            backdrop-blur-2xl
+
+            sm:p-5
           "
         >
           {/* ===============================================
-              SEARCH INPUT
+              AMBIENT BACKGROUND
+          =============================================== */}
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -left-20
+              -top-20
+
+              h-48
+              w-48
+
+              rounded-full
+
+              bg-blue-400/10
+
+              blur-3xl
+            "
+          />
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-24
+              right-0
+
+              h-48
+              w-48
+
+              rounded-full
+
+              bg-cyan-400/10
+
+              blur-3xl
+            "
+          />
+
+          {/* ===============================================
+              SEARCH ROW
           =============================================== */}
 
           <div
             className="
+              relative
+
+              flex
               min-w-0
-              flex-1
+              flex-col
+              gap-3
+
+              lg:flex-row
+              lg:items-center
             "
           >
-            <input
-              type="text"
-              name="q"
-              defaultValue={keyword}
-              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หน่วย / ผู้จำหน่าย"
-              autoComplete="off"
-              className="
-                h-10
-                w-full
-                min-w-0
+            {/* =============================================
+                INPUT
+            ============================================= */}
 
-                rounded-[12px]
+            <div
+              className="
+                relative
+                min-w-0
+                flex-1
+              "
+            >
+              <input
+                type="search"
+                name="q"
+                defaultValue={keyword}
+                placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / ผู้จำหน่าย"
+                autoComplete="off"
+                className="
+                  h-12
+                  w-full
+                  min-w-0
+
+                  rounded-[16px]
+
+                  border
+                  border-slate-300
+
+                  bg-white/90
+
+                  px-4
+                  py-3
+
+                  text-base
+                  font-bold
+                  !text-slate-900
+
+                  shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+
+                  outline-none
+
+                  transition-all
+                  duration-300
+
+                  placeholder:font-semibold
+                  placeholder:!text-slate-400
+
+                  hover:border-slate-400
+
+                  focus:border-blue-500
+                  focus:bg-white
+                  focus:ring-4
+                  focus:ring-blue-500/10
+                "
+              />
+            </div>
+
+            {/* =============================================
+                SEARCH BUTTON
+            ============================================= */}
+
+            <AppButton
+              type="submit"
+              variant="secondary"
+              size="lg"
+            >
+              ค้นหา
+            </AppButton>
+
+            {/* =============================================
+                RESULT COUNT
+            ============================================= */}
+
+            <div
+              className="
+                inline-flex
+                h-12
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+
+                rounded-[16px]
 
                 border
                 border-slate-300
 
-                bg-white
+                bg-slate-100/80
 
-                px-3
-                py-2
+                px-4
 
                 text-sm
-                font-bold
-                !text-slate-900
+                font-extrabold
+                !text-slate-700
 
                 shadow-sm
-                outline-none
 
-                transition-all
-                duration-200
+                backdrop-blur-xl
 
-                placeholder:font-semibold
-                placeholder:!text-slate-400
-
-                hover:border-slate-400
-
-                focus:border-blue-400
-                focus:ring-3
-                focus:ring-blue-100/80
-
-                sm:h-11
-                sm:text-base
-              "
-            />
-          </div>
-
-          {/* ===============================================
-              SEARCH BUTTON
-          =============================================== */}
-
-          <AppButton
-            type="submit"
-            variant="primary"
-            size="md"
-            className="
-              w-full
-              shrink-0
-
-              sm:w-auto
-            "
-          >
-            ค้นหา
-          </AppButton>
-
-          {/* ===============================================
-              CLEAR SEARCH
-          =============================================== */}
-
-          {keyword && (
-            <AppButton
-              href="/materials/low-stock"
-              variant="outline"
-              size="md"
-              icon={
-                <span aria-hidden="true">
-                  ✕
-                </span>
-              }
-              className="
-                w-full
-                shrink-0
-
-                sm:w-auto
+                sm:px-5
               "
             >
-              ล้างการค้นหา
-            </AppButton>
-          )}
+              <span
+                className="
+                  flex
+                  h-7
+                  min-w-7
+                  items-center
+                  justify-center
 
-          {/* ===============================================
-              RESULT COUNT
-          =============================================== */}
+                  rounded-full
 
-          <div
-            className="
-              flex
-              h-10
-              w-full
-              shrink-0
-              items-center
-              justify-center
+                  border
+                  border-slate-300
 
-              rounded-[12px]
+                  bg-white
 
-              border
-              border-slate-200
+                  px-2
 
-              bg-slate-50
+                  text-xs
+                  font-black
+                  !text-slate-900
 
-              px-4
+                  shadow-sm
+                "
+              >
+                {totalLowStock.toLocaleString(
+                  "th-TH"
+                )}
+              </span>
 
-              text-sm
-              font-extrabold
-              !text-slate-700
+              <span className="whitespace-nowrap">
+                รายการ
+              </span>
+            </div>
 
-              sm:h-11
-              sm:w-auto
-            "
-          >
-            {totalLowStock.toLocaleString(
-              "th-TH"
-            )}{" "}
-            รายการ
+            {/* =============================================
+                CLEAR
+            ============================================= */}
+
+            {keyword && (
+              <AppButton
+                href="/materials/low-stock"
+                variant="outline"
+                size="lg"
+              >
+                ล้าง
+              </AppButton>
+            )}
           </div>
-        </form>
-      </AppCard>
+        </div>
+      </form>
 
       {/* =====================================================
           SUMMARY
@@ -531,322 +588,281 @@ export default async function LowStockPage({
           CATEGORY TABLES
       ===================================================== */}
 
-      {categories.map(
-        (category) => {
-          const categoryMaterials =
-            data.filter(
-              (material) =>
-                material.category ===
+      {categories.map((category) => {
+        const categoryMaterials =
+          data.filter(
+            (material) =>
+              material.category ===
+              category
+          );
+
+        if (
+          categoryMaterials.length ===
+          0
+        ) {
+          return null;
+        }
+
+        return (
+          <AppTableCard
+            key={category}
+            title={
+              categoryName[
                 category
-            );
-
-          if (
-            categoryMaterials.length ===
-            0
-          ) {
-            return null;
-          }
-
-          return (
-            <AppTableCard
-              key={category}
-              title={
-                categoryName[
-                  category
-                ] ?? category
-              }
-              subtitle="รายการพัสดุที่ต้องตรวจสอบ"
-              badge={`${categoryMaterials.length.toLocaleString(
-                "th-TH"
-              )} รายการ`}
+              ] ?? category
+            }
+            subtitle="รายการพัสดุที่ต้องตรวจสอบ"
+            badge={`${categoryMaterials.length.toLocaleString(
+              "th-TH"
+            )} รายการ`}
+            className="
+              w-full
+              min-w-0
+            "
+          >
+            <div
               className="
                 w-full
                 min-w-0
+
+                overflow-x-auto
+                overscroll-x-contain
               "
             >
-              {/* =============================================
-                  TABLE SCROLL
-              ============================================= */}
-
-              <div
+              <table
                 className="
                   w-full
-                  min-w-0
+                  min-w-[950px]
 
-                  overflow-x-auto
-                  overscroll-x-contain
+                  border-collapse
+
+                  bg-white
+
+                  text-sm
                 "
               >
-                <table
-                  className="
-                    w-full
-                    min-w-[950px]
-
-                    border-collapse
-
-                    bg-white
-
-                    text-sm
-                  "
-                >
-                  {/* =========================================
-                      TABLE HEADER
-                  ========================================= */}
-
-                  <thead>
-                    <tr>
-                      {[
-                        "ลำดับ",
-                        "รหัสพัสดุ",
-                        "รายการพัสดุ",
-                        "จำนวน",
-                        "หน่วย",
-                        "ราคาล่าสุด",
-                        "ผู้จำหน่ายล่าสุด",
-                      ].map(
-                        (
-                          tableTitle
-                        ) => (
-                          <th
-                            key={
-                              tableTitle
-                            }
-                            className="
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              bg-gradient-to-r
-                              from-slate-800
-                              to-slate-700
-
-                              px-4
-                              py-4
-
-                              text-center
-                              text-base
-                              font-extrabold
-                              !text-white
-
-                              sm:text-lg
-                            "
-                          >
-                            {
-                              tableTitle
-                            }
-                          </th>
-                        )
-                      )}
-                    </tr>
-                  </thead>
-
-                  {/* =========================================
-                      TABLE BODY
-                  ========================================= */}
-
-                  <tbody>
-                    {categoryMaterials.map(
-                      (
-                        material,
-                        index
-                      ) => (
-                        <tr
+                <thead>
+                  <tr>
+                    {[
+                      "ลำดับ",
+                      "รหัสพัสดุ",
+                      "รายการพัสดุ",
+                      "จำนวน",
+                      "หน่วย",
+                      "ราคาล่าสุด",
+                      "ผู้จำหน่ายล่าสุด",
+                    ].map(
+                      (tableTitle) => (
+                        <th
                           key={
-                            material.id
+                            tableTitle
                           }
-                          className={`
-                            ${
-                              index %
-                                2 ===
-                              0
-                                ? "bg-white"
-                                : "bg-slate-50/60"
-                            }
+                          className="
+                            whitespace-nowrap
 
-                            transition-colors
-                            duration-200
+                            border
+                            border-black
 
-                            hover:bg-blue-50/70
-                          `}
+                            bg-gradient-to-r
+                            from-slate-800
+                            to-slate-700
+
+                            px-4
+                            py-4
+
+                            text-center
+                            text-base
+                            font-extrabold
+                            !text-white
+
+                            sm:text-lg
+                          "
                         >
-                          {/* ORDER */}
-
-                          <td
-                            className="
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              text-center
-                              font-extrabold
-                              tabular-nums
-                              !text-slate-900
-                            "
-                          >
-                            {(
-                              index +
-                              1
-                            ).toLocaleString(
-                              "th-TH"
-                            )}
-                          </td>
-
-                          {/* CODE */}
-
-                          <td
-                            className="
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              text-center
-                              font-extrabold
-                              !text-slate-900
-                            "
-                          >
-                            {material.code ||
-                              "-"}
-                          </td>
-
-                          {/* NAME */}
-
-                          <td
-                            className="
-                              min-w-[260px]
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              font-extrabold
-                              !text-slate-900
-                            "
-                          >
-                            {material.name ||
-                              "-"}
-                          </td>
-
-                          {/* BALANCE */}
-
-                          <td
-                            className={`
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              text-center
-                              text-base
-                              font-black
-                              tabular-nums
-
-                              ${
-                                material.balance <=
-                                0
-                                  ? "bg-red-50 !text-red-700"
-                                  : "bg-amber-50 !text-amber-700"
-                              }
-                            `}
-                          >
-                            {material.balance.toLocaleString(
-                              "th-TH"
-                            )}
-                          </td>
-
-                          {/* UNIT */}
-
-                          <td
-                            className="
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              text-center
-                              font-bold
-                              !text-slate-700
-                            "
-                          >
-                            {material.unit ||
-                              "-"}
-                          </td>
-
-                          {/* PRICE */}
-
-                          <td
-                            className="
-                              whitespace-nowrap
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              text-right
-                              font-extrabold
-                              tabular-nums
-                              !text-slate-900
-                            "
-                          >
-                            {material.latestPrice !==
-                            null
-                              ? material.latestPrice.toLocaleString(
-                                  "th-TH",
-                                  {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  }
-                                )
-                              : "-"}
-                          </td>
-
-                          {/* VENDOR */}
-
-                          <td
-                            className="
-                              min-w-[220px]
-
-                              border
-                              border-black
-
-                              px-4
-                              py-3.5
-
-                              font-bold
-                              !text-slate-700
-                            "
-                          >
-                            {material.latestVendor ||
-                              "-"}
-                          </td>
-                        </tr>
+                          {tableTitle}
+                        </th>
                       )
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </AppTableCard>
-          );
-        }
-      )}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {categoryMaterials.map(
+                    (
+                      material,
+                      index
+                    ) => (
+                      <tr
+                        key={
+                          material.id
+                        }
+                        className={`
+                          ${
+                            index % 2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
+
+                          transition-colors
+                          duration-200
+
+                          hover:bg-blue-50/70
+                        `}
+                      >
+                        {/* ORDER */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {(
+                            index + 1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* CODE */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {material.code ||
+                            "-"}
+                        </td>
+
+                        {/* NAME */}
+
+                        <td
+                          className="
+                            min-w-[260px]
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {material.name ||
+                            "-"}
+                        </td>
+
+                        {/* BALANCE */}
+
+                        <td
+                          className={`
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            text-base
+                            font-black
+                            tabular-nums
+
+                            ${
+                              material.balance <=
+                              0
+                                ? "bg-red-50 !text-red-700"
+                                : "bg-amber-50 !text-amber-700"
+                            }
+                          `}
+                        >
+                          {material.balance.toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* UNIT */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-bold
+                            !text-slate-700
+                          "
+                        >
+                          {material.unit ||
+                            "-"}
+                        </td>
+
+                        {/* PRICE */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-right
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {material.latestPrice !==
+                          null
+                            ? material.latestPrice.toLocaleString(
+                                "th-TH",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )
+                            : "-"}
+                        </td>
+
+                        {/* VENDOR */}
+
+                        <td
+                          className="
+                            min-w-[220px]
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            font-bold
+                            !text-slate-700
+                          "
+                        >
+                          {material.latestVendor ||
+                            "-"}
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </AppTableCard>
+        );
+      })}
 
       {/* =====================================================
           EMPTY STATE
@@ -871,20 +887,16 @@ export default async function LowStockPage({
               h-16
               w-16
               place-items-center
-
               text-3xl
             "
             aria-hidden="true"
           >
-            {keyword
-              ? "🔍"
-              : "✅"}
+            {keyword ? "🔍" : "✅"}
           </div>
 
           <h2
             className="
               mt-4
-
               text-xl
               font-extrabold
               !text-slate-900
@@ -898,9 +910,7 @@ export default async function LowStockPage({
           <p
             className="
               mt-2
-
               max-w-lg
-
               text-sm
               font-semibold
               leading-relaxed
