@@ -68,9 +68,7 @@ function formatThaiShortDate(
   const day = date.getDate();
 
   const month =
-    thaiShortMonths[
-      date.getMonth()
-    ];
+    thaiShortMonths[date.getMonth()];
 
   const buddhistYear = String(
     date.getFullYear() + 543
@@ -86,12 +84,15 @@ function formatThaiShortDate(
 export default async function ReceivePage({
   searchParams,
 }: ReceivePageProps) {
-  const params =
-    await searchParams;
+  /* =======================================================
+     SEARCH PARAMS
+  ======================================================= */
 
-  /* =========================================================
+  const params = await searchParams;
+
+  /* =======================================================
      DATE FILTER
-  ========================================================= */
+  ======================================================= */
 
   const now = new Date();
 
@@ -103,9 +104,9 @@ export default async function ReceivePage({
     | Date
     | undefined;
 
-  /* =========================================================
+  /* =======================================================
      TODAY
-  ========================================================= */
+  ======================================================= */
 
   if (params.date === "today") {
     startDate = new Date(
@@ -129,13 +130,11 @@ export default async function ReceivePage({
     );
   }
 
-  /* =========================================================
+  /* =======================================================
      CURRENT MONTH
-  ========================================================= */
+  ======================================================= */
 
-  if (
-    params.period === "month"
-  ) {
+  if (params.period === "month") {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -157,14 +156,14 @@ export default async function ReceivePage({
     );
   }
 
-  /* =========================================================
+  /* =======================================================
      LOAD RECEIVE DATA
 
      เรียง:
      1. วันที่รับเข้าล่าสุดอยู่ด้านบน
      2. วันที่เก่าอยู่ด้านล่าง
      3. ถ้าวันที่ซ้ำกัน รายการที่บันทึกใหม่กว่าอยู่ด้านบน
-  ========================================================= */
+  ======================================================= */
 
   const receives =
     await prisma.receive.findMany({
@@ -193,16 +192,14 @@ export default async function ReceivePage({
       ],
     });
 
-  /* =========================================================
+  /* =======================================================
      FILTER DESCRIPTION
-  ========================================================= */
+  ======================================================= */
 
   let filterText =
     "รายการรับเข้าพัสดุทั้งหมด";
 
-  if (
-    params.date === "today"
-  ) {
+  if (params.date === "today") {
     filterText =
       "รายการรับเข้าพัสดุวันนี้";
   } else if (
@@ -212,9 +209,26 @@ export default async function ReceivePage({
       "รายการรับเข้าพัสดุประจำเดือนนี้";
   }
 
-  /* =========================================================
+  /* =======================================================
+     TABLE SUBTITLE
+  ======================================================= */
+
+  let tableSubtitle =
+    "ข้อมูลการรับเข้าพัสดุทั้งหมด";
+
+  if (params.date === "today") {
+    tableSubtitle =
+      "ข้อมูลการรับเข้าพัสดุของวันนี้";
+  } else if (
+    params.period === "month"
+  ) {
+    tableSubtitle =
+      "ข้อมูลการรับเข้าพัสดุประจำเดือนนี้";
+  }
+
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
     <AppPage>
@@ -231,7 +245,11 @@ export default async function ReceivePage({
             href="/receive/create"
             variant="primary"
             size="md"
-            icon={<span>＋</span>}
+            icon={
+              <span aria-hidden="true">
+                ＋
+              </span>
+            }
           >
             เพิ่มรายการ
           </AppButton>
@@ -244,12 +262,19 @@ export default async function ReceivePage({
 
       <AppTableCard
         title="รายการเอกสารรับเข้า"
-        subtitle={`เรียงจากวันที่รับเข้าล่าสุด • ทั้งหมด ${receives.length} รายการ`}
+        subtitle={tableSubtitle}
+        badge={`${receives.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
           w-full
           min-w-0
         "
       >
+        {/* ===================================================
+            TABLE SCROLL
+        =================================================== */}
+
         <div
           className="
             w-full
@@ -262,8 +287,11 @@ export default async function ReceivePage({
             className="
               w-full
               min-w-[980px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
@@ -287,6 +315,7 @@ export default async function ReceivePage({
                       key={tableTitle}
                       className="
                         whitespace-nowrap
+
                         border
                         border-black
 
@@ -326,48 +355,59 @@ export default async function ReceivePage({
                     <tr
                       key={receive.id}
                       className={`
-                        transition-all
-                        duration-200
-
                         ${
                           index % 2 === 0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
 
+                        transition-colors
+                        duration-200
+
                         hover:bg-blue-50/70
                       `}
                     >
                       {/* =======================================
-                          ลำดับ
+                          ORDER
                       ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
+                          tabular-nums
                           !text-slate-900
                         "
                       >
-                        {index + 1}
+                        {(
+                          index + 1
+                        ).toLocaleString(
+                          "th-TH"
+                        )}
                       </td>
 
                       {/* =======================================
-                          วันที่รับเข้า
+                          RECEIVE DATE
                       ======================================= */}
 
                       <td
                         className="
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-bold
                           tabular-nums
@@ -380,77 +420,101 @@ export default async function ReceivePage({
                       </td>
 
                       {/* =======================================
-                          เลขที่เอกสาร
+                          DOCUMENT NUMBER
                       ======================================= */}
 
                       <td
                         className="
+                          min-w-[160px]
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           text-center
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {receive.documentNo}
+                        {receive.documentNo ||
+                          "-"}
                       </td>
 
                       {/* =======================================
-                          ผู้จำหน่าย
+                          VENDOR
                       ======================================= */}
 
                       <td
                         className="
-                          min-w-[200px]
+                          min-w-[220px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           font-extrabold
                           !text-slate-900
                         "
                       >
-                        {receive.vendor.name}
+                        {receive.vendor
+                          ?.name || "-"}
                       </td>
 
                       {/* =======================================
-                          รายละเอียด
+                          DETAILS
                       ======================================= */}
 
                       <td
                         className="
+                          min-w-[130px]
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3
+
                           text-center
                         "
                       >
-                        <AppButton
-                          href={`/receive/${receive.id}`}
-                          variant="primary"
-                          size="sm"
+                        <div
+                          className="
+                            flex
+                            items-center
+                            justify-center
+                          "
                         >
-                          เปิด
-                        </AppButton>
+                          <AppButton
+                            href={`/receive/${receive.id}`}
+                            variant="primary"
+                            size="sm"
+                          >
+                            เปิด
+                          </AppButton>
+                        </div>
                       </td>
 
                       {/* =======================================
-                          หมายเหตุ
+                          REMARK
                       ======================================= */}
 
                       <td
                         className="
                           min-w-[220px]
                           max-w-[360px]
+
                           border
                           border-black
+
                           px-4
                           py-3.5
+
                           font-semibold
                           leading-relaxed
                           !text-slate-700
@@ -462,19 +526,23 @@ export default async function ReceivePage({
                             break-words
                           "
                         >
-                          {receive.remark ?? "-"}
+                          {receive.remark ??
+                            "-"}
                         </div>
                       </td>
 
                       {/* =======================================
-                          จัดการ
+                          ACTIONS
                       ======================================= */}
 
                       <td
                         className="
+                          min-w-[200px]
                           whitespace-nowrap
+
                           border
                           border-black
+
                           px-4
                           py-3
                         "
@@ -492,7 +560,9 @@ export default async function ReceivePage({
                             variant="primary"
                             size="sm"
                             icon={
-                              <span>
+                              <span
+                                aria-hidden="true"
+                              >
                                 ✏️
                               </span>
                             }
@@ -501,7 +571,9 @@ export default async function ReceivePage({
                           </AppButton>
 
                           <DeleteButton
-                            id={receive.id}
+                            id={
+                              receive.id
+                            }
                           />
                         </div>
                       </td>
@@ -519,15 +591,19 @@ export default async function ReceivePage({
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
@@ -535,49 +611,49 @@ export default async function ReceivePage({
                         justify-center
                       "
                     >
+                      {/* ICON */}
+
                       <div
                         className="
-                          flex
+                          grid
                           h-16
                           w-16
-                          items-center
-                          justify-center
-
-                          rounded-[20px]
-
-                          border
-                          border-slate-200/80
-
-                          bg-white/90
+                          place-items-center
 
                           text-3xl
-
-                          shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)]
-
-                          ring-1
-                          ring-black/[0.025]
-
-                          backdrop-blur-xl
                         "
+                        aria-hidden="true"
                       >
                         📥
                       </div>
 
+                      {/* TITLE */}
+
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
                           tracking-tight
                           !text-slate-900
                         "
                       >
-                        ยังไม่มีข้อมูลรับเข้าพัสดุ
+                        {params.date ===
+                        "today"
+                          ? "วันนี้ยังไม่มีรายการรับเข้าพัสดุ"
+                          : params.period ===
+                              "month"
+                            ? "เดือนนี้ยังไม่มีรายการรับเข้าพัสดุ"
+                            : "ยังไม่มีข้อมูลรับเข้าพัสดุ"}
                       </p>
+
+                      {/* DESCRIPTION */}
 
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           leading-relaxed
@@ -587,6 +663,25 @@ export default async function ReceivePage({
                         เมื่อมีการบันทึกรับเข้า
                         รายการจะแสดงในตารางนี้
                       </p>
+
+                      {/* ACTION */}
+
+                      <div className="mt-5">
+                        <AppButton
+                          href="/receive/create"
+                          variant="primary"
+                          size="md"
+                          icon={
+                            <span
+                              aria-hidden="true"
+                            >
+                              ＋
+                            </span>
+                          }
+                        >
+                          เพิ่มรายการ
+                        </AppButton>
+                      </div>
                     </div>
                   </td>
                 </tr>
