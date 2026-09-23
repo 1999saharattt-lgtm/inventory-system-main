@@ -12,7 +12,15 @@ export type AppTableCardProps = {
 
   title?: ReactNode;
   subtitle?: ReactNode;
+
+  /*
+   * รองรับทั้ง API ใหม่และโค้ดเดิม
+   *
+   * badge="15 รายการ"
+   * count={15}
+   */
   badge?: ReactNode;
+  count?: number;
 
   className?: string;
   headerClassName?: string;
@@ -46,7 +54,9 @@ export default function AppTableCard({
 
   title,
   subtitle,
+
   badge,
+  count,
 
   className,
   headerClassName,
@@ -55,10 +65,27 @@ export default function AppTableCard({
 
   ...props
 }: AppTableCardProps) {
+  /* =========================================================
+     BADGE VALUE
+
+     ถ้ามี badge ให้ใช้ badge
+     ถ้าไม่มี badge แต่มี count ให้แสดงจำนวนรายการ
+  ========================================================= */
+
+  const badgeContent =
+    badge !== undefined &&
+    badge !== null
+      ? badge
+      : count !== undefined
+        ? `${count.toLocaleString(
+            "th-TH"
+          )} รายการ`
+        : null;
+
   const hasHeader =
     Boolean(title) ||
     Boolean(subtitle) ||
-    Boolean(badge);
+    badgeContent !== null;
 
   return (
     <section
@@ -89,7 +116,7 @@ export default function AppTableCard({
       )}
     >
       {/* =====================================================
-          iOS AMBIENT BACKGROUND
+          IOS AMBIENT BACKGROUND
       ===================================================== */}
 
       <div
@@ -179,7 +206,7 @@ export default function AppTableCard({
           )}
         >
           {/* =================================================
-              TITLE
+              TITLE + SUBTITLE
           ================================================= */}
 
           <div className="min-w-0">
@@ -215,10 +242,10 @@ export default function AppTableCard({
           </div>
 
           {/* =================================================
-              BADGE
+              BADGE / COUNT
           ================================================= */}
 
-          {badge && (
+          {badgeContent !== null && (
             <div
               className={cn(
                 `
@@ -227,6 +254,7 @@ export default function AppTableCard({
                   shrink-0
                   items-center
                   justify-center
+                  gap-2
 
                   rounded-full
 
@@ -252,7 +280,7 @@ export default function AppTableCard({
                 badgeClassName
               )}
             >
-              {badge}
+              {badgeContent}
             </div>
           )}
         </div>
