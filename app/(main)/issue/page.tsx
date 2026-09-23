@@ -1,11 +1,22 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+
 import {
   verifySession,
   type SessionUser,
 } from "@/lib/session";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
 import DeleteButton from "./DeleteButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Issue = {
   id: number;
@@ -44,6 +55,10 @@ type IssuePageProps = {
   }>;
 };
 
+/* =========================================================
+   THAI DATE
+========================================================= */
+
 const thaiMonths = [
   "มกราคม",
   "กุมภาพันธ์",
@@ -62,9 +77,14 @@ const thaiMonths = [
 function formatThaiDate(
   date: Date | string | null
 ) {
-  if (!date) return "-";
+  if (!date) {
+    return "-";
+  }
 
-  const parsedDate = new Date(date);
+  const parsedDate =
+    date instanceof Date
+      ? date
+      : new Date(date);
 
   if (
     Number.isNaN(
@@ -82,6 +102,10 @@ function formatThaiDate(
     parsedDate.getFullYear() + 543
   }`;
 }
+
+/* =========================================================
+   STATUS
+========================================================= */
 
 function getStatusLabel(
   status: string
@@ -101,47 +125,50 @@ function getStatusLabel(
   }
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function IssuePage({
   searchParams,
 }: IssuePageProps) {
-  // =====================================================
-  // Search Params
-  // =====================================================
+  /* =======================================================
+     SEARCH PARAMS
+  ======================================================= */
 
-  const params = await searchParams;
+  const params =
+    await searchParams;
 
-  // =====================================================
-  // Session
-  // =====================================================
+  /* =======================================================
+     SESSION
+  ======================================================= */
 
-  const cookieStore = await cookies();
+  const cookieStore =
+    await cookies();
 
   const token =
-    cookieStore.get("session")?.value;
+    cookieStore.get(
+      "session"
+    )?.value;
 
-  let session: SessionUser | null = null;
+  let session:
+    | SessionUser
+    | null = null;
 
   if (token) {
     try {
       session =
-        await verifySession(token);
+        await verifySession(
+          token
+        );
     } catch {
       session = null;
     }
   }
 
-  // =====================================================
-  // ตรวจสอบสิทธิ์ตามกลุ่มงาน
-  //
-  // ADMIN
-  // - เห็นข้อมูลทุกกลุ่ม
-  //
-  // STAFF / VIEWER
-  // - เห็นเฉพาะกลุ่มงานของตัวเอง
-  //
-  // ไม่มี session หรือไม่มี departmentId
-  // - ไม่ให้เห็นข้อมูล
-  // =====================================================
+  /* =======================================================
+     DEPARTMENT PERMISSION
+  ======================================================= */
 
   const issueDepartmentWhere =
     session?.role === "ADMIN"
@@ -155,9 +182,9 @@ export default async function IssuePage({
             departmentId: -1,
           };
 
-  // =====================================================
-  // กำหนดช่วงวันที่สำหรับการกรอง
-  // =====================================================
+  /* =======================================================
+     DATE FILTER
+  ======================================================= */
 
   const now = new Date();
 
@@ -169,11 +196,13 @@ export default async function IssuePage({
     | Date
     | undefined;
 
-  // =====================================================
-  // เบิกจ่ายวันนี้
-  // =====================================================
+  /* =======================================================
+     TODAY
+  ======================================================= */
 
-  if (params.date === "today") {
+  if (
+    params.date === "today"
+  ) {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -195,11 +224,13 @@ export default async function IssuePage({
     );
   }
 
-  // =====================================================
-  // เบิกจ่ายประจำเดือน
-  // =====================================================
+  /* =======================================================
+     THIS MONTH
+  ======================================================= */
 
-  if (params.period === "month") {
+  if (
+    params.period === "month"
+  ) {
     startDate = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -221,14 +252,15 @@ export default async function IssuePage({
     );
   }
 
-  // =====================================================
-  // รวมเงื่อนไขกลุ่มงาน + วันที่
-  // =====================================================
+  /* =======================================================
+     WHERE
+  ======================================================= */
 
   const issueWhere = {
     ...issueDepartmentWhere,
 
-    ...(startDate && endDate
+    ...(startDate &&
+    endDate
       ? {
           issueDate: {
             gte: startDate,
@@ -238,9 +270,9 @@ export default async function IssuePage({
       : {}),
   };
 
-  // =====================================================
-  // ดึงรายการเบิก
-  // =====================================================
+  /* =======================================================
+     LOAD ISSUES
+  ======================================================= */
 
   const issues =
     await prisma.issue.findMany({
@@ -262,318 +294,457 @@ export default async function IssuePage({
       },
     });
 
-  // =====================================================
-  // จำนวนรายการที่รอเบิกจ่าย
-  // =====================================================
+  /* =======================================================
+     PENDING COUNT
+  ======================================================= */
 
   const pendingCount =
     session?.role === "ADMIN"
       ? issues.filter(
           (issue) =>
-            issue.status === "PENDING"
+            issue.status ===
+            "PENDING"
         ).length
       : 0;
 
+  /* =======================================================
+     ACTIVE FILTER LABEL
+  ======================================================= */
+
+  const filterLabel =
+    params.date === "today"
+      ? "รายการเบิกจ่ายวันนี้"
+      : params.period ===
+          "month"
+        ? "รายการเบิกจ่ายประจำเดือนนี้"
+        : "รายการเบิกจ่ายทั้งหมด";
+
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =====================================================
+    <AppPage>
+      {/* ===================================================
           HEADER
-      ===================================================== */}
+      =================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-8
-          sm:py-6
-        "
-      >
-        {/* =================================================
-            ชื่อหน้า
-        ================================================= */}
-
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📤 รายการเบิกจ่ายพัสดุ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน
-          </p>
-        </div>
-
-        {/* =================================================
-            ปุ่มด้านขวา
-        ================================================= */}
-
-        <div
-          className="
-            flex
-            w-full
-            shrink-0
-            flex-col
-            gap-2
-            sm:w-auto
-            sm:flex-row
-            sm:items-center
-            sm:gap-3
-          "
-        >
-          {/* ===============================================
-              เพิ่มรายการ
-              เชื่อมไปฟอร์มเดิม /issue/new
-          =============================================== */}
-
-          <Link
-            href="/issue/create"
-            className="
-              w-full
-              shrink-0
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              leading-tight
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:from-emerald-700
-              hover:to-green-600
-              sm:w-auto
-              sm:px-5
-              sm:py-3
-              sm:text-base
-            "
-          >
-            + เพิ่มรายการ
-          </Link>
-
-          {/* ===============================================
-              กลับหน้าแรก
-          =============================================== */}
-
-          <Link
-            href="/"
-            className="
-              w-full
-              shrink-0
-              whitespace-nowrap
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-600
-              to-slate-500
-              px-4
-              py-2.5
-              text-center
-              text-sm
-              font-extrabold
-              leading-tight
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              hover:from-slate-700
-              hover:to-slate-600
-              sm:w-auto
-              sm:px-5
-              sm:py-3
-              sm:text-base
-            "
-          >
-            ← กลับ
-          </Link>
-        </div>
-      </div>
-
-      {/* =====================================================
-          แจ้งเตือนรายการรอเบิกจ่าย
-          เฉพาะ ADMIN
-      ===================================================== */}
-
-      {session?.role === "ADMIN" &&
-        pendingCount > 0 && (
+      <AppPageHeader
+        icon="📤"
+        title="รายการเบิกจ่ายพัสดุ"
+        subtitle="แสดงรายการเอกสารเบิกจ่ายพัสดุของกลุ่มงาน"
+        actions={
           <div
             className="
               flex
-              flex-col
+              flex-wrap
+              items-center
+              justify-end
               gap-3
-              rounded-2xl
-              border
-              border-amber-300
-              bg-gradient-to-r
-              from-amber-50
-              to-yellow-50
-              p-4
-              shadow-lg
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
             "
           >
-            <div className="min-w-0">
-              <p
-                className="
-                  text-lg
-                  font-extrabold
-                  text-amber-900
-                "
-              >
-                🔔 มีรายการรอเบิกจ่าย
-              </p>
+            <AppButton
+              href="/issue/create"
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ＋
+                </span>
+              }
+            >
+              เพิ่มรายการ
+            </AppButton>
 
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  text-amber-800
-                  sm:text-base
-                "
-              >
-                มีใบเบิกจำนวน{" "}
-                {pendingCount} รายการ
-                รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
-              </p>
-            </div>
+            <AppButton
+              href="/"
+              variant="back"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </div>
+        }
+      />
 
+      {/* ===================================================
+          PENDING ALERT
+      =================================================== */}
+
+      {session?.role ===
+        "ADMIN" &&
+        pendingCount > 0 && (
+          <div
+            className="
+              relative
+              overflow-hidden
+
+              rounded-[24px]
+
+              border
+              border-amber-200
+
+              bg-gradient-to-r
+              from-amber-50
+              via-yellow-50
+              to-white
+
+              p-4
+              sm:p-5
+
+              shadow-[0_14px_40px_-24px_rgba(120,53,15,0.35)]
+            "
+          >
             <div
               className="
-                shrink-0
-                rounded-xl
-                bg-amber-500
-                px-5
-                py-2.5
-                text-center
-                font-extrabold
-                text-white
-                shadow
+                flex
+                flex-col
+                gap-4
+
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
               "
             >
-              รอ {pendingCount} รายการ
+              <div
+                className="
+                  flex
+                  min-w-0
+                  items-start
+                  gap-3
+                "
+              >
+                <div
+                  className="
+                    flex
+                    h-11
+                    w-11
+                    shrink-0
+                    items-center
+                    justify-center
+
+                    rounded-[15px]
+
+                    bg-amber-100
+
+                    text-xl
+
+                    shadow-sm
+
+                    ring-1
+                    ring-amber-200
+                  "
+                >
+                  🔔
+                </div>
+
+                <div className="min-w-0">
+                  <p
+                    className="
+                      text-base
+                      font-black
+                      !text-amber-900
+
+                      sm:text-lg
+                    "
+                  >
+                    มีรายการรอเบิกจ่าย
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+
+                      text-sm
+                      font-semibold
+                      leading-relaxed
+                      !text-amber-800
+                    "
+                  >
+                    มีใบเบิกจำนวน{" "}
+                    {pendingCount}{" "}
+                    รายการ
+                    รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className="
+                  inline-flex
+                  shrink-0
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-amber-500
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+                  !text-white
+
+                  shadow-sm
+                "
+              >
+                รอ {pendingCount}{" "}
+                รายการ
+              </div>
             </div>
           </div>
         )}
 
-      {/* =====================================================
-          TABLE
-      ===================================================== */}
+      {/* ===================================================
+          TABLE CARD
+      =================================================== */}
 
-      <div
+      <AppTableCard
+        title="รายการเบิกจ่ายพัสดุ"
+        subtitle={filterLabel}
+        badge={`${issues.length} รายการ`}
         className="
-          w-full
-          min-w-0
+          relative
+
           overflow-hidden
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-lg
         "
       >
         <div
           className="
             w-full
             min-w-0
+
             overflow-x-auto
+            overscroll-x-contain
           "
         >
           <table
             className="
               w-full
-              min-w-[1100px]
+              min-w-[1180px]
+
               border-collapse
+
+              bg-white
+
+              text-sm
             "
           >
+            {/* =============================================
+                TABLE HEADER
+            ============================================= */}
+
             <thead>
               <tr>
-                <th className="w-[5%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    w-[70px]
+
+                    whitespace-nowrap
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ลำดับ
                 </th>
 
-                <th className="w-[9%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[160px]
+
+                    whitespace-nowrap
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   วันที่
                 </th>
 
-                <th className="w-[11%] whitespace-nowrap border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[150px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   เลขที่เอกสาร
                 </th>
 
-                <th className="w-[17%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
-                  หน่วยงาน / กลุ่มงาน
+                <th
+                  className="
+                    min-w-[220px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
+                  หน่วยงาน /
+                  กลุ่มงาน
                 </th>
 
-                <th className="w-[13%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[180px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   ผู้ขอเบิก
                 </th>
 
-                <th className="w-[12%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[150px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   สถานะ
                 </th>
 
-                <th className="w-[15%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[120px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   รายละเอียด
                 </th>
 
-                <th className="w-[18%] border border-slate-900 bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center text-base font-extrabold !text-white">
+                <th
+                  className="
+                    min-w-[190px]
+
+                    border
+                    border-slate-700
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    text-base
+                    font-extrabold
+                    !text-white
+                  "
+                >
                   จัดการ
                 </th>
               </tr>
             </thead>
 
+            {/* =============================================
+                TABLE BODY
+            ============================================= */}
+
             <tbody>
-              {issues.length > 0 ? (
+              {issues.length >
+              0 ? (
                 issues.map(
                   (
                     issue: Issue,
@@ -581,71 +752,290 @@ export default async function IssuePage({
                   ) => (
                     <tr
                       key={issue.id}
-                      className="
-                        border-b
-                        border-slate-900
-                        text-slate-900
-                        transition
-                        hover:bg-emerald-50
-                      "
-                    >
-                      {/* ลำดับ */}
+                      className={`
+                        ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
 
-                      <td className="whitespace-nowrap border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
+                        transition-colors
+                        duration-200
+
+                        hover:bg-blue-50/70
+                      `}
+                    >
+                      {/* ===================================
+                          ลำดับ
+                      =================================== */}
+
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                          text-sm
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
                         {index + 1}
                       </td>
 
-                      {/* วันที่ */}
+                      {/* ===================================
+                          วันที่
+                      =================================== */}
 
-                      <td className="whitespace-nowrap border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue.issueDate
-                          ? formatThaiDate(
-                              issue.issueDate
-                            )
-                          : "-"}
+                      <td
+                        className="
+                          whitespace-nowrap
+
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                          text-sm
+                          font-bold
+                          !text-slate-800
+                        "
+                      >
+                        {formatThaiDate(
+                          issue.issueDate
+                        )}
                       </td>
 
-                      {/* เลขที่เอกสาร */}
+                      {/* ===================================
+                          เลขที่เอกสาร
+                      =================================== */}
 
-                      <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue.documentNo}
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                          text-sm
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        <span
+                          className="
+                            break-words
+                          "
+                        >
+                          {
+                            issue.documentNo
+                          }
+                        </span>
                       </td>
 
-                      {/* หน่วยงาน / กลุ่มงาน */}
+                      {/* ===================================
+                          หน่วยงาน / กลุ่มงาน
+                      =================================== */}
 
-                      <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue.department
-                          ?.name ?? "-"}
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                          text-sm
+                          font-bold
+                          !text-slate-800
+                        "
+                      >
+                        <span
+                          className="
+                            break-words
+                          "
+                        >
+                          {issue
+                            .department
+                            ?.name ??
+                            "-"}
+                        </span>
                       </td>
 
-                      {/* ผู้ขอเบิก */}
+                      {/* ===================================
+                          ผู้ขอเบิก
+                      =================================== */}
 
-                      <td className="break-words border border-slate-900 px-2 py-3 text-center text-sm font-bold text-slate-900">
-                        {issue.officer
-                          ? `${issue.officer.firstName} ${issue.officer.lastName}`
-                          : "-"}
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                          text-sm
+                          font-bold
+                          !text-slate-800
+                        "
+                      >
+                        <span
+                          className="
+                            break-words
+                          "
+                        >
+                          {issue.officer
+                            ? `${issue.officer.firstName} ${issue.officer.lastName}`
+                            : "-"}
+                        </span>
                       </td>
 
-                      {/* สถานะ */}
+                      {/* ===================================
+                          STATUS
+                      =================================== */}
 
-                      <td className="border border-slate-900 px-2 py-3 text-center text-xs font-extrabold">
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                        "
+                      >
                         {issue.status ===
                         "PENDING" ? (
-                          <span className="inline-flex max-w-full items-center justify-center rounded-full bg-amber-100 px-2 py-1.5 text-amber-800 shadow-sm">
-                            🔔 รอเบิกจ่าย
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              gap-1.5
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-amber-100
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+                              !text-amber-800
+
+                              ring-1
+                              ring-amber-200/80
+                            "
+                          >
+                            <span>
+                              🔔
+                            </span>
+
+                            รอเบิกจ่าย
                           </span>
                         ) : issue.status ===
                           "APPROVED" ? (
-                          <span className="inline-flex max-w-full items-center justify-center rounded-full bg-emerald-100 px-2 py-1.5 text-emerald-800 shadow-sm">
-                            ✓ เสร็จสิ้นแล้ว
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              gap-1.5
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-emerald-100
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+                              !text-emerald-800
+
+                              ring-1
+                              ring-emerald-200/80
+                            "
+                          >
+                            <span>
+                              ✓
+                            </span>
+
+                            เสร็จสิ้นแล้ว
                           </span>
                         ) : issue.status ===
                           "REJECTED" ? (
-                          <span className="inline-flex max-w-full items-center justify-center rounded-full bg-red-100 px-2 py-1.5 text-red-800 shadow-sm">
-                            ✕ ไม่อนุมัติ
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              gap-1.5
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-red-100
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+                              !text-red-800
+
+                              ring-1
+                              ring-red-200/80
+                            "
+                          >
+                            <span>
+                              ✕
+                            </span>
+
+                            ไม่อนุมัติ
                           </span>
                         ) : (
-                          <span className="inline-flex max-w-full items-center justify-center rounded-full bg-slate-100 px-2 py-1.5 text-slate-700">
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-slate-100
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+                              !text-slate-700
+
+                              ring-1
+                              ring-slate-200
+                            "
+                          >
                             {getStatusLabel(
                               issue.status
                             )}
@@ -653,64 +1043,61 @@ export default async function IssuePage({
                         )}
                       </td>
 
-                      {/* รายละเอียด */}
+                      {/* ===================================
+                          รายละเอียด
+                      =================================== */}
 
-                      <td className="border border-slate-900 px-2 py-3 text-center">
-                        <Link
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                        "
+                      >
+                        <AppButton
                           href={`/issue/${issue.id}`}
-                          className="
-                            inline-flex
-                            items-center
-                            justify-center
-                            whitespace-nowrap
-                            rounded-lg
-                            bg-slate-800
-                            px-3
-                            py-2
-                            text-sm
-                            font-extrabold
-                            leading-none
-                            !text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
-                          "
+                          variant="view"
+                          size="sm"
                         >
-                          {session?.role ===
-                            "ADMIN" &&
-                          issue.status ===
-                            "PENDING"
-                            ? "ตรวจสอบ / เบิกจ่าย"
-                            : "ดูรายการ"}
-                        </Link>
+                          เปิด
+                        </AppButton>
                       </td>
 
-                      {/* จัดการ */}
+                      {/* ===================================
+                          จัดการ
+                      =================================== */}
 
-                      <td className="border border-slate-900 px-2 py-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-1">
-                          <Link
+                      <td
+                        className="
+                          border
+                          border-slate-200
+
+                          px-3
+                          py-3
+
+                          text-center
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            flex-wrap
+                            items-center
+                            justify-center
+                            gap-2
+                          "
+                        >
+                          <AppButton
                             href={`/issue/${issue.id}/edit`}
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
-                              whitespace-nowrap
-                              rounded-lg
-                              bg-slate-800
-                              px-3
-                              py-2
-                              text-sm
-                              font-extrabold
-                              leading-none
-                              !text-white
-                              shadow
-                              transition
-                              hover:bg-slate-700
-                            "
+                            variant="edit"
+                            size="sm"
                           >
                             แก้ไข
-                          </Link>
+                          </AppButton>
 
                           <DeleteButton
                             id={issue.id}
@@ -726,22 +1113,78 @@ export default async function IssuePage({
                     colSpan={8}
                     className="
                       border
-                      border-slate-900
-                      py-12
+                      border-slate-200
+
+                      bg-white
+
+                      px-6
+                      py-16
+
                       text-center
-                      text-lg
-                      font-extrabold
-                      text-slate-500
                     "
                   >
-                    ยังไม่มีรายการเบิกจ่ายพัสดุ
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          h-14
+                          w-14
+                          items-center
+                          justify-center
+
+                          rounded-2xl
+
+                          bg-slate-100
+
+                          text-2xl
+
+                          shadow-inner
+                        "
+                      >
+                        📤
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-base
+                          font-extrabold
+                          !text-slate-700
+                        "
+                      >
+                        ยังไม่มีรายการเบิกจ่ายพัสดุ
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          !text-slate-400
+                        "
+                      >
+                        เมื่อมีการบันทึกรายการเบิกจ่าย
+                        ข้อมูลจะแสดงในตารางนี้
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }
