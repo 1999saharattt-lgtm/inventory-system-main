@@ -1,351 +1,201 @@
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-
-import {
-  verifySession,
-  type SessionUser,
-} from "@/lib/session";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 import AppTableCard from "@/components/AppTableCard";
 
-import DeleteButton from "./DeleteButton";
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const categoryName: Record<string, string> = {
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+};
+
+const categoryIcons: Record<string, string> = {
+  OFFICE: "📄",
+  COMPUTER: "💻",
+  ELECTRIC: "⚡",
+  HOUSEHOLD: "🏠",
+  VEHICLE: "🚗",
+  PRINTING: "📰",
+};
+
+const categories = [
+  "OFFICE",
+  "COMPUTER",
+  "ELECTRIC",
+  "HOUSEHOLD",
+  "VEHICLE",
+  "PRINTING",
+];
 
 /* =========================================================
    TYPES
 ========================================================= */
 
-type Issue = {
-  id: number;
-  issueDate: Date;
-  documentNo: string;
-  remark: string | null;
-  status: string;
-
-  department: {
-    name: string;
-  };
-
-  officer: {
-    firstName: string;
-    lastName: string;
-  } | null;
-
-  items: {
-    id: number;
-    qty: number;
-    manufacture: Date | null;
-    expiry: Date | null;
-
-    material: {
-      id: number;
-      name: string;
-      unit: string;
-    };
-  }[];
-};
-
-type IssuePageProps = {
+type LowStockPageProps = {
   searchParams: Promise<{
-    date?: string;
-    period?: string;
+    q?: string;
   }>;
 };
-
-/* =========================================================
-   THAI SHORT DATE
-   ตัวอย่าง 23 ก.ย. 69
-========================================================= */
-
-const thaiShortMonths = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
-
-function formatThaiShortDate(
-  value: Date | string | null | undefined
-) {
-  if (!value) {
-    return "-";
-  }
-
-  const date =
-    value instanceof Date
-      ? value
-      : new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  const day = date.getDate();
-
-  const month =
-    thaiShortMonths[
-      date.getMonth()
-    ];
-
-  const buddhistYear = String(
-    date.getFullYear() + 543
-  ).slice(-2);
-
-  return `${day} ${month} ${buddhistYear}`;
-}
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function getStatusLabel(
-  status: string
-) {
-  switch (status) {
-    case "PENDING":
-      return "รอเบิกจ่าย";
-
-    case "APPROVED":
-      return "เสร็จสิ้นแล้ว";
-
-    case "REJECTED":
-      return "ไม่อนุมัติ";
-
-    default:
-      return status || "-";
-  }
-}
 
 /* =========================================================
    PAGE
 ========================================================= */
 
-export default async function IssuePage({
+export default async function LowStockPage({
   searchParams,
-}: IssuePageProps) {
+}: LowStockPageProps) {
   /* =======================================================
      SEARCH PARAMS
   ======================================================= */
 
-  const params =
-    await searchParams;
+  const params = await searchParams;
+
+  const keyword =
+    params.q?.trim() ?? "";
+
+  const search =
+    keyword.toLowerCase();
 
   /* =======================================================
-     SESSION
+     LOAD LOW STOCK MATERIALS
+
+     แสดงพัสดุคงเหลือน้อยกว่า 10
+     รวม:
+     - หมด = 0 หรือต่ำกว่า
+     - ใกล้หมด = 1 - 9
   ======================================================= */
 
-  const cookieStore =
-    await cookies();
-
-  const token =
-    cookieStore.get(
-      "session"
-    )?.value;
-
-  let session:
-    | SessionUser
-    | null = null;
-
-  if (token) {
-    try {
-      session =
-        await verifySession(
-          token
-        );
-    } catch {
-      session = null;
-    }
-  }
-
-  /* =======================================================
-     DEPARTMENT PERMISSION
-  ======================================================= */
-
-  const issueDepartmentWhere =
-    session?.role === "ADMIN"
-      ? {}
-      : session?.departmentId
-        ? {
-            departmentId:
-              session.departmentId,
-          }
-        : {
-            departmentId: -1,
-          };
-
-  /* =======================================================
-     DATE FILTER
-  ======================================================= */
-
-  const now = new Date();
-
-  let startDate:
-    | Date
-    | undefined;
-
-  let endDate:
-    | Date
-    | undefined;
-
-  /* =======================================================
-     TODAY
-  ======================================================= */
-
-  if (params.date === "today") {
-    startDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-      0
-    );
-
-    endDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0,
-      0,
-      0,
-      0
-    );
-  }
-
-  /* =======================================================
-     CURRENT MONTH
-  ======================================================= */
-
-  if (params.period === "month") {
-    startDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1,
-      0,
-      0,
-      0,
-      0
-    );
-
-    endDate = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      1,
-      0,
-      0,
-      0,
-      0
-    );
-  }
-
-  /* =======================================================
-     WHERE
-  ======================================================= */
-
-  const issueWhere = {
-    ...issueDepartmentWhere,
-
-    ...(startDate && endDate
-      ? {
-          issueDate: {
-            gte: startDate,
-            lt: endDate,
-          },
-        }
-      : {}),
-  };
-
-  /* =======================================================
-     LOAD ISSUES
-
-     เรียง:
-     1. วันที่ล่าสุดอยู่ด้านบน
-     2. วันที่เก่าอยู่ด้านล่าง
-     3. ถ้าวันเดียวกัน ID ใหม่กว่าอยู่ด้านบน
-  ======================================================= */
-
-  const issues =
-    await prisma.issue.findMany({
-      where: issueWhere,
+  const materials =
+    await prisma.material.findMany({
+      where: {
+        balance: {
+          lt: 10,
+        },
+      },
 
       orderBy: [
         {
-          issueDate: "desc",
+          category: "asc",
         },
         {
-          id: "desc",
+          code: "asc",
         },
       ],
 
       include: {
-        department: true,
-        officer: true,
+        receiveItems: {
+          orderBy: [
+            {
+              receive: {
+                receiveDate: "desc",
+              },
+            },
+            {
+              id: "desc",
+            },
+          ],
 
-        items: {
           include: {
-            material: true,
+            receive: {
+              include: {
+                vendor: true,
+              },
+            },
           },
         },
       },
     });
 
   /* =======================================================
-     PENDING COUNT
+     PREPARE DATA
   ======================================================= */
 
-  const pendingCount =
-    session?.role === "ADMIN"
-      ? issues.filter(
-          (issue) =>
-            issue.status ===
-            "PENDING"
-        ).length
-      : 0;
+  const data = materials
+    .map((material) => {
+      const latestReceive =
+        material.receiveItems[0];
+
+      return {
+        id: material.id,
+
+        category:
+          material.category,
+
+        code:
+          material.code,
+
+        name:
+          material.name,
+
+        balance: Number(
+          material.balance
+        ),
+
+        unit:
+          material.unit,
+
+        latestPrice:
+          latestReceive
+            ? Number(
+                latestReceive.unitPrice
+              )
+            : null,
+
+        latestVendor:
+          latestReceive?.receive
+            .vendor?.name ?? "-",
+      };
+    })
+    .filter((material) => {
+      if (!search) {
+        return true;
+      }
+
+      return (
+        material.code
+          .toLowerCase()
+          .includes(search) ||
+        material.name
+          .toLowerCase()
+          .includes(search) ||
+        material.unit
+          .toLowerCase()
+          .includes(search) ||
+        material.latestVendor
+          .toLowerCase()
+          .includes(search)
+      );
+    });
 
   /* =======================================================
-     FILTER DESCRIPTION
+     COUNT
   ======================================================= */
 
-  let filterText =
-    "รายการเบิกจ่ายพัสดุทั้งหมด";
+  const totalLowStock =
+    data.length;
 
-  if (params.date === "today") {
-    filterText =
-      "รายการเบิกจ่ายพัสดุวันนี้";
-  } else if (
-    params.period === "month"
-  ) {
-    filterText =
-      "รายการเบิกจ่ายพัสดุประจำเดือนนี้";
-  }
+  const outOfStockCount =
+    data.filter(
+      (material) =>
+        material.balance <= 0
+    ).length;
 
-  /* =======================================================
-     TABLE SUBTITLE
-  ======================================================= */
-
-  let tableSubtitle =
-    "ข้อมูลการเบิกจ่ายพัสดุทั้งหมด";
-
-  if (params.date === "today") {
-    tableSubtitle =
-      "ข้อมูลการเบิกจ่ายพัสดุของวันนี้";
-  } else if (
-    params.period === "month"
-  ) {
-    tableSubtitle =
-      "ข้อมูลการเบิกจ่ายพัสดุประจำเดือนนี้";
-  }
+  const lowStockCount =
+    data.filter(
+      (material) =>
+        material.balance > 0 &&
+        material.balance < 10
+    ).length;
 
   /* =======================================================
      UI
@@ -358,678 +208,723 @@ export default async function IssuePage({
       ===================================================== */}
 
       <AppPageHeader
-        icon="📤"
-        title="รายการเบิกจ่ายพัสดุ"
-        subtitle={filterText}
+        icon="⚠️"
+        title="รายการพัสดุใกล้หมด"
+        subtitle="แสดงรายการพัสดุที่มีจำนวนคงเหลือน้อยกว่า 10"
         actions={
-          <>
-            {/* ===============================================
-                ADD ISSUE
-            =============================================== */}
-
-            <AppButton
-              href="/issue/create"
-              variant="primary"
-              size="md"
-              icon={
-                <span aria-hidden="true">
-                  ＋
-                </span>
-              }
-            >
-              เพิ่มรายการ
-            </AppButton>
-
-            {/* ===============================================
-                BACK TO HOME
-            =============================================== */}
-
-            <AppButton
-              href="/"
-              variant="back"
-              size="md"
-              icon={
-                <span aria-hidden="true">
-                  ←
-                </span>
-              }
-            >
-              กลับ
-            </AppButton>
-          </>
+          <AppButton
+            href="/"
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
+          >
+            กลับ
+          </AppButton>
         }
       />
 
       {/* =====================================================
-          PENDING ALERT
-          ADMIN ONLY
+          SEARCH
       ===================================================== */}
 
-      {session?.role === "ADMIN" &&
-        pendingCount > 0 && (
-          <div
-            className="
-              w-full
-              min-w-0
-
-              rounded-[24px]
-
-              border
-              border-amber-200
-
-              bg-amber-50
-
-              p-4
-
-              shadow-[0_12px_30px_-22px_rgba(146,64,14,0.25)]
-
-              sm:p-5
-            "
-          >
-            <div
-              className="
-                flex
-                min-w-0
-                flex-col
-                gap-3
-
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
-              "
-            >
-              <div className="min-w-0">
-                <p
-                  className="
-                    text-base
-                    font-extrabold
-                    !text-amber-900
-
-                    sm:text-lg
-                  "
-                >
-                  🔔 มีรายการรอเบิกจ่าย
-                </p>
-
-                <p
-                  className="
-                    mt-1
-
-                    text-sm
-                    font-semibold
-                    leading-relaxed
-                    !text-amber-800
-                  "
-                >
-                  มีใบเบิกจำนวน{" "}
-                  {pendingCount.toLocaleString(
-                    "th-TH"
-                  )}{" "}
-                  รายการ
-                  รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
-                </p>
-              </div>
-
-              <span
-                className="
-                  inline-flex
-                  shrink-0
-                  items-center
-                  justify-center
-
-                  whitespace-nowrap
-
-                  rounded-full
-
-                  border
-                  border-amber-300
-
-                  bg-white
-
-                  px-4
-                  py-2
-
-                  text-sm
-                  font-extrabold
-                  !text-amber-900
-                "
-              >
-                รอ{" "}
-                {pendingCount.toLocaleString(
-                  "th-TH"
-                )}{" "}
-                รายการ
-              </span>
-            </div>
-          </div>
-        )}
-
-      {/* =====================================================
-          TABLE CARD
-      ===================================================== */}
-
-      <AppTableCard
-        title="รายการเอกสารเบิกจ่าย"
-        subtitle={tableSubtitle}
-        badge={`${issues.length.toLocaleString(
-          "th-TH"
-        )} รายการ`}
+      <AppCard
         className="
           w-full
           min-w-0
+
+          !p-2.5
+
+          sm:!p-3
         "
       >
-        {/* ===================================================
-            TABLE SCROLL
-        =================================================== */}
-
-        <div
+        <form
+          method="GET"
           className="
+            flex
             w-full
             min-w-0
+            flex-col
+            gap-2.5
 
-            overflow-x-auto
-            overscroll-x-contain
+            sm:flex-row
+            sm:items-center
           "
         >
-          <table
+          {/* ===============================================
+              SEARCH INPUT
+          =============================================== */}
+
+          <div
             className="
-              w-full
-              min-w-[1180px]
-
-              border-collapse
-
-              bg-white
-
-              text-sm
+              min-w-0
+              flex-1
             "
           >
-            {/* =================================================
-                TABLE HEADER
-            ================================================= */}
+            <input
+              type="text"
+              name="q"
+              defaultValue={keyword}
+              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หน่วย / ผู้จำหน่าย"
+              autoComplete="off"
+              className="
+                h-10
+                w-full
+                min-w-0
 
-            <thead>
-              <tr>
-                {[
-                  "ลำดับ",
-                  "วันที่",
-                  "เลขที่เอกสาร",
-                  "หน่วยงาน / กลุ่มงาน",
-                  "ผู้ขอเบิก",
-                  "สถานะ",
-                  "รายละเอียด",
-                  "จัดการ",
-                ].map(
-                  (tableTitle) => (
-                    <th
-                      key={tableTitle}
-                      className="
-                        whitespace-nowrap
+                rounded-[12px]
 
-                        border
-                        border-black
+                border
+                border-slate-300
 
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
+                bg-white
 
-                        px-4
-                        py-4
+                px-3
+                py-2
 
-                        text-center
-                        text-base
-                        font-extrabold
-                        !text-white
+                text-sm
+                font-bold
+                !text-slate-900
 
-                        sm:text-lg
-                      "
-                    >
-                      {tableTitle}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
+                shadow-sm
+                outline-none
 
-            {/* =================================================
-                TABLE BODY
-            ================================================= */}
+                transition-all
+                duration-200
 
-            <tbody>
-              {issues.length > 0 ? (
-                issues.map(
-                  (
-                    issue: Issue,
-                    index: number
-                  ) => (
-                    <tr
-                      key={issue.id}
-                      className={`
-                        ${
-                          index % 2 === 0
-                            ? "bg-white"
-                            : "bg-slate-50/60"
-                        }
+                placeholder:font-semibold
+                placeholder:!text-slate-400
 
-                        transition-colors
-                        duration-200
+                hover:border-slate-400
 
-                        hover:bg-blue-50/70
-                      `}
-                    >
-                      {/* =======================================
-                          ORDER
-                      ======================================= */}
+                focus:border-blue-400
+                focus:ring-3
+                focus:ring-blue-100/80
 
-                      <td
-                        className="
-                          whitespace-nowrap
+                sm:h-11
+                sm:text-base
+              "
+            />
+          </div>
 
-                          border
-                          border-black
+          {/* ===============================================
+              SEARCH BUTTON
+          =============================================== */}
 
-                          px-4
-                          py-3.5
+          <AppButton
+            type="submit"
+            variant="primary"
+            size="md"
+            className="
+              w-full
+              shrink-0
 
-                          text-center
-                          font-extrabold
-                          tabular-nums
-                          !text-slate-900
-                        "
-                      >
-                        {(
-                          index + 1
-                        ).toLocaleString(
-                          "th-TH"
-                        )}
-                      </td>
+              sm:w-auto
+            "
+          >
+            ค้นหา
+          </AppButton>
 
-                      {/* =======================================
-                          DATE
-                      ======================================= */}
+          {/* ===============================================
+              CLEAR SEARCH
+          =============================================== */}
 
-                      <td
-                        className="
-                          whitespace-nowrap
+          {keyword && (
+            <AppButton
+              href="/materials/low-stock"
+              variant="outline"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ✕
+                </span>
+              }
+              className="
+                w-full
+                shrink-0
 
-                          border
-                          border-black
+                sm:w-auto
+              "
+            >
+              ล้างการค้นหา
+            </AppButton>
+          )}
 
-                          px-4
-                          py-3.5
+          {/* ===============================================
+              RESULT COUNT
+          =============================================== */}
 
-                          text-center
-                          font-bold
-                          tabular-nums
-                          !text-slate-700
-                        "
-                      >
-                        {formatThaiShortDate(
-                          issue.issueDate
-                        )}
-                      </td>
+          <div
+            className="
+              flex
+              h-10
+              w-full
+              shrink-0
+              items-center
+              justify-center
 
-                      {/* =======================================
-                          DOCUMENT NUMBER
-                      ======================================= */}
+              rounded-[12px]
 
-                      <td
-                        className="
-                          min-w-[160px]
-                          whitespace-nowrap
+              border
+              border-slate-200
 
-                          border
-                          border-black
+              bg-slate-50
 
-                          px-4
-                          py-3.5
+              px-4
 
-                          text-center
-                          font-extrabold
-                          !text-slate-900
-                        "
-                      >
-                        {issue.documentNo ||
-                          "-"}
-                      </td>
+              text-sm
+              font-extrabold
+              !text-slate-700
 
-                      {/* =======================================
-                          DEPARTMENT
-                      ======================================= */}
+              sm:h-11
+              sm:w-auto
+            "
+          >
+            {totalLowStock.toLocaleString(
+              "th-TH"
+            )}{" "}
+            รายการ
+          </div>
+        </form>
+      </AppCard>
 
-                      <td
-                        className="
-                          min-w-[220px]
+      {/* =====================================================
+          SUMMARY
+      ===================================================== */}
 
-                          border
-                          border-black
+      <section
+        className="
+          grid
+          w-full
+          min-w-0
+          grid-cols-1
+          gap-3
 
-                          px-4
-                          py-3.5
+          sm:grid-cols-2
+        "
+      >
+        {/* OUT OF STOCK */}
 
-                          font-extrabold
-                          !text-slate-900
-                        "
-                      >
-                        {issue.department
-                          ?.name ?? "-"}
-                      </td>
+        <AppCard
+          className="
+            flex
+            min-w-0
+            items-center
+            justify-between
+            gap-4
 
-                      {/* =======================================
-                          OFFICER
-                      ======================================= */}
+            !p-4
+          "
+        >
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-extrabold
+                !text-slate-500
+              "
+            >
+              พัสดุหมด
+            </p>
 
-                      <td
-                        className="
-                          min-w-[190px]
+            <p
+              className="
+                mt-1
 
-                          border
-                          border-black
+                text-2xl
+                font-black
+                tabular-nums
+                !text-red-600
+              "
+            >
+              {outOfStockCount.toLocaleString(
+                "th-TH"
+              )}
+            </p>
+          </div>
 
-                          px-4
-                          py-3.5
+          <div
+            className="
+              grid
+              h-12
+              w-12
+              shrink-0
+              place-items-center
 
-                          font-extrabold
-                          !text-slate-900
-                        "
-                      >
-                        {issue.officer
-                          ? `${issue.officer.firstName} ${issue.officer.lastName}`
-                          : "-"}
-                      </td>
+              rounded-[16px]
 
-                      {/* =======================================
-                          STATUS
-                      ======================================= */}
+              bg-red-50
 
-                      <td
-                        className="
-                          min-w-[150px]
-                          whitespace-nowrap
+              text-xl
+            "
+            aria-hidden="true"
+          >
+            🔴
+          </div>
+        </AppCard>
 
-                          border
-                          border-black
+        {/* LOW STOCK */}
 
-                          px-4
-                          py-3.5
+        <AppCard
+          className="
+            flex
+            min-w-0
+            items-center
+            justify-between
+            gap-4
 
-                          text-center
-                        "
-                      >
-                        {issue.status ===
-                        "PENDING" ? (
-                          <span
+            !p-4
+          "
+        >
+          <div className="min-w-0">
+            <p
+              className="
+                text-sm
+                font-extrabold
+                !text-slate-500
+              "
+            >
+              พัสดุใกล้หมด
+            </p>
+
+            <p
+              className="
+                mt-1
+
+                text-2xl
+                font-black
+                tabular-nums
+                !text-amber-600
+              "
+            >
+              {lowStockCount.toLocaleString(
+                "th-TH"
+              )}
+            </p>
+          </div>
+
+          <div
+            className="
+              grid
+              h-12
+              w-12
+              shrink-0
+              place-items-center
+
+              rounded-[16px]
+
+              bg-amber-50
+
+              text-xl
+            "
+            aria-hidden="true"
+          >
+            🟠
+          </div>
+        </AppCard>
+      </section>
+
+      {/* =====================================================
+          CATEGORY TABLES
+      ===================================================== */}
+
+      {categories.map(
+        (category) => {
+          const categoryMaterials =
+            data.filter(
+              (material) =>
+                material.category ===
+                category
+            );
+
+          if (
+            categoryMaterials.length ===
+            0
+          ) {
+            return null;
+          }
+
+          return (
+            <AppTableCard
+              key={category}
+              title={
+                categoryName[
+                  category
+                ] ?? category
+              }
+              subtitle="รายการพัสดุที่ต้องตรวจสอบ"
+              badge={`${categoryMaterials.length.toLocaleString(
+                "th-TH"
+              )} รายการ`}
+              className="
+                w-full
+                min-w-0
+              "
+            >
+              {/* =============================================
+                  TABLE SCROLL
+              ============================================= */}
+
+              <div
+                className="
+                  w-full
+                  min-w-0
+
+                  overflow-x-auto
+                  overscroll-x-contain
+                "
+              >
+                <table
+                  className="
+                    w-full
+                    min-w-[950px]
+
+                    border-collapse
+
+                    bg-white
+
+                    text-sm
+                  "
+                >
+                  {/* =========================================
+                      TABLE HEADER
+                  ========================================= */}
+
+                  <thead>
+                    <tr>
+                      {[
+                        "ลำดับ",
+                        "รหัสพัสดุ",
+                        "รายการพัสดุ",
+                        "จำนวน",
+                        "หน่วย",
+                        "ราคาล่าสุด",
+                        "ผู้จำหน่ายล่าสุด",
+                      ].map(
+                        (
+                          tableTitle
+                        ) => (
+                          <th
+                            key={
+                              tableTitle
+                            }
                             className="
-                              inline-flex
-                              items-center
-                              justify-center
-
                               whitespace-nowrap
 
-                              rounded-full
+                              border
+                              border-black
 
-                              bg-amber-100
+                              bg-gradient-to-r
+                              from-slate-800
+                              to-slate-700
 
-                              px-3
-                              py-1.5
+                              px-4
+                              py-4
 
-                              text-xs
+                              text-center
+                              text-base
                               font-extrabold
-                              !text-amber-800
+                              !text-white
+
+                              sm:text-lg
                             "
                           >
-                            🔔 รอเบิกจ่าย
-                          </span>
-                        ) : issue.status ===
-                          "APPROVED" ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
+                            {
+                              tableTitle
+                            }
+                          </th>
+                        )
+                      )}
+                    </tr>
+                  </thead>
 
+                  {/* =========================================
+                      TABLE BODY
+                  ========================================= */}
+
+                  <tbody>
+                    {categoryMaterials.map(
+                      (
+                        material,
+                        index
+                      ) => (
+                        <tr
+                          key={
+                            material.id
+                          }
+                          className={`
+                            ${
+                              index %
+                                2 ===
+                              0
+                                ? "bg-white"
+                                : "bg-slate-50/60"
+                            }
+
+                            transition-colors
+                            duration-200
+
+                            hover:bg-blue-50/70
+                          `}
+                        >
+                          {/* ORDER */}
+
+                          <td
+                            className="
                               whitespace-nowrap
 
-                              rounded-full
+                              border
+                              border-black
 
-                              bg-emerald-100
+                              px-4
+                              py-3.5
 
-                              px-3
-                              py-1.5
-
-                              text-xs
+                              text-center
                               font-extrabold
-                              !text-emerald-800
+                              tabular-nums
+                              !text-slate-900
                             "
                           >
-                            ✓ เสร็จสิ้นแล้ว
-                          </span>
-                        ) : issue.status ===
-                          "REJECTED" ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
+                            {(
+                              index +
+                              1
+                            ).toLocaleString(
+                              "th-TH"
+                            )}
+                          </td>
 
+                          {/* CODE */}
+
+                          <td
+                            className="
                               whitespace-nowrap
 
-                              rounded-full
+                              border
+                              border-black
 
-                              bg-red-100
+                              px-4
+                              py-3.5
 
-                              px-3
-                              py-1.5
-
-                              text-xs
+                              text-center
                               font-extrabold
-                              !text-red-800
+                              !text-slate-900
                             "
                           >
-                            ✕ ไม่อนุมัติ
-                          </span>
-                        ) : (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              justify-center
+                            {material.code ||
+                              "-"}
+                          </td>
 
+                          {/* NAME */}
+
+                          <td
+                            className="
+                              min-w-[260px]
+
+                              border
+                              border-black
+
+                              px-4
+                              py-3.5
+
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            {material.name ||
+                              "-"}
+                          </td>
+
+                          {/* BALANCE */}
+
+                          <td
+                            className={`
                               whitespace-nowrap
 
-                              rounded-full
+                              border
+                              border-black
 
-                              bg-slate-100
+                              px-4
+                              py-3.5
 
-                              px-3
-                              py-1.5
+                              text-center
+                              text-base
+                              font-black
+                              tabular-nums
 
-                              text-xs
-                              font-extrabold
+                              ${
+                                material.balance <=
+                                0
+                                  ? "bg-red-50 !text-red-700"
+                                  : "bg-amber-50 !text-amber-700"
+                              }
+                            `}
+                          >
+                            {material.balance.toLocaleString(
+                              "th-TH"
+                            )}
+                          </td>
+
+                          {/* UNIT */}
+
+                          <td
+                            className="
+                              whitespace-nowrap
+
+                              border
+                              border-black
+
+                              px-4
+                              py-3.5
+
+                              text-center
+                              font-bold
                               !text-slate-700
                             "
                           >
-                            {getStatusLabel(
-                              issue.status
-                            )}
-                          </span>
-                        )}
-                      </td>
+                            {material.unit ||
+                              "-"}
+                          </td>
 
-                      {/* =======================================
-                          DETAILS
-                      ======================================= */}
+                          {/* PRICE */}
 
-                      <td
-                        className="
-                          min-w-[130px]
-                          whitespace-nowrap
+                          <td
+                            className="
+                              whitespace-nowrap
 
-                          border
-                          border-black
+                              border
+                              border-black
 
-                          px-4
-                          py-3
+                              px-4
+                              py-3.5
 
-                          text-center
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            items-center
-                            justify-center
-                          "
-                        >
-                          <AppButton
-                            href={`/issue/${issue.id}`}
-                            variant="primary"
-                            size="sm"
+                              text-right
+                              font-extrabold
+                              tabular-nums
+                              !text-slate-900
+                            "
                           >
-                            เปิด
-                          </AppButton>
-                        </div>
-                      </td>
+                            {material.latestPrice !==
+                            null
+                              ? material.latestPrice.toLocaleString(
+                                  "th-TH",
+                                  {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }
+                                )
+                              : "-"}
+                          </td>
 
-                      {/* =======================================
-                          ACTIONS
-                      ======================================= */}
+                          {/* VENDOR */}
 
-                      <td
-                        className="
-                          min-w-[200px]
-                          whitespace-nowrap
+                          <td
+                            className="
+                              min-w-[220px]
 
-                          border
-                          border-black
+                              border
+                              border-black
 
-                          px-4
-                          py-3
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            items-center
-                            justify-center
-                            gap-2
-                          "
-                        >
-                          <AppButton
-                            href={`/issue/${issue.id}/edit`}
-                            variant="primary"
-                            size="sm"
-                            icon={
-                              <span
-                                aria-hidden="true"
-                              >
-                                ✏️
-                              </span>
-                            }
+                              px-4
+                              py-3.5
+
+                              font-bold
+                              !text-slate-700
+                            "
                           >
-                            แก้ไข
-                          </AppButton>
+                            {material.latestVendor ||
+                              "-"}
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </AppTableCard>
+          );
+        }
+      )}
 
-                          <DeleteButton
-                            id={issue.id}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                )
-              ) : (
-                /* =============================================
-                   EMPTY STATE
-                   ไม่มีปุ่มเพิ่มรายการด้านล่าง
-                ============================================= */
+      {/* =====================================================
+          EMPTY STATE
+      ===================================================== */}
 
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="
-                      border
-                      border-black
+      {data.length === 0 && (
+        <AppCard
+          className="
+            flex
+            min-h-[230px]
+            w-full
+            min-w-0
+            flex-col
+            items-center
+            justify-center
+            text-center
+          "
+        >
+          <div
+            className="
+              grid
+              h-16
+              w-16
+              place-items-center
 
-                      bg-white
+              text-3xl
+            "
+            aria-hidden="true"
+          >
+            {keyword
+              ? "🔍"
+              : "✅"}
+          </div>
 
-                      px-6
-                      py-16
+          <h2
+            className="
+              mt-4
 
-                      text-center
-                    "
-                  >
-                    <div
-                      className="
-                        mx-auto
+              text-xl
+              font-extrabold
+              !text-slate-900
+            "
+          >
+            {keyword
+              ? "ไม่พบพัสดุที่ค้นหา"
+              : "ไม่มีพัสดุใกล้หมด"}
+          </h2>
 
-                        flex
-                        max-w-md
-                        flex-col
-                        items-center
-                        justify-center
-                      "
-                    >
-                      {/* ICON */}
+          <p
+            className="
+              mt-2
 
-                      <div
-                        className="
-                          grid
-                          h-16
-                          w-16
-                          place-items-center
+              max-w-lg
 
-                          text-3xl
-                        "
-                        aria-hidden="true"
-                      >
-                        📤
-                      </div>
+              text-sm
+              font-semibold
+              leading-relaxed
+              !text-slate-500
+            "
+          >
+            {keyword
+              ? "ลองค้นหาด้วยรหัสพัสดุ ชื่อพัสดุ หน่วย หรือผู้จำหน่ายอื่น"
+              : "ขณะนี้พัสดุทุกรายการมีจำนวนคงเหลือตั้งแต่ 10 รายการขึ้นไป"}
+          </p>
 
-                      {/* TITLE */}
-
-                      <p
-                        className="
-                          mt-4
-
-                          text-lg
-                          font-extrabold
-                          tracking-tight
-                          !text-slate-900
-                        "
-                      >
-                        {params.date ===
-                        "today"
-                          ? "วันนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
-                          : params.period ===
-                              "month"
-                            ? "เดือนนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
-                            : "ยังไม่มีรายการเบิกจ่ายพัสดุ"}
-                      </p>
-
-                      {/* DESCRIPTION */}
-
-                      <p
-                        className="
-                          mt-1
-
-                          text-sm
-                          font-semibold
-                          leading-relaxed
-                          !text-slate-500
-                        "
-                      >
-                        เมื่อมีการบันทึกรายการเบิกจ่าย
-                        ข้อมูลจะแสดงในตารางนี้
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </AppTableCard>
+          {keyword && (
+            <div className="mt-5">
+              <AppButton
+                href="/materials/low-stock"
+                variant="primary"
+                size="md"
+              >
+                แสดงรายการทั้งหมด
+              </AppButton>
+            </div>
+          )}
+        </AppCard>
+      )}
     </AppPage>
   );
 }
