@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
@@ -85,111 +83,119 @@ export default function StockCardHome() {
           xl:grid-cols-3
         "
       >
-        {categories.map((category) => {
-          const href =
-            `/stock-card/${category.code}`;
+        {categories.map((category) => (
+          <AppCard
+            key={category.code}
+            className="
+              flex
+              min-h-[230px]
+              min-w-0
+              flex-col
+              items-center
+              justify-center
+              text-center
+            "
+          >
+            {/* ===============================================
+                ICON
+            =============================================== */}
 
-          return (
-            <Link
-              key={category.code}
-              href={href}
+            <div
               className="
-                group
-                block
-                min-w-0
-                no-underline
+                flex
+                w-full
+                items-center
+                justify-center
+                text-center
               "
             >
-              <AppCard
+              <div
                 className="
-                  flex
-                  h-full
-                  min-h-[230px]
-                  min-w-0
-                  flex-col
-                  items-center
-                  justify-center
+                  grid
+                  h-16
+                  w-16
+                  shrink-0
+                  place-items-center
                   text-center
                 "
+                aria-hidden="true"
               >
-                {/* ===========================================
-                    ICON
-                =========================================== */}
-
-                <div
+                <span
                   className="
-                    flex
-                    h-16
-                    w-16
-                    shrink-0
-                    items-center
-                    justify-center
-
+                    block
+                    text-center
                     text-3xl
+                    leading-none
                   "
-                  aria-hidden="true"
                 >
                   {category.icon}
-                </div>
+                </span>
+              </div>
+            </div>
 
-                {/* ===========================================
-                    TITLE
-                =========================================== */}
+            {/* ===============================================
+                INFORMATION
+            =============================================== */}
 
-                <div
-                  className="
-                    mt-4
-                    min-w-0
-                    w-full
-                  "
-                >
-                  <h2
-                    className="
-                      break-words
-                      text-xl
-                      font-extrabold
-                      !text-slate-900
-                    "
-                  >
-                    {category.name}
-                  </h2>
+            <div
+              className="
+                mt-4
+                w-full
+                min-w-0
+                text-center
+              "
+            >
+              <h2
+                className="
+                  w-full
+                  break-words
+                  text-center
+                  text-xl
+                  font-extrabold
+                  !text-slate-900
+                "
+              >
+                {category.name}
+              </h2>
 
-                  <p
-                    className="
-                      mt-2
-                      break-words
-                      text-sm
-                      font-semibold
-                      !text-slate-500
-                    "
-                  >
-                    คลิกเพื่อดูรายการบัญชีพัสดุ
-                  </p>
-                </div>
+              <p
+                className="
+                  mt-2
+                  w-full
+                  break-words
+                  text-center
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                คลิกเพื่อดูรายการบัญชีพัสดุ
+              </p>
+            </div>
 
-                {/* ===========================================
-                    ACTION
-                =========================================== */}
+            {/* ===============================================
+                ACTION
+            =============================================== */}
 
-                <div
-                  className="
-                    mt-5
-                    flex
-                    justify-center
-                  "
-                >
-                  <AppButton
-                    href={href}
-                    variant="primary"
-                    size="md"
-                  >
-                    เปิด
-                  </AppButton>
-                </div>
-              </AppCard>
-            </Link>
-          );
-        })}
+            <div
+              className="
+                mt-5
+                flex
+                w-full
+                items-center
+                justify-center
+              "
+            >
+              <AppButton
+                href={`/stock-card/${category.code}`}
+                variant="primary"
+                size="md"
+              >
+                เปิด
+              </AppButton>
+            </div>
+          </AppCard>
+        ))}
       </section>
     </AppPage>
   );
