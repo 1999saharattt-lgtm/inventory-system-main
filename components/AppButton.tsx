@@ -27,6 +27,12 @@ import type {
    - ไม่เปลี่ยน Route
    - ไม่เปลี่ยน Permission
    - ไม่เปลี่ยน Business Logic
+
+   BACK BUTTON RULE
+   - variant="back" จะแสดงเฉพาะข้อความ
+   - ไม่แสดง icon ด้านหน้า
+   - ไม่แสดง endIcon ด้านหลัง
+   - ทำให้ปุ่ม "กลับ" ทั้งระบบเป็นมาตรฐานเดียวกัน
 ========================================================= */
 
 /* =========================================================
@@ -155,6 +161,10 @@ const variantClasses: Record<
   /* -------------------------------------------------------
      BACK
      ปุ่มกลับมาตรฐานของระบบ
+
+     หมายเหตุ:
+     icon / endIcon จะถูกซ่อนใน component
+     เมื่อ variant === "back"
   ------------------------------------------------------- */
 
   back: `
@@ -346,6 +356,31 @@ export default function AppButton(
   } = props;
 
   /* =======================================================
+     BACK BUTTON
+
+     ปุ่ม variant="back" ต้องแสดงเฉพาะข้อความ
+     แม้ว่าหน้าเดิมจะยังส่ง icon="←" เข้ามา
+     AppButton จะไม่ render icon นั้น
+
+     ผล:
+     จาก  ← กลับ
+     เป็น  กลับ
+  ======================================================= */
+
+  const isBackButton =
+    variant === "back";
+
+  const visibleIcon =
+    isBackButton
+      ? null
+      : icon;
+
+  const visibleEndIcon =
+    isBackButton
+      ? null
+      : endIcon;
+
+  /* =======================================================
      BASE STYLE
   ======================================================= */
 
@@ -410,6 +445,10 @@ export default function AppButton(
 
   const content = (
     <>
+      {/* ===================================================
+          TOP HIGHLIGHT
+      =================================================== */}
+
       <span
         aria-hidden="true"
         className="
@@ -426,6 +465,10 @@ export default function AppButton(
           opacity-80
         "
       />
+
+      {/* ===================================================
+          SOFT GLASS GLOW
+      =================================================== */}
 
       <span
         aria-hidden="true"
@@ -447,7 +490,13 @@ export default function AppButton(
         "
       />
 
-      {icon && (
+      {/* ===================================================
+          START ICON
+
+          variant="back" จะไม่แสดงส่วนนี้
+      =================================================== */}
+
+      {visibleIcon && (
         <span
           className="
             relative
@@ -465,9 +514,13 @@ export default function AppButton(
             group-active:scale-95
           "
         >
-          {icon}
+          {visibleIcon}
         </span>
       )}
+
+      {/* ===================================================
+          LABEL
+      =================================================== */}
 
       <span
         className="
@@ -483,7 +536,13 @@ export default function AppButton(
         {children}
       </span>
 
-      {endIcon && (
+      {/* ===================================================
+          END ICON
+
+          variant="back" จะไม่แสดงส่วนนี้
+      =================================================== */}
+
+      {visibleEndIcon && (
         <span
           className="
             relative
@@ -501,7 +560,7 @@ export default function AppButton(
             group-active:translate-x-0
           "
         >
-          {endIcon}
+          {visibleEndIcon}
         </span>
       )}
     </>
@@ -511,7 +570,10 @@ export default function AppButton(
      LINK BUTTON
   ======================================================= */
 
-  if ("href" in props && props.href) {
+  if (
+    "href" in props &&
+    props.href
+  ) {
     const {
       href,
       target,
@@ -521,7 +583,8 @@ export default function AppButton(
 
     const safeRel =
       target === "_blank"
-        ? rel ?? "noopener noreferrer"
+        ? rel ??
+          "noopener noreferrer"
         : rel;
 
     return (
@@ -530,7 +593,9 @@ export default function AppButton(
         target={target}
         rel={safeRel}
         onClick={onClick}
-        className={baseClassName}
+        className={
+          baseClassName
+        }
       >
         {content}
       </Link>
@@ -550,8 +615,10 @@ export default function AppButton(
     form,
     id,
     title,
-    "aria-label": ariaLabel,
-  } = props as NormalButtonProps;
+    "aria-label":
+      ariaLabel,
+  } =
+    props as NormalButtonProps;
 
   return (
     <button
@@ -563,8 +630,12 @@ export default function AppButton(
       value={value}
       form={form}
       title={title}
-      aria-label={ariaLabel}
-      className={baseClassName}
+      aria-label={
+        ariaLabel
+      }
+      className={
+        baseClassName
+      }
     >
       {content}
     </button>
