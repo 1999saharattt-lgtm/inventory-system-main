@@ -545,9 +545,6 @@ export default async function InspectionHistoryEditPage({
     <AppPage>
       {/* =====================================================
           HEADER
-
-          ใช้ AppPageHeader ตัวกลาง
-          เหมือน /assets/1/inspection
       ===================================================== */}
 
       <AppPageHeader
@@ -570,15 +567,11 @@ export default async function InspectionHistoryEditPage({
       {/* =====================================================
           INSPECTION FORM
 
-          ตัว InspectionForm ปัจจุบันใช้ตัวกลาง:
-          - AppCard
-          - AppSearchInput
-          - AppTableCard
-          - AppButton
-          - Dropdown
-          - Calendar
-
-          จึงไม่เขียน Card/Button ซ้ำในหน้านี้
+          ปุ่มภายใน InspectionForm ใช้รูปแบบล่าสุด:
+          - ยกเลิก = สีน้ำเงิน
+          - บันทึก = สีเขียว
+          - ไอคอน 💾
+          - ชื่อปุ่ม = บันทึก
       ===================================================== */}
 
       <InspectionForm
@@ -599,7 +592,7 @@ export default async function InspectionHistoryEditPage({
         cancelHref={
           historyHref
         }
-        submitLabel="บันทึกการแก้ไข"
+        submitLabel="บันทึก"
       />
     </AppPage>
   );
