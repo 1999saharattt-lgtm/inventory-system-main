@@ -146,19 +146,29 @@ function OfficerTable({
         className="
           w-full
           min-w-0
-          overflow-x-auto
-          overscroll-x-contain
+          overflow-hidden
         "
       >
         <table
           className="
             w-full
-            min-w-[850px]
+            table-fixed
             border-collapse
             bg-white
             text-base
           "
         >
+          {/* =================================================
+              COLUMN WIDTH
+          ================================================= */}
+
+          <colgroup>
+            <col className="w-[28%]" />
+            <col className="w-[30%]" />
+            <col className="w-[22%]" />
+            <col className="w-[20%]" />
+          </colgroup>
+
           {/* =================================================
               TABLE HEADER
           ================================================= */}
@@ -184,7 +194,7 @@ function OfficerTable({
                       from-slate-800
                       to-slate-700
 
-                      px-4
+                      px-3
                       py-4
 
                       text-center
@@ -233,6 +243,7 @@ function OfficerTable({
 
                   <td
                     className="
+                      overflow-hidden
                       border
                       border-black
 
@@ -243,9 +254,18 @@ function OfficerTable({
                       font-extrabold
                       !text-slate-900
                     "
+                    title={`${officer.firstName} ${officer.lastName}`}
                   >
-                    {officer.firstName}{" "}
-                    {officer.lastName}
+                    <div
+                      className="
+                        overflow-hidden
+                        text-ellipsis
+                        whitespace-nowrap
+                      "
+                    >
+                      {officer.firstName}{" "}
+                      {officer.lastName}
+                    </div>
                   </td>
 
                   {/* =========================================
@@ -254,6 +274,7 @@ function OfficerTable({
 
                   <td
                     className="
+                      overflow-hidden
                       border
                       border-black
 
@@ -264,9 +285,21 @@ function OfficerTable({
                       font-bold
                       !text-slate-900
                     "
+                    title={
+                      officer.position ||
+                      "-"
+                    }
                   >
-                    {officer.position ||
-                      "-"}
+                    <div
+                      className="
+                        overflow-hidden
+                        text-ellipsis
+                        whitespace-nowrap
+                      "
+                    >
+                      {officer.position ||
+                        "-"}
+                    </div>
                   </td>
 
                   {/* =========================================
@@ -280,7 +313,7 @@ function OfficerTable({
                       border
                       border-black
 
-                      px-4
+                      px-3
                       py-3.5
 
                       text-center
@@ -289,6 +322,7 @@ function OfficerTable({
                     <span
                       className="
                         inline-flex
+                        max-w-full
                         items-center
                         justify-center
 
@@ -323,7 +357,7 @@ function OfficerTable({
                       border
                       border-black
 
-                      px-4
+                      px-3
                       py-3
 
                       text-center
@@ -337,6 +371,10 @@ function OfficerTable({
                         gap-2
                       "
                     >
+                      {/* =====================================
+                          EDIT
+                      ===================================== */}
+
                       <AppButton
                         href={`/officers/${officer.id}/edit`}
                         variant="secondary"
@@ -351,6 +389,10 @@ function OfficerTable({
                       >
                         แก้ไข
                       </AppButton>
+
+                      {/* =====================================
+                          DELETE
+                      ===================================== */}
 
                       <AppButton
                         href={`/officers/${officer.id}/delete`}
