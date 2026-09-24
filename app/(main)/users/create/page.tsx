@@ -146,12 +146,11 @@ export default async function CreateUserPage() {
   const inputClassName = `
     min-h-[50px]
     w-full
-    min-w-0
 
     rounded-[14px]
 
-    border
-    border-slate-300
+    border-2
+    !border-black
 
     bg-white
 
@@ -170,10 +169,9 @@ export default async function CreateUserPage() {
 
     placeholder:!text-slate-400
 
-    hover:border-slate-400
     hover:bg-slate-50
 
-    focus:border-blue-400
+    focus:!border-blue-500
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
@@ -217,9 +215,8 @@ export default async function CreateUserPage() {
       >
         <AppCard
           className="
-            mx-auto
             w-full
-            max-w-4xl
+            min-w-0
           "
         >
           {/* =================================================
@@ -232,8 +229,6 @@ export default async function CreateUserPage() {
                 text-lg
                 font-extrabold
                 !text-slate-900
-
-                sm:text-xl
               "
             >
               ข้อมูลผู้ใช้งาน
@@ -242,7 +237,6 @@ export default async function CreateUserPage() {
             <p
               className="
                 mt-1
-
                 text-sm
                 font-semibold
                 leading-relaxed
@@ -254,7 +248,7 @@ export default async function CreateUserPage() {
           </div>
 
           {/* =================================================
-              FIELDS
+              FORM GRID
           ================================================= */}
 
           <div
@@ -262,6 +256,8 @@ export default async function CreateUserPage() {
               grid
               grid-cols-1
               gap-4
+
+              lg:grid-cols-2
             "
           >
             {/* ===============================================
