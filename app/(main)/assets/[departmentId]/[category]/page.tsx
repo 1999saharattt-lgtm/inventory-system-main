@@ -107,9 +107,7 @@ function getSourceOrder(
     return null;
   }
 
-  const sourceOrder = Number(
-    match[1]
-  );
+  const sourceOrder = Number(match[1]);
 
   if (
     !Number.isInteger(sourceOrder) ||
@@ -185,10 +183,7 @@ function getAssetUnit(
     return remarkUnit;
   }
 
-  return (
-    fallbackUnit ||
-    "รายการ"
-  );
+  return fallbackUnit || "รายการ";
 }
 
 /* =========================================================
@@ -299,66 +294,64 @@ function getStatusLabel(
   switch (status) {
     case "IN_USE":
       return {
-        label:
-          statusName[
-            status
-          ] ?? "ยังใช้งาน",
-
+        label: "ยังใช้งาน",
         className: `
           bg-emerald-100
           !text-emerald-800
+          ring-1
+          ring-inset
+          ring-emerald-200
         `,
       };
 
     case "WAITING_DISPOSAL":
       return {
-        label:
-          statusName[
-            status
-          ] ?? "รอจำหน่าย",
-
+        label: "รอจำหน่าย",
         className: `
           bg-amber-100
           !text-amber-800
+          ring-1
+          ring-inset
+          ring-amber-200
         `,
       };
 
     case "DAMAGED":
       return {
-        label:
-          statusName[
-            status
-          ] ?? "ชำรุด",
-
+        label: "ชำรุด",
         className: `
           bg-red-100
           !text-red-800
+          ring-1
+          ring-inset
+          ring-red-200
         `,
       };
 
     case "DISPOSED":
       return {
-        label:
-          statusName[
-            status
-          ] ?? "จำหน่ายแล้ว",
-
+        label: "จำหน่ายแล้ว",
         className: `
           bg-slate-200
           !text-slate-800
+          ring-1
+          ring-inset
+          ring-slate-300
         `,
       };
 
     default:
       return {
         label:
-          statusName[
-            status
-          ] ?? status,
+          statusName[status] ??
+          status,
 
         className: `
           bg-slate-100
           !text-slate-700
+          ring-1
+          ring-inset
+          ring-slate-200
         `,
       };
   }
@@ -457,7 +450,7 @@ export default async function AssetCategoryPage({
   }
 
   /* =======================================================
-     NON-NULL VALUES
+     SAFE VALUES
   ======================================================= */
 
   const departmentIdForAction =
@@ -490,61 +483,43 @@ export default async function AssetCategoryPage({
               OR: [
                 {
                   name: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
 
                 {
                   governmentAssetNo: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
 
                 {
                   officeAssetNo: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
 
                 {
                   brand: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
 
                 {
                   model: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
 
                 {
                   responsibleName: {
-                    contains:
-                      search,
-
-                    mode:
-                      "insensitive",
+                    contains: search,
+                    mode: "insensitive",
                   },
                 },
               ],
@@ -580,10 +555,7 @@ export default async function AssetCategoryPage({
       orderA !== null &&
       orderB !== null
     ) {
-      return (
-        orderA -
-        orderB
-      );
+      return orderA - orderB;
     }
 
     if (orderA !== null) {
@@ -594,18 +566,14 @@ export default async function AssetCategoryPage({
       return 1;
     }
 
-    return (
-      a.id -
-      b.id
-    );
+    return a.id - b.id;
   });
 
   /* =======================================================
      PERMISSION
   ======================================================= */
 
-  const canManage =
-    true;
+  const canManage = true;
 
   /* =======================================================
      DELETE ASSET
@@ -703,9 +671,7 @@ export default async function AssetCategoryPage({
                 variant="primary"
                 size="md"
                 icon={
-                  <span
-                    aria-hidden="true"
-                  >
+                  <span aria-hidden="true">
                     ＋
                   </span>
                 }
@@ -719,9 +685,7 @@ export default async function AssetCategoryPage({
               variant="back"
               size="md"
               icon={
-                <span
-                  aria-hidden="true"
-                >
+                <span aria-hidden="true">
                   ←
                 </span>
               }
@@ -777,26 +741,27 @@ export default async function AssetCategoryPage({
               table-fixed
               border-collapse
               bg-white
-              text-[11px]
-              xl:text-xs
-              2xl:text-sm
+              text-xs
+              xl:text-sm
             "
           >
             {/* =================================================
-                COLUMN WIDTH
+                COLUMN WIDTHS
+
+                รวม = 100%
             ================================================= */}
 
             <colgroup>
               <col className="w-[4%]" />
-              <col className="w-[11%]" />
+              <col className="w-[10%]" />
               <col className="w-[12%]" />
-              <col className="w-[18%]" />
+              <col className="w-[17%]" />
               <col className="w-[5%]" />
               <col className="w-[5%]" />
               <col className="w-[17%]" />
               <col className="w-[9%]" />
               <col className="w-[8%]" />
-              <col className="w-[11%]" />
+              <col className="w-[13%]" />
             </colgroup>
 
             {/* =================================================
@@ -827,23 +792,26 @@ export default async function AssetCategoryPage({
                       className="
                         overflow-hidden
                         whitespace-nowrap
+
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
+
                         px-1
-                        py-3
+                        py-4
+
                         text-center
-                        text-[10px]
+                        text-[11px]
                         font-extrabold
                         leading-none
                         !text-white
-                        lg:text-[11px]
+
+                        lg:text-xs
                         xl:px-2
-                        xl:text-xs
-                        2xl:px-3
-                        2xl:text-sm
+                        xl:text-sm
                       "
                     >
                       {
@@ -860,8 +828,7 @@ export default async function AssetCategoryPage({
             ================================================= */}
 
             <tbody>
-              {assets.length >
-              0 ? (
+              {assets.length > 0 ? (
                 assets.map(
                   (
                     asset,
@@ -904,9 +871,7 @@ export default async function AssetCategoryPage({
                         }
                         className={`
                           ${
-                            index %
-                              2 ===
-                            0
+                            index % 2 === 0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
@@ -928,16 +893,15 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
-                            font-extrabold
+                            font-bold
                             tabular-nums
-                            !text-slate-900
+                            !text-slate-700
                           "
                         >
                           {(
-                            index +
-                            1
+                            index + 1
                           ).toLocaleString(
                             "th-TH"
                           )}
@@ -959,10 +923,10 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
-                            font-bold
-                            !text-slate-900
+                            font-semibold
+                            !text-slate-700
                             xl:px-2
                           "
                         >
@@ -986,10 +950,10 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
-                            font-bold
-                            !text-slate-900
+                            font-semibold
+                            !text-slate-700
                             xl:px-2
                           "
                         >
@@ -1007,8 +971,8 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-2
-                            py-3
-                            !text-slate-900
+                            py-3.5
+                            !text-slate-700
                           "
                         >
                           <div
@@ -1019,8 +983,8 @@ export default async function AssetCategoryPage({
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
-                              font-extrabold
-                              !text-slate-900
+                              font-semibold
+                              !text-slate-700
                             "
                           >
                             {
@@ -1046,10 +1010,9 @@ export default async function AssetCategoryPage({
                                 overflow-hidden
                                 text-ellipsis
                                 whitespace-nowrap
-                                text-[10px]
-                                font-semibold
+                                text-xs
+                                font-medium
                                 !text-slate-500
-                                xl:text-[11px]
                               "
                             >
                               {[
@@ -1077,11 +1040,11 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
-                            font-extrabold
+                            font-semibold
                             tabular-nums
-                            !text-slate-900
+                            !text-slate-700
                           "
                         >
                           {Number(
@@ -1102,10 +1065,10 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
-                            font-extrabold
-                            !text-slate-900
+                            font-semibold
+                            !text-slate-700
                           "
                         >
                           {unit}
@@ -1116,21 +1079,21 @@ export default async function AssetCategoryPage({
                         =================================== */}
 
                         <td
+                          title={
+                            responsible
+                          }
                           className="
                             overflow-hidden
                             border
                             border-black
                             px-2
-                            py-3
+                            py-3.5
                             text-center
-                            font-bold
-                            !text-slate-900
+                            font-semibold
+                            !text-slate-700
                           "
                         >
                           <div
-                            title={
-                              responsible
-                            }
                             className="
                               overflow-hidden
                               text-ellipsis
@@ -1154,7 +1117,7 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-3
+                            py-3.5
                             text-center
                           "
                         >
@@ -1164,15 +1127,21 @@ export default async function AssetCategoryPage({
                               max-w-full
                               items-center
                               justify-center
+
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
+
                               rounded-full
+
                               px-2
-                              py-1
-                              text-[10px]
-                              font-extrabold
-                              xl:text-[11px]
+                              py-1.5
+
+                              text-xs
+                              font-bold
+
+                              xl:px-3
+                              xl:text-sm
 
                               ${status.className}
                             `}
@@ -1194,7 +1163,7 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-2
+                            py-2.5
                             text-center
                           "
                         >
@@ -1204,6 +1173,11 @@ export default async function AssetCategoryPage({
                             }
                             variant="primary"
                             size="sm"
+                            icon={
+                              <span aria-hidden="true">
+                                👁️
+                              </span>
+                            }
                           >
                             เปิด
                           </AppButton>
@@ -1220,7 +1194,7 @@ export default async function AssetCategoryPage({
                             border
                             border-black
                             px-1
-                            py-2
+                            py-2.5
                             text-center
                           "
                         >
@@ -1229,27 +1203,44 @@ export default async function AssetCategoryPage({
                               className="
                                 flex
                                 w-full
+                                min-w-0
                                 items-center
                                 justify-center
                                 gap-1
                               "
                             >
+                              {/* =================================
+                                  EDIT
+                              ================================= */}
+
                               <AppButton
                                 href={
                                   editHref
                                 }
                                 variant="secondary"
                                 size="sm"
+                                icon={
+                                  <span aria-hidden="true">
+                                    ✏️
+                                  </span>
+                                }
                               >
                                 แก้ไข
                               </AppButton>
+
+                              {/* =================================
+                                  DELETE
+                              ================================= */}
 
                               <form
                                 action={
                                   deleteAsset
                                 }
                                 className="
+                                  m-0
                                   inline-flex
+                                  shrink-0
+                                  p-0
                                 "
                               >
                                 <input
@@ -1264,6 +1255,11 @@ export default async function AssetCategoryPage({
                                   type="submit"
                                   variant="danger"
                                   size="sm"
+                                  icon={
+                                    <span aria-hidden="true">
+                                      🗑️
+                                    </span>
+                                  }
                                 >
                                   ลบ
                                 </AppButton>
@@ -1291,9 +1287,7 @@ export default async function AssetCategoryPage({
 
                 <tr>
                   <td
-                    colSpan={
-                      10
-                    }
+                    colSpan={10}
                     className="
                       border
                       border-black
