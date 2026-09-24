@@ -2663,11 +2663,7 @@ export default function InspectionForm({
             ข้อมูลการตรวจสอบ
           </h2>
 
-          <div
-            className="
-              shrink-0
-            "
-          >
+          <div className="shrink-0">
             <ExportInspectionPdf
               department={
                 department
@@ -3848,76 +3844,56 @@ export default function InspectionForm({
             }
           )}
         </div>
+
+        {/* ===================================================
+            ACTION FOOTER
+
+            ใช้พื้นหลังของ AppCard ตัวกลางเหมือนหน้าอื่น
+            และใช้ขนาดปุ่มจาก AppButton ส่วนกลางโดยตรง
+        =================================================== */}
+
+        {!readOnly && (
+          <div
+            className="
+              mt-6
+              flex
+              w-full
+              flex-wrap
+              items-center
+              justify-end
+              gap-3
+
+              border-t
+              border-slate-200/80
+
+              pt-5
+            "
+          >
+            <AppButton
+              href={finalCancelHref}
+              variant="primary"
+              size="md"
+            >
+              ยกเลิก
+            </AppButton>
+
+            <AppButton
+              type="button"
+              variant="success"
+              size="md"
+              icon={<SaveIcon />}
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving
+                ? isEditMode
+                  ? "กำลังบันทึกการแก้ไข..."
+                  : "กำลังบันทึก..."
+                : finalSubmitLabel}
+            </AppButton>
+          </div>
+        )}
       </AppCard>
-
-      {/* =====================================================
-          5. ACTION
-      ===================================================== */}
-
-      {!readOnly && (
-        <div
-          className="
-            flex
-            w-full
-            flex-col
-
-            gap-2
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-end
-          "
-        >
-          {/* ===============================================
-              CANCEL
-              ตัวกลาง + สีน้ำเงิน
-              ไม่มี emoji กากบาท
-          =============================================== */}
-
-          <AppButton
-            href={
-              finalCancelHref
-            }
-            variant="primary"
-            size="md"
-            className="
-              w-full
-              sm:w-auto
-            "
-          >
-            ยกเลิก
-          </AppButton>
-
-          {/* ===============================================
-              SAVE
-          =============================================== */}
-
-          <AppButton
-            type="button"
-            variant="success"
-            size="md"
-            icon={
-              <SaveIcon />
-            }
-            onClick={
-              handleSave
-            }
-            disabled={
-              isSaving
-            }
-            className="
-              w-full
-              sm:w-auto
-            "
-          >
-            {isSaving
-              ? isEditMode
-                ? "กำลังบันทึกการแก้ไข..."
-                : "กำลังบันทึก..."
-              : finalSubmitLabel}
-          </AppButton>
-        </div>
-      )}
     </div>
   );
 }
