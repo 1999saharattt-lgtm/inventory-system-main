@@ -6,7 +6,17 @@ import {
   useRef,
   useState,
 } from "react";
+
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppSearchInput from "@/components/AppSearchInput";
+import AppTableCard from "@/components/AppTableCard";
+
 import ExportInspectionPdf from "./ExportInspectionPdf";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Department = {
   id: number;
@@ -25,11 +35,9 @@ type Asset = {
   governmentAssetNo: string | null;
   officeAssetNo: string | null;
 
-  // จำนวน / หน่วย ตามทะเบียนต้นฉบับ
   quantity: number;
   unit: string | null;
 
-  // ผู้รับผิดชอบตามทะเบียนต้นฉบับ
   responsibleName: string | null;
 
   departmentId: number;
@@ -38,7 +46,11 @@ type Asset = {
 
   status: string;
 
-  purchaseDate: Date | string | null;
+  purchaseDate:
+    | Date
+    | string
+    | null;
+
   price: number | null;
   location: string | null;
   remark: string | null;
@@ -58,6 +70,7 @@ type Asset = {
 
 type Officer = {
   id: number;
+
   firstName: string;
   lastName: string;
   position: string | null;
@@ -81,34 +94,64 @@ type InspectionRow = {
   remark: string;
 };
 
-type QuickActionPosition = {
-  left: number;
-  width: number;
-};
-
 type InitialData = {
   inspectionStartDate?: string;
   inspectionEndDate?: string;
+
   accountStartDate?: string;
   accountEndDate?: string;
+
   movementFiscalYear?: string;
+
   rows?: InspectionRow[];
+
   inspectorIds?: string[];
 };
 
 type Props = {
   department: Department;
+
   assets: Asset[];
+
   officers: Officer[];
+
   initialData?: InitialData;
+
   submitUrl?: string;
-  submitMethod?: "POST" | "PUT";
+
+  submitMethod?:
+    | "POST"
+    | "PUT";
+
   cancelHref?: string;
+
   submitLabel?: string;
+
   readOnly?: boolean;
 };
 
-const INSPECTION_FISCAL_YEAR = "2569";
+type SearchableOfficerSelectProps = {
+  officers: Officer[];
+
+  value: string;
+
+  readOnly: boolean;
+
+  isUnavailable: (
+    officerId: string
+  ) => boolean;
+
+  onChange: (
+    officerId: string
+  ) => void;
+};
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+
+const INSPECTION_FISCAL_YEAR =
+  "2569";
 
 const thaiMonths = [
   "มกราคม",
@@ -127,33 +170,54 @@ const thaiMonths = [
 
 /* =========================================================
    DATE
-   ========================================================= */
+========================================================= */
 
 function getCurrentDate() {
-  const now = new Date();
+  const now =
+    new Date();
 
-  const year = now.getFullYear();
+  const year =
+    now.getFullYear();
 
-  const month = String(
-    now.getMonth() + 1
-  ).padStart(2, "0");
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
 
-  const day = String(
-    now.getDate()
-  ).padStart(2, "0");
+  const day =
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
 
   return `${year}-${month}-${day}`;
 }
 
-function parseDateOnly(value: string) {
+function parseDateOnly(
+  value: string
+) {
   if (!value) {
     return null;
   }
 
-  const [year, month, day] =
-    value.split("-").map(Number);
+  const [
+    year,
+    month,
+    day,
+  ] = value
+    .split("-")
+    .map(Number);
 
-  if (!year || !month || !day) {
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
     return null;
   }
 
@@ -164,22 +228,36 @@ function parseDateOnly(value: string) {
   );
 }
 
-function formatDateInput(date: Date) {
-  const year = date.getFullYear();
+function formatDateInput(
+  date: Date
+) {
+  const year =
+    date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
 
   return `${year}-${month}-${day}`;
 }
 
-function getOneYearBefore(value: string) {
-  const date = parseDateOnly(value);
+function getOneYearBefore(
+  value: string
+) {
+  const date =
+    parseDateOnly(value);
 
   if (!date) {
     return "";
@@ -189,11 +267,16 @@ function getOneYearBefore(value: string) {
     date.getFullYear() - 1
   );
 
-  return formatDateInput(date);
+  return formatDateInput(
+    date
+  );
 }
 
-function getOneDayBefore(value: string) {
-  const date = parseDateOnly(value);
+function getOneDayBefore(
+  value: string
+) {
+  const date =
+    parseDateOnly(value);
 
   if (!date) {
     return "";
@@ -203,47 +286,55 @@ function getOneDayBefore(value: string) {
     date.getDate() - 1
   );
 
-  return formatDateInput(date);
+  return formatDateInput(
+    date
+  );
 }
 
-function formatThaiDate(value: string) {
-  const date = parseDateOnly(value);
+function formatThaiDate(
+  value: string
+) {
+  const date =
+    parseDateOnly(value);
 
   if (!date) {
     return "........";
   }
 
-  const day = date.getDate();
+  const day =
+    date.getDate();
 
   const month =
-    thaiMonths[date.getMonth()];
+    thaiMonths[
+      date.getMonth()
+    ];
 
   const year =
-    date.getFullYear() + 543;
+    date.getFullYear() +
+    543;
 
   return `${day} ${month} ${year}`;
 }
 
-function getFiscalYear(value: string) {
-  const date = parseDateOnly(value);
+function getFiscalYear(
+  value: string
+) {
+  const date =
+    parseDateOnly(value);
 
   if (!date) {
     return INSPECTION_FISCAL_YEAR;
   }
 
-  const year = date.getFullYear();
-
   return String(
-    year + 543
+    date.getFullYear() +
+      543
   );
 }
 
 /* =========================================================
    UNIT
-
-   ใช้ unit จากทะเบียนต้นฉบับก่อน
-   หากไม่มีจึง fallback ตาม category
-   ========================================================= */
+========================================================= */
 
 function getCategoryUnit(
   category: string
@@ -295,15 +386,7 @@ function getAssetUnit(
 
 /* =========================================================
    RESPONSIBLE NAME
-
-   ใช้ Logic เดียวกับหน้า /assets/[departmentId]/all
-
-   1. responsibleName จากทะเบียนต้นฉบับ
-   2. Officer + Section
-   3. Officer
-   4. Section
-   5. -
-   ========================================================= */
+========================================================= */
 
 function getResponsibleName(
   asset: Asset,
@@ -312,11 +395,13 @@ function getResponsibleName(
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
-  let responsibleName = "";
+  let responsibleName =
+    "";
 
   if (
     originalResponsibleName &&
-    originalResponsibleName !== "-"
+    originalResponsibleName !==
+      "-"
   ) {
     responsibleName =
       originalResponsibleName;
@@ -332,7 +417,9 @@ function getResponsibleName(
     ) {
       responsibleName =
         `${officerName} / ${asset.section.name}`;
-    } else if (officerName) {
+    } else if (
+      officerName
+    ) {
       responsibleName =
         officerName;
     } else if (
@@ -341,20 +428,14 @@ function getResponsibleName(
       responsibleName =
         asset.section.name;
     } else {
-      responsibleName = "-";
+      responsibleName =
+        "-";
     }
   }
 
   /* =======================================================
      กลุ่มอำนวยการ
-
-     แสดงชื่อกลุ่มนำหน้าผู้รับผิดชอบเดิมทุกอัน
-
-     ตัวอย่าง:
-     หน้าห้องหัวหน้าอำนวยการ
-     →
-     กลุ่มอำนวยการ / หน้าห้องหัวหน้าอำนวยการ
-     ======================================================= */
+  ======================================================= */
 
   if (
     department.name ===
@@ -380,7 +461,7 @@ function getResponsibleName(
 
 /* =========================================================
    SOURCE ORDER
-   ========================================================= */
+========================================================= */
 
 function getSourceOrder(
   remark: string | null
@@ -389,19 +470,24 @@ function getSourceOrder(
     return null;
   }
 
-  const match = remark.match(
-    /SOURCE:DEPARTMENT_1:(\d+)/
-  );
+  const match =
+    remark.match(
+      /SOURCE:DEPARTMENT_1:(\d+)/
+    );
 
   if (!match) {
     return null;
   }
 
   const sourceOrder =
-    Number(match[1]);
+    Number(
+      match[1]
+    );
 
   if (
-    !Number.isInteger(sourceOrder) ||
+    !Number.isInteger(
+      sourceOrder
+    ) ||
     sourceOrder <= 0
   ) {
     return null;
@@ -412,99 +498,133 @@ function getSourceOrder(
 
 /* =========================================================
    ROWS
-   ========================================================= */
+========================================================= */
 
 function createInitialRows(
   assets: Asset[]
 ): InspectionRow[] {
-  return assets.map((asset) => ({
-    assetId: asset.id,
+  return assets.map(
+    (asset) => ({
+      assetId:
+        asset.id,
 
-    // ค่าเริ่มต้นใช้จำนวนตามทะเบียนจริง
-    countedQty: String(
-      asset.quantity ?? 1
-    ),
+      countedQty:
+        String(
+          asset.quantity ??
+            1
+        ),
 
-    accuracy: "",
-    status: "",
-    remark: "",
-  }));
+      accuracy:
+        "",
+
+      status:
+        "",
+
+      remark:
+        "",
+    })
+  );
 }
 
 function normalizeInitialRows(
   assets: Asset[],
-  initialRows?: InspectionRow[]
+  initialRows?:
+    InspectionRow[]
 ): InspectionRow[] {
   if (
     !initialRows ||
-    initialRows.length === 0
+    initialRows.length ===
+      0
   ) {
     return createInitialRows(
       assets
     );
   }
 
-  return assets.map((asset) => {
-    const existingRow =
-      initialRows.find(
-        (row) =>
-          row.assetId === asset.id
-      );
+  return assets.map(
+    (asset) => {
+      const existingRow =
+        initialRows.find(
+          (row) =>
+            row.assetId ===
+            asset.id
+        );
 
-    if (existingRow) {
+      if (existingRow) {
+        return {
+          assetId:
+            asset.id,
+
+          countedQty:
+            existingRow.countedQty ??
+            String(
+              asset.quantity ??
+                1
+            ),
+
+          accuracy:
+            existingRow.accuracy ??
+            "",
+
+          status:
+            existingRow.status ??
+            "",
+
+          remark:
+            existingRow.remark ??
+            "",
+        };
+      }
+
       return {
-        assetId: asset.id,
+        assetId:
+          asset.id,
 
         countedQty:
-          existingRow.countedQty ??
           String(
-            asset.quantity ?? 1
+            asset.quantity ??
+              1
           ),
 
         accuracy:
-          existingRow.accuracy ??
           "",
 
         status:
-          existingRow.status ??
           "",
 
         remark:
-          existingRow.remark ??
           "",
       };
     }
-
-    return {
-      assetId: asset.id,
-
-      countedQty: String(
-        asset.quantity ?? 1
-      ),
-
-      accuracy: "",
-      status: "",
-      remark: "",
-    };
-  });
+  );
 }
 
 function normalizeInspectorIds(
   ids?: string[]
 ) {
   const result =
-    Array<string>(5).fill("");
+    Array<string>(
+      5
+    ).fill("");
 
   if (!ids) {
     return result;
   }
 
   ids
-    .slice(0, 5)
+    .slice(
+      0,
+      5
+    )
     .forEach(
-      (id, index) => {
+      (
+        id,
+        index
+      ) => {
         result[index] =
-          String(id ?? "");
+          String(
+            id ?? ""
+          );
       }
     );
 
@@ -513,28 +633,7 @@ function normalizeInspectorIds(
 
 /* =========================================================
    SEARCHABLE OFFICER SELECT
-
-   Dropdown รายชื่อผู้ตรวจสอบ
-   - พิมพ์ค้นหาชื่อได้
-   - ค้นหานามสกุลได้
-   - ค้นหาตำแหน่งได้
-   - ค้นหากลุ่ม/งานได้
-   - ไม่แสดงคนที่ถูกเลือกในช่องอื่นแล้ว
-   ========================================================= */
-
-type SearchableOfficerSelectProps = {
-  officers: Officer[];
-  value: string;
-  readOnly: boolean;
-
-  isUnavailable: (
-    officerId: string
-  ) => boolean;
-
-  onChange: (
-    officerId: string
-  ) => void;
-};
+========================================================= */
 
 function SearchableOfficerSelect({
   officers,
@@ -562,7 +661,10 @@ function SearchableOfficerSelect({
               officer.id
             ) === value
         ),
-      [officers, value]
+      [
+        officers,
+        value,
+      ]
     );
 
   const selectedOfficerName =
@@ -631,7 +733,26 @@ function SearchableOfficerSelect({
 
   if (readOnly) {
     return (
-      <div className="w-full rounded-lg border border-slate-300 bg-white p-2.5 font-semibold text-slate-900">
+      <div
+        className="
+          min-h-[48px]
+          w-full
+
+          rounded-[14px]
+
+          border
+          border-slate-300
+
+          bg-slate-50
+
+          px-4
+          py-3
+
+          font-semibold
+
+          !text-slate-900
+        "
+      >
         {selectedOfficerName ||
           "-"}
       </div>
@@ -639,26 +760,47 @@ function SearchableOfficerSelect({
   }
 
   return (
-    <div className="relative w-full">
+    <div
+      className="
+        relative
+        w-full
+        min-w-0
+      "
+    >
       <input
         type="text"
-        value={searchText}
+        value={
+          searchText
+        }
         placeholder="พิมพ์ชื่อผู้ตรวจสอบเพื่อค้นหา..."
         autoComplete="off"
-        onFocus={(e) => {
-          setIsOpen(true);
-          e.currentTarget.select();
-        }}
-        onChange={(e) => {
-          setSearchText(
-            e.target.value
+        onFocus={(
+          event
+        ) => {
+          setIsOpen(
+            true
           );
-          setIsOpen(true);
+
+          event.currentTarget.select();
+        }}
+        onChange={(
+          event
+        ) => {
+          setSearchText(
+            event.target.value
+          );
+
+          setIsOpen(
+            true
+          );
         }}
         onBlur={() => {
           window.setTimeout(
             () => {
-              setIsOpen(false);
+              setIsOpen(
+                false
+              );
+
               setSearchText(
                 selectedOfficerName
               );
@@ -667,64 +809,79 @@ function SearchableOfficerSelect({
           );
         }}
         className="
+          min-h-[48px]
           w-full
-          rounded-lg
+
+          rounded-[14px]
+
           border
           border-slate-300
+
           bg-white
-          px-3
-          py-2.5
+
+          px-4
+          py-3
           pr-10
+
           font-semibold
-          text-slate-900
+
+          !text-slate-900
+
           outline-none
-          transition
-          placeholder:text-slate-400
-          focus:border-cyan-500
-          focus:ring-2
-          focus:ring-cyan-100
+
+          transition-all
+          duration-200
+
+          placeholder:!text-slate-400
+
+          hover:border-slate-400
+
+          focus:border-emerald-500
+          focus:ring-4
+          focus:ring-emerald-500/10
         "
       />
 
       <div
+        aria-hidden="true"
         className="
           pointer-events-none
           absolute
-          right-3
-          top-[13px]
-          text-slate-500
+          right-3.5
+          top-1/2
+
+          -translate-y-1/2
+
+          !text-slate-500
         "
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="h-5 w-5"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
-            clipRule="evenodd"
-          />
-        </svg>
+        ▼
       </div>
 
       {isOpen && (
         <div
           className="
             absolute
-            left-0
-            right-0
+            inset-x-0
             top-[calc(100%+6px)]
             z-[100]
-            max-h-[260px]
+
+            max-h-[280px]
+
             overflow-y-auto
-            rounded-xl
+
+            rounded-[16px]
+
             border
-            border-slate-300
-            bg-white
+            border-slate-200
+
+            bg-white/95
+
             p-1.5
+
             shadow-2xl
+
+            backdrop-blur-xl
           "
         >
           {filteredOfficers.length ===
@@ -732,11 +889,13 @@ function SearchableOfficerSelect({
             <div
               className="
                 px-4
-                py-4
+                py-5
+
                 text-center
                 text-sm
                 font-semibold
-                text-slate-500
+
+                !text-slate-500
               "
             >
               ไม่พบรายชื่อผู้ตรวจสอบ
@@ -758,10 +917,14 @@ function SearchableOfficerSelect({
 
                 return (
                   <button
-                    key={officer.id}
+                    key={
+                      officer.id
+                    }
                     type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
+                    onMouseDown={(
+                      event
+                    ) => {
+                      event.preventDefault();
                     }}
                     onClick={() => {
                       onChange(
@@ -780,20 +943,31 @@ function SearchableOfficerSelect({
                       flex
                       w-full
                       flex-col
-                      rounded-lg
+
+                      rounded-[12px]
+
                       px-3
                       py-2.5
+
                       text-left
-                      transition
+
+                      transition-colors
+
                       ${
                         isSelected
-                          ? "bg-emerald-100 text-emerald-900"
-                          : "text-slate-900 hover:bg-slate-100"
+                          ? "bg-emerald-50 !text-emerald-800"
+                          : "!text-slate-900 hover:bg-slate-50"
                       }
                     `}
                   >
-                    <span className="font-extrabold">
-                      {officerName}
+                    <span
+                      className="
+                        font-extrabold
+                      "
+                    >
+                      {
+                        officerName
+                      }
                     </span>
 
                     {(officer.position ||
@@ -804,9 +978,11 @@ function SearchableOfficerSelect({
                       <span
                         className="
                           mt-0.5
+
                           text-xs
                           font-semibold
-                          text-slate-500
+
+                          !text-slate-500
                         "
                       >
                         {[
@@ -837,7 +1013,7 @@ function SearchableOfficerSelect({
 
 /* =========================================================
    COMPONENT
-   ========================================================= */
+========================================================= */
 
 export default function InspectionForm({
   department,
@@ -852,6 +1028,10 @@ export default function InspectionForm({
 }: Props) {
   const today =
     getCurrentDate();
+
+  /* =======================================================
+     STATE
+  ======================================================= */
 
   const [
     inspectionStartDate,
@@ -905,7 +1085,9 @@ export default function InspectionForm({
   const [
     rows,
     setRows,
-  ] = useState<InspectionRow[]>(
+  ] = useState<
+    InspectionRow[]
+  >(
     () =>
       normalizeInitialRows(
         assets,
@@ -916,7 +1098,9 @@ export default function InspectionForm({
   const [
     inspectorIds,
     setInspectorIds,
-  ] = useState<string[]>(
+  ] = useState<
+    string[]
+  >(
     () =>
       normalizeInspectorIds(
         initialData?.inspectorIds
@@ -926,16 +1110,18 @@ export default function InspectionForm({
   const [
     isSaving,
     setIsSaving,
-  ] = useState(false);
-
-  /* =======================================================
-     SEARCH
-     ======================================================= */
+  ] = useState(
+    false
+  );
 
   const [
     searchTerm,
     setSearchTerm,
   ] = useState("");
+
+  /* =======================================================
+     SEARCH
+  ======================================================= */
 
   const filteredAssets =
     useMemo(() => {
@@ -967,32 +1153,42 @@ export default function InspectionForm({
             );
 
           const unit =
-            getAssetUnit(asset);
+            getAssetUnit(
+              asset
+            );
 
-          const searchableText = [
-            sourceOrder,
-            asset.name,
-            asset.category,
-            asset.brand,
-            asset.model,
-            asset.serialNumber,
-            asset.governmentAssetNo,
-            asset.officeAssetNo,
-            asset.quantity,
-            unit,
-            responsibleName,
-            asset.location,
-            asset.section?.name,
-            officerName,
-            asset.remark,
-          ]
-            .filter(
-              (value) =>
-                value !== null &&
-                value !== undefined
-            )
-            .join(" ")
-            .toLowerCase();
+          const searchableText =
+            [
+              sourceOrder,
+              asset.name,
+              asset.category,
+              asset.brand,
+              asset.model,
+              asset.serialNumber,
+              asset.governmentAssetNo,
+              asset.officeAssetNo,
+              asset.quantity,
+              unit,
+              responsibleName,
+              asset.location,
+              asset.section
+                ?.name,
+              officerName,
+              asset.remark,
+            ]
+              .filter(
+                (
+                  value
+                ) =>
+                  value !==
+                    null &&
+                  value !==
+                    undefined
+              )
+              .join(
+                " "
+              )
+              .toLowerCase();
 
           return searchableText.includes(
             keyword
@@ -1002,11 +1198,12 @@ export default function InspectionForm({
     }, [
       assets,
       searchTerm,
+      department,
     ]);
 
   /* =======================================================
      REFS
-     ======================================================= */
+  ======================================================= */
 
   const inspectionStartDateRef =
     useRef<HTMLInputElement>(
@@ -1033,73 +1230,18 @@ export default function InspectionForm({
       null
     );
 
-  /* =======================================================
-     QUICK ACTION HEADER REFS
-
-     ใช้วัดตำแหน่งจริงของคอลัมน์
-     เพื่อให้ปุ่มด้านบนตรงกับหัวตารางของช่องนั้น
-     ======================================================= */
-
-  const correctHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
-  const incorrectHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
-  const inUseHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
-  const damagedHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
-  const deterioratedHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
-  const unusableHeaderRef =
-    useRef<HTMLTableCellElement>(
-      null
-    );
-
   const [
     tableScrollWidth,
     setTableScrollWidth,
   ] = useState(0);
 
-  const [
-    quickActionPositions,
-    setQuickActionPositions,
-  ] = useState<{
-    correct: QuickActionPosition | null;
-    incorrect: QuickActionPosition | null;
-    inUse: QuickActionPosition | null;
-    damaged: QuickActionPosition | null;
-    deteriorated: QuickActionPosition | null;
-    unusable: QuickActionPosition | null;
-  }>({
-    correct: null,
-    incorrect: null,
-    inUse: null,
-    damaged: null,
-    deteriorated: null,
-    unusable: null,
-  });
-
   /* =======================================================
-     SCROLLBAR
-     ======================================================= */
+     TABLE MEASUREMENTS
+  ======================================================= */
 
   useEffect(() => {
-    let animationFrame = 0;
+    let animationFrame =
+      0;
 
     function updateTableMeasurements() {
       cancelAnimationFrame(
@@ -1116,65 +1258,9 @@ export default function InspectionForm({
               return;
             }
 
-            const tableRect =
-              table.getBoundingClientRect();
-
             setTableScrollWidth(
               table.scrollWidth
             );
-
-            function measureHeader(
-              element:
-                | HTMLTableCellElement
-                | null
-            ): QuickActionPosition | null {
-              if (!element) {
-                return null;
-              }
-
-              const rect =
-                element.getBoundingClientRect();
-
-              return {
-                left:
-                  rect.left -
-                  tableRect.left,
-                width:
-                  rect.width,
-              };
-            }
-
-            setQuickActionPositions({
-              correct:
-                measureHeader(
-                  correctHeaderRef.current
-                ),
-
-              incorrect:
-                measureHeader(
-                  incorrectHeaderRef.current
-                ),
-
-              inUse:
-                measureHeader(
-                  inUseHeaderRef.current
-                ),
-
-              damaged:
-                measureHeader(
-                  damagedHeaderRef.current
-                ),
-
-              deteriorated:
-                measureHeader(
-                  deterioratedHeaderRef.current
-                ),
-
-              unusable:
-                measureHeader(
-                  unusableHeaderRef.current
-                ),
-            });
           }
         );
     }
@@ -1253,10 +1339,11 @@ export default function InspectionForm({
 
   /* =======================================================
      GENERAL
-     ======================================================= */
+  ======================================================= */
 
   const isEditMode =
-    submitMethod === "PUT";
+    submitMethod ===
+    "PUT";
 
   const finalCancelHref =
     cancelHref ||
@@ -1264,16 +1351,20 @@ export default function InspectionForm({
 
   const finalSubmitLabel =
     submitLabel ||
-    (isEditMode
-      ? "บันทึกการแก้ไข"
-      : "บันทึกผลการตรวจสอบ");
+    (
+      isEditMode
+        ? "บันทึกการแก้ไข"
+        : "บันทึกผลการตรวจสอบ"
+    );
 
   /* =======================================================
      DATE PICKER
-     ======================================================= */
+  ======================================================= */
 
   function openDatePicker(
-    input: HTMLInputElement | null
+    input:
+      | HTMLInputElement
+      | null
   ) {
     if (
       readOnly ||
@@ -1287,6 +1378,7 @@ export default function InspectionForm({
       "function"
     ) {
       input.showPicker();
+
       return;
     }
 
@@ -1295,11 +1387,12 @@ export default function InspectionForm({
 
   /* =======================================================
      UPDATE ROW
-     ======================================================= */
+  ======================================================= */
 
   function updateRow(
     assetId: number,
-    field: keyof InspectionRow,
+    field:
+      keyof InspectionRow,
     value: string
   ) {
     if (readOnly) {
@@ -1307,7 +1400,9 @@ export default function InspectionForm({
     }
 
     setRows(
-      (currentRows) =>
+      (
+        currentRows
+      ) =>
         currentRows.map(
           (row) =>
             row.assetId ===
@@ -1324,11 +1419,7 @@ export default function InspectionForm({
 
   /* =======================================================
      QUICK SELECT
-
-     ใช้เฉพาะรายการที่กำลังแสดง
-     หากไม่มีการค้นหา = ทั้งหมด
-     หากค้นหา = เฉพาะผลการค้นหา
-     ======================================================= */
+  ======================================================= */
 
   function updateAllAccuracy(
     value:
@@ -1348,7 +1439,9 @@ export default function InspectionForm({
       );
 
     setRows(
-      (currentRows) =>
+      (
+        currentRows
+      ) =>
         currentRows.map(
           (row) =>
             visibleAssetIds.has(
@@ -1384,7 +1477,9 @@ export default function InspectionForm({
       );
 
     setRows(
-      (currentRows) =>
+      (
+        currentRows
+      ) =>
         currentRows.map(
           (row) =>
             visibleAssetIds.has(
@@ -1402,7 +1497,7 @@ export default function InspectionForm({
 
   /* =======================================================
      INSPECTOR
-     ======================================================= */
+  ======================================================= */
 
   function updateInspector(
     index: number,
@@ -1413,7 +1508,9 @@ export default function InspectionForm({
     }
 
     setInspectorIds(
-      (current) => {
+      (
+        current
+      ) => {
         const next = [
           ...current,
         ];
@@ -1431,8 +1528,9 @@ export default function InspectionForm({
   ) {
     return officers.find(
       (officer) =>
-        String(officer.id) ===
-        id
+        String(
+          officer.id
+        ) === id
     );
   }
 
@@ -1441,21 +1539,29 @@ export default function InspectionForm({
     currentIndex: number
   ) {
     return inspectorIds.some(
-      (id, index) =>
+      (
+        id,
+        index
+      ) =>
         index !==
           currentIndex &&
-        id === officerId
+        id ===
+          officerId
     );
   }
 
   /* =======================================================
      SAVE
-     ======================================================= */
+  ======================================================= */
 
   async function handleSave() {
     if (readOnly) {
       return;
     }
+
+    /* =====================================================
+       DATE
+    ===================================================== */
 
     if (
       !inspectionStartDate ||
@@ -1464,6 +1570,7 @@ export default function InspectionForm({
       alert(
         "กรุณาระบุวันที่เริ่มและวันที่ตรวจสอบแล้วเสร็จ"
       );
+
       return;
     }
 
@@ -1484,26 +1591,35 @@ export default function InspectionForm({
       alert(
         "รูปแบบวันที่ไม่ถูกต้อง"
       );
+
       return;
     }
 
     if (
-      endDate < startDate
+      endDate <
+      startDate
     ) {
       alert(
         "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มดำเนินการตรวจสอบ"
       );
+
       return;
     }
 
+    /* =====================================================
+       INSPECTOR
+    ===================================================== */
+
     if (
       inspectorIds.some(
-        (id) => !id
+        (id) =>
+          !id
       )
     ) {
       alert(
         "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 5 คน"
       );
+
       return;
     }
 
@@ -1519,19 +1635,28 @@ export default function InspectionForm({
       alert(
         "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้"
       );
+
       return;
     }
 
+    /* =====================================================
+       ROWS
+    ===================================================== */
+
     if (
-      rows.length === 0
+      rows.length ===
+      0
     ) {
       alert(
         "ไม่พบรายการครุภัณฑ์สำหรับตรวจสอบ"
       );
+
       return;
     }
 
-    for (const row of rows) {
+    for (
+      const row of rows
+    ) {
       const countedQty =
         Number(
           row.countedQty
@@ -1546,26 +1671,39 @@ export default function InspectionForm({
         alert(
           "จำนวนที่ตรวจนับต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป"
         );
+
         return;
       }
 
-      if (!row.accuracy) {
+      if (
+        !row.accuracy
+      ) {
         alert(
           "กรุณาระบุผลการตรวจสอบยอดคงเหลือให้ครบทุกรายการ"
         );
+
         return;
       }
 
-      if (!row.status) {
+      if (
+        !row.status
+      ) {
         alert(
           "กรุณาระบุสถานะครุภัณฑ์ให้ครบทุกรายการ"
         );
+
         return;
       }
     }
 
+    /* =====================================================
+       SUBMIT
+    ===================================================== */
+
     try {
-      setIsSaving(true);
+      setIsSaving(
+        true
+      );
 
       const response =
         await fetch(
@@ -1586,9 +1724,11 @@ export default function InspectionForm({
                     department.id,
 
                   inspectionStartDate,
+
                   inspectionEndDate,
 
                   accountStartDate,
+
                   accountEndDate,
 
                   movementFiscalYear,
@@ -1611,10 +1751,13 @@ export default function InspectionForm({
         data =
           await response.json();
       } catch {
-        data = null;
+        data =
+          null;
       }
 
-      if (!response.ok) {
+      if (
+        !response.ok
+      ) {
         let errorMessage =
           isEditMode
             ? "ไม่สามารถแก้ไขข้อมูลได้"
@@ -1643,15 +1786,14 @@ export default function InspectionForm({
           : "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
       );
 
-      /* ===================================================
-         หลังบันทึกสำเร็จ
-         ไปหน้าประวัติการตรวจสอบครุภัณฑ์
-         =================================================== */
-
       window.location.href =
         "/assets/inspection-history";
-    } catch (error) {
-      console.error(error);
+    } catch (
+      error
+    ) {
+      console.error(
+        error
+      );
 
       alert(
         error instanceof Error
@@ -1661,178 +1803,212 @@ export default function InspectionForm({
             : "เกิดข้อผิดพลาดในการบันทึกข้อมูล"
       );
     } finally {
-      setIsSaving(false);
+      setIsSaving(
+        false
+      );
     }
   }
 
-  /* =======================================================
-     RENDER
-     ======================================================= */
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div className="mx-auto w-full max-w-[1800px] space-y-6">
-      {/* ===================================================
-          SEARCH CARD
-          =================================================== */}
+    <div
+      className="
+        w-full
+        min-w-0
 
-      <div
+        space-y-5
+
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          SEARCH
+
+          ใช้ AppSearchInput ตัวกลาง
+      ===================================================== */}
+
+      <AppSearchInput
+        value={
+          searchTerm
+        }
+        onChange={(
+          event
+        ) =>
+          setSearchTerm(
+            event.target.value
+          )
+        }
+        onSubmit={() =>
+          setSearchTerm(
+            searchTerm.trim()
+          )
+        }
+        onClear={() =>
+          setSearchTerm("")
+        }
+        placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
+        resultCount={
+          filteredAssets.length
+        }
+        resultLabel="รายการ"
+        showSearchButton
+        showClearButton
+        searchButtonText="ค้นหา"
+        clearButtonText="ล้าง"
+      />
+
+      {/* =====================================================
+          INSPECTION INFORMATION
+
+          ใช้ AppCard ตัวกลาง
+      ===================================================== */}
+
+      <AppCard
         className="
           w-full
           min-w-0
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-900
-          to-slate-800
-          p-4
-          shadow-xl
-          sm:p-5
         "
       >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSearchTerm(
-              searchTerm.trim()
-            );
-          }}
+        <div
           className="
             flex
             w-full
             min-w-0
             flex-col
-            gap-3
+
+            gap-4
+
             sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          <input
-            id="inspection-search"
-            type="text"
-            value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(
-                e.target.value
-              )
-            }
-            placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
+          <div
             className="
               min-w-0
               flex-1
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              placeholder:text-slate-400
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
-          />
-
-          <button
-            type="submit"
-            className="
-              w-full
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-5
-              py-3
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-105
-              sm:w-auto
             "
           >
-            ค้นหา
-          </button>
-
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() =>
-                setSearchTerm("")
-              }
+            <h2
               className="
-                w-full
-                rounded-xl
-                bg-slate-600
-                px-5
-                py-3
-                text-center
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:bg-slate-500
-                sm:w-auto
+                text-xl
+                font-black
+                tracking-tight
+
+                !text-slate-900
+
+                sm:text-2xl
               "
             >
-              ล้างการค้นหา
-            </button>
-          )}
-        </form>
-      </div>
+              ข้อมูลการตรวจสอบ
+            </h2>
 
-      {/* ===================================================
-          ข้อมูลการตรวจสอบ
-          =================================================== */}
+            <p
+              className="
+                mt-1
 
-      <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white shadow-xl">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-2xl font-extrabold !text-white">
-            ข้อมูลการตรวจสอบ
-          </h2>
+                text-sm
+                font-semibold
 
-          <ExportInspectionPdf
-            department={
-              department
-            }
-            assets={assets}
-            rows={rows}
-            inspectorIds={
-              inspectorIds
-            }
-            inspectionStartDate={
-              inspectionStartDate
-            }
-            inspectionEndDate={
-              inspectionEndDate
-            }
-            accountStartDate={
-              accountStartDate
-            }
-            accountEndDate={
-              accountEndDate
-            }
-            movementFiscalYear={
-              movementFiscalYear
-            }
-            officers={
-              officers
-            }
-          />
+                !text-slate-500
+              "
+            >
+              {department.name} •
+              ประจำปีงบประมาณ
+              พ.ศ.{" "}
+              {
+                movementFiscalYear
+              }
+            </p>
+          </div>
+
+          <div
+            className="
+              shrink-0
+            "
+          >
+            <ExportInspectionPdf
+              department={
+                department
+              }
+              assets={
+                assets
+              }
+              rows={
+                rows
+              }
+              inspectorIds={
+                inspectorIds
+              }
+              inspectionStartDate={
+                inspectionStartDate
+              }
+              inspectionEndDate={
+                inspectionEndDate
+              }
+              accountStartDate={
+                accountStartDate
+              }
+              accountEndDate={
+                accountEndDate
+              }
+              movementFiscalYear={
+                movementFiscalYear
+              }
+              officers={
+                officers
+              }
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* วันที่เริ่ม */}
+        {/* =================================================
+            DATES
+        ================================================= */}
 
-          <div>
-            <label className="mb-2 block text-lg font-extrabold !text-white">
+        <div
+          className="
+            mt-5
+
+            grid
+            grid-cols-1
+
+            gap-4
+
+            md:grid-cols-2
+          "
+        >
+          {/* ===============================================
+              START
+          =============================================== */}
+
+          <div
+            className="
+              min-w-0
+            "
+          >
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-extrabold
+
+                !text-slate-700
+              "
+            >
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <div className="relative">
+            <div
+              className="
+                relative
+              "
+            >
               <button
                 type="button"
                 disabled={
@@ -1845,22 +2021,32 @@ export default function InspectionForm({
                 }
                 className={`
                   flex
-                  min-h-[46px]
+                  min-h-[50px]
                   w-full
+
                   items-center
-                  rounded-lg
+
+                  rounded-[14px]
+
                   border
                   border-slate-300
-                  bg-white
-                  p-2.5
+
+                  px-4
+                  py-3
+
                   text-left
                   font-semibold
-                  text-slate-900
+
+                  !text-slate-900
+
                   outline-none
+
+                  transition-all
+
                   ${
                     readOnly
-                      ? "cursor-default"
-                      : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                      ? "cursor-default bg-slate-50"
+                      : "cursor-pointer bg-white hover:border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
                   }
                 `}
               >
@@ -1871,26 +2057,16 @@ export default function InspectionForm({
                 </span>
 
                 {!readOnly && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="16"
-                      rx="2"
-                    />
+                  <span
+                    aria-hidden="true"
+                    className="
+                      ml-auto
 
-                    <path d="M16 3v4M8 3v4M3 11h18" />
-                  </svg>
+                      !text-slate-500
+                    "
+                  >
+                    📅
+                  </span>
                 )}
               </button>
 
@@ -1904,10 +2080,10 @@ export default function InspectionForm({
                     inspectionStartDate
                   }
                   onChange={(
-                    e
+                    event
                   ) => {
                     const value =
-                      e.target.value;
+                      event.target.value;
 
                     setInspectionStartDate(
                       value
@@ -1926,20 +2102,49 @@ export default function InspectionForm({
                     );
                   }}
                   required
-                  className="absolute bottom-0 left-0 h-px w-px opacity-0"
+                  className="
+                    absolute
+                    bottom-0
+                    left-0
+
+                    h-px
+                    w-px
+
+                    opacity-0
+                  "
                 />
               )}
             </div>
           </div>
 
-          {/* วันที่สิ้นสุด */}
+          {/* ===============================================
+              END
+          =============================================== */}
 
-          <div>
-            <label className="mb-2 block text-lg font-extrabold !text-white">
+          <div
+            className="
+              min-w-0
+            "
+          >
+            <label
+              className="
+                mb-2
+                block
+
+                text-sm
+                font-extrabold
+
+                !text-slate-700
+              "
+            >
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <div className="relative">
+            <div
+              className="
+                relative
+              "
+            >
               <button
                 type="button"
                 disabled={
@@ -1952,22 +2157,32 @@ export default function InspectionForm({
                 }
                 className={`
                   flex
-                  min-h-[46px]
+                  min-h-[50px]
                   w-full
+
                   items-center
-                  rounded-lg
+
+                  rounded-[14px]
+
                   border
                   border-slate-300
-                  bg-white
-                  p-2.5
+
+                  px-4
+                  py-3
+
                   text-left
                   font-semibold
-                  text-slate-900
+
+                  !text-slate-900
+
                   outline-none
+
+                  transition-all
+
                   ${
                     readOnly
-                      ? "cursor-default"
-                      : "cursor-pointer focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                      ? "cursor-default bg-slate-50"
+                      : "cursor-pointer bg-white hover:border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
                   }
                 `}
               >
@@ -1978,26 +2193,16 @@ export default function InspectionForm({
                 </span>
 
                 {!readOnly && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="ml-auto h-5 w-5 shrink-0 text-slate-500"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="16"
-                      rx="2"
-                    />
+                  <span
+                    aria-hidden="true"
+                    className="
+                      ml-auto
 
-                    <path d="M16 3v4M8 3v4M3 11h18" />
-                  </svg>
+                      !text-slate-500
+                    "
+                  >
+                    📅
+                  </span>
                 )}
               </button>
 
@@ -2011,10 +2216,10 @@ export default function InspectionForm({
                     inspectionEndDate
                   }
                   onChange={(
-                    e
+                    event
                   ) => {
                     const value =
-                      e.target.value;
+                      event.target.value;
 
                     setInspectionEndDate(
                       value
@@ -2027,43 +2232,182 @@ export default function InspectionForm({
                     );
                   }}
                   required
-                  className="absolute bottom-0 left-0 h-px w-px opacity-0"
+                  className="
+                    absolute
+                    bottom-0
+                    left-0
+
+                    h-px
+                    w-px
+
+                    opacity-0
+                  "
                 />
               )}
             </div>
           </div>
         </div>
-      </div>
+      </AppCard>
 
-      {/* ===================================================
+      {/* =====================================================
           TABLE
-          =================================================== */}
 
-      <div
+          13 MAIN HEADERS
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการตรวจสอบครุภัณฑ์"
+        subtitle={`${department.name} • ตรวจสอบครุภัณฑ์ประจำปี`}
+        badge={`${filteredAssets.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-lg
+          w-full
+          min-w-0
+          max-w-full
         "
       >
-        {/* ===============================================
+        {/* =================================================
+            QUICK ACTIONS
+
+            ใช้ AppButton ตัวกลางทั้งหมด
+        ================================================= */}
+
+        {!readOnly && (
+          <div
+            className="
+              border-b
+              border-slate-200
+
+              bg-slate-50/70
+
+              p-3
+
+              sm:p-4
+            "
+          >
+            <p
+              className="
+                mb-3
+
+                text-sm
+                font-extrabold
+
+                !text-slate-700
+              "
+            >
+              กำหนดผลให้รายการที่กำลังแสดงทั้งหมด
+            </p>
+
+            <div
+              className="
+                flex
+                flex-wrap
+                items-center
+
+                gap-2
+              "
+            >
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllAccuracy(
+                    "CORRECT"
+                  )
+                }
+              >
+                ✓ ถูกต้องทั้งหมด
+              </AppButton>
+
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllAccuracy(
+                    "INCORRECT"
+                  )
+                }
+              >
+                ✕ ไม่ถูกต้องทั้งหมด
+              </AppButton>
+
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllStatus(
+                    "IN_USE"
+                  )
+                }
+              >
+                ✓ ใช้งานปกติทั้งหมด
+              </AppButton>
+
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllStatus(
+                    "DAMAGED"
+                  )
+                }
+              >
+                ✓ ชำรุดทั้งหมด
+              </AppButton>
+
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllStatus(
+                    "DETERIORATED"
+                  )
+                }
+              >
+                ✓ เสื่อมสภาพทั้งหมด
+              </AppButton>
+
+              <AppButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() =>
+                  updateAllStatus(
+                    "UNUSABLE"
+                  )
+                }
+              >
+                ✓ ไม่จำเป็นต้องใช้ทั้งหมด
+              </AppButton>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================
             TOP SCROLLBAR
-            =============================================== */}
+        ================================================= */}
 
         <div
           className="
             border-b
-            border-slate-300
-            bg-slate-100
+            border-slate-200
+
+            bg-slate-50
+
             px-2
             pt-2
           "
         >
           <div
-            ref={topScrollRef}
+            ref={
+              topScrollRef
+            }
             onScroll={
               handleTopScroll
             }
@@ -2076,15 +2420,16 @@ export default function InspectionForm({
               style={{
                 width:
                   tableScrollWidth,
-                height: 12,
+                height:
+                  12,
               }}
             />
           </div>
         </div>
 
-        {/* ===============================================
-            TABLE + BOTTOM SCROLLBAR
-            =============================================== */}
+        {/* =================================================
+            TABLE SCROLL
+        ================================================= */}
 
         <div
           ref={
@@ -2093,394 +2438,240 @@ export default function InspectionForm({
           onScroll={
             handleBottomScroll
           }
-          className="overflow-x-auto"
+          className="
+            w-full
+
+            overflow-x-auto
+            overscroll-x-contain
+
+            [-webkit-overflow-scrolling:touch]
+          "
         >
-          {/* ===============================================
-              QUICK ACTIONS
-
-              อยู่ในการ์ดเดียวกับตาราง
-              แต่อยู่นอกตารางและเหนือเส้นหัวตาราง
-
-              ปุ่มแต่ละอันตรงกับหัวคอลัมน์ของตัวเอง
-              และกว้างเท่ากับคอลัมน์นั้น
-              =============================================== */}
-
-          {!readOnly && (
-            <div
-              className="
-                relative
-                h-[50px]
-                min-w-full
-                border-b
-                border-slate-300
-                bg-slate-50
-              "
-              style={{
-                width:
-                  tableScrollWidth ||
-                  undefined,
-              }}
-            >
-              {quickActionPositions.correct && (
-                <button
-                  type="button"
-                  title="ถูกต้องทั้งหมด"
-                  aria-label="ถูกต้องทั้งหมด"
-                  onClick={() =>
-                    updateAllAccuracy(
-                      "CORRECT"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .correct.left +
-                      quickActionPositions
-                        .correct.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-emerald-700
-                    hover:to-green-600
-                  "
-                >
-                  ✓
-                </button>
-              )}
-
-              {quickActionPositions.incorrect && (
-                <button
-                  type="button"
-                  title="ไม่ถูกต้องทั้งหมด"
-                  aria-label="ไม่ถูกต้องทั้งหมด"
-                  onClick={() =>
-                    updateAllAccuracy(
-                      "INCORRECT"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .incorrect.left +
-                      quickActionPositions
-                        .incorrect.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-red-700
-                    to-red-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-red-800
-                    hover:to-red-600
-                  "
-                >
-                  ✕
-                </button>
-              )}
-
-              {quickActionPositions.inUse && (
-                <button
-                  type="button"
-                  title="ใช้งานปกติทั้งหมด"
-                  aria-label="ใช้งานปกติทั้งหมด"
-                  onClick={() =>
-                    updateAllStatus(
-                      "IN_USE"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .inUse.left +
-                      quickActionPositions
-                        .inUse.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-emerald-700
-                    hover:to-green-600
-                  "
-                >
-                  ✓
-                </button>
-              )}
-
-              {quickActionPositions.damaged && (
-                <button
-                  type="button"
-                  title="ชำรุดทั้งหมด"
-                  aria-label="ชำรุดทั้งหมด"
-                  onClick={() =>
-                    updateAllStatus(
-                      "DAMAGED"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .damaged.left +
-                      quickActionPositions
-                        .damaged.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-emerald-700
-                    hover:to-green-600
-                  "
-                >
-                  ✓
-                </button>
-              )}
-
-              {quickActionPositions.deteriorated && (
-                <button
-                  type="button"
-                  title="เสื่อมสภาพทั้งหมด"
-                  aria-label="เสื่อมสภาพทั้งหมด"
-                  onClick={() =>
-                    updateAllStatus(
-                      "DETERIORATED"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .deteriorated.left +
-                      quickActionPositions
-                        .deteriorated.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-emerald-700
-                    hover:to-green-600
-                  "
-                >
-                  ✓
-                </button>
-              )}
-
-              {quickActionPositions.unusable && (
-                <button
-                  type="button"
-                  title="ไม่จำเป็นต้องใช้ทั้งหมด"
-                  aria-label="ไม่จำเป็นต้องใช้ทั้งหมด"
-                  onClick={() =>
-                    updateAllStatus(
-                      "UNUSABLE"
-                    )
-                  }
-                  style={{
-                    left:
-                      quickActionPositions
-                        .unusable.left +
-                      quickActionPositions
-                        .unusable.width /
-                        2,
-                    transform:
-                      "translateX(-50%)",
-                  }}
-                  className="
-                    absolute
-                    top-2
-                    flex
-                    h-[34px]
-                    w-[34px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    from-red-700
-                    to-red-500
-                    p-0
-                    text-center
-                    text-lg
-                    font-extrabold
-                    leading-none
-                    !text-white
-                    shadow
-                    transition
-                    hover:scale-105
-                    hover:from-red-800
-                    hover:to-red-600
-                  "
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          )}
-
           <table
-            ref={tableRef}
+            ref={
+              tableRef
+            }
             className="
               w-max
               min-w-full
+
               table-auto
               border-collapse
+
               text-[13px]
               leading-tight
             "
           >
+            {/* ===============================================
+                HEADER
+            =============================================== */}
+
             <thead>
               <tr>
+                {/* 1 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   ลำดับ
                 </th>
 
+                {/* 2 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   รหัส GFMIS
                 </th>
 
+                {/* 3 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   รหัสครุภัณฑ์
                 </th>
 
+                {/* 4 */}
+
                 <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    whitespace-nowrap
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   ผู้รับผิดชอบ
                 </th>
 
+                {/* 5 */}
+
                 <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    whitespace-nowrap
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   รายการครุภัณฑ์
                 </th>
 
+                {/* 6 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   หน่วย
                 </th>
 
+                {/* 7 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      mt-1
+                      whitespace-nowrap
+                    "
+                  >
                     ณ วันที่{" "}
                     {formatThaiDate(
                       accountStartDate
@@ -2488,29 +2679,89 @@ export default function InspectionForm({
                   </div>
                 </th>
 
+                {/* 8 */}
+
                 <th
-                  colSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     รายการเคลื่อนไหวระหว่าง
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      mt-1
+                      whitespace-nowrap
+                    "
+                  >
                     ปีงบประมาณ พ.ศ.{" "}
-                    {movementFiscalYear}
+                    {
+                      movementFiscalYear
+                    }
                   </div>
                 </th>
 
+                {/* 9 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      mt-1
+                      whitespace-nowrap
+                    "
+                  >
                     ณ วันที่{" "}
                     {formatThaiDate(
                       accountEndDate
@@ -2518,127 +2769,286 @@ export default function InspectionForm({
                   </div>
                 </th>
 
+                {/* 10 */}
+
                 <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <span className="whitespace-nowrap">
+                  <span
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     จำนวนที่ตรวจนับได้
                   </span>
                 </th>
 
+                {/* 11 */}
+
                 <th
-                  colSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     ผลการตรวจนับถูกต้องตรงกับ
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div
+                    className="
+                      mt-1
+                      whitespace-nowrap
+                    "
+                  >
                     ยอดคงเหลือตามบัญชี
                   </div>
                 </th>
 
+                {/* 12 */}
+
                 <th
-                  colSpan={4}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    4
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  <span className="whitespace-nowrap">
+                  <span
+                    className="
+                      whitespace-nowrap
+                    "
+                  >
                     สภาพครุภัณฑ์ที่ตรวจนับ
                   </span>
                 </th>
 
+                {/* 13 */}
+
                 <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    whitespace-nowrap
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
+              {/* =============================================
+                  SECOND HEADER
+              ============================================= */}
+
               <tr>
-                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white">
-                  รับ
-                </th>
+                {[
+                  "รับ",
+                  "จ่าย",
+                  "ถูกต้อง",
+                  "ไม่ถูกต้อง",
+                  "ใช้งานปกติ",
+                  "ชำรุด",
+                  "เสื่อมสภาพ",
+                  "ไม่จำเป็นต้องใช้",
+                ].map(
+                  (
+                    title
+                  ) => (
+                    <th
+                      key={
+                        title
+                      }
+                      className="
+                        whitespace-nowrap
 
-                <th className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white">
-                  จ่าย
-                </th>
+                        border
+                        border-black
 
-                <th
-                  ref={correctHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                  ถูกต้อง
-                </th>
+                        px-2
+                        py-2.5
 
-                <th
-                  ref={incorrectHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
+                        text-center
+                        font-extrabold
 
-                  ไม่ถูกต้อง
-                </th>
-
-                <th
-                  ref={inUseHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
-
-                  ใช้งานปกติ
-                </th>
-
-                <th
-                  ref={damagedHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
-
-                  ชำรุด
-                </th>
-
-                <th
-                  ref={deterioratedHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
-
-                  เสื่อมสภาพ
-                </th>
-
-                <th
-                  ref={unusableHeaderRef}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-2 text-center font-extrabold !text-white"
-                >
-
-                  ไม่จำเป็นต้องใช้
-                </th>
+                        !text-white
+                      "
+                    >
+                      {
+                        title
+                      }
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
+
+            {/* ===============================================
+                BODY
+            =============================================== */}
 
             <tbody>
               {filteredAssets.length ===
               0 ? (
                 <tr>
                   <td
-                    colSpan={18}
+                    colSpan={
+                      18
+                    }
                     className="
                       border
                       border-black
-                      px-4
-                      py-10
+
+                      bg-white
+
+                      px-6
+                      py-14
+
                       text-center
-                      text-base
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    ไม่พบรายการครุภัณฑ์ที่ตรงกับคำค้นหา
+                    <div
+                      className="
+                        mx-auto
+
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-14
+                          w-14
+
+                          place-items-center
+
+                          text-2xl
+                        "
+                        aria-hidden="true"
+                      >
+                        🔎
+                      </div>
+
+                      <p
+                        className="
+                          mt-3
+
+                          text-base
+                          font-extrabold
+
+                          !text-slate-900
+                        "
+                      >
+                        ไม่พบรายการครุภัณฑ์ที่ตรงกับคำค้นหา
+                      </p>
+
+                      {searchTerm && (
+                        <div
+                          className="
+                            mt-4
+                          "
+                        >
+                          <AppButton
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            onClick={() =>
+                              setSearchTerm(
+                                ""
+                              )
+                            }
+                          >
+                            แสดงรายการทั้งหมด
+                          </AppButton>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredAssets.map(
-                  (asset) => {
+                  (
+                    asset,
+                    index
+                  ) => {
                     const row =
                       rows.find(
                         (item) =>
@@ -2660,7 +3070,8 @@ export default function InspectionForm({
 
                     const displayOrder =
                       sourceOrder ??
-                      originalIndex + 1;
+                      originalIndex +
+                        1;
 
                     const responsibleName =
                       getResponsibleName(
@@ -2674,25 +3085,47 @@ export default function InspectionForm({
                       );
 
                     const quantity =
-                      asset.quantity ?? 1;
+                      asset.quantity ??
+                      1;
 
                     return (
                       <tr
                         key={
                           asset.id
                         }
-                        className="
-                          bg-white
+                        className={`
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
+
                           text-sm
                           font-medium
-                          text-slate-900
-                          transition
-                          hover:bg-emerald-50
-                        "
-                      >
-                        {/* ลำดับ */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                          !text-slate-900
+
+                          transition-colors
+
+                          hover:bg-emerald-50/60
+                        `}
+                      >
+                        {/* ORDER */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           {
                             displayOrder
                           }
@@ -2700,75 +3133,207 @@ export default function InspectionForm({
 
                         {/* GFMIS */}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           {asset.governmentAssetNo?.trim()
                             ? asset.governmentAssetNo
                             : "-"}
                         </td>
 
-                        {/* รหัสครุภัณฑ์ */}
+                        {/* ASSET NO */}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           {asset.officeAssetNo?.trim()
                             ? asset.officeAssetNo
                             : "-"}
                         </td>
 
-                        {/* ผู้รับผิดชอบ */}
+                        {/* RESPONSIBLE */}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2 text-center align-middle">
-                          <span className="whitespace-nowrap font-semibold">
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
+                          <span
+                            className="
+                              whitespace-nowrap
+
+                              font-semibold
+                            "
+                          >
                             {
                               responsibleName
                             }
                           </span>
                         </td>
 
-                        {/* รายการ */}
+                        {/* NAME */}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2 text-left align-middle font-semibold">
-                          {asset.name}
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-2.5
+
+                            text-left
+                            align-middle
+
+                            font-semibold
+                          "
+                        >
+                          {
+                            asset.name
+                          }
                         </td>
 
-                        {/* หน่วย */}
+                        {/* UNIT */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           {
                             assetUnit
                           }
                         </td>
 
-                        {/* ยอดต้น */}
+                        {/* OPEN BALANCE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+
+                            tabular-nums
+                          "
+                        >
                           {
                             quantity
                           }
                         </td>
 
-                        {/* รับ */}
+                        {/* RECEIVE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           -
                         </td>
 
-                        {/* จ่าย */}
+                        {/* ISSUE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           -
                         </td>
 
-                        {/* ยอดปลาย */}
+                        {/* END BALANCE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2.5
+
+                            text-center
+                            align-middle
+
+                            tabular-nums
+                          "
+                        >
                           {
                             quantity
                           }
                         </td>
 
-                        {/* จำนวนตรวจนับ */}
+                        {/* COUNTED QTY */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="number"
                             min="0"
@@ -2783,36 +3348,61 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "countedQty",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             className={`
                               mx-auto
-                              h-8
-                              w-16
-                              rounded
+
+                              h-9
+                              w-20
+
+                              rounded-[10px]
+
                               border
-                              border-slate-400
+                              border-slate-300
+
                               px-2
-                              py-1
+
                               text-center
+                              font-semibold
+
+                              !text-slate-900
+
+                              outline-none
+
+                              focus:border-emerald-500
+                              focus:ring-2
+                              focus:ring-emerald-500/10
+
                               ${
                                 readOnly
-                                  ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                                  ? "cursor-default bg-slate-100 opacity-100"
                                   : "bg-white"
                               }
                             `}
                           />
                         </td>
 
-                        {/* ถูกต้อง */}
+                        {/* CORRECT */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`accuracy-${asset.id}`}
@@ -2825,21 +3415,40 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "accuracy",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* ไม่ถูกต้อง */}
+                        {/* INCORRECT */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`accuracy-${asset.id}`}
@@ -2852,21 +3461,40 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "accuracy",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* ใช้งานปกติ */}
+                        {/* IN USE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`status-${asset.id}`}
@@ -2879,21 +3507,40 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "status",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* ชำรุด */}
+                        {/* DAMAGED */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`status-${asset.id}`}
@@ -2906,21 +3553,40 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "status",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* เสื่อมสภาพ */}
+                        {/* DETERIORATED */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`status-${asset.id}`}
@@ -2933,21 +3599,40 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "status",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* ไม่จำเป็นต้องใช้ */}
+                        {/* UNUSABLE */}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                            align-middle
+                          "
+                        >
                           <input
                             type="radio"
                             name={`status-${asset.id}`}
@@ -2960,21 +3645,41 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "status",
-                                e.target.value
+                                event.target.value
                               )
                             }
-                            className="h-4 w-4 disabled:cursor-default disabled:opacity-100"
+                            className="
+                              h-4
+                              w-4
+
+                              accent-emerald-600
+
+                              disabled:cursor-default
+                              disabled:opacity-100
+                            "
                           />
                         </td>
 
-                        {/* หมายเหตุ */}
+                        {/* REMARK */}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2 align-middle">
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            align-middle
+                          "
+                        >
                           <input
                             type="text"
                             value={
@@ -2985,25 +3690,38 @@ export default function InspectionForm({
                               readOnly
                             }
                             onChange={(
-                              e
+                              event
                             ) =>
                               updateRow(
                                 asset.id,
                                 "remark",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             className={`
-                              h-8
-                              w-[140px]
-                              rounded
+                              h-9
+                              w-[160px]
+
+                              rounded-[10px]
+
                               border
-                              border-slate-400
-                              px-2
-                              py-1
+                              border-slate-300
+
+                              px-3
+
+                              font-semibold
+
+                              !text-slate-900
+
+                              outline-none
+
+                              focus:border-emerald-500
+                              focus:ring-2
+                              focus:ring-emerald-500/10
+
                               ${
                                 readOnly
-                                  ? "cursor-default bg-slate-100 text-slate-900 opacity-100"
+                                  ? "cursor-default bg-slate-100 opacity-100"
                                   : "bg-white"
                               }
                             `}
@@ -3017,34 +3735,111 @@ export default function InspectionForm({
             </tbody>
           </table>
         </div>
-      </div>
+      </AppTableCard>
 
-      {/* ===================================================
-          คณะกรรมการตรวจสอบครุภัณฑ์
-          =================================================== */}
+      {/* =====================================================
+          INSPECTION COMMITTEE
 
-      <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 to-slate-800 p-6 text-white shadow-xl">
-        <h2 className="mb-6 text-2xl font-extrabold !text-white">
-          คณะกรรมการตรวจสอบครุภัณฑ์
-        </h2>
+          ใช้ AppCard ตัวกลาง
+      ===================================================== */}
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <AppCard
+        className="
+          w-full
+          min-w-0
+        "
+      >
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
+
+              !text-slate-900
+
+              sm:text-2xl
+            "
+          >
+            คณะกรรมการตรวจสอบครุภัณฑ์
+          </h2>
+
+          <p
+            className="
+              mt-1
+
+              text-sm
+              font-semibold
+
+              !text-slate-500
+            "
+          >
+            เลือกผู้ตรวจสอบจำนวน 5 คน
+            โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
+          </p>
+        </div>
+
+        <div
+          className="
+            mt-5
+
+            grid
+            grid-cols-1
+
+            gap-4
+
+            md:grid-cols-2
+          "
+        >
           {inspectorIds.map(
             (
               inspectorId,
               index
             ) => (
-              <div key={index}>
-                <label className="mb-2 block text-lg font-extrabold !text-white">
-                  {index === 0
+              <div
+                key={
+                  index
+                }
+                className="
+                  min-w-0
+
+                  rounded-[18px]
+
+                  border
+                  border-slate-200
+
+                  bg-slate-50/60
+
+                  p-4
+                "
+              >
+                <label
+                  className="
+                    mb-2
+                    block
+
+                    text-sm
+                    font-extrabold
+
+                    !text-slate-700
+                  "
+                >
+                  {index ===
+                  0
                     ? "ประธานกรรมการ"
-                    : "กรรมการ"}
+                    : `กรรมการคนที่ ${index}`}
                 </label>
 
                 <SearchableOfficerSelect
-                  officers={officers}
-                  value={inspectorId}
-                  readOnly={readOnly}
+                  officers={
+                    officers
+                  }
+                  value={
+                    inspectorId
+                  }
+                  readOnly={
+                    readOnly
+                  }
                   isUnavailable={(
                     officerId
                   ) =>
@@ -3064,11 +3859,21 @@ export default function InspectionForm({
                 />
 
                 {inspectorId && (
-                  <p className="mt-2 text-sm font-semibold !text-slate-300">
+                  <p
+                    className="
+                      mt-2
+
+                      text-xs
+                      font-semibold
+
+                      !text-slate-500
+                    "
+                  >
                     ตำแหน่ง:{" "}
                     {getOfficer(
                       inspectorId
-                    )?.position ||
+                    )
+                      ?.position ||
                       "-"}
                   </p>
                 )}
@@ -3076,71 +3881,55 @@ export default function InspectionForm({
             )
           )}
         </div>
-      </div>
+      </AppCard>
 
-      {/* ===================================================
-          ACTION BUTTONS
-          =================================================== */}
+      {/* =====================================================
+          ACTIONS
+
+          ใช้ AppButton ตัวกลางทั้งหมด
+      ===================================================== */}
 
       {!readOnly && (
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <a
+        <div
+          className="
+            flex
+            w-full
+            flex-col
+
+            gap-2
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-end
+          "
+        >
+          <AppButton
             href={
               finalCancelHref
             }
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-slate-600
-              to-slate-500
-              px-4
-              py-2.5
-              text-base
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-slate-700
-              hover:to-slate-600
-            "
+            variant="back"
+            size="md"
           >
             ยกเลิก
-          </a>
+          </AppButton>
 
-          <button
+          <AppButton
             type="button"
+            variant="primary"
+            size="md"
             onClick={
               handleSave
             }
             disabled={
               isSaving
             }
-            className="
-              rounded-xl
-              bg-gradient-to-r
-              from-emerald-600
-              to-green-500
-              px-4
-              py-2.5
-              text-base
-              font-extrabold
-              !text-white
-              shadow-lg
-              transition
-              hover:scale-[1.02]
-              hover:from-emerald-700
-              hover:to-green-600
-              disabled:cursor-not-allowed
-              disabled:opacity-60
-            "
           >
             {isSaving
               ? isEditMode
                 ? "กำลังบันทึกการแก้ไข..."
                 : "กำลังบันทึก..."
               : finalSubmitLabel}
-          </button>
+          </AppButton>
         </div>
       )}
     </div>
