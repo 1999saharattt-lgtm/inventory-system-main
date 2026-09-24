@@ -696,11 +696,6 @@ export default async function AssetCategoryPage({
               href={`/assets/${departmentIdForAction}`}
               variant="back"
               size="md"
-              icon={
-                <span aria-hidden="true">
-                  ←
-                </span>
-              }
             >
               กลับ
             </AppButton>
@@ -801,23 +796,18 @@ export default async function AssetCategoryPage({
                       className="
                         overflow-hidden
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-1
                         py-4
-
                         text-center
                         text-xs
                         font-extrabold
                         leading-none
                         !text-white
-
                         xl:px-2
                         xl:text-sm
                       "
@@ -893,9 +883,7 @@ export default async function AssetCategoryPage({
                           hover:bg-emerald-50/70
                         `}
                       >
-                        {/* ===================================
-                            ORDER
-                        =================================== */}
+                        {/* ORDER */}
 
                         <td
                           className="
@@ -919,9 +907,7 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            GFMIS
-                        =================================== */}
+                        {/* GFMIS */}
 
                         <td
                           title={
@@ -945,9 +931,7 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* ===================================
-                            ASSET CODE
-                        =================================== */}
+                        {/* ASSET CODE */}
 
                         <td
                           title={
@@ -971,9 +955,7 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* ===================================
-                            NAME
-                        =================================== */}
+                        {/* NAME */}
 
                         <td
                           className="
@@ -1039,9 +1021,7 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            QUANTITY
-                        =================================== */}
+                        {/* QUANTITY */}
 
                         <td
                           className="
@@ -1064,9 +1044,7 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* ===================================
-                            UNIT
-                        =================================== */}
+                        {/* UNIT */}
 
                         <td
                           className="
@@ -1084,9 +1062,7 @@ export default async function AssetCategoryPage({
                           {unit}
                         </td>
 
-                        {/* ===================================
-                            RESPONSIBLE
-                        =================================== */}
+                        {/* RESPONSIBLE */}
 
                         <td
                           title={
@@ -1116,9 +1092,7 @@ export default async function AssetCategoryPage({
                           </div>
                         </td>
 
-                        {/* ===================================
-                            STATUS
-                        =================================== */}
+                        {/* STATUS */}
 
                         <td
                           className="
@@ -1137,19 +1111,14 @@ export default async function AssetCategoryPage({
                               max-w-full
                               items-center
                               justify-center
-
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
-
                               rounded-full
-
                               px-2
                               py-1.5
-
                               text-sm
                               font-semibold
-
                               ${status.className}
                             `}
                           >
@@ -1160,9 +1129,8 @@ export default async function AssetCategoryPage({
                         </td>
 
                         {/* ===================================
-                            DETAIL / OPEN
-                            AppButton ตัวกลาง
-                            สีเขียวกรมอนามัย
+                            OPEN
+                            ใช้ AppButton ตัวกลาง
                         =================================== */}
 
                         <td
@@ -1179,7 +1147,6 @@ export default async function AssetCategoryPage({
                           <div
                             className="
                               flex
-                              w-full
                               items-center
                               justify-center
                             "
@@ -1190,13 +1157,6 @@ export default async function AssetCategoryPage({
                               }
                               variant="primary"
                               size="sm"
-                              className="
-                                !h-10
-                                !min-w-0
-                                w-full
-                                max-w-[105px]
-                                !px-3
-                              "
                             >
                               เปิด
                             </AppButton>
@@ -1231,7 +1191,9 @@ export default async function AssetCategoryPage({
                             >
                               {/* =============================
                                   EDIT
-                                  สีเขียวกรมอนามัย
+
+                                  ใช้ AppButton ตัวกลางเต็มรูปแบบ
+                                  ไม่มี custom height / padding
                               ============================= */}
 
                               <AppButton
@@ -1240,26 +1202,15 @@ export default async function AssetCategoryPage({
                                 }
                                 variant="primary"
                                 size="sm"
-                                icon={
-                                  <span
-                                    aria-hidden="true"
-                                  >
-                                    ✏️
-                                  </span>
-                                }
-                                className="
-                                  !h-10
-                                  !min-w-0
-                                  flex-1
-                                  !px-2
-                                "
                               >
                                 แก้ไข
                               </AppButton>
 
                               {/* =============================
                                   DELETE
-                                  สีแดง
+
+                                  ใช้ AppButton ตัวกลางเต็มรูปแบบ
+                                  size="sm" เหมือนแก้ไข
                               ============================= */}
 
                               <form
@@ -1268,8 +1219,6 @@ export default async function AssetCategoryPage({
                                 }
                                 className="
                                   m-0
-                                  min-w-0
-                                  flex-1
                                   p-0
                                 "
                               >
@@ -1281,65 +1230,13 @@ export default async function AssetCategoryPage({
                                   }
                                 />
 
-                                <button
+                                <AppButton
                                   type="submit"
-                                  className="
-                                    inline-flex
-                                    h-10
-                                    w-full
-                                    min-w-0
-                                    items-center
-                                    justify-center
-                                    gap-1.5
-
-                                    whitespace-nowrap
-
-                                    rounded-xl
-
-                                    border-0
-
-                                    bg-gradient-to-b
-                                    from-red-500
-                                    via-red-600
-                                    to-rose-700
-
-                                    px-2
-
-                                    text-sm
-                                    font-extrabold
-                                    !text-white
-
-                                    shadow-lg
-                                    shadow-red-500/20
-
-                                    ring-1
-                                    ring-inset
-                                    ring-red-400/50
-
-                                    transition-all
-                                    duration-200
-
-                                    hover:-translate-y-0.5
-                                    hover:from-red-400
-                                    hover:via-red-600
-                                    hover:to-rose-700
-                                    hover:shadow-xl
-                                    hover:shadow-red-500/30
-
-                                    active:translate-y-0
-                                    active:scale-[0.98]
-                                  "
+                                  variant="danger"
+                                  size="sm"
                                 >
-                                  <span
-                                    aria-hidden="true"
-                                  >
-                                    🗑️
-                                  </span>
-
-                                  <span>
-                                    ลบ
-                                  </span>
-                                </button>
+                                  ลบ
+                                </AppButton>
                               </form>
                             </div>
                           ) : (
