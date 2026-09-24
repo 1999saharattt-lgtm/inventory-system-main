@@ -841,7 +841,7 @@ export default async function EditAssetPage({
                 </span>
               }
             >
-              บันทึกการแก้ไข
+              บันทึก
             </AppButton>
           </div>
         </AppCard>
