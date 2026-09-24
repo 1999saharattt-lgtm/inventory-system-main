@@ -1,7 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import BackButton from "@/components/BackButton";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppTableCard from "@/components/AppTableCard";
+
 import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
+
+/* =========================================================
+   CONSTANT
+========================================================= */
 
 const thaiMonths = [
   "มกราคม",
@@ -18,12 +28,16 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-// =====================================================
-// แสดงวันที่ภาษาไทย
-// =====================================================
+/* =========================================================
+   DATE
+========================================================= */
 
 function formatThaiDate(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "-";
@@ -34,21 +48,34 @@ function formatThaiDate(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "-";
   }
 
   return `${date.getDate()} ${
-    thaiMonths[date.getMonth()]
-  } ${date.getFullYear() + 543}`;
+    thaiMonths[
+      date.getMonth()
+    ]
+  } ${
+    date.getFullYear() +
+    543
+  }`;
 }
 
-// =====================================================
-// แปลง Date เป็น YYYY-MM-DD
-// =====================================================
+/* =========================================================
+   DATE ONLY
+========================================================= */
 
 function formatDateOnly(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "";
@@ -59,37 +86,59 @@ function formatDateOnly(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "";
   }
 
-  const year = date.getFullYear();
+  const year =
+    date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1
-  ).padStart(2, "0");
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
 
   return `${year}-${month}-${day}`;
 }
 
-// =====================================================
-// หนึ่งปีก่อน
-// =====================================================
+/* =========================================================
+   ONE YEAR BEFORE
+========================================================= */
 
 function getOneYearBefore(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "";
   }
 
@@ -97,23 +146,34 @@ function getOneYearBefore(
     date.getFullYear() - 1
   );
 
-  return formatDateOnly(date);
+  return formatDateOnly(
+    date
+  );
 }
 
-// =====================================================
-// หนึ่งวันก่อน
-// =====================================================
+/* =========================================================
+   ONE DAY BEFORE
+========================================================= */
 
 function getOneDayBefore(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "";
   }
 
@@ -121,20 +181,23 @@ function getOneDayBefore(
     date.getDate() - 1
   );
 
-  return formatDateOnly(date);
+  return formatDateOnly(
+    date
+  );
 }
 
-// =====================================================
-// ปีงบประมาณจากวันที่
-//
-// ระบบนี้ยึดปี พ.ศ. ของวันที่ตรวจสอบโดยตรง
-// เช่น 18 กันยายน 2026 = 2569
-// และ 1 ตุลาคม 2026 = 2569
-// ไม่บวกปีเพิ่มเป็น 2570
-// =====================================================
+/* =========================================================
+   FISCAL YEAR
+
+   ระบบเดิมยึดปี พ.ศ. ของวันที่ตรวจสอบโดยตรง
+========================================================= */
 
 function getFiscalYear(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "";
@@ -145,52 +208,89 @@ function getFiscalYear(
       ? value
       : new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "";
   }
 
   return String(
-    date.getFullYear() + 543
+    date.getFullYear() +
+      543
   );
 }
 
-// =====================================================
-// หน่วยนับ
-// =====================================================
+/* =========================================================
+   CATEGORY UNIT
+========================================================= */
 
 function getCategoryUnit(
   category: string
 ) {
-  const categoryUnit: Record<
-    string,
-    string
-  > = {
-    COMPUTER: "เครื่อง",
-    DESKTOP: "เครื่อง",
-    LAPTOP: "เครื่อง",
-    PRINTER: "เครื่อง",
-    TELEPHONE: "เครื่อง",
-    AIR_CONDITIONER: "เครื่อง",
-    FAN: "เครื่อง",
+  const categoryUnit:
+    Record<
+      string,
+      string
+    > = {
+      COMPUTER:
+        "เครื่อง",
 
-    CHAIR: "ตัว",
-    DESK: "ตัว",
-    TABLE: "ตัว",
+      DESKTOP:
+        "เครื่อง",
 
-    CABINET: "ตู้",
+      LAPTOP:
+        "เครื่อง",
 
-    OTHER: "รายการ",
-  };
+      MONITOR:
+        "เครื่อง",
+
+      PRINTER:
+        "เครื่อง",
+
+      TELEPHONE:
+        "เครื่อง",
+
+      AIR_CONDITIONER:
+        "เครื่อง",
+
+      FAN:
+        "เครื่อง",
+
+      CHAIR:
+        "ตัว",
+
+      DESK:
+        "ตัว",
+
+      TABLE:
+        "ตัว",
+
+      SHELF:
+        "ตัว",
+
+      CABINET:
+        "ตู้",
+
+      OTHER:
+        "รายการ",
+
+      NO_SYSTEM:
+        "รายการ",
+    };
 
   return (
-    categoryUnit[category] ||
+    categoryUnit[
+      category
+    ] ||
     "รายการ"
   );
 }
 
-// =====================================================
-// แปลง inspectorIds
-// =====================================================
+/* =========================================================
+   INSPECTOR IDS
+========================================================= */
 
 function parseInspectorIds(
   value: unknown
@@ -199,58 +299,186 @@ function parseInspectorIds(
     return [];
   }
 
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(
+      value
+    )
+  ) {
     return value
-      .map((item) => String(item))
-      .filter(Boolean);
+      .map(
+        (
+          item
+        ) =>
+          String(
+            item
+          )
+      )
+      .filter(
+        Boolean
+      );
   }
 
-  if (typeof value === "string") {
+  if (
+    typeof value ===
+    "string"
+  ) {
     try {
       const parsed =
-        JSON.parse(value);
+        JSON.parse(
+          value
+        );
 
-      if (Array.isArray(parsed)) {
+      if (
+        Array.isArray(
+          parsed
+        )
+      ) {
         return parsed
-          .map((item) =>
-            String(item)
+          .map(
+            (
+              item
+            ) =>
+              String(
+                item
+              )
           )
-          .filter(Boolean);
+          .filter(
+            Boolean
+          );
       }
     } catch {
       return value
         .split(",")
-        .map((item) =>
-          item.trim()
+        .map(
+          (
+            item
+          ) =>
+            item.trim()
         )
-        .filter(Boolean);
+        .filter(
+          Boolean
+        );
     }
   }
 
   return [];
 }
 
-// =====================================================
-// แปลง ค.ศ. / พ.ศ. ให้เป็น พ.ศ.
-// =====================================================
+/* =========================================================
+   FISCAL YEAR NORMALIZE
+========================================================= */
 
 function normalizeFiscalYear(
-  value: number | string
+  value:
+    | number
+    | string
 ) {
-  const year = Number(value);
+  const year =
+    Number(
+      value
+    );
 
-  if (!Number.isFinite(year)) {
-    return String(value);
+  if (
+    !Number.isFinite(
+      year
+    )
+  ) {
+    return String(
+      value
+    );
   }
 
   return year < 2400
-    ? String(year + 543)
-    : String(year);
+    ? String(
+        year + 543
+      )
+    : String(
+        year
+      );
 }
 
-// =====================================================
-// Props
-// =====================================================
+/* =========================================================
+   RESPONSIBLE NAME
+
+   ให้รูปแบบการแสดงใกล้เคียงหน้าตรวจสอบปัจจุบัน
+========================================================= */
+
+function getResponsibleName(
+  asset: {
+    responsibleName?:
+      | string
+      | null;
+
+    section: {
+      name: string;
+    } | null;
+
+    officer: {
+      firstName: string;
+      lastName: string;
+    } | null;
+  },
+  departmentName: string
+) {
+  const cleanDepartmentName =
+    departmentName.trim();
+
+  const originalResponsibleName =
+    asset.responsibleName?.trim();
+
+  if (
+    originalResponsibleName &&
+    originalResponsibleName !==
+      "-"
+  ) {
+    if (
+      originalResponsibleName ===
+        cleanDepartmentName ||
+      originalResponsibleName.startsWith(
+        `${cleanDepartmentName} /`
+      )
+    ) {
+      return originalResponsibleName;
+    }
+
+    return `${cleanDepartmentName} / ${originalResponsibleName}`;
+  }
+
+  const sectionName =
+    asset.section?.name?.trim();
+
+  if (sectionName) {
+    if (
+      sectionName ===
+        cleanDepartmentName ||
+      sectionName.startsWith(
+        `${cleanDepartmentName} /`
+      )
+    ) {
+      return sectionName;
+    }
+
+    return `${cleanDepartmentName} / ${sectionName}`;
+  }
+
+  const officerName =
+    asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+      : "";
+
+  if (officerName) {
+    return `${cleanDepartmentName} / ${officerName}`;
+  }
+
+  return (
+    cleanDepartmentName ||
+    "-"
+  );
+}
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type PageProps = {
   params: Promise<{
@@ -259,34 +487,45 @@ type PageProps = {
   }>;
 };
 
-// =====================================================
-// Page
-// =====================================================
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function InspectionHistoryDetailPage({
   params,
 }: PageProps) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const {
     departmentId:
       departmentIdParam,
-    year: yearParam,
+
+    year:
+      yearParam,
   } = await params;
 
   const departmentId =
-    Number(departmentIdParam);
+    Number(
+      departmentIdParam
+    );
 
   const requestedYear =
-    Number(yearParam);
+    Number(
+      yearParam
+    );
 
-  // ===================================================
-  // ตรวจสอบ parameter
-  // ===================================================
+  /* =======================================================
+     VALIDATE
+  ======================================================= */
 
   if (
     !Number.isInteger(
       departmentId
     ) ||
-    departmentId <= 0 ||
+    departmentId <=
+      0 ||
     !Number.isInteger(
       requestedYear
     )
@@ -294,34 +533,31 @@ export default async function InspectionHistoryDetailPage({
     notFound();
   }
 
-  // ===================================================
-  // รองรับ URL ทั้ง พ.ศ. และ ค.ศ.
-  //
-  // URL 2569
-  // พ.ศ. = 2569
-  // ค.ศ. = 2026
-  //
-  // URL 2026
-  // พ.ศ. = 2569
-  // ค.ศ. = 2026
-  // ===================================================
+  /* =======================================================
+     YEAR
+
+     รองรับ URL ทั้ง พ.ศ. และ ค.ศ.
+  ======================================================= */
 
   const buddhistYear =
     requestedYear < 2400
-      ? requestedYear + 543
+      ? requestedYear +
+        543
       : requestedYear;
 
   const christianYear =
-    buddhistYear - 543;
+    buddhistYear -
+    543;
 
-  // ===================================================
-  // กลุ่มงาน
-  // ===================================================
+  /* =======================================================
+     DEPARTMENT
+  ======================================================= */
 
   const department =
     await prisma.department.findUnique({
       where: {
-        id: departmentId,
+        id:
+          departmentId,
       },
     });
 
@@ -329,10 +565,9 @@ export default async function InspectionHistoryDetailPage({
     notFound();
   }
 
-  // ===================================================
-  // ดึงข้อมูลการตรวจสอบ
-  // รองรับฐานข้อมูลที่เก็บ year เป็น พ.ศ. หรือ ค.ศ.
-  // ===================================================
+  /* =======================================================
+     INSPECTIONS
+  ======================================================= */
 
   const inspections =
     await prisma.assetInspection.findMany({
@@ -352,44 +587,41 @@ export default async function InspectionHistoryDetailPage({
       include: {
         asset: {
           include: {
-            section: true,
-            officer: true,
+            section:
+              true,
+
+            officer:
+              true,
           },
         },
       },
 
       orderBy: {
-        assetId: "asc",
+        assetId:
+          "asc",
       },
     });
 
-  // ===================================================
-  // ไม่พบประวัติ
-  // ===================================================
-
-  if (inspections.length === 0) {
+  if (
+    inspections.length ===
+    0
+  ) {
     notFound();
   }
 
-  // ===================================================
-  // Inspection แรก
-  // ===================================================
+  /* =======================================================
+     FIRST INSPECTION
+  ======================================================= */
 
   const firstInspection =
     inspections[0];
 
-  // ===================================================
-  // ปีที่ใช้แสดง
-  //
-  // ยึดปีของวันที่เริ่มตรวจเป็นหลัก
-  // เพื่อให้ข้อมูลปี 2569 แสดงเป็น 2569
-  // ไม่ถูกบวกเป็น 2570
-  //
-  // หากไม่มีวันที่ จึง fallback ไปใช้ year ในฐานข้อมูล
-  // ===================================================
+  /* =======================================================
+     FISCAL YEAR
+  ======================================================= */
 
   const databaseYear =
-    inspections[0].year;
+    firstInspection.year;
 
   const displayFiscalYear =
     getFiscalYear(
@@ -399,9 +631,9 @@ export default async function InspectionHistoryDetailPage({
       databaseYear
     );
 
-  // ===================================================
-  // วันที่
-  // ===================================================
+  /* =======================================================
+     DATES
+  ======================================================= */
 
   const inspectionStartDate =
     formatDateOnly(
@@ -413,11 +645,6 @@ export default async function InspectionHistoryDetailPage({
       firstInspection.inspectionEndDate
     );
 
-  // ===================================================
-  // วันที่ยอดบัญชี
-  // ใช้ Logic เดียวกับ InspectionForm
-  // ===================================================
-
   const accountStartDate =
     getOneYearBefore(
       firstInspection.inspectionStartDate
@@ -428,22 +655,15 @@ export default async function InspectionHistoryDetailPage({
       firstInspection.inspectionEndDate
     );
 
-  // ===================================================
-  // ปีงบประมาณรายการเคลื่อนไหว
-  //
-  // ใช้ปีเดียวกับข้อมูลที่แสดง
-  // เช่น 2569 ไม่เป็น 2570
-  // ===================================================
-
   const movementFiscalYear =
     getFiscalYear(
       firstInspection.inspectionStartDate
     ) ||
     displayFiscalYear;
 
-  // ===================================================
-  // ผู้ตรวจสอบ
-  // ===================================================
+  /* =======================================================
+     INSPECTOR IDS
+  ======================================================= */
 
   const rawInspectorIds =
     parseInspectorIds(
@@ -453,68 +673,98 @@ export default async function InspectionHistoryDetailPage({
   const inspectorIds =
     Array.from(
       {
-        length: 5,
+        length:
+          5,
       },
-      (_, index) =>
-        rawInspectorIds[index] ||
+      (
+        _,
+        index
+      ) =>
+        rawInspectorIds[
+          index
+        ] ||
         ""
     );
 
   const numericInspectorIds =
     rawInspectorIds
-      .map(Number)
-      .filter((value) =>
-        Number.isInteger(value)
+      .map(
+        Number
+      )
+      .filter(
+        (
+          value
+        ) =>
+          Number.isInteger(
+            value
+          )
       );
 
-  // ===================================================
-  // รายชื่อเจ้าหน้าที่
-  // ===================================================
+  /* =======================================================
+     OFFICERS
+  ======================================================= */
 
   const officers =
-    numericInspectorIds.length > 0
+    numericInspectorIds.length >
+    0
       ? await prisma.officer.findMany({
           where: {
             id: {
-              in: numericInspectorIds,
+              in:
+                numericInspectorIds,
             },
           },
 
           include: {
-            department: true,
-            section: true,
+            department:
+              true,
+
+            section:
+              true,
           },
 
           orderBy: {
-            id: "asc",
+            id:
+              "asc",
           },
         })
       : [];
 
-  const officerMap = new Map(
-    officers.map((officer) => [
-      String(officer.id),
-      officer,
-    ])
-  );
+  const officerMap =
+    new Map(
+      officers.map(
+        (
+          officer
+        ) => [
+          String(
+            officer.id
+          ),
+          officer,
+        ]
+      )
+    );
 
-  // ===================================================
-  // Assets
-  // ===================================================
+  /* =======================================================
+     ASSETS
+  ======================================================= */
 
   const assets =
     inspections.map(
-      (inspection) =>
+      (
+        inspection
+      ) =>
         inspection.asset
     );
 
-  // ===================================================
-  // Rows สำหรับ Export PDF
-  // ===================================================
+  /* =======================================================
+     PDF ROWS
+  ======================================================= */
 
   const rows =
     inspections.map(
-      (inspection) => ({
+      (
+        inspection
+      ) => ({
         assetId:
           inspection.assetId,
 
@@ -538,182 +788,183 @@ export default async function InspectionHistoryDetailPage({
       })
     );
 
-  // ===================================================
-  // Render
-  // ===================================================
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div
-      className="
-        mx-auto
-        w-full
-        max-w-[1800px]
-        space-y-6
-      "
-    >
-      {/* =================================================
-          Header
-      ================================================= */}
+    <AppPage>
+      {/* =====================================================
+          HEADER
 
-      <div
+          ใช้ตัวกลางเหมือนหน้า /assets/1/inspection
+      ===================================================== */}
+
+      <AppPageHeader
+        icon="📋"
+        title="ข้อมูลการตรวจสอบครุภัณฑ์ประจำปี"
+        subtitle={`${department.name} • ประจำปีงบประมาณ พ.ศ. ${displayFiscalYear}`}
+        actions={
+          <AppButton
+            href="/assets/inspection-history"
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          INSPECTION INFO
+
+          ใช้ AppCard ตัวกลาง
+      ===================================================== */}
+
+      <AppCard
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          flex-col
-          items-start
-          justify-between
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-5
-          py-5
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📋 ข้อมูลการตรวจสอบครุภัณฑ์ประจำปี
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            {department.name}
-            {" · "}
-            ประจำปีงบประมาณ พ.ศ.{" "}
-            {displayFiscalYear}
-          </p>
-        </div>
-
-        <BackButton href="/assets/inspection-history" />
-      </div>
-
-      {/* =================================================
-          ข้อมูลการตรวจสอบ
-      ================================================= */}
-
-      <div
-        className="
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          to-slate-800
-          p-5
-          text-white
-          shadow-xl
         "
       >
         <div
           className="
-            mb-4
             flex
-            flex-wrap
-            items-center
-            justify-between
-            gap-3
+            w-full
+            min-w-0
+            flex-col
+
+            gap-4
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
           <h2
             className="
-              text-2xl
-              font-extrabold
-              !text-white
+              text-xl
+              font-black
+              tracking-tight
+
+              !text-slate-900
+
+              sm:text-2xl
             "
           >
             ข้อมูลการตรวจสอบ
           </h2>
 
-          <ExportInspectionPdf
-            department={department}
-            assets={assets}
-            rows={rows}
-            inspectorIds={
-              inspectorIds
-            }
-            inspectionStartDate={
-              inspectionStartDate
-            }
-            inspectionEndDate={
-              inspectionEndDate
-            }
-            accountStartDate={
-              accountStartDate
-            }
-            accountEndDate={
-              accountEndDate
-            }
-            movementFiscalYear={
-              movementFiscalYear
-            }
-            officers={officers}
-          />
+          {/* ===============================================
+              ExportInspectionPdf
+
+              Component นี้ใช้ AppButton ตัวกลางอยู่แล้ว
+              จึงไม่กำหนดขนาด / สีจากหน้านี้ซ้ำ
+          =============================================== */}
+
+          <div
+            className="
+              shrink-0
+            "
+          >
+            <ExportInspectionPdf
+              department={
+                department
+              }
+              assets={
+                assets
+              }
+              rows={
+                rows
+              }
+              inspectorIds={
+                inspectorIds
+              }
+              inspectionStartDate={
+                inspectionStartDate
+              }
+              inspectionEndDate={
+                inspectionEndDate
+              }
+              accountStartDate={
+                accountStartDate
+              }
+              accountEndDate={
+                accountEndDate
+              }
+              movementFiscalYear={
+                movementFiscalYear
+              }
+              officers={
+                officers
+              }
+            />
+          </div>
         </div>
 
-        {/* ===============================================
-            วันที่ตรวจสอบ
-        =============================================== */}
+        {/* =================================================
+            DATE INFORMATION
+        ================================================= */}
 
         <div
           className="
+            mt-5
+
             grid
             grid-cols-1
-            gap-6
+
+            gap-4
+
             md:grid-cols-2
           "
         >
-          <div>
-            <div
+          {/* ===============================================
+              START DATE
+          =============================================== */}
+
+          <div
+            className="
+              min-w-0
+            "
+          >
+            <label
               className="
                 mb-2
-                text-lg
+                block
+
+                text-sm
                 font-extrabold
-                !text-white
+
+                !text-slate-700
               "
             >
               เริ่มดำเนินการตรวจสอบวันที่
-            </div>
+            </label>
 
             <div
               className="
-                min-h-[46px]
-                rounded-lg
+                flex
+                min-h-[52px]
+                w-full
+
+                items-center
+
+                rounded-[16px]
+
                 border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
+                border-slate-300/90
+
+                bg-slate-100
+
+                px-4
+                py-3
+
+                text-base
+                font-bold
+
+                !text-slate-900
+
+                shadow-sm
               "
             >
               {formatThaiDate(
@@ -722,28 +973,53 @@ export default async function InspectionHistoryDetailPage({
             </div>
           </div>
 
-          <div>
-            <div
+          {/* ===============================================
+              END DATE
+          =============================================== */}
+
+          <div
+            className="
+              min-w-0
+            "
+          >
+            <label
               className="
                 mb-2
-                text-lg
+                block
+
+                text-sm
                 font-extrabold
-                !text-white
+
+                !text-slate-700
               "
             >
               ตรวจสอบแล้วเสร็จวันที่
-            </div>
+            </label>
 
             <div
               className="
-                min-h-[46px]
-                rounded-lg
+                flex
+                min-h-[52px]
+                w-full
+
+                items-center
+
+                rounded-[16px]
+
                 border
-                border-slate-300
-                bg-white
-                p-2.5
-                font-semibold
-                text-slate-900
+                border-slate-300/90
+
+                bg-slate-100
+
+                px-4
+                py-3
+
+                text-base
+                font-bold
+
+                !text-slate-900
+
+                shadow-sm
               "
             >
               {formatThaiDate(
@@ -752,92 +1028,121 @@ export default async function InspectionHistoryDetailPage({
             </div>
           </div>
         </div>
-      </div>
+      </AppCard>
 
-      {/* =================================================
-          ตารางรายละเอียด
-      ================================================= */}
+      {/* =====================================================
+          TABLE
 
-      <div
+          ใช้ AppTableCard ตัวกลาง
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการตรวจสอบครุภัณฑ์"
+        subtitle={`${department.name} • ประจำปีงบประมาณ พ.ศ. ${displayFiscalYear}`}
+        badge={`${inspections.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-xl
+          w-full
+          min-w-0
+          max-w-full
         "
       >
-        <div className="overflow-x-auto">
+        <div
+          className="
+            w-full
+            min-w-0
+
+            overflow-x-auto
+            overscroll-x-contain
+
+            [-webkit-overflow-scrolling:touch]
+          "
+        >
           <table
             className="
               w-full
-              min-w-[2300px]
+              min-w-[2900px]
+
               border-collapse
+
+              bg-white
+
               text-[13px]
               leading-tight
             "
           >
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
             <thead>
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
-                "
-              >
+              <tr>
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   ลำดับ
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   รหัส GFMIS
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   รหัสครุภัณฑ์
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   ผู้รับผิดชอบ
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
-                  รายการ
+                  รายการครุภัณฑ์
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
-                  หน่วยนับ
+                  หน่วย
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div className="mt-1 whitespace-nowrap">
                     ณ วันที่{" "}
                     {formatThaiDate(
                       accountStartDate
@@ -846,28 +1151,34 @@ export default async function InspectionHistoryDetailPage({
                 </th>
 
                 <th
-                  colSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     รายการเคลื่อนไหวระหว่าง
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div className="mt-1 whitespace-nowrap">
                     ปีงบประมาณ พ.ศ.{" "}
-                    {movementFiscalYear}
+                    {
+                      movementFiscalYear
+                    }
                   </div>
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div className="mt-1 whitespace-nowrap">
                     ณ วันที่{" "}
                     {formatThaiDate(
                       accountEndDate
@@ -876,8 +1187,10 @@ export default async function InspectionHistoryDetailPage({
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <span className="whitespace-nowrap">
                     จำนวนที่ตรวจนับได้
@@ -885,21 +1198,25 @@ export default async function InspectionHistoryDetailPage({
                 </th>
 
                 <th
-                  colSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    2
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
                     ผลการตรวจนับถูกต้องตรงกับ
                   </div>
 
-                  <div className="whitespace-nowrap">
+                  <div className="mt-1 whitespace-nowrap">
                     ยอดคงเหลือตามบัญชี
                   </div>
                 </th>
 
                 <th
-                  colSpan={4}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  colSpan={
+                    4
+                  }
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <span className="whitespace-nowrap">
                     สภาพครุภัณฑ์ที่ตรวจนับ
@@ -907,54 +1224,51 @@ export default async function InspectionHistoryDetailPage({
                 </th>
 
                 <th
-                  rowSpan={2}
-                  className="border border-black px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  rowSpan={
+                    2
+                  }
+                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
-              <tr
-                className="
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-700
-                  text-white
-                "
-              >
-                <th className="border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  รับ
-                </th>
+              {/* =============================================
+                  SECOND HEADER
+              ============================================= */}
 
-                <th className="border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  จ่าย
-                </th>
-
-                <th className="border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  ถูกต้อง
-                </th>
-
-                <th className="border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  ไม่ถูกต้อง
-                </th>
-
-                <th className="min-w-[105px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  ใช้งานปกติ
-                </th>
-
-                <th className="min-w-[70px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  ชำรุด
-                </th>
-
-                <th className="min-w-[95px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  เสื่อมสภาพ
-                </th>
-
-                <th className="min-w-[125px] whitespace-nowrap border border-black px-3 py-2 text-center font-extrabold !text-white">
-                  ไม่จำเป็นต้องใช้
-                </th>
+              <tr>
+                {[
+                  "รับ",
+                  "จ่าย",
+                  "ถูกต้อง",
+                  "ไม่ถูกต้อง",
+                  "ใช้งานปกติ",
+                  "ชำรุด",
+                  "เสื่อมสภาพ",
+                  "ไม่จำเป็นต้องใช้",
+                ].map(
+                  (
+                    title
+                  ) => (
+                    <th
+                      key={
+                        title
+                      }
+                      className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-2.5 text-center font-extrabold !text-white"
+                    >
+                      {
+                        title
+                      }
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
+
+            {/* =================================================
+                BODY
+            ================================================= */}
 
             <tbody>
               {inspections.map(
@@ -965,58 +1279,91 @@ export default async function InspectionHistoryDetailPage({
                   const asset =
                     inspection.asset;
 
-                  const responsibleGroup =
-                    department.name ===
-                    "กลุ่มอำนวยการ"
-                      ? [
-                          department.name,
-                          asset.section
-                            ?.name || "",
-                        ]
-                          .filter(Boolean)
-                          .join(" / ")
-                      : department.name;
+                  const responsibleName =
+                    getResponsibleName(
+                      asset,
+                      department.name
+                    );
 
                   return (
                     <tr
                       key={
                         inspection.id
                       }
-                      className="
-                        bg-white
+                      className={`
+                        ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
+
                         text-sm
                         font-medium
-                        text-slate-900
-                      "
+
+                        !text-slate-900
+
+                        transition-colors
+                        duration-200
+
+                        hover:bg-emerald-50/60
+                      `}
                     >
-                      <td className="border border-black px-2 py-3 text-center align-middle">
-                        {index + 1}
-                      </td>
+                      {/* ===================================
+                          ORDER
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle">
+                        {(
+                          index +
+                          1
+                        ).toLocaleString(
+                          "th-TH"
+                        )}
+                      </td>
+
+                      {/* ===================================
+                          GFMIS
+                      =================================== */}
+
+                      <td className="whitespace-nowrap border border-black px-2 py-3 text-center align-middle">
                         {asset.governmentAssetNo ||
                           "-"}
                       </td>
 
-                      <td className="border border-black px-2 py-3 text-center align-middle">
+                      {/* ===================================
+                          ASSET NO
+                      =================================== */}
+
+                      <td className="whitespace-nowrap border border-black px-2 py-3 text-center align-middle">
                         {asset.officeAssetNo ||
                           "-"}
                       </td>
 
-                      {/* กลุ่มงาน / ผู้รับผิดชอบ
-                          จัดข้อความให้อยู่กึ่งกลางแนวนอนและแนวตั้ง */}
+                      {/* ===================================
+                          RESPONSIBLE
+                      =================================== */}
 
-                      <td className="border border-black px-2 py-3 text-center align-middle">
-                        <div className="flex w-full items-center justify-center text-center">
-                          {
-                            responsibleGroup
-                          }
-                        </div>
+                      <td className="whitespace-nowrap border border-black px-2 py-3 text-center align-middle">
+                        {
+                          responsibleName
+                        }
                       </td>
 
-                      <td className="border border-black px-2 py-3 text-left align-middle">
-                        {asset.name}
+                      {/* ===================================
+                          ITEM
+                      =================================== */}
+
+                      <td className="whitespace-nowrap border border-black px-3 py-3 text-left align-middle font-semibold">
+                        {
+                          asset.name
+                        }
                       </td>
+
+                      {/* ===================================
+                          UNIT
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle">
                         {getCategoryUnit(
@@ -1024,30 +1371,50 @@ export default async function InspectionHistoryDetailPage({
                         )}
                       </td>
 
-                      <td className="border border-black px-2 py-3 text-center align-middle">
-                        1
-                      </td>
-
-                      <td className="border border-black px-2 py-3 text-center align-middle">
-                        -
-                      </td>
-
-                      <td className="border border-black px-2 py-3 text-center align-middle">
-                        -
-                      </td>
+                      {/* ===================================
+                          START BALANCE
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle">
                         1
                       </td>
 
-                      {/* จำนวนที่ตรวจนับ */}
+                      {/* ===================================
+                          RECEIVE
+                      =================================== */}
+
+                      <td className="border border-black px-2 py-3 text-center align-middle">
+                        -
+                      </td>
+
+                      {/* ===================================
+                          ISSUE
+                      =================================== */}
+
+                      <td className="border border-black px-2 py-3 text-center align-middle">
+                        -
+                      </td>
+
+                      {/* ===================================
+                          END BALANCE
+                      =================================== */}
+
+                      <td className="border border-black px-2 py-3 text-center align-middle">
+                        1
+                      </td>
+
+                      {/* ===================================
+                          COUNTED QTY
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle font-semibold">
                         {inspection.countedQty ??
                           "-"}
                       </td>
 
-                      {/* ถูกต้อง */}
+                      {/* ===================================
+                          CORRECT
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.accuracy ===
@@ -1056,7 +1423,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* ไม่ถูกต้อง */}
+                      {/* ===================================
+                          INCORRECT
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.accuracy ===
@@ -1065,7 +1434,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* ใช้งานปกติ */}
+                      {/* ===================================
+                          IN USE
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.status ===
@@ -1074,7 +1445,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* ชำรุด */}
+                      {/* ===================================
+                          DAMAGED
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.status ===
@@ -1083,7 +1456,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* เสื่อมสภาพ */}
+                      {/* ===================================
+                          DETERIORATED
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.status ===
@@ -1092,7 +1467,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* ไม่จำเป็นต้องใช้ */}
+                      {/* ===================================
+                          UNUSABLE
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-center align-middle text-lg font-extrabold">
                         {inspection.status ===
@@ -1101,7 +1478,9 @@ export default async function InspectionHistoryDetailPage({
                           : ""}
                       </td>
 
-                      {/* หมายเหตุ */}
+                      {/* ===================================
+                          REMARK
+                      =================================== */}
 
                       <td className="border border-black px-2 py-3 text-left align-middle">
                         {inspection.remark ||
@@ -1114,41 +1493,58 @@ export default async function InspectionHistoryDetailPage({
             </tbody>
           </table>
         </div>
-      </div>
+      </AppTableCard>
 
-      {/* =================================================
-          รายชื่อผู้ตรวจสอบ
-      ================================================= */}
+      {/* =====================================================
+          INSPECTORS
 
-      <div
+          ใช้ AppCard ตัวกลางเหมือนหน้า inspection
+      ===================================================== */}
+
+      <AppCard
         className="
-          rounded-2xl
-          border
-          border-slate-700
-          bg-gradient-to-br
-          from-slate-950
-          to-slate-800
-          p-6
-          text-white
-          shadow-xl
+          w-full
+          min-w-0
         "
       >
-        <h2
-          className="
-            mb-6
-            text-2xl
-            font-extrabold
-            !text-white
-          "
-        >
-          รายชื่อผู้ตรวจสอบ
-        </h2>
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
+
+              !text-slate-900
+
+              sm:text-2xl
+            "
+          >
+            คณะกรรมการตรวจสอบครุภัณฑ์
+          </h2>
+
+          <p
+            className="
+              mt-1
+
+              text-sm
+              font-semibold
+
+              !text-slate-500
+            "
+          >
+            รายชื่อผู้ตรวจสอบจำนวน 5 คน
+          </p>
+        </div>
 
         <div
           className="
+            mt-5
+
             grid
             grid-cols-1
-            gap-5
+
+            gap-4
+
             md:grid-cols-2
           "
         >
@@ -1163,29 +1559,70 @@ export default async function InspectionHistoryDetailPage({
                 );
 
               return (
-                <div key={index}>
-                  <div
+                <div
+                  key={
+                    index
+                  }
+                  className="
+                    min-w-0
+
+                    rounded-[18px]
+
+                    border
+                    border-slate-200/80
+
+                    bg-slate-50/60
+
+                    p-4
+                  "
+                >
+                  <label
                     className="
                       mb-2
-                      text-lg
+                      block
+
+                      text-sm
                       font-extrabold
-                      !text-white
+
+                      !text-slate-700
                     "
                   >
-                    ผู้ตรวจสอบคนที่{" "}
-                    {index + 1}
-                  </div>
+                    {index ===
+                    0
+                      ? "ประธานกรรมการ"
+                      : `กรรมการคนที่ ${index}`}
+                  </label>
+
+                  {/* =======================================
+                      รูปแบบ Read only
+                      ให้ทรงเดียวกับช่อง Dropdown หน้า inspection
+                  ======================================= */}
 
                   <div
                     className="
-                      min-h-[46px]
-                      rounded-lg
+                      flex
+                      min-h-[50px]
+                      w-full
+                      min-w-0
+
+                      items-center
+
+                      rounded-[14px]
+
                       border
                       border-slate-300
-                      bg-white
-                      p-2.5
-                      font-semibold
-                      text-slate-900
+
+                      bg-slate-100
+
+                      px-4
+                      py-3
+
+                      text-base
+                      font-bold
+
+                      !text-slate-900
+
+                      shadow-sm
                     "
                   >
                     {officer
@@ -1196,9 +1633,11 @@ export default async function InspectionHistoryDetailPage({
                   <p
                     className="
                       mt-2
-                      text-sm
+
+                      text-xs
                       font-semibold
-                      text-slate-300
+
+                      !text-slate-500
                     "
                   >
                     ตำแหน่ง:{" "}
@@ -1210,7 +1649,7 @@ export default async function InspectionHistoryDetailPage({
             }
           )}
         </div>
-      </div>
-    </div>
+      </AppCard>
+    </AppPage>
   );
 }
