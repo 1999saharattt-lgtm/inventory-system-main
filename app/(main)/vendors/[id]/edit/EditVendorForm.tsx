@@ -470,7 +470,7 @@ export default function EditVendorForm({
         >
           {loading
             ? "กำลังบันทึก..."
-            : "บันทึกการแก้ไข"}
+            : "บันทึก"}
         </AppButton>
       </div>
     </form>
