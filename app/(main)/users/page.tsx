@@ -324,7 +324,6 @@ export default async function UsersPage() {
                             justify-center
 
                             whitespace-nowrap
-
                             rounded-full
 
                             bg-blue-100
@@ -367,7 +366,6 @@ export default async function UsersPage() {
                               justify-center
 
                               whitespace-nowrap
-
                               rounded-full
 
                               bg-emerald-100
@@ -390,7 +388,6 @@ export default async function UsersPage() {
                               justify-center
 
                               whitespace-nowrap
-
                               rounded-full
 
                               bg-red-100
@@ -414,12 +411,12 @@ export default async function UsersPage() {
 
                       <td
                         className="
-                          min-w-[230px]
+                          min-w-[250px]
                           whitespace-nowrap
                           border
                           border-black
 
-                          px-4
+                          px-3
                           py-3
 
                           text-center
@@ -439,7 +436,7 @@ export default async function UsersPage() {
 
                           <AppButton
                             href={`/users/${user.id}/edit`}
-                            variant="secondary"
+                            variant="primary"
                             size="sm"
                             icon={
                               <span
@@ -448,6 +445,10 @@ export default async function UsersPage() {
                                 ✏️
                               </span>
                             }
+                            className="
+                              min-w-[104px]
+                              justify-center
+                            "
                           >
                             แก้ไข
                           </AppButton>
@@ -460,6 +461,11 @@ export default async function UsersPage() {
                             action={
                               deleteUser
                             }
+                            className="
+                              m-0
+                              inline-flex
+                              p-0
+                            "
                           >
                             <input
                               type="hidden"
@@ -480,6 +486,10 @@ export default async function UsersPage() {
                                   🗑️
                                 </span>
                               }
+                              className="
+                                min-w-[104px]
+                                justify-center
+                              "
                             >
                               ลบ
                             </AppButton>
