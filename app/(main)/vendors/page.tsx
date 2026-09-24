@@ -206,14 +206,6 @@ export default function VendorsPage() {
           >
             {/* =================================================
                 COLUMN WIDTH
-
-                รวม 100%
-
-                ชื่อผู้จำหน่าย       22%
-                ที่อยู่              30%
-                เบอร์ติดต่อ          15%
-                เลขผู้เสียภาษี       13%
-                จัดการ              20%
             ================================================= */}
 
             <colgroup>
@@ -577,14 +569,12 @@ export default function VendorsPage() {
                         >
                           {/* =================================
                               EDIT
-
-                              ใช้ AppButton ตัวกลาง
-                              ไม่กำหนดสีเอง
+                              สีน้ำเงินตามรูปตัวอย่าง
                           ================================= */}
 
                           <AppButton
                             href={`/vendors/${vendor.id}/edit`}
-                            variant="secondary"
+                            variant="primary"
                             size="sm"
                             icon={
                               <span
@@ -594,7 +584,26 @@ export default function VendorsPage() {
                               </span>
                             }
                             className="
+                              min-w-[104px]
                               shrink-0
+
+                              !border-blue-500
+
+                              !bg-gradient-to-b
+                              !from-blue-500
+                              !via-blue-600
+                              !to-blue-700
+
+                              !text-white
+
+                              shadow-lg
+                              shadow-blue-500/20
+
+                              hover:!from-blue-600
+                              hover:!via-blue-700
+                              hover:!to-blue-800
+
+                              focus:!ring-blue-500/30
                             "
                           >
                             แก้ไข
@@ -602,9 +611,6 @@ export default function VendorsPage() {
 
                           {/* =================================
                               DELETE
-
-                              ใช้ AppButton ตัวกลาง
-                              ไม่กำหนดสีเอง
                           ================================= */}
 
                           <AppButton
@@ -624,6 +630,7 @@ export default function VendorsPage() {
                               )
                             }
                             className="
+                              min-w-[104px]
                               shrink-0
                             "
                           >
