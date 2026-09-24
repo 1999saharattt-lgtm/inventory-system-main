@@ -8,32 +8,33 @@ import type {
    APP BUTTON
    iOS-Inspired Global Button Component
 
-   GLOBAL COLOR STANDARD
+   มาตรฐานสีปุ่มทั้งระบบ
 
-   back
-   - กลับ
-   - สีเขียวกรมอนามัย
+   1. BACK
+      - กลับ
+      - สีเขียวกรมอนามัย
 
-   secondary
-   - แก้ไข
-   - สีน้ำเงิน
+   2. SECONDARY
+      - แก้ไข
+      - สีน้ำเงิน
 
-   danger
-   - ลบ
-   - สีแดง
+   3. DANGER
+      - ลบ
+      - สีแดง
 
-   primary / success / warning / outline / glass / white
-   - เปิด
-   - เพิ่มรายการ
-   - เพิ่มครุภัณฑ์
-   - เพิ่มรายชื่อ
-   - บันทึก
-   - QR
-   - รวมรายการ
-   - ประวัติ
-   - ตรวจสอบ
-   - ปุ่มทั่วไปอื่น ๆ
-   - สีน้ำตาล
+   4. ปุ่มอื่นทั้งหมด
+      - เปิด
+      - เพิ่มรายการ
+      - เพิ่มครุภัณฑ์
+      - เพิ่มรายชื่อ
+      - บันทึก
+      - ยืนยัน
+      - QR
+      - รวมรายการ
+      - ประวัติ
+      - ตรวจสอบ
+      - ปุ่มทั่วไปอื่น ๆ
+      - สีเขียวกรมอนามัย
 
    IMPORTANT
    - ไม่เกี่ยวข้องกับ Database
@@ -41,6 +42,11 @@ import type {
    - ไม่เปลี่ยน Route
    - ไม่เปลี่ยน Permission
    - ไม่เปลี่ยน Business Logic
+
+   BACK BUTTON RULE
+   - variant="back" แสดงเฉพาะข้อความ
+   - ไม่แสดง icon ด้านหน้า
+   - ไม่แสดง endIcon ด้านหลัง
 ========================================================= */
 
 /* =========================================================
@@ -116,36 +122,32 @@ export type AppButtonProps =
   | NormalButtonProps;
 
 /* =========================================================
-   SHARED COLOR STYLE
+   SHARED GREEN STYLE
+   สีเขียวกรมอนามัย
+
+   ใช้กับปุ่มทุกชนิด
+   ยกเว้น:
+   - secondary = แก้ไข = น้ำเงิน
+   - danger = ลบ = แดง
 ========================================================= */
 
-/*
- * น้ำตาลกลางของระบบ
- *
- * ใช้กับปุ่มทั่วไปทั้งหมด
- * ยกเว้น:
- * - กลับ
- * - แก้ไข
- * - ลบ
- */
-
-const brownButtonClass = `
-  border-[#9A6848]/40
+const departmentGreenButtonClass = `
+  border-emerald-400/40
 
   bg-gradient-to-b
-  from-[#A97855]
-  via-[#8B5E3C]
-  to-[#6F452C]
+  from-emerald-500
+  via-emerald-600
+  to-green-700
 
   !text-white
 
-  shadow-[0_8px_20px_rgba(111,69,44,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
+  shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
 
-  hover:from-[#A97855]
-  hover:via-[#87583A]
-  hover:to-[#674029]
+  hover:from-emerald-500
+  hover:via-emerald-600
+  hover:to-green-700
 
-  hover:shadow-[0_12px_28px_rgba(111,69,44,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
+  hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
 `;
 
 /* =========================================================
@@ -158,90 +160,70 @@ const variantClasses: Record<
 > = {
   /* -------------------------------------------------------
      PRIMARY
-     ปุ่มทั่วไป
-     = น้ำตาล
-
-     ตัวอย่าง:
-     - เปิด
-     - เพิ่มรายการ
-     - เพิ่มครุภัณฑ์
-     - เพิ่มรายชื่อ
-     - QR
-     - รวมรายการ
-     - ประวัติ
-     - ตรวจสอบ
+     ปุ่มหลัก / เปิด / เพิ่ม / QR / ประวัติ / ตรวจสอบ
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  primary: brownButtonClass,
+  primary:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      SUCCESS
      บันทึก / ยืนยัน / เพิ่มข้อมูล
-     = น้ำตาล
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  success: brownButtonClass,
+  success:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      WARNING
-     Action อื่น ๆ
-     = น้ำตาล
+     ปุ่มทั่วไป
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  warning: brownButtonClass,
+  warning:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      OUTLINE
      ปุ่มทั่วไป
-     = น้ำตาล
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  outline: brownButtonClass,
+  outline:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      GLASS
      ปุ่มทั่วไป
-     = น้ำตาล
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  glass: brownButtonClass,
+  glass:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      WHITE
      ปุ่มทั่วไป
-     = น้ำตาล
-  ------------------------------------------------------- */
-
-  white: brownButtonClass,
-
-  /* -------------------------------------------------------
-     BACK
-     ปุ่มกลับ
      = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
-  back: `
-    border-emerald-400/35
+  white:
+    departmentGreenButtonClass,
 
-    bg-gradient-to-b
-    from-emerald-500
-    via-emerald-600
-    to-green-700
+  /* -------------------------------------------------------
+     BACK
+     กลับ
+     = เขียวกรมอนามัย
+  ------------------------------------------------------- */
 
-    !text-white
-
-    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
-
-    hover:from-emerald-500
-    hover:via-emerald-600
-    hover:to-green-700
-
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
-  `,
+  back:
+    departmentGreenButtonClass,
 
   /* -------------------------------------------------------
      SECONDARY
-     ปุ่มแก้ไข
+     แก้ไข
      = น้ำเงินแบบเดิม
   ------------------------------------------------------- */
 
@@ -266,7 +248,7 @@ const variantClasses: Record<
 
   /* -------------------------------------------------------
      DANGER
-     ปุ่มลบ
+     ลบ
      = แดง
   ------------------------------------------------------- */
 
@@ -294,8 +276,8 @@ const variantClasses: Record<
    SIZE
 
    MOBILE
-   - ลด min-width ให้พอดีจอ
-   - Desktop คงขนาดมาตรฐาน
+   - ลด min-width ให้พอดีกับหน้าจอ
+   - Desktop ยังคงขนาดมาตรฐาน
 ========================================================= */
 
 const sizeClasses: Record<
@@ -361,8 +343,13 @@ export default function AppButton(
   /* =======================================================
      BACK BUTTON
 
-     variant="back"
-     ไม่แสดง icon / endIcon
+     ปุ่ม variant="back"
+     แสดงเฉพาะข้อความ
+
+     แม้หน้าเดิมยังส่ง
+     icon="←"
+     หรือ endIcon
+     AppButton จะไม่แสดง
   ======================================================= */
 
   const isBackButton =
@@ -380,28 +367,20 @@ export default function AppButton(
 
   /* =======================================================
      FOCUS COLOR
-
-     ให้ focus ring สอดคล้องกับสีของปุ่ม
   ======================================================= */
 
   const focusClassName =
-    variant === "back"
+    variant === "secondary"
       ? `
-        focus-visible:ring-emerald-400/80
+        focus-visible:ring-blue-400/80
       `
-      : variant ===
-          "secondary"
+      : variant === "danger"
         ? `
-          focus-visible:ring-blue-400/80
+          focus-visible:ring-red-400/80
         `
-        : variant ===
-            "danger"
-          ? `
-            focus-visible:ring-red-400/80
-          `
-          : `
-            focus-visible:ring-[#8B5E3C]/70
-          `;
+        : `
+          focus-visible:ring-emerald-400/80
+        `;
 
   /* =======================================================
      BASE STYLE
@@ -447,7 +426,9 @@ export default function AppButton(
     active:scale-[0.97]
 
     focus-visible:ring-2
+
     ${focusClassName}
+
     focus-visible:ring-offset-2
     focus-visible:ring-offset-white
 
