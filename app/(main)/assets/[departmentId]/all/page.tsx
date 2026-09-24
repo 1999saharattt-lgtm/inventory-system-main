@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import BackButton from "@/components/BackButton";
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
 import ExportDepartmentAssetsPdf from "../ExportDepartmentAssetsPdf";
 
 export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -13,9 +20,9 @@ type Props = {
   }>;
 };
 
-// =====================================================
-// สถานะครุภัณฑ์
-// =====================================================
+/* =========================================================
+   STATUS
+========================================================= */
 
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
@@ -24,10 +31,11 @@ const statusName: Record<string, string> = {
   DISPOSED: "จำหน่ายแล้ว",
 };
 
-// =====================================================
-// หน่วยนับสำรอง
-// ใช้เฉพาะกรณีในทะเบียนไม่มี unit
-// =====================================================
+/* =========================================================
+   CATEGORY UNIT
+
+   ใช้เฉพาะกรณีในทะเบียนไม่มี unit
+========================================================= */
 
 const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
@@ -43,9 +51,11 @@ const categoryUnit: Record<string, string> = {
   NO_SYSTEM: "รายการ",
 };
 
-// =====================================================
-// ลำดับจากทะเบียนต้นฉบับ
-// =====================================================
+/* =========================================================
+   SOURCE ORDER
+
+   ลำดับจากทะเบียนต้นฉบับ
+========================================================= */
 
 function getSourceOrder(
   remark: string | null
@@ -62,7 +72,9 @@ function getSourceOrder(
     return null;
   }
 
-  const sourceOrder = Number(match[1]);
+  const sourceOrder = Number(
+    match[1]
+  );
 
   if (
     !Number.isInteger(sourceOrder) ||
@@ -74,10 +86,11 @@ function getSourceOrder(
   return sourceOrder;
 }
 
-// =====================================================
-// ผู้รับผิดชอบ
-// ใช้ responsibleName จากทะเบียน Excel เป็นหลัก
-// =====================================================
+/* =========================================================
+   RESPONSIBLE NAME
+
+   ใช้ responsibleName จากทะเบียน Excel เป็นหลัก
+========================================================= */
 
 function getResponsibleName(asset: {
   responsibleName: string | null;
@@ -96,14 +109,15 @@ function getResponsibleName(asset: {
   } | null;
 }) {
   const departmentName =
-    asset.department.name?.trim() || "";
+    asset.department.name?.trim() ||
+    "";
 
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
-  // ===================================================
-  // ใช้ข้อความจาก Excel ก่อน
-  // ===================================================
+  /* =======================================================
+     ใช้ข้อความจาก Excel ก่อน
+  ======================================================= */
 
   if (
     originalResponsibleName &&
@@ -112,7 +126,8 @@ function getResponsibleName(asset: {
     if (
       departmentName &&
       (
-        originalResponsibleName === departmentName ||
+        originalResponsibleName ===
+          departmentName ||
         originalResponsibleName.startsWith(
           `${departmentName} /`
         )
@@ -128,9 +143,9 @@ function getResponsibleName(asset: {
     return originalResponsibleName;
   }
 
-  // ===================================================
-  // ถ้าไม่มี responsibleName ใช้ section
-  // ===================================================
+  /* =======================================================
+     ถ้าไม่มี responsibleName ใช้ section
+  ======================================================= */
 
   const sectionName =
     asset.section?.name?.trim();
@@ -143,10 +158,10 @@ function getResponsibleName(asset: {
     return sectionName;
   }
 
-  // ===================================================
-  // ถ้าไม่มีทั้ง responsibleName และ section
-  // ใช้ผู้ครอบครอง
-  // ===================================================
+  /* =======================================================
+     ถ้าไม่มีทั้ง responsibleName และ section
+     ใช้ผู้ครอบครอง
+  ======================================================= */
 
   const officerName =
     asset.officer
@@ -168,9 +183,9 @@ function getResponsibleName(asset: {
   return "-";
 }
 
-// =====================================================
-// หน่วย
-// =====================================================
+/* =========================================================
+   ASSET UNIT
+========================================================= */
 
 function getAssetUnit(asset: {
   unit: string | null;
@@ -192,18 +207,63 @@ function getAssetUnit(asset: {
   );
 }
 
-// =====================================================
-// PAGE
-// =====================================================
+/* =========================================================
+   STATUS CLASS
+========================================================= */
+
+function getStatusClass(
+  status: string
+) {
+  switch (status) {
+    case "IN_USE":
+      return `
+        bg-emerald-100
+        !text-emerald-800
+      `;
+
+    case "WAITING_DISPOSAL":
+      return `
+        bg-amber-100
+        !text-amber-800
+      `;
+
+    case "DAMAGED":
+      return `
+        bg-red-100
+        !text-red-800
+      `;
+
+    case "DISPOSED":
+      return `
+        bg-slate-200
+        !text-slate-800
+      `;
+
+    default:
+      return `
+        bg-slate-100
+        !text-slate-700
+      `;
+  }
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function AllAssetsPage({
   params,
 }: Props) {
-  const { departmentId } =
-    await params;
+  const {
+    departmentId,
+  } = await params;
 
   const id =
     Number(departmentId);
+
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
   if (
     !Number.isInteger(id) ||
@@ -212,9 +272,9 @@ export default async function AllAssetsPage({
     notFound();
   }
 
-  // ===================================================
-  // หน่วยงาน
-  // ===================================================
+  /* =======================================================
+     DEPARTMENT
+  ======================================================= */
 
   const department =
     await prisma.department.findUnique({
@@ -232,9 +292,9 @@ export default async function AllAssetsPage({
     notFound();
   }
 
-  // ===================================================
-  // ดึงครุภัณฑ์เฉพาะหน่วยงานนี้
-  // ===================================================
+  /* =======================================================
+     ASSETS
+  ======================================================= */
 
   const assetsFromDatabase =
     await prisma.asset.findMany({
@@ -249,9 +309,11 @@ export default async function AllAssetsPage({
       },
     });
 
-  // ===================================================
-  // เรียงตามทะเบียนต้นฉบับ
-  // ===================================================
+  /* =======================================================
+     SORT
+
+     เรียงตามทะเบียนต้นฉบับ
+  ======================================================= */
 
   const assets = [
     ...assetsFromDatabase,
@@ -280,139 +342,36 @@ export default async function AllAssetsPage({
     return a.id - b.id;
   });
 
-  // ===================================================
-  // PDF
-  // ===================================================
+  /* =======================================================
+     PDF
+
+     ExportDepartmentAssetsPdf ใช้ AppButton ตัวกลางแล้ว
+     จึงไม่ต้องใช้ wrapper บังคับ style ปุ่มอีก
+  ======================================================= */
 
   const ExportPdfButton =
     ExportDepartmentAssetsPdf as any;
 
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
-      {/* =================================================
+    <AppPage>
+      {/* =====================================================
           HEADER
-      ================================================= */}
+      ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-4
-          py-5
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-8
-          sm:py-6
-        "
-      >
-        {/* ===============================================
-            ชื่อหน้า
-        =============================================== */}
+      <AppPageHeader
+        icon="📋"
+        title="ทะเบียนครุภัณฑ์ทั้งหมด"
+        subtitle={`${department.name} — ทะเบียนคุมครุภัณฑ์`}
+        actions={
+          <>
+            {/* ===============================================
+                EXPORT PDF
+            =============================================== */}
 
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            📋 ทะเบียนครุภัณฑ์ทั้งหมด
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:text-base
-            "
-          >
-            {department.name}
-          </p>
-        </div>
-
-        {/* ===============================================
-            ปุ่ม
-        =============================================== */}
-
-        <div
-          className="
-            flex
-            w-full
-            shrink-0
-            flex-col
-            gap-3
-            sm:w-auto
-            sm:flex-row
-            sm:items-center
-          "
-        >
-          {/* =============================================
-              ส่งออก PDF
-          ============================================= */}
-
-          <div
-            className="
-              w-full
-              sm:w-auto
-
-              [&_button]:!flex
-              [&_button]:!h-11
-              [&_button]:!w-full
-              [&_button]:!items-center
-              [&_button]:!justify-center
-              [&_button]:!whitespace-nowrap
-              [&_button]:!rounded-xl
-              [&_button]:!border-0
-              [&_button]:!bg-none
-              [&_button]:!bg-red-600
-              [&_button]:!px-4
-              [&_button]:!py-0
-              [&_button]:!text-center
-              [&_button]:!text-sm
-              [&_button]:!font-extrabold
-              [&_button]:!leading-none
-              [&_button]:!text-white
-              [&_button]:!shadow-lg
-              [&_button]:!transition
-
-              [&_button:hover]:!scale-[1.02]
-              [&_button:hover]:!bg-red-700
-
-              [&_button:active]:!scale-[0.98]
-
-              sm:[&_button]:!w-auto
-            "
-          >
             <ExportPdfButton
               departmentId={
                 department.id
@@ -427,417 +386,480 @@ export default async function AllAssetsPage({
                 assets
               }
             />
-          </div>
 
-          {/* =============================================
+            {/* ===============================================
+                BACK
+            =============================================== */}
+
+            <AppButton
+              href={`/assets/${department.id}`}
+              variant="back"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ←
+                </span>
+              }
+            >
               กลับ
-          ============================================= */}
+            </AppButton>
+          </>
+        }
+      />
 
-          <BackButton
-            href={`/assets/${department.id}`}
-          />
-        </div>
-      </div>
-
-      {/* =================================================
+      {/* =====================================================
           TABLE
-      ================================================= */}
+      ===================================================== */}
 
-      <div
+      <AppTableCard
+        title="ทะเบียนครุภัณฑ์ทั้งหมด"
+        subtitle={`${department.name} • ทะเบียนคุมครุภัณฑ์`}
+        badge={`${assets.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
           w-full
           min-w-0
-          overflow-hidden
-          rounded-2xl
-          bg-white
-          shadow-xl
         "
       >
         <div
           className="
             w-full
+            min-w-0
             overflow-x-auto
+            overscroll-x-contain
           "
         >
           <table
             className="
               w-full
-              min-w-[1450px]
+              min-w-[1550px]
               border-collapse
+              bg-white
               text-sm
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
-                <th
-                  className="
-                    w-[6%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ลำดับ
-                </th>
+                {[
+                  "ลำดับ",
+                  "รหัส GFMIS",
+                  "รหัสครุภัณฑ์",
+                  "รายการครุภัณฑ์",
+                  "จำนวน",
+                  "หน่วย",
+                  "ผู้รับผิดชอบ",
+                  "สถานะ",
+                  "รายละเอียด",
+                ].map(
+                  (
+                    tableTitle
+                  ) => (
+                    <th
+                      key={
+                        tableTitle
+                      }
+                      className="
+                        whitespace-nowrap
 
-                <th
-                  className="
-                    w-[14%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รหัส GFMIS
-                </th>
+                        border
+                        border-black
 
-                <th
-                  className="
-                    w-[15%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รหัสครุภัณฑ์
-                </th>
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
-                <th
-                  className="
-                    w-[25%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  รายการครุภัณฑ์
-                </th>
+                        px-4
+                        py-4
 
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  จำนวน
-                </th>
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
 
-                <th
-                  className="
-                    w-[7%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  หน่วย
-                </th>
-
-                <th
-                  className="
-                    w-[16%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  ผู้รับผิดชอบ
-                </th>
-
-                <th
-                  className="
-                    w-[10%]
-                    border
-                    border-black
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                    px-3
-                    py-4
-                    text-center
-                    font-extrabold
-                    !text-white
-                  "
-                >
-                  สถานะ
-                </th>
+                        sm:text-lg
+                      "
+                    >
+                      {
+                        tableTitle
+                      }
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
             <tbody>
-              {assets.map(
-                (asset, index) => (
-                  <tr
-                    key={asset.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    {/* ลำดับ */}
+              {assets.length > 0 ? (
+                assets.map(
+                  (
+                    asset,
+                    index
+                  ) => {
+                    const detailPath =
+                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}`;
 
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {index + 1}
-                    </td>
-
-                    {/* รหัส GFMIS */}
-
-                    <td
-                      className="
-                        break-all
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {asset.governmentAssetNo ??
-                        "-"}
-                    </td>
-
-                    {/* รหัสครุภัณฑ์ */}
-
-                    <td
-                      className="
-                        break-all
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {asset.officeAssetNo ??
-                        "-"}
-                    </td>
-
-                    {/* รายการครุภัณฑ์ */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        font-semibold
-                      "
-                    >
-                      <Link
-                        href={`/assets/${asset.departmentId}/${asset.category}/${asset.id}`}
-                        className="
-                          font-extrabold
-                          text-slate-900
-                          underline-offset-4
-                          hover:text-blue-700
-                          hover:underline
-                        "
-                      >
-                        {asset.name}
-                      </Link>
-
-                      {(asset.brand ||
-                        asset.model) && (
-                        <p
-                          className="
-                            mt-1
-                            text-xs
-                            font-semibold
-                            text-slate-500
-                          "
-                        >
-                          {[
-                            asset.brand,
-                            asset.model,
-                          ]
-                            .filter(Boolean)
-                            .join(" / ")}
-                        </p>
-                      )}
-                    </td>
-
-                    {/* จำนวน */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {asset.quantity}
-                    </td>
-
-                    {/* หน่วย */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        font-bold
-                      "
-                    >
-                      {getAssetUnit(
-                        asset
-                      )}
-                    </td>
-
-                    {/* ผู้รับผิดชอบ */}
-
-                    <td
-                      className="
-                        break-words
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                        align-middle
-                        font-semibold
-                      "
-                    >
-                      {getResponsibleName(
-                        asset
-                      )}
-                    </td>
-
-                    {/* สถานะ */}
-
-                    <td
-                      className="
-                        border
-                        border-black
-                        px-3
-                        py-4
-                        text-center
-                      "
-                    >
-                      <span
+                    return (
+                      <tr
+                        key={
+                          asset.id
+                        }
                         className={`
-                          inline-flex
-                          whitespace-nowrap
-                          rounded-full
-                          px-3
-                          py-1
-                          text-xs
-                          font-extrabold
                           ${
-                            asset.status ===
-                            "IN_USE"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : asset.status ===
-                                  "WAITING_DISPOSAL"
-                                ? "bg-amber-100 text-amber-800"
-                                : asset.status ===
-                                    "DAMAGED"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-slate-200 text-slate-800"
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
                           }
+
+                          transition-colors
+                          duration-200
+
+                          hover:bg-blue-50/70
                         `}
                       >
-                        {statusName[
-                          asset.status
-                        ] ??
-                          asset.status}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              )}
+                        {/* ===================================
+                            ORDER
+                        =================================== */}
 
-              {assets.length === 0 && (
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {(
+                            index +
+                            1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            GFMIS
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[180px]
+                            break-all
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {asset.governmentAssetNo ??
+                            "-"}
+                        </td>
+
+                        {/* ===================================
+                            ASSET CODE
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[200px]
+                            break-all
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {asset.officeAssetNo ??
+                            "-"}
+                        </td>
+
+                        {/* ===================================
+                            NAME
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[280px]
+                            break-words
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          <div
+                            className="
+                              font-extrabold
+                              !text-slate-900
+                            "
+                          >
+                            {
+                              asset.name
+                            }
+                          </div>
+
+                          {(asset.brand ||
+                            asset.model) && (
+                            <div
+                              className="
+                                mt-1
+                                text-xs
+                                font-semibold
+                                !text-slate-500
+                              "
+                            >
+                              {[
+                                asset.brand,
+                                asset.model,
+                              ]
+                                .filter(
+                                  Boolean
+                                )
+                                .join(
+                                  " / "
+                                )}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            QUANTITY
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-900
+                          "
+                        >
+                          {Number(
+                            asset.quantity ??
+                              1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            UNIT
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {getAssetUnit(
+                            asset
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            RESPONSIBLE
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[260px]
+                            break-words
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {getResponsibleName(
+                            asset
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            STATUS
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[150px]
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3.5
+                            text-center
+                          "
+                        >
+                          <span
+                            className={`
+                              inline-flex
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              px-3
+                              py-1.5
+
+                              text-xs
+                              font-extrabold
+
+                              ${getStatusClass(
+                                asset.status
+                              )}
+                            `}
+                          >
+                            {statusName[
+                              asset
+                                .status
+                            ] ??
+                              asset.status}
+                          </span>
+                        </td>
+
+                        {/* ===================================
+                            DETAIL
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[150px]
+                            whitespace-nowrap
+                            border
+                            border-black
+                            px-4
+                            py-3
+                            text-center
+                          "
+                        >
+                          <AppButton
+                            href={
+                              detailPath
+                            }
+                            variant="primary"
+                            size="sm"
+                          >
+                            เปิด
+                          </AppButton>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              ) : (
+                /* ===========================================
+                    EMPTY STATE
+                =========================================== */
+
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={
+                      9
+                    }
                     className="
                       border
                       border-black
+                      bg-white
                       px-6
-                      py-12
+                      py-16
                       text-center
-                      text-lg
-                      font-semibold
-                      text-slate-500
                     "
                   >
-                    ยังไม่มีข้อมูลครุภัณฑ์
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        📋
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีข้อมูลครุภัณฑ์
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีข้อมูลครุภัณฑ์
+                        รายการจะแสดงในตารางนี้
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }
