@@ -138,7 +138,7 @@ type HistoryItem = {
 
 export default async function InspectionHistoryPage() {
   /* =======================================================
-     LOAD INSPECTIONS
+     INSPECTIONS
   ======================================================= */
 
   const inspections =
@@ -160,10 +160,7 @@ export default async function InspectionHistoryPage() {
 
   /* =======================================================
      GROUP HISTORY
-
-     แยกตาม:
-     - กลุ่มงาน
-     - ปีงบประมาณ
+     กลุ่มงาน + ปีงบประมาณ
   ======================================================= */
 
   const historyMap =
@@ -303,7 +300,7 @@ export default async function InspectionHistoryPage() {
   /* =======================================================
      SORT HISTORY
 
-     1. ปีล่าสุดก่อน
+     1. ปีล่าสุด
      2. ชื่อกลุ่มงาน
   ======================================================= */
 
@@ -340,14 +337,17 @@ export default async function InspectionHistoryPage() {
       }
     );
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <AppPage>
       {/* =====================================================
           HEADER
+
+          ใช้ AppPageHeader ตัวกลาง
+          แบบเดียวกับหน้า assets อื่น
       ===================================================== */}
 
       <AppPageHeader
@@ -366,7 +366,10 @@ export default async function InspectionHistoryPage() {
       />
 
       {/* =====================================================
-          HISTORY TABLE
+          TABLE CARD
+
+          ใช้ AppTableCard ตัวกลาง
+          จำนวนรายการอยู่ด้านขวา
       ===================================================== */}
 
       <AppTableCard
@@ -389,6 +392,7 @@ export default async function InspectionHistoryPage() {
           className="
             w-full
             min-w-0
+            max-w-full
 
             overflow-x-auto
             overscroll-x-contain
@@ -399,7 +403,7 @@ export default async function InspectionHistoryPage() {
           <table
             className="
               w-full
-              min-w-[1400px]
+              min-w-[1300px]
 
               border-collapse
 
@@ -409,7 +413,40 @@ export default async function InspectionHistoryPage() {
             "
           >
             {/* =================================================
-                HEADER
+                COLUMN WIDTHS
+            ================================================= */}
+
+            <colgroup>
+              {/* ลำดับ */}
+              <col className="w-[5%]" />
+
+              {/* ชื่อกลุ่มงาน */}
+              <col className="w-[22%]" />
+
+              {/* ปีงบประมาณ */}
+              <col className="w-[11%]" />
+
+              {/* เริ่มตรวจ */}
+              <col className="w-[13%]" />
+
+              {/* แล้วเสร็จ */}
+              <col className="w-[13%]" />
+
+              {/* จำนวน */}
+              <col className="w-[10%]" />
+
+              {/* ผู้ตรวจ */}
+              <col className="w-[8%]" />
+
+              {/* รายละเอียด */}
+              <col className="w-[8%]" />
+
+              {/* จัดการ */}
+              <col className="w-[10%]" />
+            </colgroup>
+
+            {/* =================================================
+                TABLE HEADER
             ================================================= */}
 
             <thead>
@@ -446,7 +483,9 @@ export default async function InspectionHistoryPage() {
                         py-4
 
                         text-center
+                        text-sm
                         font-extrabold
+                        leading-none
 
                         !text-white
                       "
@@ -461,7 +500,7 @@ export default async function InspectionHistoryPage() {
             </thead>
 
             {/* =================================================
-                BODY
+                TABLE BODY
             ================================================= */}
 
             <tbody>
@@ -472,6 +511,10 @@ export default async function InspectionHistoryPage() {
                     item,
                     index
                   ) => {
+                    /* =========================================
+                       ROUTES
+                    ========================================= */
+
                     const detailHref =
                       `/assets/${item.departmentId}/inspection-history/${item.year}`;
 
@@ -531,6 +574,9 @@ export default async function InspectionHistoryPage() {
                         =================================== */}
 
                         <td
+                          title={
+                            item.departmentName
+                          }
                           className="
                             min-w-[260px]
 
@@ -547,9 +593,17 @@ export default async function InspectionHistoryPage() {
                             !text-slate-900
                           "
                         >
-                          {
-                            item.departmentName
-                          }
+                          <div
+                            className="
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
+                            "
+                          >
+                            {
+                              item.departmentName
+                            }
+                          </div>
                         </td>
 
                         {/* ===================================
@@ -729,6 +783,11 @@ export default async function InspectionHistoryPage() {
 
                         {/* ===================================
                             ACTIONS
+
+                            แก้ไข = เขียว
+                            ลบ = แดง
+
+                            ใช้ขนาดจาก AppButton ตัวกลาง
                         =================================== */}
 
                         <td
@@ -755,8 +814,6 @@ export default async function InspectionHistoryPage() {
                           >
                             {/* =============================
                                 EDIT
-                                ใช้ AppButton ตัวกลาง
-                                สีเขียวตามมาตรฐานล่าสุด
                             ============================= */}
 
                             <AppButton
@@ -765,24 +822,35 @@ export default async function InspectionHistoryPage() {
                               }
                               variant="primary"
                               size="sm"
+                              icon={
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  ✏️
+                                </span>
+                              }
                             >
                               แก้ไข
                             </AppButton>
 
                             {/* =============================
                                 DELETE
-                                ใช้ AppButton ตัวกลาง
-                                สีแดง
 
-                                ยังไม่เชื่อม Delete
-                                เพื่อคง behavior เดิม
+                                ยังไม่เชื่อม Server Action
+                                เพื่อคง Logic เดิม
                             ============================= */}
 
                             <AppButton
                               type="button"
                               variant="danger"
                               size="sm"
-                              title="ขั้นถัดไปจะเชื่อมการลบพร้อมกล่องยืนยัน"
+                              icon={
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  🗑️
+                                </span>
+                              }
                             >
                               ลบ
                             </AppButton>
@@ -821,6 +889,7 @@ export default async function InspectionHistoryPage() {
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                         justify-center
                       "
