@@ -1,7 +1,29 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import BackButton from "@/components/BackButton";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+
+export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type Props = {
+  params: Promise<{
+    departmentId: string;
+    category: string;
+    assetId: string;
+  }>;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
 
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
@@ -15,6 +37,10 @@ const categoryName: Record<string, string> = {
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
+/* =========================================================
+   STATUS
+========================================================= */
+
 const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
   DAMAGED: "ชำรุด",
@@ -22,487 +48,748 @@ const statusName: Record<string, string> = {
   DISPOSED: "จำหน่ายแล้ว",
 };
 
-type Props = {
-  params: Promise<{
-    departmentId: string;
-    category: string;
-    assetId: string;
-  }>;
-};
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function AssetDisposalDetailPage({
   params,
 }: Props) {
-  const { departmentId, category, assetId } = await params;
+  const {
+    departmentId,
+    category,
+    assetId,
+  } = await params;
 
-  const asset = await prisma.asset.findFirst({
-    where: {
-      id: Number(assetId),
-      departmentId: Number(departmentId),
-    },
-    include: {
-      department: true,
-      section: true,
-      officer: true,
-    },
-  });
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
+  const departmentIdNumber =
+    Number(departmentId);
+
+  const assetIdNumber =
+    Number(assetId);
+
+  if (
+    !Number.isInteger(departmentIdNumber) ||
+    departmentIdNumber <= 0 ||
+    !Number.isInteger(assetIdNumber) ||
+    assetIdNumber <= 0
+  ) {
+    notFound();
+  }
+
+  /* =======================================================
+     ASSET
+  ======================================================= */
+
+  const asset =
+    await prisma.asset.findFirst({
+      where: {
+        id: assetIdNumber,
+        departmentId:
+          departmentIdNumber,
+      },
+
+      include: {
+        department: true,
+        section: true,
+        officer: true,
+      },
+    });
 
   if (!asset) {
     notFound();
   }
 
+  /* =======================================================
+     ROUTES
+  ======================================================= */
+
+  const normalizedCategory =
+    category.toLowerCase();
+
+  const detailPath =
+    `/assets/${departmentIdNumber}/${normalizedCategory}/${asset.id}`;
+
+  const editPath =
+    `${detailPath}/edit`;
+
+  const newDisposalPath =
+    `${detailPath}/disposal/new`;
+
+  /* =======================================================
+     OFFICER
+  ======================================================= */
+
+  const officerFullName =
+    asset.officer
+      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+      : "-";
+
+  /* =======================================================
+     SHARED UI
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+    text-sm
+    font-extrabold
+    !text-slate-700
+    sm:text-base
+  `;
+
+  const valueClassName = `
+    flex
+    min-h-[50px]
+    w-full
+    min-w-0
+    items-center
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+  `;
+
+  /* =======================================================
+     STATUS BADGE
+  ======================================================= */
+
+  function getStatusClassName(
+    status: string
+  ) {
+    switch (status) {
+      case "DISPOSED":
+        return `
+          border-red-200
+          bg-red-50
+          !text-red-700
+        `;
+
+      case "WAITING_DISPOSAL":
+        return `
+          border-amber-200
+          bg-amber-50
+          !text-amber-700
+        `;
+
+      case "DAMAGED":
+        return `
+          border-orange-200
+          bg-orange-50
+          !text-orange-700
+        `;
+
+      default:
+        return `
+          border-emerald-200
+          bg-emerald-50
+          !text-emerald-700
+        `;
+    }
+  }
+
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="🗃️"
+        title="ดำเนินการจำหน่ายครุภัณฑ์"
+        subtitle="ตรวจสอบข้อมูลครุภัณฑ์ก่อนดำเนินการจำหน่าย"
+        actions={
+          <AppButton
+            href={detailPath}
+            variant="back"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          ASSET INFORMATION
+      ===================================================== */}
+
+      <AppCard
         className="
-          flex
-          min-h-[110px]
+          relative
           w-full
-          min-w-0
-          flex-col
-          justify-center
-          gap-4
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-          sm:px-8
-          sm:py-6
+          !overflow-visible
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            🗃️ ดำเนินการจำหน่ายครุภัณฑ์
-          </h1>
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
-          <p
-            className="
-              mt-2
-              break-words
+        <div
+          className="
+            mb-6
+            flex
+            flex-col
+            gap-4
+
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              ข้อมูลครุภัณฑ์
+            </h2>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ตรวจสอบรายละเอียดรายการก่อนดำเนินการ
+            </p>
+          </div>
+
+          {/* ===============================================
+              STATUS
+          =============================================== */}
+
+          <span
+            className={`
+              inline-flex
+              w-fit
+              shrink-0
+              items-center
+              justify-center
+
+              whitespace-nowrap
+
+              rounded-full
+
+              border
+
+              px-4
+              py-1.5
+
               text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
+              font-extrabold
+
+              ${getStatusClassName(
+                asset.status
+              )}
+            `}
           >
-            ตรวจสอบข้อมูลครุภัณฑ์ก่อนดำเนินการจำหน่าย
-          </p>
+            {statusName[
+              asset.status
+            ] ?? "ไม่ระบุสถานะ"}
+          </span>
         </div>
 
-        <BackButton
-          href={`/assets/${departmentId}/${category}/${asset.id}`}
-        />
-      </div>
+        {/* =================================================
+            GRID
+        ================================================= */}
 
-      {/* =====================================================
-          ข้อมูลครุภัณฑ์
-      ===================================================== */}
-
-      <div
-        className="
-          w-full
-          min-w-0
-          rounded-2xl
-          border
-          border-slate-900
-          bg-gradient-to-br
-          from-slate-950
-          to-slate-800
-          p-4
-          text-white
-          shadow-xl
-          sm:p-6
-        "
-      >
         <div
           className="
             grid
-            gap-5
-            sm:grid-cols-2
-            lg:grid-cols-3
+            grid-cols-1
+            gap-4
+
+            lg:grid-cols-2
           "
         >
-          {/* รายการ */}
+          {/* ===============================================
+              NAME
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
-              รายการครุภัณฑ์
-            </p>
+          <div className="lg:col-span-2">
+            <AppInfoCard>
+              <p className={labelClassName}>
+                รายการครุภัณฑ์
+              </p>
 
-            <p className="mt-2 break-words text-lg font-extrabold !text-white">
-              {asset.name}
-            </p>
+              <div className={valueClassName}>
+                <span className="break-words">
+                  {asset.name}
+                </span>
+              </div>
+            </AppInfoCard>
           </div>
 
-          {/* ประเภท */}
+          {/* ===============================================
+              CATEGORY
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               ประเภท
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
-              {categoryName[asset.category] ?? asset.category}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-words">
+                {categoryName[
+                  asset.category
+                ] ?? "-"}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* หน่วยงาน */}
+          {/* ===============================================
+              DEPARTMENT
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               หน่วยงาน
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
-              {asset.department.name}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-words">
+                {asset.department.name}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* กลุ่มงาน */}
+          {/* ===============================================
+              SECTION
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               กลุ่มงาน
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
-              {asset.section?.name ?? "-"}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-words">
+                {asset.section?.name ??
+                  "-"}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* ผู้ครอบครอง */}
+          {/* ===============================================
+              OFFICER
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               ผู้ครอบครอง
             </p>
 
-            <p className="mt-2 break-words font-extrabold !text-white">
-              {asset.officer
-                ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                : "-"}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-words">
+                {officerFullName}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* สถานะ */}
+          {/* ===============================================
+              GFMIS
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
-              สถานะปัจจุบัน
-            </p>
-
-            <p
-              className={`mt-2 font-extrabold ${
-                asset.status === "DISPOSED"
-                  ? "!text-red-300"
-                  : asset.status === "WAITING_DISPOSAL"
-                    ? "!text-amber-300"
-                    : asset.status === "DAMAGED"
-                      ? "!text-orange-300"
-                      : "!text-white"
-              }`}
-            >
-              {statusName[asset.status] ?? asset.status}
-            </p>
-          </div>
-
-          {/* เลขกรม */}
-
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               รหัส GFMIS
             </p>
 
-            <p className="mt-2 break-all font-extrabold !text-white">
-              {asset.governmentAssetNo ?? "-"}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-all">
+                {asset.governmentAssetNo ??
+                  "-"}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* เลขสำนัก */}
+          {/* ===============================================
+              ASSET CODE
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
+          <AppInfoCard>
+            <p className={labelClassName}>
               รหัสครุภัณฑ์
             </p>
 
-            <p className="mt-2 break-all font-extrabold !text-white">
-              {asset.officeAssetNo ?? "-"}
-            </p>
-          </div>
+            <div className={valueClassName}>
+              <span className="break-all">
+                {asset.officeAssetNo ??
+                  "-"}
+              </span>
+            </div>
+          </AppInfoCard>
 
-          {/* Serial */}
+          {/* ===============================================
+              SERIAL NUMBER
+          =============================================== */}
 
-          <div className="min-w-0">
-            <p className="text-sm font-bold !text-slate-300">
-              Serial Number
-            </p>
+          <div className="lg:col-span-2">
+            <AppInfoCard>
+              <p className={labelClassName}>
+                Serial Number
+              </p>
 
-            <p className="mt-2 break-all font-extrabold !text-white">
-              {asset.serialNumber ?? "-"}
-            </p>
+              <div className={valueClassName}>
+                <span className="break-all">
+                  {asset.serialNumber ??
+                    "-"}
+                </span>
+              </div>
+            </AppInfoCard>
           </div>
         </div>
-      </div>
+      </AppCard>
 
       {/* =====================================================
-          สถานะใช้งาน
+          IN USE
       ===================================================== */}
 
       {asset.status === "IN_USE" && (
-        <div
+        <AppCard
           className="
-            rounded-2xl
-            border
-            border-amber-300
+            w-full
+            border-amber-200
             bg-amber-50
-            p-5
-            shadow-lg
-            sm:p-6
           "
         >
-          <p className="text-lg font-extrabold text-amber-900">
-            ⚠️ ครุภัณฑ์รายการนี้ยังมีสถานะใช้งาน
-          </p>
+          <div
+            className="
+              flex
+              flex-col
+              gap-5
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-amber-800 sm:text-base">
-            หากต้องการดำเนินการจำหน่าย กรุณาดำเนินการเปลี่ยนสถานะเป็น
-            &quot;รอจำหน่าย&quot; ก่อน
-          </p>
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-extrabold
+                  !text-amber-900
+                "
+              >
+                ⚠️ ครุภัณฑ์รายการนี้ยังมีสถานะใช้งาน
+              </h2>
 
-          <div className="mt-4">
-            <Link
-              href={`/assets/${departmentId}/${category}/${asset.id}/edit`}
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-amber-800
+
+                  sm:text-base
+                "
+              >
+                หากต้องการดำเนินการจำหน่าย
+                กรุณาเปลี่ยนสถานะเป็น
+                &quot;รอจำหน่าย&quot;
+                ก่อนดำเนินการ
+              </p>
+            </div>
+
+            <AppButton
+              href={editPath}
+              variant="primary"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ✏️
+                </span>
+              }
               className="
-                inline-block
-                rounded-xl
-                bg-gradient-to-r
-                from-amber-600
-                to-orange-500
-                px-6
-                py-3
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:from-amber-700
-                hover:to-orange-600
+                w-full
+                shrink-0
+
+                sm:w-auto
               "
             >
               แก้ไขสถานะครุภัณฑ์
-            </Link>
+            </AppButton>
           </div>
-        </div>
+        </AppCard>
       )}
 
       {/* =====================================================
-          สถานะชำรุด
+          DAMAGED
       ===================================================== */}
 
-      {asset.status === "DAMAGED" && (
-        <div
+      {asset.status ===
+        "DAMAGED" && (
+        <AppCard
           className="
-            rounded-2xl
-            border
-            border-orange-300
+            w-full
+            border-orange-200
             bg-orange-50
-            p-5
-            shadow-lg
-            sm:p-6
           "
         >
-          <p className="text-lg font-extrabold text-orange-900">
-            🛠️ ครุภัณฑ์มีสถานะชำรุด
-          </p>
+          <div
+            className="
+              flex
+              flex-col
+              gap-5
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-orange-800 sm:text-base">
-            ครุภัณฑ์รายการนี้มีสถานะเป็น &quot;ชำรุด&quot;
-            กรุณาตรวจสอบสภาพครุภัณฑ์และดำเนินการตามขั้นตอนที่เกี่ยวข้อง
-          </p>
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-extrabold
+                  !text-orange-900
+                "
+              >
+                🛠️ ครุภัณฑ์มีสถานะชำรุด
+              </h2>
 
-          <div className="mt-4">
-            <Link
-              href={`/assets/${departmentId}/${category}/${asset.id}/edit`}
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-orange-800
+
+                  sm:text-base
+                "
+              >
+                ครุภัณฑ์รายการนี้มีสถานะ
+                &quot;ชำรุด&quot;
+                กรุณาตรวจสอบสภาพครุภัณฑ์และดำเนินการตามขั้นตอนที่เกี่ยวข้อง
+              </p>
+            </div>
+
+            <AppButton
+              href={editPath}
+              variant="primary"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ✏️
+                </span>
+              }
               className="
-                inline-block
-                rounded-xl
-                bg-gradient-to-r
-                from-orange-600
-                to-amber-500
-                px-6
-                py-3
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:from-orange-700
-                hover:to-amber-600
+                w-full
+                shrink-0
+
+                sm:w-auto
               "
             >
               แก้ไขสถานะครุภัณฑ์
-            </Link>
+            </AppButton>
           </div>
-        </div>
+        </AppCard>
       )}
 
       {/* =====================================================
-          รอจำหน่าย
+          WAITING DISPOSAL
       ===================================================== */}
 
-      {asset.status === "WAITING_DISPOSAL" && (
-        <div
+      {asset.status ===
+        "WAITING_DISPOSAL" && (
+        <AppCard
           className="
-            rounded-2xl
-            border
-            border-amber-300
+            w-full
+            border-amber-200
             bg-amber-50
-            p-5
-            shadow-lg
-            sm:p-6
           "
         >
-          <p className="text-lg font-extrabold text-amber-900">
-            🟡 ครุภัณฑ์อยู่ระหว่างรอจำหน่าย
-          </p>
+          <div
+            className="
+              flex
+              flex-col
+              gap-5
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-amber-800 sm:text-base">
-            รายการนี้พร้อมเข้าสู่ขั้นตอนการจำหน่าย กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนดำเนินการ
-          </p>
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-extrabold
+                  !text-amber-900
+                "
+              >
+                🟡 ครุภัณฑ์อยู่ระหว่างรอจำหน่าย
+              </h2>
 
-          <div className="mt-5">
-            <Link
-              href={`/assets/${departmentId}/${category}/${asset.id}/disposal/new`}
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-amber-800
+
+                  sm:text-base
+                "
+              >
+                รายการนี้พร้อมเข้าสู่ขั้นตอนการจำหน่าย
+                กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนดำเนินการ
+              </p>
+            </div>
+
+            <AppButton
+              href={newDisposalPath}
+              variant="danger"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  🗑️
+                </span>
+              }
               className="
-                inline-block
-                rounded-xl
-                bg-gradient-to-r
-                from-red-600
-                to-rose-500
-                px-6
-                py-3
-                font-extrabold
-                !text-white
-                shadow-lg
-                transition
-                hover:scale-105
-                hover:from-red-700
-                hover:to-rose-600
+                w-full
+                shrink-0
+
+                sm:w-auto
               "
             >
               ดำเนินการจำหน่าย
-            </Link>
+            </AppButton>
           </div>
-        </div>
+        </AppCard>
       )}
 
       {/* =====================================================
-          จำหน่ายแล้ว
+          DISPOSED
       ===================================================== */}
 
-      {asset.status === "DISPOSED" && (
-        <div
+      {asset.status ===
+        "DISPOSED" && (
+        <AppCard
           className="
-            rounded-2xl
-            border
-            border-red-300
+            w-full
+            border-red-200
             bg-red-50
-            p-5
-            shadow-lg
-            sm:p-6
           "
         >
-          <p className="text-lg font-extrabold text-red-900">
-            🗑️ ครุภัณฑ์จำหน่ายแล้ว
-          </p>
+          {/* ===============================================
+              MESSAGE
+          =============================================== */}
 
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-red-800 sm:text-base">
-            ครุภัณฑ์รายการนี้มีสถานะเป็น &quot;จำหน่ายแล้ว&quot;
-            และไม่สามารถดำเนินการจำหน่ายซ้ำได้
-          </p>
+          <div>
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-red-900
+              "
+            >
+              🗑️ ครุภัณฑ์จำหน่ายแล้ว
+            </h2>
 
-          {/* =================================================
-              ข้อมูลการจำหน่าย
-          ================================================= */}
+            <p
+              className="
+                mt-2
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-red-800
+
+                sm:text-base
+              "
+            >
+              ครุภัณฑ์รายการนี้มีสถานะเป็น
+              &quot;จำหน่ายแล้ว&quot;
+              และไม่สามารถดำเนินการจำหน่ายซ้ำได้
+            </p>
+          </div>
+
+          {/* ===============================================
+              DISPOSAL INFORMATION
+          =============================================== */}
 
           <div
             className="
               mt-5
               grid
+              grid-cols-1
               gap-4
-              rounded-xl
-              border
-              border-red-200
-              bg-white
-              p-4
-              sm:grid-cols-2
-              sm:p-5
+
+              lg:grid-cols-2
             "
           >
-            {/* วันที่จำหน่าย */}
+            {/* DATE */}
 
-            <div className="min-w-0">
-              <p className="text-sm font-extrabold text-slate-600">
+            <AppInfoCard>
+              <p className={labelClassName}>
                 วันที่จำหน่าย
               </p>
 
-              <p className="mt-2 font-extrabold text-slate-900">
+              <div className={valueClassName}>
                 {asset.disposalDate
-                  ? asset.disposalDate.toLocaleDateString("th-TH", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
+                  ? asset.disposalDate.toLocaleDateString(
+                      "th-TH",
+                      {
+                        day: "2-digit",
+                        month:
+                          "2-digit",
+                        year: "numeric",
+                      }
+                    )
                   : "-"}
-              </p>
-            </div>
+              </div>
+            </AppInfoCard>
 
-            {/* สถานที่จำหน่าย */}
+            {/* LOCATION */}
 
-            <div className="min-w-0">
-              <p className="text-sm font-extrabold text-slate-600">
+            <AppInfoCard>
+              <p className={labelClassName}>
                 สถานที่จำหน่าย
               </p>
 
-              <p className="mt-2 break-words font-extrabold text-slate-900">
-                {asset.disposalLocation ?? "-"}
-              </p>
-            </div>
+              <div className={valueClassName}>
+                <span className="break-words">
+                  {asset.disposalLocation ??
+                    "-"}
+                </span>
+              </div>
+            </AppInfoCard>
           </div>
-        </div>
+        </AppCard>
       )}
-    </div>
+    </AppPage>
   );
 }
