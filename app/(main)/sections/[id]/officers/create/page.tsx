@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -8,424 +17,485 @@ type Props = {
   }>;
 };
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CreateOfficerPage({
   params,
 }: Props) {
   const { id } = await params;
 
-  const section = await prisma.section.findUnique({
-    where: {
-      id: Number(id),
-    },
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
-    include: {
-      department: true,
-    },
-  });
+  const sectionId = Number(id);
+
+  if (
+    !Number.isInteger(sectionId) ||
+    sectionId <= 0
+  ) {
+    redirect("/departments");
+  }
+
+  /* =======================================================
+     SECTION
+  ======================================================= */
+
+  const section =
+    await prisma.section.findUnique({
+      where: {
+        id: sectionId,
+      },
+
+      include: {
+        department: true,
+      },
+    });
 
   if (!section) {
     redirect("/departments");
   }
 
-  const departmentId = section.departmentId;
+  /* =======================================================
+     SAFE VALUES
 
-  async function createOfficer(formData: FormData) {
+     ใช้ primitive แยกไว้สำหรับ Server Action
+     ป้องกันปัญหา TypeScript เรื่องค่า null
+  ======================================================= */
+
+  const departmentId =
+    section.departmentId;
+
+  const departmentName =
+    section.department.name;
+
+  const sectionName =
+    section.name;
+
+  const sectionIdForAction =
+    section.id;
+
+  const departmentPath =
+    `/departments/${departmentId}`;
+
+  /* =======================================================
+     CREATE OFFICER
+  ======================================================= */
+
+  async function createOfficer(
+    formData: FormData
+  ) {
     "use server";
 
+    /* =====================================================
+       FORM VALUES
+    ===================================================== */
+
     const firstName =
-      formData.get("firstName") as string;
+      String(
+        formData.get("firstName") ??
+          ""
+      ).trim();
 
     const lastName =
-      formData.get("lastName") as string;
+      String(
+        formData.get("lastName") ??
+          ""
+      ).trim();
 
     const position =
-      formData.get("position") as string;
+      String(
+        formData.get("position") ??
+          ""
+      ).trim();
 
     const type =
-      formData.get("type") as any;
+      String(
+        formData.get("type") ??
+          ""
+      ).trim();
+
+    /* =====================================================
+       VALIDATION
+    ===================================================== */
+
+    if (
+      !firstName ||
+      !lastName ||
+      !position ||
+      !type
+    ) {
+      return;
+    }
+
+    /* =====================================================
+       CREATE
+    ===================================================== */
 
     await prisma.officer.create({
       data: {
         firstName,
         lastName,
         position,
-        type,
-        sectionId: Number(id),
+        type: type as any,
+        sectionId:
+          sectionIdForAction,
       },
     });
+
+    /* =====================================================
+       REDIRECT
+    ===================================================== */
 
     redirect(
       `/departments/${departmentId}`
     );
   }
 
+  /* =======================================================
+     SHARED CLASSES
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+
+    text-sm
+    font-extrabold
+    !text-slate-700
+
+    sm:text-base
+  `;
+
+  const inputClassName = `
+    min-h-[50px]
+    w-full
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+  `;
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="👤"
+        title="เพิ่มรายชื่อเจ้าหน้าที่"
+        subtitle={`${departmentName} / ${sectionName}`}
+        actions={
+          <AppButton
+            href={
+              departmentPath
+            }
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
+      <form
+        action={
+          createOfficer
+        }
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            👤 เพิ่มรายชื่อเจ้าหน้าที่
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            {section.department.name}
-            {" / "}
-            {section.name}
-          </p>
-        </div>
-
-        <Link
-          href={`/departments/${departmentId}`}
+        <AppCard
           className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-lg
+            w-full
+            min-w-0
           "
         >
-          ← กลับ
-        </Link>
-      </div>
+          {/* =================================================
+              FORM HEADER
+          ================================================= */}
 
-      {/* =====================================================
-          Form
-      ===================================================== */}
+          <div className="mb-6">
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              ข้อมูลเจ้าหน้าที่
+            </h2>
 
-      <div className="flex w-full justify-center py-2 sm:py-4">
-        <div className="w-full max-w-4xl">
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-slate-500
+              "
+            >
+              เพิ่มข้อมูลเจ้าหน้าที่สำหรับกลุ่มงาน
+              {" "}
+              {sectionName}
+            </p>
+          </div>
+
+          {/* =================================================
+              FORM GRID
+          ================================================= */}
+
           <div
             className="
-              w-full
-              rounded-3xl
-              border
-              border-slate-700
-              bg-gradient-to-br
-              from-slate-950
-              via-slate-900
-              to-slate-800
-              p-6
-              text-white
-              shadow-2xl
-              sm:p-8
+              grid
+              grid-cols-1
+              gap-4
+
+              lg:grid-cols-2
             "
           >
-            <form
-              action={createOfficer}
-              className="space-y-6"
-            >
-              {/* =====================================================
-                  ชื่อ + นามสกุล
-              ===================================================== */}
+            {/* ===============================================
+                FIRST NAME
+            =============================================== */}
 
-              <div
-                className="
-                  grid
-                  grid-cols-1
-                  gap-5
-                  md:grid-cols-2
-                "
+            <AppInfoCard>
+              <label
+                htmlFor="firstName"
+                className={
+                  labelClassName
+                }
               >
-                {/* ชื่อ */}
+                ชื่อ{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
+              </label>
 
-                <div>
-                  <label
-                    className="
-                      mb-2
-                      block
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    ชื่อ
-                  </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                autoComplete="given-name"
+                placeholder="ระบุชื่อ"
+                className={
+                  inputClassName
+                }
+              />
+            </AppInfoCard>
 
-                  <input
-                    name="firstName"
-                    required
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-600
-                      bg-slate-800
-                      p-3
-                      font-bold
-                      text-white
-                      outline-none
-                      transition
-                      focus:border-cyan-400
-                      focus:outline-none
-                    "
-                  />
-                </div>
+            {/* ===============================================
+                LAST NAME
+            =============================================== */}
 
-                {/* นามสกุล */}
+            <AppInfoCard>
+              <label
+                htmlFor="lastName"
+                className={
+                  labelClassName
+                }
+              >
+                นามสกุล{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
+              </label>
 
-                <div>
-                  <label
-                    className="
-                      mb-2
-                      block
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    นามสกุล
-                  </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                autoComplete="family-name"
+                placeholder="ระบุนามสกุล"
+                className={
+                  inputClassName
+                }
+              />
+            </AppInfoCard>
 
-                  <input
-                    name="lastName"
-                    required
-                    className="
-                      w-full
-                      rounded-xl
-                      border
-                      border-slate-600
-                      bg-slate-800
-                      p-3
-                      font-bold
-                      text-white
-                      outline-none
-                      transition
-                      focus:border-cyan-400
-                      focus:outline-none
-                    "
-                  />
-                </div>
-              </div>
+            {/* ===============================================
+                POSITION
+            =============================================== */}
 
-              {/* =====================================================
-                  ตำแหน่ง
-              ===================================================== */}
-
-              <div>
+            <div
+              className="
+                lg:col-span-2
+              "
+            >
+              <AppInfoCard>
                 <label
-                  className="
-                    mb-2
-                    block
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
+                  htmlFor="position"
+                  className={
+                    labelClassName
+                  }
                 >
-                  ตำแหน่ง
+                  ตำแหน่ง{" "}
+                  <span className="!text-red-500">
+                    *
+                  </span>
                 </label>
 
                 <input
+                  id="position"
                   name="position"
+                  type="text"
                   required
-                  className="
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-600
-                    bg-slate-800
-                    p-3
-                    font-bold
-                    text-white
-                    outline-none
-                    transition
-                    focus:border-cyan-400
-                    focus:outline-none
-                  "
+                  placeholder="ระบุตำแหน่ง"
+                  className={
+                    inputClassName
+                  }
                 />
-              </div>
+              </AppInfoCard>
+            </div>
 
-              {/* =====================================================
-                  ประเภทบุคลากร
-              ===================================================== */}
+            {/* ===============================================
+                OFFICER TYPE
+            =============================================== */}
 
-              <div>
+            <div
+              className="
+                lg:col-span-2
+              "
+            >
+              <AppInfoCard>
                 <label
-                  className="
-                    mb-2
-                    block
-                    text-lg
-                    font-extrabold
-                    text-white
-                  "
+                  htmlFor="type"
+                  className={
+                    labelClassName
+                  }
                 >
-                  ประเภทบุคลากร
+                  ประเภทบุคลากร{" "}
+                  <span className="!text-red-500">
+                    *
+                  </span>
                 </label>
 
                 <select
+                  id="type"
                   name="type"
-                  className="
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-600
-                    bg-slate-800
-                    p-3
-                    font-bold
-                    text-white
-                    outline-none
-                    transition
-                    focus:border-cyan-400
-                    focus:outline-none
-                  "
+                  required
+                  defaultValue="CIVIL_SERVANT"
+                  className={
+                    inputClassName
+                  }
                 >
-                  <option
-                    value="CIVIL_SERVANT"
-                    className="bg-slate-800 text-white"
-                  >
+                  <option value="CIVIL_SERVANT">
                     ข้าราชการ
                   </option>
 
-                  <option
-                    value="GOVERNMENT_EMPLOYEE"
-                    className="bg-slate-800 text-white"
-                  >
+                  <option value="GOVERNMENT_EMPLOYEE">
                     พนักงานราชการ
                   </option>
 
-                  <option
-                    value="PERMANENT_EMPLOYEE"
-                    className="bg-slate-800 text-white"
-                  >
+                  <option value="PERMANENT_EMPLOYEE">
                     ลูกจ้างประจำ
                   </option>
 
-                  <option
-                    value="OUTSOURCE"
-                    className="bg-slate-800 text-white"
-                  >
+                  <option value="OUTSOURCE">
                     จ้างเหมาบริการ
                   </option>
                 </select>
-              </div>
-
-              {/* =====================================================
-                  ปุ่ม
-              ===================================================== */}
-
-              <div
-                className="
-                  flex
-                  justify-end
-                  gap-3
-                  border-t
-                  border-slate-700
-                  pt-5
-                "
-              >
-                {/* ยกเลิก */}
-
-                <Link
-                  href={`/departments/${departmentId}`}
-                  className="
-                    rounded-xl
-                    bg-slate-700
-                    px-6
-                    py-3
-                    font-extrabold
-                    text-white
-                    shadow-lg
-                    transition
-                    hover:bg-slate-800
-                  "
-                >
-                  ยกเลิก
-                </Link>
-
-                {/* บันทึก */}
-
-                <button
-                  type="submit"
-                  className="
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-emerald-600
-                    to-green-500
-                    px-7
-                    py-3
-                    font-extrabold
-                    text-white
-                    shadow-lg
-                    transition
-                    hover:scale-105
-                    hover:from-emerald-700
-                    hover:to-green-600
-                  "
-                >
-                  💾 บันทึก
-                </button>
-              </div>
-            </form>
+              </AppInfoCard>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+
+          {/* =================================================
+              ACTIONS
+          ================================================= */}
+
+          <div
+            className="
+              mt-6
+
+              flex
+              flex-col-reverse
+              gap-3
+
+              border-t
+              border-slate-200
+
+              pt-5
+
+              sm:flex-row
+              sm:items-center
+              sm:justify-end
+            "
+          >
+            {/* ===============================================
+                CANCEL
+            =============================================== */}
+
+            <AppButton
+              href={
+                departmentPath
+              }
+              variant="secondary"
+              size="md"
+            >
+              ยกเลิก
+            </AppButton>
+
+            {/* ===============================================
+                SAVE
+            =============================================== */}
+
+            <AppButton
+              type="submit"
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  💾
+                </span>
+              }
+            >
+              บันทึก
+            </AppButton>
+          </div>
+        </AppCard>
+      </form>
+    </AppPage>
   );
 }

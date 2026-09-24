@@ -1,6 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import { notFound } from "next/navigation";
 
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
+export const dynamic = "force-dynamic";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
@@ -8,311 +18,342 @@ type Props = {
   }>;
 };
 
-
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function SectionDetailPage({
   params,
 }: Props) {
-
+  /* =======================================================
+     PARAMS
+  ======================================================= */
 
   const { id } = await params;
 
+  const sectionId = Number(id);
 
-
-  const section = await prisma.section.findUnique({
-
-    where: {
-      id: Number(id),
-    },
-
-    include: {
-
-      officers: true,
-
-      department: true,
-
-    },
-
-  });
-
-
-
-  if (!section) {
-
-    return (
-
-      <div className="p-6 font-bold text-slate-600">
-        ไม่พบข้อมูล
-      </div>
-
-    );
-
+  if (
+    !Number.isInteger(sectionId) ||
+    sectionId <= 0
+  ) {
+    notFound();
   }
 
+  /* =======================================================
+     SECTION
+  ======================================================= */
 
+  const section =
+    await prisma.section.findUnique({
+      where: {
+        id: sectionId,
+      },
 
+      include: {
+        officers: true,
+        department: true,
+      },
+    });
 
+  if (!section) {
+    notFound();
+  }
+
+  /* =======================================================
+     ROUTES
+  ======================================================= */
+
+  const backPath =
+    `/departments/${section.departmentId}`;
+
+  /* =======================================================
+     OFFICERS
+  ======================================================= */
+
+  const officers = [
+    ...section.officers,
+  ].sort((a, b) => {
+    const firstNameCompare =
+      a.firstName.localeCompare(
+        b.firstName,
+        "th"
+      );
+
+    if (firstNameCompare !== 0) {
+      return firstNameCompare;
+    }
+
+    return a.lastName.localeCompare(
+      b.lastName,
+      "th"
+    );
+  });
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
+    <AppPage>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
-    <div className="space-y-6">
+      <AppPageHeader
+        icon="🏢"
+        title={section.name}
+        subtitle={`กลุ่ม: ${
+          section.department?.name ?? "-"
+        }`}
+        actions={
+          <AppButton
+            href={backPath}
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
 
+      {/* =====================================================
+          OFFICER TABLE
+      ===================================================== */}
 
-
-      {/* Header */}
-
-      <div
+      <AppTableCard
+        title="รายชื่อเจ้าหน้าที่"
+        subtitle={`เจ้าหน้าที่ใน ${section.name}`}
+        badge={`${officers.length.toLocaleString(
+          "th-TH"
+        )} คน`}
         className="
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-8
-          py-6
-          min-h-[140px]
-          text-white
-          shadow-xl
+          w-full
+          min-w-0
         "
       >
-
-        <div>
-
-
-          <h1
-            className="
-              text-5xl
-              font-extrabold
-              leading-tight
-              !text-white
-            "
-          >
-            🏢 {section.name}
-          </h1>
-
-
-
-          <p
-            className="
-              mt-2
-              text-xl
-              font-semibold
-              !text-slate-200
-            "
-          >
-            กลุ่ม:
-            {" "}
-            {section.department?.name ?? "-"}
-          </p>
-
-
-        </div>
-
-
-
-        <Link
-
-          href={`/departments/${section.departmentId}`}
-
+        <div
           className="
-            rounded-xl
-            bg-emerald-600
-            px-5
-            py-3
-            text-lg
-            font-extrabold
-            text-white
-            shadow-lg
-            transition
-            hover:bg-emerald-700
+            w-full
+            min-w-0
+            overflow-hidden
           "
-
         >
+          <table
+            className="
+              w-full
+              table-fixed
+              border-collapse
+              bg-white
+            "
+          >
+            {/* =================================================
+                COLUMN WIDTH
+            ================================================= */}
 
-          ← กลับ
+            <colgroup>
+              <col className="w-[50%]" />
+              <col className="w-[50%]" />
+            </colgroup>
 
-        </Link>
-
-
-
-      </div>
-
-
-
-
-
-
-
-      {/* Officer Table */}
-
-
-      <div
-        className="
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-200
-          bg-white
-          shadow-xl
-        "
-      >
-
-
-        <div className="overflow-x-auto">
-
-
-          <table className="min-w-full">
-
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
 
             <thead>
-
-
               <tr>
-
-
                 {[
                   "ชื่อ - นามสกุล",
                   "ตำแหน่ง",
-                ].map((title)=>(
+                ].map(
+                  (title) => (
+                    <th
+                      key={title}
+                      className="
+                        whitespace-nowrap
 
+                        border
+                        border-black
 
-                  <th
-                    key={title}
-                    className="
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-5
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      text-white
-                    "
-                  >
-                    {title}
-                  </th>
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
 
+                        px-5
+                        py-4
 
-                ))}
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
 
-
+                        sm:text-lg
+                      "
+                    >
+                      {title}
+                    </th>
+                  )
+                )}
               </tr>
-
-
             </thead>
 
-
-
-
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
 
             <tbody>
-
-
-              {section.officers.length === 0 ? (
-
+              {officers.length === 0 ? (
+                /* =============================================
+                    EMPTY STATE
+                ============================================= */
 
                 <tr>
-
                   <td
                     colSpan={2}
                     className="
-                      py-12
+                      border
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
                       text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    ยังไม่มีเจ้าหน้าที่
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        👤
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีเจ้าหน้าที่
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+
+                          !text-slate-500
+                        "
+                      >
+                        ยังไม่มีข้อมูลเจ้าหน้าที่ในกลุ่มงานนี้
+                      </p>
+                    </div>
                   </td>
-
-
                 </tr>
-
-
-
               ) : (
+                officers.map(
+                  (
+                    officer,
+                    index
+                  ) => (
+                    <tr
+                      key={officer.id}
+                      className={`
+                        ${
+                          index % 2 === 0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
 
+                        transition-colors
+                        duration-200
 
-                section.officers.map((officer)=>(
-
-
-                  <tr
-                    key={officer.id}
-                    className="
-                      border-b
-                      border-slate-200
-                      hover:bg-blue-50
-                      transition
-                    "
-                  >
-
-
-
-                    <td
-                      className="
-                        px-5
-                        py-3
-                        font-bold
-                        text-slate-800
-                      "
+                        hover:bg-blue-50/70
+                      `}
                     >
+                      {/* =======================================
+                          NAME
+                      ======================================= */}
 
-                      {officer.firstName}{" "}
-                      {officer.lastName}
+                      <td
+                        className="
+                          border
+                          border-black
 
-                    </td>
+                          px-5
+                          py-3.5
 
+                          text-base
+                          font-bold
 
+                          !text-slate-900
+                        "
+                      >
+                        <div
+                          className="
+                            break-words
+                            font-extrabold
+                            !text-slate-900
+                          "
+                        >
+                          {officer.firstName}{" "}
+                          {officer.lastName}
+                        </div>
+                      </td>
 
+                      {/* =======================================
+                          POSITION
+                      ======================================= */}
 
+                      <td
+                        className="
+                          border
+                          border-black
 
-                    <td
-                      className="
-                        px-5
-                        py-3
-                        font-bold
-                        text-slate-800
-                      "
-                    >
+                          px-5
+                          py-3.5
 
-                      {officer.position}
+                          text-base
+                          font-bold
 
-                    </td>
-
-
-
-                  </tr>
-
-
-                ))
-
-
+                          !text-slate-900
+                        "
+                      >
+                        {officer.position || "-"}
+                      </td>
+                    </tr>
+                  )
+                )
               )}
-
-
-
             </tbody>
-
-
           </table>
-
-
         </div>
-
-
-      </div>
-
-
-
-
-    </div>
-
-
+      </AppTableCard>
+    </AppPage>
   );
-
 }
