@@ -246,16 +246,16 @@ function getStatusClass(
 export default async function AllAssetsPage({
   params,
 }: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const {
     departmentId,
   } = await params;
 
   const id =
     Number(departmentId);
-
-  /* =======================================================
-     PARAMS
-  ======================================================= */
 
   if (
     !Number.isInteger(id) ||
@@ -285,9 +285,8 @@ export default async function AllAssetsPage({
   }
 
   /*
-   * แยกเป็น primitive หลังผ่าน notFound()
-   * เพื่อป้องกันปัญหา TypeScript
-   * department is possibly null
+   * เก็บเป็น primitive หลังตรวจสอบแล้ว
+   * เพื่อป้องกันปัญหา TypeScript เรื่อง possibly null
    */
 
   const departmentIdForPage =
@@ -316,6 +315,8 @@ export default async function AllAssetsPage({
 
   /* =======================================================
      SORT
+
+     เรียงตามทะเบียนต้นฉบับ
   ======================================================= */
 
   const assets = [
@@ -381,24 +382,13 @@ export default async function AllAssetsPage({
                 EXPORT PDF
 
                 ExportDepartmentAssetsPdf ใช้ AppButton
-                ตัวกลางภายใน Component อยู่แล้ว
-                ไม่ต้องใช้ renderTrigger
+                ตัวกลางภายใน Component แล้ว
             =============================================== */}
 
             <ExportDepartmentAssetsPdf
-              departmentId={
-                departmentIdForPage
-              }
               departmentName={
                 departmentNameForPage
               }
-              department={{
-                id:
-                  departmentIdForPage,
-
-                name:
-                  departmentNameForPage,
-              }}
               assets={
                 assets
               }
@@ -501,6 +491,7 @@ export default async function AllAssetsPage({
                       }
                       className="
                         whitespace-nowrap
+
                         border
                         border-black
 
@@ -534,24 +525,18 @@ export default async function AllAssetsPage({
             ================================================= */}
 
             <tbody>
-              {assets.length >
-              0 ? (
+              {assets.length > 0 ? (
                 assets.map(
                   (
                     asset,
                     index
                   ) => {
-                    /* =======================================
+                    /* =========================================
                        DETAIL PATH
 
-                       ส่ง from=all ไปด้วย
-
-                       ตัวอย่าง:
-                       /assets/1/chair/934?from=all
-
-                       หน้า Detail สามารถใช้ค่านี้
-                       เพื่อกำหนดปุ่มกลับไป /assets/1/all
-                    ======================================= */
+                       ใส่ ?from=all เพื่อให้หน้า Detail
+                       กดกลับแล้วกลับมายัง /all
+                    ========================================= */
 
                     const detailPath =
                       `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all`;
@@ -568,9 +553,7 @@ export default async function AllAssetsPage({
                         }
                         className={`
                           ${
-                            index %
-                              2 ===
-                            0
+                            index % 2 === 0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
@@ -588,6 +571,7 @@ export default async function AllAssetsPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
 
@@ -595,14 +579,15 @@ export default async function AllAssetsPage({
                             py-3.5
 
                             text-center
+                            text-sm
                             font-extrabold
                             tabular-nums
+
                             !text-slate-900
                           "
                         >
                           {(
-                            index +
-                            1
+                            index + 1
                           ).toLocaleString(
                             "th-TH"
                           )}
@@ -625,7 +610,8 @@ export default async function AllAssetsPage({
 
                             text-center
                             text-sm
-                            font-bold
+                            font-extrabold
+
                             !text-slate-900
                           "
                           title={
@@ -663,7 +649,8 @@ export default async function AllAssetsPage({
 
                             text-center
                             text-sm
-                            font-bold
+                            font-extrabold
+
                             !text-slate-900
                           "
                           title={
@@ -699,7 +686,9 @@ export default async function AllAssetsPage({
                             px-2.5
                             py-3.5
 
-                            font-bold
+                            text-sm
+                            font-extrabold
+
                             !text-slate-900
                           "
                           title={
@@ -722,7 +711,9 @@ export default async function AllAssetsPage({
                               text-ellipsis
                               whitespace-nowrap
 
+                              text-sm
                               font-extrabold
+
                               !text-slate-900
                             "
                           >
@@ -741,8 +732,9 @@ export default async function AllAssetsPage({
                                 text-ellipsis
                                 whitespace-nowrap
 
-                                text-xs
-                                font-semibold
+                                text-sm
+                                font-extrabold
+
                                 !text-slate-500
                               "
                             >
@@ -767,6 +759,7 @@ export default async function AllAssetsPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
 
@@ -774,8 +767,10 @@ export default async function AllAssetsPage({
                             py-3.5
 
                             text-center
+                            text-sm
                             font-extrabold
                             tabular-nums
+
                             !text-slate-900
                           "
                         >
@@ -794,6 +789,7 @@ export default async function AllAssetsPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
 
@@ -801,7 +797,9 @@ export default async function AllAssetsPage({
                             py-3.5
 
                             text-center
+                            text-sm
                             font-extrabold
+
                             !text-slate-900
                           "
                         >
@@ -827,7 +825,8 @@ export default async function AllAssetsPage({
 
                             text-center
                             text-sm
-                            font-bold
+                            font-extrabold
+
                             !text-slate-900
                           "
                           title={
@@ -850,11 +849,15 @@ export default async function AllAssetsPage({
 
                         {/* ===================================
                             STATUS
+
+                            ใช้ text-sm + font-extrabold
+                            เท่ากับรายการครุภัณฑ์
                         =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
 
@@ -862,6 +865,8 @@ export default async function AllAssetsPage({
                             py-3.5
 
                             text-center
+                            text-sm
+                            font-extrabold
                           "
                         >
                           <span
@@ -881,7 +886,7 @@ export default async function AllAssetsPage({
 
                               text-sm
                               font-extrabold
-                              leading-none
+                              leading-normal
 
                               ${getStatusClass(
                                 asset.status
@@ -902,6 +907,7 @@ export default async function AllAssetsPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
 
@@ -909,6 +915,8 @@ export default async function AllAssetsPage({
                             py-3
 
                             text-center
+                            text-sm
+                            font-extrabold
                           "
                         >
                           <AppButton
@@ -938,6 +946,7 @@ export default async function AllAssetsPage({
                     className="
                       border
                       border-black
+
                       bg-white
 
                       px-6
@@ -978,6 +987,7 @@ export default async function AllAssetsPage({
                           text-lg
                           font-extrabold
                           tracking-tight
+
                           !text-slate-900
                         "
                       >
@@ -991,6 +1001,7 @@ export default async function AllAssetsPage({
                           text-sm
                           font-semibold
                           leading-relaxed
+
                           !text-slate-500
                         "
                       >
