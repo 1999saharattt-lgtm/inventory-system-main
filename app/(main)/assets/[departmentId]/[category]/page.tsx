@@ -35,14 +35,14 @@ const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
   AIR_CONDITIONER: "เครื่องปรับอากาศ",
-  TELEPHONE: "โทรศัพท์",
-  CABINET: "ตู้",
+  TELEPHONE: "เครื่องโทรศัพท์",
+  CABINET: "ตู้และชั้น",
   SHELF: "ชั้นวาง",
   COMPUTER: "คอมพิวเตอร์",
   MONITOR: "จอภาพ",
   PRINTER: "เครื่องพิมพ์",
-  OTHER: "ครุภัณฑ์อื่น",
-  NO_SYSTEM: "ครุภัณฑ์ไม่มีระบบ",
+  OTHER: "ทั่วไป",
+  NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
 const categoryIcon: Record<string, string> = {
@@ -107,7 +107,9 @@ function getSourceOrder(
     return null;
   }
 
-  const sourceOrder = Number(match[1]);
+  const sourceOrder = Number(
+    match[1]
+  );
 
   if (
     !Number.isInteger(sourceOrder) ||
@@ -121,8 +123,6 @@ function getSourceOrder(
 
 /* =========================================================
    UNIT FROM REMARK
-
-   รองรับข้อมูลเก่าที่อาจเก็บหน่วยไว้ใน remark
 ========================================================= */
 
 function getUnitFromRemark(
@@ -138,12 +138,17 @@ function getUnitFromRemark(
   ];
 
   for (const pattern of patterns) {
-    const match = remark.match(pattern);
+    const match =
+      remark.match(pattern);
 
     if (match?.[1]) {
-      const value = match[1].trim();
+      const value =
+        match[1].trim();
 
-      if (value && value !== "-") {
+      if (
+        value &&
+        value !== "-"
+      ) {
         return value;
       }
     }
@@ -172,13 +177,18 @@ function getAssetUnit(
   }
 
   const remarkUnit =
-    getUnitFromRemark(remark);
+    getUnitFromRemark(
+      remark
+    );
 
   if (remarkUnit) {
     return remarkUnit;
   }
 
-  return fallbackUnit || "รายการ";
+  return (
+    fallbackUnit ||
+    "รายการ"
+  );
 }
 
 /* =========================================================
@@ -213,7 +223,7 @@ function getResponsibleName(
     asset.responsibleName?.trim();
 
   /* =======================================================
-     ใช้ responsibleName จากทะเบียนเดิมก่อน
+     RESPONSIBLE NAME
   ======================================================= */
 
   if (
@@ -233,7 +243,9 @@ function getResponsibleName(
       return originalResponsibleName;
     }
 
-    if (cleanDepartmentName) {
+    if (
+      cleanDepartmentName
+    ) {
       return `${cleanDepartmentName} / ${originalResponsibleName}`;
     }
 
@@ -248,7 +260,9 @@ function getResponsibleName(
     asset.section?.name?.trim();
 
   if (sectionName) {
-    if (cleanDepartmentName) {
+    if (
+      cleanDepartmentName
+    ) {
       return `${cleanDepartmentName} / ${sectionName}`;
     }
 
@@ -265,14 +279,18 @@ function getResponsibleName(
       : "";
 
   if (officerName) {
-    if (cleanDepartmentName) {
+    if (
+      cleanDepartmentName
+    ) {
       return `${cleanDepartmentName} / ${officerName}`;
     }
 
     return officerName;
   }
 
-  if (cleanDepartmentName) {
+  if (
+    cleanDepartmentName
+  ) {
     return cleanDepartmentName;
   }
 
@@ -290,8 +308,9 @@ function getStatusLabel(
     case "IN_USE":
       return {
         label:
-          statusName[status] ??
-          "ยังใช้งาน",
+          statusName[
+            status
+          ] ?? "ยังใช้งาน",
 
         className: `
           bg-emerald-100
@@ -302,8 +321,9 @@ function getStatusLabel(
     case "WAITING_DISPOSAL":
       return {
         label:
-          statusName[status] ??
-          "รอจำหน่าย",
+          statusName[
+            status
+          ] ?? "รอจำหน่าย",
 
         className: `
           bg-amber-100
@@ -314,8 +334,9 @@ function getStatusLabel(
     case "DAMAGED":
       return {
         label:
-          statusName[status] ??
-          "ชำรุด",
+          statusName[
+            status
+          ] ?? "ชำรุด",
 
         className: `
           bg-red-100
@@ -326,8 +347,9 @@ function getStatusLabel(
     case "DISPOSED":
       return {
         label:
-          statusName[status] ??
-          "จำหน่ายแล้ว",
+          statusName[
+            status
+          ] ?? "จำหน่ายแล้ว",
 
         className: `
           bg-slate-200
@@ -338,8 +360,9 @@ function getStatusLabel(
     default:
       return {
         label:
-          statusName[status] ??
-          status,
+          statusName[
+            status
+          ] ?? status,
 
         className: `
           bg-slate-100
@@ -357,6 +380,10 @@ export default async function AssetCategoryPage({
   params,
   searchParams,
 }: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const resolvedParams =
     await params;
 
@@ -378,7 +405,7 @@ export default async function AssetCategoryPage({
       .toUpperCase();
 
   /* =======================================================
-     PARAM VALIDATION
+     VALIDATION
   ======================================================= */
 
   if (
@@ -410,11 +437,12 @@ export default async function AssetCategoryPage({
 
   const search =
     (
-      Array.isArray(rawSearch)
+      Array.isArray(
+        rawSearch
+      )
         ? rawSearch[0]
         : rawSearch
-    )
-      ?.trim() ?? "";
+    )?.trim() ?? "";
 
   /* =======================================================
      DEPARTMENT
@@ -437,16 +465,37 @@ export default async function AssetCategoryPage({
   }
 
   /* =======================================================
-     ASSETS
+     NON-NULL VALUES
 
-     ค้นหาจากข้อมูลหลักของทะเบียน
+     สำคัญ:
+     Server Action ด้านล่างจะใช้ primitive เหล่านี้
+     แทนการอ้าง department โดยตรง
+
+     ป้องกัน TypeScript:
+     'department' is possibly 'null'
+  ======================================================= */
+
+  const departmentIdForAction =
+    department.id;
+
+  const departmentNameForDisplay =
+    department.name;
+
+  const assetCategoryForAction =
+    assetCategory;
+
+  const categorySlug =
+    assetCategory.toLowerCase();
+
+  /* =======================================================
+     ASSETS
   ======================================================= */
 
   const assetsFromDatabase =
     await prisma.asset.findMany({
       where: {
         departmentId:
-          department.id,
+          departmentIdForAction,
 
         category:
           assetCategory as any,
@@ -458,46 +507,57 @@ export default async function AssetCategoryPage({
                   name: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
                 },
+
                 {
                   governmentAssetNo: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
                 },
+
                 {
                   officeAssetNo: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
                 },
+
                 {
                   brand: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
                 },
+
                 {
                   model: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
                 },
+
                 {
                   responsibleName: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -516,9 +576,6 @@ export default async function AssetCategoryPage({
 
   /* =======================================================
      SORT
-
-     ให้ลำดับตรงทะเบียนต้นฉบับก่อน
-     ถ้าไม่มี SOURCE ORDER ใช้ id
   ======================================================= */
 
   const assets = [
@@ -544,27 +601,30 @@ export default async function AssetCategoryPage({
       );
     }
 
-    if (orderA !== null) {
+    if (
+      orderA !== null
+    ) {
       return -1;
     }
 
-    if (orderB !== null) {
+    if (
+      orderB !== null
+    ) {
       return 1;
     }
 
-    return a.id - b.id;
+    return (
+      a.id -
+      b.id
+    );
   });
 
   /* =======================================================
      PERMISSION
-
-     หมายเหตุ:
-     ตอนนี้คงความสามารถจัดการไว้ตาม UI เดิม
-     หากระบบมี session/role helper อยู่แล้ว
-     สามารถเปลี่ยนค่า canManage ให้ผูกกับ role ได้ภายหลัง
   ======================================================= */
 
-  const canManage = true;
+  const canManage =
+    true;
 
   /* =======================================================
      DELETE ASSET
@@ -582,6 +642,10 @@ export default async function AssetCategoryPage({
         )
       );
 
+    /* =====================================================
+       VALIDATE ID
+    ===================================================== */
+
     if (
       !Number.isInteger(
         assetId
@@ -592,17 +656,20 @@ export default async function AssetCategoryPage({
     }
 
     /* =====================================================
-       ตรวจว่า asset อยู่ใน department/category นี้จริง
+       ตรวจสอบว่าครุภัณฑ์อยู่ในหน่วยงาน
+       และประเภทนี้จริง
     ===================================================== */
 
-    const asset =
+    const assetToDelete =
       await prisma.asset.findFirst({
         where: {
           id: assetId,
+
           departmentId:
-            department.id,
+            departmentIdForAction,
+
           category:
-            assetCategory as any,
+            assetCategoryForAction as any,
         },
 
         select: {
@@ -610,26 +677,37 @@ export default async function AssetCategoryPage({
         },
       });
 
-    if (!asset) {
+    if (
+      !assetToDelete
+    ) {
       return;
     }
 
+    /* =====================================================
+       DELETE
+    ===================================================== */
+
     await prisma.asset.delete({
       where: {
-        id: asset.id,
+        id:
+          assetToDelete.id,
       },
     });
 
+    /* =====================================================
+       REVALIDATE
+    ===================================================== */
+
     revalidatePath(
-      `/assets/${department.id}`
+      `/assets/${departmentIdForAction}`
     );
 
     revalidatePath(
-      `/assets/${department.id}/${assetCategory.toLowerCase()}`
+      `/assets/${departmentIdForAction}/${assetCategoryForAction.toLowerCase()}`
     );
 
     revalidatePath(
-      `/assets/${department.id}/all`
+      `/assets/${departmentIdForAction}/all`
     );
   }
 
@@ -654,12 +732,12 @@ export default async function AssetCategoryPage({
             assetCategory
           ]
         }
-        subtitle={`${department.name} — ทะเบียนคุมครุภัณฑ์`}
+        subtitle={`${departmentNameForDisplay} — ทะเบียนคุมครุภัณฑ์`}
         actions={
           <>
             {canManage && (
               <AppButton
-                href={`/assets/${department.id}/${assetCategory.toLowerCase()}/new`}
+                href={`/assets/${departmentIdForAction}/${categorySlug}/new`}
                 variant="primary"
                 size="md"
                 icon={
@@ -675,7 +753,7 @@ export default async function AssetCategoryPage({
             )}
 
             <AppButton
-              href={`/assets/${department.id}`}
+              href={`/assets/${departmentIdForAction}`}
               variant="back"
               size="md"
               icon={
@@ -697,11 +775,13 @@ export default async function AssetCategoryPage({
       ===================================================== */}
 
       <AssetCategorySearch
-        initialValue={search}
+        initialValue={
+          search
+        }
         resultCount={
           assets.length
         }
-        pathname={`/assets/${department.id}/${assetCategory.toLowerCase()}`}
+        pathname={`/assets/${departmentIdForAction}/${categorySlug}`}
       />
 
       {/* =====================================================
@@ -710,7 +790,7 @@ export default async function AssetCategoryPage({
 
       <AppTableCard
         title={`รายการ${categoryName[assetCategory]}`}
-        subtitle={`${department.name} • ทะเบียนคุมครุภัณฑ์`}
+        subtitle={`${departmentNameForDisplay} • ทะเบียนคุมครุภัณฑ์`}
         badge={`${assets.length.toLocaleString(
           "th-TH"
         )} รายการ`}
@@ -763,22 +843,17 @@ export default async function AssetCategoryPage({
                       }
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-4
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
                         !text-white
-
                         sm:text-lg
                       "
                     >
@@ -819,7 +894,7 @@ export default async function AssetCategoryPage({
                     const responsible =
                       getResponsibleName(
                         asset,
-                        department.name
+                        departmentNameForDisplay
                       );
 
                     const status =
@@ -828,7 +903,7 @@ export default async function AssetCategoryPage({
                       );
 
                     const detailHref =
-                      `/assets/${department.id}/${assetCategory.toLowerCase()}/${asset.id}`;
+                      `/assets/${departmentIdForAction}/${categorySlug}/${asset.id}`;
 
                     const editHref =
                       `${detailHref}/edit`;
@@ -853,7 +928,9 @@ export default async function AssetCategoryPage({
                           hover:bg-blue-50/70
                         `}
                       >
-                        {/* ORDER */}
+                        {/* ===================================
+                            ORDER
+                        =================================== */}
 
                         <td
                           className="
@@ -876,7 +953,9 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* GFMIS */}
+                        {/* ===================================
+                            GFMIS
+                        =================================== */}
 
                         <td
                           className="
@@ -895,7 +974,9 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* ASSET CODE */}
+                        {/* ===================================
+                            ASSET CODE
+                        =================================== */}
 
                         <td
                           className="
@@ -914,7 +995,9 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* NAME */}
+                        {/* ===================================
+                            NAME
+                        =================================== */}
 
                         <td
                           className="
@@ -963,7 +1046,9 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* QUANTITY */}
+                        {/* ===================================
+                            QUANTITY
+                        =================================== */}
 
                         <td
                           className="
@@ -985,7 +1070,9 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* UNIT */}
+                        {/* ===================================
+                            UNIT
+                        =================================== */}
 
                         <td
                           className="
@@ -1002,7 +1089,9 @@ export default async function AssetCategoryPage({
                           {unit}
                         </td>
 
-                        {/* RESPONSIBLE */}
+                        {/* ===================================
+                            RESPONSIBLE
+                        =================================== */}
 
                         <td
                           className="
@@ -1022,7 +1111,9 @@ export default async function AssetCategoryPage({
                           }
                         </td>
 
-                        {/* STATUS */}
+                        {/* ===================================
+                            STATUS
+                        =================================== */}
 
                         <td
                           className="
@@ -1055,9 +1146,9 @@ export default async function AssetCategoryPage({
                           </span>
                         </td>
 
-                        {/* =====================================
+                        {/* ===================================
                             DETAIL
-                        ===================================== */}
+                        =================================== */}
 
                         <td
                           className="
@@ -1081,9 +1172,9 @@ export default async function AssetCategoryPage({
                           </AppButton>
                         </td>
 
-                        {/* =====================================
+                        {/* ===================================
                             ACTIONS
-                        ===================================== */}
+                        =================================== */}
 
                         <td
                           className="
@@ -1105,6 +1196,8 @@ export default async function AssetCategoryPage({
                                 gap-2
                               "
                             >
+                              {/* EDIT */}
+
                               <AppButton
                                 href={
                                   editHref
@@ -1114,6 +1207,8 @@ export default async function AssetCategoryPage({
                               >
                                 แก้ไข
                               </AppButton>
+
+                              {/* DELETE */}
 
                               <form
                                 action={
@@ -1159,7 +1254,9 @@ export default async function AssetCategoryPage({
 
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={
+                      10
+                    }
                     className="
                       border
                       border-black
@@ -1227,7 +1324,7 @@ export default async function AssetCategoryPage({
                       {search && (
                         <div className="mt-5">
                           <AppButton
-                            href={`/assets/${department.id}/${assetCategory.toLowerCase()}`}
+                            href={`/assets/${departmentIdForAction}/${categorySlug}`}
                             variant="primary"
                             size="md"
                           >
