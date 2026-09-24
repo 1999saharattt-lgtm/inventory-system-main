@@ -20,6 +20,10 @@ type Props = {
     category: string;
     assetId: string;
   }>;
+
+  searchParams?: Promise<{
+    from?: string | string[];
+  }>;
 };
 
 /* =========================================================
@@ -95,15 +99,44 @@ const statusClass: Record<
 
 export default async function AssetDetailPage({
   params,
+  searchParams,
 }: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
   const {
     departmentId,
     category,
     assetId,
   } = await params;
 
+  const resolvedSearchParams =
+    searchParams
+      ? await searchParams
+      : {};
+
   /* =======================================================
-     PARAMS
+     FROM
+
+     ถ้ามาจาก /assets/[departmentId]/all
+     URL จะเป็น ?from=all
+  ======================================================= */
+
+  const rawFrom =
+    resolvedSearchParams.from;
+
+  const from =
+    (
+      Array.isArray(rawFrom)
+        ? rawFrom[0]
+        : rawFrom
+    )
+      ?.trim()
+      .toLowerCase() ?? "";
+
+  /* =======================================================
+     PARAM VALIDATION
   ======================================================= */
 
   const departmentIdNumber =
@@ -113,7 +146,11 @@ export default async function AssetDetailPage({
     Number(assetId);
 
   const normalizedCategory =
-    category.toUpperCase();
+    decodeURIComponent(
+      category
+    )
+      .trim()
+      .toUpperCase();
 
   if (
     !Number.isInteger(
@@ -162,6 +199,19 @@ export default async function AssetDetailPage({
   }
 
   /* =======================================================
+     NON-NULL VALUES
+
+     เก็บค่าหลังตรวจสอบ asset แล้ว
+     เพื่อให้ TypeScript ทราบว่า asset มีอยู่จริง
+  ======================================================= */
+
+  const assetDepartmentId =
+    asset.departmentId;
+
+  const assetCategorySlug =
+    asset.category.toLowerCase();
+
+  /* =======================================================
      OFFICER
   ======================================================= */
 
@@ -179,10 +229,36 @@ export default async function AssetDetailPage({
   ======================================================= */
 
   const categoryPath =
-    `/assets/${departmentIdNumber}/${asset.category.toLowerCase()}`;
+    `/assets/${assetDepartmentId}/${assetCategorySlug}`;
+
+  const allAssetsPath =
+    `/assets/${assetDepartmentId}/all`;
+
+  /*
+   * สำคัญ:
+   *
+   * /assets/1/all
+   *   ↓
+   * /assets/1/chair/934?from=all
+   *   ↓ กดกลับ
+   * /assets/1/all
+   *
+   * แต่ถ้าเข้าจากหน้าหมวดตามปกติ
+   *
+   * /assets/1/chair
+   *   ↓
+   * /assets/1/chair/934
+   *   ↓ กดกลับ
+   * /assets/1/chair
+   */
+
+  const backPath =
+    from === "all"
+      ? allAssetsPath
+      : categoryPath;
 
   /* =======================================================
-     SHARED
+     SHARED STYLE
   ======================================================= */
 
   const labelClassName = `
@@ -231,11 +307,13 @@ export default async function AssetDetailPage({
         subtitle={`${asset.name} — ทะเบียนคุมครุภัณฑ์`}
         actions={
           <AppButton
-            href={categoryPath}
+            href={backPath}
             variant="back"
             size="md"
             icon={
-              <span aria-hidden="true">
+              <span
+                aria-hidden="true"
+              >
                 ←
               </span>
             }
@@ -340,6 +418,10 @@ export default async function AssetDetailPage({
             lg:grid-cols-2
           "
         >
+          {/* ===============================================
+              NAME
+          =============================================== */}
+
           <AppInfoCard
             className="
               lg:col-span-2
@@ -362,6 +444,10 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
+          {/* ===============================================
+              CATEGORY
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -382,6 +468,10 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
+          {/* ===============================================
+              BRAND
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -396,9 +486,14 @@ export default async function AssetDetailPage({
                 valueClassName
               }
             >
-              {asset.brand ?? "-"}
+              {asset.brand ??
+                "-"}
             </div>
           </AppInfoCard>
+
+          {/* ===============================================
+              MODEL
+          =============================================== */}
 
           <AppInfoCard>
             <p
@@ -414,9 +509,14 @@ export default async function AssetDetailPage({
                 valueClassName
               }
             >
-              {asset.model ?? "-"}
+              {asset.model ??
+                "-"}
             </div>
           </AppInfoCard>
+
+          {/* ===============================================
+              SERIAL NUMBER
+          =============================================== */}
 
           <AppInfoCard>
             <p
@@ -476,6 +576,10 @@ export default async function AssetDetailPage({
             lg:grid-cols-2
           "
         >
+          {/* ===============================================
+              GFMIS
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -495,6 +599,10 @@ export default async function AssetDetailPage({
                 "-"}
             </div>
           </AppInfoCard>
+
+          {/* ===============================================
+              ASSET CODE
+          =============================================== */}
 
           <AppInfoCard>
             <p
@@ -554,6 +662,10 @@ export default async function AssetDetailPage({
             lg:grid-cols-2
           "
         >
+          {/* ===============================================
+              DEPARTMENT
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -571,6 +683,10 @@ export default async function AssetDetailPage({
               {asset.department.name}
             </div>
           </AppInfoCard>
+
+          {/* ===============================================
+              SECTION
+          =============================================== */}
 
           <AppInfoCard>
             <p
@@ -591,6 +707,10 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
+          {/* ===============================================
+              OFFICER
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -609,6 +729,10 @@ export default async function AssetDetailPage({
             </div>
           </AppInfoCard>
 
+          {/* ===============================================
+              POSITION
+          =============================================== */}
+
           <AppInfoCard>
             <p
               className={
@@ -626,6 +750,10 @@ export default async function AssetDetailPage({
               {officerPosition}
             </div>
           </AppInfoCard>
+
+          {/* ===============================================
+              REMARK
+          =============================================== */}
 
           {asset.remark && (
             <AppInfoCard
