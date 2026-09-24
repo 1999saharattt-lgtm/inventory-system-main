@@ -65,7 +65,7 @@ function getSourceOrder(
   }
 
   const match = remark.match(
-    /SOURCE:DEPARTMENT_1:(\d+)/
+    /SOURCE:DEPARTMENT_\d+:(\d+)/
   );
 
   if (!match) {
@@ -109,14 +109,13 @@ function getResponsibleName(asset: {
   } | null;
 }) {
   const departmentName =
-    asset.department.name?.trim() ||
-    "";
+    asset.department.name?.trim() || "";
 
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
   /* =======================================================
-     ใช้ข้อความจาก Excel ก่อน
+     RESPONSIBLE NAME
   ======================================================= */
 
   if (
@@ -144,7 +143,7 @@ function getResponsibleName(asset: {
   }
 
   /* =======================================================
-     ถ้าไม่มี responsibleName ใช้ section
+     SECTION
   ======================================================= */
 
   const sectionName =
@@ -159,8 +158,7 @@ function getResponsibleName(asset: {
   }
 
   /* =======================================================
-     ถ้าไม่มีทั้ง responsibleName และ section
-     ใช้ผู้ครอบครอง
+     OFFICER
   ======================================================= */
 
   const officerName =
@@ -293,13 +291,24 @@ export default async function AllAssetsPage({
   }
 
   /* =======================================================
+     NON-NULL VALUES
+  ======================================================= */
+
+  const departmentIdForPage =
+    department.id;
+
+  const departmentNameForPage =
+    department.name;
+
+  /* =======================================================
      ASSETS
   ======================================================= */
 
   const assetsFromDatabase =
     await prisma.asset.findMany({
       where: {
-        departmentId: id,
+        departmentId:
+          departmentIdForPage,
       },
 
       include: {
@@ -311,24 +320,29 @@ export default async function AllAssetsPage({
 
   /* =======================================================
      SORT
-
-     เรียงตามทะเบียนต้นฉบับ
   ======================================================= */
 
   const assets = [
     ...assetsFromDatabase,
   ].sort((a, b) => {
     const orderA =
-      getSourceOrder(a.remark);
+      getSourceOrder(
+        a.remark
+      );
 
     const orderB =
-      getSourceOrder(b.remark);
+      getSourceOrder(
+        b.remark
+      );
 
     if (
       orderA !== null &&
       orderB !== null
     ) {
-      return orderA - orderB;
+      return (
+        orderA -
+        orderB
+      );
     }
 
     if (orderA !== null) {
@@ -344,9 +358,6 @@ export default async function AllAssetsPage({
 
   /* =======================================================
      PDF
-
-     ExportDepartmentAssetsPdf ใช้ AppButton ตัวกลางแล้ว
-     จึงไม่ต้องใช้ wrapper บังคับ style ปุ่มอีก
   ======================================================= */
 
   const ExportPdfButton =
@@ -365,38 +376,84 @@ export default async function AllAssetsPage({
       <AppPageHeader
         icon="📋"
         title="ทะเบียนครุภัณฑ์ทั้งหมด"
-        subtitle={`${department.name} — ทะเบียนคุมครุภัณฑ์`}
+        subtitle={
+          departmentNameForPage
+        }
         actions={
           <>
             {/* ===============================================
                 EXPORT PDF
             =============================================== */}
 
-            <ExportPdfButton
-              departmentId={
-                department.id
-              }
-              departmentName={
-                department.name
-              }
-              department={
-                department
-              }
-              assets={
-                assets
-              }
-            />
+            <div
+              className="
+                w-full
+                sm:w-auto
+
+                [&_button]:!flex
+                [&_button]:!h-11
+                [&_button]:!w-full
+
+                [&_button]:!items-center
+                [&_button]:!justify-center
+
+                [&_button]:!whitespace-nowrap
+
+                [&_button]:!rounded-xl
+                [&_button]:!border-0
+
+                [&_button]:!bg-none
+                [&_button]:!bg-red-600
+
+                [&_button]:!px-4
+                [&_button]:!py-0
+
+                [&_button]:!text-center
+                [&_button]:!text-sm
+                [&_button]:!font-extrabold
+                [&_button]:!leading-none
+                [&_button]:!text-white
+
+                [&_button]:!shadow-lg
+
+                [&_button]:!transition
+
+                [&_button:hover]:!scale-[1.02]
+                [&_button:hover]:!bg-red-700
+
+                [&_button:active]:!scale-[0.98]
+
+                sm:[&_button]:!w-auto
+              "
+            >
+              <ExportPdfButton
+                departmentId={
+                  departmentIdForPage
+                }
+                departmentName={
+                  departmentNameForPage
+                }
+                department={
+                  department
+                }
+                assets={
+                  assets
+                }
+              />
+            </div>
 
             {/* ===============================================
                 BACK
             =============================================== */}
 
             <AppButton
-              href={`/assets/${department.id}`}
+              href={`/assets/${departmentIdForPage}`}
               variant="back"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   ←
                 </span>
               }
@@ -413,7 +470,7 @@ export default async function AllAssetsPage({
 
       <AppTableCard
         title="ทะเบียนครุภัณฑ์ทั้งหมด"
-        subtitle={`${department.name} • ทะเบียนคุมครุภัณฑ์`}
+        subtitle={`${departmentNameForPage} • ทะเบียนคุมครุภัณฑ์`}
         badge={`${assets.length.toLocaleString(
           "th-TH"
         )} รายการ`}
@@ -422,23 +479,64 @@ export default async function AllAssetsPage({
           min-w-0
         "
       >
+        {/* ===================================================
+            TABLE WRAPPER
+
+            ไม่กำหนด min-width ขนาดใหญ่
+            เพื่อไม่ให้ตารางล้นออกด้านข้าง
+        =================================================== */}
+
         <div
           className="
             w-full
             min-w-0
-            overflow-x-auto
-            overscroll-x-contain
+            overflow-hidden
           "
         >
           <table
             className="
               w-full
-              min-w-[1550px]
+              table-fixed
               border-collapse
               bg-white
               text-sm
             "
           >
+            {/* =================================================
+                COLUMN WIDTH
+
+                รวม 100%
+            ================================================= */}
+
+            <colgroup>
+              {/* ลำดับ */}
+              <col className="w-[5%]" />
+
+              {/* GFMIS */}
+              <col className="w-[12%]" />
+
+              {/* รหัสครุภัณฑ์ */}
+              <col className="w-[14%]" />
+
+              {/* รายการ */}
+              <col className="w-[21%]" />
+
+              {/* จำนวน */}
+              <col className="w-[6%]" />
+
+              {/* หน่วย */}
+              <col className="w-[6%]" />
+
+              {/* ผู้รับผิดชอบ */}
+              <col className="w-[18%]" />
+
+              {/* สถานะ */}
+              <col className="w-[9%]" />
+
+              {/* รายละเอียด */}
+              <col className="w-[9%]" />
+            </colgroup>
+
             {/* =================================================
                 TABLE HEADER
             ================================================= */}
@@ -473,15 +571,16 @@ export default async function AllAssetsPage({
                         from-slate-800
                         to-slate-700
 
-                        px-4
+                        px-2
                         py-4
 
                         text-center
-                        text-base
+                        text-sm
                         font-extrabold
                         !text-white
 
-                        sm:text-lg
+                        xl:px-3
+                        xl:text-base
                       "
                     >
                       {
@@ -498,7 +597,8 @@ export default async function AllAssetsPage({
             ================================================= */}
 
             <tbody>
-              {assets.length > 0 ? (
+              {assets.length >
+              0 ? (
                 assets.map(
                   (
                     asset,
@@ -506,6 +606,11 @@ export default async function AllAssetsPage({
                   ) => {
                     const detailPath =
                       `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}`;
+
+                    const responsible =
+                      getResponsibleName(
+                        asset
+                      );
 
                     return (
                       <tr
@@ -536,7 +641,7 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-1.5
                             py-3.5
                             text-center
                             font-extrabold
@@ -545,8 +650,7 @@ export default async function AllAssetsPage({
                           "
                         >
                           {(
-                            index +
-                            1
+                            index + 1
                           ).toLocaleString(
                             "th-TH"
                           )}
@@ -558,19 +662,33 @@ export default async function AllAssetsPage({
 
                         <td
                           className="
-                            min-w-[180px]
-                            break-all
+                            overflow-hidden
+                            whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-2
                             py-3.5
                             text-center
-                            font-extrabold
+                            text-sm
+                            font-bold
                             !text-slate-900
                           "
+                          title={
+                            asset.governmentAssetNo ??
+                            "-"
+                          }
                         >
-                          {asset.governmentAssetNo ??
-                            "-"}
+                          <span
+                            className="
+                              block
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
+                            "
+                          >
+                            {asset.governmentAssetNo ??
+                              "-"}
+                          </span>
                         </td>
 
                         {/* ===================================
@@ -579,19 +697,33 @@ export default async function AllAssetsPage({
 
                         <td
                           className="
-                            min-w-[200px]
-                            break-all
+                            overflow-hidden
+                            whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-2
                             py-3.5
                             text-center
-                            font-extrabold
+                            text-sm
+                            font-bold
                             !text-slate-900
                           "
+                          title={
+                            asset.officeAssetNo ??
+                            "-"
+                          }
                         >
-                          {asset.officeAssetNo ??
-                            "-"}
+                          <span
+                            className="
+                              block
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
+                            "
+                          >
+                            {asset.officeAssetNo ??
+                              "-"}
+                          </span>
                         </td>
 
                         {/* ===================================
@@ -600,18 +732,34 @@ export default async function AllAssetsPage({
 
                         <td
                           className="
-                            min-w-[280px]
-                            break-words
+                            overflow-hidden
+                            whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-2.5
                             py-3.5
-                            font-extrabold
+                            font-bold
                             !text-slate-900
                           "
+                          title={
+                            [
+                              asset.name,
+                              asset.brand,
+                              asset.model,
+                            ]
+                              .filter(
+                                Boolean
+                              )
+                              .join(
+                                " / "
+                              )
+                          }
                         >
                           <div
                             className="
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
                               font-extrabold
                               !text-slate-900
                             "
@@ -626,6 +774,9 @@ export default async function AllAssetsPage({
                             <div
                               className="
                                 mt-1
+                                overflow-hidden
+                                text-ellipsis
+                                whitespace-nowrap
                                 text-xs
                                 font-semibold
                                 !text-slate-500
@@ -654,7 +805,7 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-1
                             py-3.5
                             text-center
                             font-extrabold
@@ -679,7 +830,7 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-1
                             py-3.5
                             text-center
                             font-extrabold
@@ -697,33 +848,48 @@ export default async function AllAssetsPage({
 
                         <td
                           className="
-                            min-w-[260px]
-                            break-words
+                            overflow-hidden
+                            whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-2
                             py-3.5
                             text-center
-                            font-extrabold
+                            text-sm
+                            font-bold
                             !text-slate-900
                           "
+                          title={
+                            responsible
+                          }
                         >
-                          {getResponsibleName(
-                            asset
-                          )}
+                          <span
+                            className="
+                              block
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
+                            "
+                          >
+                            {
+                              responsible
+                            }
+                          </span>
                         </td>
 
                         {/* ===================================
                             STATUS
+
+                            ปรับเป็น text-sm
+                            ให้ขนาดข้อความเท่าข้อมูลอื่น
                         =================================== */}
 
                         <td
                           className="
-                            min-w-[150px]
                             whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-1
                             py-3.5
                             text-center
                           "
@@ -731,6 +897,7 @@ export default async function AllAssetsPage({
                           <span
                             className={`
                               inline-flex
+                              max-w-full
                               items-center
                               justify-center
 
@@ -738,11 +905,12 @@ export default async function AllAssetsPage({
 
                               rounded-full
 
-                              px-3
+                              px-2
                               py-1.5
 
-                              text-xs
+                              text-sm
                               font-extrabold
+                              leading-none
 
                               ${getStatusClass(
                                 asset.status
@@ -750,8 +918,7 @@ export default async function AllAssetsPage({
                             `}
                           >
                             {statusName[
-                              asset
-                                .status
+                              asset.status
                             ] ??
                               asset.status}
                           </span>
@@ -763,11 +930,10 @@ export default async function AllAssetsPage({
 
                         <td
                           className="
-                            min-w-[150px]
                             whitespace-nowrap
                             border
                             border-black
-                            px-4
+                            px-1.5
                             py-3
                             text-center
                           "
