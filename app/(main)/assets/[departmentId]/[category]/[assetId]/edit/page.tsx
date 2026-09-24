@@ -31,8 +31,7 @@ type Props = {
 const categoryName = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
-  AIR_CONDITIONER:
-    "เครื่องปรับอากาศ",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ",
   CABINET: "ตู้และชั้น",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
@@ -60,14 +59,10 @@ type AssetCategoryValue =
    STATUS
 ========================================================= */
 
-const statusName: Record<
-  string,
-  string
-> = {
+const statusName: Record<string, string> = {
   IN_USE: "ยังใช้งาน",
   DAMAGED: "ชำรุด",
-  WAITING_DISPOSAL:
-    "รอจำหน่าย",
+  WAITING_DISPOSAL: "รอจำหน่าย",
   DISPOSED: "จำหน่ายแล้ว",
 };
 
@@ -232,6 +227,9 @@ export default async function EditAssetPage({
   const detailPath =
     `/assets/${departmentIdNumber}/${assetCategory.toLowerCase()}/${asset.id}`;
 
+  const disposalPath =
+    `${detailPath}/disposal`;
+
   /* =======================================================
      SHARED CLASSES
   ======================================================= */
@@ -295,18 +293,41 @@ export default async function EditAssetPage({
         title="แก้ไขข้อมูลครุภัณฑ์"
         subtitle={`${asset.name} — ${asset.department.name}`}
         actions={
-          <AppButton
-            href={detailPath}
-            variant="back"
-            size="md"
-            icon={
-              <span aria-hidden="true">
-                ←
-              </span>
-            }
-          >
-            กลับ
-          </AppButton>
+          <>
+            {/* ===============================================
+                DISPOSAL
+            =============================================== */}
+
+            <AppButton
+              href={disposalPath}
+              variant="danger"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  📦
+                </span>
+              }
+            >
+              การจำหน่าย
+            </AppButton>
+
+            {/* ===============================================
+                BACK
+            =============================================== */}
+
+            <AppButton
+              href={detailPath}
+              variant="back"
+              size="md"
+              icon={
+                <span aria-hidden="true">
+                  ←
+                </span>
+              }
+            >
+              กลับ
+            </AppButton>
+          </>
         }
       />
 
@@ -398,27 +419,19 @@ export default async function EditAssetPage({
                 }
               >
                 <option value="IN_USE">
-                  {
-                    statusName.IN_USE
-                  }
+                  {statusName.IN_USE}
                 </option>
 
                 <option value="DAMAGED">
-                  {
-                    statusName.DAMAGED
-                  }
+                  {statusName.DAMAGED}
                 </option>
 
                 <option value="WAITING_DISPOSAL">
-                  {
-                    statusName.WAITING_DISPOSAL
-                  }
+                  {statusName.WAITING_DISPOSAL}
                 </option>
 
                 <option value="DISPOSED">
-                  {
-                    statusName.DISPOSED
-                  }
+                  {statusName.DISPOSED}
                 </option>
               </select>
 
