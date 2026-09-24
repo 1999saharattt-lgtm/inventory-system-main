@@ -5,8 +5,7 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 /* =========================================================
    TYPES
@@ -56,9 +55,7 @@ function isValidCategory(
 function getBackHref(
   category: string | undefined
 ) {
-  if (
-    isValidCategory(category)
-  ) {
+  if (isValidCategory(category)) {
     return `/materials/category/${category}`;
   }
 
@@ -126,9 +123,9 @@ export default async function NewMaterialPage({
       },
     });
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <AppPage>
@@ -146,13 +143,6 @@ export default async function NewMaterialPage({
             href={backHref}
             variant="back"
             size="md"
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                ←
-              </span>
-            }
           >
             กลับ
           </AppButton>
@@ -161,9 +151,7 @@ export default async function NewMaterialPage({
 
       {/* =====================================================
           FORM
-
-          ไม่สร้าง Card / Background / Container เอง
-          ให้ MaterialForm ใช้ Component กลางของระบบ
+          ใช้ MaterialForm กลาง
       ===================================================== */}
 
       <MaterialForm
