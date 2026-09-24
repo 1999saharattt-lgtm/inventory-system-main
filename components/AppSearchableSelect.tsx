@@ -1,11 +1,14 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+
+import { createPortal } from "react-dom";
 
 /* =========================================================
    TYPES
@@ -22,8 +25,7 @@ type Props = {
 
   value: string;
 
-  options:
-    AppSearchableSelectOption[];
+  options: AppSearchableSelectOption[];
 
   placeholder?: string;
 
@@ -40,6 +42,14 @@ type Props = {
   ) => void;
 
   className?: string;
+};
+
+type PanelPosition = {
+  left: number;
+  width: number;
+  top?: number;
+  bottom?: number;
+  maxHeight: number;
 };
 
 /* =========================================================
@@ -72,11 +82,33 @@ export default function AppSearchableSelect({
     setSearch,
   ] = useState("");
 
+  const [
+    mounted,
+    setMounted,
+  ] = useState(false);
+
+  const [
+    panelPosition,
+    setPanelPosition,
+  ] = useState<PanelPosition | null>(
+    null
+  );
+
   /* =======================================================
      REFS
   ======================================================= */
 
   const containerRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const controlRef =
+    useRef<HTMLButtonElement>(
+      null
+    );
+
+  const panelRef =
     useRef<HTMLDivElement>(
       null
     );
@@ -87,7 +119,15 @@ export default function AppSearchableSelect({
     );
 
   /* =======================================================
-     SELECTED
+     MOUNT
+  ======================================================= */
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* =======================================================
+     SELECTED OPTION
   ======================================================= */
 
   const selectedOption =
@@ -146,33 +186,231 @@ export default function AppSearchableSelect({
     ]);
 
   /* =======================================================
+     PANEL POSITION
+
+     ใช้ fixed + Portal
+     จึงไม่โดน overflow / z-index ของ AppCard บัง
+  ======================================================= */
+
+  const updatePanelPosition =
+    useCallback(() => {
+      const control =
+        controlRef.current;
+
+      if (!control) {
+        return;
+      }
+
+      const rect =
+        control.getBoundingClientRect();
+
+      const viewportWidth =
+        window.innerWidth;
+
+      const viewportHeight =
+        window.innerHeight;
+
+      const pagePadding =
+        12;
+
+      const gap =
+        8;
+
+      const spaceBelow =
+        viewportHeight -
+        rect.bottom -
+        pagePadding;
+
+      const spaceAbove =
+        rect.top -
+        pagePadding;
+
+      const openUpward =
+        spaceBelow < 280 &&
+        spaceAbove >
+          spaceBelow;
+
+      const availableHeight =
+        openUpward
+          ? spaceAbove -
+            gap
+          : spaceBelow -
+            gap;
+
+      const maxHeight =
+        Math.max(
+          180,
+          Math.min(
+            380,
+            availableHeight
+          )
+        );
+
+      const maxWidth =
+        Math.max(
+          0,
+          viewportWidth -
+            pagePadding *
+              2
+        );
+
+      const width =
+        Math.min(
+          rect.width,
+          maxWidth
+        );
+
+      const left =
+        Math.min(
+          Math.max(
+            rect.left,
+            pagePadding
+          ),
+          Math.max(
+            pagePadding,
+            viewportWidth -
+              width -
+              pagePadding
+          )
+        );
+
+      if (
+        openUpward
+      ) {
+        setPanelPosition({
+          left,
+          width,
+          bottom:
+            viewportHeight -
+            rect.top +
+            gap,
+          maxHeight,
+        });
+
+        return;
+      }
+
+      setPanelPosition({
+        left,
+        width,
+        top:
+          rect.bottom +
+          gap,
+        maxHeight,
+      });
+    }, []);
+
+  /* =======================================================
+     POSITION EVENTS
+  ======================================================= */
+
+  useEffect(() => {
+    if (!open) {
+      setPanelPosition(
+        null
+      );
+
+      return;
+    }
+
+    updatePanelPosition();
+
+    window.addEventListener(
+      "resize",
+      updatePanelPosition
+    );
+
+    window.addEventListener(
+      "scroll",
+      updatePanelPosition,
+      true
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        updatePanelPosition
+      );
+
+      window.removeEventListener(
+        "scroll",
+        updatePanelPosition,
+        true
+      );
+    };
+  }, [
+    open,
+    updatePanelPosition,
+  ]);
+
+  /* =======================================================
+     AUTO FOCUS
+  ======================================================= */
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+
+    const timer =
+      window.setTimeout(
+        () => {
+          searchInputRef.current?.focus();
+        },
+        0
+      );
+
+    return () => {
+      window.clearTimeout(
+        timer
+      );
+    };
+  }, [
+    open,
+  ]);
+
+  /* =======================================================
      CLICK OUTSIDE
   ======================================================= */
 
   useEffect(() => {
-    function handleMouseDown(
+    function handlePointerDown(
       event: MouseEvent
     ) {
+      const target =
+        event.target as Node;
+
+      const insideControl =
+        containerRef.current?.contains(
+          target
+        );
+
+      const insidePanel =
+        panelRef.current?.contains(
+          target
+        );
+
       if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
+        insideControl ||
+        insidePanel
       ) {
-        setOpen(false);
-        setSearch("");
+        return;
       }
+
+      setOpen(false);
+      setSearch("");
     }
 
     document.addEventListener(
       "mousedown",
-      handleMouseDown
+      handlePointerDown
     );
 
     return () => {
       document.removeEventListener(
         "mousedown",
-        handleMouseDown
+        handlePointerDown
       );
     };
   }, []);
@@ -208,254 +446,58 @@ export default function AppSearchableSelect({
   }, []);
 
   /* =======================================================
-     AUTO FOCUS SEARCH
+     PANEL
   ======================================================= */
 
-  useEffect(() => {
-    if (!open) {
-      setSearch("");
-      return;
-    }
-
-    const timer =
-      window.setTimeout(
-        () => {
-          searchInputRef.current?.focus();
-        },
-        0
-      );
-
-    return () => {
-      window.clearTimeout(
-        timer
-      );
-    };
-  }, [
-    open,
-  ]);
-
-  /* =======================================================
-     UI
-  ======================================================= */
-
-  return (
-    <div
-      ref={
-        containerRef
-      }
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${className}
-      `}
-    >
-      {/* ===================================================
-          REQUIRED FIELD
-      =================================================== */}
-
-      {required && (
-        <input
-          tabIndex={
-            -1
-          }
-          aria-hidden="true"
-          value={
-            value
-          }
-          onChange={() => {}}
-          required
-          className="
-            pointer-events-none
-            absolute
-
-            h-px
-            w-px
-
-            opacity-0
-          "
-        />
-      )}
-
-      {/* ===================================================
-          CONTROL
-      =================================================== */}
-
-      <button
-        id={
-          id
-        }
-        type="button"
-        disabled={
-          disabled
-        }
-        aria-haspopup="listbox"
-        aria-expanded={
-          open
-        }
-        onClick={() => {
-          if (
-            disabled
-          ) {
-            return;
-          }
-
-          setOpen(
-            (
-              current
-            ) =>
-              !current
-          );
-        }}
-        className={`
-          flex
-          min-h-[52px]
-          w-full
-          min-w-0
-
-          items-center
-          justify-between
-
-          gap-3
-
-          rounded-[16px]
-
-          border
-          border-slate-300
-
-          bg-white/95
-
-          px-4
-          py-3
-
-          text-left
-          text-sm
-          font-bold
-
-          shadow-sm
-
-          outline-none
-
-          transition-all
-          duration-200
-
-          hover:border-slate-400
-          hover:bg-white
-
-          focus:border-emerald-500
-          focus:ring-4
-          focus:ring-emerald-500/10
-
-          disabled:cursor-not-allowed
-          disabled:bg-slate-100
-          disabled:opacity-70
-        `}
-      >
-        {/* ===============================================
-            TEXT
-        =============================================== */}
-
-        <div
-          className="
-            min-w-0
-            flex-1
-          "
-        >
+  const panel =
+    open &&
+    mounted &&
+    panelPosition
+      ? createPortal(
           <div
-            className={`
-              truncate
-
-              ${
-                selectedOption
-                  ? "!text-slate-900"
-                  : "!text-slate-400"
-              }
-            `}
-          >
-            {selectedOption
-              ?.label ??
-              placeholder}
-          </div>
-
-          {selectedOption
-            ?.description && (
-            <div
-              className="
-                mt-0.5
-
-                truncate
-
-                text-xs
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              {
-                selectedOption.description
-              }
-            </div>
-          )}
-        </div>
-
-        {/* ===============================================
-            ARROW
-
-            ปิด = ▼
-            เปิด = ▲
-            ใช้ rotate เหมือน Dropdown หน้าอื่น
-        =============================================== */}
-
-        <span
-          aria-hidden="true"
-          className={`
-            shrink-0
-
-            text-xs
-            !text-slate-600
-
-            transition-transform
-            duration-200
-
-            ${
-              open
-                ? "rotate-180"
-                : ""
+            ref={
+              panelRef
             }
-          `}
-        >
-          ▼
-        </span>
-      </button>
-
-      {/* ===================================================
-          PANEL
-      =================================================== */}
-
-      {open &&
-        !disabled && (
-          <div
             role="listbox"
+            style={{
+              position:
+                "fixed",
+
+              left:
+                panelPosition.left,
+
+              width:
+                panelPosition.width,
+
+              top:
+                panelPosition.top,
+
+              bottom:
+                panelPosition.bottom,
+
+              maxHeight:
+                panelPosition.maxHeight,
+
+              zIndex:
+                999999,
+            }}
             className="
-              absolute
-              inset-x-0
-              top-[calc(100%+8px)]
-              z-[200]
+              flex
+              min-w-0
+              flex-col
 
               overflow-hidden
 
               rounded-[18px]
 
               border
-              border-slate-200
+              border-slate-200/90
 
               bg-white/95
 
-              shadow-2xl
-              shadow-slate-900/15
+              shadow-[0_22px_60px_-18px_rgba(15,23,42,0.38)]
 
-              backdrop-blur-xl
+              backdrop-blur-2xl
               backdrop-saturate-150
             "
           >
@@ -465,8 +507,12 @@ export default function AppSearchableSelect({
 
             <div
               className="
+                shrink-0
+
                 border-b
-                border-slate-100
+                border-slate-200/70
+
+                bg-white/90
 
                 p-2.5
               "
@@ -511,12 +557,15 @@ export default function AppSearchableSelect({
                   outline-none
 
                   transition-all
+                  duration-200
 
                   placeholder:!text-slate-400
 
-                  focus:border-emerald-500
+                  hover:border-slate-400
+
+                  focus:border-blue-500
                   focus:ring-4
-                  focus:ring-emerald-500/10
+                  focus:ring-blue-500/10
                 "
               />
             </div>
@@ -527,7 +576,8 @@ export default function AppSearchableSelect({
 
             <div
               className="
-                max-h-[280px]
+                min-h-0
+                flex-1
 
                 overflow-y-auto
 
@@ -601,18 +651,15 @@ export default function AppSearchableSelect({
                           text-left
 
                           transition-colors
+                          duration-150
 
                           ${
                             isSelected
-                              ? "bg-emerald-50"
+                              ? "bg-blue-50"
                               : "hover:bg-slate-50"
                           }
                         `}
                       >
-                        {/* =================================
-                            CHECK
-                        ================================= */}
-
                         <span
                           aria-hidden="true"
                           className={`
@@ -630,7 +677,7 @@ export default function AppSearchableSelect({
 
                             ${
                               isSelected
-                                ? "bg-emerald-600 !text-white"
+                                ? "bg-blue-600 !text-white"
                                 : "bg-slate-100 !text-slate-400"
                             }
                           `}
@@ -639,10 +686,6 @@ export default function AppSearchableSelect({
                             ? "✓"
                             : ""}
                         </span>
-
-                        {/* =================================
-                            LABEL
-                        ================================= */}
 
                         <span
                           className="
@@ -693,8 +736,203 @@ export default function AppSearchableSelect({
                 )
               )}
             </div>
-          </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  /* =======================================================
+     UI
+  ======================================================= */
+
+  return (
+    <>
+      <div
+        ref={
+          containerRef
+        }
+        className={`
+          relative
+          w-full
+          min-w-0
+
+          ${className}
+        `}
+      >
+        {required && (
+          <input
+            tabIndex={
+              -1
+            }
+            aria-hidden="true"
+            value={
+              value
+            }
+            onChange={() => {}}
+            required
+            className="
+              pointer-events-none
+              absolute
+
+              h-px
+              w-px
+
+              opacity-0
+            "
+          />
         )}
-    </div>
+
+        <button
+          ref={
+            controlRef
+          }
+          id={
+            id
+          }
+          type="button"
+          disabled={
+            disabled
+          }
+          aria-haspopup="listbox"
+          aria-expanded={
+            open
+          }
+          onClick={() => {
+            if (
+              disabled
+            ) {
+              return;
+            }
+
+            setOpen(
+              (
+                current
+              ) =>
+                !current
+            );
+          }}
+          className="
+            flex
+            min-h-[52px]
+            w-full
+            min-w-0
+
+            items-center
+            justify-between
+
+            gap-3
+
+            rounded-[16px]
+
+            border
+            border-slate-300/90
+
+            bg-white/90
+
+            px-4
+            py-3
+
+            text-left
+            text-sm
+            font-bold
+
+            shadow-[0_7px_20px_-16px_rgba(15,23,42,0.45)]
+
+            backdrop-blur-xl
+
+            outline-none
+
+            transition-all
+            duration-200
+
+            hover:border-slate-400
+            hover:bg-white
+
+            focus:border-blue-500
+            focus:ring-4
+            focus:ring-blue-500/10
+
+            disabled:cursor-not-allowed
+            disabled:bg-slate-100
+            disabled:opacity-70
+          "
+        >
+          <span
+            className="
+              min-w-0
+              flex-1
+            "
+          >
+            <span
+              className={`
+                block
+                truncate
+
+                ${
+                  selectedOption
+                    ? "!text-slate-900"
+                    : "!text-slate-400"
+                }
+              `}
+            >
+              {selectedOption
+                ?.label ??
+                placeholder}
+            </span>
+
+            {selectedOption
+              ?.description && (
+              <span
+                className="
+                  mt-0.5
+                  block
+
+                  truncate
+
+                  text-xs
+                  font-semibold
+
+                  !text-slate-500
+                "
+              >
+                {
+                  selectedOption.description
+                }
+              </span>
+            )}
+          </span>
+
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`
+              h-4
+              w-4
+              shrink-0
+
+              !text-slate-500
+
+              transition-transform
+              duration-200
+
+              ${
+                open
+                  ? "rotate-180"
+                  : "rotate-0"
+              }
+            `}
+          >
+            <path d="m5 7.5 5 5 5-5" />
+          </svg>
+        </button>
+      </div>
+
+      {panel}
+    </>
   );
 }

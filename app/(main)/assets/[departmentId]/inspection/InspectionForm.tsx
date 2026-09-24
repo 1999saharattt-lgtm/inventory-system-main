@@ -30,45 +30,20 @@ type Asset = {
   name: string;
   category: string;
 
-  brand:
-    | string
-    | null;
+  brand: string | null;
+  model: string | null;
+  serialNumber: string | null;
 
-  model:
-    | string
-    | null;
-
-  serialNumber:
-    | string
-    | null;
-
-  governmentAssetNo:
-    | string
-    | null;
-
-  officeAssetNo:
-    | string
-    | null;
+  governmentAssetNo: string | null;
+  officeAssetNo: string | null;
 
   quantity: number;
-
-  unit:
-    | string
-    | null;
-
-  responsibleName:
-    | string
-    | null;
+  unit: string | null;
+  responsibleName: string | null;
 
   departmentId: number;
-
-  sectionId:
-    | number
-    | null;
-
-  officerId:
-    | number
-    | null;
+  sectionId: number | null;
+  officerId: number | null;
 
   status: string;
 
@@ -77,17 +52,9 @@ type Asset = {
     | string
     | null;
 
-  price:
-    | number
-    | null;
-
-  location:
-    | string
-    | null;
-
-  remark:
-    | string
-    | null;
+  price: number | null;
+  location: string | null;
+  remark: string | null;
 
   section: {
     id: number;
@@ -98,22 +65,15 @@ type Asset = {
     id: number;
     firstName: string;
     lastName: string;
-    position:
-      | string
-      | null;
+    position: string | null;
   } | null;
 };
 
 type Officer = {
   id: number;
-
   firstName: string;
-
   lastName: string;
-
-  position:
-    | string
-    | null;
+  position: string | null;
 
   department: {
     id: number;
@@ -128,83 +88,52 @@ type Officer = {
 
 type InspectionRow = {
   assetId: number;
-
   countedQty: string;
-
   accuracy: string;
-
   status: string;
-
   remark: string;
 };
 
 type InitialData = {
-  inspectionStartDate?:
-    string;
+  inspectionStartDate?: string;
+  inspectionEndDate?: string;
 
-  inspectionEndDate?:
-    string;
+  accountStartDate?: string;
+  accountEndDate?: string;
 
-  accountStartDate?:
-    string;
+  movementFiscalYear?: string;
 
-  accountEndDate?:
-    string;
+  rows?: InspectionRow[];
 
-  movementFiscalYear?:
-    string;
-
-  rows?:
-    InspectionRow[];
-
-  inspectorIds?:
-    string[];
+  inspectorIds?: string[];
 };
 
 type Props = {
-  department:
-    Department;
+  department: Department;
 
-  /*
-   * Optional เพื่อไม่ให้หน้า Edit เดิมพัง
-   *
-   * หน้า /assets/[departmentId]/inspection
-   * จะส่ง departments เข้ามา
-   *
-   * หน้า edit เดิมที่ไม่ได้ส่ง
-   * ก็ยังใช้งานได้ตามเดิม
-   */
-  departments?:
-    Department[];
+  departments?: Department[];
 
-  assets:
-    Asset[];
+  assets: Asset[];
 
-  officers:
-    Officer[];
+  officers: Officer[];
 
-  initialData?:
-    InitialData;
+  initialData?: InitialData;
 
-  submitUrl?:
-    string;
+  submitUrl?: string;
 
   submitMethod?:
     | "POST"
     | "PUT";
 
-  cancelHref?:
-    string;
+  cancelHref?: string;
 
-  submitLabel?:
-    string;
+  submitLabel?: string;
 
-  readOnly?:
-    boolean;
+  readOnly?: boolean;
 };
 
 /* =========================================================
-   CONSTANTS
+   CONSTANT
 ========================================================= */
 
 const INSPECTION_FISCAL_YEAR =
@@ -238,8 +167,7 @@ function getCurrentDate() {
 
   const month =
     String(
-      now.getMonth() +
-        1
+      now.getMonth() + 1
     ).padStart(
       2,
       "0"
@@ -257,8 +185,7 @@ function getCurrentDate() {
 }
 
 function parseDateOnly(
-  value:
-    string
+  value: string
 ) {
   if (!value) {
     return null;
@@ -268,12 +195,9 @@ function parseDateOnly(
     year,
     month,
     day,
-  ] =
-    value
-      .split("-")
-      .map(
-        Number
-      );
+  ] = value
+    .split("-")
+    .map(Number);
 
   if (
     !year ||
@@ -291,16 +215,14 @@ function parseDateOnly(
 }
 
 function formatDateInput(
-  date:
-    Date
+  date: Date
 ) {
   const year =
     date.getFullYear();
 
   const month =
     String(
-      date.getMonth() +
-        1
+      date.getMonth() + 1
     ).padStart(
       2,
       "0"
@@ -318,8 +240,7 @@ function formatDateInput(
 }
 
 function getOneYearBefore(
-  value:
-    string
+  value: string
 ) {
   const date =
     parseDateOnly(
@@ -331,8 +252,7 @@ function getOneYearBefore(
   }
 
   date.setFullYear(
-    date.getFullYear() -
-      1
+    date.getFullYear() - 1
   );
 
   return formatDateInput(
@@ -341,8 +261,7 @@ function getOneYearBefore(
 }
 
 function getOneDayBefore(
-  value:
-    string
+  value: string
 ) {
   const date =
     parseDateOnly(
@@ -354,8 +273,7 @@ function getOneDayBefore(
   }
 
   date.setDate(
-    date.getDate() -
-      1
+    date.getDate() - 1
   );
 
   return formatDateInput(
@@ -364,8 +282,7 @@ function getOneDayBefore(
 }
 
 function formatThaiDate(
-  value:
-    string
+  value: string
 ) {
   const date =
     parseDateOnly(
@@ -392,8 +309,7 @@ function formatThaiDate(
 }
 
 function getFiscalYear(
-  value:
-    string
+  value: string
 ) {
   const date =
     parseDateOnly(
@@ -404,9 +320,17 @@ function getFiscalYear(
     return INSPECTION_FISCAL_YEAR;
   }
 
+  const year =
+    date.getFullYear();
+
+  const month =
+    date.getMonth() +
+    1;
+
   return String(
-    date.getFullYear() +
-      543
+    month >= 10
+      ? year + 1 + 543
+      : year + 543
   );
 }
 
@@ -415,12 +339,9 @@ function getFiscalYear(
 ========================================================= */
 
 function getCategoryUnit(
-  category:
-    string
+  category: string
 ) {
-  switch (
-    category
-  ) {
+  switch (category) {
     case "COMPUTER":
     case "DESKTOP":
     case "LAPTOP":
@@ -448,16 +369,14 @@ function getCategoryUnit(
 }
 
 function getAssetUnit(
-  asset:
-    Asset
+  asset: Asset
 ) {
   const originalUnit =
     asset.unit?.trim();
 
   if (
     originalUnit &&
-    originalUnit !==
-      "-"
+    originalUnit !== "-"
   ) {
     return originalUnit;
   }
@@ -468,15 +387,13 @@ function getAssetUnit(
 }
 
 /* =========================================================
-   RESPONSIBLE NAME
+   RESPONSIBLE
 ========================================================= */
 
 function getResponsibleName(
-  asset:
-    Asset,
-  department:
-    Department
-): string {
+  asset: Asset,
+  department: Department
+) {
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
@@ -485,8 +402,7 @@ function getResponsibleName(
 
   if (
     originalResponsibleName &&
-    originalResponsibleName !==
-      "-"
+    originalResponsibleName !== "-"
   ) {
     responsibleName =
       originalResponsibleName;
@@ -508,8 +424,7 @@ function getResponsibleName(
       responsibleName =
         officerName;
     } else if (
-      asset.section
-        ?.name
+      asset.section?.name
     ) {
       responsibleName =
         asset.section.name;
@@ -522,8 +437,7 @@ function getResponsibleName(
   if (
     department.name ===
       "กลุ่มอำนวยการ" &&
-    responsibleName !==
-      "-"
+    responsibleName !== "-"
   ) {
     const prefix =
       `${department.name} / `;
@@ -547,9 +461,7 @@ function getResponsibleName(
 ========================================================= */
 
 function getSourceOrder(
-  remark:
-    | string
-    | null
+  remark: string | null
 ): number | null {
   if (!remark) {
     return null;
@@ -582,17 +494,14 @@ function getSourceOrder(
 }
 
 /* =========================================================
-   INITIAL ROWS
+   INITIAL ROW
 ========================================================= */
 
 function createInitialRows(
-  assets:
-    Asset[]
+  assets: Asset[]
 ): InspectionRow[] {
   return assets.map(
-    (
-      asset
-    ) => ({
+    (asset) => ({
       assetId:
         asset.id,
 
@@ -615,15 +524,12 @@ function createInitialRows(
 }
 
 function normalizeInitialRows(
-  assets:
-    Asset[],
-  initialRows?:
-    InspectionRow[]
-): InspectionRow[] {
+  assets: Asset[],
+  initialRows?: InspectionRow[]
+) {
   if (
     !initialRows ||
-    initialRows.length ===
-      0
+    initialRows.length === 0
   ) {
     return createInitialRows(
       assets
@@ -631,14 +537,10 @@ function normalizeInitialRows(
   }
 
   return assets.map(
-    (
-      asset
-    ) => {
+    (asset) => {
       const existingRow =
         initialRows.find(
-          (
-            row
-          ) =>
+          (row) =>
             row.assetId ===
             asset.id
         );
@@ -695,8 +597,7 @@ function normalizeInitialRows(
 }
 
 function normalizeInspectorIds(
-  ids?:
-    string[]
+  ids?: string[]
 ) {
   const result =
     Array<string>(
@@ -717,9 +618,7 @@ function normalizeInspectorIds(
         id,
         index
       ) => {
-        result[
-          index
-        ] =
+        result[index] =
           String(
             id ?? ""
           );
@@ -727,6 +626,29 @@ function normalizeInspectorIds(
     );
 
   return result;
+}
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+function SaveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+      <path d="M17 21v-8H7v8" />
+      <path d="M7 3v5h8" />
+    </svg>
+  );
 }
 
 /* =========================================================
@@ -755,198 +677,163 @@ export default function InspectionForm({
   const [
     inspectionStartDate,
     setInspectionStartDate,
-  ] =
-    useState(
-      initialData
-        ?.inspectionStartDate ||
-        today
-    );
+  ] = useState(
+    initialData?.inspectionStartDate ||
+      today
+  );
 
   const [
     inspectionEndDate,
     setInspectionEndDate,
-  ] =
-    useState(
-      initialData
-        ?.inspectionEndDate ||
-        today
-    );
+  ] = useState(
+    initialData?.inspectionEndDate ||
+      today
+  );
 
   const [
     accountStartDate,
     setAccountStartDate,
-  ] =
-    useState(
-      initialData
-        ?.accountStartDate ||
-        getOneYearBefore(
-          initialData
-            ?.inspectionStartDate ||
-            today
-        )
-    );
+  ] = useState(
+    initialData?.accountStartDate ||
+      getOneYearBefore(
+        initialData?.inspectionStartDate ||
+          today
+      )
+  );
 
   const [
     accountEndDate,
     setAccountEndDate,
-  ] =
-    useState(
-      initialData
-        ?.accountEndDate ||
-        getOneDayBefore(
-          initialData
-            ?.inspectionEndDate ||
-            today
-        )
-    );
+  ] = useState(
+    initialData?.accountEndDate ||
+      getOneDayBefore(
+        initialData?.inspectionEndDate ||
+          today
+      )
+  );
 
   const [
     movementFiscalYear,
     setMovementFiscalYear,
-  ] =
-    useState(
-      initialData
-        ?.movementFiscalYear ||
-        getFiscalYear(
-          initialData
-            ?.inspectionStartDate ||
-            today
-        )
-    );
+  ] = useState(
+    initialData?.movementFiscalYear ||
+      getFiscalYear(
+        initialData?.inspectionStartDate ||
+          today
+      )
+  );
 
   const [
     rows,
     setRows,
-  ] =
-    useState<
-      InspectionRow[]
-    >(
-      () =>
-        normalizeInitialRows(
-          assets,
-          initialData
-            ?.rows
-        )
-    );
+  ] = useState<
+    InspectionRow[]
+  >(
+    () =>
+      normalizeInitialRows(
+        assets,
+        initialData?.rows
+      )
+  );
 
   const [
     inspectorIds,
     setInspectorIds,
-  ] =
-    useState<
-      string[]
-    >(
-      () =>
-        normalizeInspectorIds(
-          initialData
-            ?.inspectorIds
-        )
-    );
+  ] = useState<
+    string[]
+  >(
+    () =>
+      normalizeInspectorIds(
+        initialData?.inspectorIds
+      )
+  );
 
   const [
     isSaving,
     setIsSaving,
-  ] =
-    useState(
-      false
-    );
+  ] = useState(false);
 
   const [
     searchTerm,
     setSearchTerm,
-  ] =
-    useState(
-      ""
-    );
+  ] = useState("");
 
   /* =======================================================
      SEARCH
   ======================================================= */
 
   const filteredAssets =
-    useMemo(
-      () => {
-        const keyword =
-          searchTerm
-            .trim()
-            .toLowerCase();
+    useMemo(() => {
+      const keyword =
+        searchTerm
+          .trim()
+          .toLowerCase();
 
-        if (
-          !keyword
-        ) {
-          return assets;
-        }
+      if (!keyword) {
+        return assets;
+      }
 
-        return assets.filter(
-          (
-            asset
-          ) => {
-            const officerName =
-              asset.officer
-                ? `${asset.officer.firstName} ${asset.officer.lastName}`
-                : "";
+      return assets.filter(
+        (asset) => {
+          const officerName =
+            asset.officer
+              ? `${asset.officer.firstName} ${asset.officer.lastName}`
+              : "";
 
-            const sourceOrder =
-              getSourceOrder(
-                asset.remark
-              );
-
-            const responsibleName =
-              getResponsibleName(
-                asset,
-                department
-              );
-
-            const unit =
-              getAssetUnit(
-                asset
-              );
-
-            const searchableText =
-              [
-                sourceOrder,
-                asset.name,
-                asset.category,
-                asset.brand,
-                asset.model,
-                asset.serialNumber,
-                asset.governmentAssetNo,
-                asset.officeAssetNo,
-                asset.quantity,
-                unit,
-                responsibleName,
-                asset.location,
-                asset.section
-                  ?.name,
-                officerName,
-                asset.remark,
-              ]
-                .filter(
-                  (
-                    value
-                  ) =>
-                    value !==
-                      null &&
-                    value !==
-                      undefined
-                )
-                .join(
-                  " "
-                )
-                .toLowerCase();
-
-            return searchableText.includes(
-              keyword
+          const sourceOrder =
+            getSourceOrder(
+              asset.remark
             );
-          }
-        );
-      },
-      [
-        assets,
-        searchTerm,
-        department,
-      ]
-    );
+
+          const responsibleName =
+            getResponsibleName(
+              asset,
+              department
+            );
+
+          const unit =
+            getAssetUnit(
+              asset
+            );
+
+          const searchableText =
+            [
+              sourceOrder,
+              asset.name,
+              asset.category,
+              asset.brand,
+              asset.model,
+              asset.serialNumber,
+              asset.governmentAssetNo,
+              asset.officeAssetNo,
+              asset.quantity,
+              unit,
+              responsibleName,
+              asset.location,
+              asset.section?.name,
+              officerName,
+              asset.remark,
+            ]
+              .filter(
+                (value) =>
+                  value !==
+                    null &&
+                  value !==
+                    undefined
+              )
+              .join(" ")
+              .toLowerCase();
+
+          return searchableText.includes(
+            keyword
+          );
+        }
+      );
+    }, [
+      assets,
+      searchTerm,
+      department,
+    ]);
 
   /* =======================================================
      REFS
@@ -980,93 +867,85 @@ export default function InspectionForm({
   const [
     tableScrollWidth,
     setTableScrollWidth,
-  ] =
-    useState(
-      0
-    );
+  ] = useState(0);
 
   /* =======================================================
-     TABLE MEASUREMENT
+     TABLE WIDTH
   ======================================================= */
 
-  useEffect(
-    () => {
-      let animationFrame =
-        0;
+  useEffect(() => {
+    let animationFrame =
+      0;
 
-      function updateTableMeasurements() {
-        cancelAnimationFrame(
-          animationFrame
-        );
+    function updateTableMeasurements() {
+      cancelAnimationFrame(
+        animationFrame
+      );
 
-        animationFrame =
-          requestAnimationFrame(
-            () => {
-              const table =
-                tableRef.current;
+      animationFrame =
+        requestAnimationFrame(
+          () => {
+            const table =
+              tableRef.current;
 
-              if (
-                !table
-              ) {
-                return;
-              }
-
-              setTableScrollWidth(
-                table.scrollWidth
-              );
+            if (!table) {
+              return;
             }
-          );
-      }
 
-      updateTableMeasurements();
+            setTableScrollWidth(
+              table.scrollWidth
+            );
+          }
+        );
+    }
 
-      window.addEventListener(
+    updateTableMeasurements();
+
+    window.addEventListener(
+      "resize",
+      updateTableMeasurements
+    );
+
+    const table =
+      tableRef.current;
+
+    const resizeObserver =
+      typeof ResizeObserver !==
+        "undefined" &&
+      table
+        ? new ResizeObserver(
+            updateTableMeasurements
+          )
+        : null;
+
+    if (
+      resizeObserver &&
+      table
+    ) {
+      resizeObserver.observe(
+        table
+      );
+    }
+
+    return () => {
+      cancelAnimationFrame(
+        animationFrame
+      );
+
+      window.removeEventListener(
         "resize",
         updateTableMeasurements
       );
 
-      const table =
-        tableRef.current;
-
-      const resizeObserver =
-        typeof ResizeObserver !==
-          "undefined" &&
-        table
-          ? new ResizeObserver(
-              updateTableMeasurements
-            )
-          : null;
-
-      if (
-        resizeObserver &&
-        table
-      ) {
-        resizeObserver.observe(
-          table
-        );
-      }
-
-      return () => {
-        cancelAnimationFrame(
-          animationFrame
-        );
-
-        window.removeEventListener(
-          "resize",
-          updateTableMeasurements
-        );
-
-        resizeObserver?.disconnect();
-      };
-    },
-    [
-      filteredAssets,
-      accountStartDate,
-      accountEndDate,
-      movementFiscalYear,
-      readOnly,
-    ]
-  );
+      resizeObserver?.disconnect();
+    };
+  }, [
+    filteredAssets,
+    accountStartDate,
+    accountEndDate,
+    movementFiscalYear,
+    readOnly,
+  ]);
 
   function handleTopScroll() {
     if (
@@ -1104,15 +983,6 @@ export default function InspectionForm({
     cancelHref ||
     `/assets/${department.id}`;
 
-  /*
-   * หน้าเพิ่ม:
-   * บันทึกผลการตรวจสอบ
-   * ->
-   * บันทึก
-   *
-   * หน้า Edit ถ้ามี submitLabel ส่งเข้ามา
-   * ยังใช้ข้อความเดิมของหน้า Edit ได้
-   */
   const finalSubmitLabel =
     submitLabel ||
     (
@@ -1122,7 +992,7 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     DATE PICKER
+     DATE
   ======================================================= */
 
   function openDatePicker(
@@ -1153,32 +1023,23 @@ export default function InspectionForm({
   ======================================================= */
 
   function updateRow(
-    assetId:
-      number,
+    assetId: number,
     field:
       keyof InspectionRow,
-    value:
-      string
+    value: string
   ) {
-    if (
-      readOnly
-    ) {
+    if (readOnly) {
       return;
     }
 
     setRows(
-      (
-        currentRows
-      ) =>
+      (currentRows) =>
         currentRows.map(
-          (
-            row
-          ) =>
+          (row) =>
             row.assetId ===
             assetId
               ? {
                   ...row,
-
                   [field]:
                     value,
                 }
@@ -1188,7 +1049,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     QUICK SELECT
+     QUICK ACTION
   ======================================================= */
 
   function updateAllAccuracy(
@@ -1196,36 +1057,27 @@ export default function InspectionForm({
       | "CORRECT"
       | "INCORRECT"
   ) {
-    if (
-      readOnly
-    ) {
+    if (readOnly) {
       return;
     }
 
     const visibleAssetIds =
       new Set(
         filteredAssets.map(
-          (
-            asset
-          ) =>
+          (asset) =>
             asset.id
         )
       );
 
     setRows(
-      (
-        currentRows
-      ) =>
+      (currentRows) =>
         currentRows.map(
-          (
-            row
-          ) =>
+          (row) =>
             visibleAssetIds.has(
               row.assetId
             )
               ? {
                   ...row,
-
                   accuracy:
                     value,
                 }
@@ -1241,36 +1093,27 @@ export default function InspectionForm({
       | "DETERIORATED"
       | "UNUSABLE"
   ) {
-    if (
-      readOnly
-    ) {
+    if (readOnly) {
       return;
     }
 
     const visibleAssetIds =
       new Set(
         filteredAssets.map(
-          (
-            asset
-          ) =>
+          (asset) =>
             asset.id
         )
       );
 
     setRows(
-      (
-        currentRows
-      ) =>
+      (currentRows) =>
         currentRows.map(
-          (
-            row
-          ) =>
+          (row) =>
             visibleAssetIds.has(
               row.assetId
             )
               ? {
                   ...row,
-
                   status:
                     value,
                 }
@@ -1284,29 +1127,21 @@ export default function InspectionForm({
   ======================================================= */
 
   function updateInspector(
-    index:
-      number,
-    value:
-      string
+    index: number,
+    value: string
   ) {
-    if (
-      readOnly
-    ) {
+    if (readOnly) {
       return;
     }
 
     setInspectorIds(
-      (
-        current
-      ) => {
+      (current) => {
         const next =
           [
             ...current,
           ];
 
-        next[
-          index
-        ] =
+        next[index] =
           value;
 
         return next;
@@ -1315,25 +1150,19 @@ export default function InspectionForm({
   }
 
   function getOfficer(
-    id:
-      string
+    id: string
   ) {
     return officers.find(
-      (
-        officer
-      ) =>
+      (officer) =>
         String(
           officer.id
-        ) ===
-        id
+        ) === id
     );
   }
 
   function isOfficerSelected(
-    officerId:
-      string,
-    currentIndex:
-      number
+    officerId: string,
+    currentIndex: number
   ) {
     return inspectorIds.some(
       (
@@ -1352,9 +1181,7 @@ export default function InspectionForm({
   ======================================================= */
 
   async function handleSave() {
-    if (
-      readOnly
-    ) {
+    if (readOnly) {
       return;
     }
 
@@ -1403,9 +1230,7 @@ export default function InspectionForm({
 
     if (
       inspectorIds.some(
-        (
-          id
-        ) =>
+        (id) =>
           !id
       )
     ) {
@@ -1456,8 +1281,7 @@ export default function InspectionForm({
         !Number.isInteger(
           countedQty
         ) ||
-        countedQty <
-          0
+        countedQty < 0
       ) {
         alert(
           "จำนวนที่ตรวจนับต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป"
@@ -1555,8 +1379,7 @@ export default function InspectionForm({
           data &&
           typeof data ===
             "object" &&
-          "error" in
-            data &&
+          "error" in data &&
           typeof data.error ===
             "string"
         ) {
@@ -1585,8 +1408,7 @@ export default function InspectionForm({
       );
 
       alert(
-        error instanceof
-          Error
+        error instanceof Error
           ? error.message
           : isEditMode
             ? "เกิดข้อผิดพลาดในการแก้ไขข้อมูล"
@@ -1606,6 +1428,8 @@ export default function InspectionForm({
   return (
     <div
       className="
+        relative
+
         w-full
         min-w-0
 
@@ -1615,57 +1439,21 @@ export default function InspectionForm({
       "
     >
       {/* =====================================================
-          SEARCH
-      ===================================================== */}
-
-      <AppSearchInput
-        value={
-          searchTerm
-        }
-        onChange={(
-          event
-        ) =>
-          setSearchTerm(
-            event.target.value
-          )
-        }
-        onSubmit={() =>
-          setSearchTerm(
-            searchTerm.trim()
-          )
-        }
-        onClear={() =>
-          setSearchTerm(
-            ""
-          )
-        }
-        placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
-        resultCount={
-          filteredAssets.length
-        }
-        resultLabel="รายการ"
-        showSearchButton
-        showClearButton
-        searchButtonText="ค้นหา"
-        clearButtonText="ล้าง"
-      />
-
-      {/* =====================================================
-          INSPECTION INFORMATION
-
-          Dropdown กลุ่มงานย้ายมาอยู่ตรงนี้
+          1. INSPECTION INFORMATION
+          ขึ้นก่อน Search
       ===================================================== */}
 
       <AppCard
         className="
+          relative
+          z-20
+
           w-full
           min-w-0
+
+          !overflow-visible
         "
       >
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
         <div
           className="
             flex
@@ -1735,9 +1523,7 @@ export default function InspectionForm({
         </div>
 
         {/* =================================================
-            DEPARTMENT SELECT
-
-            อยู่ใต้ "ข้อมูลการตรวจสอบ"
+            DEPARTMENT
         ================================================= */}
 
         {departments &&
@@ -1745,10 +1531,13 @@ export default function InspectionForm({
             0 && (
             <div
               className="
+                relative
+                z-30
+
                 mt-5
 
                 w-full
-                max-w-[520px]
+                max-w-[560px]
               "
             >
               <label
@@ -1792,10 +1581,6 @@ export default function InspectionForm({
             md:grid-cols-2
           "
         >
-          {/* ===============================================
-              START DATE
-          =============================================== */}
-
           <div>
             <label
               className="
@@ -1811,11 +1596,7 @@ export default function InspectionForm({
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <div
-              className="
-                relative
-              "
-            >
+            <div className="relative">
               <button
                 type="button"
                 disabled={
@@ -1836,7 +1617,7 @@ export default function InspectionForm({
                   rounded-[16px]
 
                   border
-                  border-slate-300
+                  border-slate-300/90
 
                   px-4
                   py-3
@@ -1848,14 +1629,16 @@ export default function InspectionForm({
                   !text-slate-900
 
                   shadow-sm
+
                   outline-none
 
                   transition-all
+                  duration-200
 
                   ${
                     readOnly
                       ? "cursor-default bg-slate-100"
-                      : "cursor-pointer bg-white hover:border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                      : "cursor-pointer bg-white/90 hover:border-slate-400 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   }
                 `}
               >
@@ -1864,14 +1647,33 @@ export default function InspectionForm({
                 )}
 
                 {!readOnly && (
-                  <span
-                    aria-hidden="true"
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="
                       ml-auto
+                      h-5
+                      w-5
+                      shrink-0
+
+                      !text-slate-500
                     "
+                    aria-hidden="true"
                   >
-                    📅
-                  </span>
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="16"
+                      rx="2"
+                    />
+
+                    <path d="M16 3v4M8 3v4M3 11h18" />
+                  </svg>
                 )}
               </button>
 
@@ -1922,10 +1724,6 @@ export default function InspectionForm({
             </div>
           </div>
 
-          {/* ===============================================
-              END DATE
-          =============================================== */}
-
           <div>
             <label
               className="
@@ -1941,11 +1739,7 @@ export default function InspectionForm({
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <div
-              className="
-                relative
-              "
-            >
+            <div className="relative">
               <button
                 type="button"
                 disabled={
@@ -1966,7 +1760,7 @@ export default function InspectionForm({
                   rounded-[16px]
 
                   border
-                  border-slate-300
+                  border-slate-300/90
 
                   px-4
                   py-3
@@ -1978,14 +1772,16 @@ export default function InspectionForm({
                   !text-slate-900
 
                   shadow-sm
+
                   outline-none
 
                   transition-all
+                  duration-200
 
                   ${
                     readOnly
                       ? "cursor-default bg-slate-100"
-                      : "cursor-pointer bg-white hover:border-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                      : "cursor-pointer bg-white/90 hover:border-slate-400 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   }
                 `}
               >
@@ -1994,14 +1790,33 @@ export default function InspectionForm({
                 )}
 
                 {!readOnly && (
-                  <span
-                    aria-hidden="true"
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="
                       ml-auto
+                      h-5
+                      w-5
+                      shrink-0
+
+                      !text-slate-500
                     "
+                    aria-hidden="true"
                   >
-                    📅
-                  </span>
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="16"
+                      rx="2"
+                    />
+
+                    <path d="M16 3v4M8 3v4M3 11h18" />
+                  </svg>
                 )}
               </button>
 
@@ -2049,7 +1864,49 @@ export default function InspectionForm({
       </AppCard>
 
       {/* =====================================================
-          TABLE
+          2. SEARCH
+          อยู่หลังข้อมูลการตรวจสอบ
+      ===================================================== */}
+
+      <div
+        className="
+          relative
+          z-10
+        "
+      >
+        <AppSearchInput
+          value={
+            searchTerm
+          }
+          onChange={(
+            event
+          ) =>
+            setSearchTerm(
+              event.target.value
+            )
+          }
+          onSubmit={() =>
+            setSearchTerm(
+              searchTerm.trim()
+            )
+          }
+          onClear={() =>
+            setSearchTerm("")
+          }
+          placeholder="ค้นหารายการ / รหัส GFMIS / รหัสครุภัณฑ์ / ผู้รับผิดชอบ"
+          resultCount={
+            filteredAssets.length
+          }
+          resultLabel="รายการ"
+          showSearchButton
+          showClearButton
+          searchButtonText="ค้นหา"
+          clearButtonText="ล้าง"
+        />
+      </div>
+
+      {/* =====================================================
+          3. TABLE
       ===================================================== */}
 
       <AppTableCard
@@ -2059,15 +1916,14 @@ export default function InspectionForm({
           "th-TH"
         )} รายการ`}
         className="
+          relative
+          z-0
+
           w-full
           min-w-0
           max-w-full
         "
       >
-        {/* =================================================
-            QUICK ACTION
-        ================================================= */}
-
         {!readOnly && (
           <div
             className="
@@ -2112,7 +1968,7 @@ export default function InspectionForm({
                   )
                 }
               >
-                ✓ ถูกต้องทั้งหมด
+                ถูกต้องทั้งหมด
               </AppButton>
 
               <AppButton
@@ -2125,7 +1981,7 @@ export default function InspectionForm({
                   )
                 }
               >
-                ✕ ไม่ถูกต้องทั้งหมด
+                ไม่ถูกต้องทั้งหมด
               </AppButton>
 
               <AppButton
@@ -2138,7 +1994,7 @@ export default function InspectionForm({
                   )
                 }
               >
-                ✓ ใช้งานปกติทั้งหมด
+                ใช้งานปกติทั้งหมด
               </AppButton>
 
               <AppButton
@@ -2184,7 +2040,7 @@ export default function InspectionForm({
         )}
 
         {/* =================================================
-            TOP SCROLL
+            TOP SCROLLBAR
         ================================================= */}
 
         <div
@@ -2223,7 +2079,7 @@ export default function InspectionForm({
         </div>
 
         {/* =================================================
-            TABLE
+            TABLE SCROLL
         ================================================= */}
 
         <div
@@ -2234,6 +2090,8 @@ export default function InspectionForm({
             handleBottomScroll
           }
           className="
+            w-full
+
             overflow-x-auto
             overscroll-x-contain
 
@@ -2246,7 +2104,7 @@ export default function InspectionForm({
             }
             className="
               w-max
-              min-w-full
+              min-w-[2900px]
 
               table-auto
               border-collapse
@@ -2258,63 +2116,49 @@ export default function InspectionForm({
             <thead>
               <tr>
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   ลำดับ
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   รหัส GFMIS
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   รหัสครุภัณฑ์
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   ผู้รับผิดชอบ
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   รายการครุภัณฑ์
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   หน่วย
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
@@ -2330,9 +2174,7 @@ export default function InspectionForm({
                 </th>
 
                 <th
-                  colSpan={
-                    2
-                  }
+                  colSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
@@ -2348,9 +2190,7 @@ export default function InspectionForm({
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
@@ -2366,20 +2206,14 @@ export default function InspectionForm({
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
-                  <span className="whitespace-nowrap">
-                    จำนวนที่ตรวจนับได้
-                  </span>
+                  จำนวนที่ตรวจนับได้
                 </th>
 
                 <th
-                  colSpan={
-                    2
-                  }
+                  colSpan={2}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   <div className="whitespace-nowrap">
@@ -2392,20 +2226,14 @@ export default function InspectionForm({
                 </th>
 
                 <th
-                  colSpan={
-                    4
-                  }
+                  colSpan={4}
                   className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
-                  <span className="whitespace-nowrap">
-                    สภาพครุภัณฑ์ที่ตรวจนับ
-                  </span>
+                  สภาพครุภัณฑ์ที่ตรวจนับ
                 </th>
 
                 <th
-                  rowSpan={
-                    2
-                  }
+                  rowSpan={2}
                   className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
                 >
                   หมายเหตุ
@@ -2423,9 +2251,7 @@ export default function InspectionForm({
                   "เสื่อมสภาพ",
                   "ไม่จำเป็นต้องใช้",
                 ].map(
-                  (
-                    title
-                  ) => (
+                  (title) => (
                     <th
                       key={
                         title
@@ -2446,9 +2272,7 @@ export default function InspectionForm({
               0 ? (
                 <tr>
                   <td
-                    colSpan={
-                      18
-                    }
+                    colSpan={18}
                     className="
                       border
                       border-black
@@ -2473,11 +2297,7 @@ export default function InspectionForm({
                     </p>
 
                     {searchTerm && (
-                      <div
-                        className="
-                          mt-4
-                        "
-                      >
+                      <div className="mt-4">
                         <AppButton
                           type="button"
                           variant="primary"
@@ -2502,9 +2322,7 @@ export default function InspectionForm({
                   ) => {
                     const row =
                       rows.find(
-                        (
-                          item
-                        ) =>
+                        (item) =>
                           item.assetId ===
                           asset.id
                       );
@@ -2516,9 +2334,7 @@ export default function InspectionForm({
 
                     const originalIndex =
                       assets.findIndex(
-                        (
-                          item
-                        ) =>
+                        (item) =>
                           item.id ===
                           asset.id
                       );
@@ -2543,20 +2359,19 @@ export default function InspectionForm({
                       asset.quantity ??
                       1;
 
-                    const rowClassName =
-                      index %
-                        2 ===
-                      0
-                        ? "bg-white"
-                        : "bg-slate-50/60";
-
                     return (
                       <tr
                         key={
                           asset.id
                         }
                         className={`
-                          ${rowClassName}
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
 
                           text-sm
                           font-medium
@@ -2568,74 +2383,69 @@ export default function InspectionForm({
                           hover:bg-emerald-50/60
                         `}
                       >
-                        <td className="border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           {
                             displayOrder
                           }
                         </td>
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
                           {asset.governmentAssetNo?.trim()
                             ? asset.governmentAssetNo
                             : "-"}
                         </td>
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
                           {asset.officeAssetNo?.trim()
                             ? asset.officeAssetNo
                             : "-"}
                         </td>
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
                           {
                             responsibleName
                           }
                         </td>
 
-                        <td className="whitespace-nowrap border border-black px-3 py-2.5 text-left align-middle font-semibold">
+                        <td className="whitespace-nowrap border border-black px-3 py-2.5 font-semibold">
                           {
                             asset.name
                           }
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           {
                             assetUnit
                           }
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center align-middle tabular-nums">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           {
                             quantity
                           }
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           -
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center align-middle">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           -
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center align-middle tabular-nums">
+                        <td className="border border-black px-2 py-2.5 text-center">
                           {
                             quantity
                           }
                         </td>
 
-                        {/* =====================================
-                            COUNT
-                        ===================================== */}
-
-                        <td className="border border-black px-2 py-2 text-center align-middle">
+                        <td className="border border-black px-2 py-2 text-center">
                           <input
                             type="number"
                             min="0"
                             step="1"
                             value={
-                              row
-                                ?.countedQty ??
+                              row?.countedQty ??
                               String(
                                 quantity
                               )
@@ -2652,7 +2462,7 @@ export default function InspectionForm({
                                 event.target.value
                               )
                             }
-                            className={`
+                            className="
                               mx-auto
 
                               h-9
@@ -2674,209 +2484,110 @@ export default function InspectionForm({
 
                               outline-none
 
-                              focus:border-emerald-500
+                              focus:border-blue-500
                               focus:ring-2
-                              focus:ring-emerald-500/10
+                              focus:ring-blue-500/10
 
-                              ${
-                                readOnly
-                                  ? "cursor-default bg-slate-100 opacity-100"
-                                  : ""
+                              disabled:bg-slate-100
+                            "
+                          />
+                        </td>
+
+                        {[
+                          "CORRECT",
+                          "INCORRECT",
+                        ].map(
+                          (accuracy) => (
+                            <td
+                              key={
+                                accuracy
                               }
-                            `}
-                          />
-                        </td>
+                              className="border border-black px-2 py-2 text-center"
+                            >
+                              <input
+                                type="radio"
+                                name={`accuracy-${asset.id}`}
+                                value={
+                                  accuracy
+                                }
+                                checked={
+                                  row?.accuracy ===
+                                  accuracy
+                                }
+                                disabled={
+                                  readOnly
+                                }
+                                onChange={(
+                                  event
+                                ) =>
+                                  updateRow(
+                                    asset.id,
+                                    "accuracy",
+                                    event.target.value
+                                  )
+                                }
+                                className="
+                                  h-4
+                                  w-4
 
-                        {/* =====================================
-                            CORRECT
-                        ===================================== */}
+                                  accent-blue-600
+                                "
+                              />
+                            </td>
+                          )
+                        )}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`accuracy-${asset.id}`}
-                            value="CORRECT"
-                            checked={
-                              row
-                                ?.accuracy ===
-                              "CORRECT"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "accuracy",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
+                        {[
+                          "IN_USE",
+                          "DAMAGED",
+                          "DETERIORATED",
+                          "UNUSABLE",
+                        ].map(
+                          (status) => (
+                            <td
+                              key={
+                                status
+                              }
+                              className="border border-black px-2 py-2 text-center"
+                            >
+                              <input
+                                type="radio"
+                                name={`status-${asset.id}`}
+                                value={
+                                  status
+                                }
+                                checked={
+                                  row?.status ===
+                                  status
+                                }
+                                disabled={
+                                  readOnly
+                                }
+                                onChange={(
+                                  event
+                                ) =>
+                                  updateRow(
+                                    asset.id,
+                                    "status",
+                                    event.target.value
+                                  )
+                                }
+                                className="
+                                  h-4
+                                  w-4
 
-                        {/* =====================================
-                            INCORRECT
-                        ===================================== */}
+                                  accent-blue-600
+                                "
+                              />
+                            </td>
+                          )
+                        )}
 
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`accuracy-${asset.id}`}
-                            value="INCORRECT"
-                            checked={
-                              row
-                                ?.accuracy ===
-                              "INCORRECT"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "accuracy",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
-
-                        {/* =====================================
-                            IN USE
-                        ===================================== */}
-
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`status-${asset.id}`}
-                            value="IN_USE"
-                            checked={
-                              row
-                                ?.status ===
-                              "IN_USE"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "status",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
-
-                        {/* =====================================
-                            DAMAGED
-                        ===================================== */}
-
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`status-${asset.id}`}
-                            value="DAMAGED"
-                            checked={
-                              row
-                                ?.status ===
-                              "DAMAGED"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "status",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
-
-                        {/* =====================================
-                            DETERIORATED
-                        ===================================== */}
-
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`status-${asset.id}`}
-                            value="DETERIORATED"
-                            checked={
-                              row
-                                ?.status ===
-                              "DETERIORATED"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "status",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
-
-                        {/* =====================================
-                            UNUSABLE
-                        ===================================== */}
-
-                        <td className="border border-black px-2 py-2 text-center align-middle">
-                          <input
-                            type="radio"
-                            name={`status-${asset.id}`}
-                            value="UNUSABLE"
-                            checked={
-                              row
-                                ?.status ===
-                              "UNUSABLE"
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "status",
-                                event.target.value
-                              )
-                            }
-                            className="h-4 w-4 accent-emerald-600 disabled:cursor-default disabled:opacity-100"
-                          />
-                        </td>
-
-                        {/* =====================================
-                            REMARK
-                        ===================================== */}
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2 align-middle">
+                        <td className="whitespace-nowrap border border-black px-2 py-2">
                           <input
                             type="text"
                             value={
-                              row
-                                ?.remark ??
+                              row?.remark ??
                               ""
                             }
                             disabled={
@@ -2891,7 +2602,7 @@ export default function InspectionForm({
                                 event.target.value
                               )
                             }
-                            className={`
+                            className="
                               h-9
                               w-[160px]
 
@@ -2910,16 +2621,12 @@ export default function InspectionForm({
 
                               outline-none
 
-                              focus:border-emerald-500
+                              focus:border-blue-500
                               focus:ring-2
-                              focus:ring-emerald-500/10
+                              focus:ring-blue-500/10
 
-                              ${
-                                readOnly
-                                  ? "cursor-default bg-slate-100 opacity-100"
-                                  : ""
-                              }
-                            `}
+                              disabled:bg-slate-100
+                            "
                           />
                         </td>
                       </tr>
@@ -2933,16 +2640,18 @@ export default function InspectionForm({
       </AppTableCard>
 
       {/* =====================================================
-          COMMITTEE
-
-          Dropdown ทั้ง 5 ช่องใช้ AppSearchableSelect
-          ตัวกลางเดียวกัน
+          4. COMMITTEE
       ===================================================== */}
 
       <AppCard
         className="
+          relative
+          z-10
+
           w-full
           min-w-0
+
+          !overflow-visible
         "
       >
         <div>
@@ -2994,9 +2703,7 @@ export default function InspectionForm({
               const officerOptions =
                 officers
                   .filter(
-                    (
-                      officer
-                    ) => {
+                    (officer) => {
                       const officerId =
                         String(
                           officer.id
@@ -3013,9 +2720,7 @@ export default function InspectionForm({
                     }
                   )
                   .map(
-                    (
-                      officer
-                    ) => ({
+                    (officer) => ({
                       value:
                         String(
                           officer.id
@@ -3027,10 +2732,8 @@ export default function InspectionForm({
                       description:
                         [
                           officer.position,
-                          officer.department
-                            ?.name,
-                          officer.section
-                            ?.name,
+                          officer.department?.name,
+                          officer.section?.name,
                         ]
                           .filter(
                             Boolean
@@ -3047,12 +2750,14 @@ export default function InspectionForm({
                     index
                   }
                   className="
+                    relative
+
                     min-w-0
 
                     rounded-[18px]
 
                     border
-                    border-slate-200
+                    border-slate-200/80
 
                     bg-slate-50/60
 
@@ -3070,8 +2775,7 @@ export default function InspectionForm({
                       !text-slate-700
                     "
                   >
-                    {index ===
-                    0
+                    {index === 0
                       ? "ประธานกรรมการ"
                       : `กรรมการคนที่ ${index}`}
                   </label>
@@ -3116,8 +2820,7 @@ export default function InspectionForm({
                       ตำแหน่ง:{" "}
                       {getOfficer(
                         inspectorId
-                      )
-                        ?.position ||
+                      )?.position ||
                         "-"}
                     </p>
                   )}
@@ -3129,7 +2832,7 @@ export default function InspectionForm({
       </AppCard>
 
       {/* =====================================================
-          ACTIONS
+          5. ACTION
       ===================================================== */}
 
       {!readOnly && (
@@ -3148,8 +2851,8 @@ export default function InspectionForm({
         >
           {/* ===============================================
               CANCEL
-
-              primary ของ AppButton กลาง = สีน้ำเงิน
+              ตัวกลาง + สีน้ำเงิน
+              ไม่มี emoji กากบาท
           =============================================== */}
 
           <AppButton
@@ -3158,13 +2861,6 @@ export default function InspectionForm({
             }
             variant="primary"
             size="md"
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                ✕
-              </span>
-            }
             className="
               w-full
               sm:w-auto
@@ -3175,28 +2871,20 @@ export default function InspectionForm({
 
           {/* ===============================================
               SAVE
-
-              success = เขียว
-              เปลี่ยนข้อความเหลือ "บันทึก"
-              ใช้ icon prop ของ AppButton กลาง
           =============================================== */}
 
           <AppButton
             type="button"
             variant="success"
             size="md"
+            icon={
+              <SaveIcon />
+            }
             onClick={
               handleSave
             }
             disabled={
               isSaving
-            }
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                💾
-              </span>
             }
             className="
               w-full
