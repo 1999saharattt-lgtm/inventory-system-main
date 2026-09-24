@@ -45,17 +45,17 @@ export default async function DepartmentsPage() {
       />
 
       {/* =====================================================
-          DEPARTMENT LIST
+          DEPARTMENT GRID
       ===================================================== */}
 
       {departments.length > 0 ? (
-        <div
+        <section
           className="
             grid
             w-full
             min-w-0
             grid-cols-1
-            gap-5
+            gap-4
 
             md:grid-cols-2
             xl:grid-cols-3
@@ -64,208 +64,194 @@ export default async function DepartmentsPage() {
           {departments.map(
             (department) => (
               <AppCard
-                key={department.id}
+                key={
+                  department.id
+                }
                 className="
-                  group
-                  relative
                   flex
-                  min-h-[250px]
-                  w-full
+                  min-h-[230px]
                   min-w-0
                   flex-col
-                  overflow-hidden
-                  !p-0
+                  items-center
+                  justify-center
+                  text-center
                 "
               >
                 {/* ===========================================
-                    TOP BAR
-                =========================================== */}
-
-                <div
-                  className="
-                    h-2
-                    w-full
-                    shrink-0
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-                  "
-                />
-
-                {/* ===========================================
-                    CONTENT
+                    ICON
                 =========================================== */}
 
                 <div
                   className="
                     flex
-                    flex-1
-                    flex-col
+                    w-full
                     items-center
-                    justify-between
-                    gap-5
-
-                    p-6
+                    justify-center
                     text-center
                   "
                 >
-                  {/* =========================================
-                      INFORMATION
-                  ========================================= */}
-
                   <div
                     className="
-                      flex
-                      w-full
-                      min-w-0
-                      flex-col
-                      items-center
+                      grid
+                      h-16
+                      w-16
+                      shrink-0
+                      place-items-center
+                      text-center
                     "
+                    aria-hidden="true"
                   >
-                    {/* ICON */}
-
-                    <div
+                    <span
                       className="
-                        grid
-                        h-16
-                        w-16
-                        shrink-0
-                        place-items-center
-
-                        rounded-2xl
-
-                        border
-                        border-slate-200
-
-                        bg-slate-50
-
-                        text-4xl
-
-                        shadow-sm
-
-                        transition-transform
-                        duration-200
-
-                        group-hover:scale-105
+                        block
+                        text-center
+                        text-3xl
+                        leading-none
                       "
-                      aria-hidden="true"
                     >
                       🏢
-                    </div>
-
-                    {/* NAME */}
-
-                    <h2
-                      className="
-                        mt-5
-                        w-full
-                        break-words
-
-                        text-xl
-                        font-extrabold
-                        leading-relaxed
-                        !text-slate-900
-                      "
-                    >
-                      {department.name}
-                    </h2>
-
-                    {/* DESCRIPTION */}
-
-                    <p
-                      className="
-                        mt-2
-
-                        text-base
-                        font-semibold
-                        leading-relaxed
-                        !text-slate-500
-                      "
-                    >
-                      คลิกเพื่อดูรายชื่อเจ้าหน้าที่
-                    </p>
+                    </span>
                   </div>
+                </div>
 
-                  {/* =========================================
-                      ACTION
-                  ========================================= */}
+                {/* ===========================================
+                    INFORMATION
+                =========================================== */}
 
-                  <div
+                <div
+                  className="
+                    mt-4
+                    w-full
+                    min-w-0
+                    text-center
+                  "
+                >
+                  <h2
                     className="
-                      mt-auto
-                      flex
                       w-full
-                      justify-center
-                      pt-2
+                      break-words
+                      text-center
+                      text-xl
+                      font-extrabold
+                      !text-slate-900
                     "
                   >
-                    <AppButton
-                      href={`/departments/${department.id}`}
-                      variant="primary"
-                      size="md"
-                    >
-                      เปิด
-                    </AppButton>
-                  </div>
+                    {
+                      department.name
+                    }
+                  </h2>
+
+                  <p
+                    className="
+                      mt-2
+                      w-full
+                      break-words
+                      text-center
+                      text-sm
+                      font-semibold
+                      !text-slate-500
+                    "
+                  >
+                    คลิกเพื่อดูรายชื่อเจ้าหน้าที่
+                  </p>
+                </div>
+
+                {/* ===========================================
+                    ACTION
+                =========================================== */}
+
+                <div
+                  className="
+                    mt-5
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                  "
+                >
+                  <AppButton
+                    href={`/departments/${department.id}`}
+                    variant="primary"
+                    size="md"
+                  >
+                    เปิด
+                  </AppButton>
                 </div>
               </AppCard>
             )
           )}
-        </div>
+        </section>
       ) : (
         /* ===================================================
             EMPTY STATE
         =================================================== */
 
-        <AppCard>
+        <AppCard
+          className="
+            flex
+            min-h-[230px]
+            min-w-0
+            flex-col
+            items-center
+            justify-center
+            text-center
+          "
+        >
+          {/* ===============================================
+              ICON
+          =============================================== */}
+
           <div
             className="
               flex
-              min-h-[260px]
               w-full
-              flex-col
               items-center
               justify-center
-
-              px-6
-              py-12
-
               text-center
             "
           >
-            {/* ICON */}
-
             <div
               className="
                 grid
                 h-16
                 w-16
+                shrink-0
                 place-items-center
-
-                rounded-2xl
-
-                border
-                border-slate-200
-
-                bg-slate-50
-
-                text-3xl
-
-                shadow-sm
+                text-center
               "
               aria-hidden="true"
             >
-              🏢
+              <span
+                className="
+                  block
+                  text-center
+                  text-3xl
+                  leading-none
+                "
+              >
+                🏢
+              </span>
             </div>
+          </div>
 
-            {/* TITLE */}
+          {/* ===============================================
+              INFORMATION
+          =============================================== */}
 
+          <div
+            className="
+              mt-4
+              w-full
+              min-w-0
+              text-center
+            "
+          >
             <h2
               className="
-                mt-4
-
-                text-lg
+                w-full
+                break-words
+                text-center
+                text-xl
                 font-extrabold
                 !text-slate-900
               "
@@ -273,15 +259,14 @@ export default async function DepartmentsPage() {
               ยังไม่มีข้อมูลหน่วยงาน
             </h2>
 
-            {/* DESCRIPTION */}
-
             <p
               className="
                 mt-2
-
+                w-full
+                break-words
+                text-center
                 text-sm
                 font-semibold
-                leading-relaxed
                 !text-slate-500
               "
             >

@@ -377,7 +377,7 @@ function OfficerTable({
 
                       <AppButton
                         href={`/officers/${officer.id}/edit`}
-                        variant="secondary"
+                        variant="primary"
                         size="sm"
                         icon={
                           <span
@@ -667,7 +667,7 @@ export default async function DepartmentDetailPage({
 
             <AppButton
               href={`/departments/${department.id}/officers/create`}
-              variant="success"
+              variant="primary"
               size="md"
               icon={
                 <span
@@ -788,7 +788,7 @@ export default async function DepartmentDetailPage({
 
                   <AppButton
                     href={`/sections/${section.id}/officers/create`}
-                    variant="success"
+                    variant="primary"
                     size="md"
                     icon={
                       <span
