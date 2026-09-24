@@ -1828,29 +1828,6 @@ function normalizeInspectorIds(
 }
 
 /* =========================================================
-   ICONS
-========================================================= */
-
-function SaveIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
-      <path d="M17 21v-8H7v8" />
-      <path d="M7 3v5h8" />
-    </svg>
-  );
-}
-
-/* =========================================================
    COMPONENT
 ========================================================= */
 
@@ -3848,10 +3825,10 @@ export default function InspectionForm({
         {/* ===================================================
             ACTION BUTTONS
 
-            ใช้ AppButton ตัวกลางโดยตรง
-            - ยกเลิก = primary สีน้ำเงิน
-            - บันทึก = success สีเขียว
-            - ไม่กำหนดสี / ความสูง / ความกว้าง / padding เอง
+            หน้าตาตามภาพตัวอย่าง:
+            - ยกเลิก = สีน้ำเงิน
+            - บันทึก = สีเขียว
+            - ไอคอนบันทึก = 💾 แบบในภาพ
         =================================================== */}
 
         {!readOnly && (
@@ -3873,28 +3850,119 @@ export default function InspectionForm({
               sm:justify-end
             "
           >
-            <AppButton
+            <Link
               href={finalCancelHref}
-              variant="primary"
-              size="md"
+              className="
+                inline-flex
+                h-11
+                min-w-[124px]
+                items-center
+                justify-center
+
+                rounded-[14px]
+
+                border
+                border-blue-400/70
+
+                bg-gradient-to-b
+                from-blue-500
+                via-blue-600
+                to-blue-700
+
+                px-5
+
+                text-sm
+                font-extrabold
+                !text-white
+
+                shadow-[0_8px_22px_-8px_rgba(37,99,235,0.78)]
+
+                ring-1
+                ring-inset
+                ring-white/25
+
+                transition-all
+                duration-200
+
+                hover:from-blue-600
+                hover:via-blue-700
+                hover:to-blue-800
+                hover:shadow-[0_10px_26px_-8px_rgba(37,99,235,0.85)]
+
+                active:translate-y-px
+                active:scale-[0.99]
+              "
             >
               ยกเลิก
-            </AppButton>
+            </Link>
 
-            <AppButton
+            <button
               type="button"
-              variant="success"
-              size="md"
-              icon={<SaveIcon />}
               onClick={handleSave}
               disabled={isSaving}
+              className="
+                inline-flex
+                h-11
+                min-w-[124px]
+                items-center
+                justify-center
+                gap-2
+
+                rounded-[14px]
+
+                border
+                border-emerald-400/70
+
+                bg-gradient-to-b
+                from-emerald-500
+                via-emerald-600
+                to-emerald-700
+
+                px-5
+
+                text-sm
+                font-extrabold
+                !text-white
+
+                shadow-[0_8px_22px_-8px_rgba(5,150,105,0.78)]
+
+                ring-1
+                ring-inset
+                ring-white/25
+
+                transition-all
+                duration-200
+
+                hover:from-emerald-600
+                hover:via-emerald-700
+                hover:to-emerald-800
+                hover:shadow-[0_10px_26px_-8px_rgba(5,150,105,0.85)]
+
+                active:translate-y-px
+                active:scale-[0.99]
+
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             >
-              {isSaving
-                ? isEditMode
-                  ? "กำลังบันทึกการแก้ไข..."
-                  : "กำลังบันทึก..."
-                : finalSubmitLabel}
-            </AppButton>
+              <span
+                aria-hidden="true"
+                className="
+                  text-base
+                  leading-none
+                "
+              >
+                💾
+              </span>
+
+              <span>
+                {isSaving
+                  ? isEditMode
+                    ? "กำลังบันทึกการแก้ไข..."
+                    : "กำลังบันทึก..."
+                  : finalSubmitLabel}
+              </span>
+            </button>
           </div>
         )}
       </AppCard>
