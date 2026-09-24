@@ -9,6 +9,16 @@ import VendorForm from "./VendorForm";
 ========================================================= */
 
 export default function NewVendorPage() {
+  /* =======================================================
+     ROUTES
+  ======================================================= */
+
+  const vendorsPath = "/vendors";
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <AppPage>
       {/* =====================================================
@@ -17,11 +27,11 @@ export default function NewVendorPage() {
 
       <AppPageHeader
         icon="🏢"
-        title="เพิ่มผู้จำหน่าย"
-        subtitle="เพิ่มข้อมูลผู้จำหน่ายสำหรับใช้ในระบบพัสดุ"
+        title="เพิ่มข้อมูลผู้จำหน่าย"
+        subtitle="เพิ่มรายละเอียดข้อมูลผู้จำหน่ายในระบบพัสดุ"
         actions={
           <AppButton
-            href="/vendors"
+            href={vendorsPath}
             variant="back"
             size="md"
           >
