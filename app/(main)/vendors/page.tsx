@@ -1,7 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Vendor = {
   id: number;
@@ -11,175 +19,190 @@ type Vendor = {
   taxId: string | null;
 };
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default function VendorsPage() {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [
+    vendors,
+    setVendors,
+  ] = useState<Vendor[]>([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  /* =======================================================
+     LOAD VENDORS
+  ======================================================= */
 
   useEffect(() => {
-    loadVendors();
+    void loadVendors();
   }, []);
 
   async function loadVendors() {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/vendors", {
-        cache: "no-store",
-      });
+      const res =
+        await fetch(
+          "/api/vendors",
+          {
+            cache:
+              "no-store",
+          }
+        );
 
       if (!res.ok) {
-        throw new Error();
+        throw new Error(
+          "ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้"
+        );
       }
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
-      setVendors(data);
-    } catch (err) {
-      console.error(err);
+      setVendors(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+    } catch (error) {
+      console.error(
+        "Load vendors error:",
+        error
+      );
 
-      alert("ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้");
+      alert(
+        "ไม่สามารถโหลดข้อมูลผู้จำหน่ายได้"
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDelete(id: number) {
-    const ok = confirm(
-      "ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
-    );
+  /* =======================================================
+     DELETE VENDOR
+  ======================================================= */
 
-    if (!ok) return;
+  async function handleDelete(
+    id: number
+  ) {
+    const ok =
+      window.confirm(
+        "ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
+      );
+
+    if (!ok) {
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/vendors/${id}`, {
-        method: "DELETE",
-      });
+      const res =
+        await fetch(
+          `/api/vendors/${id}`,
+          {
+            method:
+              "DELETE",
+          }
+        );
 
       if (res.ok) {
-        alert("ลบสำเร็จ");
+        alert(
+          "ลบข้อมูลผู้จำหน่ายสำเร็จ"
+        );
 
-        loadVendors();
-      } else {
-        const data = await res.json();
+        await loadVendors();
 
-        alert(data.message ?? "ลบไม่สำเร็จ");
+        return;
       }
-    } catch (err) {
-      console.error(err);
 
-      alert("เกิดข้อผิดพลาด");
+      let message =
+        "ลบข้อมูลผู้จำหน่ายไม่สำเร็จ";
+
+      try {
+        const data =
+          await res.json();
+
+        if (
+          data &&
+          typeof data.message ===
+            "string" &&
+          data.message.trim()
+        ) {
+          message =
+            data.message;
+        }
+      } catch {
+        // ใช้ข้อความ default
+      }
+
+      alert(message);
+    } catch (error) {
+      console.error(
+        "Delete vendor error:",
+        error
+      );
+
+      alert(
+        "เกิดข้อผิดพลาดในการลบข้อมูลผู้จำหน่าย"
+      );
     }
   }
 
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="🏢"
+        title="ผู้จำหน่าย"
+        subtitle={`ข้อมูลผู้จำหน่ายทั้งหมด ${vendors.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        actions={
+          <AppButton
+            href="/vendors/new"
+            variant="primary"
+            size="md"
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                ＋
+              </span>
+            }
           >
-            🏢 ผู้จำหน่าย
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            ทั้งหมด {vendors.length} รายการ
-          </p>
-        </div>
-
-        <Link
-          href="/vendors/new"
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-6
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          + เพิ่มผู้จำหน่าย
-        </Link>
-      </div>
+            เพิ่มผู้จำหน่าย
+          </AppButton>
+        }
+      />
 
       {/* =====================================================
-          Table
+          TABLE
       ===================================================== */}
 
-      <div
+      <AppTableCard
+        title="รายการผู้จำหน่าย"
+        subtitle="ข้อมูลผู้จำหน่ายสำหรับใช้ในระบบทะเบียนครุภัณฑ์"
+        badge={
+          loading
+            ? "กำลังโหลด..."
+            : `${vendors.length.toLocaleString(
+                "th-TH"
+              )} รายการ`
+        }
         className="
           w-full
           min-w-0
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-lg
         "
       >
         <div
@@ -192,11 +215,34 @@ export default function VendorsPage() {
         >
           <table
             className="
-              min-w-full
+              w-full
+              min-w-[1000px]
+              table-fixed
               border-collapse
               bg-white
+              text-base
             "
           >
+            {/* =================================================
+                COLUMN WIDTH
+            ================================================= */}
+
+            <colgroup>
+              <col className="w-[22%]" />
+
+              <col className="w-[31%]" />
+
+              <col className="w-[15%]" />
+
+              <col className="w-[17%]" />
+
+              <col className="w-[15%]" />
+            </colgroup>
+
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -205,202 +251,432 @@ export default function VendorsPage() {
                   "เบอร์ติดต่อ",
                   "เลขประจำตัวผู้เสียภาษี",
                   "จัดการ",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className={`
-                      whitespace-nowrap
-                      border
-                      border-slate-900
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      !text-white
-                      ${
-                        title === "ที่อยู่"
-                          ? "min-w-[320px]"
-                          : ""
+                ].map(
+                  (
+                    title
+                  ) => (
+                    <th
+                      key={
+                        title
                       }
-                      ${
-                        title ===
-                        "เลขประจำตัวผู้เสียภาษี"
-                          ? "min-w-[160px]"
-                          : ""
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-3
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {
+                        title
                       }
-                    `}
-                  >
-                    {title}
-                  </th>
-                ))}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
-            <tbody className="text-slate-900">
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
+            <tbody>
+              {/* =================================================
+                  LOADING
+              ================================================= */}
+
               {loading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={
+                      5
+                    }
                     className="
                       border
-                      border-slate-900
-                      px-4
-                      py-12
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
                       text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    กำลังโหลด...
-                  </td>
-                </tr>
-              ) : vendors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="
-                      border
-                      border-slate-900
-                      px-4
-                      py-12
-                      text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
-                    "
-                  >
-                    ยังไม่มีข้อมูลผู้จำหน่าย
-                  </td>
-                </tr>
-              ) : (
-                vendors.map((vendor) => (
-                  <tr
-                    key={vendor.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td
+                    <div
                       className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        font-extrabold
-                      "
-                    >
-                      {vendor.name}
-                    </td>
+                        mx-auto
 
-                    <td
-                      className="
-                        max-w-[320px]
-                        break-words
-                        whitespace-normal
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        font-semibold
-                      "
-                    >
-                      {vendor.address ?? "-"}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {vendor.phone ?? "-"}
-                    </td>
-
-                    <td
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-slate-900
-                        px-3
-                        py-3
-                        text-center
-                        font-semibold
-                      "
-                    >
-                      {vendor.taxId ?? "-"}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
                       "
                     >
                       <div
                         className="
-                          flex
-                          justify-center
-                          gap-2
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        ⏳
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+                          !text-slate-900
                         "
                       >
-                        <Link
-                          href={`/vendors/${vendor.id}/edit`}
-                          className="
-                            rounded-xl
-                            bg-slate-800
-                            px-4
-                            py-2
-                            font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
-                          "
-                        >
-                          แก้ไข
-                        </Link>
+                        กำลังโหลดข้อมูล
+                      </p>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDelete(vendor.id)
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+                          !text-slate-500
+                        "
+                      >
+                        กรุณารอสักครู่
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : vendors.length ===
+                0 ? (
+                /* ===========================================
+                    EMPTY STATE
+                =========================================== */
+
+                <tr>
+                  <td
+                    colSpan={
+                      5
+                    }
+                    className="
+                      border
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        mx-auto
+
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        🏢
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีข้อมูลผู้จำหน่าย
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีการเพิ่มผู้จำหน่าย
+                        ข้อมูลจะแสดงในตารางนี้
+                      </p>
+
+                      <div className="mt-5">
+                        <AppButton
+                          href="/vendors/new"
+                          variant="primary"
+                          size="md"
+                          icon={
+                            <span
+                              aria-hidden="true"
+                            >
+                              ＋
+                            </span>
                           }
+                        >
+                          เพิ่มผู้จำหน่าย
+                        </AppButton>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                /* ===========================================
+                    VENDOR ROWS
+                =========================================== */
+
+                vendors.map(
+                  (
+                    vendor,
+                    index
+                  ) => (
+                    <tr
+                      key={
+                        vendor.id
+                      }
+                      className={`
+                        ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
+
+                        transition-colors
+                        duration-200
+
+                        hover:bg-blue-50/70
+                      `}
+                    >
+                      {/* =====================================
+                          NAME
+                      ===================================== */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-base
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
+                        <div
                           className="
-                            rounded-xl
-                            bg-red-600
-                            px-4
-                            py-2
+                            break-words
                             font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-red-700
+                            !text-slate-900
                           "
                         >
-                          ลบ
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {
+                            vendor.name
+                          }
+                        </div>
+                      </td>
+
+                      {/* =====================================
+                          ADDRESS
+                      ===================================== */}
+
+                      <td
+                        className="
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-base
+                          font-bold
+                          leading-relaxed
+                          !text-slate-900
+                        "
+                      >
+                        <div
+                          className="
+                            whitespace-normal
+                            break-words
+                          "
+                        >
+                          {vendor.address ??
+                            "-"}
+                        </div>
+                      </td>
+
+                      {/* =====================================
+                          PHONE
+                      ===================================== */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3.5
+
+                          text-center
+                          text-base
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        {vendor.phone ??
+                          "-"}
+                      </td>
+
+                      {/* =====================================
+                          TAX ID
+                      ===================================== */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3.5
+
+                          text-center
+                          text-base
+                          font-bold
+                          tabular-nums
+                          !text-slate-900
+                        "
+                      >
+                        {vendor.taxId ??
+                          "-"}
+                      </td>
+
+                      {/* =====================================
+                          ACTIONS
+                      ===================================== */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+
+                          border
+                          border-black
+
+                          px-3
+                          py-3
+
+                          text-center
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                          "
+                        >
+                          {/* =================================
+                              EDIT
+                          ================================= */}
+
+                          <AppButton
+                            href={`/vendors/${vendor.id}/edit`}
+                            variant="secondary"
+                            size="sm"
+                            icon={
+                              <span
+                                aria-hidden="true"
+                              >
+                                ✏️
+                              </span>
+                            }
+                          >
+                            แก้ไข
+                          </AppButton>
+
+                          {/* =================================
+                              DELETE
+                          ================================= */}
+
+                          <AppButton
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            icon={
+                              <span
+                                aria-hidden="true"
+                              >
+                                🗑️
+                              </span>
+                            }
+                            onClick={() =>
+                              handleDelete(
+                                vendor.id
+                              )
+                            }
+                          >
+                            ลบ
+                          </AppButton>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }

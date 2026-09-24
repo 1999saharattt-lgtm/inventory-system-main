@@ -2,42 +2,75 @@
 
 import { useState } from "react";
 
+import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function VendorForm() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
 
+    if (loading) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData =
+        new FormData(
+          e.currentTarget
+        );
 
-      const body = Object.fromEntries(
-        formData.entries()
-      );
+      const body =
+        Object.fromEntries(
+          formData.entries()
+        );
 
-      const res = await fetch("/api/vendors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+      const res =
+        await fetch(
+          "/api/vendors",
+          {
+            method: "POST",
 
-      const text = await res.text();
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify(
+              body
+            ),
+          }
+        );
+
+      const text =
+        await res.text();
 
       if (!res.ok) {
         throw new Error(
-          text || "บันทึกไม่สำเร็จ"
+          text ||
+            "บันทึกไม่สำเร็จ"
         );
       }
 
-      alert("เพิ่มผู้จำหน่ายสำเร็จ");
+      alert(
+        "เพิ่มผู้จำหน่ายสำเร็จ"
+      );
 
-      window.location.href = "/vendors";
+      window.location.href =
+        "/vendors";
     } catch (error) {
       alert(
         error instanceof Error
@@ -49,42 +82,109 @@ export default function VendorForm() {
     }
   }
 
+  /* =======================================================
+     SHARED CLASSES
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+
+    text-sm
+    font-extrabold
+    !text-slate-700
+
+    sm:text-base
+  `;
+
+  const inputClassName = `
+    min-h-[50px]
+    w-full
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+  `;
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <form
       onSubmit={handleSubmit}
       className="
-        mx-auto
         w-full
-        max-w-4xl
-        space-y-6
-        rounded-3xl
+        min-w-0
+
+        rounded-2xl
+
         border
-        border-slate-700
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
-        p-6
-        text-white
-        shadow-2xl
-        sm:p-8
+        border-slate-200
+
+        bg-white
+
+        p-5
+
+        shadow-sm
+
+        sm:p-6
+        lg:p-8
       "
     >
       {/* =====================================================
-          ข้อมูลผู้จำหน่าย
+          VENDOR INFORMATION
       ===================================================== */}
 
       <div
         className="
+          mb-6
+
           rounded-xl
+
           bg-gradient-to-r
           from-slate-800
           to-slate-700
+
           px-4
           py-3
         "
       >
-        <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+        <h2
+          className="
+            text-lg
+            font-extrabold
+            !text-white
+
+            sm:text-xl
+          "
+        >
           🏢 ข้อมูลผู้จำหน่าย
         </h2>
       </div>
@@ -94,62 +194,49 @@ export default function VendorForm() {
           grid
           grid-cols-1
           gap-5
+
           md:grid-cols-2
         "
       >
-        {/* ชื่อผู้จำหน่าย */}
+        {/* ===============================================
+            NAME
+        =============================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="name"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
-            ชื่อผู้จำหน่าย *
+            ชื่อผู้จำหน่าย{" "}
+            <span className="!text-red-500">
+              *
+            </span>
           </label>
 
           <input
             id="name"
             name="name"
+            type="text"
             required
             placeholder="ระบุชื่อผู้จำหน่าย"
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              placeholder:text-slate-400
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            className={
+              inputClassName
+            }
           />
         </div>
 
-        {/* เบอร์โทร */}
+        {/* ===============================================
+            PHONE
+        =============================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="phone"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             เบอร์โทร
           </label>
@@ -157,40 +244,24 @@ export default function VendorForm() {
           <input
             id="phone"
             name="phone"
+            type="tel"
             placeholder="ระบุเบอร์โทร"
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              placeholder:text-slate-400
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            className={
+              inputClassName
+            }
           />
         </div>
 
-        {/* เลขภาษี */}
+        {/* ===============================================
+            TAX ID
+        =============================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="taxId"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             เลขประจำตัวผู้เสียภาษี
           </label>
@@ -198,59 +269,54 @@ export default function VendorForm() {
           <input
             id="taxId"
             name="taxId"
+            type="text"
+            inputMode="numeric"
             placeholder="ระบุเลขผู้เสียภาษี"
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              placeholder:text-slate-400
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            className={
+              inputClassName
+            }
           />
         </div>
       </div>
 
       {/* =====================================================
-          ที่อยู่
+          ADDRESS
       ===================================================== */}
 
-      <div>
+      <div className="mt-8">
         <div
           className="
+            mb-5
+
             rounded-xl
+
             bg-gradient-to-r
             from-slate-800
             to-slate-700
+
             px-4
             py-3
           "
         >
-          <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+          <h2
+            className="
+              text-lg
+              font-extrabold
+              !text-white
+
+              sm:text-xl
+            "
+          >
             📍 ที่อยู่ผู้จำหน่าย
           </h2>
         </div>
 
-        <div className="mt-4">
+        <div className="min-w-0">
           <label
             htmlFor="address"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             ที่อยู่
           </label>
@@ -261,97 +327,112 @@ export default function VendorForm() {
             rows={4}
             placeholder="ระบุที่อยู่ผู้จำหน่าย"
             className="
-              mt-2
-              min-h-[120px]
+              min-h-[130px]
               w-full
-              rounded-xl
+              resize-y
+
+              rounded-[14px]
+
               border
               border-slate-300
+
               bg-white
+
               px-4
               py-3
-              font-semibold
-              text-slate-900
-              placeholder:text-slate-400
+
+              text-base
+              font-bold
+              leading-relaxed
+              !text-slate-900
+
+              shadow-sm
               outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
+
+              transition-all
+              duration-200
+
+              placeholder:!text-slate-400
+
+              hover:border-slate-400
+              hover:bg-slate-50
+
+              focus:border-blue-400
+              focus:bg-white
+              focus:ring-4
+              focus:ring-blue-500/10
             "
           />
         </div>
       </div>
 
       {/* =====================================================
-          ปุ่ม
+          ACTIONS
       ===================================================== */}
 
       <div
         className="
+          mt-8
+
           flex
-          w-full
-          flex-col
+          flex-col-reverse
           gap-3
+
           border-t
-          border-slate-700
+          border-slate-200
+
           pt-5
+
           sm:flex-row
+          sm:items-center
           sm:justify-end
         "
       >
-        {/* ยกเลิก */}
+        {/* ===============================================
+            CANCEL
 
-        <a
+            ใช้ AppButton ตัวกลาง
+        =============================================== */}
+
+        <AppButton
           href="/vendors"
+          variant="secondary"
+          size="md"
           className="
             w-full
-            rounded-xl
-            bg-slate-700
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:bg-slate-800
             sm:w-auto
           "
         >
           ยกเลิก
-        </a>
+        </AppButton>
 
-        {/* บันทึก */}
+        {/* ===============================================
+            SAVE
 
-        <button
+            ใช้ AppButton ตัวกลาง
+        =============================================== */}
+
+        <AppButton
           type="submit"
+          variant="success"
+          size="md"
           disabled={loading}
           className="
             w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-7
-            py-3
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            active:scale-[0.98]
-            disabled:cursor-not-allowed
-            disabled:opacity-50
             sm:w-auto
           "
+          icon={
+            <span aria-hidden="true">
+              {loading
+                ? "⏳"
+                : "💾"}
+            </span>
+          }
         >
           {loading
             ? "กำลังบันทึก..."
-            : "💾 บันทึก"}
-        </button>
+            : "บันทึก"}
+        </AppButton>
       </div>
     </form>
   );

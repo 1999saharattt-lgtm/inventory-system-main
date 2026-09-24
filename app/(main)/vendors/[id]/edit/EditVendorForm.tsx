@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Vendor = {
   id: number;
   name: string;
@@ -10,160 +16,280 @@ type Vendor = {
   taxId: string | null;
 };
 
+type Props = {
+  vendor: Vendor;
+};
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function EditVendorForm({
   vendor,
-}: {
-  vendor: Vendor;
-}) {
-  const [loading, setLoading] = useState(false);
+}: Props) {
+  const [loading, setLoading] =
+    useState(false);
+
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
 
   async function handleSubmit(
-    e: React.FormEvent
+    e: React.FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setLoading(true);
 
     try {
       const formData =
         new FormData(
-          e.currentTarget as HTMLFormElement
+          e.currentTarget
         );
 
       const body = {
-        name: formData.get("name"),
-        address: formData.get("address"),
-        phone: formData.get("phone"),
-        taxId: formData.get("taxId"),
+        name:
+          formData.get(
+            "name"
+          ),
+
+        address:
+          formData.get(
+            "address"
+          ),
+
+        phone:
+          formData.get(
+            "phone"
+          ),
+
+        taxId:
+          formData.get(
+            "taxId"
+          ),
       };
 
-      const res = await fetch(
-        `/api/vendors/${vendor.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const res =
+        await fetch(
+          `/api/vendors/${vendor.id}`,
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(
+                body
+              ),
+          }
+        );
+
+      /* =====================================================
+         SUCCESS
+      ===================================================== */
 
       if (res.ok) {
-        alert("บันทึกสำเร็จ");
+        alert(
+          "บันทึกสำเร็จ"
+        );
 
-        location.href = "/vendors";
-      } else {
-        alert("บันทึกไม่สำเร็จ");
+        window.location.href =
+          "/vendors";
+
+        return;
       }
-    } catch (error) {
-      console.error(error);
 
-      alert("เกิดข้อผิดพลาด");
+      /* =====================================================
+         ERROR
+      ===================================================== */
+
+      alert(
+        "บันทึกไม่สำเร็จ"
+      );
+    } catch (error) {
+      console.error(
+        "Update vendor error:",
+        error
+      );
+
+      alert(
+        "เกิดข้อผิดพลาด"
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  /* =========================================================
+     SHARED CLASSES
+  ========================================================= */
+
+  const labelClassName = `
+    block
+    text-sm
+    font-extrabold
+    !text-slate-200
+  `;
+
+  const inputClassName = `
+    mt-2
+    min-h-[50px]
+    w-full
+
+    rounded-xl
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-semibold
+    !text-slate-900
+
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+
+    focus:border-emerald-600
+    focus:ring-4
+    focus:ring-emerald-500/10
+  `;
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="
         mx-auto
         w-full
         max-w-4xl
         space-y-6
+
         rounded-3xl
+
         border
         border-slate-700
+
         bg-gradient-to-br
         from-slate-950
         via-slate-900
         to-slate-800
+
         p-6
+
         text-white
+
         shadow-2xl
+
         sm:p-8
       "
     >
       {/* =====================================================
-          ข้อมูลผู้จำหน่าย
+          VENDOR INFORMATION
       ===================================================== */}
 
       <div
         className="
           rounded-xl
+
           bg-gradient-to-r
           from-slate-800
           to-slate-700
+
           px-4
           py-3
         "
       >
-        <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+        <h2
+          className="
+            text-lg
+            font-extrabold
+            !text-white
+
+            sm:text-xl
+          "
+        >
           🏢 ข้อมูลผู้จำหน่าย
         </h2>
       </div>
+
+      {/* =====================================================
+          FIELDS
+      ===================================================== */}
 
       <div
         className="
           grid
           grid-cols-1
           gap-5
+
           md:grid-cols-2
         "
       >
-        {/* ชื่อผู้จำหน่าย */}
+        {/* ===================================================
+            NAME
+        =================================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="name"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
-            ชื่อผู้จำหน่าย *
+            ชื่อผู้จำหน่าย{" "}
+            <span className="!text-red-400">
+              *
+            </span>
           </label>
 
           <input
             id="name"
             name="name"
-            defaultValue={vendor.name}
+            type="text"
+            defaultValue={
+              vendor.name
+            }
             required
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            autoComplete="organization"
+            placeholder="ระบุชื่อผู้จำหน่าย"
+            className={
+              inputClassName
+            }
           />
         </div>
 
-        {/* เบอร์โทร */}
+        {/* ===================================================
+            PHONE
+        =================================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="phone"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             เบอร์โทร
           </label>
@@ -171,39 +297,29 @@ export default function EditVendorForm({
           <input
             id="phone"
             name="phone"
-            defaultValue={vendor.phone ?? ""}
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            type="tel"
+            defaultValue={
+              vendor.phone ??
+              ""
+            }
+            autoComplete="tel"
+            placeholder="ระบุเบอร์โทร"
+            className={
+              inputClassName
+            }
           />
         </div>
 
-        {/* เลขประจำตัวผู้เสียภาษี */}
+        {/* ===================================================
+            TAX ID
+        =================================================== */}
 
         <div className="min-w-0">
           <label
             htmlFor="taxId"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             เลขประจำตัวผู้เสียภาษี
           </label>
@@ -211,45 +327,46 @@ export default function EditVendorForm({
           <input
             id="taxId"
             name="taxId"
-            defaultValue={vendor.taxId ?? ""}
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+            type="text"
+            defaultValue={
+              vendor.taxId ??
+              ""
+            }
+            inputMode="numeric"
+            placeholder="ระบุเลขประจำตัวผู้เสียภาษี"
+            className={
+              inputClassName
+            }
           />
         </div>
       </div>
 
       {/* =====================================================
-          ที่อยู่
+          ADDRESS
       ===================================================== */}
 
       <div>
         <div
           className="
             rounded-xl
+
             bg-gradient-to-r
             from-slate-800
             to-slate-700
+
             px-4
             py-3
           "
         >
-          <h2 className="text-lg font-extrabold !text-white sm:text-xl">
+          <h2
+            className="
+              text-lg
+              font-extrabold
+              !text-white
+
+              sm:text-xl
+            "
+          >
             📍 ที่อยู่ผู้จำหน่าย
           </h2>
         </div>
@@ -257,12 +374,9 @@ export default function EditVendorForm({
         <div className="mt-4">
           <label
             htmlFor="address"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            className={
+              labelClassName
+            }
           >
             ที่อยู่
           </label>
@@ -271,98 +385,93 @@ export default function EditVendorForm({
             id="address"
             name="address"
             rows={4}
-            defaultValue={vendor.address ?? ""}
-            className="
-              mt-2
+            defaultValue={
+              vendor.address ??
+              ""
+            }
+            autoComplete="street-address"
+            placeholder="ระบุที่อยู่ผู้จำหน่าย"
+            className={`
+              ${inputClassName}
+
               min-h-[120px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
+              resize-y
+              leading-relaxed
+            `}
           />
         </div>
       </div>
 
       {/* =====================================================
-          ปุ่ม
+          ACTIONS
       ===================================================== */}
 
       <div
         className="
           flex
           w-full
-          flex-col
+          flex-col-reverse
           gap-3
+
           border-t
           border-slate-700
+
           pt-5
+
           sm:flex-row
+          sm:items-center
           sm:justify-end
         "
       >
-        {/* ยกเลิก */}
+        {/* ===================================================
+            CANCEL
 
-        <a
+            ใช้ AppButton ตัวกลาง
+        =================================================== */}
+
+        <AppButton
           href="/vendors"
+          variant="secondary"
+          size="md"
           className="
             w-full
-            rounded-xl
-            bg-slate-700
-            px-6
-            py-3
-            text-center
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:bg-slate-800
             sm:w-auto
           "
         >
           ยกเลิก
-        </a>
+        </AppButton>
 
-        {/* บันทึก */}
+        {/* ===================================================
+            SAVE
 
-        <button
+            ใช้ AppButton ตัวกลาง
+        =================================================== */}
+
+        <AppButton
           type="submit"
-          disabled={loading}
+          variant="success"
+          size="md"
+          disabled={
+            loading
+          }
+          icon={
+            <span
+              aria-hidden="true"
+            >
+              {loading
+                ? "⏳"
+                : "💾"}
+            </span>
+          }
           className="
             w-full
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-7
-            py-3
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-[1.02]
-            hover:from-emerald-700
-            hover:to-green-600
-            active:scale-[0.98]
-            disabled:cursor-not-allowed
-            disabled:opacity-50
             sm:w-auto
           "
         >
           {loading
             ? "กำลังบันทึก..."
-            : "💾 บันทึกการแก้ไข"}
-        </button>
+            : "บันทึกการแก้ไข"}
+        </AppButton>
       </div>
     </form>
   );
