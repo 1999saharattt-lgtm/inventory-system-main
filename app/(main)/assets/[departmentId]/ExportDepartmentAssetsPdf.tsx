@@ -57,8 +57,8 @@ type Props = {
   assets: Asset[];
 
   /*
-   * รองรับ props เดิมจากหน้า /assets/[departmentId]/all
-   * เพื่อไม่ให้ TypeScript error
+   * รองรับ props เดิมจากหน้า
+   * /assets/[departmentId]/all
    */
   departmentId?: number;
 
@@ -74,7 +74,10 @@ type Props = {
    เก็บไว้รองรับข้อมูลเดิม
 ========================================================= */
 
-const categoryName: Record<string, string> = {
+const categoryName: Record<
+  string,
+  string
+> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
 
@@ -112,7 +115,10 @@ const categoryName: Record<string, string> = {
    ใช้เมื่อข้อมูลไม่มี unit
 ========================================================= */
 
-const categoryUnit: Record<string, string> = {
+const categoryUnit: Record<
+  string,
+  string
+> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
 
@@ -148,7 +154,10 @@ const categoryUnit: Record<string, string> = {
    STATUS
 ========================================================= */
 
-const statusName: Record<string, string> = {
+const statusName: Record<
+  string,
+  string
+> = {
   IN_USE:
     "ยังใช้งาน",
 
@@ -251,8 +260,6 @@ function getResponsibleName(
 
   /* =======================================================
      RESPONSIBLE NAME
-
-     ใช้ responsibleName จากทะเบียนเดิมเป็นหลัก
   ======================================================= */
 
   const originalResponsibleName =
@@ -265,8 +272,8 @@ function getResponsibleName(
     originalResponsibleName !== "-"
   ) {
     /*
-     * ถ้ามีชื่อหน่วยงานอยู่ด้านหน้าแล้ว
-     * ไม่เติมชื่อซ้ำ
+     * ถ้ามีชื่อหน่วยงานอยู่แล้ว
+     * ไม่เติมซ้ำ
      */
 
     if (
@@ -282,7 +289,9 @@ function getResponsibleName(
       return originalResponsibleName;
     }
 
-    if (assetDepartmentName) {
+    if (
+      assetDepartmentName
+    ) {
       return `${assetDepartmentName} / ${originalResponsibleName}`;
     }
 
@@ -299,7 +308,9 @@ function getResponsibleName(
     "";
 
   if (sectionName) {
-    if (assetDepartmentName) {
+    if (
+      assetDepartmentName
+    ) {
       return `${assetDepartmentName} / ${sectionName}`;
     }
 
@@ -316,14 +327,18 @@ function getResponsibleName(
       : "";
 
   if (officerName) {
-    if (assetDepartmentName) {
+    if (
+      assetDepartmentName
+    ) {
       return `${assetDepartmentName} / ${officerName}`;
     }
 
     return officerName;
   }
 
-  if (assetDepartmentName) {
+  if (
+    assetDepartmentName
+  ) {
     return assetDepartmentName;
   }
 
@@ -1069,6 +1084,9 @@ export default function ExportDepartmentAssetsPdf({
 
   /* =========================================================
      UI
+
+     ใช้ AppButton ตัวกลางของระบบเท่านั้น
+     ไม่เขียน style ปุ่มเอง
   ========================================================= */
 
   return (
@@ -1084,7 +1102,9 @@ export default function ExportDepartmentAssetsPdf({
         assets.length === 0
       }
       icon={
-        <span aria-hidden="true">
+        <span
+          aria-hidden="true"
+        >
           {isExporting
             ? "⏳"
             : "📄"}

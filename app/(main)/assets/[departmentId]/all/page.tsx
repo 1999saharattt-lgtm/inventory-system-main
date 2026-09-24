@@ -33,8 +33,6 @@ const statusName: Record<string, string> = {
 
 /* =========================================================
    CATEGORY UNIT
-
-   ใช้เฉพาะกรณีในทะเบียนไม่มี unit
 ========================================================= */
 
 const categoryUnit: Record<string, string> = {
@@ -53,8 +51,6 @@ const categoryUnit: Record<string, string> = {
 
 /* =========================================================
    SOURCE ORDER
-
-   ลำดับจากทะเบียนต้นฉบับ
 ========================================================= */
 
 function getSourceOrder(
@@ -88,8 +84,6 @@ function getSourceOrder(
 
 /* =========================================================
    RESPONSIBLE NAME
-
-   ใช้ responsibleName จากทะเบียน Excel เป็นหลัก
 ========================================================= */
 
 function getResponsibleName(asset: {
@@ -113,10 +107,6 @@ function getResponsibleName(asset: {
 
   const originalResponsibleName =
     asset.responsibleName?.trim();
-
-  /* =======================================================
-     RESPONSIBLE NAME
-  ======================================================= */
 
   if (
     originalResponsibleName &&
@@ -142,10 +132,6 @@ function getResponsibleName(asset: {
     return originalResponsibleName;
   }
 
-  /* =======================================================
-     SECTION
-  ======================================================= */
-
   const sectionName =
     asset.section?.name?.trim();
 
@@ -156,10 +142,6 @@ function getResponsibleName(asset: {
 
     return sectionName;
   }
-
-  /* =======================================================
-     OFFICER
-  ======================================================= */
 
   const officerName =
     asset.officer
@@ -290,10 +272,6 @@ export default async function AllAssetsPage({
     notFound();
   }
 
-  /* =======================================================
-     NON-NULL VALUES
-  ======================================================= */
-
   const departmentIdForPage =
     department.id;
 
@@ -356,16 +334,9 @@ export default async function AllAssetsPage({
     return a.id - b.id;
   });
 
-  /* =======================================================
-     PDF
-  ======================================================= */
-
-  const ExportPdfButton =
-    ExportDepartmentAssetsPdf as any;
-
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <AppPage>
@@ -383,64 +354,46 @@ export default async function AllAssetsPage({
           <>
             {/* ===============================================
                 EXPORT PDF
+
+                ใช้ AppButton ตัวกลางเป็นหน้าตาปุ่ม
             =============================================== */}
 
-            <div
-              className="
-                w-full
-                sm:w-auto
-
-                [&_button]:!flex
-                [&_button]:!h-11
-                [&_button]:!w-full
-
-                [&_button]:!items-center
-                [&_button]:!justify-center
-
-                [&_button]:!whitespace-nowrap
-
-                [&_button]:!rounded-xl
-                [&_button]:!border-0
-
-                [&_button]:!bg-none
-                [&_button]:!bg-red-600
-
-                [&_button]:!px-4
-                [&_button]:!py-0
-
-                [&_button]:!text-center
-                [&_button]:!text-sm
-                [&_button]:!font-extrabold
-                [&_button]:!leading-none
-                [&_button]:!text-white
-
-                [&_button]:!shadow-lg
-
-                [&_button]:!transition
-
-                [&_button:hover]:!scale-[1.02]
-                [&_button:hover]:!bg-red-700
-
-                [&_button:active]:!scale-[0.98]
-
-                sm:[&_button]:!w-auto
-              "
-            >
-              <ExportPdfButton
-                departmentId={
-                  departmentIdForPage
-                }
-                departmentName={
-                  departmentNameForPage
-                }
-                department={
-                  department
-                }
-                assets={
-                  assets
-                }
-              />
-            </div>
+            <ExportDepartmentAssetsPdf
+              departmentName={
+                departmentNameForPage
+              }
+              assets={
+                assets
+              }
+              renderTrigger={({
+                onClick,
+                disabled,
+                isExporting,
+              }) => (
+                <AppButton
+                  type="button"
+                  variant="danger"
+                  size="md"
+                  onClick={
+                    onClick
+                  }
+                  disabled={
+                    disabled
+                  }
+                  icon={
+                    <span
+                      aria-hidden="true"
+                    >
+                      📄
+                    </span>
+                  }
+                >
+                  {isExporting
+                    ? "กำลังสร้าง PDF..."
+                    : "ส่งออก PDF"}
+                </AppButton>
+              )}
+            />
 
             {/* ===============================================
                 BACK
@@ -479,13 +432,6 @@ export default async function AllAssetsPage({
           min-w-0
         "
       >
-        {/* ===================================================
-            TABLE WRAPPER
-
-            ไม่กำหนด min-width ขนาดใหญ่
-            เพื่อไม่ให้ตารางล้นออกด้านข้าง
-        =================================================== */}
-
         <div
           className="
             w-full
@@ -504,36 +450,17 @@ export default async function AllAssetsPage({
           >
             {/* =================================================
                 COLUMN WIDTH
-
-                รวม 100%
             ================================================= */}
 
             <colgroup>
-              {/* ลำดับ */}
               <col className="w-[5%]" />
-
-              {/* GFMIS */}
               <col className="w-[12%]" />
-
-              {/* รหัสครุภัณฑ์ */}
               <col className="w-[14%]" />
-
-              {/* รายการ */}
               <col className="w-[21%]" />
-
-              {/* จำนวน */}
               <col className="w-[6%]" />
-
-              {/* หน่วย */}
               <col className="w-[6%]" />
-
-              {/* ผู้รับผิดชอบ */}
               <col className="w-[18%]" />
-
-              {/* สถานะ */}
               <col className="w-[9%]" />
-
-              {/* รายละเอียด */}
               <col className="w-[9%]" />
             </colgroup>
 
@@ -563,22 +490,17 @@ export default async function AllAssetsPage({
                       }
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-2
                         py-4
-
                         text-center
                         text-sm
                         font-extrabold
                         !text-white
-
                         xl:px-3
                         xl:text-base
                       "
@@ -604,8 +526,15 @@ export default async function AllAssetsPage({
                     asset,
                     index
                   ) => {
+                    /*
+                     * สำคัญ:
+                     * ส่ง from=all ไปยังหน้า Detail
+                     * เพื่อให้หน้า Detail รู้ว่า
+                     * ผู้ใช้มาจาก /assets/[departmentId]/all
+                     */
+
                     const detailPath =
-                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}`;
+                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all`;
 
                     const responsible =
                       getResponsibleName(
@@ -879,9 +808,6 @@ export default async function AllAssetsPage({
 
                         {/* ===================================
                             STATUS
-
-                            ปรับเป็น text-sm
-                            ให้ขนาดข้อความเท่าข้อมูลอื่น
                         =================================== */}
 
                         <td
@@ -900,14 +826,10 @@ export default async function AllAssetsPage({
                               max-w-full
                               items-center
                               justify-center
-
                               whitespace-nowrap
-
                               rounded-full
-
                               px-2
                               py-1.5
-
                               text-sm
                               font-extrabold
                               leading-none
