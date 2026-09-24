@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -107,7 +108,9 @@ function getSourceOrder(
     return null;
   }
 
-  const sourceOrder = Number(match[1]);
+  const sourceOrder = Number(
+    match[1]
+  );
 
   if (
     !Number.isInteger(sourceOrder) ||
@@ -183,7 +186,10 @@ function getAssetUnit(
     return remarkUnit;
   }
 
-  return fallbackUnit || "รายการ";
+  return (
+    fallbackUnit ||
+    "รายการ"
+  );
 }
 
 /* =========================================================
@@ -217,10 +223,6 @@ function getResponsibleName(
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
-  /* =======================================================
-     RESPONSIBLE NAME
-  ======================================================= */
-
   if (
     originalResponsibleName &&
     originalResponsibleName !== "-"
@@ -245,10 +247,6 @@ function getResponsibleName(
     return originalResponsibleName;
   }
 
-  /* =======================================================
-     SECTION
-  ======================================================= */
-
   const sectionName =
     asset.section?.name?.trim();
 
@@ -259,10 +257,6 @@ function getResponsibleName(
 
     return sectionName;
   }
-
-  /* =======================================================
-     OFFICER
-  ======================================================= */
 
   const officerName =
     asset.officer
@@ -285,7 +279,7 @@ function getResponsibleName(
 }
 
 /* =========================================================
-   STATUS LABEL
+   STATUS
 ========================================================= */
 
 function getStatusLabel(
@@ -297,7 +291,7 @@ function getStatusLabel(
         label: "ยังใช้งาน",
         className: `
           bg-emerald-100
-          !text-emerald-800
+          !text-emerald-700
           ring-1
           ring-inset
           ring-emerald-200
@@ -309,7 +303,7 @@ function getStatusLabel(
         label: "รอจำหน่าย",
         className: `
           bg-amber-100
-          !text-amber-800
+          !text-amber-700
           ring-1
           ring-inset
           ring-amber-200
@@ -321,7 +315,7 @@ function getStatusLabel(
         label: "ชำรุด",
         className: `
           bg-red-100
-          !text-red-800
+          !text-red-700
           ring-1
           ring-inset
           ring-red-200
@@ -333,7 +327,7 @@ function getStatusLabel(
         label: "จำหน่ายแล้ว",
         className: `
           bg-slate-200
-          !text-slate-800
+          !text-slate-700
           ring-1
           ring-inset
           ring-slate-300
@@ -483,43 +477,55 @@ export default async function AssetCategoryPage({
               OR: [
                 {
                   name: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
 
                 {
                   governmentAssetNo: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
 
                 {
                   officeAssetNo: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
 
                 {
                   brand: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
 
                 {
                   model: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
 
                 {
                   responsibleName: {
-                    contains: search,
-                    mode: "insensitive",
+                    contains:
+                      search,
+                    mode:
+                      "insensitive",
                   },
                 },
               ],
@@ -555,7 +561,10 @@ export default async function AssetCategoryPage({
       orderA !== null &&
       orderB !== null
     ) {
-      return orderA - orderB;
+      return (
+        orderA -
+        orderB
+      );
     }
 
     if (orderA !== null) {
@@ -566,14 +575,18 @@ export default async function AssetCategoryPage({
       return 1;
     }
 
-    return a.id - b.id;
+    return (
+      a.id -
+      b.id
+    );
   });
 
   /* =======================================================
      PERMISSION
   ======================================================= */
 
-  const canManage = true;
+  const canManage =
+    true;
 
   /* =======================================================
      DELETE ASSET
@@ -741,31 +754,60 @@ export default async function AssetCategoryPage({
               table-fixed
               border-collapse
               bg-white
-              text-xs
-              xl:text-sm
+              text-sm
             "
           >
             {/* =================================================
                 COLUMN WIDTHS
 
-                รวม = 100%
+                รวม 100%
+
+                ลด:
+                - GFMIS
+                - รหัสครุภัณฑ์
+                - ผู้รับผิดชอบ
+                - สถานะ
+
+                เพิ่มพื้นที่:
+                - รายการ
+                - รายละเอียด
+                - จัดการ
             ================================================= */}
 
             <colgroup>
+              {/* ลำดับ */}
               <col className="w-[4%]" />
-              <col className="w-[10%]" />
-              <col className="w-[12%]" />
-              <col className="w-[17%]" />
-              <col className="w-[5%]" />
-              <col className="w-[5%]" />
-              <col className="w-[17%]" />
-              <col className="w-[9%]" />
+
+              {/* GFMIS */}
               <col className="w-[8%]" />
-              <col className="w-[13%]" />
+
+              {/* รหัสครุภัณฑ์ */}
+              <col className="w-[10%]" />
+
+              {/* รายการ */}
+              <col className="w-[18%]" />
+
+              {/* จำนวน */}
+              <col className="w-[5%]" />
+
+              {/* หน่วย */}
+              <col className="w-[5%]" />
+
+              {/* ผู้รับผิดชอบ */}
+              <col className="w-[15%]" />
+
+              {/* สถานะ */}
+              <col className="w-[8%]" />
+
+              {/* รายละเอียด */}
+              <col className="w-[10%]" />
+
+              {/* จัดการ */}
+              <col className="w-[17%]" />
             </colgroup>
 
             {/* =================================================
-                TABLE HEADER
+                HEADER
             ================================================= */}
 
             <thead>
@@ -804,12 +846,11 @@ export default async function AssetCategoryPage({
                         py-4
 
                         text-center
-                        text-[11px]
+                        text-xs
                         font-extrabold
                         leading-none
                         !text-white
 
-                        lg:text-xs
                         xl:px-2
                         xl:text-sm
                       "
@@ -824,11 +865,12 @@ export default async function AssetCategoryPage({
             </thead>
 
             {/* =================================================
-                TABLE BODY
+                BODY
             ================================================= */}
 
             <tbody>
-              {assets.length > 0 ? (
+              {assets.length >
+              0 ? (
                 assets.map(
                   (
                     asset,
@@ -871,7 +913,9 @@ export default async function AssetCategoryPage({
                         }
                         className={`
                           ${
-                            index % 2 === 0
+                            index %
+                              2 ===
+                            0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
@@ -895,13 +939,14 @@ export default async function AssetCategoryPage({
                             px-1
                             py-3.5
                             text-center
-                            font-bold
+                            font-semibold
                             tabular-nums
                             !text-slate-700
                           "
                         >
                           {(
-                            index + 1
+                            index +
+                            1
                           ).toLocaleString(
                             "th-TH"
                           )}
@@ -927,7 +972,6 @@ export default async function AssetCategoryPage({
                             text-center
                             font-semibold
                             !text-slate-700
-                            xl:px-2
                           "
                         >
                           {asset.governmentAssetNo ||
@@ -954,7 +998,6 @@ export default async function AssetCategoryPage({
                             text-center
                             font-semibold
                             !text-slate-700
-                            xl:px-2
                           "
                         >
                           {asset.officeAssetNo ||
@@ -1011,7 +1054,7 @@ export default async function AssetCategoryPage({
                                 text-ellipsis
                                 whitespace-nowrap
                                 text-xs
-                                font-medium
+                                font-semibold
                                 !text-slate-500
                               "
                             >
@@ -1086,7 +1129,7 @@ export default async function AssetCategoryPage({
                             overflow-hidden
                             border
                             border-black
-                            px-2
+                            px-1
                             py-3.5
                             text-center
                             font-semibold
@@ -1137,11 +1180,8 @@ export default async function AssetCategoryPage({
                               px-2
                               py-1.5
 
-                              text-xs
-                              font-bold
-
-                              xl:px-3
-                              xl:text-sm
+                              text-sm
+                              font-semibold
 
                               ${status.className}
                             `}
@@ -1162,25 +1202,61 @@ export default async function AssetCategoryPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-1
+                            px-2
                             py-2.5
                             text-center
                           "
                         >
-                          <AppButton
+                          <Link
                             href={
                               detailHref
                             }
-                            variant="primary"
-                            size="sm"
-                            icon={
-                              <span aria-hidden="true">
-                                👁️
-                              </span>
-                            }
+                            className="
+                              inline-flex
+                              h-10
+                              w-full
+                              max-w-[105px]
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-xl
+
+                              bg-gradient-to-b
+                              from-blue-500
+                              via-blue-600
+                              to-blue-700
+
+                              px-3
+
+                              text-sm
+                              font-extrabold
+                              !text-white
+
+                              shadow-lg
+                              shadow-blue-500/20
+
+                              ring-1
+                              ring-inset
+                              ring-blue-400/50
+
+                              transition-all
+                              duration-200
+
+                              hover:-translate-y-0.5
+                              hover:from-blue-400
+                              hover:via-blue-600
+                              hover:to-blue-700
+                              hover:shadow-xl
+                              hover:shadow-blue-500/30
+
+                              active:translate-y-0
+                              active:scale-[0.98]
+                            "
                           >
                             เปิด
-                          </AppButton>
+                          </Link>
                         </td>
 
                         {/* ===================================
@@ -1193,7 +1269,7 @@ export default async function AssetCategoryPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-1
+                            px-2
                             py-2.5
                             text-center
                           "
@@ -1206,31 +1282,76 @@ export default async function AssetCategoryPage({
                                 min-w-0
                                 items-center
                                 justify-center
-                                gap-1
+                                gap-2
                               "
                             >
-                              {/* =================================
+                              {/* =============================
                                   EDIT
-                              ================================= */}
+                              ============================= */}
 
-                              <AppButton
+                              <Link
                                 href={
                                   editHref
                                 }
-                                variant="secondary"
-                                size="sm"
-                                icon={
-                                  <span aria-hidden="true">
-                                    ✏️
-                                  </span>
-                                }
-                              >
-                                แก้ไข
-                              </AppButton>
+                                className="
+                                  inline-flex
+                                  h-10
+                                  min-w-0
+                                  flex-1
+                                  items-center
+                                  justify-center
+                                  gap-1.5
 
-                              {/* =================================
+                                  whitespace-nowrap
+
+                                  rounded-xl
+
+                                  bg-gradient-to-b
+                                  from-blue-500
+                                  via-blue-600
+                                  to-blue-700
+
+                                  px-2
+
+                                  text-sm
+                                  font-extrabold
+                                  !text-white
+
+                                  shadow-lg
+                                  shadow-blue-500/20
+
+                                  ring-1
+                                  ring-inset
+                                  ring-blue-400/50
+
+                                  transition-all
+                                  duration-200
+
+                                  hover:-translate-y-0.5
+                                  hover:from-blue-400
+                                  hover:via-blue-600
+                                  hover:to-blue-700
+                                  hover:shadow-xl
+                                  hover:shadow-blue-500/30
+
+                                  active:translate-y-0
+                                  active:scale-[0.98]
+                                "
+                              >
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  ✏️
+                                </span>
+
+                                <span>
+                                  แก้ไข
+                                </span>
+                              </Link>
+
+                              {/* =============================
                                   DELETE
-                              ================================= */}
+                              ============================= */}
 
                               <form
                                 action={
@@ -1238,8 +1359,8 @@ export default async function AssetCategoryPage({
                                 }
                                 className="
                                   m-0
-                                  inline-flex
-                                  shrink-0
+                                  min-w-0
+                                  flex-1
                                   p-0
                                 "
                               >
@@ -1251,18 +1372,65 @@ export default async function AssetCategoryPage({
                                   }
                                 />
 
-                                <AppButton
+                                <button
                                   type="submit"
-                                  variant="danger"
-                                  size="sm"
-                                  icon={
-                                    <span aria-hidden="true">
-                                      🗑️
-                                    </span>
-                                  }
+                                  className="
+                                    inline-flex
+                                    h-10
+                                    w-full
+                                    min-w-0
+                                    items-center
+                                    justify-center
+                                    gap-1.5
+
+                                    whitespace-nowrap
+
+                                    rounded-xl
+
+                                    border-0
+
+                                    bg-gradient-to-b
+                                    from-red-500
+                                    via-red-600
+                                    to-rose-700
+
+                                    px-2
+
+                                    text-sm
+                                    font-extrabold
+                                    !text-white
+
+                                    shadow-lg
+                                    shadow-red-500/20
+
+                                    ring-1
+                                    ring-inset
+                                    ring-red-400/50
+
+                                    transition-all
+                                    duration-200
+
+                                    hover:-translate-y-0.5
+                                    hover:from-red-400
+                                    hover:via-red-600
+                                    hover:to-rose-700
+                                    hover:shadow-xl
+                                    hover:shadow-red-500/30
+
+                                    active:translate-y-0
+                                    active:scale-[0.98]
+                                  "
                                 >
-                                  ลบ
-                                </AppButton>
+                                  <span
+                                    aria-hidden="true"
+                                  >
+                                    🗑️
+                                  </span>
+
+                                  <span>
+                                    ลบ
+                                  </span>
+                                </button>
                               </form>
                             </div>
                           ) : (
@@ -1287,7 +1455,9 @@ export default async function AssetCategoryPage({
 
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={
+                      10
+                    }
                     className="
                       border
                       border-black
