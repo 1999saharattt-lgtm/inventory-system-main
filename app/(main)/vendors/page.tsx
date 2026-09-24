@@ -24,15 +24,8 @@ type Vendor = {
 ========================================================= */
 
 export default function VendorsPage() {
-  const [
-    vendors,
-    setVendors,
-  ] = useState<Vendor[]>([]);
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [loading, setLoading] = useState(true);
 
   /* =======================================================
      LOAD VENDORS
@@ -46,14 +39,9 @@ export default function VendorsPage() {
     try {
       setLoading(true);
 
-      const res =
-        await fetch(
-          "/api/vendors",
-          {
-            cache:
-              "no-store",
-          }
-        );
+      const res = await fetch("/api/vendors", {
+        cache: "no-store",
+      });
 
       if (!res.ok) {
         throw new Error(
@@ -61,8 +49,7 @@ export default function VendorsPage() {
         );
       }
 
-      const data =
-        await res.json();
+      const data = await res.json();
 
       setVendors(
         Array.isArray(data)
@@ -90,24 +77,21 @@ export default function VendorsPage() {
   async function handleDelete(
     id: number
   ) {
-    const ok =
-      window.confirm(
-        "ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
-      );
+    const ok = window.confirm(
+      "ต้องการลบผู้จำหน่ายรายนี้ใช่หรือไม่?"
+    );
 
     if (!ok) {
       return;
     }
 
     try {
-      const res =
-        await fetch(
-          `/api/vendors/${id}`,
-          {
-            method:
-              "DELETE",
-          }
-        );
+      const res = await fetch(
+        `/api/vendors/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (res.ok) {
         alert(
@@ -123,8 +107,7 @@ export default function VendorsPage() {
         "ลบข้อมูลผู้จำหน่ายไม่สำเร็จ";
 
       try {
-        const data =
-          await res.json();
+        const data = await res.json();
 
         if (
           data &&
@@ -174,9 +157,7 @@ export default function VendorsPage() {
             variant="primary"
             size="md"
             icon={
-              <span
-                aria-hidden="true"
-              >
+              <span aria-hidden="true">
                 ＋
               </span>
             }
@@ -225,18 +206,22 @@ export default function VendorsPage() {
           >
             {/* =================================================
                 COLUMN WIDTH
+
+                รวม 100%
+
+                ชื่อผู้จำหน่าย       22%
+                ที่อยู่              30%
+                เบอร์ติดต่อ          15%
+                เลขผู้เสียภาษี       13%
+                จัดการ              20%
             ================================================= */}
 
             <colgroup>
               <col className="w-[22%]" />
-
-              <col className="w-[31%]" />
-
+              <col className="w-[30%]" />
               <col className="w-[15%]" />
-
-              <col className="w-[17%]" />
-
-              <col className="w-[15%]" />
+              <col className="w-[13%]" />
+              <col className="w-[20%]" />
             </colgroup>
 
             {/* =================================================
@@ -252,37 +237,26 @@ export default function VendorsPage() {
                   "เลขประจำตัวผู้เสียภาษี",
                   "จัดการ",
                 ].map(
-                  (
-                    title
-                  ) => (
+                  (title) => (
                     <th
-                      key={
-                        title
-                      }
+                      key={title}
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
-                        px-3
+                        px-2
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
                         !text-white
-
                         sm:text-lg
                       "
                     >
-                      {
-                        title
-                      }
+                      {title}
                     </th>
                   )
                 )}
@@ -301,25 +275,19 @@ export default function VendorsPage() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={
-                      5
-                    }
+                    colSpan={5}
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
@@ -333,7 +301,6 @@ export default function VendorsPage() {
                           h-16
                           w-16
                           place-items-center
-
                           text-3xl
                         "
                         aria-hidden="true"
@@ -344,7 +311,6 @@ export default function VendorsPage() {
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           tracking-tight
@@ -357,7 +323,6 @@ export default function VendorsPage() {
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           leading-relaxed
@@ -377,25 +342,19 @@ export default function VendorsPage() {
 
                 <tr>
                   <td
-                    colSpan={
-                      5
-                    }
+                    colSpan={5}
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
@@ -409,7 +368,6 @@ export default function VendorsPage() {
                           h-16
                           w-16
                           place-items-center
-
                           text-3xl
                         "
                         aria-hidden="true"
@@ -420,7 +378,6 @@ export default function VendorsPage() {
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
                           tracking-tight
@@ -433,7 +390,6 @@ export default function VendorsPage() {
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
                           leading-relaxed
@@ -450,9 +406,7 @@ export default function VendorsPage() {
                           variant="primary"
                           size="md"
                           icon={
-                            <span
-                              aria-hidden="true"
-                            >
+                            <span aria-hidden="true">
                               ＋
                             </span>
                           }
@@ -474,14 +428,10 @@ export default function VendorsPage() {
                     index
                   ) => (
                     <tr
-                      key={
-                        vendor.id
-                      }
+                      key={vendor.id}
                       className={`
                         ${
-                          index %
-                            2 ===
-                          0
+                          index % 2 === 0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -500,10 +450,8 @@ export default function VendorsPage() {
                         className="
                           border
                           border-black
-
-                          px-4
+                          px-3
                           py-3.5
-
                           text-base
                           font-extrabold
                           !text-slate-900
@@ -516,9 +464,7 @@ export default function VendorsPage() {
                             !text-slate-900
                           "
                         >
-                          {
-                            vendor.name
-                          }
+                          {vendor.name}
                         </div>
                       </td>
 
@@ -530,10 +476,8 @@ export default function VendorsPage() {
                         className="
                           border
                           border-black
-
-                          px-4
+                          px-3
                           py-3.5
-
                           text-base
                           font-bold
                           leading-relaxed
@@ -558,13 +502,10 @@ export default function VendorsPage() {
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
+                          px-2
                           py-3.5
-
                           text-center
                           text-base
                           font-bold
@@ -581,23 +522,34 @@ export default function VendorsPage() {
 
                       <td
                         className="
+                          overflow-hidden
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
+                          px-2
                           py-3.5
-
                           text-center
                           text-base
                           font-bold
                           tabular-nums
                           !text-slate-900
                         "
+                        title={
+                          vendor.taxId ??
+                          "-"
+                        }
                       >
-                        {vendor.taxId ??
-                          "-"}
+                        <span
+                          className="
+                            block
+                            overflow-hidden
+                            text-ellipsis
+                            whitespace-nowrap
+                          "
+                        >
+                          {vendor.taxId ??
+                            "-"}
+                        </span>
                       </td>
 
                       {/* =====================================
@@ -607,19 +559,17 @@ export default function VendorsPage() {
                       <td
                         className="
                           whitespace-nowrap
-
                           border
                           border-black
-
-                          px-3
+                          px-2
                           py-3
-
                           text-center
                         "
                       >
                         <div
                           className="
                             flex
+                            w-full
                             items-center
                             justify-center
                             gap-2
@@ -627,6 +577,9 @@ export default function VendorsPage() {
                         >
                           {/* =================================
                               EDIT
+
+                              ใช้ AppButton ตัวกลาง
+                              ไม่กำหนดสีเอง
                           ================================= */}
 
                           <AppButton
@@ -640,12 +593,18 @@ export default function VendorsPage() {
                                 ✏️
                               </span>
                             }
+                            className="
+                              shrink-0
+                            "
                           >
                             แก้ไข
                           </AppButton>
 
                           {/* =================================
                               DELETE
+
+                              ใช้ AppButton ตัวกลาง
+                              ไม่กำหนดสีเอง
                           ================================= */}
 
                           <AppButton
@@ -664,6 +623,9 @@ export default function VendorsPage() {
                                 vendor.id
                               )
                             }
+                            className="
+                              shrink-0
+                            "
                           >
                             ลบ
                           </AppButton>
