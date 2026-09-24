@@ -7,13 +7,13 @@ import {
   useState,
 } from "react";
 
+import { useRouter } from "next/navigation";
+
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
-import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
 
-import DepartmentInspectionSelect from "./DepartmentInspectionSelect";
 import ExportInspectionPdf from "./ExportInspectionPdf";
 
 /* =========================================================
@@ -133,6 +133,36 @@ type Props = {
 };
 
 /* =========================================================
+   SHARED FIELD TYPES
+========================================================= */
+
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  disabled?: boolean;
+  required?: boolean;
+  onChange: (value: string) => void;
+};
+
+type IOSDatePickerProps = {
+  id: string;
+  value: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+};
+
+/* =========================================================
    CONSTANT
 ========================================================= */
 
@@ -152,6 +182,17 @@ const thaiMonths = [
   "ตุลาคม",
   "พฤศจิกายน",
   "ธันวาคม",
+];
+
+
+const weekDays = [
+  "อา",
+  "จ",
+  "อ",
+  "พ",
+  "พฤ",
+  "ศ",
+  "ส",
 ];
 
 /* =========================================================
@@ -331,6 +372,1164 @@ function getFiscalYear(
     month >= 10
       ? year + 1 + 543
       : year + 543
+  );
+}
+
+/* =========================================================
+   IOS DATE PICKER HELPERS
+========================================================= */
+
+function dateToInputValue(
+  date: Date
+) {
+  return [
+    date.getFullYear(),
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      date.getDate()
+    ).padStart(2, "0"),
+  ].join("-");
+}
+
+function inputValueToDate(
+  value: string
+) {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] =
+    value
+      .split("-")
+      .map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
+
+function isSameDate(
+  first: Date,
+  second: Date
+) {
+  return (
+    first.getFullYear() ===
+      second.getFullYear() &&
+    first.getMonth() ===
+      second.getMonth() &&
+    first.getDate() ===
+      second.getDate()
+  );
+}
+
+/* =========================================================
+   IOS DATE PICKER
+
+   รูปแบบเดียวกับหน้าตัวอย่าง:
+   - กดทั้งช่องเพื่อเปิดปฏิทิน
+   - แสดงเดือน / ปี พ.ศ.
+   - วันปัจจุบันและวันที่เลือกชัดเจน
+   - มี ล้างวันที่ / วันนี้
+========================================================= */
+
+function IOSDatePicker({
+  id,
+  value,
+  placeholder = "เลือกวันที่",
+  required = false,
+  disabled = false,
+  onChange,
+}: IOSDatePickerProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const selectedDate =
+    inputValueToDate(value);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [viewDate, setViewDate] =
+    useState<Date>(
+      selectedDate ?? new Date()
+    );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setViewDate(
+        new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          1
+        )
+      );
+    }
+  }, [value]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  const calendarDays =
+    useMemo(() => {
+      const year =
+        viewDate.getFullYear();
+
+      const month =
+        viewDate.getMonth();
+
+      const firstDay =
+        new Date(
+          year,
+          month,
+          1
+        );
+
+      const lastDay =
+        new Date(
+          year,
+          month + 1,
+          0
+        );
+
+      const days: Array<
+        Date | null
+      > = [];
+
+      for (
+        let i = 0;
+        i < firstDay.getDay();
+        i++
+      ) {
+        days.push(null);
+      }
+
+      for (
+        let day = 1;
+        day <= lastDay.getDate();
+        day++
+      ) {
+        days.push(
+          new Date(
+            year,
+            month,
+            day
+          )
+        );
+      }
+
+      while (
+        days.length % 7 !== 0
+      ) {
+        days.push(null);
+      }
+
+      return days;
+    }, [viewDate]);
+
+  function previousMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() - 1,
+          1
+        )
+    );
+  }
+
+  function nextMonth() {
+    setViewDate(
+      (current) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() + 1,
+          1
+        )
+    );
+  }
+
+  function selectToday() {
+    const today = new Date();
+
+    onChange(
+      dateToInputValue(today)
+    );
+
+    setViewDate(
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      )
+    );
+
+    setOpen(false);
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={`
+        relative
+        w-full
+        min-w-0
+
+        ${
+          open
+            ? "z-[500]"
+            : "z-10"
+        }
+      `}
+    >
+      {required && (
+        <input
+          tabIndex={-1}
+          aria-hidden="true"
+          value={value}
+          onChange={() => {}}
+          required
+          className="
+            pointer-events-none
+            absolute
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      )}
+
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+
+          if (!open) {
+            const base =
+              selectedDate ??
+              new Date();
+
+            setViewDate(
+              new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                1
+              )
+            );
+          }
+
+          setOpen(
+            (current) =>
+              !current
+          );
+        }}
+        className="
+          flex
+          h-[52px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[16px]
+
+          border
+          border-slate-300
+
+          bg-white
+
+          px-4
+
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:border-slate-400
+          hover:bg-slate-50
+
+          focus:border-blue-400
+          focus:bg-white
+          focus:ring-4
+          focus:ring-blue-500/10
+
+          disabled:cursor-default
+          disabled:border-slate-200
+          disabled:bg-slate-100
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              value
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {value
+            ? formatThaiDate(value)
+            : placeholder}
+        </span>
+
+        <span
+          className={`
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+
+            rounded-[11px]
+
+            bg-slate-100
+
+            text-lg
+
+            shadow-inner
+
+            transition-all
+            duration-200
+
+            ${
+              open
+                ? "bg-slate-900 !text-white"
+                : ""
+            }
+          `}
+        >
+          📅
+        </span>
+      </button>
+
+      {open && !disabled && (
+        <div
+          role="dialog"
+          aria-label="เลือกวันที่"
+          className="
+            absolute
+            left-0
+            top-[calc(100%+10px)]
+            z-[9999]
+
+            w-[360px]
+            max-w-[calc(100vw-32px)]
+
+            overflow-hidden
+
+            rounded-[24px]
+
+            border
+            border-slate-200/90
+
+            bg-white/95
+
+            p-3
+
+            shadow-[0_28px_80px_-24px_rgba(15,23,42,0.55)]
+
+            ring-1
+            ring-black/5
+
+            backdrop-blur-2xl
+          "
+        >
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-2
+
+              px-1
+              pb-3
+            "
+          >
+            <button
+              type="button"
+              onClick={previousMonth}
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-[12px]
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ‹
+            </button>
+
+            <div
+              className="
+                min-w-0
+                text-center
+              "
+            >
+              <div
+                className="
+                  text-base
+                  font-black
+                  !text-slate-900
+                "
+              >
+                {
+                  thaiMonths[
+                    viewDate.getMonth()
+                  ]
+                }
+              </div>
+
+              <div
+                className="
+                  text-xs
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                พ.ศ. {" "}
+                {viewDate.getFullYear() +
+                  543}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-[12px]
+
+                bg-slate-100
+
+                text-xl
+                font-black
+                !text-slate-800
+
+                transition-all
+
+                hover:bg-slate-200
+                active:scale-90
+              "
+            >
+              ›
+            </button>
+          </div>
+
+          <div
+            className="
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {weekDays.map(
+              (day) => (
+                <div
+                  key={day}
+                  className="
+                    flex
+                    h-8
+                    items-center
+                    justify-center
+
+                    text-xs
+                    font-extrabold
+                    !text-slate-400
+                  "
+                >
+                  {day}
+                </div>
+              )
+            )}
+
+            {calendarDays.map(
+              (date, index) => {
+                if (!date) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-10"
+                    />
+                  );
+                }
+
+                const selected =
+                  selectedDate
+                    ? isSameDate(
+                        date,
+                        selectedDate
+                      )
+                    : false;
+
+                const today =
+                  isSameDate(
+                    date,
+                    new Date()
+                  );
+
+                return (
+                  <button
+                    key={dateToInputValue(
+                      date
+                    )}
+                    type="button"
+                    onClick={() => {
+                      onChange(
+                        dateToInputValue(
+                          date
+                        )
+                      );
+
+                      setOpen(false);
+                    }}
+                    className={`
+                      relative
+                      flex
+                      h-10
+                      items-center
+                      justify-center
+
+                      rounded-[12px]
+
+                      text-sm
+                      font-extrabold
+
+                      transition-all
+                      duration-150
+
+                      active:scale-90
+
+                      ${
+                        selected
+                          ? `
+                            bg-slate-900
+                            !text-white
+                            shadow-md
+                          `
+                          : today
+                          ? `
+                            bg-blue-50
+                            !text-blue-700
+                            ring-1
+                            ring-blue-200
+                          `
+                          : `
+                            bg-transparent
+                            !text-slate-800
+                            hover:bg-slate-100
+                          `
+                      }
+                    `}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              }
+            )}
+          </div>
+
+          <div
+            className="
+              mt-3
+              flex
+              items-center
+              justify-between
+              gap-2
+
+              border-t
+              border-slate-200
+
+              pt-3
+            "
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="
+                rounded-full
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-slate-500
+
+                transition-colors
+
+                hover:bg-slate-100
+              "
+            >
+              ล้างวันที่
+            </button>
+
+            <button
+              type="button"
+              onClick={selectToday}
+              className="
+                rounded-[12px]
+
+                bg-slate-900
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+                !text-white
+
+                shadow-sm
+
+                transition-all
+
+                hover:bg-slate-800
+                active:scale-95
+              "
+            >
+              วันนี้
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   SEARCHABLE DROPDOWN
+
+   รูปแบบเดียวกับ Dropdown ในภาพตัวอย่าง:
+   - ช่องหลักสีขาว ขอบ slate
+   - ลูกศรหมุนขึ้น/ลง
+   - เปิดแล้วมีช่องค้นหาด้านบน
+   - รายการ scroll ได้
+========================================================= */
+
+function SearchableDropdown({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder = "พิมพ์เพื่อค้นหา...",
+  emptyText = "ไม่พบข้อมูล",
+  disabled = false,
+  required = false,
+  onChange,
+}: SearchableDropdownProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const inputRef =
+    useRef<HTMLInputElement>(null);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [search, setSearch] =
+    useState("");
+
+  const selectedOption =
+    options.find(
+      (option) =>
+        option.value === value
+    );
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLocaleLowerCase("th");
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase("th")
+            .includes(keyword) ||
+          option.value
+            .toLocaleLowerCase("th")
+            .includes(keyword)
+      );
+    }, [
+      options,
+      search,
+    ]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const timer =
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`
+        relative
+        w-full
+        min-w-0
+
+        ${
+          open
+            ? "z-[400]"
+            : "z-10"
+        }
+      `}
+    >
+      {required && (
+        <input
+          tabIndex={-1}
+          aria-hidden="true"
+          value={value}
+          onChange={() => {}}
+          required
+          className="
+            pointer-events-none
+            absolute
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      )}
+
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => {
+          if (disabled) {
+            return;
+          }
+
+          setOpen(
+            (current) => {
+              const next =
+                !current;
+
+              if (!next) {
+                setSearch("");
+              }
+
+              return next;
+            }
+          );
+        }}
+        className="
+          flex
+          min-h-[50px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[14px]
+
+          border
+          border-slate-300
+
+          bg-white
+
+          px-4
+          py-3
+
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:border-slate-400
+          hover:bg-slate-50
+
+          focus:border-blue-400
+          focus:bg-white
+          focus:ring-4
+          focus:ring-blue-500/10
+
+          disabled:cursor-not-allowed
+          disabled:border-slate-200
+          disabled:bg-slate-100
+          disabled:!text-slate-400
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-500
+
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {open && !disabled && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+8px)]
+
+            z-[9999]
+
+            overflow-hidden
+
+            rounded-[16px]
+
+            border
+            border-slate-200
+
+            bg-white
+
+            shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-200
+              bg-slate-50
+              p-3
+            "
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              autoComplete="off"
+              placeholder={
+                searchPlaceholder
+              }
+              onChange={(
+                event
+              ) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+              onKeyDown={(
+                event
+              ) => {
+                if (
+                  event.key ===
+                  "Escape"
+                ) {
+                  setOpen(false);
+                  setSearch("");
+                }
+
+                if (
+                  event.key ===
+                    "Enter" &&
+                  filteredOptions.length ===
+                    1
+                ) {
+                  event.preventDefault();
+
+                  onChange(
+                    filteredOptions[0]
+                      .value
+                  );
+
+                  setOpen(false);
+                  setSearch("");
+                }
+              }}
+              className="
+                min-h-[46px]
+                w-full
+
+                rounded-[12px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-4
+                py-2.5
+
+                text-base
+                font-bold
+                !text-slate-900
+
+                shadow-sm
+                outline-none
+
+                transition-all
+                duration-200
+
+                placeholder:!text-slate-400
+
+                hover:border-slate-400
+
+                focus:border-blue-400
+                focus:ring-4
+                focus:ring-blue-500/10
+              "
+            />
+          </div>
+
+          <div
+            role="listbox"
+            className="
+              max-h-[280px]
+              overflow-y-auto
+              overscroll-contain
+
+              bg-white
+
+              p-2
+            "
+          >
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(
+                (option) => {
+                  const selected =
+                    option.value === value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      onClick={() => {
+                        onChange(
+                          option.value
+                        );
+
+                        setOpen(false);
+                        setSearch("");
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        gap-3
+
+                        rounded-[10px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-base
+                        font-bold
+
+                        transition-colors
+
+                        ${
+                          selected
+                            ? `
+                              bg-slate-900
+                              !text-white
+                            `
+                            : `
+                              bg-white
+                              !text-slate-900
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      <span
+                        className="
+                          min-w-0
+                          flex-1
+                          break-words
+                        "
+                      >
+                        {option.label}
+                      </span>
+
+                      {selected && (
+                        <span
+                          aria-hidden="true"
+                          className="
+                            shrink-0
+                            !text-white
+                          "
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+              )
+            ) : (
+              <div
+                className="
+                  px-4
+                  py-8
+
+                  text-center
+                  text-sm
+                  font-bold
+                  !text-slate-500
+                "
+              >
+                {emptyText}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -667,6 +1866,9 @@ export default function InspectionForm({
   submitLabel,
   readOnly = false,
 }: Props) {
+  const router =
+    useRouter();
+
   const today =
     getCurrentDate();
 
@@ -758,6 +1960,18 @@ export default function InspectionForm({
     setSearchTerm,
   ] = useState("");
 
+  const departmentOptions =
+    useMemo<SearchableOption[]>(
+      () =>
+        (departments ?? []).map(
+          (item) => ({
+            value: String(item.id),
+            label: item.name,
+          })
+        ),
+      [departments]
+    );
+
   /* =======================================================
      SEARCH
   ======================================================= */
@@ -838,16 +2052,6 @@ export default function InspectionForm({
   /* =======================================================
      REFS
   ======================================================= */
-
-  const inspectionStartDateRef =
-    useRef<HTMLInputElement>(
-      null
-    );
-
-  const inspectionEndDateRef =
-    useRef<HTMLInputElement>(
-      null
-    );
 
   const topScrollRef =
     useRef<HTMLDivElement>(
@@ -994,29 +2198,6 @@ export default function InspectionForm({
   /* =======================================================
      DATE
   ======================================================= */
-
-  function openDatePicker(
-    input:
-      | HTMLInputElement
-      | null
-  ) {
-    if (
-      readOnly ||
-      !input
-    ) {
-      return;
-    }
-
-    if (
-      typeof input.showPicker ===
-      "function"
-    ) {
-      input.showPicker();
-      return;
-    }
-
-    input.click();
-  }
 
   /* =======================================================
      UPDATE ROW
@@ -1482,11 +2663,7 @@ export default function InspectionForm({
             ข้อมูลการตรวจสอบ
           </h2>
 
-          <div
-            className="
-              shrink-0
-            "
-          >
+          <div className="shrink-0">
             <ExportInspectionPdf
               department={
                 department
@@ -1554,13 +2731,40 @@ export default function InspectionForm({
                 กลุ่มงาน
               </label>
 
-              <DepartmentInspectionSelect
-                departments={
-                  departments
-                }
-                currentDepartmentId={
+              <SearchableDropdown
+                id="inspection-department"
+                value={String(
                   department.id
+                )}
+                options={
+                  departmentOptions
                 }
+                placeholder="-- เลือกกลุ่มงาน --"
+                searchPlaceholder="พิมพ์ค้นหากลุ่มงาน..."
+                emptyText="ไม่พบกลุ่มงาน"
+                disabled={
+                  readOnly
+                }
+                required
+                onChange={(value) => {
+                  const nextDepartmentId =
+                    Number(value);
+
+                  if (
+                    !Number.isInteger(
+                      nextDepartmentId
+                    ) ||
+                    nextDepartmentId <= 0 ||
+                    nextDepartmentId ===
+                      department.id
+                  ) {
+                    return;
+                  }
+
+                  router.push(
+                    `/assets/${nextDepartmentId}/inspection`
+                  );
+                }}
               />
             </div>
           )}
@@ -1581,8 +2785,15 @@ export default function InspectionForm({
             md:grid-cols-2
           "
         >
-          <div>
+          <div
+            className="
+              relative
+              z-20
+              min-w-0
+            "
+          >
             <label
+              htmlFor="inspectionStartDate"
               className="
                 mb-2
                 block
@@ -1596,136 +2807,47 @@ export default function InspectionForm({
               เริ่มดำเนินการตรวจสอบวันที่
             </label>
 
-            <div className="relative">
-              <button
-                type="button"
-                disabled={
-                  readOnly
-                }
-                onClick={() =>
-                  openDatePicker(
-                    inspectionStartDateRef.current
-                  )
-                }
-                className={`
-                  flex
-                  min-h-[52px]
-                  w-full
+            <IOSDatePicker
+              id="inspectionStartDate"
+              value={
+                inspectionStartDate
+              }
+              placeholder="เลือกวันที่"
+              required
+              disabled={
+                readOnly
+              }
+              onChange={(value) => {
+                setInspectionStartDate(
+                  value
+                );
 
-                  items-center
-
-                  rounded-[16px]
-
-                  border
-                  border-slate-300/90
-
-                  px-4
-                  py-3
-
-                  text-left
-                  text-sm
-                  font-bold
-
-                  !text-slate-900
-
-                  shadow-sm
-
-                  outline-none
-
-                  transition-all
-                  duration-200
-
-                  ${
-                    readOnly
-                      ? "cursor-default bg-slate-100"
-                      : "cursor-pointer bg-white/90 hover:border-slate-400 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  }
-                `}
-              >
-                {formatThaiDate(
-                  inspectionStartDate
-                )}
-
-                {!readOnly && (
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="
-                      ml-auto
-                      h-5
-                      w-5
-                      shrink-0
-
-                      !text-slate-500
-                    "
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="16"
-                      rx="2"
-                    />
-
-                    <path d="M16 3v4M8 3v4M3 11h18" />
-                  </svg>
-                )}
-              </button>
-
-              {!readOnly && (
-                <input
-                  ref={
-                    inspectionStartDateRef
-                  }
-                  type="date"
-                  value={
-                    inspectionStartDate
-                  }
-                  onChange={(
-                    event
-                  ) => {
-                    const value =
-                      event.target.value;
-
-                    setInspectionStartDate(
+                if (value) {
+                  setAccountStartDate(
+                    getOneYearBefore(
                       value
-                    );
+                    )
+                  );
 
-                    setAccountStartDate(
-                      getOneYearBefore(
-                        value
-                      )
-                    );
-
-                    setMovementFiscalYear(
-                      getFiscalYear(
-                        value
-                      )
-                    );
-                  }}
-                  required
-                  className="
-                    absolute
-                    bottom-0
-                    left-0
-
-                    h-px
-                    w-px
-
-                    opacity-0
-                  "
-                />
-              )}
-            </div>
+                  setMovementFiscalYear(
+                    getFiscalYear(
+                      value
+                    )
+                  );
+                }
+              }}
+            />
           </div>
 
-          <div>
+          <div
+            className="
+              relative
+              z-10
+              min-w-0
+            "
+          >
             <label
+              htmlFor="inspectionEndDate"
               className="
                 mb-2
                 block
@@ -1739,126 +2861,30 @@ export default function InspectionForm({
               ตรวจสอบแล้วเสร็จวันที่
             </label>
 
-            <div className="relative">
-              <button
-                type="button"
-                disabled={
-                  readOnly
-                }
-                onClick={() =>
-                  openDatePicker(
-                    inspectionEndDateRef.current
-                  )
-                }
-                className={`
-                  flex
-                  min-h-[52px]
-                  w-full
+            <IOSDatePicker
+              id="inspectionEndDate"
+              value={
+                inspectionEndDate
+              }
+              placeholder="เลือกวันที่"
+              required
+              disabled={
+                readOnly
+              }
+              onChange={(value) => {
+                setInspectionEndDate(
+                  value
+                );
 
-                  items-center
-
-                  rounded-[16px]
-
-                  border
-                  border-slate-300/90
-
-                  px-4
-                  py-3
-
-                  text-left
-                  text-sm
-                  font-bold
-
-                  !text-slate-900
-
-                  shadow-sm
-
-                  outline-none
-
-                  transition-all
-                  duration-200
-
-                  ${
-                    readOnly
-                      ? "cursor-default bg-slate-100"
-                      : "cursor-pointer bg-white/90 hover:border-slate-400 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  }
-                `}
-              >
-                {formatThaiDate(
-                  inspectionEndDate
-                )}
-
-                {!readOnly && (
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="
-                      ml-auto
-                      h-5
-                      w-5
-                      shrink-0
-
-                      !text-slate-500
-                    "
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="16"
-                      rx="2"
-                    />
-
-                    <path d="M16 3v4M8 3v4M3 11h18" />
-                  </svg>
-                )}
-              </button>
-
-              {!readOnly && (
-                <input
-                  ref={
-                    inspectionEndDateRef
-                  }
-                  type="date"
-                  value={
-                    inspectionEndDate
-                  }
-                  onChange={(
-                    event
-                  ) => {
-                    const value =
-                      event.target.value;
-
-                    setInspectionEndDate(
+                if (value) {
+                  setAccountEndDate(
+                    getOneDayBefore(
                       value
-                    );
-
-                    setAccountEndDate(
-                      getOneDayBefore(
-                        value
-                      )
-                    );
-                  }}
-                  required
-                  className="
-                    absolute
-                    bottom-0
-                    left-0
-
-                    h-px
-                    w-px
-
-                    opacity-0
-                  "
-                />
-              )}
-            </div>
+                    )
+                  );
+                }
+              }}
+            />
           </div>
         </div>
       </AppCard>
@@ -2729,18 +3755,6 @@ export default function InspectionForm({
                       label:
                         `${officer.firstName} ${officer.lastName}`.trim(),
 
-                      description:
-                        [
-                          officer.position,
-                          officer.department?.name,
-                          officer.section?.name,
-                        ]
-                          .filter(
-                            Boolean
-                          )
-                          .join(
-                            " / "
-                          ),
                     })
                   );
 
@@ -2780,15 +3794,16 @@ export default function InspectionForm({
                       : `กรรมการคนที่ ${index}`}
                   </label>
 
-                  <AppSearchableSelect
+                  <SearchableDropdown
+                    id={`inspector-${index}`}
                     value={
                       inspectorId
                     }
                     options={
                       officerOptions
                     }
-                    placeholder="เลือกผู้ตรวจสอบ"
-                    searchPlaceholder="พิมพ์ชื่อ / นามสกุล / ตำแหน่ง / กลุ่มงาน..."
+                    placeholder="-- เลือกผู้ตรวจสอบ --"
+                    searchPlaceholder="พิมพ์ค้นหาผู้ตรวจสอบ..."
                     emptyText="ไม่พบรายชื่อผู้ตรวจสอบ"
                     disabled={
                       readOnly
@@ -2829,11 +3844,14 @@ export default function InspectionForm({
             }
           )}
         </div>
+
         {/* ===================================================
             ACTION BUTTONS
 
             ใช้ AppButton ตัวกลางโดยตรง
-            ไม่กำหนดสี / ความสูง / ความกว้าง / padding เอง
+            - ยกเลิก = primary สีน้ำเงิน
+            - บันทึก = success สีเขียว
+            - ไม่กำหนดสี / ความสูง / ความกว้าง / padding เอง
         =================================================== */}
 
         {!readOnly && (
