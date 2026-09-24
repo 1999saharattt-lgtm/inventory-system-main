@@ -63,21 +63,54 @@ function addMonths(
    SHARED UI
 ========================================================= */
 
-const panelHeaderClass = `
-  border-b
-  border-slate-200/80
-  bg-white/40
-  px-5
-  py-5
-`;
-
-const pressable = `
+const iosPressable = `
   transition-all
   duration-300
   ease-out
+
   hover:-translate-y-1
+
   active:translate-y-0
   active:scale-[0.985]
+`;
+
+const iosCard = `
+  border
+  border-white/70
+
+  bg-white/75
+
+  shadow-[0_18px_55px_-30px_rgba(15,23,42,0.35)]
+
+  backdrop-blur-2xl
+
+  ring-1
+  ring-slate-900/[0.025]
+`;
+
+const iosInnerCard = `
+  rounded-[22px]
+
+  border
+  border-white/80
+
+  bg-white/70
+
+  shadow-[0_14px_35px_-26px_rgba(15,23,42,0.45)]
+
+  backdrop-blur-xl
+`;
+
+const panelHeaderClass = `
+  border-b
+  border-slate-200/60
+
+  bg-white/35
+
+  px-5
+  py-5
+
+  backdrop-blur-xl
 `;
 
 /* =========================================================
@@ -100,16 +133,6 @@ export default async function Home() {
 
   const isAdmin =
     userRole === "ADMIN";
-
-  /*
-    Issue มี departmentId
-
-    ADMIN
-    - เห็นทุกกลุ่มงาน
-
-    STAFF / VIEWER
-    - เห็นเฉพาะกลุ่มงานของตัวเอง
-  */
 
   const issueDepartmentWhere =
     isAdmin
@@ -329,9 +352,11 @@ export default async function Home() {
             monthStart.getFullYear() +
             543,
 
-          receive: receiveCount,
+          receive:
+            receiveCount,
 
-          issue: issueCount,
+          issue:
+            issueCount,
         };
       }
     );
@@ -354,134 +379,163 @@ export default async function Home() {
     normalStock;
 
   /* =======================================================
+     DISPLAY DATE
+  ======================================================= */
+
+  const todayText =
+    new Intl.DateTimeFormat(
+      "th-TH",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }
+    ).format(now);
+
+  /* =======================================================
+     ROLE LABEL
+  ======================================================= */
+
+  const roleText =
+    userRole === "ADMIN"
+      ? "ผู้ดูแลระบบ"
+      : userRole === "STAFF"
+        ? "เจ้าหน้าที่"
+        : "ผู้ใช้งาน";
+
+  /* =======================================================
      SUMMARY CARDS
   ======================================================= */
 
   const cards = [
     {
       title:
-        "จำนวนพัสดุทั้งหมด",
+        "พัสดุทั้งหมด",
 
-      value: totalMaterials,
+      value:
+        totalMaterials,
 
-      unit: "รายการ",
+      unit:
+        "รายการ",
 
-      icon: "📦",
+      icon:
+        "📦",
 
-      accent:
-        "from-blue-500 via-sky-400 to-cyan-400",
+      color:
+        "blue",
 
-      iconBg:
-        "from-blue-500/20 to-cyan-400/10",
+      valueClass:
+        "!text-blue-600",
 
-      ring:
-        "ring-blue-300/30",
+      iconClass:
+        "from-blue-500 to-sky-400",
 
-      valueText:
-        "!text-blue-700",
-
-      hover:
-        "hover:border-blue-300/80 hover:shadow-blue-500/10",
+      glowClass:
+        "bg-blue-400/20",
 
       href:
         "/materials/summary",
 
-      clickable: true,
+      clickable:
+        true,
     },
 
     {
       title:
         "รับเข้าวันนี้",
 
-      value: receiveToday,
+      value:
+        receiveToday,
 
-      unit: "ใบรับเข้า",
+      unit:
+        "ใบรับเข้า",
 
-      icon: "📥",
+      icon:
+        "📥",
 
-      accent:
-        "from-emerald-500 via-teal-400 to-cyan-400",
+      color:
+        "emerald",
 
-      iconBg:
-        "from-emerald-500/20 to-teal-400/10",
+      valueClass:
+        "!text-emerald-600",
 
-      ring:
-        "ring-emerald-300/30",
+      iconClass:
+        "from-emerald-500 to-teal-400",
 
-      valueText:
-        "!text-emerald-700",
-
-      hover:
-        "hover:border-emerald-300/80 hover:shadow-emerald-500/10",
+      glowClass:
+        "bg-emerald-400/20",
 
       href:
         "/receive?date=today",
 
-      clickable: isAdmin,
+      clickable:
+        isAdmin,
     },
 
     {
       title:
         "เบิกจ่ายวันนี้",
 
-      value: issueToday,
+      value:
+        issueToday,
 
-      unit: "ใบเบิกจ่าย",
+      unit:
+        "ใบเบิกจ่าย",
 
-      icon: "📤",
+      icon:
+        "📤",
 
-      accent:
-        "from-amber-400 via-orange-400 to-rose-400",
+      color:
+        "amber",
 
-      iconBg:
-        "from-amber-400/20 to-orange-400/10",
+      valueClass:
+        "!text-amber-600",
 
-      ring:
-        "ring-amber-300/30",
+      iconClass:
+        "from-amber-400 to-orange-400",
 
-      valueText:
-        "!text-amber-700",
-
-      hover:
-        "hover:border-amber-300/80 hover:shadow-amber-500/10",
+      glowClass:
+        "bg-amber-400/20",
 
       href:
         "/issue?date=today",
 
-      clickable: true,
+      clickable:
+        true,
     },
 
     {
       title:
-        "รายการพัสดุที่ใกล้หมดทั้งหมด",
+        "พัสดุที่ต้องตรวจสอบ",
 
       value:
         lowStock +
         outOfStock,
 
-      unit: "รายการ",
+      unit:
+        "รายการ",
 
-      icon: "⚠️",
+      icon:
+        "⚠️",
 
-      accent:
-        "from-rose-500 via-red-400 to-orange-400",
+      color:
+        "rose",
 
-      iconBg:
-        "from-rose-500/20 to-red-400/10",
+      valueClass:
+        "!text-rose-600",
 
-      ring:
-        "ring-rose-300/30",
+      iconClass:
+        "from-rose-500 to-red-400",
 
-      valueText:
-        "!text-rose-700",
-
-      hover:
-        "hover:border-rose-300/80 hover:shadow-rose-500/10",
+      glowClass:
+        "bg-rose-400/20",
 
       href:
         "/materials/low-stock",
 
-      clickable: true,
+      clickable:
+        true,
     },
   ];
 
@@ -492,7 +546,285 @@ export default async function Home() {
   return (
     <AppPage>
       {/* =====================================================
-          TOP SUMMARY CARDS
+          IOS HERO
+      ===================================================== */}
+
+      <section
+        className="
+          relative
+          w-full
+          min-w-0
+          overflow-hidden
+
+          rounded-[32px]
+
+          border
+          border-white/80
+
+          bg-gradient-to-br
+          from-white/95
+          via-white/80
+          to-blue-50/70
+
+          px-5
+          py-6
+
+          shadow-[0_25px_70px_-40px_rgba(15,23,42,0.45)]
+
+          backdrop-blur-2xl
+
+          sm:px-7
+          sm:py-7
+
+          lg:px-8
+        "
+      >
+        {/* =================================================
+            BACKGROUND GLOW
+        ================================================= */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -right-16
+            -top-24
+
+            h-72
+            w-72
+
+            rounded-full
+
+            bg-blue-300/30
+
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-32
+            left-1/4
+
+            h-64
+            w-64
+
+            rounded-full
+
+            bg-cyan-200/25
+
+            blur-3xl
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            right-1/3
+            top-8
+
+            h-32
+            w-32
+
+            rounded-full
+
+            bg-violet-200/20
+
+            blur-3xl
+          "
+        />
+
+        {/* =================================================
+            HERO CONTENT
+        ================================================= */}
+
+        <div
+          className="
+            relative
+            z-10
+
+            flex
+            flex-col
+            gap-6
+
+            lg:flex-row
+            lg:items-center
+            lg:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <div
+              className="
+                mb-4
+
+                inline-flex
+                items-center
+                gap-2
+
+                rounded-full
+
+                border
+                border-white/80
+
+                bg-white/65
+
+                px-3
+                py-1.5
+
+                text-xs
+                font-extrabold
+
+                !text-slate-500
+
+                shadow-sm
+
+                backdrop-blur-xl
+              "
+            >
+              <span
+                className="
+                  h-2
+                  w-2
+
+                  rounded-full
+
+                  bg-emerald-500
+
+                  shadow-[0_0_0_4px_rgba(16,185,129,0.10)]
+                "
+              />
+
+              ระบบพร้อมใช้งาน
+            </div>
+
+            <h1
+              className="
+                text-3xl
+                font-black
+                tracking-tight
+                !text-slate-950
+
+                sm:text-4xl
+
+                lg:text-5xl
+              "
+            >
+              Dashboard
+            </h1>
+
+            <p
+              className="
+                mt-2
+
+                text-base
+                font-bold
+                !text-slate-500
+
+                sm:text-lg
+              "
+            >
+              ภาพรวมระบบบริหารพัสดุ
+            </p>
+
+            <p
+              className="
+                mt-3
+
+                text-sm
+                font-semibold
+                !text-slate-400
+              "
+            >
+              {todayText}
+            </p>
+          </div>
+
+          {/* =================================================
+              USER STATUS
+          ================================================= */}
+
+          <div
+            className="
+              flex
+              flex-wrap
+              items-center
+              gap-3
+            "
+          >
+            <div
+              className={`
+                ${iosInnerCard}
+
+                flex
+                items-center
+                gap-3
+
+                px-4
+                py-3
+              `}
+            >
+              <div
+                className="
+                  flex
+                  h-11
+                  w-11
+                  shrink-0
+                  items-center
+                  justify-center
+
+                  rounded-[15px]
+
+                  bg-gradient-to-br
+                  from-slate-800
+                  to-slate-600
+
+                  text-lg
+
+                  shadow-md
+                  shadow-slate-900/10
+                "
+              >
+                👤
+              </div>
+
+              <div>
+                <p
+                  className="
+                    text-xs
+                    font-bold
+
+                    !text-slate-400
+                  "
+                >
+                  สิทธิ์การใช้งาน
+                </p>
+
+                <p
+                  className="
+                    mt-0.5
+
+                    text-sm
+                    font-black
+
+                    !text-slate-800
+                  "
+                >
+                  {roleText}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          TOP SUMMARY
       ===================================================== */}
 
       <section
@@ -503,228 +835,261 @@ export default async function Home() {
           grid-cols-1
           gap-4
 
-          md:grid-cols-2
+          sm:grid-cols-2
+
           xl:grid-cols-4
         "
       >
-        {cards.map((card) => {
-          const cardClassName = `
-            group
-            relative
-            min-w-0
-            overflow-hidden
-
-            ${
-              card.clickable
-                ? `
-                  cursor-pointer
-                  ${pressable}
-                  ${card.hover}
-                `
-                : "cursor-default"
-            }
-          `;
-
-          const content = (
-            <>
-              {/* Accent */}
-
-              <div
+        {cards.map(
+          (card) => {
+            const cardContent = (
+              <AppCard
                 className={`
-                  h-1.5
-                  bg-gradient-to-r
-                  ${card.accent}
-                `}
-              />
-
-              <div
-                className="
+                  group
                   relative
-                  p-5
-                "
+                  min-h-[190px]
+                  min-w-0
+                  overflow-hidden
+
+                  !rounded-[28px]
+
+                  ${iosCard}
+
+                  ${
+                    card.clickable
+                      ? `
+                        cursor-pointer
+                        ${iosPressable}
+                      `
+                      : "cursor-default"
+                  }
+                `}
               >
+                {/* GLOW */}
+
                 <div
                   aria-hidden="true"
-                  className="
+                  className={`
                     pointer-events-none
                     absolute
-                    inset-x-0
-                    top-0
-                    h-20
+                    -right-10
+                    -top-12
 
-                    bg-gradient-to-b
-                    from-white/60
-                    to-transparent
-                  "
+                    h-36
+                    w-36
+
+                    rounded-full
+
+                    ${card.glowClass}
+
+                    blur-3xl
+
+                    transition-transform
+                    duration-500
+
+                    group-hover:scale-125
+                  `}
                 />
 
                 <div
                   className="
                     relative
+                    z-10
+
                     flex
-                    min-w-0
-                    items-start
+                    h-full
+                    flex-col
                     justify-between
-                    gap-4
                   "
                 >
-                  <div className="min-w-0">
+                  {/* TOP */}
+
+                  <div
+                    className="
+                      flex
+                      items-start
+                      justify-between
+                      gap-4
+                    "
+                  >
                     <p
                       className="
-                        break-words
+                        min-w-0
 
                         text-base
                         font-extrabold
-                        leading-tight
+                        leading-snug
 
-                        !text-slate-700
-
-                        sm:text-lg
+                        !text-slate-600
                       "
                     >
                       {card.title}
                     </p>
 
-                    <p
+                    <div
                       className={`
-                        mt-4
+                        flex
+                        h-12
+                        w-12
+                        shrink-0
+                        items-center
+                        justify-center
 
-                        text-4xl
-                        font-black
-                        leading-none
-                        tracking-tight
-                        tabular-nums
+                        rounded-[16px]
 
-                        sm:text-5xl
+                        bg-gradient-to-br
+                        ${card.iconClass}
 
-                        ${card.valueText}
-                      `}
-                    >
-                      {card.value.toLocaleString(
-                        "th-TH"
-                      )}
-                    </p>
+                        text-xl
 
-                    <p
-                      className="
-                        mt-2
+                        shadow-lg
+                        shadow-slate-900/10
 
-                        text-sm
-                        font-bold
+                        ring-1
+                        ring-white/60
 
-                        !text-slate-500
-                      "
-                    >
-                      {card.unit}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`
-                      flex
-                      h-14
-                      w-14
-                      shrink-0
-                      items-center
-                      justify-center
-
-                      rounded-[18px]
-
-                      bg-gradient-to-br
-                      ${card.iconBg}
-
-                      text-2xl
-
-                      shadow-inner
-
-                      ring-1
-                      ${card.ring}
-
-                      transition-transform
-                      duration-300
-
-                      group-hover:scale-110
-                      group-active:scale-95
-                    `}
-                  >
-                    {card.icon}
-                  </div>
-                </div>
-
-                {card.clickable && (
-                  <div
-                    className="
-                      relative
-                      mt-4
-
-                      flex
-                      items-center
-                      gap-2
-
-                      text-xs
-                      font-extrabold
-
-                      !text-slate-400
-
-                      transition-colors
-
-                      group-hover:!text-slate-600
-                    "
-                  >
-                    <span>
-                      แตะเพื่อดูรายละเอียด
-                    </span>
-
-                    <span
-                      className="
                         transition-transform
                         duration-300
 
-                        group-hover:translate-x-1
+                        group-hover:scale-110
+                      `}
+                    >
+                      <span
+                        aria-hidden="true"
+                      >
+                        {card.icon}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* VALUE */}
+
+                  <div className="mt-6">
+                    <div
+                      className="
+                        flex
+                        items-end
+                        gap-2
                       "
                     >
-                      →
-                    </span>
-                  </div>
-                )}
-              </div>
-            </>
-          );
+                      <p
+                        className={`
+                          text-4xl
+                          font-black
+                          leading-none
+                          tracking-[-0.04em]
+                          tabular-nums
 
-          if (card.clickable) {
-            return (
-              <Link
-                key={card.title}
-                href={card.href}
-                prefetch
-                className="block min-w-0"
-              >
-                <AppCard
-                  className={
-                    cardClassName
+                          sm:text-5xl
+
+                          ${card.valueClass}
+                        `}
+                      >
+                        {card.value.toLocaleString(
+                          "th-TH"
+                        )}
+                      </p>
+
+                      <p
+                        className="
+                          pb-1
+
+                          text-sm
+                          font-bold
+
+                          !text-slate-400
+                        "
+                      >
+                        {card.unit}
+                      </p>
+                    </div>
+
+                    {card.clickable && (
+                      <div
+                        className="
+                          mt-5
+
+                          flex
+                          items-center
+                          justify-between
+
+                          text-xs
+                          font-extrabold
+
+                          !text-slate-400
+                        "
+                      >
+                        <span>
+                          ดูรายละเอียด
+                        </span>
+
+                        <span
+                          className="
+                            flex
+                            h-7
+                            w-7
+                            items-center
+                            justify-center
+
+                            rounded-full
+
+                            bg-slate-100/90
+
+                            !text-slate-500
+
+                            transition-all
+
+                            group-hover:translate-x-1
+                            group-hover:bg-slate-200/80
+                          "
+                        >
+                          →
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </AppCard>
+            );
+
+            if (
+              card.clickable
+            ) {
+              return (
+                <Link
+                  key={
+                    card.title
                   }
+                  href={
+                    card.href
+                  }
+                  prefetch
+                  className="
+                    block
+                    min-w-0
+                  "
                 >
-                  {content}
-                </AppCard>
-              </Link>
+                  {cardContent}
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={
+                  card.title
+                }
+                className="min-w-0"
+              >
+                {cardContent}
+              </div>
             );
           }
-
-          return (
-            <AppCard
-              key={card.title}
-              className={
-                cardClassName
-              }
-            >
-              {content}
-            </AppCard>
-          );
-        })}
+        )}
       </section>
 
       {/* =====================================================
-          MONTHLY RECEIVE / ISSUE
+          MONTH SUMMARY
       ===================================================== */}
 
       <section
@@ -735,45 +1100,52 @@ export default async function Home() {
           grid-cols-1
           gap-4
 
-          md:grid-cols-2
+          lg:grid-cols-2
         "
       >
-        {/* RECEIVE */}
+        {/* ===================================================
+            RECEIVE MONTH
+        =================================================== */}
 
         {isAdmin ? (
           <Link
             href="/receive?period=month"
             prefetch
-            className="block min-w-0"
+            className="
+              block
+              min-w-0
+            "
           >
             <AppCard
               className={`
                 group
                 relative
+                min-h-[180px]
                 min-w-0
                 overflow-hidden
-                p-5
 
-                ${pressable}
+                !rounded-[28px]
 
-                hover:border-emerald-300/80
+                ${iosCard}
+                ${iosPressable}
               `}
             >
               <div
                 aria-hidden="true"
                 className="
+                  pointer-events-none
                   absolute
-                  -right-10
-                  -top-10
+                  -right-14
+                  -top-16
 
-                  h-36
-                  w-36
+                  h-48
+                  w-48
 
                   rounded-full
 
-                  bg-emerald-300/15
+                  bg-emerald-300/20
 
-                  blur-2xl
+                  blur-3xl
 
                   transition-transform
                   duration-500
@@ -785,48 +1157,69 @@ export default async function Home() {
               <div
                 className="
                   relative
+                  z-10
+
                   flex
+                  h-full
                   items-center
                   justify-between
-                  gap-4
+                  gap-5
                 "
               >
                 <div className="min-w-0">
                   <p
                     className="
-                      text-lg
+                      text-sm
                       font-extrabold
-                      leading-tight
 
-                      !text-slate-700
-
-                      sm:text-xl
+                      !text-slate-500
                     "
                   >
-                    📥 รับเข้าประจำเดือน
+                    รับเข้าประจำเดือน
                   </p>
+
+                  <div
+                    className="
+                      mt-3
+                      flex
+                      items-end
+                      gap-2
+                    "
+                  >
+                    <p
+                      className="
+                        text-5xl
+                        font-black
+                        leading-none
+                        tracking-[-0.04em]
+                        tabular-nums
+
+                        !text-emerald-600
+
+                        sm:text-6xl
+                      "
+                    >
+                      {receiveThisMonth.toLocaleString(
+                        "th-TH"
+                      )}
+                    </p>
+
+                    <span
+                      className="
+                        pb-1
+                        text-sm
+                        font-bold
+
+                        !text-slate-400
+                      "
+                    >
+                      ใบ
+                    </span>
+                  </div>
 
                   <p
                     className="
-                      mt-3
-
-                      text-5xl
-                      font-black
-                      leading-none
-                      tracking-tight
-                      tabular-nums
-
-                      !text-emerald-700
-                    "
-                  >
-                    {receiveThisMonth.toLocaleString(
-                      "th-TH"
-                    )}
-                  </p>
-
-                  <p
-                    className="
-                      mt-3
+                      mt-4
 
                       text-xs
                       font-extrabold
@@ -834,191 +1227,212 @@ export default async function Home() {
                       !text-slate-400
                     "
                   >
-                    แตะเพื่อดูรายการประจำเดือน →
+                    เปิดรายการรับเข้า →
                   </p>
                 </div>
 
-                <span
+                <div
                   className="
                     flex
-                    h-16
-                    w-16
+                    h-20
+                    w-20
                     shrink-0
                     items-center
                     justify-center
 
-                    rounded-[20px]
+                    rounded-[24px]
 
                     bg-gradient-to-br
-                    from-emerald-500/20
-                    to-teal-400/10
+                    from-emerald-500
+                    to-teal-400
 
                     text-3xl
 
-                    shadow-inner
+                    shadow-xl
+                    shadow-emerald-500/20
 
                     ring-1
-                    ring-emerald-300/30
+                    ring-white/60
 
                     transition-transform
                     duration-300
 
                     group-hover:scale-110
-                    group-active:scale-95
                   "
                 >
                   📥
-                </span>
+                </div>
               </div>
             </AppCard>
           </Link>
         ) : (
           <AppCard
-            className="
+            className={`
               relative
+              min-h-[180px]
               min-w-0
               overflow-hidden
-              p-5
-            "
+
+              !rounded-[28px]
+
+              ${iosCard}
+            `}
           >
             <div
               aria-hidden="true"
               className="
+                pointer-events-none
                 absolute
-                -right-10
-                -top-10
+                -right-14
+                -top-16
 
-                h-36
-                w-36
+                h-48
+                w-48
 
                 rounded-full
 
-                bg-emerald-300/15
+                bg-emerald-300/20
 
-                blur-2xl
+                blur-3xl
               "
             />
 
             <div
               className="
                 relative
+                z-10
+
                 flex
+                h-full
                 items-center
                 justify-between
-                gap-4
+                gap-5
               "
             >
-              <div className="min-w-0">
+              <div>
                 <p
                   className="
-                    text-lg
-                    font-extrabold
-                    leading-tight
-
-                    !text-slate-700
-
-                    sm:text-xl
-                  "
-                >
-                  📥 รับเข้าประจำเดือน
-                </p>
-
-                <p
-                  className="
-                    mt-3
-
-                    text-5xl
-                    font-black
-                    leading-none
-                    tracking-tight
-                    tabular-nums
-
-                    !text-emerald-700
-                  "
-                >
-                  {receiveThisMonth.toLocaleString(
-                    "th-TH"
-                  )}
-                </p>
-
-                <p
-                  className="
-                    mt-3
-
-                    text-xs
+                    text-sm
                     font-extrabold
 
-                    !text-slate-400
+                    !text-slate-500
                   "
                 >
-                  แสดงยอดรวม
+                  รับเข้าประจำเดือน
                 </p>
+
+                <div
+                  className="
+                    mt-3
+                    flex
+                    items-end
+                    gap-2
+                  "
+                >
+                  <p
+                    className="
+                      text-5xl
+                      font-black
+                      leading-none
+                      tracking-[-0.04em]
+                      tabular-nums
+
+                      !text-emerald-600
+
+                      sm:text-6xl
+                    "
+                  >
+                    {receiveThisMonth.toLocaleString(
+                      "th-TH"
+                    )}
+                  </p>
+
+                  <span
+                    className="
+                      pb-1
+                      text-sm
+                      font-bold
+
+                      !text-slate-400
+                    "
+                  >
+                    ใบ
+                  </span>
+                </div>
               </div>
 
-              <span
+              <div
                 className="
                   flex
-                  h-16
-                  w-16
+                  h-20
+                  w-20
                   shrink-0
                   items-center
                   justify-center
 
-                  rounded-[20px]
+                  rounded-[24px]
 
                   bg-gradient-to-br
-                  from-emerald-500/20
-                  to-teal-400/10
+                  from-emerald-500
+                  to-teal-400
 
                   text-3xl
 
-                  shadow-inner
+                  shadow-xl
+                  shadow-emerald-500/20
 
                   ring-1
-                  ring-emerald-300/30
+                  ring-white/60
                 "
               >
                 📥
-              </span>
+              </div>
             </div>
           </AppCard>
         )}
 
-        {/* ISSUE */}
+        {/* ===================================================
+            ISSUE MONTH
+        =================================================== */}
 
         <Link
           href="/issue?period=month"
           prefetch
-          className="block min-w-0"
+          className="
+            block
+            min-w-0
+          "
         >
           <AppCard
             className={`
               group
               relative
+              min-h-[180px]
               min-w-0
               overflow-hidden
-              p-5
 
-              ${pressable}
+              !rounded-[28px]
 
-              hover:border-amber-300/80
+              ${iosCard}
+              ${iosPressable}
             `}
           >
             <div
               aria-hidden="true"
               className="
+                pointer-events-none
                 absolute
-                -right-10
-                -top-10
+                -right-14
+                -top-16
 
-                h-36
-                w-36
+                h-48
+                w-48
 
                 rounded-full
 
-                bg-amber-300/15
+                bg-amber-300/20
 
-                blur-2xl
+                blur-3xl
 
                 transition-transform
                 duration-500
@@ -1030,48 +1444,69 @@ export default async function Home() {
             <div
               className="
                 relative
+                z-10
+
                 flex
+                h-full
                 items-center
                 justify-between
-                gap-4
+                gap-5
               "
             >
               <div className="min-w-0">
                 <p
                   className="
-                    text-lg
+                    text-sm
                     font-extrabold
-                    leading-tight
 
-                    !text-slate-700
-
-                    sm:text-xl
+                    !text-slate-500
                   "
                 >
-                  📤 เบิกจ่ายประจำเดือน
+                  เบิกจ่ายประจำเดือน
                 </p>
+
+                <div
+                  className="
+                    mt-3
+                    flex
+                    items-end
+                    gap-2
+                  "
+                >
+                  <p
+                    className="
+                      text-5xl
+                      font-black
+                      leading-none
+                      tracking-[-0.04em]
+                      tabular-nums
+
+                      !text-amber-600
+
+                      sm:text-6xl
+                    "
+                  >
+                    {issueThisMonth.toLocaleString(
+                      "th-TH"
+                    )}
+                  </p>
+
+                  <span
+                    className="
+                      pb-1
+                      text-sm
+                      font-bold
+
+                      !text-slate-400
+                    "
+                  >
+                    ใบ
+                  </span>
+                </div>
 
                 <p
                   className="
-                    mt-3
-
-                    text-5xl
-                    font-black
-                    leading-none
-                    tracking-tight
-                    tabular-nums
-
-                    !text-amber-700
-                  "
-                >
-                  {issueThisMonth.toLocaleString(
-                    "th-TH"
-                  )}
-                </p>
-
-                <p
-                  className="
-                    mt-3
+                    mt-4
 
                     text-xs
                     font-extrabold
@@ -1079,41 +1514,41 @@ export default async function Home() {
                     !text-slate-400
                   "
                 >
-                  แตะเพื่อดูรายการประจำเดือน →
+                  เปิดรายการเบิกจ่าย →
                 </p>
               </div>
 
-              <span
+              <div
                 className="
                   flex
-                  h-16
-                  w-16
+                  h-20
+                  w-20
                   shrink-0
                   items-center
                   justify-center
 
-                  rounded-[20px]
+                  rounded-[24px]
 
                   bg-gradient-to-br
-                  from-amber-400/20
-                  to-orange-400/10
+                  from-amber-400
+                  to-orange-400
 
                   text-3xl
 
-                  shadow-inner
+                  shadow-xl
+                  shadow-amber-500/20
 
                   ring-1
-                  ring-amber-300/30
+                  ring-white/60
 
                   transition-transform
                   duration-300
 
                   group-hover:scale-110
-                  group-active:scale-95
                 "
               >
                 📤
-              </span>
+              </div>
             </div>
           </AppCard>
         </Link>
@@ -1131,7 +1566,7 @@ export default async function Home() {
           grid-cols-1
           gap-4
 
-          lg:grid-cols-2
+          xl:grid-cols-2
         "
       >
         {/* ===================================================
@@ -1139,10 +1574,13 @@ export default async function Home() {
         =================================================== */}
 
         <AppCard
-          className="
+          className={`
             overflow-hidden
-            p-0
-          "
+            !rounded-[30px]
+            !p-0
+
+            ${iosCard}
+          `}
         >
           <div
             className={
@@ -1154,22 +1592,36 @@ export default async function Home() {
                 flex
                 items-center
                 justify-between
-                gap-3
+                gap-4
               "
             >
               <div className="min-w-0">
+                <p
+                  className="
+                    text-xs
+                    font-extrabold
+                    uppercase
+                    tracking-[0.14em]
+
+                    !text-slate-400
+                  "
+                >
+                  Action Center
+                </p>
+
                 <h2
                   className="
+                    mt-1
+
                     text-xl
                     font-black
-                    leading-tight
 
-                    !text-slate-900
+                    !text-slate-950
 
                     sm:text-2xl
                   "
                 >
-                  🔔 รายการที่ต้องดำเนินการ
+                  รายการที่ต้องดำเนินการ
                 </h2>
 
                 <p
@@ -1177,30 +1629,27 @@ export default async function Home() {
                     mt-1
 
                     text-sm
-                    font-bold
+                    font-semibold
 
                     !text-slate-500
                   "
                 >
-                  รายการที่อยู่ระหว่างการดำเนินงาน
+                  รายการที่ควรตรวจสอบและดำเนินการ
                 </p>
               </div>
 
               <span
                 className="
                   flex
-                  h-11
-                  min-w-11
+                  h-12
+                  min-w-12
                   shrink-0
                   items-center
                   justify-center
 
                   rounded-[16px]
 
-                  border
-                  border-red-200
-
-                  bg-red-50
+                  bg-red-500
 
                   px-3
 
@@ -1208,9 +1657,10 @@ export default async function Home() {
                   font-black
                   tabular-nums
 
-                  !text-red-600
+                  !text-white
 
-                  shadow-sm
+                  shadow-lg
+                  shadow-red-500/20
                 "
               >
                 {pendingIssues.toLocaleString(
@@ -1224,76 +1674,61 @@ export default async function Home() {
             className="
               space-y-3
               p-4
+
+              sm:p-5
             "
           >
-            {/* Pending Issue */}
+            {/* PENDING */}
 
             <Link
               href="/notifications"
               prefetch
-              className="
+              className={`
                 group
 
                 flex
                 items-center
                 justify-between
-                gap-3
+                gap-4
 
-                rounded-[22px]
-
-                border
-                border-slate-200/90
-
-                bg-white
+                ${iosInnerCard}
 
                 px-4
                 py-4
 
-                shadow-[0_12px_32px_-26px_rgba(15,23,42,0.35)]
-
-                transition-all
-                duration-300
-
-                hover:-translate-y-0.5
-                hover:border-red-300
-                hover:shadow-[0_18px_38px_-26px_rgba(239,68,68,0.35)]
-
-                active:translate-y-0
-                active:scale-[0.99]
-              "
+                ${iosPressable}
+              `}
             >
               <div
                 className="
                   flex
                   min-w-0
                   items-center
-                  gap-3
+                  gap-4
                 "
               >
                 <span
                   className="
                     flex
-                    h-11
-                    w-11
+                    h-12
+                    w-12
                     shrink-0
                     items-center
                     justify-center
 
-                    rounded-[15px]
+                    rounded-[16px]
 
-                    bg-red-50
+                    bg-gradient-to-br
+                    from-red-500
+                    to-rose-400
 
-                    text-xl
+                    text-lg
 
-                    ring-1
-                    ring-red-100
-
-                    transition-transform
-
-                    group-hover:scale-105
+                    shadow-lg
+                    shadow-red-500/15
                   "
                 >
-                  🔴
+                  🔔
                 </span>
 
                 <div className="min-w-0">
@@ -1301,7 +1736,6 @@ export default async function Home() {
                     className="
                       text-base
                       font-black
-                      leading-tight
 
                       !text-slate-900
 
@@ -1321,7 +1755,7 @@ export default async function Home() {
                       !text-slate-500
                     "
                   >
-                    ตรวจสอบรายการเบิกจ่ายที่ยังไม่ดำเนินการ
+                    ตรวจสอบรายการที่ยังไม่ดำเนินการ
                   </p>
                 </div>
               </div>
@@ -1331,12 +1765,12 @@ export default async function Home() {
                   flex
                   shrink-0
                   items-center
-                  gap-2
+                  gap-3
                 "
               >
                 <span
                   className="
-                    text-lg
+                    text-xl
                     font-black
                     tabular-nums
 
@@ -1350,86 +1784,79 @@ export default async function Home() {
 
                 <span
                   className="
-                    !text-slate-300
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+
+                    rounded-full
+
+                    bg-slate-100
+
+                    !text-slate-400
 
                     transition-transform
 
                     group-hover:translate-x-1
                   "
                 >
-                  →
+                  ›
                 </span>
               </div>
             </Link>
 
-            {/* Low Stock */}
+            {/* LOW STOCK */}
 
             <Link
               href="/materials/low-stock"
               prefetch
-              className="
+              className={`
                 group
 
                 flex
                 items-center
                 justify-between
-                gap-3
+                gap-4
 
-                rounded-[22px]
-
-                border
-                border-slate-200/90
-
-                bg-white
+                ${iosInnerCard}
 
                 px-4
                 py-4
 
-                shadow-[0_12px_32px_-26px_rgba(15,23,42,0.35)]
-
-                transition-all
-                duration-300
-
-                hover:-translate-y-0.5
-                hover:border-amber-300
-                hover:shadow-[0_18px_38px_-26px_rgba(245,158,11,0.30)]
-
-                active:translate-y-0
-                active:scale-[0.99]
-              "
+                ${iosPressable}
+              `}
             >
               <div
                 className="
                   flex
                   min-w-0
                   items-center
-                  gap-3
+                  gap-4
                 "
               >
                 <span
                   className="
                     flex
-                    h-11
-                    w-11
+                    h-12
+                    w-12
                     shrink-0
                     items-center
                     justify-center
 
-                    rounded-[15px]
+                    rounded-[16px]
 
-                    bg-amber-50
+                    bg-gradient-to-br
+                    from-amber-400
+                    to-orange-400
 
-                    text-xl
+                    text-lg
 
-                    ring-1
-                    ring-amber-100
-
-                    transition-transform
-
-                    group-hover:scale-105
+                    shadow-lg
+                    shadow-amber-500/15
                   "
                 >
-                  🟠
+                  ⚠️
                 </span>
 
                 <div className="min-w-0">
@@ -1437,7 +1864,6 @@ export default async function Home() {
                     className="
                       text-base
                       font-black
-                      leading-tight
 
                       !text-slate-900
 
@@ -1467,12 +1893,12 @@ export default async function Home() {
                   flex
                   shrink-0
                   items-center
-                  gap-2
+                  gap-3
                 "
               >
                 <span
                   className="
-                    text-lg
+                    text-xl
                     font-black
                     tabular-nums
 
@@ -1489,14 +1915,24 @@ export default async function Home() {
 
                 <span
                   className="
-                    !text-slate-300
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+
+                    rounded-full
+
+                    bg-slate-100
+
+                    !text-slate-400
 
                     transition-transform
 
                     group-hover:translate-x-1
                   "
                 >
-                  →
+                  ›
                 </span>
               </div>
             </Link>
@@ -1508,28 +1944,45 @@ export default async function Home() {
         =================================================== */}
 
         <AppCard
-          className="
+          className={`
             overflow-hidden
-            p-0
-          "
+            !rounded-[30px]
+            !p-0
+
+            ${iosCard}
+          `}
         >
           <div
             className={
               panelHeaderClass
             }
           >
+            <p
+              className="
+                text-xs
+                font-extrabold
+                uppercase
+                tracking-[0.14em]
+
+                !text-slate-400
+              "
+            >
+              Inventory
+            </p>
+
             <h2
               className="
+                mt-1
+
                 text-xl
                 font-black
-                leading-tight
 
-                !text-slate-900
+                !text-slate-950
 
                 sm:text-2xl
               "
             >
-              📊 สถานะพัสดุคงเหลือ
+              สถานะพัสดุคงเหลือ
             </h2>
 
             <p
@@ -1537,12 +1990,12 @@ export default async function Home() {
                 mt-1
 
                 text-sm
-                font-bold
+                font-semibold
 
                 !text-slate-500
               "
             >
-              สรุปจากจำนวนคงเหลือปัจจุบัน
+              ภาพรวมจำนวนคงเหลือปัจจุบัน
             </p>
           </div>
 
@@ -1552,37 +2005,61 @@ export default async function Home() {
               p-5
             "
           >
-            {/* Normal */}
+            {/* NORMAL */}
 
-            <div>
+            <div
+              className={`
+                ${iosInnerCard}
+
+                p-4
+              `}
+            >
               <div
                 className="
-                  mb-2
-
                   flex
                   items-center
                   justify-between
                   gap-3
                 "
               >
-                <span
+                <div
                   className="
-                    text-base
-                    font-black
-
-                    !text-slate-700
+                    flex
+                    items-center
+                    gap-3
                   "
                 >
-                  🟢 คงเหลือปกติ
-                </span>
+                  <span
+                    className="
+                      h-3
+                      w-3
+
+                      rounded-full
+
+                      bg-emerald-500
+
+                      shadow-[0_0_0_5px_rgba(16,185,129,0.10)]
+                    "
+                  />
+
+                  <span
+                    className="
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    คงเหลือปกติ
+                  </span>
+                </div>
 
                 <span
                   className="
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
-                    !text-emerald-700
+                    !text-emerald-600
                   "
                 >
                   {normalStock.toLocaleString(
@@ -1593,16 +2070,13 @@ export default async function Home() {
 
               <div
                 className="
-                  h-3
+                  mt-4
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
 
-                  bg-slate-200/80
-
-                  p-[2px]
-
-                  shadow-inner
+                  bg-slate-200/70
                 "
               >
                 <div
@@ -1616,10 +2090,6 @@ export default async function Home() {
                     to-teal-400
 
                     shadow-sm
-
-                    transition-all
-                    duration-700
-                    ease-out
                   "
                   style={{
                     width: `${
@@ -1635,37 +2105,61 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Low */}
+            {/* LOW */}
 
-            <div>
+            <div
+              className={`
+                ${iosInnerCard}
+
+                p-4
+              `}
+            >
               <div
                 className="
-                  mb-2
-
                   flex
                   items-center
                   justify-between
                   gap-3
                 "
               >
-                <span
+                <div
                   className="
-                    text-base
-                    font-black
-
-                    !text-slate-700
+                    flex
+                    items-center
+                    gap-3
                   "
                 >
-                  🟠 ใกล้หมด
-                </span>
+                  <span
+                    className="
+                      h-3
+                      w-3
+
+                      rounded-full
+
+                      bg-amber-500
+
+                      shadow-[0_0_0_5px_rgba(245,158,11,0.10)]
+                    "
+                  />
+
+                  <span
+                    className="
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    ใกล้หมด
+                  </span>
+                </div>
 
                 <span
                   className="
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
-                    !text-amber-700
+                    !text-amber-600
                   "
                 >
                   {lowStock.toLocaleString(
@@ -1676,16 +2170,13 @@ export default async function Home() {
 
               <div
                 className="
-                  h-3
+                  mt-4
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
 
-                  bg-slate-200/80
-
-                  p-[2px]
-
-                  shadow-inner
+                  bg-slate-200/70
                 "
               >
                 <div
@@ -1697,12 +2188,6 @@ export default async function Home() {
                     bg-gradient-to-r
                     from-amber-400
                     to-orange-400
-
-                    shadow-sm
-
-                    transition-all
-                    duration-700
-                    ease-out
                   "
                   style={{
                     width: `${
@@ -1718,37 +2203,61 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Out */}
+            {/* OUT */}
 
-            <div>
+            <div
+              className={`
+                ${iosInnerCard}
+
+                p-4
+              `}
+            >
               <div
                 className="
-                  mb-2
-
                   flex
                   items-center
                   justify-between
                   gap-3
                 "
               >
-                <span
+                <div
                   className="
-                    text-base
-                    font-black
-
-                    !text-slate-700
+                    flex
+                    items-center
+                    gap-3
                   "
                 >
-                  🔴 หมด
-                </span>
+                  <span
+                    className="
+                      h-3
+                      w-3
+
+                      rounded-full
+
+                      bg-red-500
+
+                      shadow-[0_0_0_5px_rgba(239,68,68,0.10)]
+                    "
+                  />
+
+                  <span
+                    className="
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    หมด
+                  </span>
+                </div>
 
                 <span
                   className="
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
-                    !text-red-700
+                    !text-red-600
                   "
                 >
                   {outOfStock.toLocaleString(
@@ -1759,16 +2268,13 @@ export default async function Home() {
 
               <div
                 className="
-                  h-3
+                  mt-4
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
 
-                  bg-slate-200/80
-
-                  p-[2px]
-
-                  shadow-inner
+                  bg-slate-200/70
                 "
               >
                 <div
@@ -1780,12 +2286,6 @@ export default async function Home() {
                     bg-gradient-to-r
                     from-red-500
                     to-rose-400
-
-                    shadow-sm
-
-                    transition-all
-                    duration-700
-                    ease-out
                   "
                   style={{
                     width: `${
@@ -1801,18 +2301,11 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* =================================================
-                FIXED:
-                AppButton ไม่มี variant="dark"
-                ใช้ primary ซึ่งรองรับโดย AppButton
-            ================================================= */}
-
             <AppButton
               href="/materials/summary"
               variant="primary"
               size="md"
               className="
-                mt-2
                 w-full
               "
             >
@@ -1831,10 +2324,13 @@ export default async function Home() {
       ===================================================== */}
 
       <AppCard
-        className="
+        className={`
           overflow-hidden
-          p-0
-        "
+          !rounded-[30px]
+          !p-0
+
+          ${iosCard}
+        `}
       >
         <div
           className={
@@ -1845,7 +2341,7 @@ export default async function Home() {
             className="
               flex
               flex-col
-              gap-3
+              gap-4
 
               sm:flex-row
               sm:items-end
@@ -1853,18 +2349,32 @@ export default async function Home() {
             "
           >
             <div className="min-w-0">
+              <p
+                className="
+                  text-xs
+                  font-extrabold
+                  uppercase
+                  tracking-[0.14em]
+
+                  !text-slate-400
+                "
+              >
+                Activity
+              </p>
+
               <h2
                 className="
+                  mt-1
+
                   text-xl
                   font-black
-                  leading-tight
 
-                  !text-slate-900
+                  !text-slate-950
 
                   sm:text-2xl
                 "
               >
-                📈 การเคลื่อนไหวพัสดุ
+                การเคลื่อนไหวพัสดุ
               </h2>
 
               <p
@@ -1872,7 +2382,7 @@ export default async function Home() {
                   mt-1
 
                   text-sm
-                  font-bold
+                  font-semibold
 
                   !text-slate-500
                 "
@@ -1886,19 +2396,23 @@ export default async function Home() {
                 flex
                 flex-wrap
                 gap-2
-
-                text-sm
-                font-extrabold
               "
             >
               <span
                 className="
+                  inline-flex
+                  items-center
+                  gap-2
+
                   rounded-full
 
-                  bg-emerald-50
+                  bg-emerald-50/90
 
                   px-3
                   py-1.5
+
+                  text-xs
+                  font-extrabold
 
                   !text-emerald-700
 
@@ -1906,17 +2420,33 @@ export default async function Home() {
                   ring-emerald-100
                 "
               >
-                ● รับเข้า
+                <span
+                  className="
+                    h-2
+                    w-2
+                    rounded-full
+                    bg-emerald-500
+                  "
+                />
+
+                รับเข้า
               </span>
 
               <span
                 className="
+                  inline-flex
+                  items-center
+                  gap-2
+
                   rounded-full
 
-                  bg-amber-50
+                  bg-amber-50/90
 
                   px-3
                   py-1.5
+
+                  text-xs
+                  font-extrabold
 
                   !text-amber-700
 
@@ -1924,7 +2454,16 @@ export default async function Home() {
                   ring-amber-100
                 "
               >
-                ● เบิกจ่าย
+                <span
+                  className="
+                    h-2
+                    w-2
+                    rounded-full
+                    bg-amber-500
+                  "
+                />
+
+                เบิกจ่าย
               </span>
             </div>
           </div>
@@ -1933,6 +2472,7 @@ export default async function Home() {
         <div
           className="
             overflow-x-auto
+
             p-4
 
             sm:p-6
@@ -1941,9 +2481,9 @@ export default async function Home() {
           <div
             className="
               grid
-              min-w-[620px]
+              min-w-[680px]
               grid-cols-6
-              gap-2
+              gap-3
 
               sm:gap-4
             "
@@ -1977,39 +2517,41 @@ export default async function Home() {
                       group
                       min-w-0
 
-                      rounded-[18px]
+                      rounded-[22px]
 
-                      px-1
-                      py-2
+                      border
+                      border-transparent
 
-                      transition-colors
+                      px-2
+                      py-3
+
+                      transition-all
                       duration-300
 
-                      hover:bg-slate-50/90
-
-                      sm:px-2
+                      hover:border-white/90
+                      hover:bg-white/70
+                      hover:shadow-[0_14px_32px_-28px_rgba(15,23,42,0.50)]
                     "
                   >
-                    {/* Chart */}
+                    {/* CHART */}
 
                     <div
                       className="
-                        mb-2
+                        mb-3
 
                         flex
-                        h-32
+                        h-36
                         items-end
                         justify-center
-                        gap-1
+                        gap-2
 
                         border-b
-                        border-slate-200
+                        border-slate-200/80
 
-                        sm:h-44
-                        sm:gap-2
+                        sm:h-48
                       "
                     >
-                      {/* Receive */}
+                      {/* RECEIVE */}
 
                       <div
                         className="
@@ -2025,17 +2567,17 @@ export default async function Home() {
                             w-full
                             max-w-8
 
-                            rounded-t-[10px]
+                            rounded-t-[12px]
 
                             bg-gradient-to-t
-                            from-emerald-600
+                            from-emerald-500
+                            via-emerald-400
                             to-emerald-300
 
-                            shadow-[0_8px_18px_-10px_rgba(16,185,129,0.8)]
+                            shadow-[0_10px_25px_-12px_rgba(16,185,129,0.70)]
 
                             transition-all
                             duration-500
-                            ease-out
 
                             group-hover:brightness-105
                           "
@@ -2046,7 +2588,7 @@ export default async function Home() {
                         />
                       </div>
 
-                      {/* Issue */}
+                      {/* ISSUE */}
 
                       <div
                         className="
@@ -2062,17 +2604,17 @@ export default async function Home() {
                             w-full
                             max-w-8
 
-                            rounded-t-[10px]
+                            rounded-t-[12px]
 
                             bg-gradient-to-t
                             from-amber-500
+                            via-amber-400
                             to-yellow-300
 
-                            shadow-[0_8px_18px_-10px_rgba(245,158,11,0.8)]
+                            shadow-[0_10px_25px_-12px_rgba(245,158,11,0.70)]
 
                             transition-all
                             duration-500
-                            ease-out
 
                             group-hover:brightness-105
                           "
@@ -2084,7 +2626,7 @@ export default async function Home() {
                       </div>
                     </div>
 
-                    {/* Month */}
+                    {/* MONTH */}
 
                     <p
                       className="
@@ -2103,46 +2645,67 @@ export default async function Home() {
 
                     <p
                       className="
+                        mt-0.5
+
                         text-center
 
                         text-xs
                         font-bold
 
                         !text-slate-400
-
-                        sm:text-sm
                       "
                     >
                       {month.year}
                     </p>
 
-                    {/* Values */}
+                    {/* VALUES */}
 
                     <div
                       className="
-                        mt-1
-                        space-y-0.5
+                        mt-3
 
-                        text-center
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+
                         text-xs
-                        font-bold
-
-                        sm:text-sm
+                        font-extrabold
                       "
                     >
-                      <p className="!text-emerald-700">
-                        รับ{" "}
+                      <span
+                        className="
+                          rounded-full
+
+                          bg-emerald-50
+
+                          px-2
+                          py-1
+
+                          !text-emerald-700
+                        "
+                      >
                         {month.receive.toLocaleString(
                           "th-TH"
                         )}
-                      </p>
+                      </span>
 
-                      <p className="!text-amber-700">
-                        เบิก{" "}
+                      <span
+                        className="
+                          rounded-full
+
+                          bg-amber-50
+
+                          px-2
+                          py-1
+
+                          !text-amber-700
+                        "
+                      >
                         {month.issue.toLocaleString(
                           "th-TH"
                         )}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 );
