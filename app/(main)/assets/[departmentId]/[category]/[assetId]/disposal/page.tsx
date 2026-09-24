@@ -72,9 +72,13 @@ export default async function AssetDisposalDetailPage({
     Number(assetId);
 
   if (
-    !Number.isInteger(departmentIdNumber) ||
+    !Number.isInteger(
+      departmentIdNumber
+    ) ||
     departmentIdNumber <= 0 ||
-    !Number.isInteger(assetIdNumber) ||
+    !Number.isInteger(
+      assetIdNumber
+    ) ||
     assetIdNumber <= 0
   ) {
     notFound();
@@ -88,6 +92,7 @@ export default async function AssetDisposalDetailPage({
     await prisma.asset.findFirst({
       where: {
         id: assetIdNumber,
+
         departmentId:
           departmentIdNumber,
       },
@@ -105,6 +110,13 @@ export default async function AssetDisposalDetailPage({
 
   /* =======================================================
      ROUTES
+
+     ตัวอย่าง:
+     หน้าปัจจุบัน
+     /assets/1/desk/530/disposal
+
+     BACK
+     /assets/1/desk/530/edit
   ======================================================= */
 
   const normalizedCategory =
@@ -219,7 +231,7 @@ export default async function AssetDisposalDetailPage({
         subtitle="ตรวจสอบข้อมูลครุภัณฑ์ก่อนดำเนินการจำหน่าย"
         actions={
           <AppButton
-            href={detailPath}
+            href={editPath}
             variant="back"
             size="md"
             icon={
@@ -337,11 +349,19 @@ export default async function AssetDisposalDetailPage({
 
           <div className="lg:col-span-2">
             <AppInfoCard>
-              <p className={labelClassName}>
+              <p
+                className={
+                  labelClassName
+                }
+              >
                 รายการครุภัณฑ์
               </p>
 
-              <div className={valueClassName}>
+              <div
+                className={
+                  valueClassName
+                }
+              >
                 <span className="break-words">
                   {asset.name}
                 </span>
@@ -354,11 +374,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               ประเภท
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-words">
                 {categoryName[
                   asset.category
@@ -372,11 +400,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               หน่วยงาน
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-words">
                 {asset.department.name}
               </span>
@@ -388,11 +424,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               กลุ่มงาน
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-words">
                 {asset.section?.name ??
                   "-"}
@@ -405,11 +449,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               ผู้ครอบครอง
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-words">
                 {officerFullName}
               </span>
@@ -421,11 +473,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               รหัส GFMIS
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-all">
                 {asset.governmentAssetNo ??
                   "-"}
@@ -438,11 +498,19 @@ export default async function AssetDisposalDetailPage({
           =============================================== */}
 
           <AppInfoCard>
-            <p className={labelClassName}>
+            <p
+              className={
+                labelClassName
+              }
+            >
               รหัสครุภัณฑ์
             </p>
 
-            <div className={valueClassName}>
+            <div
+              className={
+                valueClassName
+              }
+            >
               <span className="break-all">
                 {asset.officeAssetNo ??
                   "-"}
@@ -456,11 +524,19 @@ export default async function AssetDisposalDetailPage({
 
           <div className="lg:col-span-2">
             <AppInfoCard>
-              <p className={labelClassName}>
+              <p
+                className={
+                  labelClassName
+                }
+              >
                 Serial Number
               </p>
 
-              <div className={valueClassName}>
+              <div
+                className={
+                  valueClassName
+                }
+              >
                 <span className="break-all">
                   {asset.serialNumber ??
                     "-"}
@@ -475,7 +551,8 @@ export default async function AssetDisposalDetailPage({
           IN USE
       ===================================================== */}
 
-      {asset.status === "IN_USE" && (
+      {asset.status ===
+        "IN_USE" && (
         <AppCard
           className="
             w-full
@@ -502,7 +579,8 @@ export default async function AssetDisposalDetailPage({
                   !text-amber-900
                 "
               >
-                ⚠️ ครุภัณฑ์รายการนี้ยังมีสถานะใช้งาน
+                ⚠️
+                ครุภัณฑ์รายการนี้ยังมีสถานะใช้งาน
               </h2>
 
               <p
@@ -577,7 +655,8 @@ export default async function AssetDisposalDetailPage({
                   !text-orange-900
                 "
               >
-                🛠️ ครุภัณฑ์มีสถานะชำรุด
+                🛠️
+                ครุภัณฑ์มีสถานะชำรุด
               </h2>
 
               <p
@@ -651,7 +730,8 @@ export default async function AssetDisposalDetailPage({
                   !text-amber-900
                 "
               >
-                🟡 ครุภัณฑ์อยู่ระหว่างรอจำหน่าย
+                🟡
+                ครุภัณฑ์อยู่ระหว่างรอจำหน่าย
               </h2>
 
               <p
@@ -671,7 +751,9 @@ export default async function AssetDisposalDetailPage({
             </div>
 
             <AppButton
-              href={newDisposalPath}
+              href={
+                newDisposalPath
+              }
               variant="danger"
               size="md"
               icon={
@@ -717,7 +799,8 @@ export default async function AssetDisposalDetailPage({
                 !text-red-900
               "
             >
-              🗑️ ครุภัณฑ์จำหน่ายแล้ว
+              🗑️
+              ครุภัณฑ์จำหน่ายแล้ว
             </h2>
 
             <p
@@ -754,19 +837,31 @@ export default async function AssetDisposalDetailPage({
             {/* DATE */}
 
             <AppInfoCard>
-              <p className={labelClassName}>
+              <p
+                className={
+                  labelClassName
+                }
+              >
                 วันที่จำหน่าย
               </p>
 
-              <div className={valueClassName}>
+              <div
+                className={
+                  valueClassName
+                }
+              >
                 {asset.disposalDate
                   ? asset.disposalDate.toLocaleDateString(
                       "th-TH",
                       {
-                        day: "2-digit",
+                        day:
+                          "2-digit",
+
                         month:
                           "2-digit",
-                        year: "numeric",
+
+                        year:
+                          "numeric",
                       }
                     )
                   : "-"}
@@ -776,11 +871,19 @@ export default async function AssetDisposalDetailPage({
             {/* LOCATION */}
 
             <AppInfoCard>
-              <p className={labelClassName}>
+              <p
+                className={
+                  labelClassName
+                }
+              >
                 สถานที่จำหน่าย
               </p>
 
-              <div className={valueClassName}>
+              <div
+                className={
+                  valueClassName
+                }
+              >
                 <span className="break-words">
                   {asset.disposalLocation ??
                     "-"}

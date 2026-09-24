@@ -90,7 +90,9 @@ export default async function EditAssetPage({
     Number(assetId);
 
   const normalizedCategory =
-    category.toUpperCase();
+    category
+      .trim()
+      .toUpperCase();
 
   if (
     !Number.isInteger(
@@ -138,8 +140,23 @@ export default async function EditAssetPage({
     notFound();
   }
 
+  /*
+   * เก็บเป็น primitive หลังจากตรวจ asset แล้ว
+   * เพื่อให้ Server Action ใช้งานได้โดยไม่ติด
+   * TypeScript เรื่อง possibly null
+   */
+
   const assetIdForUpdate =
     asset.id;
+
+  const departmentIdForPage =
+    asset.departmentId;
+
+  const categoryForPage =
+    asset.category;
+
+  const categorySlug =
+    categoryForPage.toLowerCase();
 
   /* =======================================================
      SECTIONS
@@ -149,7 +166,7 @@ export default async function EditAssetPage({
     await prisma.section.findMany({
       where: {
         departmentId:
-          departmentIdNumber,
+          departmentIdForPage,
       },
 
       select: {
@@ -172,14 +189,14 @@ export default async function EditAssetPage({
         OR: [
           {
             departmentId:
-              departmentIdNumber,
+              departmentIdForPage,
           },
 
           {
             section: {
               is: {
                 departmentId:
-                  departmentIdNumber,
+                  departmentIdForPage,
               },
             },
           },
@@ -222,10 +239,22 @@ export default async function EditAssetPage({
 
   /* =======================================================
      ROUTES
+
+     ตัวอย่าง:
+     /assets/1/desk/530/edit
+
+     BACK:
+     /assets/1/desk
+
+     DISPOSAL:
+     /assets/1/desk/530/disposal
   ======================================================= */
 
+  const categoryPath =
+    `/assets/${departmentIdForPage}/${categorySlug}`;
+
   const detailPath =
-    `/assets/${departmentIdNumber}/${assetCategory.toLowerCase()}/${asset.id}`;
+    `${categoryPath}/${asset.id}`;
 
   const disposalPath =
     `${detailPath}/disposal`;
@@ -313,10 +342,16 @@ export default async function EditAssetPage({
 
             {/* ===============================================
                 BACK
+
+                จาก:
+                /assets/1/desk/530/edit
+
+                ไป:
+                /assets/1/desk
             =============================================== */}
 
             <AppButton
-              href={detailPath}
+              href={categoryPath}
               variant="back"
               size="md"
               icon={
@@ -498,11 +533,7 @@ export default async function EditAssetPage({
                 NAME
             ============================================= */}
 
-            <div
-              className="
-                lg:col-span-2
-              "
-            >
+            <div className="lg:col-span-2">
               <AppInfoCard>
                 <label
                   htmlFor="name"
@@ -592,11 +623,7 @@ export default async function EditAssetPage({
                 SERIAL NUMBER
             ============================================= */}
 
-            <div
-              className="
-                lg:col-span-2
-              "
-            >
+            <div className="lg:col-span-2">
               <AppInfoCard>
                 <label
                   htmlFor="serialNumber"
@@ -703,7 +730,6 @@ export default async function EditAssetPage({
                       text-base
                       font-extrabold
                       !text-slate-900
-
                       sm:text-lg
                     "
                   >
@@ -736,11 +762,10 @@ export default async function EditAssetPage({
                     asset.officerId
                   }
                   departmentName={
-                    asset.department
-                      .name
+                    asset.department.name
                   }
                   departmentId={
-                    departmentIdNumber
+                    departmentIdForPage
                   }
                 />
               </AppInfoCard>
@@ -750,11 +775,7 @@ export default async function EditAssetPage({
                 REMARK
             ============================================= */}
 
-            <div
-              className="
-                lg:col-span-2
-              "
-            >
+            <div className="lg:col-span-2">
               <AppInfoCard>
                 <label
                   htmlFor="remark"
@@ -770,8 +791,7 @@ export default async function EditAssetPage({
                   name="remark"
                   rows={4}
                   defaultValue={
-                    asset.remark ??
-                    ""
+                    asset.remark ?? ""
                   }
                   placeholder="ระบุรายละเอียดเพิ่มเติม"
                   className="
@@ -836,13 +856,23 @@ export default async function EditAssetPage({
               sm:justify-end
             "
           >
+            {/* =============================================
+                CANCEL
+
+                กลับไปหน้ารายการประเภทเหมือนปุ่มกลับ
+            ============================================= */}
+
             <AppButton
-              href={detailPath}
+              href={categoryPath}
               variant="secondary"
               size="md"
             >
               ยกเลิก
             </AppButton>
+
+            {/* =============================================
+                SAVE
+            ============================================= */}
 
             <AppButton
               type="submit"
