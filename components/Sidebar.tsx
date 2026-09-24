@@ -444,7 +444,7 @@ export default function Sidebar({
 
     hover:border-white/90
 
-    hover:bg-white/75
+    hover:bg-white/80
 
     hover:!text-slate-900
 
@@ -454,17 +454,22 @@ export default function Sidebar({
     active:scale-[0.98]
   `;
 
+  /*
+   * สีเขียวหลัก
+   * ใช้โทนกรมอนามัย
+   */
+
   const activeMainItem = `
-    border-blue-400/20
+    border-emerald-400/25
 
     bg-gradient-to-br
-    from-blue-500
-    via-blue-600
-    to-indigo-600
+    from-emerald-600
+    via-green-600
+    to-teal-600
 
     !text-white
 
-    shadow-[0_12px_28px_-14px_rgba(37,99,235,0.65)]
+    shadow-[0_12px_28px_-14px_rgba(5,150,105,0.65)]
 
     ring-1
     ring-white/30
@@ -554,6 +559,7 @@ export default function Sidebar({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
             left-[10%]
             top-0
@@ -563,7 +569,7 @@ export default function Sidebar({
 
             rounded-full
 
-            bg-blue-300/20
+            bg-emerald-300/20
 
             blur-[55px]
           "
@@ -573,6 +579,7 @@ export default function Sidebar({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
             right-[12%]
             top-0
@@ -582,7 +589,7 @@ export default function Sidebar({
 
             rounded-full
 
-            bg-cyan-200/20
+            bg-green-300/20
 
             blur-[55px]
           "
@@ -596,6 +603,7 @@ export default function Sidebar({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
             inset-x-8
             top-0
@@ -696,7 +704,9 @@ export default function Sidebar({
                       ring-1
                       ring-slate-200/70
 
-                      group-hover:bg-white
+                      group-hover:bg-emerald-50
+
+                      group-hover:!text-emerald-700
                     `
                 }
 
@@ -785,7 +795,9 @@ export default function Sidebar({
                       ring-1
                       ring-slate-200/70
 
-                      group-hover:bg-white
+                      group-hover:bg-emerald-50
+
+                      group-hover:!text-emerald-700
                     `
                 }
 
@@ -968,7 +980,9 @@ export default function Sidebar({
                               ring-1
                               ring-slate-200/70
 
-                              group-hover:bg-white
+                              group-hover:bg-emerald-50
+
+                              group-hover:!text-emerald-700
                             `
                         }
 
@@ -1025,7 +1039,7 @@ export default function Sidebar({
                     />
 
                     {/* =======================================
-                        IOS TOP SHINE
+                        ACTIVE SHINE
                     ======================================= */}
 
                     {(active ||
@@ -1096,15 +1110,22 @@ export default function Sidebar({
                         isOpen
                           ? `
                             visible
+
                             translate-y-0
+
                             scale-100
+
                             opacity-100
                           `
                           : `
                             invisible
+
                             pointer-events-none
+
                             -translate-y-2
+
                             scale-[0.97]
+
                             opacity-0
                           `
                       }
@@ -1118,6 +1139,7 @@ export default function Sidebar({
                       aria-hidden="true"
                       className="
                         pointer-events-none
+
                         absolute
                         -right-8
                         -top-10
@@ -1127,7 +1149,27 @@ export default function Sidebar({
 
                         rounded-full
 
-                        bg-blue-300/20
+                        bg-emerald-300/20
+
+                        blur-3xl
+                      "
+                    />
+
+                    <div
+                      aria-hidden="true"
+                      className="
+                        pointer-events-none
+
+                        absolute
+                        -bottom-12
+                        -left-10
+
+                        h-28
+                        w-28
+
+                        rounded-full
+
+                        bg-green-200/20
 
                         blur-3xl
                       "
@@ -1141,6 +1183,7 @@ export default function Sidebar({
                       aria-hidden="true"
                       className="
                         pointer-events-none
+
                         absolute
                         inset-x-8
                         top-0
@@ -1182,12 +1225,12 @@ export default function Sidebar({
 
                           rounded-[9px]
 
-                          bg-blue-50
+                          bg-emerald-50
 
-                          !text-blue-600
+                          !text-emerald-700
 
                           ring-1
-                          ring-blue-100
+                          ring-emerald-100
                         "
                       >
                         <GroupIcon
@@ -1222,6 +1265,7 @@ export default function Sidebar({
                       className="
                         relative
                         z-10
+
                         space-y-1
                       "
                     >
@@ -1282,16 +1326,16 @@ export default function Sidebar({
                                 ${
                                   itemActive
                                     ? `
-                                      border-blue-400/20
+                                      border-emerald-400/25
 
                                       bg-gradient-to-br
-                                      from-blue-500
-                                      via-blue-600
-                                      to-indigo-600
+                                      from-emerald-600
+                                      via-green-600
+                                      to-teal-600
 
                                       !text-white
 
-                                      shadow-[0_12px_26px_-14px_rgba(37,99,235,0.55)]
+                                      shadow-[0_12px_26px_-14px_rgba(5,150,105,0.60)]
 
                                       ring-1
                                       ring-white/25
@@ -1303,11 +1347,11 @@ export default function Sidebar({
 
                                       hover:translate-x-0.5
 
-                                      hover:border-slate-200/80
+                                      hover:border-emerald-100
 
-                                      hover:bg-slate-50/90
+                                      hover:bg-emerald-50/80
 
-                                      hover:!text-slate-950
+                                      hover:!text-emerald-900
 
                                       hover:shadow-sm
                                     `
@@ -1351,9 +1395,11 @@ export default function Sidebar({
 
                                         shadow-sm
 
-                                        group-hover/item:border-blue-100
-                                        group-hover/item:bg-blue-50
-                                        group-hover/item:!text-blue-600
+                                        group-hover/item:border-emerald-200
+
+                                        group-hover/item:bg-emerald-50
+
+                                        group-hover/item:!text-emerald-700
                                       `
                                   }
                                 `}
@@ -1374,6 +1420,7 @@ export default function Sidebar({
                                 className="
                                   min-w-0
                                   flex-1
+
                                   whitespace-nowrap
                                 "
                               >
@@ -1392,6 +1439,7 @@ export default function Sidebar({
                                   h-7
                                   w-7
                                   shrink-0
+
                                   items-center
                                   justify-center
 
@@ -1412,8 +1460,9 @@ export default function Sidebar({
 
                                         !text-slate-400
 
-                                        group-hover/item:bg-blue-100
-                                        group-hover/item:!text-blue-600
+                                        group-hover/item:bg-emerald-100
+
+                                        group-hover/item:!text-emerald-700
                                       `
                                   }
                                 `}
