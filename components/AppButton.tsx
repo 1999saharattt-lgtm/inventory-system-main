@@ -21,6 +21,14 @@ import type {
    - Focus Ring
    - ขนาดมาตรฐานเดียวกัน
 
+   GLOBAL COLOR STANDARD
+   - PRIMARY   = เขียวกรมอนามัย
+   - SUCCESS   = เขียวกรมอนามัย
+   - BACK      = เขียวกรมอนามัย
+   - SECONDARY = น้ำเงิน iOS / แก้ไข
+   - DANGER    = แดง / ลบ
+   - WARNING   = ส้ม / เตือน
+
    IMPORTANT
    - ไม่เกี่ยวข้องกับ Database
    - ไม่เกี่ยวข้องกับ Prisma
@@ -108,8 +116,28 @@ export type AppButtonProps =
 /* =========================================================
    VARIANT STYLES
 
-   ใช้สีตามหน้าที่ของปุ่ม
-   แต่คงภาษาการออกแบบแบบ iOS เหมือนกันทั้งหมด
+   มาตรฐานสีส่วนกลางของระบบ
+
+   primary
+   - เปิด
+   - เพิ่มรายการ
+   - เพิ่มครุภัณฑ์
+   - เพิ่มรายชื่อ
+   - Action หลัก
+
+   success
+   - บันทึก
+   - ยืนยัน
+   - Action เชิงบวก
+
+   secondary
+   - แก้ไข
+   - Action รอง
+
+   danger
+   - ลบ
+   - จำหน่าย
+   - PDF / Action อันตราย
 ========================================================= */
 
 const variantClasses: Record<
@@ -118,69 +146,89 @@ const variantClasses: Record<
 > = {
   /* -------------------------------------------------------
      PRIMARY
-     ปุ่มหลักของระบบ
+     สีเขียวกรมอนามัย
+
+     ตัวอย่าง:
+     - เปิด
+     - เพิ่มรายการ
+     - เพิ่มครุภัณฑ์
+     - เพิ่มรายชื่อ
   ------------------------------------------------------- */
 
   primary: `
-    border-blue-400/35
+    border-emerald-400/35
+
     bg-gradient-to-b
-    from-blue-500
-    via-blue-600
-    to-blue-700
+    from-emerald-500
+    via-emerald-600
+    to-green-700
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
+    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
 
-    hover:from-blue-500
-    hover:via-blue-600
-    hover:to-blue-700
-    hover:shadow-[0_12px_28px_rgba(37,99,235,0.28),inset_0_1px_0_rgba(255,255,255,0.32)]
+    hover:from-emerald-500
+    hover:via-emerald-600
+    hover:to-green-700
+
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
   `,
 
   /* -------------------------------------------------------
      SUCCESS
-     บันทึก / ยืนยันเชิงบวก
+     สีเขียวกรมอนามัย
+
+     ใช้กับ:
+     - บันทึก
+     - ยืนยัน
+     - เพิ่มข้อมูลที่ใช้ variant success
   ------------------------------------------------------- */
 
   success: `
     border-emerald-400/35
+
     bg-gradient-to-b
     from-emerald-500
     via-emerald-600
-    to-emerald-700
+    to-green-700
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(5,150,105,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
 
     hover:from-emerald-500
     hover:via-emerald-600
-    hover:to-emerald-700
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
+    hover:to-green-700
+
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
   `,
 
   /* -------------------------------------------------------
      BACK
-     ปุ่มกลับมาตรฐานของระบบ
+     ปุ่มกลับมาตรฐาน
+     สีเขียวกรมอนามัย
 
-     หมายเหตุ:
      icon / endIcon จะถูกซ่อนใน component
      เมื่อ variant === "back"
   ------------------------------------------------------- */
 
   back: `
     border-emerald-400/35
+
     bg-gradient-to-b
     from-emerald-500
     via-emerald-600
-    to-emerald-700
+    to-green-700
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(5,150,105,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
 
     hover:from-emerald-500
     hover:via-emerald-600
-    hover:to-emerald-700
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
+    hover:to-green-700
+
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
   `,
 
   /* -------------------------------------------------------
@@ -190,18 +238,21 @@ const variantClasses: Record<
 
   danger: `
     border-red-400/35
+
     bg-gradient-to-b
     from-red-500
     via-red-600
     to-rose-700
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(220,38,38,0.20),inset_0_1px_0_rgba(255,255,255,0.28)]
+    shadow-[0_8px_20px_rgba(220,38,38,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
 
     hover:from-red-500
     hover:via-red-600
     hover:to-rose-700
-    hover:shadow-[0_12px_28px_rgba(220,38,38,0.26),inset_0_1px_0_rgba(255,255,255,0.32)]
+
+    hover:shadow-[0_12px_28px_rgba(220,38,38,0.30),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
 
   /* -------------------------------------------------------
@@ -210,39 +261,49 @@ const variantClasses: Record<
 
   warning: `
     border-amber-300/40
+
     bg-gradient-to-b
     from-amber-400
     via-amber-500
     to-orange-600
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(245,158,11,0.20),inset_0_1px_0_rgba(255,255,255,0.30)]
+    shadow-[0_8px_20px_rgba(245,158,11,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
 
     hover:from-amber-400
     hover:via-amber-500
     hover:to-orange-600
-    hover:shadow-[0_12px_28px_rgba(245,158,11,0.26),inset_0_1px_0_rgba(255,255,255,0.34)]
+
+    hover:shadow-[0_12px_28px_rgba(245,158,11,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
   `,
 
   /* -------------------------------------------------------
      SECONDARY
-     ยกเลิก / Action รอง
+     น้ำเงิน iOS
+
+     ใช้เป็นมาตรฐานสำหรับ:
+     - แก้ไข
+     - Action รอง
   ------------------------------------------------------- */
 
   secondary: `
-    border-slate-500/40
+    border-blue-400/35
+
     bg-gradient-to-b
-    from-slate-600
-    via-slate-700
-    to-slate-800
+    from-blue-500
+    via-blue-600
+    to-indigo-700
+
     !text-white
 
-    shadow-[0_8px_20px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.18)]
+    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
 
-    hover:from-slate-600
-    hover:via-slate-700
-    hover:to-slate-800
-    hover:shadow-[0_12px_28px_rgba(15,23,42,0.24),inset_0_1px_0_rgba(255,255,255,0.22)]
+    hover:from-blue-500
+    hover:via-blue-600
+    hover:to-indigo-700
+
+    hover:shadow-[0_12px_28px_rgba(37,99,235,0.30),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
 
   /* -------------------------------------------------------
@@ -251,7 +312,9 @@ const variantClasses: Record<
 
   outline: `
     border-slate-300/80
+
     bg-white/75
+
     !text-slate-800
 
     shadow-[0_6px_18px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]
@@ -259,9 +322,13 @@ const variantClasses: Record<
     backdrop-blur-xl
     backdrop-saturate-150
 
-    hover:border-slate-300
-    hover:bg-white/90
-    hover:shadow-[0_10px_24px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,1)]
+    hover:border-emerald-300/80
+
+    hover:bg-emerald-50/70
+
+    hover:!text-emerald-800
+
+    hover:shadow-[0_10px_24px_rgba(5,150,105,0.10),inset_0_1px_0_rgba(255,255,255,1)]
   `,
 
   /* -------------------------------------------------------
@@ -271,7 +338,9 @@ const variantClasses: Record<
 
   glass: `
     border-white/20
+
     bg-white/10
+
     !text-white
 
     shadow-[0_8px_24px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.18)]
@@ -280,7 +349,9 @@ const variantClasses: Record<
     backdrop-saturate-150
 
     hover:border-white/30
+
     hover:bg-white/15
+
     hover:shadow-[0_12px_30px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.24)]
   `,
 
@@ -290,16 +361,23 @@ const variantClasses: Record<
 
   white: `
     border-white/90
+
     bg-gradient-to-b
     from-white
     to-slate-50
+
     !text-slate-900
 
     shadow-[0_8px_22px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,1)]
 
     hover:from-white
-    hover:to-white
-    hover:shadow-[0_12px_28px_rgba(15,23,42,0.16),inset_0_1px_0_rgba(255,255,255,1)]
+    hover:to-emerald-50/70
+
+    hover:border-emerald-200
+
+    hover:!text-emerald-900
+
+    hover:shadow-[0_12px_28px_rgba(5,150,105,0.10),inset_0_1px_0_rgba(255,255,255,1)]
   `,
 };
 
@@ -308,6 +386,11 @@ const variantClasses: Record<
 
    ความสูงของปุ่มถูกกำหนดจากส่วนกลาง
    เพื่อให้ทุกหน้ามีขนาดตรงกัน
+
+   Mobile
+   - ลด min-width เล็กน้อย
+   - ไม่ทำให้ปุ่มล้นหน้าจอ
+   - Desktop ยังคงขนาดเดิม
 ========================================================= */
 
 const sizeClasses: Record<
@@ -316,24 +399,39 @@ const sizeClasses: Record<
 > = {
   sm: `
     h-10
-    min-w-[104px]
-    px-4
+    min-w-[92px]
+
+    px-3.5
+
     text-sm
+
+    sm:min-w-[104px]
+    sm:px-4
   `,
 
   md: `
     h-11
-    min-w-[124px]
-    px-5
+    min-w-[108px]
+
+    px-4
+
     text-sm
+
+    sm:min-w-[124px]
+    sm:px-5
     sm:text-base
   `,
 
   lg: `
     h-12
-    min-w-[144px]
-    px-6
+    min-w-[124px]
+
+    px-5
+
     text-base
+
+    sm:min-w-[144px]
+    sm:px-6
     sm:text-lg
   `,
 };
@@ -388,16 +486,23 @@ export default function AppButton(
     group
     relative
     isolate
+
     inline-flex
     shrink-0
+
     select-none
+
     items-center
     justify-center
+
     gap-2
+
     overflow-hidden
+
     whitespace-nowrap
 
     rounded-[14px]
+
     border
 
     font-extrabold
@@ -417,7 +522,7 @@ export default function AppButton(
     active:scale-[0.97]
 
     focus-visible:ring-2
-    focus-visible:ring-blue-400/80
+    focus-visible:ring-emerald-400/80
     focus-visible:ring-offset-2
     focus-visible:ring-offset-white
 
@@ -454,14 +559,19 @@ export default function AppButton(
         className="
           pointer-events-none
           absolute
+
           inset-x-2
           top-0
+
           z-0
+
           h-px
+
           bg-gradient-to-r
           from-transparent
           via-white/60
           to-transparent
+
           opacity-80
         "
       />
@@ -475,17 +585,26 @@ export default function AppButton(
         className="
           pointer-events-none
           absolute
+
           -top-8
           left-1/2
+
           z-0
+
           h-14
           w-[80%]
+
           -translate-x-1/2
+
           rounded-full
+
           bg-white/10
+
           blur-xl
+
           transition-opacity
           duration-200
+
           group-hover:opacity-100
         "
       />
@@ -501,6 +620,7 @@ export default function AppButton(
           className="
             relative
             z-10
+
             flex
             shrink-0
             items-center
@@ -511,6 +631,7 @@ export default function AppButton(
             ease-out
 
             group-hover:scale-[1.04]
+
             group-active:scale-95
           "
         >
@@ -526,10 +647,13 @@ export default function AppButton(
         className="
           relative
           z-10
+
           flex
           min-w-0
+
           items-center
           justify-center
+
           whitespace-nowrap
         "
       >
@@ -547,6 +671,7 @@ export default function AppButton(
           className="
             relative
             z-10
+
             flex
             shrink-0
             items-center
@@ -557,6 +682,7 @@ export default function AppButton(
             ease-out
 
             group-hover:translate-x-[1px]
+
             group-active:translate-x-0
           "
         >
