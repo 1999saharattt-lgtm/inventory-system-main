@@ -8,26 +8,32 @@ import type {
    APP BUTTON
    iOS-Inspired Global Button Component
 
-   ใช้เป็นมาตรฐานปุ่มทั้งระบบ
-
-   DESIGN RULE
-   - iOS-inspired
-   - Soft Glass Surface
-   - Soft Highlight
-   - Layered Shadow
-   - Rounded Corners
-   - Smooth Hover
-   - Physical Press Feedback
-   - Focus Ring
-   - ขนาดมาตรฐานเดียวกัน
-
    GLOBAL COLOR STANDARD
-   - PRIMARY   = เขียวกรมอนามัย
-   - SUCCESS   = เขียวกรมอนามัย
-   - BACK      = เขียวกรมอนามัย
-   - SECONDARY = น้ำเงิน iOS / แก้ไข
-   - DANGER    = แดง / ลบ
-   - WARNING   = ส้ม / เตือน
+
+   back
+   - กลับ
+   - สีเขียวกรมอนามัย
+
+   secondary
+   - แก้ไข
+   - สีน้ำเงิน
+
+   danger
+   - ลบ
+   - สีแดง
+
+   primary / success / warning / outline / glass / white
+   - เปิด
+   - เพิ่มรายการ
+   - เพิ่มครุภัณฑ์
+   - เพิ่มรายชื่อ
+   - บันทึก
+   - QR
+   - รวมรายการ
+   - ประวัติ
+   - ตรวจสอบ
+   - ปุ่มทั่วไปอื่น ๆ
+   - สีน้ำตาล
 
    IMPORTANT
    - ไม่เกี่ยวข้องกับ Database
@@ -35,12 +41,6 @@ import type {
    - ไม่เปลี่ยน Route
    - ไม่เปลี่ยน Permission
    - ไม่เปลี่ยน Business Logic
-
-   BACK BUTTON RULE
-   - variant="back" จะแสดงเฉพาะข้อความ
-   - ไม่แสดง icon ด้านหน้า
-   - ไม่แสดง endIcon ด้านหลัง
-   - ทำให้ปุ่ม "กลับ" ทั้งระบบเป็นมาตรฐานเดียวกัน
 ========================================================= */
 
 /* =========================================================
@@ -83,61 +83,73 @@ type CommonProps = {
    LINK BUTTON
 ========================================================= */
 
-type LinkButtonProps = CommonProps & {
-  href: string;
+type LinkButtonProps =
+  CommonProps & {
+    href: string;
 
-  target?: string;
+    target?: string;
 
-  rel?: string;
+    rel?: string;
 
-  onClick?: () => void;
+    onClick?: () => void;
 
-  type?: never;
+    type?: never;
 
-  disabled?: never;
-};
+    disabled?: never;
+  };
 
 /* =========================================================
    NORMAL BUTTON
 ========================================================= */
 
-type NormalButtonProps = CommonProps &
-  Omit<
-    ButtonHTMLAttributes<HTMLButtonElement>,
-    "className" | "children"
-  > & {
-    href?: never;
-  };
+type NormalButtonProps =
+  CommonProps &
+    Omit<
+      ButtonHTMLAttributes<HTMLButtonElement>,
+      "className" | "children"
+    > & {
+      href?: never;
+    };
 
 export type AppButtonProps =
   | LinkButtonProps
   | NormalButtonProps;
 
 /* =========================================================
+   SHARED COLOR STYLE
+========================================================= */
+
+/*
+ * น้ำตาลกลางของระบบ
+ *
+ * ใช้กับปุ่มทั่วไปทั้งหมด
+ * ยกเว้น:
+ * - กลับ
+ * - แก้ไข
+ * - ลบ
+ */
+
+const brownButtonClass = `
+  border-[#9A6848]/40
+
+  bg-gradient-to-b
+  from-[#A97855]
+  via-[#8B5E3C]
+  to-[#6F452C]
+
+  !text-white
+
+  shadow-[0_8px_20px_rgba(111,69,44,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
+
+  hover:from-[#A97855]
+  hover:via-[#87583A]
+  hover:to-[#674029]
+
+  hover:shadow-[0_12px_28px_rgba(111,69,44,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
+`;
+
+/* =========================================================
    VARIANT STYLES
-
-   มาตรฐานสีส่วนกลางของระบบ
-
-   primary
-   - เปิด
-   - เพิ่มรายการ
-   - เพิ่มครุภัณฑ์
-   - เพิ่มรายชื่อ
-   - Action หลัก
-
-   success
-   - บันทึก
-   - ยืนยัน
-   - Action เชิงบวก
-
-   secondary
-   - แก้ไข
-   - Action รอง
-
-   danger
-   - ลบ
-   - จำหน่าย
-   - PDF / Action อันตราย
 ========================================================= */
 
 const variantClasses: Record<
@@ -146,70 +158,66 @@ const variantClasses: Record<
 > = {
   /* -------------------------------------------------------
      PRIMARY
-     สีเขียวกรมอนามัย
+     ปุ่มทั่วไป
+     = น้ำตาล
 
      ตัวอย่าง:
      - เปิด
      - เพิ่มรายการ
      - เพิ่มครุภัณฑ์
      - เพิ่มรายชื่อ
+     - QR
+     - รวมรายการ
+     - ประวัติ
+     - ตรวจสอบ
   ------------------------------------------------------- */
 
-  primary: `
-    border-emerald-400/35
-
-    bg-gradient-to-b
-    from-emerald-500
-    via-emerald-600
-    to-green-700
-
-    !text-white
-
-    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
-
-    hover:from-emerald-500
-    hover:via-emerald-600
-    hover:to-green-700
-
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
-  `,
+  primary: brownButtonClass,
 
   /* -------------------------------------------------------
      SUCCESS
-     สีเขียวกรมอนามัย
-
-     ใช้กับ:
-     - บันทึก
-     - ยืนยัน
-     - เพิ่มข้อมูลที่ใช้ variant success
+     บันทึก / ยืนยัน / เพิ่มข้อมูล
+     = น้ำตาล
   ------------------------------------------------------- */
 
-  success: `
-    border-emerald-400/35
+  success: brownButtonClass,
 
-    bg-gradient-to-b
-    from-emerald-500
-    via-emerald-600
-    to-green-700
+  /* -------------------------------------------------------
+     WARNING
+     Action อื่น ๆ
+     = น้ำตาล
+  ------------------------------------------------------- */
 
-    !text-white
+  warning: brownButtonClass,
 
-    shadow-[0_8px_20px_rgba(5,150,105,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
+  /* -------------------------------------------------------
+     OUTLINE
+     ปุ่มทั่วไป
+     = น้ำตาล
+  ------------------------------------------------------- */
 
-    hover:from-emerald-500
-    hover:via-emerald-600
-    hover:to-green-700
+  outline: brownButtonClass,
 
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
-  `,
+  /* -------------------------------------------------------
+     GLASS
+     ปุ่มทั่วไป
+     = น้ำตาล
+  ------------------------------------------------------- */
+
+  glass: brownButtonClass,
+
+  /* -------------------------------------------------------
+     WHITE
+     ปุ่มทั่วไป
+     = น้ำตาล
+  ------------------------------------------------------- */
+
+  white: brownButtonClass,
 
   /* -------------------------------------------------------
      BACK
-     ปุ่มกลับมาตรฐาน
-     สีเขียวกรมอนามัย
-
-     icon / endIcon จะถูกซ่อนใน component
-     เมื่อ variant === "back"
+     ปุ่มกลับ
+     = เขียวกรมอนามัย
   ------------------------------------------------------- */
 
   back: `
@@ -232,8 +240,34 @@ const variantClasses: Record<
   `,
 
   /* -------------------------------------------------------
+     SECONDARY
+     ปุ่มแก้ไข
+     = น้ำเงินแบบเดิม
+  ------------------------------------------------------- */
+
+  secondary: `
+    border-blue-400/35
+
+    bg-gradient-to-b
+    from-blue-500
+    via-blue-600
+    to-blue-700
+
+    !text-white
+
+    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
+
+    hover:from-blue-500
+    hover:via-blue-600
+    hover:to-blue-700
+
+    hover:shadow-[0_12px_28px_rgba(37,99,235,0.30),inset_0_1px_0_rgba(255,255,255,0.32)]
+  `,
+
+  /* -------------------------------------------------------
      DANGER
-     ลบ / จำหน่าย / PDF / การกระทำอันตราย
+     ปุ่มลบ
+     = แดง
   ------------------------------------------------------- */
 
   danger: `
@@ -254,143 +288,14 @@ const variantClasses: Record<
 
     hover:shadow-[0_12px_28px_rgba(220,38,38,0.30),inset_0_1px_0_rgba(255,255,255,0.32)]
   `,
-
-  /* -------------------------------------------------------
-     WARNING
-  ------------------------------------------------------- */
-
-  warning: `
-    border-amber-300/40
-
-    bg-gradient-to-b
-    from-amber-400
-    via-amber-500
-    to-orange-600
-
-    !text-white
-
-    shadow-[0_8px_20px_rgba(245,158,11,0.22),inset_0_1px_0_rgba(255,255,255,0.30)]
-
-    hover:from-amber-400
-    hover:via-amber-500
-    hover:to-orange-600
-
-    hover:shadow-[0_12px_28px_rgba(245,158,11,0.30),inset_0_1px_0_rgba(255,255,255,0.34)]
-  `,
-
-  /* -------------------------------------------------------
-     SECONDARY
-     น้ำเงิน iOS
-
-     ใช้เป็นมาตรฐานสำหรับ:
-     - แก้ไข
-     - Action รอง
-  ------------------------------------------------------- */
-
-  secondary: `
-    border-blue-400/35
-
-    bg-gradient-to-b
-    from-blue-500
-    via-blue-600
-    to-indigo-700
-
-    !text-white
-
-    shadow-[0_8px_20px_rgba(37,99,235,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]
-
-    hover:from-blue-500
-    hover:via-blue-600
-    hover:to-indigo-700
-
-    hover:shadow-[0_12px_28px_rgba(37,99,235,0.30),inset_0_1px_0_rgba(255,255,255,0.32)]
-  `,
-
-  /* -------------------------------------------------------
-     OUTLINE
-  ------------------------------------------------------- */
-
-  outline: `
-    border-slate-300/80
-
-    bg-white/75
-
-    !text-slate-800
-
-    shadow-[0_6px_18px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]
-
-    backdrop-blur-xl
-    backdrop-saturate-150
-
-    hover:border-emerald-300/80
-
-    hover:bg-emerald-50/70
-
-    hover:!text-emerald-800
-
-    hover:shadow-[0_10px_24px_rgba(5,150,105,0.10),inset_0_1px_0_rgba(255,255,255,1)]
-  `,
-
-  /* -------------------------------------------------------
-     GLASS
-     ใช้บน Header / พื้นหลังเข้ม
-  ------------------------------------------------------- */
-
-  glass: `
-    border-white/20
-
-    bg-white/10
-
-    !text-white
-
-    shadow-[0_8px_24px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.18)]
-
-    backdrop-blur-xl
-    backdrop-saturate-150
-
-    hover:border-white/30
-
-    hover:bg-white/15
-
-    hover:shadow-[0_12px_30px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.24)]
-  `,
-
-  /* -------------------------------------------------------
-     WHITE
-  ------------------------------------------------------- */
-
-  white: `
-    border-white/90
-
-    bg-gradient-to-b
-    from-white
-    to-slate-50
-
-    !text-slate-900
-
-    shadow-[0_8px_22px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,1)]
-
-    hover:from-white
-    hover:to-emerald-50/70
-
-    hover:border-emerald-200
-
-    hover:!text-emerald-900
-
-    hover:shadow-[0_12px_28px_rgba(5,150,105,0.10),inset_0_1px_0_rgba(255,255,255,1)]
-  `,
 };
 
 /* =========================================================
    SIZE
 
-   ความสูงของปุ่มถูกกำหนดจากส่วนกลาง
-   เพื่อให้ทุกหน้ามีขนาดตรงกัน
-
-   Mobile
-   - ลด min-width เล็กน้อย
-   - ไม่ทำให้ปุ่มล้นหน้าจอ
-   - Desktop ยังคงขนาดเดิม
+   MOBILE
+   - ลด min-width ให้พอดีจอ
+   - Desktop คงขนาดมาตรฐาน
 ========================================================= */
 
 const sizeClasses: Record<
@@ -456,13 +361,8 @@ export default function AppButton(
   /* =======================================================
      BACK BUTTON
 
-     ปุ่ม variant="back" ต้องแสดงเฉพาะข้อความ
-     แม้ว่าหน้าเดิมจะยังส่ง icon="←" เข้ามา
-     AppButton จะไม่ render icon นั้น
-
-     ผล:
-     จาก  ← กลับ
-     เป็น  กลับ
+     variant="back"
+     ไม่แสดง icon / endIcon
   ======================================================= */
 
   const isBackButton =
@@ -477,6 +377,31 @@ export default function AppButton(
     isBackButton
       ? null
       : endIcon;
+
+  /* =======================================================
+     FOCUS COLOR
+
+     ให้ focus ring สอดคล้องกับสีของปุ่ม
+  ======================================================= */
+
+  const focusClassName =
+    variant === "back"
+      ? `
+        focus-visible:ring-emerald-400/80
+      `
+      : variant ===
+          "secondary"
+        ? `
+          focus-visible:ring-blue-400/80
+        `
+        : variant ===
+            "danger"
+          ? `
+            focus-visible:ring-red-400/80
+          `
+          : `
+            focus-visible:ring-[#8B5E3C]/70
+          `;
 
   /* =======================================================
      BASE STYLE
@@ -522,7 +447,7 @@ export default function AppButton(
     active:scale-[0.97]
 
     focus-visible:ring-2
-    focus-visible:ring-emerald-400/80
+    ${focusClassName}
     focus-visible:ring-offset-2
     focus-visible:ring-offset-white
 
@@ -611,8 +536,6 @@ export default function AppButton(
 
       {/* ===================================================
           START ICON
-
-          variant="back" จะไม่แสดงส่วนนี้
       =================================================== */}
 
       {visibleIcon && (
@@ -623,6 +546,7 @@ export default function AppButton(
 
             flex
             shrink-0
+
             items-center
             justify-center
 
@@ -662,8 +586,6 @@ export default function AppButton(
 
       {/* ===================================================
           END ICON
-
-          variant="back" จะไม่แสดงส่วนนี้
       =================================================== */}
 
       {visibleEndIcon && (
@@ -674,6 +596,7 @@ export default function AppButton(
 
             flex
             shrink-0
+
             items-center
             justify-center
 
