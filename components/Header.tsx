@@ -100,7 +100,7 @@ export default async function Header() {
 
             rounded-full
 
-            bg-blue-300/25
+            bg-emerald-300/20
 
             blur-3xl
           "
@@ -110,9 +110,10 @@ export default async function Header() {
           aria-hidden="true"
           className="
             pointer-events-none
-            absolute
             right-1/4
             -top-20
+
+            absolute
 
             h-40
             w-40
@@ -138,7 +139,7 @@ export default async function Header() {
 
             rounded-full
 
-            bg-emerald-200/20
+            bg-emerald-200/25
 
             blur-3xl
           "
@@ -155,6 +156,7 @@ export default async function Header() {
             absolute
             inset-x-0
             top-0
+
             h-px
 
             bg-gradient-to-r
@@ -257,7 +259,7 @@ export default async function Header() {
                   border
                   border-white/90
 
-                  bg-white/90
+                  bg-white/95
 
                   shadow-[0_10px_30px_-18px_rgba(15,23,42,0.45)]
 
@@ -271,7 +273,7 @@ export default async function Header() {
                   hover:-translate-y-0.5
                   hover:scale-[1.03]
 
-                  hover:shadow-[0_16px_34px_-18px_rgba(59,130,246,0.32)]
+                  hover:shadow-[0_16px_34px_-18px_rgba(5,150,105,0.28)]
 
                   sm:h-14
                   sm:w-14
@@ -287,6 +289,7 @@ export default async function Header() {
                     absolute
                     inset-x-2
                     top-0
+
                     h-px
 
                     bg-white
@@ -341,9 +344,7 @@ export default async function Header() {
                       !text-slate-950
 
                       sm:text-lg
-
                       md:text-xl
-
                       lg:text-[22px]
                     "
                   >
@@ -375,21 +376,26 @@ export default async function Header() {
                   />
                 </div>
 
+                {/* ===========================================
+                    ENGLISH NAME
+                =========================================== */}
+
                 <p
                   className="
-                    mt-0.5
+                    mt-1
                     hidden
                     truncate
 
-                    text-xs
+                    text-sm
                     font-bold
                     tracking-[0.02em]
 
-                    !text-slate-400
+                    !text-slate-500
 
                     md:block
+                    md:text-[15px]
 
-                    lg:text-sm
+                    lg:text-base
                   "
                 >
                   Reproductive Health Inventory Management System
@@ -429,7 +435,7 @@ export default async function Header() {
                 border
                 border-white/90
 
-                bg-white/65
+                bg-white/70
 
                 px-3
                 py-2
@@ -444,7 +450,8 @@ export default async function Header() {
                 transition-all
                 duration-300
 
-                hover:bg-white/85
+                hover:bg-white/90
+
                 hover:shadow-[0_14px_34px_-22px_rgba(15,23,42,0.50)]
 
                 sm:flex
@@ -471,38 +478,52 @@ export default async function Header() {
 
                   rounded-[14px]
 
+                  border
+                  border-emerald-200/80
+
                   bg-gradient-to-br
-                  from-slate-800
-                  to-slate-600
+                  from-emerald-50
+                  via-white
+                  to-green-100
 
-                  text-base
+                  text-xl
 
-                  shadow-md
-                  shadow-slate-900/10
+                  shadow-sm
 
                   ring-1
-                  ring-white/60
+                  ring-white
 
-                  transition-transform
+                  transition-all
                   duration-300
 
                   group-hover:scale-105
+
+                  group-hover:border-emerald-300
                 "
                 aria-hidden="true"
               >
                 <div
+                  aria-hidden="true"
                   className="
                     pointer-events-none
                     absolute
                     inset-x-1
                     top-0
+
                     h-px
 
-                    bg-white/60
+                    bg-white
                   "
                 />
 
-                👤
+                <span
+                  className="
+                    relative
+                    leading-none
+                  "
+                >
+                  👤
+                </span>
               </div>
 
               {/* =============================================
@@ -548,7 +569,7 @@ export default async function Header() {
                     text-[11px]
                     font-extrabold
 
-                    !text-slate-400
+                    !text-emerald-700
                   "
                 >
                   <span
@@ -569,7 +590,7 @@ export default async function Header() {
               </div>
 
               {/* =============================================
-                  CHEVRON DECORATION
+                  DECORATION
               ============================================= */}
 
               <div
@@ -614,18 +635,21 @@ export default async function Header() {
                 rounded-[14px]
 
                 border
-                border-white/90
+                border-emerald-200/80
 
-                bg-white/70
+                bg-gradient-to-br
+                from-emerald-50
+                via-white
+                to-green-100
 
-                text-base
+                text-xl
 
-                shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+                shadow-sm
 
                 backdrop-blur-xl
 
                 ring-1
-                ring-slate-900/[0.03]
+                ring-white
 
                 sm:hidden
               "
@@ -647,9 +671,9 @@ export default async function Header() {
 
                   inline-flex
                   h-10
+
                   items-center
                   justify-center
-                  gap-2
 
                   overflow-hidden
 
@@ -662,16 +686,16 @@ export default async function Header() {
 
                   bg-gradient-to-b
                   from-red-500
-                  to-red-600
+                  to-rose-600
 
-                  px-3
+                  px-4
 
                   text-sm
                   font-extrabold
 
                   !text-white
 
-                  shadow-[0_10px_24px_-14px_rgba(239,68,68,0.60)]
+                  shadow-[0_10px_24px_-14px_rgba(239,68,68,0.58)]
 
                   ring-1
                   ring-white/20
@@ -681,8 +705,9 @@ export default async function Header() {
                   ease-out
 
                   hover:-translate-y-0.5
+
                   hover:from-red-500
-                  hover:to-rose-600
+                  hover:to-red-600
 
                   hover:shadow-[0_14px_30px_-14px_rgba(239,68,68,0.72)]
 
@@ -690,7 +715,7 @@ export default async function Header() {
                   active:scale-[0.96]
 
                   sm:h-11
-                  sm:px-4
+                  sm:px-5
                 "
               >
                 {/* ===========================================
@@ -704,31 +729,12 @@ export default async function Header() {
                     absolute
                     inset-x-1
                     top-px
+
                     h-px
 
                     bg-white/50
                   "
                 />
-
-                {/* ===========================================
-                    ICON
-                =========================================== */}
-
-                <span
-                  aria-hidden="true"
-                  className="
-                    relative
-
-                    text-base
-
-                    transition-transform
-                    duration-300
-
-                    group-hover:-translate-x-0.5
-                  "
-                >
-                  ↪
-                </span>
 
                 {/* ===========================================
                     TEXT
@@ -743,6 +749,23 @@ export default async function Header() {
                   "
                 >
                   ออกจากระบบ
+                </span>
+
+                {/* ===========================================
+                    MOBILE TEXT
+                =========================================== */}
+
+                <span
+                  className="
+                    relative
+
+                    text-xs
+                    font-black
+
+                    sm:hidden
+                  "
+                >
+                  ออก
                 </span>
               </button>
             </form>

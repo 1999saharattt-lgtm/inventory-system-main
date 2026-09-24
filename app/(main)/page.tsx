@@ -107,7 +107,7 @@ const panelHeaderClass = `
 
   bg-white/35
 
-  px-4
+  px-5
   py-4
 
   backdrop-blur-xl
@@ -527,9 +527,9 @@ export default async function Home() {
           w-full
           min-w-0
           grid-cols-1
-          gap-3
+          gap-4
 
-          sm:grid-cols-2
+          md:grid-cols-2
 
           xl:grid-cols-4
         "
@@ -542,13 +542,13 @@ export default async function Home() {
                   group
                   relative
 
-                  min-h-[145px]
+                  min-h-[138px]
                   min-w-0
 
                   overflow-hidden
 
                   !rounded-[22px]
-                  !p-4
+                  !p-5
 
                   ${iosCard}
 
@@ -586,6 +586,10 @@ export default async function Home() {
                   `}
                 />
 
+                {/* ===========================================
+                    CONTENT
+                =========================================== */}
+
                 <div
                   className="
                     relative
@@ -593,12 +597,13 @@ export default async function Home() {
 
                     flex
                     h-full
+                    min-w-0
                     flex-col
                     justify-between
                   "
                 >
                   {/* =========================================
-                      TOP
+                      TITLE / ICON
                   ========================================= */}
 
                   <div
@@ -615,20 +620,16 @@ export default async function Home() {
                         min-w-0
                         flex-1
 
-                        overflow-hidden
-                        text-ellipsis
                         whitespace-nowrap
 
-                        text-sm
+                        text-base
                         font-extrabold
+                        leading-tight
 
-                        !text-slate-600
+                        !text-slate-700
 
-                        2xl:text-base
+                        sm:text-lg
                       "
-                      title={
-                        card.title
-                      }
                     >
                       {
                         card.title
@@ -638,18 +639,18 @@ export default async function Home() {
                     <div
                       className={`
                         flex
-                        h-10
-                        w-10
+                        h-11
+                        w-11
                         shrink-0
                         items-center
                         justify-center
 
-                        rounded-[14px]
+                        rounded-[15px]
 
                         bg-gradient-to-br
                         ${card.iconClass}
 
-                        text-lg
+                        text-xl
 
                         shadow-md
                         shadow-slate-900/10
@@ -674,110 +675,50 @@ export default async function Home() {
                       VALUE
                   ========================================= */}
 
-                  <div className="mt-4">
-                    <div
+                  <div
+                    className="
+                      mt-4
+
+                      flex
+                      min-w-0
+                      items-end
+                      gap-2
+                    "
+                  >
+                    <p
+                      className={`
+                        shrink-0
+
+                        text-4xl
+                        font-black
+                        leading-none
+                        tracking-tight
+                        tabular-nums
+
+                        ${card.valueClass}
+                      `}
+                    >
+                      {card.value.toLocaleString(
+                        "th-TH"
+                      )}
+                    </p>
+
+                    <p
                       className="
-                        flex
-                        min-w-0
-                        items-end
-                        gap-2
+                        whitespace-nowrap
+
+                        pb-0.5
+
+                        text-sm
+                        font-bold
+
+                        !text-slate-500
                       "
                     >
-                      <p
-                        className={`
-                          shrink-0
-
-                          text-3xl
-                          font-black
-                          leading-none
-                          tracking-tight
-                          tabular-nums
-
-                          sm:text-4xl
-
-                          ${card.valueClass}
-                        `}
-                      >
-                        {card.value.toLocaleString(
-                          "th-TH"
-                        )}
-                      </p>
-
-                      <p
-                        className="
-                          min-w-0
-
-                          overflow-hidden
-                          text-ellipsis
-                          whitespace-nowrap
-
-                          pb-0.5
-
-                          text-xs
-                          font-bold
-
-                          !text-slate-400
-
-                          sm:text-sm
-                        "
-                      >
-                        {
-                          card.unit
-                        }
-                      </p>
-                    </div>
-
-                    {card.clickable && (
-                      <div
-                        className="
-                          mt-3
-
-                          flex
-                          items-center
-                          justify-between
-                          gap-2
-
-                          text-[11px]
-                          font-extrabold
-
-                          !text-slate-400
-                        "
-                      >
-                        <span
-                          className="
-                            overflow-hidden
-                            text-ellipsis
-                            whitespace-nowrap
-                          "
-                        >
-                          ดูรายละเอียด
-                        </span>
-
-                        <span
-                          className="
-                            flex
-                            h-6
-                            w-6
-                            shrink-0
-                            items-center
-                            justify-center
-
-                            rounded-full
-
-                            bg-slate-100/90
-
-                            !text-slate-500
-
-                            transition-transform
-                            duration-300
-
-                            group-hover:translate-x-0.5
-                          "
-                        >
-                          →
-                        </span>
-                      </div>
-                    )}
+                      {
+                        card.unit
+                      }
+                    </p>
                   </div>
                 </div>
               </AppCard>
@@ -835,7 +776,7 @@ export default async function Home() {
           w-full
           min-w-0
           grid-cols-1
-          gap-3
+          gap-4
 
           md:grid-cols-2
         "
@@ -858,13 +799,13 @@ export default async function Home() {
                 group
                 relative
 
-                min-h-[135px]
+                min-h-[125px]
                 min-w-0
 
                 overflow-hidden
 
                 !rounded-[22px]
-                !p-4
+                !p-5
 
                 ${iosCard}
                 ${iosPressable}
@@ -906,14 +847,15 @@ export default async function Home() {
                 <div className="min-w-0">
                   <p
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-lg
                       font-extrabold
+                      leading-tight
 
-                      !text-slate-600
+                      !text-slate-700
+
+                      sm:text-xl
                     "
                   >
                     รับเข้าประจำเดือน
@@ -921,7 +863,7 @@ export default async function Home() {
 
                   <div
                     className="
-                      mt-2
+                      mt-3
 
                       flex
                       min-w-0
@@ -940,6 +882,8 @@ export default async function Home() {
                         tabular-nums
 
                         !text-emerald-600
+
+                        sm:text-5xl
                       "
                     >
                       {receiveThisMonth.toLocaleString(
@@ -953,32 +897,15 @@ export default async function Home() {
 
                         pb-0.5
 
-                        text-xs
+                        text-sm
                         font-bold
 
-                        !text-slate-400
+                        !text-slate-500
                       "
                     >
                       ใบรับเข้า
                     </span>
                   </div>
-
-                  <p
-                    className="
-                      mt-3
-
-                      overflow-hidden
-                      text-ellipsis
-                      whitespace-nowrap
-
-                      text-[11px]
-                      font-extrabold
-
-                      !text-slate-400
-                    "
-                  >
-                    ดูรายการประจำเดือน →
-                  </p>
                 </div>
 
                 <div
@@ -1021,13 +948,13 @@ export default async function Home() {
             className={`
               relative
 
-              min-h-[135px]
+              min-h-[125px]
               min-w-0
 
               overflow-hidden
 
               !rounded-[22px]
-              !p-4
+              !p-5
 
               ${iosCard}
             `}
@@ -1068,14 +995,15 @@ export default async function Home() {
               <div className="min-w-0">
                 <p
                   className="
-                    overflow-hidden
-                    text-ellipsis
                     whitespace-nowrap
 
-                    text-sm
+                    text-lg
                     font-extrabold
+                    leading-tight
 
-                    !text-slate-600
+                    !text-slate-700
+
+                    sm:text-xl
                   "
                 >
                   รับเข้าประจำเดือน
@@ -1083,7 +1011,7 @@ export default async function Home() {
 
                 <div
                   className="
-                    mt-2
+                    mt-3
 
                     flex
                     items-end
@@ -1099,6 +1027,8 @@ export default async function Home() {
                       tabular-nums
 
                       !text-emerald-600
+
+                      sm:text-5xl
                     "
                   >
                     {receiveThisMonth.toLocaleString(
@@ -1112,10 +1042,10 @@ export default async function Home() {
 
                       pb-0.5
 
-                      text-xs
+                      text-sm
                       font-bold
 
-                      !text-slate-400
+                      !text-slate-500
                     "
                   >
                     ใบรับเข้า
@@ -1171,13 +1101,13 @@ export default async function Home() {
               group
               relative
 
-              min-h-[135px]
+              min-h-[125px]
               min-w-0
 
               overflow-hidden
 
               !rounded-[22px]
-              !p-4
+              !p-5
 
               ${iosCard}
               ${iosPressable}
@@ -1219,14 +1149,15 @@ export default async function Home() {
               <div className="min-w-0">
                 <p
                   className="
-                    overflow-hidden
-                    text-ellipsis
                     whitespace-nowrap
 
-                    text-sm
+                    text-lg
                     font-extrabold
+                    leading-tight
 
-                    !text-slate-600
+                    !text-slate-700
+
+                    sm:text-xl
                   "
                 >
                   เบิกจ่ายประจำเดือน
@@ -1234,7 +1165,7 @@ export default async function Home() {
 
                 <div
                   className="
-                    mt-2
+                    mt-3
 
                     flex
                     items-end
@@ -1252,6 +1183,8 @@ export default async function Home() {
                       tabular-nums
 
                       !text-amber-600
+
+                      sm:text-5xl
                     "
                   >
                     {issueThisMonth.toLocaleString(
@@ -1265,32 +1198,15 @@ export default async function Home() {
 
                       pb-0.5
 
-                      text-xs
+                      text-sm
                       font-bold
 
-                      !text-slate-400
+                      !text-slate-500
                     "
                   >
                     ใบเบิกจ่าย
                   </span>
                 </div>
-
-                <p
-                  className="
-                    mt-3
-
-                    overflow-hidden
-                    text-ellipsis
-                    whitespace-nowrap
-
-                    text-[11px]
-                    font-extrabold
-
-                    !text-slate-400
-                  "
-                >
-                  ดูรายการประจำเดือน →
-                </p>
               </div>
 
               <div
@@ -1340,7 +1256,7 @@ export default async function Home() {
           w-full
           min-w-0
           grid-cols-1
-          gap-3
+          gap-4
 
           lg:grid-cols-2
         "
@@ -1376,16 +1292,15 @@ export default async function Home() {
               <div className="min-w-0">
                 <h2
                   className="
-                    overflow-hidden
-                    text-ellipsis
                     whitespace-nowrap
 
-                    text-lg
+                    text-xl
                     font-black
+                    leading-tight
 
                     !text-slate-900
 
-                    sm:text-xl
+                    sm:text-2xl
                   "
                 >
                   🔔 รายการที่ต้องดำเนินการ
@@ -1395,16 +1310,12 @@ export default async function Home() {
                   className="
                     mt-1
 
-                    overflow-hidden
-                    text-ellipsis
                     whitespace-nowrap
 
-                    text-xs
+                    text-sm
                     font-semibold
 
                     !text-slate-500
-
-                    sm:text-sm
                   "
                 >
                   รายการที่อยู่ระหว่างการดำเนินงาน
@@ -1414,8 +1325,8 @@ export default async function Home() {
               <span
                 className="
                   flex
-                  h-10
-                  min-w-10
+                  h-11
+                  min-w-11
                   shrink-0
                   items-center
                   justify-center
@@ -1424,9 +1335,9 @@ export default async function Home() {
 
                   bg-red-500
 
-                  px-2.5
+                  px-3
 
-                  text-sm
+                  text-base
                   font-black
                   tabular-nums
 
@@ -1445,7 +1356,7 @@ export default async function Home() {
 
           <div
             className="
-              space-y-2.5
+              space-y-3
 
               p-4
             "
@@ -1468,8 +1379,8 @@ export default async function Home() {
 
                 ${iosInnerCard}
 
-                px-3.5
-                py-3
+                px-4
+                py-3.5
 
                 ${iosPressable}
               `}
@@ -1485,19 +1396,19 @@ export default async function Home() {
                 <span
                   className="
                     flex
-                    h-10
-                    w-10
+                    h-11
+                    w-11
                     shrink-0
                     items-center
                     justify-center
 
-                    rounded-[13px]
+                    rounded-[14px]
 
                     bg-gradient-to-br
                     from-red-500
                     to-rose-400
 
-                    text-base
+                    text-lg
 
                     shadow-md
                     shadow-red-500/15
@@ -1510,16 +1421,14 @@ export default async function Home() {
                 <div className="min-w-0">
                   <p
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-base
                       font-black
 
                       !text-slate-900
 
-                      sm:text-base
+                      sm:text-lg
                     "
                   >
                     ใบเบิกที่รอดำเนินการ
@@ -1529,11 +1438,9 @@ export default async function Home() {
                     className="
                       mt-0.5
 
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-xs
+                      text-sm
                       font-semibold
 
                       !text-slate-500
@@ -1554,7 +1461,7 @@ export default async function Home() {
               >
                 <span
                   className="
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
@@ -1604,8 +1511,8 @@ export default async function Home() {
 
                 ${iosInnerCard}
 
-                px-3.5
-                py-3
+                px-4
+                py-3.5
 
                 ${iosPressable}
               `}
@@ -1621,19 +1528,19 @@ export default async function Home() {
                 <span
                   className="
                     flex
-                    h-10
-                    w-10
+                    h-11
+                    w-11
                     shrink-0
                     items-center
                     justify-center
 
-                    rounded-[13px]
+                    rounded-[14px]
 
                     bg-gradient-to-br
                     from-amber-400
                     to-orange-400
 
-                    text-base
+                    text-lg
 
                     shadow-md
                     shadow-amber-500/15
@@ -1646,16 +1553,14 @@ export default async function Home() {
                 <div className="min-w-0">
                   <p
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-base
                       font-black
 
                       !text-slate-900
 
-                      sm:text-base
+                      sm:text-lg
                     "
                   >
                     พัสดุที่ต้องตรวจสอบ
@@ -1665,11 +1570,9 @@ export default async function Home() {
                     className="
                       mt-0.5
 
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-xs
+                      text-sm
                       font-semibold
 
                       !text-slate-500
@@ -1690,7 +1593,7 @@ export default async function Home() {
               >
                 <span
                   className="
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
@@ -1748,16 +1651,15 @@ export default async function Home() {
           >
             <h2
               className="
-                overflow-hidden
-                text-ellipsis
                 whitespace-nowrap
 
-                text-lg
+                text-xl
                 font-black
+                leading-tight
 
                 !text-slate-900
 
-                sm:text-xl
+                sm:text-2xl
               "
             >
               📊 สถานะพัสดุคงเหลือ
@@ -1767,16 +1669,12 @@ export default async function Home() {
               className="
                 mt-1
 
-                overflow-hidden
-                text-ellipsis
                 whitespace-nowrap
 
-                text-xs
+                text-sm
                 font-semibold
 
                 !text-slate-500
-
-                sm:text-sm
               "
             >
               สรุปจากจำนวนคงเหลือปัจจุบัน
@@ -1819,8 +1717,8 @@ export default async function Home() {
                 >
                   <span
                     className="
-                      h-2.5
-                      w-2.5
+                      h-3
+                      w-3
                       shrink-0
 
                       rounded-full
@@ -1831,11 +1729,9 @@ export default async function Home() {
 
                   <span
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-base
                       font-extrabold
 
                       !text-slate-700
@@ -1849,7 +1745,7 @@ export default async function Home() {
                   className="
                     shrink-0
 
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
@@ -1866,7 +1762,7 @@ export default async function Home() {
                 className="
                   mt-3
 
-                  h-2
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
@@ -1927,8 +1823,8 @@ export default async function Home() {
                 >
                   <span
                     className="
-                      h-2.5
-                      w-2.5
+                      h-3
+                      w-3
                       shrink-0
 
                       rounded-full
@@ -1939,11 +1835,9 @@ export default async function Home() {
 
                   <span
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-base
                       font-extrabold
 
                       !text-slate-700
@@ -1957,7 +1851,7 @@ export default async function Home() {
                   className="
                     shrink-0
 
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
@@ -1974,7 +1868,7 @@ export default async function Home() {
                 className="
                   mt-3
 
-                  h-2
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
@@ -2035,8 +1929,8 @@ export default async function Home() {
                 >
                   <span
                     className="
-                      h-2.5
-                      w-2.5
+                      h-3
+                      w-3
                       shrink-0
 
                       rounded-full
@@ -2047,11 +1941,9 @@ export default async function Home() {
 
                   <span
                     className="
-                      overflow-hidden
-                      text-ellipsis
                       whitespace-nowrap
 
-                      text-sm
+                      text-base
                       font-extrabold
 
                       !text-slate-700
@@ -2065,7 +1957,7 @@ export default async function Home() {
                   className="
                     shrink-0
 
-                    text-base
+                    text-lg
                     font-black
                     tabular-nums
 
@@ -2082,7 +1974,7 @@ export default async function Home() {
                 className="
                   mt-3
 
-                  h-2
+                  h-2.5
                   overflow-hidden
 
                   rounded-full
@@ -2129,8 +2021,6 @@ export default async function Home() {
               >
                 ดูรายการพัสดุทั้งหมด
               </span>
-
-              <span>→</span>
             </AppButton>
           </div>
         </AppCard>
@@ -2170,16 +2060,15 @@ export default async function Home() {
             <div className="min-w-0">
               <h2
                 className="
-                  overflow-hidden
-                  text-ellipsis
                   whitespace-nowrap
 
-                  text-lg
+                  text-xl
                   font-black
+                  leading-tight
 
                   !text-slate-900
 
-                  sm:text-xl
+                  sm:text-2xl
                 "
               >
                 📈 การเคลื่อนไหวพัสดุ
@@ -2189,16 +2078,12 @@ export default async function Home() {
                 className="
                   mt-1
 
-                  overflow-hidden
-                  text-ellipsis
                   whitespace-nowrap
 
-                  text-xs
+                  text-sm
                   font-semibold
 
                   !text-slate-500
-
-                  sm:text-sm
                 "
               >
                 เปรียบเทียบการรับเข้าและเบิกจ่ายย้อนหลัง 6 เดือน
@@ -2225,10 +2110,10 @@ export default async function Home() {
 
                   bg-emerald-50
 
-                  px-2.5
-                  py-1
+                  px-3
+                  py-1.5
 
-                  text-xs
+                  text-sm
                   font-extrabold
 
                   !text-emerald-700
@@ -2241,7 +2126,9 @@ export default async function Home() {
                   className="
                     h-2
                     w-2
+
                     rounded-full
+
                     bg-emerald-500
                   "
                 />
@@ -2261,10 +2148,10 @@ export default async function Home() {
 
                   bg-amber-50
 
-                  px-2.5
-                  py-1
+                  px-3
+                  py-1.5
 
-                  text-xs
+                  text-sm
                   font-extrabold
 
                   !text-amber-700
@@ -2277,7 +2164,9 @@ export default async function Home() {
                   className="
                     h-2
                     w-2
+
                     rounded-full
+
                     bg-amber-500
                   "
                 />
@@ -2293,6 +2182,8 @@ export default async function Home() {
             overflow-x-auto
 
             p-4
+
+            sm:p-5
           "
         >
           <div
@@ -2446,9 +2337,10 @@ export default async function Home() {
                     <p
                       className="
                         whitespace-nowrap
+
                         text-center
 
-                        text-sm
+                        text-base
                         font-black
 
                         !text-slate-800
@@ -2464,9 +2356,10 @@ export default async function Home() {
                         mt-0.5
 
                         whitespace-nowrap
+
                         text-center
 
-                        text-xs
+                        text-sm
                         font-bold
 
                         !text-slate-400
@@ -2488,7 +2381,7 @@ export default async function Home() {
                         flex
                         items-center
                         justify-center
-                        gap-1
+                        gap-1.5
                       "
                     >
                       <span
@@ -2499,10 +2392,10 @@ export default async function Home() {
 
                           bg-emerald-50
 
-                          px-2
-                          py-0.5
+                          px-2.5
+                          py-1
 
-                          text-[11px]
+                          text-xs
                           font-extrabold
 
                           !text-emerald-700
@@ -2522,10 +2415,10 @@ export default async function Home() {
 
                           bg-amber-50
 
-                          px-2
-                          py-0.5
+                          px-2.5
+                          py-1
 
-                          text-[11px]
+                          text-xs
                           font-extrabold
 
                           !text-amber-700
