@@ -149,8 +149,8 @@ export default async function CreateUserPage() {
 
     rounded-[14px]
 
-    border-2
-    !border-black
+    border
+    border-slate-300
 
     bg-white
 
@@ -169,9 +169,10 @@ export default async function CreateUserPage() {
 
     placeholder:!text-slate-400
 
+    hover:border-slate-400
     hover:bg-slate-50
 
-    focus:!border-blue-500
+    focus:border-blue-400
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
