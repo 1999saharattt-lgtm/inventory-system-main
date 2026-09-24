@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
 
 /* =========================================================
    TYPES
@@ -107,12 +109,29 @@ export default function EditVendorForm({
       }
 
       /* =====================================================
-         ERROR
+         ERROR RESPONSE
       ===================================================== */
 
-      alert(
-        "บันทึกไม่สำเร็จ"
-      );
+      let errorMessage =
+        "บันทึกไม่สำเร็จ";
+
+      try {
+        const errorData =
+          await res.json();
+
+        if (
+          errorData &&
+          typeof errorData.message ===
+            "string"
+        ) {
+          errorMessage =
+            errorData.message;
+        }
+      } catch {
+        // ใช้ข้อความเริ่มต้น
+      }
+
+      alert(errorMessage);
     } catch (error) {
       console.error(
         "Update vendor error:",
@@ -120,7 +139,7 @@ export default function EditVendorForm({
       );
 
       alert(
-        "เกิดข้อผิดพลาด"
+        "เกิดข้อผิดพลาดในการบันทึกข้อมูล"
       );
     } finally {
       setLoading(false);
@@ -132,18 +151,22 @@ export default function EditVendorForm({
   ========================================================= */
 
   const labelClassName = `
+    mb-2
     block
+
     text-sm
     font-extrabold
-    !text-slate-200
+    !text-slate-700
+
+    sm:text-base
   `;
 
   const inputClassName = `
-    mt-2
     min-h-[50px]
     w-full
+    min-w-0
 
-    rounded-xl
+    rounded-[14px]
 
     border
     border-slate-300
@@ -154,9 +177,10 @@ export default function EditVendorForm({
     py-3
 
     text-base
-    font-semibold
+    font-bold
     !text-slate-900
 
+    shadow-sm
     outline-none
 
     transition-all
@@ -165,10 +189,12 @@ export default function EditVendorForm({
     placeholder:!text-slate-400
 
     hover:border-slate-400
+    hover:bg-slate-50
 
-    focus:border-emerald-600
+    focus:border-blue-400
+    focus:bg-white
     focus:ring-4
-    focus:ring-emerald-500/10
+    focus:ring-blue-500/10
   `;
 
   /* =========================================================
@@ -181,298 +207,370 @@ export default function EditVendorForm({
         handleSubmit
       }
       className="
-        mx-auto
         w-full
-        max-w-4xl
-        space-y-6
-
-        rounded-3xl
-
-        border
-        border-slate-700
-
-        bg-gradient-to-br
-        from-slate-950
-        via-slate-900
-        to-slate-800
-
-        p-6
-
-        text-white
-
-        shadow-2xl
-
-        sm:p-8
+        min-w-0
       "
     >
-      {/* =====================================================
-          VENDOR INFORMATION
-      ===================================================== */}
-
-      <div
+      <AppCard
         className="
-          rounded-xl
-
-          bg-gradient-to-r
-          from-slate-800
-          to-slate-700
-
-          px-4
-          py-3
-        "
-      >
-        <h2
-          className="
-            text-lg
-            font-extrabold
-            !text-white
-
-            sm:text-xl
-          "
-        >
-          🏢 ข้อมูลผู้จำหน่าย
-        </h2>
-      </div>
-
-      {/* =====================================================
-          FIELDS
-      ===================================================== */}
-
-      <div
-        className="
-          grid
-          grid-cols-1
-          gap-5
-
-          md:grid-cols-2
+          w-full
+          min-w-0
         "
       >
         {/* ===================================================
-            NAME
+            FORM HEADER
         =================================================== */}
 
-        <div className="min-w-0">
-          <label
-            htmlFor="name"
-            className={
-              labelClassName
-            }
-          >
-            ชื่อผู้จำหน่าย{" "}
-            <span className="!text-red-400">
-              *
-            </span>
-          </label>
-
-          <input
-            id="name"
-            name="name"
-            type="text"
-            defaultValue={
-              vendor.name
-            }
-            required
-            autoComplete="organization"
-            placeholder="ระบุชื่อผู้จำหน่าย"
-            className={
-              inputClassName
-            }
-          />
-        </div>
-
-        {/* ===================================================
-            PHONE
-        =================================================== */}
-
-        <div className="min-w-0">
-          <label
-            htmlFor="phone"
-            className={
-              labelClassName
-            }
-          >
-            เบอร์โทร
-          </label>
-
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            defaultValue={
-              vendor.phone ??
-              ""
-            }
-            autoComplete="tel"
-            placeholder="ระบุเบอร์โทร"
-            className={
-              inputClassName
-            }
-          />
-        </div>
-
-        {/* ===================================================
-            TAX ID
-        =================================================== */}
-
-        <div className="min-w-0">
-          <label
-            htmlFor="taxId"
-            className={
-              labelClassName
-            }
-          >
-            เลขประจำตัวผู้เสียภาษี
-          </label>
-
-          <input
-            id="taxId"
-            name="taxId"
-            type="text"
-            defaultValue={
-              vendor.taxId ??
-              ""
-            }
-            inputMode="numeric"
-            placeholder="ระบุเลขประจำตัวผู้เสียภาษี"
-            className={
-              inputClassName
-            }
-          />
-        </div>
-      </div>
-
-      {/* =====================================================
-          ADDRESS
-      ===================================================== */}
-
-      <div>
         <div
           className="
-            rounded-xl
+            mb-6
 
-            bg-gradient-to-r
-            from-slate-800
-            to-slate-700
+            flex
+            flex-col
+            gap-2
 
-            px-4
-            py-3
+            border-b
+            border-slate-200
+
+            pb-5
           "
         >
-          <h2
+          <div
             className="
-              text-lg
-              font-extrabold
-              !text-white
-
-              sm:text-xl
+              flex
+              items-center
+              gap-3
             "
           >
-            📍 ที่อยู่ผู้จำหน่าย
-          </h2>
-        </div>
+            <div
+              className="
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
 
-        <div className="mt-4">
-          <label
-            htmlFor="address"
-            className={
-              labelClassName
-            }
-          >
-            ที่อยู่
-          </label>
+                rounded-xl
 
-          <textarea
-            id="address"
-            name="address"
-            rows={4}
-            defaultValue={
-              vendor.address ??
-              ""
-            }
-            autoComplete="street-address"
-            placeholder="ระบุที่อยู่ผู้จำหน่าย"
-            className={`
-              ${inputClassName}
+                bg-slate-100
 
-              min-h-[120px]
-              resize-y
-              leading-relaxed
-            `}
-          />
-        </div>
-      </div>
-
-      {/* =====================================================
-          ACTIONS
-      ===================================================== */}
-
-      <div
-        className="
-          flex
-          w-full
-          flex-col-reverse
-          gap-3
-
-          border-t
-          border-slate-700
-
-          pt-5
-
-          sm:flex-row
-          sm:items-center
-          sm:justify-end
-        "
-      >
-        {/* ===================================================
-            CANCEL
-
-            ใช้ AppButton ตัวกลาง
-        =================================================== */}
-
-        <AppButton
-          href="/vendors"
-          variant="secondary"
-          size="md"
-          className="
-            w-full
-            sm:w-auto
-          "
-        >
-          ยกเลิก
-        </AppButton>
-
-        {/* ===================================================
-            SAVE
-
-            ใช้ AppButton ตัวกลาง
-        =================================================== */}
-
-        <AppButton
-          type="submit"
-          variant="success"
-          size="md"
-          disabled={
-            loading
-          }
-          icon={
-            <span
+                text-xl
+              "
               aria-hidden="true"
             >
-              {loading
-                ? "⏳"
-                : "💾"}
-            </span>
-          }
+              🏢
+            </div>
+
+            <div className="min-w-0">
+              <h2
+                className="
+                  text-lg
+                  font-extrabold
+                  !text-slate-900
+
+                  sm:text-xl
+                "
+              >
+                ข้อมูลผู้จำหน่าย
+              </h2>
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                แก้ไขรายละเอียดข้อมูลผู้จำหน่าย
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ===================================================
+            VENDOR INFORMATION
+        =================================================== */}
+
+        <div
           className="
-            w-full
-            sm:w-auto
+            grid
+            grid-cols-1
+            gap-4
+
+            lg:grid-cols-2
           "
         >
-          {loading
-            ? "กำลังบันทึก..."
-            : "บันทึก"}
-        </AppButton>
-      </div>
+          {/* =================================================
+              NAME
+          ================================================= */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="name"
+              className={
+                labelClassName
+              }
+            >
+              ชื่อผู้จำหน่าย{" "}
+              <span className="!text-red-500">
+                *
+              </span>
+            </label>
+
+            <input
+              id="name"
+              name="name"
+              type="text"
+              defaultValue={
+                vendor.name
+              }
+              required
+              autoComplete="organization"
+              placeholder="ระบุชื่อผู้จำหน่าย"
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              PHONE
+          ================================================= */}
+
+          <AppInfoCard>
+            <label
+              htmlFor="phone"
+              className={
+                labelClassName
+              }
+            >
+              เบอร์โทร
+            </label>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              defaultValue={
+                vendor.phone ??
+                ""
+              }
+              autoComplete="tel"
+              placeholder="ระบุเบอร์โทร"
+              className={
+                inputClassName
+              }
+            />
+          </AppInfoCard>
+
+          {/* =================================================
+              TAX ID
+          ================================================= */}
+
+          <div
+            className="
+              lg:col-span-2
+            "
+          >
+            <AppInfoCard>
+              <label
+                htmlFor="taxId"
+                className={
+                  labelClassName
+                }
+              >
+                เลขประจำตัวผู้เสียภาษี
+              </label>
+
+              <input
+                id="taxId"
+                name="taxId"
+                type="text"
+                defaultValue={
+                  vendor.taxId ??
+                  ""
+                }
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="ระบุเลขประจำตัวผู้เสียภาษี"
+                className={
+                  inputClassName
+                }
+              />
+            </AppInfoCard>
+          </div>
+        </div>
+
+        {/* ===================================================
+            ADDRESS
+        =================================================== */}
+
+        <div
+          className="
+            mt-6
+
+            border-t
+            border-slate-200
+
+            pt-6
+          "
+        >
+          <div
+            className="
+              mb-4
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <div
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+
+                rounded-xl
+
+                bg-slate-100
+
+                text-lg
+              "
+              aria-hidden="true"
+            >
+              📍
+            </div>
+
+            <div>
+              <h2
+                className="
+                  text-base
+                  font-extrabold
+                  !text-slate-900
+
+                  sm:text-lg
+                "
+              >
+                ที่อยู่ผู้จำหน่าย
+              </h2>
+
+              <p
+                className="
+                  mt-0.5
+                  text-sm
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                ระบุที่อยู่สำหรับติดต่อผู้จำหน่าย
+              </p>
+            </div>
+          </div>
+
+          <AppInfoCard>
+            <label
+              htmlFor="address"
+              className={
+                labelClassName
+              }
+            >
+              ที่อยู่
+            </label>
+
+            <textarea
+              id="address"
+              name="address"
+              rows={4}
+              defaultValue={
+                vendor.address ??
+                ""
+              }
+              autoComplete="street-address"
+              placeholder="ระบุที่อยู่ผู้จำหน่าย"
+              className={`
+                ${inputClassName}
+
+                min-h-[130px]
+                resize-y
+                leading-relaxed
+              `}
+            />
+          </AppInfoCard>
+        </div>
+
+        {/* ===================================================
+            ACTIONS
+        =================================================== */}
+
+        <div
+          className="
+            mt-6
+
+            flex
+            flex-col-reverse
+            gap-3
+
+            border-t
+            border-slate-200
+
+            pt-5
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-end
+          "
+        >
+          {/* =================================================
+              CANCEL
+          ================================================= */}
+
+          <AppButton
+            href="/vendors"
+            variant="secondary"
+            size="md"
+            className="
+              w-full
+              sm:w-auto
+            "
+          >
+            ยกเลิก
+          </AppButton>
+
+          {/* =================================================
+              SAVE
+          ================================================= */}
+
+          <AppButton
+            type="submit"
+            variant="success"
+            size="md"
+            disabled={
+              loading
+            }
+            icon={
+              <span
+                aria-hidden="true"
+              >
+                {loading
+                  ? "⏳"
+                  : "💾"}
+              </span>
+            }
+            className="
+              w-full
+              sm:w-auto
+            "
+          >
+            {loading
+              ? "กำลังบันทึก..."
+              : "บันทึก"}
+          </AppButton>
+        </div>
+      </AppCard>
     </form>
   );
 }

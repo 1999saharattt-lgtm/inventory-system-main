@@ -47,11 +47,11 @@ const officerTypeOptions = [
 export default async function EditOfficerPage({
   params,
 }: Props) {
+  const { id } = await params;
+
   /* =======================================================
      PARAMS
   ======================================================= */
-
-  const { id } = await params;
 
   const officerId = Number(id);
 
@@ -83,11 +83,19 @@ export default async function EditOfficerPage({
   }
 
   /* =======================================================
-     ROUTE DATA
+     SAFE VALUES
   ======================================================= */
 
   const sectionId =
     officer.sectionId;
+
+  const sectionName =
+    officer.section?.name ??
+    "ไม่ระบุกลุ่มงาน";
+
+  const departmentName =
+    officer.department?.name ??
+    "ไม่ระบุหน่วยงาน";
 
   /*
    * คงเส้นทางเดิมของระบบไว้
@@ -106,42 +114,43 @@ export default async function EditOfficerPage({
   ) {
     "use server";
 
+    /* =====================================================
+       FORM VALUES
+    ===================================================== */
+
     const firstName =
       String(
-        formData.get(
-          "firstName"
-        ) ?? ""
+        formData.get("firstName") ??
+          ""
       ).trim();
 
     const lastName =
       String(
-        formData.get(
-          "lastName"
-        ) ?? ""
+        formData.get("lastName") ??
+          ""
       ).trim();
 
     const position =
       String(
-        formData.get(
-          "position"
-        ) ?? ""
+        formData.get("position") ??
+          ""
       ).trim();
 
     const type =
       String(
-        formData.get(
-          "type"
-        ) ?? ""
-      );
+        formData.get("type") ??
+          ""
+      ).trim();
 
     /* =====================================================
-       VALIDATE
+       VALIDATION
     ===================================================== */
 
     if (
       !firstName ||
       !lastName ||
-      !position
+      !position ||
+      !type
     ) {
       return;
     }
@@ -182,11 +191,13 @@ export default async function EditOfficerPage({
        REDIRECT
     ===================================================== */
 
-    redirect(backPath);
+    redirect(
+      backPath
+    );
   }
 
   /* =======================================================
-     SHARED CLASS
+     SHARED CLASSES
   ======================================================= */
 
   const labelClassName = `
@@ -203,7 +214,6 @@ export default async function EditOfficerPage({
   const inputClassName = `
     min-h-[50px]
     w-full
-    min-w-0
 
     rounded-[14px]
 
@@ -249,10 +259,12 @@ export default async function EditOfficerPage({
       <AppPageHeader
         icon="✏️"
         title="แก้ไขข้อมูลเจ้าหน้าที่"
-        subtitle="ปรับปรุงข้อมูลรายชื่อและประเภทบุคลากร"
+        subtitle={`${departmentName} / ${sectionName}`}
         actions={
           <AppButton
-            href={backPath}
+            href={
+              backPath
+            }
             variant="back"
             size="md"
           >
@@ -266,7 +278,9 @@ export default async function EditOfficerPage({
       ===================================================== */}
 
       <form
-        action={updateOfficer}
+        action={
+          updateOfficer
+        }
         className="
           w-full
           min-w-0
@@ -274,32 +288,20 @@ export default async function EditOfficerPage({
       >
         <AppCard
           className="
-            mx-auto
             w-full
-            max-w-5xl
+            min-w-0
           "
         >
           {/* =================================================
               FORM HEADER
           ================================================= */}
 
-          <div
-            className="
-              mb-6
-
-              border-b
-              border-slate-200
-
-              pb-5
-            "
-          >
+          <div className="mb-6">
             <h2
               className="
                 text-lg
                 font-extrabold
                 !text-slate-900
-
-                sm:text-xl
               "
             >
               ข้อมูลเจ้าหน้าที่
@@ -308,14 +310,15 @@ export default async function EditOfficerPage({
             <p
               className="
                 mt-1
-
                 text-sm
                 font-semibold
                 leading-relaxed
                 !text-slate-500
               "
             >
-              แก้ไขข้อมูลเจ้าหน้าที่ให้ถูกต้องและเป็นปัจจุบัน
+              แก้ไขข้อมูลเจ้าหน้าที่สำหรับกลุ่มงาน
+              {" "}
+              {sectionName}
             </p>
           </div>
 
@@ -329,7 +332,7 @@ export default async function EditOfficerPage({
               grid-cols-1
               gap-4
 
-              md:grid-cols-2
+              lg:grid-cols-2
             "
           >
             {/* ===============================================
@@ -354,11 +357,11 @@ export default async function EditOfficerPage({
                 name="firstName"
                 type="text"
                 required
+                autoComplete="given-name"
                 defaultValue={
                   officer.firstName
                 }
                 placeholder="ระบุชื่อ"
-                autoComplete="given-name"
                 className={
                   inputClassName
                 }
@@ -387,11 +390,11 @@ export default async function EditOfficerPage({
                 name="lastName"
                 type="text"
                 required
+                autoComplete="family-name"
                 defaultValue={
                   officer.lastName
                 }
                 placeholder="ระบุนามสกุล"
-                autoComplete="family-name"
                 className={
                   inputClassName
                 }
@@ -402,94 +405,98 @@ export default async function EditOfficerPage({
                 POSITION
             =============================================== */}
 
-            <AppInfoCard
+            <div
               className="
-                md:col-span-2
+                lg:col-span-2
               "
             >
-              <label
-                htmlFor="position"
-                className={
-                  labelClassName
-                }
-              >
-                ตำแหน่ง{" "}
-                <span className="!text-red-500">
-                  *
-                </span>
-              </label>
+              <AppInfoCard>
+                <label
+                  htmlFor="position"
+                  className={
+                    labelClassName
+                  }
+                >
+                  ตำแหน่ง{" "}
+                  <span className="!text-red-500">
+                    *
+                  </span>
+                </label>
 
-              <input
-                id="position"
-                name="position"
-                type="text"
-                required
-                defaultValue={
-                  officer.position
-                }
-                placeholder="ระบุตำแหน่ง"
-                className={
-                  inputClassName
-                }
-              />
-            </AppInfoCard>
+                <input
+                  id="position"
+                  name="position"
+                  type="text"
+                  required
+                  defaultValue={
+                    officer.position
+                  }
+                  placeholder="ระบุตำแหน่ง"
+                  className={
+                    inputClassName
+                  }
+                />
+              </AppInfoCard>
+            </div>
 
             {/* ===============================================
                 OFFICER TYPE
             =============================================== */}
 
-            <AppInfoCard
+            <div
               className="
-                md:col-span-2
+                lg:col-span-2
               "
             >
-              <label
-                htmlFor="type"
-                className={
-                  labelClassName
-                }
-              >
-                ประเภทบุคลากร{" "}
-                <span className="!text-red-500">
-                  *
-                </span>
-              </label>
+              <AppInfoCard>
+                <label
+                  htmlFor="type"
+                  className={
+                    labelClassName
+                  }
+                >
+                  ประเภทบุคลากร{" "}
+                  <span className="!text-red-500">
+                    *
+                  </span>
+                </label>
 
-              <select
-                id="type"
-                name="type"
-                required
-                defaultValue={
-                  officer.type
-                }
-                className={
-                  inputClassName
-                }
-              >
-                {officerTypeOptions.map(
-                  (
-                    option
-                  ) => (
-                    <option
-                      key={
-                        option.value
-                      }
-                      value={
-                        option.value
-                      }
-                    >
-                      {
-                        option.label
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </AppInfoCard>
+                <select
+                  id="type"
+                  name="type"
+                  required
+                  defaultValue={
+                    officer.type
+                  }
+                  className={
+                    inputClassName
+                  }
+                >
+                  {officerTypeOptions.map(
+                    (
+                      option
+                    ) => (
+                      <option
+                        key={
+                          option.value
+                        }
+                        value={
+                          option.value
+                        }
+                      >
+                        {
+                          option.label
+                        }
+                      </option>
+                    )
+                  )}
+                </select>
+              </AppInfoCard>
+            </div>
           </div>
 
           {/* =================================================
-              ACTION BUTTONS
+              ACTIONS
           ================================================= */}
 
           <div
@@ -515,7 +522,9 @@ export default async function EditOfficerPage({
             =============================================== */}
 
             <AppButton
-              href={backPath}
+              href={
+                backPath
+              }
               variant="secondary"
               size="md"
             >
@@ -531,12 +540,14 @@ export default async function EditOfficerPage({
               variant="success"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   💾
                 </span>
               }
             >
-              บันทึกการแก้ไข
+              บันทึก
             </AppButton>
           </div>
         </AppCard>
