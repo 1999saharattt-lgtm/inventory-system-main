@@ -1,14 +1,72 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-async function deleteUser(formData: FormData) {
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+
+export const dynamic = "force-dynamic";
+
+/* =========================================================
+   ROLE
+========================================================= */
+
+const roleName: Record<string, string> = {
+  ADMIN: "ผู้ดูแลระบบ",
+  STAFF: "เจ้าหน้าที่",
+  VIEWER: "ผู้ใช้งานทั่วไป",
+};
+
+/* =========================================================
+   DELETE USER
+========================================================= */
+
+async function deleteUser(
+  formData: FormData
+) {
   "use server";
 
   await requireRole("ADMIN");
 
-  const id = Number(formData.get("id"));
+  const id = Number(
+    formData.get("id")
+  );
+
+  /* =======================================================
+     VALIDATE ID
+  ======================================================= */
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    return;
+  }
+
+  /* =======================================================
+     CHECK USER
+  ======================================================= */
+
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+      },
+    });
+
+  if (!user) {
+    redirect("/users");
+  }
+
+  /* =======================================================
+     DELETE
+  ======================================================= */
 
   await prisma.user.delete({
     where: {
@@ -19,127 +77,71 @@ async function deleteUser(formData: FormData) {
   redirect("/users");
 }
 
-const roleName: Record<string, string> = {
-  ADMIN: "ผู้ดูแลระบบ",
-  STAFF: "เจ้าหน้าที่",
-  VIEWER: "ผู้ใช้งานทั่วไป",
-};
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function UsersPage() {
+  /* =======================================================
+     PERMISSION
+  ======================================================= */
+
   await requireRole("ADMIN");
 
-  const users = await prisma.user.findMany({
-    orderBy: {
-      id: "asc",
-    },
-  });
+  /* =======================================================
+     USERS
+  ======================================================= */
+
+  const users =
+    await prisma.user.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
+      <AppPageHeader
+        icon="👤"
+        title="ผู้ใช้งานระบบ"
+        subtitle="จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ"
+        actions={
+          <AppButton
+            href="/users/create"
+            variant="primary"
+            size="md"
+            icon={
+              <span aria-hidden="true">
+                ＋
+              </span>
+            }
           >
-            👤 ผู้ใช้งานระบบ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            จัดการบัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ
-          </p>
-        </div>
-
-        <Link
-          href="/users/create"
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:shadow-xl
-            sm:px-6
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          + เพิ่มผู้ใช้งาน
-        </Link>
-      </div>
+            เพิ่มผู้ใช้งาน
+          </AppButton>
+        }
+      />
 
       {/* =====================================================
-          Table
+          TABLE
       ===================================================== */}
 
-      <div
+      <AppTableCard
+        title="รายการผู้ใช้งาน"
+        subtitle="บัญชีผู้ใช้งานและสิทธิ์การเข้าถึงระบบ"
+        badge={`${users.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="
           w-full
           min-w-0
-          overflow-hidden
-          rounded-2xl
-          bg-white
-          shadow-xl
         "
       >
         <div
@@ -152,10 +154,17 @@ export default async function UsersPage() {
         >
           <table
             className="
-              min-w-full
+              w-full
+              min-w-[900px]
               border-collapse
+              bg-white
+              text-base
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 {[
@@ -165,225 +174,417 @@ export default async function UsersPage() {
                   "สิทธิ์",
                   "สถานะ",
                   "จัดการ",
-                ].map((title) => (
-                  <th
-                    key={title}
-                    className="
-                      whitespace-nowrap
-                      border
-                      border-slate-900
-                      bg-gradient-to-r
-                      from-slate-800
-                      to-slate-700
-                      px-4
-                      py-4
-                      text-center
-                      text-lg
-                      font-extrabold
-                      !text-white
-                    "
-                  >
-                    {title}
-                  </th>
-                ))}
+                ].map(
+                  (title) => (
+                    <th
+                      key={title}
+                      className="
+                        whitespace-nowrap
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+                        !text-white
+
+                        sm:text-lg
+                      "
+                    >
+                      {title}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
 
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
             <tbody>
               {users.length > 0 ? (
-                users.map((user, index) => (
-                  <tr
-                    key={user.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-bold
-                        text-slate-700
-                      "
-                    >
-                      {index + 1}
-                    </td>
+                users.map(
+                  (
+                    user,
+                    index
+                  ) => (
+                    <tr
+                      key={user.id}
+                      className={`
+                        ${
+                          index % 2 === 0
+                            ? "bg-white"
+                            : "bg-slate-50/60"
+                        }
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                        font-bold
-                        text-slate-800
-                      "
-                    >
-                      {user.username}
-                    </td>
+                        transition-colors
+                        duration-200
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        font-bold
-                        text-slate-800
-                      "
+                        hover:bg-blue-50/70
+                      `}
                     >
-                      {user.fullname}
-                    </td>
+                      {/* =======================================
+                          ORDER
+                      ======================================= */}
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                      "
-                    >
-                      <span
+                      <td
                         className="
-                          rounded-lg
-                          bg-blue-100
-                          px-3
-                          py-1
+                          whitespace-nowrap
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          text-base
                           font-bold
-                          text-blue-700
+                          tabular-nums
+                          !text-slate-900
                         "
                       >
-                        {roleName[user.role] ?? user.role}
-                      </span>
-                    </td>
+                        {(
+                          index + 1
+                        ).toLocaleString(
+                          "th-TH"
+                        )}
+                      </td>
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                        text-center
-                      "
-                    >
-                      {user.active ? (
-                        <span
-                          className="
-                            rounded-lg
-                            bg-emerald-100
-                            px-3
-                            py-1
-                            font-bold
-                            text-emerald-700
-                          "
-                        >
-                          Active
-                        </span>
-                      ) : (
-                        <span
-                          className="
-                            rounded-lg
-                            bg-red-100
-                            px-3
-                            py-1
-                            font-bold
-                            text-red-700
-                          "
-                        >
-                          Inactive
-                        </span>
-                      )}
-                    </td>
+                      {/* =======================================
+                          USERNAME
+                      ======================================= */}
 
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-4
-                        py-3
-                      "
-                    >
-                      <div
+                      <td
                         className="
-                          flex
-                          justify-center
-                          gap-2
+                          whitespace-nowrap
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                          text-base
+                          font-bold
+                          !text-slate-900
                         "
                       >
-                        <Link
-                          href={`/users/${user.id}/edit`}
+                        {user.username}
+                      </td>
+
+                      {/* =======================================
+                          FULLNAME
+                      ======================================= */}
+
+                      <td
+                        className="
+                          min-w-[220px]
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-base
+                          font-bold
+                          !text-slate-900
+                        "
+                      >
+                        {user.fullname}
+                      </td>
+
+                      {/* =======================================
+                          ROLE
+                      ======================================= */}
+
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                        "
+                      >
+                        <span
                           className="
-                            rounded-lg
-                            bg-slate-800
-                            px-4
-                            py-2
+                            inline-flex
+                            items-center
+                            justify-center
+
+                            whitespace-nowrap
+
+                            rounded-full
+
+                            bg-blue-100
+
+                            px-3
+                            py-1.5
+
+                            text-base
                             font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
+                            !text-blue-700
                           "
                         >
-                          แก้ไข
-                        </Link>
+                          {roleName[
+                            user.role
+                          ] ?? user.role}
+                        </span>
+                      </td>
 
-                        <form action={deleteUser}>
-                          <input
-                            type="hidden"
-                            name="id"
-                            value={user.id}
-                          />
+                      {/* =======================================
+                          STATUS
+                      ======================================= */}
 
-                          <button
-                            type="submit"
+                      <td
+                        className="
+                          whitespace-nowrap
+                          border
+                          border-black
+
+                          px-4
+                          py-3.5
+
+                          text-center
+                        "
+                      >
+                        {user.active ? (
+                          <span
                             className="
-                              rounded-lg
-                              bg-red-600
-                              px-4
-                              py-2
+                              inline-flex
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-emerald-100
+
+                              px-3
+                              py-1.5
+
+                              text-base
                               font-extrabold
-                              text-white
-                              shadow
-                              transition
-                              hover:bg-red-700
+                              !text-emerald-700
                             "
                           >
-                            ลบ
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                            Active
+                          </span>
+                        ) : (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+
+                              whitespace-nowrap
+
+                              rounded-full
+
+                              bg-red-100
+
+                              px-3
+                              py-1.5
+
+                              text-base
+                              font-extrabold
+                              !text-red-700
+                            "
+                          >
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+
+                      {/* =======================================
+                          ACTIONS
+                      ======================================= */}
+
+                      <td
+                        className="
+                          min-w-[230px]
+                          whitespace-nowrap
+                          border
+                          border-black
+
+                          px-4
+                          py-3
+
+                          text-center
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                          "
+                        >
+                          {/* =================================
+                              EDIT
+                          ================================= */}
+
+                          <AppButton
+                            href={`/users/${user.id}/edit`}
+                            variant="secondary"
+                            size="sm"
+                            icon={
+                              <span
+                                aria-hidden="true"
+                              >
+                                ✏️
+                              </span>
+                            }
+                          >
+                            แก้ไข
+                          </AppButton>
+
+                          {/* =================================
+                              DELETE
+                          ================================= */}
+
+                          <form
+                            action={
+                              deleteUser
+                            }
+                          >
+                            <input
+                              type="hidden"
+                              name="id"
+                              value={
+                                user.id
+                              }
+                            />
+
+                            <AppButton
+                              type="submit"
+                              variant="danger"
+                              size="sm"
+                              icon={
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  🗑️
+                                </span>
+                              }
+                            >
+                              ลบ
+                            </AppButton>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )
               ) : (
+                /* ===========================================
+                    EMPTY STATE
+                =========================================== */
+
                 <tr>
                   <td
                     colSpan={6}
                     className="
                       border
-                      border-slate-900
-                      py-12
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
                       text-center
-                      text-lg
-                      font-bold
-                      text-slate-500
                     "
                   >
-                    ยังไม่มีผู้ใช้งาน
+                    <div
+                      className="
+                        mx-auto
+                        flex
+                        max-w-md
+                        flex-col
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+                          place-items-center
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        👤
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีผู้ใช้งาน
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีการเพิ่มผู้ใช้งาน
+                        ข้อมูลจะแสดงในตารางนี้
+                      </p>
+
+                      <div className="mt-5">
+                        <AppButton
+                          href="/users/create"
+                          variant="primary"
+                          size="md"
+                          icon={
+                            <span
+                              aria-hidden="true"
+                            >
+                              ＋
+                            </span>
+                          }
+                        >
+                          เพิ่มผู้ใช้งาน
+                        </AppButton>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </AppTableCard>
+    </AppPage>
   );
 }

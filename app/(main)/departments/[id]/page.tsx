@@ -1,14 +1,39 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import { officerTypeText } from "@/lib/officerType";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
+
+type OfficerItem = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  position: string;
+  type: string;
+};
+
+type OfficerTableProps = {
+  officers: OfficerItem[];
+};
+
+/* =========================================================
+   OFFICER PRIORITY
+========================================================= */
 
 const officerPriority = [
   "CIVIL_SERVANT",
@@ -17,369 +42,556 @@ const officerPriority = [
   "OUTSOURCE",
 ];
 
-export default async function DepartmentDetailPage({
-  params,
-}: Props) {
-  const { id } = await params;
+/* =========================================================
+   SORT OFFICERS
+========================================================= */
 
-  const department = await prisma.department.findUnique({
-    where: {
-      id: Number(id),
-    },
+function sortOfficers(
+  officers: OfficerItem[]
+) {
+  return [...officers].sort(
+    (a, b) => {
+      /* =====================================================
+         HEAD OF SECTION FIRST
+      ===================================================== */
 
-    include: {
-      officers: {
-        orderBy: {
-          firstName: "asc",
-        },
-      },
+      const aHead =
+        a.position?.includes(
+          "หัวหน้ากลุ่ม"
+        )
+          ? 0
+          : 1;
 
-      sections: {
-        include: {
-          officers: {
-            orderBy: {
-              firstName: "asc",
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!department) {
-    notFound();
-  }
-
-  function sortOfficers(officers: any[]) {
-    return [...officers].sort((a, b) => {
-      const aHead = a.position.includes("หัวหน้ากลุ่ม") ? 0 : 1;
-
-      const bHead = b.position.includes("หัวหน้ากลุ่ม") ? 0 : 1;
+      const bHead =
+        b.position?.includes(
+          "หัวหน้ากลุ่ม"
+        )
+          ? 0
+          : 1;
 
       if (aHead !== bHead) {
         return aHead - bHead;
       }
 
-      const aType = officerPriority.indexOf(a.type);
+      /* =====================================================
+         OFFICER TYPE
+      ===================================================== */
 
-      const bType = officerPriority.indexOf(b.type);
+      const aTypeIndex =
+        officerPriority.indexOf(
+          a.type
+        );
+
+      const bTypeIndex =
+        officerPriority.indexOf(
+          b.type
+        );
+
+      const aType =
+        aTypeIndex === -1
+          ? officerPriority.length
+          : aTypeIndex;
+
+      const bType =
+        bTypeIndex === -1
+          ? officerPriority.length
+          : bTypeIndex;
 
       if (aType !== bType) {
         return aType - bType;
       }
 
-      return a.firstName.localeCompare(
-        b.firstName,
+      /* =====================================================
+         NAME
+      ===================================================== */
+
+      const firstNameCompare =
+        a.firstName.localeCompare(
+          b.firstName,
+          "th"
+        );
+
+      if (
+        firstNameCompare !== 0
+      ) {
+        return firstNameCompare;
+      }
+
+      return a.lastName.localeCompare(
+        b.lastName,
         "th"
       );
-    });
-  }
+    }
+  );
+}
 
-  function OfficerTable({
-    officers,
-  }: {
-    officers: any[];
-  }) {
-    return (
+/* =========================================================
+   OFFICER TABLE
+========================================================= */
+
+function OfficerTable({
+  officers,
+}: OfficerTableProps) {
+  const sortedOfficers =
+    sortOfficers(officers);
+
+  return (
+    <AppTableCard
+      className="
+        w-full
+        min-w-0
+      "
+    >
       <div
         className="
           w-full
           min-w-0
-          overflow-hidden
-          rounded-2xl
-          border
-          border-slate-300
-          bg-white
-          shadow-lg
+          overflow-x-auto
+          overscroll-x-contain
         "
       >
-        <div
+        <table
           className="
             w-full
-            min-w-0
-            overflow-x-auto
-            overscroll-x-contain
+            min-w-[850px]
+            border-collapse
+            bg-white
+            text-base
           "
         >
-          <table
-            className="
-              min-w-full
-              border-collapse
-            "
-          >
-            <thead>
-              <tr>
-                {[
-                  "ชื่อ - นามสกุล",
-                  "ตำแหน่ง",
-                  "ประเภทบุคลากร",
-                  "จัดการ",
-                ].map((title) => (
+          {/* =================================================
+              TABLE HEADER
+          ================================================= */}
+
+          <thead>
+            <tr>
+              {[
+                "ชื่อ - นามสกุล",
+                "ตำแหน่ง",
+                "ประเภทบุคลากร",
+                "จัดการ",
+              ].map(
+                (title) => (
                   <th
                     key={title}
                     className="
+                      whitespace-nowrap
+
                       border
-                      border-slate-900
+                      border-black
+
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-                      px-5
+
+                      px-4
                       py-4
+
                       text-center
-                      text-lg
+                      text-base
                       font-extrabold
-                      text-white
+                      !text-white
+
+                      sm:text-lg
                     "
                   >
                     {title}
                   </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {sortOfficers(officers).map(
-                (officer: any) => (
-                  <tr
-                    key={officer.id}
-                    className="
-                      text-slate-900
-                      transition
-                      hover:bg-blue-50
-                    "
-                  >
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-5
-                        py-3
-                        font-bold
-                        text-slate-800
-                      "
-                    >
-                      {officer.firstName}{" "}
-                      {officer.lastName}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-5
-                        py-3
-                        font-bold
-                        text-slate-800
-                      "
-                    >
-                      {officer.position}
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-5
-                        py-3
-                        text-center
-                      "
-                    >
-                      <span
-                        className="
-                          rounded-lg
-                          bg-emerald-100
-                          px-3
-                          py-1
-                          font-bold
-                          text-emerald-700
-                        "
-                      >
-                        {officerTypeText(
-                          officer.type
-                        )}
-                      </span>
-                    </td>
-
-                    <td
-                      className="
-                        border
-                        border-slate-900
-                        px-5
-                        py-3
-                      "
-                    >
-                      <div
-                        className="
-                          flex
-                          justify-center
-                          gap-2
-                        "
-                      >
-                        <Link
-                          href={`/officers/${officer.id}/edit`}
-                          className="
-                            rounded-lg
-                            bg-slate-800
-                            px-4
-                            py-2
-                            font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-slate-700
-                          "
-                        >
-                          แก้ไข
-                        </Link>
-
-                        <Link
-                          href={`/officers/${officer.id}/delete`}
-                          className="
-                            rounded-lg
-                            bg-red-600
-                            px-4
-                            py-2
-                            font-extrabold
-                            text-white
-                            shadow
-                            transition
-                            hover:bg-red-700
-                          "
-                        >
-                          ลบ
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
                 )
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
+            </tr>
+          </thead>
 
+          {/* =================================================
+              TABLE BODY
+          ================================================= */}
+
+          <tbody>
+            {sortedOfficers.map(
+              (
+                officer,
+                index
+              ) => (
+                <tr
+                  key={officer.id}
+                  className={`
+                    ${
+                      index % 2 === 0
+                        ? "bg-white"
+                        : "bg-slate-50/60"
+                    }
+
+                    transition-colors
+                    duration-200
+
+                    hover:bg-blue-50/70
+                  `}
+                >
+                  {/* =========================================
+                      NAME
+                  ========================================= */}
+
+                  <td
+                    className="
+                      border
+                      border-black
+
+                      px-4
+                      py-3.5
+
+                      text-base
+                      font-extrabold
+                      !text-slate-900
+                    "
+                  >
+                    {officer.firstName}{" "}
+                    {officer.lastName}
+                  </td>
+
+                  {/* =========================================
+                      POSITION
+                  ========================================= */}
+
+                  <td
+                    className="
+                      border
+                      border-black
+
+                      px-4
+                      py-3.5
+
+                      text-base
+                      font-bold
+                      !text-slate-900
+                    "
+                  >
+                    {officer.position ||
+                      "-"}
+                  </td>
+
+                  {/* =========================================
+                      OFFICER TYPE
+                  ========================================= */}
+
+                  <td
+                    className="
+                      whitespace-nowrap
+
+                      border
+                      border-black
+
+                      px-4
+                      py-3.5
+
+                      text-center
+                    "
+                  >
+                    <span
+                      className="
+                        inline-flex
+                        items-center
+                        justify-center
+
+                        whitespace-nowrap
+
+                        rounded-full
+
+                        bg-emerald-100
+
+                        px-3
+                        py-1.5
+
+                        text-base
+                        font-extrabold
+                        !text-emerald-800
+                      "
+                    >
+                      {officerTypeText(
+                        officer.type as any
+                      )}
+                    </span>
+                  </td>
+
+                  {/* =========================================
+                      ACTIONS
+                  ========================================= */}
+
+                  <td
+                    className="
+                      whitespace-nowrap
+
+                      border
+                      border-black
+
+                      px-4
+                      py-3
+
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                      "
+                    >
+                      <AppButton
+                        href={`/officers/${officer.id}/edit`}
+                        variant="secondary"
+                        size="sm"
+                        icon={
+                          <span
+                            aria-hidden="true"
+                          >
+                            ✏️
+                          </span>
+                        }
+                      >
+                        แก้ไข
+                      </AppButton>
+
+                      <AppButton
+                        href={`/officers/${officer.id}/delete`}
+                        variant="danger"
+                        size="sm"
+                        icon={
+                          <span
+                            aria-hidden="true"
+                          >
+                            🗑️
+                          </span>
+                        }
+                      >
+                        ลบ
+                      </AppButton>
+                    </div>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
+    </AppTableCard>
+  );
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+function EmptyOfficerState() {
   return (
     <div
       className="
+        flex
+        min-h-[180px]
         w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
+        flex-col
+        items-center
+        justify-center
+
+        rounded-[18px]
+
+        border
+        border-dashed
+        border-slate-300
+
+        bg-slate-50/70
+
+        px-6
+        py-10
+
+        text-center
       "
     >
-      {/* =====================================================
-          Header
-      ===================================================== */}
-
       <div
         className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
+          grid
+          h-14
+          w-14
+          place-items-center
+
+          text-3xl
         "
+        aria-hidden="true"
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            🏢 {department.name}
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            รายละเอียดหน่วยงานและรายชื่อเจ้าหน้าที่
-          </p>
-        </div>
-
-        <Link
-          href="/departments"
-          className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-4
-            py-2.5
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:from-emerald-700
-            hover:to-green-600
-            sm:px-5
-            sm:py-3
-            sm:text-lg
-          "
-        >
-          ← กลับ
-        </Link>
+        👤
       </div>
 
-      {department.sections.length === 0 ? (
-        <div
+      <p
+        className="
+          mt-3
+          text-lg
+          font-extrabold
+          !text-slate-900
+        "
+      >
+        ยังไม่มีเจ้าหน้าที่
+      </p>
+
+      <p
+        className="
+          mt-1
+          text-sm
+          font-semibold
+          !text-slate-500
+        "
+      >
+        เมื่อเพิ่มรายชื่อเจ้าหน้าที่
+        ข้อมูลจะแสดงในตารางนี้
+      </p>
+    </div>
+  );
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+export default async function DepartmentDetailPage({
+  params,
+}: Props) {
+  /* =======================================================
+     PARAMS
+  ======================================================= */
+
+  const { id } =
+    await params;
+
+  const departmentId =
+    Number(id);
+
+  if (
+    !Number.isInteger(
+      departmentId
+    ) ||
+    departmentId <= 0
+  ) {
+    notFound();
+  }
+
+  /* =======================================================
+     DEPARTMENT
+  ======================================================= */
+
+  const department =
+    await prisma.department.findUnique({
+      where: {
+        id: departmentId,
+      },
+
+      include: {
+        officers: {
+          orderBy: [
+            {
+              firstName:
+                "asc",
+            },
+            {
+              lastName:
+                "asc",
+            },
+          ],
+        },
+
+        sections: {
+          include: {
+            officers: {
+              orderBy: [
+                {
+                  firstName:
+                    "asc",
+                },
+                {
+                  lastName:
+                    "asc",
+                },
+              ],
+            },
+          },
+
+          orderBy: {
+            id: "asc",
+          },
+        },
+      },
+    });
+
+  if (!department) {
+    notFound();
+  }
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
+  return (
+    <AppPage>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <AppPageHeader
+        icon="🏢"
+        title={
+          department.name
+        }
+        subtitle="รายละเอียดหน่วยงานและรายชื่อเจ้าหน้าที่"
+        actions={
+          <AppButton
+            href="/departments"
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          NO SECTION
+      ===================================================== */}
+
+      {department.sections
+        .length === 0 ? (
+        <AppCard
           className="
-            rounded-2xl
-            border
-            border-slate-200
-            bg-white
-            p-6
-            shadow-xl
+            w-full
+            min-w-0
           "
         >
+          {/* =================================================
+              SECTION HEADER
+          ================================================= */}
+
           <div
             className="
               mb-6
+
               flex
-              items-center
-              justify-between
+              flex-col
+              gap-4
+
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
             "
           >
-            <div>
+            <div
+              className="
+                min-w-0
+              "
+            >
               <h2
                 className="
-                  text-3xl
+                  text-xl
                   font-extrabold
-                  text-slate-800
+                  !text-slate-900
+
+                  sm:text-2xl
                 "
               >
                 รายชื่อเจ้าหน้าที่
@@ -387,146 +599,187 @@ export default async function DepartmentDetailPage({
 
               <p
                 className="
-                  mt-2
-                  text-xl
+                  mt-1
+
+                  text-sm
                   font-semibold
-                  text-slate-500
+                  !text-slate-500
+
+                  sm:text-base
                 "
               >
                 จำนวนเจ้าหน้าที่{" "}
-                {department.officers.length} คน
+                <span
+                  className="
+                    font-extrabold
+                    !text-slate-900
+                  "
+                >
+                  {department.officers.length.toLocaleString(
+                    "th-TH"
+                  )}
+                </span>{" "}
+                คน
               </p>
             </div>
 
-            <Link
+            <AppButton
               href={`/departments/${department.id}/officers/create`}
-              className="
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                to-green-500
-                px-5
-                py-3
-                text-lg
-                font-extrabold
-                text-white
-                shadow-lg
-                transition
-                hover:scale-105
-              "
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  ＋
+                </span>
+              }
             >
-              + เพิ่มรายชื่อ
-            </Link>
+              เพิ่มรายชื่อ
+            </AppButton>
           </div>
 
-          {department.officers.length === 0 ? (
-            <div
-              className="
-                rounded-xl
-                bg-slate-50
-                p-10
-                text-center
-                text-xl
-                font-bold
-                text-slate-500
-              "
-            >
-              ยังไม่มีเจ้าหน้าที่
-            </div>
+          {/* =================================================
+              OFFICERS
+          ================================================= */}
+
+          {department.officers
+            .length === 0 ? (
+            <EmptyOfficerState />
           ) : (
             <OfficerTable
-              officers={department.officers}
+              officers={
+                department.officers
+              }
             />
           )}
-        </div>
+        </AppCard>
       ) : (
-        department.sections.map((section: any) => (
-          <div
-            key={section.id}
-            className="
-              rounded-2xl
-              border
-              border-slate-200
-              bg-white
-              p-6
-              shadow-xl
-            "
-          >
-            <div
-              className="
-                mb-6
-                flex
-                items-center
-                justify-between
-              "
-            >
-              <div>
-                <h2
-                  className="
-                    text-3xl
-                    font-extrabold
-                    text-slate-800
-                  "
-                >
-                  {section.name}
-                </h2>
+        /* ===================================================
+           SECTIONS
+        =================================================== */
 
-                <p
-                  className="
-                    mt-2
-                    text-xl
-                    font-semibold
-                    text-slate-500
-                  "
-                >
-                  จำนวนเจ้าหน้าที่{" "}
-                  {section.officers.length} คน
-                </p>
-              </div>
-
-              <Link
-                href={`/sections/${section.id}/officers/create`}
+        <div
+          className="
+            space-y-4
+            sm:space-y-6
+          "
+        >
+          {department.sections.map(
+            (section) => (
+              <AppCard
+                key={
+                  section.id
+                }
                 className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-emerald-600
-                  to-green-500
-                  px-5
-                  py-3
-                  text-lg
-                  font-extrabold
-                  text-white
-                  shadow-lg
-                  transition
-                  hover:scale-105
+                  w-full
+                  min-w-0
                 "
               >
-                + เพิ่มรายชื่อ
-              </Link>
-            </div>
+                {/* ===========================================
+                    SECTION HEADER
+                =========================================== */}
 
-            {section.officers.length === 0 ? (
-              <div
-                className="
-                  rounded-xl
-                  bg-slate-50
-                  p-10
-                  text-center
-                  text-xl
-                  font-bold
-                  text-slate-500
-                "
-              >
-                ยังไม่มีเจ้าหน้าที่
-              </div>
-            ) : (
-              <OfficerTable
-                officers={section.officers}
-              />
-            )}
-          </div>
-        ))
+                <div
+                  className="
+                    mb-6
+
+                    flex
+                    flex-col
+                    gap-4
+
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                  "
+                >
+                  <div
+                    className="
+                      min-w-0
+                    "
+                  >
+                    <h2
+                      className="
+                        break-words
+
+                        text-xl
+                        font-extrabold
+                        !text-slate-900
+
+                        sm:text-2xl
+                      "
+                    >
+                      {
+                        section.name
+                      }
+                    </h2>
+
+                    <p
+                      className="
+                        mt-1
+
+                        text-sm
+                        font-semibold
+                        !text-slate-500
+
+                        sm:text-base
+                      "
+                    >
+                      จำนวนเจ้าหน้าที่{" "}
+                      <span
+                        className="
+                          font-extrabold
+                          !text-slate-900
+                        "
+                      >
+                        {section.officers.length.toLocaleString(
+                          "th-TH"
+                        )}
+                      </span>{" "}
+                      คน
+                    </p>
+                  </div>
+
+                  {/* =========================================
+                      ADD OFFICER
+                  ========================================= */}
+
+                  <AppButton
+                    href={`/sections/${section.id}/officers/create`}
+                    variant="success"
+                    size="md"
+                    icon={
+                      <span
+                        aria-hidden="true"
+                      >
+                        ＋
+                      </span>
+                    }
+                  >
+                    เพิ่มรายชื่อ
+                  </AppButton>
+                </div>
+
+                {/* ===========================================
+                    OFFICERS
+                =========================================== */}
+
+                {section.officers
+                  .length ===
+                0 ? (
+                  <EmptyOfficerState />
+                ) : (
+                  <OfficerTable
+                    officers={
+                      section.officers
+                    }
+                  />
+                )}
+              </AppCard>
+            )
+          )}
+        </div>
       )}
-    </div>
+    </AppPage>
   );
 }

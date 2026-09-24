@@ -1,307 +1,397 @@
-import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
-async function createUser(formData: FormData) {
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppInfoCard from "@/components/AppInfoCard";
+
+export const dynamic = "force-dynamic";
+
+/* =========================================================
+   CREATE USER
+========================================================= */
+
+async function createUser(
+  formData: FormData
+) {
   "use server";
+
+  /* =======================================================
+     PERMISSION
+  ======================================================= */
 
   await requireRole("ADMIN");
 
-  const username = formData.get("username") as string;
-  const fullname = formData.get("fullname") as string;
-  const password = formData.get("password") as string;
-  const role = formData.get("role") as
-    | "ADMIN"
-    | "STAFF"
-    | "VIEWER";
+  /* =======================================================
+     FORM DATA
+  ======================================================= */
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const username =
+    String(
+      formData.get("username") ??
+        ""
+    ).trim();
+
+  const fullname =
+    String(
+      formData.get("fullname") ??
+        ""
+    ).trim();
+
+  const password =
+    String(
+      formData.get("password") ??
+        ""
+    );
+
+  const roleValue =
+    String(
+      formData.get("role") ??
+        "STAFF"
+    );
+
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
+
+  if (
+    !username ||
+    !fullname ||
+    !password
+  ) {
+    return;
+  }
+
+  const validRoles = [
+    "ADMIN",
+    "STAFF",
+    "VIEWER",
+  ] as const;
+
+  type UserRole =
+    (typeof validRoles)[number];
+
+  if (
+    !validRoles.includes(
+      roleValue as UserRole
+    )
+  ) {
+    return;
+  }
+
+  const role =
+    roleValue as UserRole;
+
+  /* =======================================================
+     PASSWORD
+  ======================================================= */
+
+  const hashedPassword =
+    await bcrypt.hash(
+      password,
+      10
+    );
+
+  /* =======================================================
+     CREATE
+  ======================================================= */
 
   await prisma.user.create({
     data: {
       username,
       fullname,
-      password: hashedPassword,
+      password:
+        hashedPassword,
       role,
     },
   });
 
+  /* =======================================================
+     REDIRECT
+  ======================================================= */
+
   redirect("/users");
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function CreateUserPage() {
+  /* =======================================================
+     PERMISSION
+  ======================================================= */
+
   await requireRole("ADMIN");
 
+  /* =======================================================
+     SHARED CLASSES
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+
+    text-sm
+    font-extrabold
+    !text-slate-700
+
+    sm:text-base
+  `;
+
+  const inputClassName = `
+    min-h-[50px]
+    w-full
+    min-w-0
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+  `;
+
+  /* =======================================================
+     UI
+  ======================================================= */
+
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
+      <AppPageHeader
+        icon="👤"
+        title="เพิ่มผู้ใช้งานระบบ"
+        subtitle="สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ"
+        actions={
+          <AppButton
+            href="/users"
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
+      <form
+        action={createUser}
         className="
-          flex
-          min-h-[110px]
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
         "
       >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            👤 เพิ่มผู้ใช้งานระบบ
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            สร้างบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าใช้งานระบบ
-          </p>
-        </div>
-
-        <Link
-          href="/users"
+        <AppCard
           className="
-            shrink-0
-            rounded-xl
-            bg-gradient-to-r
-            from-emerald-600
-            to-green-500
-            px-3
-            py-2
-            text-center
-            text-sm
-            font-extrabold
-            !text-white
-            shadow-lg
-            transition
-            hover:scale-105
-            hover:shadow-xl
-            sm:px-5
-            sm:py-3
-            sm:text-lg
+            mx-auto
+            w-full
+            max-w-4xl
           "
         >
-          ← กลับ
-        </Link>
-      </div>
+          {/* =================================================
+              FORM HEADER
+          ================================================= */}
 
-      {/* =====================================================
-          Form
-      ===================================================== */}
+          <div className="mb-6">
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-slate-900
 
-      <div className="flex w-full justify-center py-2 sm:py-4">
-        <div className="w-full max-w-4xl">
-          <form
-            action={createUser}
+                sm:text-xl
+              "
+            >
+              ข้อมูลผู้ใช้งาน
+            </h2>
+
+            <p
+              className="
+                mt-1
+
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-slate-500
+              "
+            >
+              กรอกข้อมูลบัญชีผู้ใช้งานและกำหนดสิทธิ์สำหรับเข้าใช้งานระบบ
+            </p>
+          </div>
+
+          {/* =================================================
+              FIELDS
+          ================================================= */}
+
+          <div
             className="
-              space-y-6
-              rounded-3xl
-              border
-              border-slate-700
-              bg-gradient-to-br
-              from-slate-950
-              via-slate-900
-              to-slate-800
-              p-6
-              text-white
-              shadow-2xl
-              sm:p-8
+              grid
+              grid-cols-1
+              gap-4
             "
           >
-            {/* Username */}
+            {/* ===============================================
+                USERNAME
+            =============================================== */}
 
-            <div>
+            <AppInfoCard>
               <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
-                "
+                htmlFor="username"
+                className={
+                  labelClassName
+                }
               >
-                Username
+                Username{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
               </label>
 
               <input
+                id="username"
                 type="text"
                 name="username"
                 required
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-lg
-                  font-bold
-                  text-white
-                  outline-none
-                  transition
-                  placeholder:text-slate-400
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-900/40
-                "
+                autoComplete="username"
+                placeholder="ระบุ Username"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
 
-            {/* ชื่อ-นามสกุล */}
+            {/* ===============================================
+                FULLNAME
+            =============================================== */}
 
-            <div>
+            <AppInfoCard>
               <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
-                "
+                htmlFor="fullname"
+                className={
+                  labelClassName
+                }
               >
-                ชื่อ-นามสกุล
+                ชื่อ-นามสกุล{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
               </label>
 
               <input
+                id="fullname"
                 type="text"
                 name="fullname"
                 required
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-lg
-                  font-bold
-                  text-white
-                  outline-none
-                  transition
-                  placeholder:text-slate-400
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-900/40
-                "
+                autoComplete="name"
+                placeholder="ระบุชื่อ-นามสกุล"
+                className={
+                  inputClassName
+                }
               />
-            </div>
+            </AppInfoCard>
 
-            {/* Password */}
+            {/* ===============================================
+                PASSWORD
+            =============================================== */}
 
-            <div>
+            <AppInfoCard>
               <label
-                className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
-                "
+                htmlFor="password"
+                className={
+                  labelClassName
+                }
               >
-                Password
+                Password{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
               </label>
 
               <input
+                id="password"
                 type="password"
                 name="password"
                 required
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-lg
-                  font-bold
-                  text-white
-                  outline-none
-                  transition
-                  placeholder:text-slate-400
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-900/40
-                "
+                autoComplete="new-password"
+                placeholder="ระบุ Password"
+                className={
+                  inputClassName
+                }
               />
-            </div>
 
-            {/* สิทธิ์การใช้งาน */}
-
-            <div>
-              <label
+              <p
                 className="
-                  mb-2
-                  block
-                  text-lg
-                  font-extrabold
-                  text-white
+                  mt-2
+
+                  text-xs
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-500
                 "
               >
-                สิทธิ์การใช้งาน
+                กำหนดรหัสผ่านสำหรับใช้เข้าสู่ระบบ
+              </p>
+            </AppInfoCard>
+
+            {/* ===============================================
+                ROLE
+            =============================================== */}
+
+            <AppInfoCard>
+              <label
+                htmlFor="role"
+                className={
+                  labelClassName
+                }
+              >
+                สิทธิ์การใช้งาน{" "}
+                <span className="!text-red-500">
+                  *
+                </span>
               </label>
 
               <select
+                id="role"
                 name="role"
+                required
                 defaultValue="STAFF"
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-600
-                  bg-slate-800
-                  p-3
-                  text-lg
-                  font-bold
-                  text-white
-                  outline-none
-                  transition
-                  focus:border-cyan-400
-                  focus:ring-4
-                  focus:ring-cyan-900/40
-                "
+                className={
+                  inputClassName
+                }
               >
                 <option value="STAFF">
                   STAFF
@@ -315,72 +405,77 @@ export default async function CreateUserPage() {
                   VIEWER
                 </option>
               </select>
-            </div>
 
-            {/* ปุ่ม */}
+              <p
+                className="
+                  mt-2
 
-            <div
-              className="
-                flex
-                flex-col-reverse
-                gap-3
-                border-t
-                border-slate-700
-                pt-5
-                sm:flex-row
-                sm:justify-end
-              "
+                  text-xs
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-500
+                "
+              >
+                กำหนดระดับสิทธิ์ของผู้ใช้งานในการเข้าถึงระบบ
+              </p>
+            </AppInfoCard>
+          </div>
+
+          {/* =================================================
+              ACTIONS
+          ================================================= */}
+
+          <div
+            className="
+              mt-6
+
+              flex
+              flex-col-reverse
+              gap-3
+
+              border-t
+              border-slate-200
+
+              pt-5
+
+              sm:flex-row
+              sm:items-center
+              sm:justify-end
+            "
+          >
+            {/* ===============================================
+                CANCEL
+            =============================================== */}
+
+            <AppButton
+              href="/users"
+              variant="secondary"
+              size="md"
             >
-              <Link
-                href="/users"
-                className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  rounded-xl
-                  bg-slate-700
-                  px-6
-                  py-3
-                  text-base
-                  font-extrabold
-                  !text-white
-                  shadow-lg
-                  transition
-                  hover:bg-slate-800
-                  sm:px-8
-                  sm:text-lg
-                "
-              >
-                ยกเลิก
-              </Link>
+              ยกเลิก
+            </AppButton>
 
-              <button
-                type="submit"
-                className="
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-emerald-600
-                  to-green-500
-                  px-6
-                  py-3
-                  text-base
-                  font-extrabold
-                  !text-white
-                  shadow-lg
-                  transition
-                  hover:scale-105
-                  hover:from-emerald-700
-                  hover:to-green-600
-                  sm:px-8
-                  sm:text-lg
-                "
-              >
-                💾 บันทึก
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+            {/* ===============================================
+                SAVE
+            =============================================== */}
+
+            <AppButton
+              type="submit"
+              variant="success"
+              size="md"
+              icon={
+                <span
+                  aria-hidden="true"
+                >
+                  💾
+                </span>
+              }
+            >
+              บันทึก
+            </AppButton>
+          </div>
+        </AppCard>
+      </form>
+    </AppPage>
   );
 }

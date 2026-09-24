@@ -1,228 +1,296 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+
+export const dynamic = "force-dynamic";
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function DepartmentsPage() {
-  const departments = await prisma.department.findMany({
-    orderBy: {
-      id: "asc",
-    },
-  });
+  /* =======================================================
+     DEPARTMENTS
+  ======================================================= */
+
+  const departments =
+    await prisma.department.findMany({
+      orderBy: {
+        id: "asc",
+      },
+
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div
-      className="
-        w-full
-        min-w-0
-        space-y-4
-        overflow-x-hidden
-        sm:space-y-6
-      "
-    >
+    <AppPage>
       {/* =====================================================
-          Header
+          HEADER
       ===================================================== */}
 
-      <div
-        className="
-          flex
-          min-h-[110px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-          rounded-2xl
-          bg-gradient-to-r
-          from-slate-950
-          via-slate-800
-          to-slate-700
-          px-3
-          py-4
-          text-white
-          shadow-xl
-          sm:min-h-[140px]
-          sm:px-8
-          sm:py-6
-        "
-      >
-        <div className="min-w-0">
-          <h1
-            className="
-              break-words
-              text-2xl
-              font-extrabold
-              leading-tight
-              !text-white
-              sm:text-3xl
-            "
-          >
-            🏢 หน่วยงาน
-          </h1>
-
-          <p
-            className="
-              mt-2
-              break-words
-              text-sm
-              font-semibold
-              leading-tight
-              !text-slate-200
-              sm:mt-3
-              sm:text-base
-            "
-          >
-            เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        icon="🏢"
+        title="หน่วยงาน"
+        subtitle="เลือกหน่วยงานเพื่อดูข้อมูลเจ้าหน้าที่และรายการที่เกี่ยวข้อง"
+      />
 
       {/* =====================================================
-          Department Cards
+          DEPARTMENT LIST
       ===================================================== */}
 
-      <div
-        className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-      >
-        {departments.map((department: any) => (
-          <Link
-            key={department.id}
-            href={`/departments/${department.id}`}
-            className="
-              group
-              overflow-hidden
-              rounded-2xl
-              border
-              border-slate-300
-              bg-white
-              shadow-lg
-              transition-all
-              duration-300
-              hover:-translate-y-1
-              hover:shadow-2xl
-            "
-          >
-            {/* Top Bar */}
+      {departments.length > 0 ? (
+        <div
+          className="
+            grid
+            w-full
+            min-w-0
+            grid-cols-1
+            gap-5
 
-            <div
-              className="
-                h-2
-                bg-gradient-to-r
-                from-slate-700
-                to-slate-900
-              "
-            />
-
-            <div
-              className="
-                flex
-                min-h-[230px]
-                flex-col
-                items-center
-                gap-5
-                p-6
-                text-center
-              "
-            >
-              {/* Icon */}
-
-              <div
+            md:grid-cols-2
+            xl:grid-cols-3
+          "
+        >
+          {departments.map(
+            (department) => (
+              <AppCard
+                key={department.id}
                 className="
+                  group
+                  relative
                   flex
-                  h-16
-                  w-16
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-slate-100
-                  text-4xl
-                  shadow-md
-                  transition
-                  duration-300
-                  group-hover:scale-110
+                  min-h-[250px]
+                  w-full
+                  min-w-0
+                  flex-col
+                  overflow-hidden
+                  !p-0
                 "
               >
-                🏢
-              </div>
+                {/* ===========================================
+                    TOP BAR
+                =========================================== */}
 
-              {/* Name */}
-
-              <div>
-                <h2
+                <div
                   className="
-                    mt-3
-                    text-xl
-                    font-extrabold
-                    text-slate-900
+                    h-2
+                    w-full
+                    shrink-0
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+                  "
+                />
+
+                {/* ===========================================
+                    CONTENT
+                =========================================== */}
+
+                <div
+                  className="
+                    flex
+                    flex-1
+                    flex-col
+                    items-center
+                    justify-between
+                    gap-5
+
+                    p-6
+                    text-center
                   "
                 >
-                  {department.name}
-                </h2>
+                  {/* =========================================
+                      INFORMATION
+                  ========================================= */}
 
-                <p
-                  className="
-                    mt-2
-                    text-lg
-                    font-semibold
-                    text-slate-600
-                  "
-                >
-                  คลิกเพื่อดูรายชื่อเจ้าหน้าที่
-                </p>
-              </div>
+                  <div
+                    className="
+                      flex
+                      w-full
+                      min-w-0
+                      flex-col
+                      items-center
+                    "
+                  >
+                    {/* ICON */}
 
-              {/* Button */}
+                    <div
+                      className="
+                        grid
+                        h-16
+                        w-16
+                        shrink-0
+                        place-items-center
 
-              <span
-                className="
-                  mt-3
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-slate-800
-                  to-slate-950
-                  px-8
-                  py-3
-                  text-lg
-                  font-extrabold
-                  text-white
-                  shadow-lg
-                  transition
-                  group-hover:scale-105
-                "
-              >
-                เปิด
-              </span>
-            </div>
-          </Link>
-        ))}
+                        rounded-2xl
 
-        {departments.length === 0 && (
+                        border
+                        border-slate-200
+
+                        bg-slate-50
+
+                        text-4xl
+
+                        shadow-sm
+
+                        transition-transform
+                        duration-200
+
+                        group-hover:scale-105
+                      "
+                      aria-hidden="true"
+                    >
+                      🏢
+                    </div>
+
+                    {/* NAME */}
+
+                    <h2
+                      className="
+                        mt-5
+                        w-full
+                        break-words
+
+                        text-xl
+                        font-extrabold
+                        leading-relaxed
+                        !text-slate-900
+                      "
+                    >
+                      {department.name}
+                    </h2>
+
+                    {/* DESCRIPTION */}
+
+                    <p
+                      className="
+                        mt-2
+
+                        text-base
+                        font-semibold
+                        leading-relaxed
+                        !text-slate-500
+                      "
+                    >
+                      คลิกเพื่อดูรายชื่อเจ้าหน้าที่
+                    </p>
+                  </div>
+
+                  {/* =========================================
+                      ACTION
+                  ========================================= */}
+
+                  <div
+                    className="
+                      mt-auto
+                      flex
+                      w-full
+                      justify-center
+                      pt-2
+                    "
+                  >
+                    <AppButton
+                      href={`/departments/${department.id}`}
+                      variant="primary"
+                      size="md"
+                    >
+                      เปิด
+                    </AppButton>
+                  </div>
+                </div>
+              </AppCard>
+            )
+          )}
+        </div>
+      ) : (
+        /* ===================================================
+            EMPTY STATE
+        =================================================== */
+
+        <AppCard>
           <div
             className="
-              col-span-full
-              rounded-2xl
-              border
-              border-slate-300
-              bg-white
-              p-12
+              flex
+              min-h-[260px]
+              w-full
+              flex-col
+              items-center
+              justify-center
+
+              px-6
+              py-12
+
               text-center
-              text-xl
-              font-semibold
-              text-slate-500
-              shadow-lg
             "
           >
-            ยังไม่มีข้อมูลหน่วยงาน
+            {/* ICON */}
+
+            <div
+              className="
+                grid
+                h-16
+                w-16
+                place-items-center
+
+                rounded-2xl
+
+                border
+                border-slate-200
+
+                bg-slate-50
+
+                text-3xl
+
+                shadow-sm
+              "
+              aria-hidden="true"
+            >
+              🏢
+            </div>
+
+            {/* TITLE */}
+
+            <h2
+              className="
+                mt-4
+
+                text-lg
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              ยังไม่มีข้อมูลหน่วยงาน
+            </h2>
+
+            {/* DESCRIPTION */}
+
+            <p
+              className="
+                mt-2
+
+                text-sm
+                font-semibold
+                leading-relaxed
+                !text-slate-500
+              "
+            >
+              เมื่อมีข้อมูลหน่วยงาน
+              รายการจะแสดงในหน้านี้
+            </p>
           </div>
-        )}
-      </div>
-    </div>
+        </AppCard>
+      )}
+    </AppPage>
   );
 }
