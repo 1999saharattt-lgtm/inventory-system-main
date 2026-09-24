@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import Link from "next/link";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -891,7 +890,7 @@ export default async function AssetCategoryPage({
                           transition-colors
                           duration-200
 
-                          hover:bg-blue-50/70
+                          hover:bg-emerald-50/70
                         `}
                       >
                         {/* ===================================
@@ -1161,7 +1160,9 @@ export default async function AssetCategoryPage({
                         </td>
 
                         {/* ===================================
-                            DETAIL
+                            DETAIL / OPEN
+                            AppButton ตัวกลาง
+                            สีเขียวกรมอนามัย
                         =================================== */}
 
                         <td
@@ -1175,56 +1176,31 @@ export default async function AssetCategoryPage({
                             text-center
                           "
                         >
-                          <Link
-                            href={
-                              detailHref
-                            }
+                          <div
                             className="
-                              inline-flex
-                              h-10
+                              flex
                               w-full
-                              max-w-[105px]
                               items-center
                               justify-center
-
-                              whitespace-nowrap
-
-                              rounded-xl
-
-                              bg-gradient-to-b
-                              from-blue-500
-                              via-blue-600
-                              to-blue-700
-
-                              px-3
-
-                              text-sm
-                              font-extrabold
-                              !text-white
-
-                              shadow-lg
-                              shadow-blue-500/20
-
-                              ring-1
-                              ring-inset
-                              ring-blue-400/50
-
-                              transition-all
-                              duration-200
-
-                              hover:-translate-y-0.5
-                              hover:from-blue-400
-                              hover:via-blue-600
-                              hover:to-blue-700
-                              hover:shadow-xl
-                              hover:shadow-blue-500/30
-
-                              active:translate-y-0
-                              active:scale-[0.98]
                             "
                           >
-                            เปิด
-                          </Link>
+                            <AppButton
+                              href={
+                                detailHref
+                              }
+                              variant="primary"
+                              size="sm"
+                              className="
+                                !h-10
+                                !min-w-0
+                                w-full
+                                max-w-[105px]
+                                !px-3
+                              "
+                            >
+                              เปิด
+                            </AppButton>
+                          </div>
                         </td>
 
                         {/* ===================================
@@ -1255,7 +1231,6 @@ export default async function AssetCategoryPage({
                             >
                               {/* =============================
                                   EDIT
-                                  ใช้ AppButton ตัวกลาง
                                   สีเขียวกรมอนามัย
                               ============================= */}
 
@@ -1284,6 +1259,7 @@ export default async function AssetCategoryPage({
 
                               {/* =============================
                                   DELETE
+                                  สีแดง
                               ============================= */}
 
                               <form
