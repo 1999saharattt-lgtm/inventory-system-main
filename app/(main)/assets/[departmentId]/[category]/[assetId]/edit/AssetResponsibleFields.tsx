@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 /* =========================================================
    TYPES
-   ========================================================= */
-
-type Section = {
-  id: number;
-  name: string;
-};
+========================================================= */
 
 type Officer = {
   id: number;
@@ -19,322 +19,498 @@ type Officer = {
   sectionId: number | null;
 };
 
+type Section = {
+  id: number;
+  name: string;
+};
+
 type Props = {
   sections: Section[];
   officers: Officer[];
 
-  initialSectionId: number | null;
-  initialOfficerId: number | null;
+  initialSectionId?: number | null;
+  initialOfficerId?: number | null;
 
   departmentName: string;
   departmentId: number;
 };
 
 /* =========================================================
+   NORMALIZE SEARCH
+========================================================= */
+
+function normalizeSearch(
+  value: string
+) {
+  return value
+    .trim()
+    .toLocaleLowerCase("th-TH");
+}
+
+/* =========================================================
    COMPONENT
-   ========================================================= */
+========================================================= */
 
 export default function AssetResponsibleFields({
   sections,
   officers,
-  initialSectionId,
-  initialOfficerId,
+  initialSectionId = null,
+  initialOfficerId = null,
   departmentName,
   departmentId,
 }: Props) {
   /* =======================================================
-     ตรวจสอบกลุ่มงานเดิม
-     ======================================================= */
+     VALUES
+  ======================================================= */
 
-  const validInitialSectionId = useMemo(() => {
-    if (initialSectionId === null) {
-      return null;
-    }
-
-    const exists = sections.some(
-      (section) => section.id === initialSectionId
+  const [sectionId, setSectionId] =
+    useState<string>(
+      initialSectionId
+        ? String(initialSectionId)
+        : ""
     );
 
-    return exists ? initialSectionId : null;
-  }, [sections, initialSectionId]);
-
-  /* =======================================================
-     ตรวจสอบ Officer เดิม
-     ======================================================= */
-
-  const initialOfficer = useMemo(() => {
-    if (initialOfficerId === null) {
-      return null;
-    }
-
-    return (
-      officers.find(
-        (officer) => officer.id === initialOfficerId
-      ) ?? null
+  const [officerId, setOfficerId] =
+    useState<string>(
+      initialOfficerId
+        ? String(initialOfficerId)
+        : ""
     );
-  }, [officers, initialOfficerId]);
 
   /* =======================================================
-     ตรวจสอบ Officer เดิมว่าใช้ได้หรือไม่
+     SEARCH
+  ======================================================= */
 
-     ไม่มี Section
-     → ใช้ Officer เดิมได้
+  const [
+    sectionSearch,
+    setSectionSearch,
+  ] = useState("");
 
-     มี Section
-     → Officer ต้องอยู่ Section เดียวกับ Asset
-     ======================================================= */
+  const [
+    officerSearch,
+    setOfficerSearch,
+  ] = useState("");
 
-  const validInitialOfficerId = useMemo(() => {
-    if (!initialOfficer) {
-      return null;
-    }
+  /* =======================================================
+     DROPDOWN
+  ======================================================= */
 
-    if (sections.length === 0) {
-      return initialOfficer.id;
-    }
+  const [
+    sectionDropdownOpen,
+    setSectionDropdownOpen,
+  ] = useState(false);
 
-    if (validInitialSectionId === null) {
-      return null;
-    }
+  const [
+    officerDropdownOpen,
+    setOfficerDropdownOpen,
+  ] = useState(false);
 
-    if (
-      initialOfficer.sectionId !== validInitialSectionId
+  /* =======================================================
+     REFS
+  ======================================================= */
+
+  const sectionRef =
+    useRef<HTMLDivElement>(null);
+
+  const officerRef =
+    useRef<HTMLDivElement>(null);
+
+  /* =======================================================
+     SELECTED SECTION
+  ======================================================= */
+
+  const selectedSection =
+    useMemo(() => {
+      if (!sectionId) {
+        return null;
+      }
+
+      return (
+        sections.find(
+          (section) =>
+            section.id ===
+            Number(sectionId)
+        ) ?? null
+      );
+    }, [
+      sections,
+      sectionId,
+    ]);
+
+  /* =======================================================
+     FILTERED OFFICERS
+
+     ถ้ามี section:
+     แสดงเฉพาะเจ้าหน้าที่ของ section ที่เลือก
+
+     ถ้าไม่มี section:
+     แสดงเจ้าหน้าที่ทั้งหมด
+  ======================================================= */
+
+  const availableOfficers =
+    useMemo(() => {
+      if (
+        sections.length === 0
+      ) {
+        return officers;
+      }
+
+      if (!sectionId) {
+        return [];
+      }
+
+      return officers.filter(
+        (officer) =>
+          officer.sectionId ===
+          Number(sectionId)
+      );
+    }, [
+      officers,
+      sections.length,
+      sectionId,
+    ]);
+
+  /* =======================================================
+     SELECTED OFFICER
+
+     ค้นจาก officers ทั้งหมด
+     เพื่อให้ค่าเดิมยังแสดงได้
+  ======================================================= */
+
+  const selectedOfficer =
+    useMemo(() => {
+      if (!officerId) {
+        return null;
+      }
+
+      return (
+        officers.find(
+          (officer) =>
+            officer.id ===
+            Number(officerId)
+        ) ?? null
+      );
+    }, [
+      officers,
+      officerId,
+    ]);
+
+  /* =======================================================
+     SECTION SEARCH RESULT
+  ======================================================= */
+
+  const filteredSections =
+    useMemo(() => {
+      const keyword =
+        normalizeSearch(
+          sectionSearch
+        );
+
+      if (!keyword) {
+        return sections;
+      }
+
+      return sections.filter(
+        (section) =>
+          normalizeSearch(
+            section.name
+          ).includes(keyword)
+      );
+    }, [
+      sections,
+      sectionSearch,
+    ]);
+
+  /* =======================================================
+     OFFICER SEARCH RESULT
+  ======================================================= */
+
+  const filteredOfficers =
+    useMemo(() => {
+      const keyword =
+        normalizeSearch(
+          officerSearch
+        );
+
+      if (!keyword) {
+        return availableOfficers;
+      }
+
+      return availableOfficers.filter(
+        (officer) => {
+          const fullName =
+            `${officer.firstName} ${officer.lastName}`;
+
+          const searchableText =
+            `${fullName} ${officer.position}`;
+
+          return normalizeSearch(
+            searchableText
+          ).includes(keyword);
+        }
+      );
+    }, [
+      availableOfficers,
+      officerSearch,
+    ]);
+
+  /* =======================================================
+     DISPLAY VALUE
+  ======================================================= */
+
+  const sectionDisplayValue =
+    sectionDropdownOpen
+      ? sectionSearch
+      : selectedSection?.name ??
+        "";
+
+  const officerDisplayValue =
+    officerDropdownOpen
+      ? officerSearch
+      : selectedOfficer
+        ? `${selectedOfficer.firstName} ${selectedOfficer.lastName}`
+        : "";
+
+  /* =======================================================
+     CLICK OUTSIDE
+  ======================================================= */
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
     ) {
-      return null;
+      const target =
+        event.target as Node;
+
+      if (
+        sectionRef.current &&
+        !sectionRef.current.contains(
+          target
+        )
+      ) {
+        setSectionDropdownOpen(
+          false
+        );
+
+        setSectionSearch("");
+      }
+
+      if (
+        officerRef.current &&
+        !officerRef.current.contains(
+          target
+        )
+      ) {
+        setOfficerDropdownOpen(
+          false
+        );
+
+        setOfficerSearch("");
+      }
     }
 
-    return initialOfficer.id;
-  }, [
-    initialOfficer,
-    sections.length,
-    validInitialSectionId,
-  ]);
-
-  /* =======================================================
-     STATE : SECTION
-     ======================================================= */
-
-  const [sectionId, setSectionId] = useState<string>(
-    validInitialSectionId !== null
-      ? String(validInitialSectionId)
-      : ""
-  );
-
-  /* =======================================================
-     STATE : OFFICER
-     ======================================================= */
-
-  const [officerId, setOfficerId] = useState<string>(
-    validInitialOfficerId !== null
-      ? String(validInitialOfficerId)
-      : ""
-  );
-
-  /* =======================================================
-     SECTION ที่เลือกปัจจุบัน
-     ======================================================= */
-
-  const selectedSectionId = useMemo(() => {
-    if (!sectionId) {
-      return null;
-    }
-
-    const parsed = Number(sectionId);
-
-    if (!Number.isInteger(parsed)) {
-      return null;
-    }
-
-    const exists = sections.some(
-      (section) => section.id === parsed
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
     );
 
-    return exists ? parsed : null;
-  }, [sectionId, sections]);
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
 
   /* =======================================================
-     กรอง Officer ตาม Section
-     ======================================================= */
+     ESC
+  ======================================================= */
 
-  const filteredOfficers = useMemo(() => {
-    /*
-     * หน่วยงานไม่มี Section
-     * → แสดง Officer ทั้งหมด
-     */
-    if (sections.length === 0) {
-      return officers;
-    }
-
-    /*
-     * มี Section แต่ยังไม่ได้เลือก
-     */
-    if (selectedSectionId === null) {
-      return [];
-    }
-
-    /*
-     * แสดงเฉพาะ Officer ใน Section ที่เลือก
-     */
-    return officers.filter(
-      (officer) =>
-        officer.sectionId === selectedSectionId
-    );
-  }, [
-    officers,
-    sections.length,
-    selectedSectionId,
-  ]);
-
-  /* =======================================================
-     Officer ที่เลือกปัจจุบัน
-     ======================================================= */
-
-  const selectedOfficer = useMemo(() => {
-    if (!officerId) {
-      return null;
-    }
-
-    const parsedOfficerId = Number(officerId);
-
-    if (!Number.isInteger(parsedOfficerId)) {
-      return null;
-    }
-
-    return (
-      filteredOfficers.find(
-        (officer) => officer.id === parsedOfficerId
-      ) ?? null
-    );
-  }, [filteredOfficers, officerId]);
-
-  /* =======================================================
-     เปลี่ยน SECTION
-     ======================================================= */
-
-  function handleSectionChange(value: string) {
-    /*
-     * ไม่ระบุกลุ่มงาน
-     * → ล้าง Officer
-     */
-    if (!value) {
-      setSectionId("");
-      setOfficerId("");
-      return;
-    }
-
-    const nextSectionId = Number(value);
-
-    if (!Number.isInteger(nextSectionId)) {
-      setSectionId("");
-      setOfficerId("");
-      return;
-    }
-
-    const sectionExists = sections.some(
-      (section) => section.id === nextSectionId
-    );
-
-    if (!sectionExists) {
-      setSectionId("");
-      setOfficerId("");
-      return;
-    }
-
-    setSectionId(String(nextSectionId));
-
-    /*
-     * ยังไม่มี Officer
-     */
-    if (!officerId) {
-      return;
-    }
-
-    const currentOfficerId = Number(officerId);
-
-    const currentOfficer = officers.find(
-      (officer) => officer.id === currentOfficerId
-    );
-
-    /*
-     * Officer เดิมยังอยู่ใน Section ใหม่
-     * → เก็บไว้
-     */
-    if (
-      currentOfficer &&
-      currentOfficer.sectionId === nextSectionId
+  useEffect(() => {
+    function handleKeyDown(
+      event: KeyboardEvent
     ) {
-      return;
+      if (
+        event.key !== "Escape"
+      ) {
+        return;
+      }
+
+      setSectionDropdownOpen(
+        false
+      );
+
+      setOfficerDropdownOpen(
+        false
+      );
+
+      setSectionSearch("");
+
+      setOfficerSearch("");
     }
 
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, []);
+
+  /* =======================================================
+     SELECT SECTION
+  ======================================================= */
+
+  function selectSection(
+    value: string
+  ) {
+    setSectionId(value);
+
     /*
-     * Officer ไม่อยู่ Section ใหม่
-     * → ล้าง Officer
+     * เปลี่ยนกลุ่มงาน
+     * ต้องล้างผู้ครอบครองเดิม
      */
+
     setOfficerId("");
-  }
 
-  /* =======================================================
-     เปลี่ยน OFFICER
-     ======================================================= */
+    setSectionSearch("");
 
-  function handleOfficerChange(value: string) {
-    /*
-     * ไม่ระบุผู้ครอบครอง
-     */
-    if (!value) {
-      setOfficerId("");
-      return;
-    }
+    setOfficerSearch("");
 
-    const nextOfficerId = Number(value);
-
-    if (!Number.isInteger(nextOfficerId)) {
-      setOfficerId("");
-      return;
-    }
-
-    /*
-     * ต้องเป็น Officer ที่อยู่ในรายการปัจจุบันเท่านั้น
-     */
-    const officerExists = filteredOfficers.some(
-      (officer) => officer.id === nextOfficerId
+    setSectionDropdownOpen(
+      false
     );
 
-    if (!officerExists) {
-      setOfficerId("");
-      return;
-    }
-
-    setOfficerId(String(nextOfficerId));
+    setOfficerDropdownOpen(
+      false
+    );
   }
 
   /* =======================================================
-     RENDER
-     ======================================================= */
+     SELECT OFFICER
+  ======================================================= */
+
+  function selectOfficer(
+    value: string
+  ) {
+    setOfficerId(value);
+
+    setOfficerSearch("");
+
+    setOfficerDropdownOpen(
+      false
+    );
+  }
+
+  /* =======================================================
+     SHARED CLASS
+  ======================================================= */
+
+  const labelClassName = `
+    mb-2
+    block
+    text-sm
+    font-extrabold
+    !text-slate-700
+    sm:text-base
+  `;
+
+  const inputClassName = `
+    min-h-[50px]
+    w-full
+
+    rounded-[14px]
+
+    border
+    border-slate-300
+
+    bg-white
+
+    px-4
+    py-3
+
+    text-base
+    font-bold
+    !text-slate-900
+
+    shadow-sm
+    outline-none
+
+    transition-all
+    duration-200
+
+    placeholder:!text-slate-400
+
+    hover:border-slate-400
+    hover:bg-slate-50
+
+    focus:border-blue-400
+    focus:bg-white
+    focus:ring-4
+    focus:ring-blue-500/10
+
+    disabled:cursor-not-allowed
+    disabled:bg-slate-100
+    disabled:!text-slate-400
+  `;
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <div
       className="
+        relative
         grid
-        items-stretch
-        gap-4
-        pt-4
-        sm:grid-cols-2
+        w-full
+        min-w-0
+        grid-cols-1
+        gap-5
+        overflow-visible
+
+        lg:grid-cols-2
       "
     >
-      {/* ===================================================
-          หน่วยงาน
-          =================================================== */}
+      {/* =====================================================
+          HIDDEN VALUES
 
-      <div className="h-full min-w-0">
+          ค่าที่ส่งเข้า Form
+      ===================================================== */}
+
+      <input
+        type="hidden"
+        name="departmentId"
+        value={departmentId}
+      />
+
+      <input
+        type="hidden"
+        name="sectionId"
+        value={sectionId}
+      />
+
+      <input
+        type="hidden"
+        name="officerId"
+        value={officerId}
+      />
+
+      {/* =====================================================
+          DEPARTMENT
+      ===================================================== */}
+
+      <div className="min-w-0">
         <label
           htmlFor="departmentDisplay"
-          className="
-            block
-            text-sm
-            font-extrabold
-            !text-slate-200
-          "
+          className={
+            labelClassName
+          }
         >
           หน่วยงาน
         </label>
@@ -342,96 +518,360 @@ export default function AssetResponsibleFields({
         <div
           id="departmentDisplay"
           className="
-            mt-2
+            flex
             min-h-[50px]
             w-full
-            rounded-xl
+            items-center
+
+            rounded-[14px]
+
             border
             border-slate-300
-            bg-white
+
+            bg-slate-100
+
             px-4
             py-3
+
+            text-base
             font-extrabold
-            text-slate-900
+            !text-slate-900
+
+            shadow-sm
           "
         >
           {departmentName}
         </div>
-
-        <input
-          type="hidden"
-          name="departmentId"
-          value={departmentId}
-        />
       </div>
 
-      {/* ===================================================
-          กลุ่มงาน
-          =================================================== */}
+      {/* =====================================================
+          SECTION SEARCHABLE DROPDOWN
+      ===================================================== */}
 
       {sections.length > 0 ? (
-        <div className="h-full min-w-0">
+        <div
+          ref={sectionRef}
+          className="
+            relative
+            z-[60]
+            min-w-0
+          "
+        >
           <label
-            htmlFor="sectionId"
-            className="
-              block
-              text-sm
-              font-extrabold
-              !text-slate-200
-            "
+            htmlFor="sectionSearch"
+            className={
+              labelClassName
+            }
           >
             กลุ่มงาน
           </label>
 
-          <select
-            id="sectionId"
-            name="sectionId"
-            value={sectionId}
-            onChange={(event) =>
-              handleSectionChange(event.target.value)
-            }
-            className="
-              mt-2
-              min-h-[50px]
-              w-full
-              rounded-xl
-              border
-              border-slate-300
-              bg-white
-              px-4
-              py-3
-              font-semibold
-              text-slate-900
-              outline-none
-              transition
-              focus:border-emerald-600
-              focus:ring-2
-              focus:ring-emerald-200
-            "
-          >
-            <option value="">
-              -- ไม่ระบุ --
-            </option>
+          <div className="relative">
+            {/* ===============================================
+                INPUT
+            =============================================== */}
 
-            {sections.map((section) => (
-              <option
-                key={section.id}
-                value={section.id}
+            <input
+              id="sectionSearch"
+              type="text"
+              autoComplete="off"
+              value={
+                sectionDisplayValue
+              }
+              placeholder="พิมพ์ค้นหากลุ่มงาน..."
+              className={`
+                ${inputClassName}
+                pr-11
+              `}
+              onFocus={() => {
+                setSectionDropdownOpen(
+                  true
+                );
+
+                setSectionSearch(
+                  ""
+                );
+              }}
+              onClick={() => {
+                setSectionDropdownOpen(
+                  true
+                );
+              }}
+              onChange={(
+                event
+              ) => {
+                setSectionSearch(
+                  event.target.value
+                );
+
+                setSectionDropdownOpen(
+                  true
+                );
+              }}
+            />
+
+            {/* ===============================================
+                ARROW
+            =============================================== */}
+
+            <button
+              type="button"
+              aria-label="เปิดรายการกลุ่มงาน"
+              onClick={() => {
+                setSectionDropdownOpen(
+                  (current) =>
+                    !current
+                );
+
+                setSectionSearch(
+                  ""
+                );
+              }}
+              className="
+                absolute
+                right-1
+                top-1/2
+
+                flex
+                h-10
+                w-10
+                -translate-y-1/2
+                items-center
+                justify-center
+
+                rounded-xl
+
+                !text-slate-500
+
+                transition
+
+                hover:bg-slate-100
+                hover:!text-slate-900
+              "
+            >
+              <span
+                className={`
+                  text-sm
+                  transition-transform
+                  duration-200
+
+                  ${
+                    sectionDropdownOpen
+                      ? "rotate-180"
+                      : ""
+                  }
+                `}
+                aria-hidden="true"
               >
-                {section.name}
-              </option>
-            ))}
-          </select>
+                ▼
+              </span>
+            </button>
+
+            {/* ===============================================
+                DROPDOWN
+            =============================================== */}
+
+            {sectionDropdownOpen && (
+              <div
+                className="
+                  absolute
+                  left-0
+                  right-0
+                  top-[calc(100%+8px)]
+                  z-[100]
+
+                  max-h-[300px]
+                  overflow-y-auto
+
+                  rounded-2xl
+
+                  border
+                  border-slate-200
+
+                  bg-white
+
+                  p-2
+
+                  shadow-2xl
+                  shadow-slate-900/20
+                "
+              >
+                {/* =========================================
+                    NOT SPECIFIED
+                ========================================= */}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    selectSection(
+                      ""
+                    )
+                  }
+                  className={`
+                    flex
+                    w-full
+                    items-center
+
+                    rounded-xl
+
+                    px-4
+                    py-3
+
+                    text-left
+                    text-sm
+                    font-bold
+
+                    transition
+
+                    ${
+                      !sectionId
+                        ? "bg-blue-50 !text-blue-700"
+                        : "!text-slate-700 hover:bg-slate-100"
+                    }
+                  `}
+                >
+                  -- ไม่ระบุ --
+                </button>
+
+                {/* =========================================
+                    RESULTS
+                ========================================= */}
+
+                {filteredSections.map(
+                  (
+                    section
+                  ) => {
+                    const isSelected =
+                      section.id ===
+                      Number(
+                        sectionId
+                      );
+
+                    return (
+                      <button
+                        key={
+                          section.id
+                        }
+                        type="button"
+                        onClick={() =>
+                          selectSection(
+                            String(
+                              section.id
+                            )
+                          )
+                        }
+                        className={`
+                          mt-1
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-xl
+
+                          px-4
+                          py-3
+
+                          text-left
+                          text-sm
+                          font-bold
+
+                          transition
+
+                          ${
+                            isSelected
+                              ? "bg-blue-50 !text-blue-700"
+                              : "!text-slate-700 hover:bg-slate-100 hover:!text-slate-900"
+                          }
+                        `}
+                      >
+                        <span
+                          className="
+                            min-w-0
+                            break-words
+                          "
+                        >
+                          {
+                            section.name
+                          }
+                        </span>
+
+                        {isSelected && (
+                          <span
+                            className="
+                              shrink-0
+                              !text-blue-600
+                            "
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )}
+
+                {/* =========================================
+                    EMPTY SEARCH
+                ========================================= */}
+
+                {filteredSections.length ===
+                  0 && (
+                  <div
+                    className="
+                      px-4
+                      py-8
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        text-2xl
+                      "
+                      aria-hidden="true"
+                    >
+                      🔍
+                    </div>
+
+                    <p
+                      className="
+                        mt-2
+                        text-sm
+                        font-extrabold
+                        !text-slate-700
+                      "
+                    >
+                      ไม่พบกลุ่มงาน
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        font-semibold
+                        !text-slate-400
+                      "
+                    >
+                      ลองพิมพ์คำค้นหาใหม่
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <p
             className="
               mt-2
-              text-sm
+              text-xs
               font-semibold
-              !text-slate-400
+              leading-relaxed
+              !text-slate-500
             "
           >
-            ใช้สำหรับกรองรายชื่อผู้ครอบครองตามกลุ่มงาน
+            พิมพ์ชื่อกลุ่มงานเพื่อค้นหาได้
           </p>
         </div>
       ) : (
@@ -442,103 +882,420 @@ export default function AssetResponsibleFields({
         />
       )}
 
-      {/* ===================================================
-          ผู้ครอบครอง
-          =================================================== */}
+      {/* =====================================================
+          OFFICER SEARCHABLE DROPDOWN
+      ===================================================== */}
 
-      <div className="h-full min-w-0">
+      <div
+        ref={officerRef}
+        className="
+          relative
+          z-[50]
+          min-w-0
+        "
+      >
         <label
-          htmlFor="officerId"
-          className="
-            block
-            text-sm
-            font-extrabold
-            !text-slate-200
-          "
+          htmlFor="officerSearch"
+          className={
+            labelClassName
+          }
         >
           ผู้ครอบครอง
         </label>
 
-        <select
-          id="officerId"
-          name="officerId"
-          value={officerId}
-          onChange={(event) =>
-            handleOfficerChange(event.target.value)
-          }
-          disabled={
-            sections.length > 0 &&
-            selectedSectionId === null
-          }
-          className="
-            mt-2
-            min-h-[50px]
-            w-full
-            rounded-xl
-            border
-            border-slate-300
-            bg-white
-            px-4
-            py-3
-            font-semibold
-            text-slate-900
-            outline-none
-            transition
-            disabled:cursor-not-allowed
-            disabled:bg-slate-100
-            disabled:text-slate-400
-            focus:border-emerald-600
-            focus:ring-2
-            focus:ring-emerald-200
-          "
-        >
-          <option value="">
-            -- ยังไม่ได้ระบุผู้ครอบครอง --
-          </option>
+        <div className="relative">
+          {/* ===============================================
+              INPUT
+          =============================================== */}
 
-          {filteredOfficers.map((officer) => (
-            <option
-              key={officer.id}
-              value={officer.id}
+          <input
+            id="officerSearch"
+            type="text"
+            autoComplete="off"
+            disabled={
+              sections.length >
+                0 &&
+              !sectionId
+            }
+            value={
+              officerDisplayValue
+            }
+            placeholder={
+              sections.length >
+                0 &&
+              !sectionId
+                ? "กรุณาเลือกกลุ่มงานก่อน"
+                : "พิมพ์ค้นหาชื่อผู้ครอบครอง..."
+            }
+            className={`
+              ${inputClassName}
+              pr-11
+            `}
+            onFocus={() => {
+              if (
+                sections.length >
+                  0 &&
+                !sectionId
+              ) {
+                return;
+              }
+
+              setOfficerDropdownOpen(
+                true
+              );
+
+              setOfficerSearch(
+                ""
+              );
+            }}
+            onClick={() => {
+              if (
+                sections.length >
+                  0 &&
+                !sectionId
+              ) {
+                return;
+              }
+
+              setOfficerDropdownOpen(
+                true
+              );
+            }}
+            onChange={(
+              event
+            ) => {
+              setOfficerSearch(
+                event.target.value
+              );
+
+              setOfficerDropdownOpen(
+                true
+              );
+            }}
+          />
+
+          {/* ===============================================
+              ARROW
+          =============================================== */}
+
+          <button
+            type="button"
+            aria-label="เปิดรายชื่อผู้ครอบครอง"
+            disabled={
+              sections.length >
+                0 &&
+              !sectionId
+            }
+            onClick={() => {
+              setOfficerDropdownOpen(
+                (current) =>
+                  !current
+              );
+
+              setOfficerSearch(
+                ""
+              );
+            }}
+            className="
+              absolute
+              right-1
+              top-1/2
+
+              flex
+              h-10
+              w-10
+              -translate-y-1/2
+              items-center
+              justify-center
+
+              rounded-xl
+
+              !text-slate-500
+
+              transition
+
+              hover:bg-slate-100
+              hover:!text-slate-900
+
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+          >
+            <span
+              className={`
+                text-sm
+                transition-transform
+                duration-200
+
+                ${
+                  officerDropdownOpen
+                    ? "rotate-180"
+                    : ""
+                }
+              `}
+              aria-hidden="true"
             >
-              {officer.firstName} {officer.lastName}
-            </option>
-          ))}
-        </select>
+              ▼
+            </span>
+          </button>
+
+          {/* ===============================================
+              DROPDOWN
+          =============================================== */}
+
+          {officerDropdownOpen &&
+            !(
+              sections.length >
+                0 &&
+              !sectionId
+            ) && (
+              <div
+                className="
+                  absolute
+                  left-0
+                  right-0
+                  top-[calc(100%+8px)]
+                  z-[100]
+
+                  max-h-[320px]
+                  overflow-y-auto
+
+                  rounded-2xl
+
+                  border
+                  border-slate-200
+
+                  bg-white
+
+                  p-2
+
+                  shadow-2xl
+                  shadow-slate-900/20
+                "
+              >
+                {/* =========================================
+                    NO OFFICER
+                ========================================= */}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    selectOfficer(
+                      ""
+                    )
+                  }
+                  className={`
+                    flex
+                    w-full
+                    items-center
+
+                    rounded-xl
+
+                    px-4
+                    py-3
+
+                    text-left
+                    text-sm
+                    font-bold
+
+                    transition
+
+                    ${
+                      !officerId
+                        ? "bg-blue-50 !text-blue-700"
+                        : "!text-slate-700 hover:bg-slate-100"
+                    }
+                  `}
+                >
+                  -- ยังไม่ได้ระบุผู้ครอบครอง --
+                </button>
+
+                {/* =========================================
+                    OFFICERS
+                ========================================= */}
+
+                {filteredOfficers.map(
+                  (
+                    officer
+                  ) => {
+                    const isSelected =
+                      officer.id ===
+                      Number(
+                        officerId
+                      );
+
+                    return (
+                      <button
+                        key={
+                          officer.id
+                        }
+                        type="button"
+                        onClick={() =>
+                          selectOfficer(
+                            String(
+                              officer.id
+                            )
+                          )
+                        }
+                        className={`
+                          mt-1
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-xl
+
+                          px-4
+                          py-3
+
+                          text-left
+
+                          transition
+
+                          ${
+                            isSelected
+                              ? "bg-blue-50"
+                              : "hover:bg-slate-100"
+                          }
+                        `}
+                      >
+                        <div
+                          className="
+                            min-w-0
+                          "
+                        >
+                          <div
+                            className={`
+                              break-words
+                              text-sm
+                              font-extrabold
+
+                              ${
+                                isSelected
+                                  ? "!text-blue-700"
+                                  : "!text-slate-800"
+                              }
+                            `}
+                          >
+                            {
+                              officer.firstName
+                            }{" "}
+                            {
+                              officer.lastName
+                            }
+                          </div>
+
+                          {officer.position && (
+                            <div
+                              className="
+                                mt-0.5
+                                break-words
+                                text-xs
+                                font-semibold
+                                !text-slate-500
+                              "
+                            >
+                              {
+                                officer.position
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        {isSelected && (
+                          <span
+                            className="
+                              shrink-0
+                              !text-blue-600
+                            "
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )}
+
+                {/* =========================================
+                    EMPTY
+                ========================================= */}
+
+                {filteredOfficers.length ===
+                  0 && (
+                  <div
+                    className="
+                      px-4
+                      py-8
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        text-2xl
+                      "
+                      aria-hidden="true"
+                    >
+                      🔍
+                    </div>
+
+                    <p
+                      className="
+                        mt-2
+                        text-sm
+                        font-extrabold
+                        !text-slate-700
+                      "
+                    >
+                      ไม่พบผู้ครอบครอง
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        font-semibold
+                        !text-slate-400
+                      "
+                    >
+                      ลองพิมพ์ชื่อหรือตำแหน่งใหม่
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+        </div>
 
         <p
           className="
             mt-2
-            text-sm
+            text-xs
             font-semibold
-            !text-slate-400
+            leading-relaxed
+            !text-slate-500
           "
         >
           {sections.length > 0
-            ? selectedSectionId !== null
-              ? filteredOfficers.length > 0
-                ? `แสดงเจ้าหน้าที่ในกลุ่มงานที่เลือก ${filteredOfficers.length} คน`
-                : "ยังไม่มีรายชื่อเจ้าหน้าที่ในกลุ่มงานที่เลือก"
+            ? sectionId
+              ? "พิมพ์ค้นหาผู้ครอบครองในกลุ่มงานที่เลือกได้"
               : "กรุณาเลือกกลุ่มงานก่อน"
-            : officers.length > 0
-              ? `แสดงเจ้าหน้าที่ทั้งหมดในหน่วยงานนี้ ${officers.length} คน`
-              : "ยังไม่มีรายชื่อเจ้าหน้าที่ในหน่วยงานนี้"}
+            : "พิมพ์ค้นหาผู้ครอบครองในหน่วยงานได้"}
         </p>
       </div>
 
-      {/* ===================================================
-          ตำแหน่ง
-          =================================================== */}
+      {/* =====================================================
+          POSITION
+      ===================================================== */}
 
-      <div className="h-full min-w-0">
+      <div className="min-w-0">
         <label
           htmlFor="positionDisplay"
-          className="
-            block
-            text-sm
-            font-extrabold
-            !text-slate-200
-          "
+          className={
+            labelClassName
+          }
         >
           ตำแหน่ง
         </label>
@@ -546,29 +1303,39 @@ export default function AssetResponsibleFields({
         <div
           id="positionDisplay"
           className="
-            mt-2
+            flex
             min-h-[50px]
             w-full
-            break-words
-            rounded-xl
+            items-center
+
+            rounded-[14px]
+
             border
             border-slate-300
-            bg-white
+
+            bg-slate-100
+
             px-4
             py-3
+
+            text-base
             font-extrabold
-            text-slate-900
+            !text-slate-900
+
+            shadow-sm
           "
         >
-          {selectedOfficer?.position?.trim() || "-"}
+          {selectedOfficer?.position ??
+            "-"}
         </div>
 
         <p
           className="
             mt-2
-            text-sm
+            text-xs
             font-semibold
-            !text-slate-400
+            leading-relaxed
+            !text-slate-500
           "
         >
           ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
