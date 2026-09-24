@@ -287,7 +287,9 @@ function getStatusLabel(
   switch (status) {
     case "IN_USE":
       return {
-        label: "ยังใช้งาน",
+        label:
+          "ยังใช้งาน",
+
         className: `
           bg-emerald-100
           !text-emerald-700
@@ -299,7 +301,9 @@ function getStatusLabel(
 
     case "WAITING_DISPOSAL":
       return {
-        label: "รอจำหน่าย",
+        label:
+          "รอจำหน่าย",
+
         className: `
           bg-amber-100
           !text-amber-700
@@ -311,7 +315,9 @@ function getStatusLabel(
 
     case "DAMAGED":
       return {
-        label: "ชำรุด",
+        label:
+          "ชำรุด",
+
         className: `
           bg-red-100
           !text-red-700
@@ -323,7 +329,9 @@ function getStatusLabel(
 
     case "DISPOSED":
       return {
-        label: "จำหน่ายแล้ว",
+        label:
+          "จำหน่ายแล้ว",
+
         className: `
           bg-slate-200
           !text-slate-700
@@ -429,12 +437,16 @@ export default async function AssetCategoryPage({
   const department =
     await prisma.department.findUnique({
       where: {
-        id: departmentId,
+        id:
+          departmentId,
       },
 
       select: {
-        id: true,
-        name: true,
+        id:
+          true,
+
+        name:
+          true,
       },
     });
 
@@ -478,6 +490,7 @@ export default async function AssetCategoryPage({
                   name: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -487,6 +500,7 @@ export default async function AssetCategoryPage({
                   governmentAssetNo: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -496,6 +510,7 @@ export default async function AssetCategoryPage({
                   officeAssetNo: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -505,6 +520,7 @@ export default async function AssetCategoryPage({
                   brand: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -514,6 +530,7 @@ export default async function AssetCategoryPage({
                   model: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
                   },
@@ -523,8 +540,61 @@ export default async function AssetCategoryPage({
                   responsibleName: {
                     contains:
                       search,
+
                     mode:
                       "insensitive",
+                  },
+                },
+
+                {
+                  unit: {
+                    contains:
+                      search,
+
+                    mode:
+                      "insensitive",
+                  },
+                },
+
+                {
+                  section: {
+                    is: {
+                      name: {
+                        contains:
+                          search,
+
+                        mode:
+                          "insensitive",
+                      },
+                    },
+                  },
+                },
+
+                {
+                  officer: {
+                    is: {
+                      firstName: {
+                        contains:
+                          search,
+
+                        mode:
+                          "insensitive",
+                      },
+                    },
+                  },
+                },
+
+                {
+                  officer: {
+                    is: {
+                      lastName: {
+                        contains:
+                          search,
+
+                        mode:
+                          "insensitive",
+                      },
+                    },
                   },
                 },
               ],
@@ -533,9 +603,14 @@ export default async function AssetCategoryPage({
       },
 
       include: {
-        department: true,
-        section: true,
-        officer: true,
+        department:
+          true,
+
+        section:
+          true,
+
+        officer:
+          true,
       },
     });
 
@@ -615,7 +690,8 @@ export default async function AssetCategoryPage({
     const assetToDelete =
       await prisma.asset.findFirst({
         where: {
-          id: assetId,
+          id:
+            assetId,
 
           departmentId:
             departmentIdForAction,
@@ -625,7 +701,8 @@ export default async function AssetCategoryPage({
         },
 
         select: {
-          id: true,
+          id:
+            true,
         },
       });
 
@@ -661,6 +738,9 @@ export default async function AssetCategoryPage({
     <AppPage>
       {/* =====================================================
           HEADER
+
+          ใช้ AppPageHeader ตัวกลาง
+          รูปแบบเดียวกับหน้าอื่นในระบบ
       ===================================================== */}
 
       <AppPageHeader
@@ -677,20 +757,32 @@ export default async function AssetCategoryPage({
         subtitle={`${departmentNameForDisplay} — ทะเบียนคุมครุภัณฑ์`}
         actions={
           <>
+            {/* ===============================================
+                ADD
+                สีเขียวตัวกลาง
+            =============================================== */}
+
             {canManage && (
               <AppButton
                 href={`/assets/${departmentIdForAction}/${categorySlug}/new`}
                 variant="primary"
                 size="md"
                 icon={
-                  <span aria-hidden="true">
+                  <span
+                    aria-hidden="true"
+                  >
                     ＋
                   </span>
                 }
               >
-                เพิ่มครุภัณฑ์
+                เพิ่มรายการ
               </AppButton>
             )}
+
+            {/* ===============================================
+                BACK
+                สีเขียวตัวกลาง
+            =============================================== */}
 
             <AppButton
               href={`/assets/${departmentIdForAction}`}
@@ -705,6 +797,11 @@ export default async function AssetCategoryPage({
 
       {/* =====================================================
           SEARCH
+
+          ใช้ตัวกลาง AssetCategorySearch
+          ซึ่งใช้ AppSearchInput
+          ลักษณะเหมือนภาพตัวอย่าง:
+          Input | ปุ่มค้นหา | จำนวนรายการ
       ===================================================== */}
 
       <AssetCategorySearch
@@ -719,6 +816,9 @@ export default async function AssetCategoryPage({
 
       {/* =====================================================
           TABLE
+
+          ใช้ AppTableCard ตัวกลาง
+          badge จำนวนรายการด้านขวา
       ===================================================== */}
 
       <AppTableCard
@@ -731,23 +831,37 @@ export default async function AssetCategoryPage({
           w-full
           min-w-0
           max-w-full
-          !overflow-hidden
         "
       >
+        {/* =================================================
+            TABLE SCROLL
+
+            Desktop = เต็มพื้นที่
+            Mobile = เลื่อนแนวนอน
+        ================================================= */}
+
         <div
           className="
             w-full
             min-w-0
             max-w-full
-            overflow-hidden
+
+            overflow-x-auto
+            overscroll-x-contain
+
+            [-webkit-overflow-scrolling:touch]
           "
         >
           <table
             className="
               w-full
+              min-w-[1250px]
+
               table-fixed
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
@@ -757,14 +871,23 @@ export default async function AssetCategoryPage({
 
             <colgroup>
               <col className="w-[4%]" />
+
               <col className="w-[8%]" />
+
               <col className="w-[10%]" />
+
               <col className="w-[18%]" />
+
               <col className="w-[5%]" />
+
               <col className="w-[5%]" />
+
               <col className="w-[15%]" />
+
               <col className="w-[8%]" />
+
               <col className="w-[10%]" />
+
               <col className="w-[17%]" />
             </colgroup>
 
@@ -796,20 +919,23 @@ export default async function AssetCategoryPage({
                       className="
                         overflow-hidden
                         whitespace-nowrap
+
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-                        px-1
+
+                        px-2
                         py-4
+
                         text-center
-                        text-xs
+                        text-sm
                         font-extrabold
                         leading-none
+
                         !text-white
-                        xl:px-2
-                        xl:text-sm
                       "
                     >
                       {
@@ -880,22 +1006,28 @@ export default async function AssetCategoryPage({
                           transition-colors
                           duration-200
 
-                          hover:bg-emerald-50/70
+                          hover:bg-emerald-50/60
                         `}
                       >
-                        {/* ORDER */}
+                        {/* ===================================
+                            ORDER
+                        =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
                             tabular-nums
+
                             !text-slate-700
                           "
                         >
@@ -907,7 +1039,9 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* GFMIS */}
+                        {/* ===================================
+                            GFMIS
+                        =================================== */}
 
                         <td
                           title={
@@ -918,12 +1052,16 @@ export default async function AssetCategoryPage({
                             overflow-hidden
                             text-ellipsis
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
+
                             !text-slate-700
                           "
                         >
@@ -931,7 +1069,9 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* ASSET CODE */}
+                        {/* ===================================
+                            ASSET CODE
+                        =================================== */}
 
                         <td
                           title={
@@ -942,12 +1082,16 @@ export default async function AssetCategoryPage({
                             overflow-hidden
                             text-ellipsis
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
+
                             !text-slate-700
                           "
                         >
@@ -955,15 +1099,20 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
 
-                        {/* NAME */}
+                        {/* ===================================
+                            NAME
+                        =================================== */}
 
                         <td
                           className="
                             overflow-hidden
+
                             border
                             border-black
-                            px-2
+
+                            px-3
                             py-3.5
+
                             !text-slate-700
                           "
                         >
@@ -975,7 +1124,9 @@ export default async function AssetCategoryPage({
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
+
                               font-semibold
+
                               !text-slate-700
                             "
                           >
@@ -999,11 +1150,14 @@ export default async function AssetCategoryPage({
                                 )}
                               className="
                                 mt-1
+
                                 overflow-hidden
                                 text-ellipsis
                                 whitespace-nowrap
+
                                 text-xs
                                 font-semibold
+
                                 !text-slate-500
                               "
                             >
@@ -1021,19 +1175,25 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* QUANTITY */}
+                        {/* ===================================
+                            QUANTITY
+                        =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
                             tabular-nums
+
                             !text-slate-700
                           "
                         >
@@ -1044,25 +1204,33 @@ export default async function AssetCategoryPage({
                           )}
                         </td>
 
-                        {/* UNIT */}
+                        {/* ===================================
+                            UNIT
+                        =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
+
                             !text-slate-700
                           "
                         >
                           {unit}
                         </td>
 
-                        {/* RESPONSIBLE */}
+                        {/* ===================================
+                            RESPONSIBLE
+                        =================================== */}
 
                         <td
                           title={
@@ -1070,12 +1238,16 @@ export default async function AssetCategoryPage({
                           }
                           className="
                             overflow-hidden
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                             font-semibold
+
                             !text-slate-700
                           "
                         >
@@ -1092,16 +1264,21 @@ export default async function AssetCategoryPage({
                           </div>
                         </td>
 
-                        {/* STATUS */}
+                        {/* ===================================
+                            STATUS
+                        =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
-                            px-1
+
+                            px-2
                             py-3.5
+
                             text-center
                           "
                         >
@@ -1109,16 +1286,22 @@ export default async function AssetCategoryPage({
                             className={`
                               inline-flex
                               max-w-full
+
                               items-center
                               justify-center
+
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
+
                               rounded-full
-                              px-2
+
+                              px-2.5
                               py-1.5
+
                               text-sm
                               font-semibold
+
                               ${status.className}
                             `}
                           >
@@ -1129,18 +1312,23 @@ export default async function AssetCategoryPage({
                         </td>
 
                         {/* ===================================
-                            OPEN
+                            DETAIL
+
                             ใช้ AppButton ตัวกลาง
+                            สีเขียว
                         =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2
                             py-2.5
+
                             text-center
                           "
                         >
@@ -1165,16 +1353,26 @@ export default async function AssetCategoryPage({
 
                         {/* ===================================
                             ACTIONS
+
+                            แบบเดียวกับภาพ:
+                            แก้ไข = เขียว
+                            ลบ = แดง
+
+                            ใช้ AppButton ตัวกลางทั้งคู่
+                            ไม่กำหนด h / px เอง
                         =================================== */}
 
                         <td
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2
                             py-2.5
+
                             text-center
                           "
                         >
@@ -1184,16 +1382,15 @@ export default async function AssetCategoryPage({
                                 flex
                                 w-full
                                 min-w-0
+
                                 items-center
                                 justify-center
+
                                 gap-2
                               "
                             >
                               {/* =============================
                                   EDIT
-
-                                  ใช้ AppButton ตัวกลางเต็มรูปแบบ
-                                  ไม่มี custom height / padding
                               ============================= */}
 
                               <AppButton
@@ -1202,15 +1399,19 @@ export default async function AssetCategoryPage({
                                 }
                                 variant="primary"
                                 size="sm"
+                                icon={
+                                  <span
+                                    aria-hidden="true"
+                                  >
+                                    ✏️
+                                  </span>
+                                }
                               >
                                 แก้ไข
                               </AppButton>
 
                               {/* =============================
                                   DELETE
-
-                                  ใช้ AppButton ตัวกลางเต็มรูปแบบ
-                                  size="sm" เหมือนแก้ไข
                               ============================= */}
 
                               <form
@@ -1234,6 +1435,13 @@ export default async function AssetCategoryPage({
                                   type="submit"
                                   variant="danger"
                                   size="sm"
+                                  icon={
+                                    <span
+                                      aria-hidden="true"
+                                    >
+                                      🗑️
+                                    </span>
+                                  }
                                 >
                                   ลบ
                                 </AppButton>
@@ -1267,18 +1475,23 @@ export default async function AssetCategoryPage({
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                         justify-center
                       "
@@ -1288,7 +1501,9 @@ export default async function AssetCategoryPage({
                           grid
                           h-16
                           w-16
+
                           place-items-center
+
                           text-3xl
                         "
                         aria-hidden="true"
@@ -1303,9 +1518,11 @@ export default async function AssetCategoryPage({
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
                           tracking-tight
+
                           !text-slate-900
                         "
                       >
@@ -1317,9 +1534,11 @@ export default async function AssetCategoryPage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           leading-relaxed
+
                           !text-slate-500
                         "
                       >
