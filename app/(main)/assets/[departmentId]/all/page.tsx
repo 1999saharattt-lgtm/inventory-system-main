@@ -108,6 +108,10 @@ function getResponsibleName(asset: {
   const originalResponsibleName =
     asset.responsibleName?.trim();
 
+  /* =======================================================
+     RESPONSIBLE NAME
+  ======================================================= */
+
   if (
     originalResponsibleName &&
     originalResponsibleName !== "-"
@@ -132,6 +136,10 @@ function getResponsibleName(asset: {
     return originalResponsibleName;
   }
 
+  /* =======================================================
+     SECTION
+  ======================================================= */
+
   const sectionName =
     asset.section?.name?.trim();
 
@@ -142,6 +150,10 @@ function getResponsibleName(asset: {
 
     return sectionName;
   }
+
+  /* =======================================================
+     OFFICER
+  ======================================================= */
 
   const officerName =
     asset.officer
@@ -272,6 +284,12 @@ export default async function AllAssetsPage({
     notFound();
   }
 
+  /*
+   * แยกเป็น primitive หลังผ่าน notFound()
+   * เพื่อป้องกันปัญหา TypeScript
+   * department is possibly null
+   */
+
   const departmentIdForPage =
     department.id;
 
@@ -323,15 +341,22 @@ export default async function AllAssetsPage({
       );
     }
 
-    if (orderA !== null) {
+    if (
+      orderA !== null
+    ) {
       return -1;
     }
 
-    if (orderB !== null) {
+    if (
+      orderB !== null
+    ) {
       return 1;
     }
 
-    return a.id - b.id;
+    return (
+      a.id -
+      b.id
+    );
   });
 
   /* =========================================================
@@ -355,44 +380,28 @@ export default async function AllAssetsPage({
             {/* ===============================================
                 EXPORT PDF
 
-                ใช้ AppButton ตัวกลางเป็นหน้าตาปุ่ม
+                ExportDepartmentAssetsPdf ใช้ AppButton
+                ตัวกลางภายใน Component อยู่แล้ว
+                ไม่ต้องใช้ renderTrigger
             =============================================== */}
 
             <ExportDepartmentAssetsPdf
+              departmentId={
+                departmentIdForPage
+              }
               departmentName={
                 departmentNameForPage
               }
+              department={{
+                id:
+                  departmentIdForPage,
+
+                name:
+                  departmentNameForPage,
+              }}
               assets={
                 assets
               }
-              renderTrigger={({
-                onClick,
-                disabled,
-                isExporting,
-              }) => (
-                <AppButton
-                  type="button"
-                  variant="danger"
-                  size="md"
-                  onClick={
-                    onClick
-                  }
-                  disabled={
-                    disabled
-                  }
-                  icon={
-                    <span
-                      aria-hidden="true"
-                    >
-                      📄
-                    </span>
-                  }
-                >
-                  {isExporting
-                    ? "กำลังสร้าง PDF..."
-                    : "ส่งออก PDF"}
-                </AppButton>
-              )}
             />
 
             {/* ===============================================
@@ -450,6 +459,8 @@ export default async function AllAssetsPage({
           >
             {/* =================================================
                 COLUMN WIDTH
+
+                รวม 100%
             ================================================= */}
 
             <colgroup>
@@ -492,15 +503,19 @@ export default async function AllAssetsPage({
                         whitespace-nowrap
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
+
                         px-2
                         py-4
+
                         text-center
                         text-sm
                         font-extrabold
                         !text-white
+
                         xl:px-3
                         xl:text-base
                       "
@@ -526,12 +541,17 @@ export default async function AllAssetsPage({
                     asset,
                     index
                   ) => {
-                    /*
-                     * สำคัญ:
-                     * ส่ง from=all ไปยังหน้า Detail
-                     * เพื่อให้หน้า Detail รู้ว่า
-                     * ผู้ใช้มาจาก /assets/[departmentId]/all
-                     */
+                    /* =======================================
+                       DETAIL PATH
+
+                       ส่ง from=all ไปด้วย
+
+                       ตัวอย่าง:
+                       /assets/1/chair/934?from=all
+
+                       หน้า Detail สามารถใช้ค่านี้
+                       เพื่อกำหนดปุ่มกลับไป /assets/1/all
+                    ======================================= */
 
                     const detailPath =
                       `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all`;
@@ -570,8 +590,10 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
+
                             px-1.5
                             py-3.5
+
                             text-center
                             font-extrabold
                             tabular-nums
@@ -579,7 +601,8 @@ export default async function AllAssetsPage({
                           "
                         >
                           {(
-                            index + 1
+                            index +
+                            1
                           ).toLocaleString(
                             "th-TH"
                           )}
@@ -593,10 +616,13 @@ export default async function AllAssetsPage({
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2
                             py-3.5
+
                             text-center
                             text-sm
                             font-bold
@@ -628,10 +654,13 @@ export default async function AllAssetsPage({
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2
                             py-3.5
+
                             text-center
                             text-sm
                             font-bold
@@ -663,10 +692,13 @@ export default async function AllAssetsPage({
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2.5
                             py-3.5
+
                             font-bold
                             !text-slate-900
                           "
@@ -689,6 +721,7 @@ export default async function AllAssetsPage({
                               overflow-hidden
                               text-ellipsis
                               whitespace-nowrap
+
                               font-extrabold
                               !text-slate-900
                             "
@@ -703,9 +736,11 @@ export default async function AllAssetsPage({
                             <div
                               className="
                                 mt-1
+
                                 overflow-hidden
                                 text-ellipsis
                                 whitespace-nowrap
+
                                 text-xs
                                 font-semibold
                                 !text-slate-500
@@ -734,8 +769,10 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
+
                             px-1
                             py-3.5
+
                             text-center
                             font-extrabold
                             tabular-nums
@@ -759,8 +796,10 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
+
                             px-1
                             py-3.5
+
                             text-center
                             font-extrabold
                             !text-slate-900
@@ -779,10 +818,13 @@ export default async function AllAssetsPage({
                           className="
                             overflow-hidden
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-2
                             py-3.5
+
                             text-center
                             text-sm
                             font-bold
@@ -815,8 +857,10 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
+
                             px-1
                             py-3.5
+
                             text-center
                           "
                         >
@@ -824,12 +868,17 @@ export default async function AllAssetsPage({
                             className={`
                               inline-flex
                               max-w-full
+
                               items-center
                               justify-center
+
                               whitespace-nowrap
+
                               rounded-full
+
                               px-2
                               py-1.5
+
                               text-sm
                               font-extrabold
                               leading-none
@@ -855,8 +904,10 @@ export default async function AllAssetsPage({
                             whitespace-nowrap
                             border
                             border-black
+
                             px-1.5
                             py-3
+
                             text-center
                           "
                         >
@@ -888,17 +939,21 @@ export default async function AllAssetsPage({
                       border
                       border-black
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                         justify-center
                       "
@@ -919,6 +974,7 @@ export default async function AllAssetsPage({
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
                           tracking-tight
@@ -931,6 +987,7 @@ export default async function AllAssetsPage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
                           leading-relaxed
