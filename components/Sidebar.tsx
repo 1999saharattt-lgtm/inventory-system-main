@@ -74,8 +74,12 @@ export default function Sidebar({
     setNotificationCount,
   ] = useState(0);
 
-  const [openMenu, setOpenMenu] =
-    useState<string | null>(null);
+  const [
+    openMenu,
+    setOpenMenu,
+  ] = useState<string | null>(
+    null
+  );
 
   /* =======================================================
      LOAD NOTIFICATIONS
@@ -87,12 +91,14 @@ export default function Sidebar({
     const loadNotifications =
       async () => {
         try {
-          const response = await fetch(
-            "/api/notifications",
-            {
-              cache: "no-store",
-            }
-          );
+          const response =
+            await fetch(
+              "/api/notifications",
+              {
+                cache:
+                  "no-store",
+              }
+            );
 
           if (!response.ok) {
             return;
@@ -103,7 +109,10 @@ export default function Sidebar({
 
           if (mounted) {
             setNotificationCount(
-              Number(data.count ?? 0)
+              Number(
+                data.count ??
+                  0
+              )
             );
           }
         } catch (error) {
@@ -160,7 +169,10 @@ export default function Sidebar({
     const handleKeyDown = (
       event: KeyboardEvent
     ) => {
-      if (event.key === "Escape") {
+      if (
+        event.key ===
+        "Escape"
+      ) {
         setOpenMenu(null);
       }
     };
@@ -203,7 +215,8 @@ export default function Sidebar({
             "รายการพัสดุทั้งหมด",
 
           href:
-            role === "ADMIN"
+            role ===
+            "ADMIN"
               ? "/materials"
               : "/materials/summary",
 
@@ -211,9 +224,15 @@ export default function Sidebar({
         },
 
         {
-          name: "รายการรับเข้า",
-          href: "/receive",
-          icon: PackagePlus,
+          name:
+            "รายการรับเข้า",
+
+          href:
+            "/receive",
+
+          icon:
+            PackagePlus,
+
           adminOnly: true,
         },
 
@@ -221,77 +240,102 @@ export default function Sidebar({
           name:
             "รายการเบิกจ่าย",
 
-          href: "/issue",
+          href:
+            "/issue",
 
-          icon: PackageMinus,
+          icon:
+            PackageMinus,
         },
       ],
     },
 
     {
-      title: "ทะเบียนคุมพัสดุ",
-      icon: LibraryBig,
+      title:
+        "ทะเบียนคุมพัสดุ",
+
+      icon:
+        LibraryBig,
 
       items: [
         {
           name:
             "ทะเบียนคุมบัญชีพัสดุ",
 
-          href: "/stock-card",
+          href:
+            "/stock-card",
 
-          icon: ClipboardList,
+          icon:
+            ClipboardList,
         },
 
         {
           name:
             "ทะเบียนคุมบัญชีครุภัณฑ์",
 
-          href: "/assets",
+          href:
+            "/assets",
 
-          icon: MonitorCog,
+          icon:
+            MonitorCog,
         },
       ],
     },
 
     {
-      title: "หน่วยงาน",
-      icon: Landmark,
+      title:
+        "หน่วยงาน",
+
+      icon:
+        Landmark,
 
       items: [
         {
-          name: "ผู้จำหน่าย",
+          name:
+            "ผู้จำหน่าย",
 
-          href: "/vendors",
+          href:
+            "/vendors",
 
-          icon: Truck,
+          icon:
+            Truck,
 
-          adminOnly: true,
+          adminOnly:
+            true,
         },
 
         {
-          name: "กลุ่มงาน",
+          name:
+            "กลุ่มงาน",
 
-          href: "/departments",
+          href:
+            "/departments",
 
-          icon: Building2,
+          icon:
+            Building2,
         },
       ],
     },
 
     {
-      title: "เกี่ยวกับเรา",
-      icon: Info,
+      title:
+        "เกี่ยวกับเรา",
 
-      adminOnly: true,
+      icon:
+        Info,
+
+      adminOnly:
+        true,
 
       items: [
         {
           name:
             "ผู้ใช้งานระบบ",
 
-          href: "/users",
+          href:
+            "/users",
 
-          icon: Users,
+          icon:
+            Users,
         },
       ],
     },
@@ -301,25 +345,32 @@ export default function Sidebar({
      ROLE FILTER
   ======================================================= */
 
-  const visibleMenus = menus
-    .filter(
-      (group) =>
-        !group.adminOnly ||
-        role === "ADMIN"
-    )
-    .map((group) => ({
-      ...group,
+  const visibleMenus =
+    menus
+      .filter(
+        (group) =>
+          !group.adminOnly ||
+          role ===
+            "ADMIN"
+      )
+      .map(
+        (group) => ({
+          ...group,
 
-      items: group.items.filter(
-        (item) =>
-          !item.adminOnly ||
-          role === "ADMIN"
-      ),
-    }))
-    .filter(
-      (group) =>
-        group.items.length > 0
-    );
+          items:
+            group.items.filter(
+              (item) =>
+                !item.adminOnly ||
+                role ===
+                  "ADMIN"
+            ),
+        })
+      )
+      .filter(
+        (group) =>
+          group.items.length >
+          0
+      );
 
   /* =======================================================
      ACTIVE GROUP
@@ -330,8 +381,10 @@ export default function Sidebar({
   ) => {
     return group.items.some(
       (item) =>
-        pathname === item.href ||
-        (item.href !== "/" &&
+        pathname ===
+          item.href ||
+        (item.href !==
+          "/" &&
           pathname.startsWith(
             item.href
           ))
@@ -348,7 +401,7 @@ export default function Sidebar({
 
     inline-flex
 
-    h-[56px]
+    h-[52px]
     min-w-0
 
     items-center
@@ -358,7 +411,7 @@ export default function Sidebar({
 
     overflow-hidden
 
-    rounded-[18px]
+    rounded-[17px]
 
     border
 
@@ -372,7 +425,7 @@ export default function Sidebar({
     duration-300
     ease-out
 
-    xl:h-[58px]
+    xl:h-[54px]
     xl:px-4
     xl:text-[15px]
 
@@ -385,33 +438,36 @@ export default function Sidebar({
 
     bg-transparent
 
-    !text-slate-300
+    !text-slate-600
 
     hover:-translate-y-0.5
 
-    hover:border-white/[0.1]
+    hover:border-white/90
 
-    hover:bg-white/[0.07]
+    hover:bg-white/75
 
-    hover:!text-white
+    hover:!text-slate-900
 
-    hover:shadow-[0_12px_30px_-20px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)]
+    hover:shadow-[0_12px_30px_-22px_rgba(15,23,42,0.35)]
 
     active:translate-y-0
     active:scale-[0.98]
   `;
 
   const activeMainItem = `
-    border-sky-300/20
+    border-blue-400/20
 
-    bg-[linear-gradient(135deg,#2563eb_0%,#0ea5e9_52%,#06b6d4_100%)]
+    bg-gradient-to-br
+    from-blue-500
+    via-blue-600
+    to-indigo-600
 
     !text-white
 
-    shadow-[0_15px_32px_-17px_rgba(14,165,233,0.85),inset_0_1px_0_rgba(255,255,255,0.2)]
+    shadow-[0_12px_28px_-14px_rgba(37,99,235,0.65)]
 
     ring-1
-    ring-white/[0.08]
+    ring-white/30
 
     active:scale-[0.98]
   `;
@@ -431,94 +487,34 @@ export default function Sidebar({
 
         overflow-visible
 
-        border-b
-        border-white/[0.08]
+        bg-transparent
 
-        bg-[linear-gradient(115deg,rgba(2,6,23,0.98)_0%,rgba(15,23,42,0.97)_45%,rgba(30,41,59,0.96)_100%)]
+        px-2
+        pb-2
+        pt-1
 
-        shadow-[0_18px_42px_-28px_rgba(2,6,23,0.95)]
-
-        backdrop-blur-2xl
+        sm:px-3
 
         lg:block
+
+        xl:px-4
       "
     >
       {/* ===================================================
-          TOP HIGHLIGHT
+          NAVIGATION GLASS
       =================================================== */}
 
       <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          top-0
-
-          h-px
-
-          bg-gradient-to-r
-          from-transparent
-          via-white/[0.18]
-          to-transparent
-        "
-      />
-
-      {/* ===================================================
-          AMBIENT LIGHT
-      =================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          left-[18%]
-          top-0
-
-          h-20
-          w-60
-
-          rounded-full
-
-          bg-blue-500/[0.06]
-
-          blur-[55px]
-        "
-      />
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          right-[16%]
-          top-0
-
-          h-20
-          w-60
-
-          rounded-full
-
-          bg-cyan-400/[0.05]
-
-          blur-[55px]
-        "
-      />
-
-      {/* ===================================================
-          NAVIGATION CONTAINER
-      =================================================== */}
-
-      <div
-        ref={navigationRef}
+        ref={
+          navigationRef
+        }
         className="
           relative
 
           mx-auto
 
           flex
-          min-h-[72px]
+          min-h-[68px]
 
           w-full
           max-w-[1920px]
@@ -526,15 +522,102 @@ export default function Sidebar({
           items-center
           justify-center
 
-          px-3
+          overflow-visible
+
+          rounded-[24px]
+
+          border
+          border-white/80
+
+          bg-white/75
+
+          px-2
           py-2
 
-          xl:min-h-[76px]
-          xl:px-5
+          shadow-[0_18px_50px_-32px_rgba(15,23,42,0.55)]
+
+          backdrop-blur-2xl
+          backdrop-saturate-150
+
+          ring-1
+          ring-slate-900/[0.025]
+
+          xl:min-h-[72px]
+          xl:px-3
         "
       >
+        {/* =================================================
+            AMBIENT LIGHT
+        ================================================= */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            left-[10%]
+            top-0
+
+            h-20
+            w-64
+
+            rounded-full
+
+            bg-blue-300/20
+
+            blur-[55px]
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            right-[12%]
+            top-0
+
+            h-20
+            w-64
+
+            rounded-full
+
+            bg-cyan-200/20
+
+            blur-[55px]
+          "
+        />
+
+        {/* =================================================
+            TOP LIGHT
+        ================================================= */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            inset-x-8
+            top-0
+
+            h-px
+
+            bg-gradient-to-r
+            from-transparent
+            via-white
+            to-transparent
+          "
+        />
+
+        {/* =================================================
+            NAV
+        ================================================= */}
+
         <nav
           className="
+            relative
+            z-10
+
             flex
 
             w-full
@@ -543,9 +626,9 @@ export default function Sidebar({
             items-center
             justify-center
 
-            gap-1.5
+            gap-1
 
-            xl:gap-2
+            xl:gap-1.5
           "
         >
           {/* =================================================
@@ -556,7 +639,9 @@ export default function Sidebar({
             href="/"
             prefetch
             onClick={() =>
-              setOpenMenu(null)
+              setOpenMenu(
+                null
+              )
             }
             className={`
               ${mainItemBase}
@@ -564,17 +649,21 @@ export default function Sidebar({
               flex-1
 
               ${
-                pathname === "/" &&
-                openMenu === null
+                pathname ===
+                  "/" &&
+                openMenu ===
+                  null
                   ? activeMainItem
                   : inactiveMainItem
               }
             `}
           >
-            {/* Icon Tile */}
+            {/* ===============================================
+                ICON
+            =============================================== */}
 
             <span
-              className="
+              className={`
                 relative
 
                 flex
@@ -587,25 +676,46 @@ export default function Sidebar({
 
                 rounded-[11px]
 
-                bg-white/[0.07]
-
-                ring-1
-                ring-white/[0.07]
-
                 transition-all
                 duration-300
 
+                ${
+                  pathname ===
+                    "/" &&
+                  openMenu ===
+                    null
+                    ? `
+                      bg-white/15
+
+                      ring-1
+                      ring-white/20
+                    `
+                    : `
+                      bg-slate-100/80
+
+                      ring-1
+                      ring-slate-200/70
+
+                      group-hover:bg-white
+                    `
+                }
+
                 group-hover:scale-105
-                group-hover:bg-white/[0.12]
-              "
+              `}
             >
               <LayoutDashboard
                 size={18}
-                strokeWidth={2.4}
+                strokeWidth={
+                  2.4
+                }
               />
             </span>
 
-            <span className="whitespace-nowrap">
+            <span
+              className="
+                whitespace-nowrap
+              "
+            >
               หน้าแรก
             </span>
           </Link>
@@ -618,7 +728,9 @@ export default function Sidebar({
             href="/notifications"
             prefetch
             onClick={() =>
-              setOpenMenu(null)
+              setOpenMenu(
+                null
+              )
             }
             className={`
               ${mainItemBase}
@@ -628,14 +740,19 @@ export default function Sidebar({
               ${
                 pathname ===
                   "/notifications" &&
-                openMenu === null
+                openMenu ===
+                  null
                   ? activeMainItem
                   : inactiveMainItem
               }
             `}
           >
+            {/* ===============================================
+                ICON
+            =============================================== */}
+
             <span
-              className="
+              className={`
                 relative
 
                 flex
@@ -648,22 +765,43 @@ export default function Sidebar({
 
                 rounded-[11px]
 
-                bg-white/[0.07]
-
-                ring-1
-                ring-white/[0.07]
-
                 transition-all
                 duration-300
 
+                ${
+                  pathname ===
+                    "/notifications" &&
+                  openMenu ===
+                    null
+                    ? `
+                      bg-white/15
+
+                      ring-1
+                      ring-white/20
+                    `
+                    : `
+                      bg-slate-100/80
+
+                      ring-1
+                      ring-slate-200/70
+
+                      group-hover:bg-white
+                    `
+                }
+
                 group-hover:scale-105
-                group-hover:bg-white/[0.12]
-              "
+              `}
             >
               <Bell
                 size={18}
-                strokeWidth={2.4}
+                strokeWidth={
+                  2.4
+                }
               />
+
+              {/* =============================================
+                  NOTIFICATION DOT
+              ============================================= */}
 
               {notificationCount >
                 0 && (
@@ -679,19 +817,27 @@ export default function Sidebar({
                     rounded-full
 
                     border-2
-                    border-slate-900
+                    border-white
 
-                    bg-rose-500
+                    bg-red-500
 
-                    shadow-[0_0_9px_rgba(244,63,94,0.85)]
+                    shadow-[0_0_8px_rgba(239,68,68,0.55)]
                   "
                 />
               )}
             </span>
 
-            <span className="whitespace-nowrap">
+            <span
+              className="
+                whitespace-nowrap
+              "
+            >
               การแจ้งเตือน
             </span>
+
+            {/* ===============================================
+                BADGE
+            =============================================== */}
 
             {notificationCount >
               0 && (
@@ -707,10 +853,7 @@ export default function Sidebar({
 
                   rounded-full
 
-                  border
-                  border-white/[0.12]
-
-                  bg-rose-500
+                  bg-red-500
 
                   px-1.5
 
@@ -719,10 +862,14 @@ export default function Sidebar({
 
                   !text-white
 
-                  shadow-[0_8px_18px_-10px_rgba(244,63,94,0.9)]
+                  shadow-[0_6px_16px_-8px_rgba(239,68,68,0.65)]
+
+                  ring-1
+                  ring-white/40
                 "
               >
-                {notificationCount > 99
+                {notificationCount >
+                99
                   ? "99+"
                   : notificationCount}
               </span>
@@ -736,7 +883,9 @@ export default function Sidebar({
           {visibleMenus.map(
             (group) => {
               const active =
-                isGroupActive(group);
+                isGroupActive(
+                  group
+                );
 
               const isOpen =
                 openMenu ===
@@ -747,7 +896,9 @@ export default function Sidebar({
 
               return (
                 <div
-                  key={group.title}
+                  key={
+                    group.title
+                  }
                   className="
                     relative
                     min-w-0
@@ -755,7 +906,7 @@ export default function Sidebar({
                   "
                 >
                   {/* =========================================
-                      MAIN GROUP BUTTON
+                      MAIN BUTTON
                   ========================================= */}
 
                   <button
@@ -783,10 +934,12 @@ export default function Sidebar({
                       }
                     `}
                   >
-                    {/* Icon */}
+                    {/* =======================================
+                        ICON
+                    ======================================= */}
 
                     <span
-                      className="
+                      className={`
                         flex
                         h-8
                         w-8
@@ -797,25 +950,42 @@ export default function Sidebar({
 
                         rounded-[11px]
 
-                        bg-white/[0.07]
-
-                        ring-1
-                        ring-white/[0.07]
-
                         transition-all
                         duration-300
 
+                        ${
+                          active ||
+                          isOpen
+                            ? `
+                              bg-white/15
+
+                              ring-1
+                              ring-white/20
+                            `
+                            : `
+                              bg-slate-100/80
+
+                              ring-1
+                              ring-slate-200/70
+
+                              group-hover:bg-white
+                            `
+                        }
+
                         group-hover:scale-105
-                        group-hover:bg-white/[0.12]
-                      "
+                      `}
                     >
                       <GroupIcon
                         size={18}
-                        strokeWidth={2.35}
+                        strokeWidth={
+                          2.35
+                        }
                       />
                     </span>
 
-                    {/* Text */}
+                    {/* =======================================
+                        TEXT
+                    ======================================= */}
 
                     <span
                       className="
@@ -823,18 +993,24 @@ export default function Sidebar({
                         whitespace-nowrap
                       "
                     >
-                      {group.title}
+                      {
+                        group.title
+                      }
                     </span>
 
-                    {/* Chevron */}
+                    {/* =======================================
+                        CHEVRON
+                    ======================================= */}
 
                     <ChevronDown
                       size={16}
-                      strokeWidth={2.5}
+                      strokeWidth={
+                        2.5
+                      }
                       className={`
                         shrink-0
 
-                        opacity-80
+                        opacity-70
 
                         transition-transform
                         duration-300
@@ -848,7 +1024,9 @@ export default function Sidebar({
                       `}
                     />
 
-                    {/* Active Shine */}
+                    {/* =======================================
+                        IOS TOP SHINE
+                    ======================================= */}
 
                     {(active ||
                       isOpen) && (
@@ -859,13 +1037,13 @@ export default function Sidebar({
 
                           absolute
                           inset-x-5
-                          top-0
+                          top-px
 
                           h-px
 
                           bg-gradient-to-r
                           from-transparent
-                          via-white/50
+                          via-white/70
                           to-transparent
                         "
                       />
@@ -873,7 +1051,7 @@ export default function Sidebar({
                   </button>
 
                   {/* =========================================
-                      DROPDOWN PANEL
+                      DROPDOWN
                   ========================================= */}
 
                   <div
@@ -893,18 +1071,22 @@ export default function Sidebar({
 
                       overflow-hidden
 
-                      rounded-[24px]
+                      rounded-[26px]
 
                       border
-                      border-white/[0.12]
+                      border-white/90
 
-                      bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(2,6,23,0.97))]
+                      bg-white/90
 
                       p-2.5
 
-                      shadow-[0_30px_80px_-28px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)]
+                      shadow-[0_30px_80px_-30px_rgba(15,23,42,0.45)]
 
                       backdrop-blur-2xl
+                      backdrop-saturate-150
+
+                      ring-1
+                      ring-slate-900/[0.035]
 
                       transition-all
                       duration-300
@@ -928,7 +1110,32 @@ export default function Sidebar({
                       }
                     `}
                   >
-                    {/* Top Highlight */}
+                    {/* =======================================
+                        AMBIENT GLOW
+                    ======================================= */}
+
+                    <div
+                      aria-hidden="true"
+                      className="
+                        pointer-events-none
+                        absolute
+                        -right-8
+                        -top-10
+
+                        h-32
+                        w-32
+
+                        rounded-full
+
+                        bg-blue-300/20
+
+                        blur-3xl
+                      "
+                    />
+
+                    {/* =======================================
+                        TOP LIGHT
+                    ======================================= */}
 
                     <div
                       aria-hidden="true"
@@ -942,29 +1149,54 @@ export default function Sidebar({
 
                         bg-gradient-to-r
                         from-transparent
-                        via-white/35
+                        via-white
                         to-transparent
                       "
                     />
 
-                    {/* Dropdown Title */}
+                    {/* =======================================
+                        TITLE
+                    ======================================= */}
 
                     <div
                       className="
+                        relative
+                        z-10
+
                         flex
                         items-center
                         gap-2
 
-                        px-2.5
+                        px-3
                         pb-2
-                        pt-1.5
+                        pt-2
                       "
                     >
-                      <GroupIcon
-                        size={14}
-                        strokeWidth={2.4}
-                        className="text-sky-400"
-                      />
+                      <span
+                        className="
+                          flex
+                          h-7
+                          w-7
+                          items-center
+                          justify-center
+
+                          rounded-[9px]
+
+                          bg-blue-50
+
+                          !text-blue-600
+
+                          ring-1
+                          ring-blue-100
+                        "
+                      >
+                        <GroupIcon
+                          size={14}
+                          strokeWidth={
+                            2.4
+                          }
+                        />
+                      </span>
 
                       <span
                         className="
@@ -976,15 +1208,27 @@ export default function Sidebar({
                           !text-slate-400
                         "
                       >
-                        {group.title}
+                        {
+                          group.title
+                        }
                       </span>
                     </div>
 
-                    {/* Items */}
+                    {/* =======================================
+                        ITEMS
+                    ======================================= */}
 
-                    <div className="space-y-1">
+                    <div
+                      className="
+                        relative
+                        z-10
+                        space-y-1
+                      "
+                    >
                       {group.items.map(
-                        (item) => {
+                        (
+                          item
+                        ) => {
                           const itemActive =
                             pathname ===
                               item.href ||
@@ -1038,31 +1282,41 @@ export default function Sidebar({
                                 ${
                                   itemActive
                                     ? `
-                                      border-sky-300/20
+                                      border-blue-400/20
 
-                                      bg-[linear-gradient(135deg,#2563eb,#0ea5e9,#06b6d4)]
+                                      bg-gradient-to-br
+                                      from-blue-500
+                                      via-blue-600
+                                      to-indigo-600
 
                                       !text-white
 
-                                      shadow-[0_12px_30px_-18px_rgba(14,165,233,0.9),inset_0_1px_0_rgba(255,255,255,0.16)]
+                                      shadow-[0_12px_26px_-14px_rgba(37,99,235,0.55)]
+
+                                      ring-1
+                                      ring-white/25
                                     `
                                     : `
                                       border-transparent
 
-                                      !text-slate-200
+                                      !text-slate-700
 
                                       hover:translate-x-0.5
 
-                                      hover:border-white/[0.08]
+                                      hover:border-slate-200/80
 
-                                      hover:bg-white/[0.07]
+                                      hover:bg-slate-50/90
 
-                                      hover:!text-white
+                                      hover:!text-slate-950
+
+                                      hover:shadow-sm
                                     `
                                 }
                               `}
                             >
-                              {/* Item Icon */}
+                              {/* =================================
+                                  ITEM ICON
+                              ================================= */}
 
                               <span
                                 className={`
@@ -1084,26 +1338,37 @@ export default function Sidebar({
                                   ${
                                     itemActive
                                       ? `
-                                        border-white/[0.18]
-                                        bg-white/[0.16]
+                                        border-white/20
+
+                                        bg-white/15
                                       `
                                       : `
-                                        border-white/[0.08]
-                                        bg-white/[0.05]
+                                        border-slate-200/80
 
-                                        group-hover/item:border-white/[0.12]
-                                        group-hover/item:bg-white/[0.1]
+                                        bg-white
+
+                                        !text-slate-500
+
+                                        shadow-sm
+
+                                        group-hover/item:border-blue-100
+                                        group-hover/item:bg-blue-50
+                                        group-hover/item:!text-blue-600
                                       `
                                   }
                                 `}
                               >
                                 <Icon
                                   size={18}
-                                  strokeWidth={2.3}
+                                  strokeWidth={
+                                    2.3
+                                  }
                                 />
                               </span>
 
-                              {/* Name */}
+                              {/* =================================
+                                  NAME
+                              ================================= */}
 
                               <span
                                 className="
@@ -1112,28 +1377,62 @@ export default function Sidebar({
                                   whitespace-nowrap
                                 "
                               >
-                                {item.name}
+                                {
+                                  item.name
+                                }
                               </span>
 
-                              {/* Arrow */}
+                              {/* =================================
+                                  ARROW
+                              ================================= */}
 
-                              <ArrowRight
-                                size={15}
-                                strokeWidth={2.4}
-                                className="
+                              <span
+                                className={`
+                                  flex
+                                  h-7
+                                  w-7
                                   shrink-0
+                                  items-center
+                                  justify-center
 
-                                  translate-x-0
-
-                                  opacity-0
+                                  rounded-full
 
                                   transition-all
                                   duration-300
 
-                                  group-hover/item:translate-x-0.5
-                                  group-hover/item:opacity-100
-                                "
-                              />
+                                  ${
+                                    itemActive
+                                      ? `
+                                        bg-white/15
+
+                                        !text-white
+                                      `
+                                      : `
+                                        bg-slate-100
+
+                                        !text-slate-400
+
+                                        group-hover/item:bg-blue-100
+                                        group-hover/item:!text-blue-600
+                                      `
+                                  }
+                                `}
+                              >
+                                <ArrowRight
+                                  size={
+                                    14
+                                  }
+                                  strokeWidth={
+                                    2.4
+                                  }
+                                  className="
+                                    transition-transform
+                                    duration-300
+
+                                    group-hover/item:translate-x-0.5
+                                  "
+                                />
+                              </span>
                             </Link>
                           );
                         }
