@@ -759,50 +759,18 @@ export default async function AssetCategoryPage({
           >
             {/* =================================================
                 COLUMN WIDTHS
-
-                รวม 100%
-
-                ลด:
-                - GFMIS
-                - รหัสครุภัณฑ์
-                - ผู้รับผิดชอบ
-                - สถานะ
-
-                เพิ่มพื้นที่:
-                - รายการ
-                - รายละเอียด
-                - จัดการ
             ================================================= */}
 
             <colgroup>
-              {/* ลำดับ */}
               <col className="w-[4%]" />
-
-              {/* GFMIS */}
               <col className="w-[8%]" />
-
-              {/* รหัสครุภัณฑ์ */}
               <col className="w-[10%]" />
-
-              {/* รายการ */}
               <col className="w-[18%]" />
-
-              {/* จำนวน */}
               <col className="w-[5%]" />
-
-              {/* หน่วย */}
               <col className="w-[5%]" />
-
-              {/* ผู้รับผิดชอบ */}
               <col className="w-[15%]" />
-
-              {/* สถานะ */}
               <col className="w-[8%]" />
-
-              {/* รายละเอียด */}
               <col className="w-[10%]" />
-
-              {/* จัดการ */}
               <col className="w-[17%]" />
             </colgroup>
 
@@ -1287,67 +1255,32 @@ export default async function AssetCategoryPage({
                             >
                               {/* =============================
                                   EDIT
+                                  ใช้ AppButton ตัวกลาง
+                                  สีเขียวกรมอนามัย
                               ============================= */}
 
-                              <Link
+                              <AppButton
                                 href={
                                   editHref
                                 }
+                                variant="primary"
+                                size="sm"
+                                icon={
+                                  <span
+                                    aria-hidden="true"
+                                  >
+                                    ✏️
+                                  </span>
+                                }
                                 className="
-                                  inline-flex
-                                  h-10
-                                  min-w-0
+                                  !h-10
+                                  !min-w-0
                                   flex-1
-                                  items-center
-                                  justify-center
-                                  gap-1.5
-
-                                  whitespace-nowrap
-
-                                  rounded-xl
-
-                                  bg-gradient-to-b
-                                  from-blue-500
-                                  via-blue-600
-                                  to-blue-700
-
-                                  px-2
-
-                                  text-sm
-                                  font-extrabold
-                                  !text-white
-
-                                  shadow-lg
-                                  shadow-blue-500/20
-
-                                  ring-1
-                                  ring-inset
-                                  ring-blue-400/50
-
-                                  transition-all
-                                  duration-200
-
-                                  hover:-translate-y-0.5
-                                  hover:from-blue-400
-                                  hover:via-blue-600
-                                  hover:to-blue-700
-                                  hover:shadow-xl
-                                  hover:shadow-blue-500/30
-
-                                  active:translate-y-0
-                                  active:scale-[0.98]
+                                  !px-2
                                 "
                               >
-                                <span
-                                  aria-hidden="true"
-                                >
-                                  ✏️
-                                </span>
-
-                                <span>
-                                  แก้ไข
-                                </span>
-                              </Link>
+                                แก้ไข
+                              </AppButton>
 
                               {/* =============================
                                   DELETE

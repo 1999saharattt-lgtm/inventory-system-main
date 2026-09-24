@@ -73,11 +73,12 @@ export default async function AssetsPage() {
           <>
             {/* ===============================================
                 INSPECTION HISTORY
+                สีเขียวกรมอนามัย
             =============================================== */}
 
             <AppButton
               href="/assets/inspection-history"
-              variant="secondary"
+              variant="primary"
               size="md"
               icon={
                 <span aria-hidden="true">
@@ -91,6 +92,7 @@ export default async function AssetsPage() {
             {/* ===============================================
                 ANNUAL INSPECTION
                 ADMIN ONLY
+                สีเขียวกรมอนามัย
             =============================================== */}
 
             {user.role === "ADMIN" && (
