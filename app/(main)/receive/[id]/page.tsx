@@ -47,6 +47,13 @@ const categoryLabel: Record<string, string> = {
 };
 
 /* =========================================================
+   DISPLAY ROWS
+   แสดงอย่างน้อย 20 แถว โดยไม่ตัดข้อมูลจริง
+========================================================= */
+
+const DISPLAY_ROWS = 20;
+
+/* =========================================================
    THAI SHORT DATE
    ตัวอย่าง 01 ก.ย. 69
 ========================================================= */
@@ -173,6 +180,27 @@ export default async function ReceiveDetailPage({
 
   if (!receive) {
     notFound();
+  }
+
+  /* =======================================================
+     DISPLAY ITEMS
+
+     - ถ้ามีข้อมูลน้อยกว่า 20 รายการ เติมแถวว่างให้ครบ 20
+     - ถ้ามีข้อมูลมากกว่า 20 รายการ แสดงข้อมูลทั้งหมด
+     - ไม่แก้ไขข้อมูลจริงในฐานข้อมูล
+  ======================================================= */
+
+  const displayItems: Array<
+    ReceiveItem | null
+  > = [
+    ...(receive.items as ReceiveItem[]),
+  ];
+
+  while (
+    displayItems.length <
+    DISPLAY_ROWS
+  ) {
+    displayItems.push(null);
   }
 
   /* =======================================================
@@ -567,34 +595,208 @@ export default async function ReceiveDetailPage({
             ================================================= */}
 
             <tbody>
-              {receive.items.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="
-                      border
-                      border-black
+              {displayItems.map(
+                (
+                  item,
+                  index
+                ) => {
+                  if (!item) {
+                    return (
+                      <tr
+                        key={`empty-${index}`}
+                        className={`
+                          ${
+                            index % 2 === 0
+                              ? "bg-white"
+                              : "bg-slate-50/50"
+                          }
 
-                      bg-white
+                          transition-colors
+                          duration-200
 
-                      px-4
-                      py-12
+                          hover:bg-blue-50/70
+                        `}
+                      >
+                        {/* =====================================
+                            EMPTY NUMBER
+                        ===================================== */}
 
-                      text-center
-                      text-base
-                      font-bold
-                      !text-slate-500
-                    "
-                  >
-                    ไม่พบรายการพัสดุ
-                  </td>
-                </tr>
-              ) : (
-                receive.items.map(
-                  (
-                    item: ReceiveItem,
-                    index: number
-                  ) => (
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                            font-extrabold
+                            !text-slate-800
+                          "
+                        >
+                          {index + 1}
+                        </td>
+
+                        {/* =====================================
+                            EMPTY CATEGORY
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[210px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            font-bold
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY MATERIAL
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[320px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            font-bold
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY UNIT
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[120px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                            font-extrabold
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY PRICE
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[150px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-right
+                            font-bold
+                            tabular-nums
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY QTY
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[120px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                            font-extrabold
+                            tabular-nums
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY MANUFACTURE
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[200px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                            font-bold
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+
+                        {/* =====================================
+                            EMPTY EXPIRY
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[200px]
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                            font-bold
+                            !text-slate-400
+                          "
+                        >
+                          -
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return (
                     <tr
                       key={item.id}
                       className={`
@@ -827,8 +1029,8 @@ export default async function ReceiveDetailPage({
                         )}
                       </td>
                     </tr>
-                  )
-                )
+                  );
+                }
               )}
             </tbody>
           </table>

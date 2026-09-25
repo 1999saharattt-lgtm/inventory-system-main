@@ -1946,7 +1946,7 @@ export default function EditReceiveForm({
           );
 
         while (
-          rows.length < 15
+          rows.length < 20
         ) {
           rows.push(
             emptyRow()
