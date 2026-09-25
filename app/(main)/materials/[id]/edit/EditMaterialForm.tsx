@@ -60,6 +60,16 @@ type SearchableDropdownProps = {
   onChange: (value: string) => void;
 };
 
+type EditableMaterialInputProps = {
+  id: string;
+  value: string;
+  options: SearchableOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  required?: boolean;
+  onChange: (value: string) => void;
+};
+
 /* =========================================================
    CATEGORY
 ========================================================= */
@@ -338,8 +348,8 @@ function SearchableDropdown({
 
           rounded-[14px]
 
-          border
-          border-slate-300
+          border-2
+          border-black
 
           bg-white
 
@@ -357,16 +367,14 @@ function SearchableDropdown({
           transition-all
           duration-200
 
-          hover:border-slate-400
           hover:bg-slate-50
 
-          focus:border-blue-400
+          focus:border-blue-500
           focus:bg-white
           focus:ring-4
           focus:ring-blue-500/10
 
           disabled:cursor-not-allowed
-          disabled:border-slate-200
           disabled:bg-slate-100
           disabled:!text-slate-400
           disabled:opacity-70
@@ -494,8 +502,8 @@ function SearchableDropdown({
 
                 rounded-[12px]
 
-                border
-                border-slate-300
+                border-2
+                border-black
 
                 bg-white
 
@@ -514,9 +522,7 @@ function SearchableDropdown({
 
                 placeholder:!text-slate-400
 
-                hover:border-slate-400
-
-                focus:border-blue-400
+                focus:border-blue-500
                 focus:ring-4
                 focus:ring-blue-500/10
               "
@@ -640,6 +646,398 @@ function SearchableDropdown({
 }
 
 /* =========================================================
+   EDITABLE MATERIAL INPUT
+
+   - พิมพ์แก้ไขชื่อรายการได้โดยตรง
+   - ยังแสดงรายการเดิมให้เลือกได้
+   - ไม่บังคับว่าชื่อใหม่ต้องอยู่ในรายการเดิม
+========================================================= */
+
+function EditableMaterialInput({
+  id,
+  value,
+  options,
+  placeholder = "พิมพ์ชื่อรายการพัสดุ",
+  disabled = false,
+  required = false,
+  onChange,
+}: EditableMaterialInputProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const filteredOptions =
+    useMemo(() => {
+      const keyword =
+        value
+          .trim()
+          .toLocaleLowerCase("th");
+
+      if (!keyword) {
+        return options;
+      }
+
+      return options.filter(
+        (option) =>
+          option.label
+            .toLocaleLowerCase("th")
+            .includes(keyword) ||
+          option.value
+            .toLocaleLowerCase("th")
+            .includes(keyword)
+      );
+    }, [options, value]);
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`
+        relative
+        w-full
+        ${open ? "z-[200]" : "z-0"}
+      `}
+    >
+      <div
+        className="
+          relative
+          flex
+          min-h-[50px]
+          w-full
+          items-center
+
+          rounded-[14px]
+
+          border-2
+          border-black
+
+          bg-white
+
+          shadow-sm
+
+          transition-all
+          duration-200
+
+          focus-within:border-blue-500
+          focus-within:ring-4
+          focus-within:ring-blue-500/10
+        "
+      >
+        <input
+          id={id}
+          type="text"
+          value={value}
+          disabled={disabled}
+          required={required}
+          autoComplete="off"
+          placeholder={placeholder}
+          onFocus={() => {
+            if (!disabled) {
+              setOpen(true);
+            }
+          }}
+          onChange={(event) => {
+            onChange(
+              event.target.value
+            );
+
+            if (!disabled) {
+              setOpen(true);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (
+              event.key ===
+              "Escape"
+            ) {
+              setOpen(false);
+            }
+
+            if (
+              event.key ===
+                "ArrowDown"
+            ) {
+              setOpen(true);
+            }
+          }}
+          className="
+            min-h-[48px]
+            min-w-0
+            flex-1
+
+            rounded-[12px]
+
+            border-0
+            bg-transparent
+
+            px-4
+            py-3
+
+            text-base
+            font-bold
+            !text-slate-900
+
+            outline-none
+
+            placeholder:!text-slate-400
+
+            disabled:cursor-not-allowed
+            disabled:bg-slate-100
+            disabled:!text-slate-400
+          "
+        />
+
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) {
+              return;
+            }
+
+            setOpen(
+              (current) =>
+                !current
+            );
+          }}
+          className="
+            flex
+            h-full
+            shrink-0
+            items-center
+            justify-center
+
+            px-4
+
+            text-xs
+            !text-slate-500
+
+            disabled:cursor-not-allowed
+          "
+          aria-label="แสดงรายการพัสดุ"
+        >
+          <span
+            className={`
+              transition-transform
+              duration-200
+
+              ${
+                open
+                  ? "rotate-180"
+                  : ""
+              }
+            `}
+          >
+            ▼
+          </span>
+        </button>
+      </div>
+
+      {open && !disabled && (
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-[calc(100%+8px)]
+
+            z-[9999]
+
+            overflow-hidden
+
+            rounded-[16px]
+
+            border
+            border-slate-200
+
+            bg-white
+
+            shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
+          "
+        >
+          <div
+            className="
+              border-b
+              border-slate-200
+
+              bg-slate-50
+
+              px-4
+              py-3
+
+              text-xs
+              font-bold
+              !text-slate-500
+            "
+          >
+            พิมพ์แก้ไขชื่อได้โดยตรง หรือเลือกรายการเดิมด้านล่าง
+          </div>
+
+          <div
+            role="listbox"
+            className="
+              max-h-[260px]
+              overflow-y-auto
+              overscroll-contain
+
+              bg-white
+
+              p-2
+            "
+          >
+            {filteredOptions.length >
+            0 ? (
+              filteredOptions.map(
+                (option) => {
+                  const selected =
+                    option.value ===
+                    value;
+
+                  return (
+                    <button
+                      key={
+                        option.value
+                      }
+                      type="button"
+                      role="option"
+                      aria-selected={
+                        selected
+                      }
+                      onClick={() => {
+                        onChange(
+                          option.value
+                        );
+
+                        setOpen(
+                          false
+                        );
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        gap-3
+
+                        rounded-[10px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-base
+                        font-bold
+
+                        transition-colors
+
+                        ${
+                          selected
+                            ? `
+                              bg-slate-900
+                              !text-white
+                            `
+                            : `
+                              bg-white
+                              !text-slate-900
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      <span
+                        className="
+                          min-w-0
+                          flex-1
+                          break-words
+                        "
+                      >
+                        {option.label}
+                      </span>
+
+                      {selected && (
+                        <span
+                          aria-hidden="true"
+                          className="
+                            shrink-0
+                            !text-white
+                          "
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                }
+              )
+            ) : (
+              <div
+                className="
+                  px-4
+                  py-6
+                  text-center
+                "
+              >
+                <p
+                  className="
+                    text-sm
+                    font-bold
+                    !text-slate-700
+                  "
+                >
+                  ใช้ชื่อที่พิมพ์นี้ได้
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    break-words
+                    text-sm
+                    font-extrabold
+                    !text-blue-600
+                  "
+                >
+                  {value.trim() ||
+                    "-"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    EDIT FORM
 ========================================================= */
 
@@ -704,30 +1102,32 @@ export default function EditMaterialForm({
 
   /* =======================================================
      UNIT
+
+     ถ้าเลือกชื่อที่มีใน UNITS
+     -> ใช้หน่วยตามรายการนั้น
+
+     ถ้าพิมพ์แก้ชื่อเอง
+     -> คงหน่วยเดิมของพัสดุไว้
   ======================================================= */
 
   const unit = useMemo(() => {
-    if (!name) {
+    const cleanName =
+      name.trim();
+
+    if (!cleanName) {
       return "";
     }
 
     const mappedUnit =
-      UNITS[name];
+      UNITS[cleanName];
 
     if (mappedUnit) {
       return mappedUnit;
     }
 
-    if (
-      name === material.name
-    ) {
-      return material.unit;
-    }
-
-    return "";
+    return material.unit;
   }, [
     name,
-    material.name,
     material.unit,
   ]);
 
@@ -798,6 +1198,9 @@ export default function EditMaterialForm({
       return;
     }
 
+    const cleanName =
+      name.trim();
+
     if (!category) {
       alert(
         "กรุณาเลือกหมวดหมู่"
@@ -805,9 +1208,9 @@ export default function EditMaterialForm({
       return;
     }
 
-    if (!name) {
+    if (!cleanName) {
       alert(
-        "กรุณาเลือกรายการพัสดุ"
+        "กรุณาระบุชื่อรายการพัสดุ"
       );
       return;
     }
@@ -831,7 +1234,7 @@ export default function EditMaterialForm({
 
       category,
 
-      name,
+      name: cleanName,
 
       unit,
 
@@ -931,8 +1334,8 @@ export default function EditMaterialForm({
 
     rounded-[14px]
 
-    border
-    border-slate-300
+    border-2
+    border-black
 
     bg-white
 
@@ -951,10 +1354,9 @@ export default function EditMaterialForm({
 
     placeholder:!text-slate-400
 
-    hover:border-slate-400
     hover:bg-slate-50
 
-    focus:border-blue-400
+    focus:border-blue-500
     focus:bg-white
     focus:ring-4
     focus:ring-blue-500/10
@@ -1087,6 +1489,7 @@ export default function EditMaterialForm({
                   setCategory(
                     selectedCategory
                   );
+
                   setName("");
                 }}
               />
@@ -1114,7 +1517,7 @@ export default function EditMaterialForm({
                 รายการพัสดุ
               </label>
 
-              <SearchableDropdown
+              <EditableMaterialInput
                 id="name"
                 value={name}
                 options={
@@ -1122,11 +1525,9 @@ export default function EditMaterialForm({
                 }
                 placeholder={
                   category
-                    ? "เลือกรายการพัสดุ"
+                    ? "พิมพ์หรือแก้ไขชื่อรายการพัสดุ"
                     : "กรุณาเลือกหมวดหมู่ก่อน"
                 }
-                searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
-                emptyText="ไม่พบรายการพัสดุ"
                 disabled={
                   !category
                 }
@@ -1135,6 +1536,17 @@ export default function EditMaterialForm({
                   setName
                 }
               />
+
+              <p
+                className="
+                  mt-2
+                  text-xs
+                  font-semibold
+                  !text-slate-500
+                "
+              >
+                สามารถพิมพ์แก้ไขชื่อรายการพัสดุได้โดยตรง หรือเลือกรายการเดิมจากเมนูด้านล่าง
+              </p>
             </AppInfoCard>
           </div>
 
@@ -1188,10 +1600,10 @@ export default function EditMaterialForm({
 
                 rounded-[14px]
 
-                border
-                border-slate-300
+                border-2
+                border-black
 
-                bg-white
+                bg-slate-50
 
                 px-4
                 py-3
@@ -1251,8 +1663,8 @@ export default function EditMaterialForm({
 
                 rounded-[14px]
 
-                border
-                border-slate-300
+                border-2
+                border-black
 
                 bg-white
 
@@ -1261,7 +1673,7 @@ export default function EditMaterialForm({
                 transition-all
                 duration-200
 
-                focus-within:border-blue-400
+                focus-within:border-blue-500
                 focus-within:ring-4
                 focus-within:ring-blue-500/10
               "
@@ -1310,7 +1722,7 @@ export default function EditMaterialForm({
                   items-center
 
                   border-l
-                  border-slate-200
+                  border-black
 
                   bg-slate-50
 
