@@ -26,6 +26,7 @@ type AppCardProps = {
 
    มาตรฐานการ์ดกลางของระบบ
    - iOS / Glass
+   - โทนเขียวอ่อนโปร่งใส
    - มุมโค้ง
    - เงานุ่ม
    - ไม่มีเส้นดำใต้หัวข้อ
@@ -67,14 +68,17 @@ export default function AppCard({
         rounded-[28px]
 
         border
-        border-slate-200/90
+        border-emerald-100/80
 
-        bg-white/80
+        bg-gradient-to-br
+        from-emerald-50/55
+        via-white/72
+        to-green-50/45
 
-        shadow-[0_24px_70px_-36px_rgba(15,23,42,0.38)]
+        shadow-[0_24px_70px_-36px_rgba(5,150,105,0.24)]
 
         ring-1
-        ring-black/[0.025]
+        ring-emerald-900/[0.025]
 
         backdrop-blur-2xl
 
@@ -83,6 +87,7 @@ export default function AppCard({
     >
       {/* ===================================================
           IOS AMBIENT BACKGROUND
+          โทนเขียวอ่อน โปร่งใส ไม่เข้มเกินไป
       =================================================== */}
 
       <div
@@ -99,7 +104,7 @@ export default function AppCard({
 
           rounded-full
 
-          bg-blue-400/[0.07]
+          bg-emerald-400/[0.065]
 
           blur-3xl
         "
@@ -119,7 +124,7 @@ export default function AppCard({
 
           rounded-full
 
-          bg-cyan-400/[0.06]
+          bg-green-400/[0.05]
 
           blur-3xl
         "
@@ -141,9 +146,31 @@ export default function AppCard({
 
           rounded-full
 
-          bg-slate-200/20
+          bg-emerald-100/25
 
           blur-3xl
+        "
+      />
+
+      {/* ===================================================
+          TOP GLASS HIGHLIGHT
+      =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+          inset-x-0
+          top-0
+
+          h-px
+
+          bg-gradient-to-r
+          from-transparent
+          via-white/90
+          to-transparent
         "
       />
 
@@ -197,16 +224,16 @@ export default function AppCard({
                   rounded-[15px]
 
                   border
-                  border-white/80
+                  border-white/85
 
-                  bg-white/85
+                  bg-white/75
 
                   text-xl
 
-                  shadow-[0_8px_22px_-14px_rgba(15,23,42,0.45)]
+                  shadow-[0_8px_22px_-14px_rgba(5,150,105,0.26)]
 
                   ring-1
-                  ring-slate-200/80
+                  ring-emerald-100/80
 
                   backdrop-blur-xl
                 "
