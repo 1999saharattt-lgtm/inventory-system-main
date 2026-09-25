@@ -1,8 +1,11 @@
 import {
   KeyRound,
   LockKeyhole,
+  ShieldCheck,
   UserRound,
 } from "lucide-react";
+
+import AppButton from "@/components/AppButton";
 
 import { login } from "./action";
 
@@ -22,19 +25,20 @@ export default function LoginPage() {
         justify-center
         overflow-hidden
 
-        bg-[#f5f7fb]
+        bg-[#f3f8f5]
 
-        px-4
-        py-6
+        px-3
+        py-5
 
-        sm:px-6
-        sm:py-8
+        sm:px-5
+        sm:py-7
 
         lg:px-8
       "
     >
       {/* ===================================================
           BACKGROUND
+          iOS Glass + Department of Health Green
       =================================================== */}
 
       <div
@@ -44,7 +48,7 @@ export default function LoginPage() {
           absolute
           inset-0
 
-          bg-[radial-gradient(circle_at_10%_10%,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_90%_12%,rgba(16,185,129,0.12),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(14,165,233,0.10),transparent_38%),linear-gradient(to_bottom,#f8fafc_0%,#f1f5f9_55%,#eef2f7_100%)]
+          bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.20),transparent_30%),radial-gradient(circle_at_92%_10%,rgba(5,150,105,0.16),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(20,184,166,0.12),transparent_40%),linear-gradient(to_bottom,#f8fcfa_0%,#f1f8f4_50%,#edf6f1_100%)]
         "
       />
 
@@ -53,13 +57,13 @@ export default function LoginPage() {
         className="
           pointer-events-none
           absolute
-          -left-32
-          top-20
-          h-[440px]
-          w-[440px]
+          -left-36
+          top-12
+          h-[460px]
+          w-[460px]
           rounded-full
-          bg-blue-400/15
-          blur-[110px]
+          bg-emerald-400/15
+          blur-[120px]
         "
       />
 
@@ -70,11 +74,11 @@ export default function LoginPage() {
           absolute
           -right-32
           top-1/3
-          h-[480px]
-          w-[480px]
+          h-[500px]
+          w-[500px]
           rounded-full
-          bg-emerald-300/10
-          blur-[120px]
+          bg-green-400/10
+          blur-[130px]
         "
       />
 
@@ -86,11 +90,11 @@ export default function LoginPage() {
           bottom-[-220px]
           left-1/2
           h-[420px]
-          w-[760px]
+          w-[780px]
           -translate-x-1/2
           rounded-full
-          bg-cyan-300/10
-          blur-[130px]
+          bg-teal-300/10
+          blur-[140px]
         "
       />
 
@@ -115,13 +119,16 @@ export default function LoginPage() {
           border
           border-white/80
 
-          bg-white/70
+          bg-white/65
 
-          shadow-[0_32px_90px_-35px_rgba(15,23,42,0.38)]
+          shadow-[0_32px_90px_-35px_rgba(15,23,42,0.30)]
+
+          ring-1
+          ring-black/[0.025]
 
           backdrop-blur-2xl
 
-          lg:grid-cols-[1.05fr_0.95fr]
+          lg:grid-cols-[1.02fr_0.98fr]
         "
       >
         {/* =================================================
@@ -140,9 +147,9 @@ export default function LoginPage() {
             overflow-hidden
 
             bg-gradient-to-br
-            from-slate-950
-            via-slate-900
-            to-slate-800
+            from-emerald-950
+            via-emerald-900
+            to-green-800
 
             px-6
             py-9
@@ -170,7 +177,7 @@ export default function LoginPage() {
               h-80
               w-80
               rounded-full
-              bg-blue-400/20
+              bg-emerald-300/20
               blur-[90px]
             "
           />
@@ -185,8 +192,8 @@ export default function LoginPage() {
               h-96
               w-96
               rounded-full
-              bg-cyan-400/15
-              blur-[100px]
+              bg-green-300/15
+              blur-[105px]
             "
           />
 
@@ -197,13 +204,48 @@ export default function LoginPage() {
               absolute
               left-1/2
               top-1/2
-              h-[320px]
-              w-[320px]
+              h-[340px]
+              w-[340px]
               -translate-x-1/2
               -translate-y-1/2
               rounded-full
-              bg-white/[0.03]
+              bg-white/[0.04]
               blur-3xl
+            "
+          />
+
+          {/* DECORATIVE GLASS CIRCLES */}
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              right-8
+              top-8
+              h-24
+              w-24
+              rounded-full
+              border
+              border-white/10
+              bg-white/[0.04]
+              backdrop-blur-xl
+            "
+          />
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              bottom-10
+              left-10
+              h-16
+              w-16
+              rounded-[22px]
+              border
+              border-white/10
+              bg-white/[0.04]
+              backdrop-blur-xl
             "
           />
 
@@ -233,19 +275,21 @@ export default function LoginPage() {
 
                   overflow-hidden
 
-                  rounded-[28px]
+                  rounded-[30px]
 
                   border
-                  border-white/70
+                  border-white/75
 
                   bg-white/95
 
                   p-3
 
-                  shadow-[0_24px_60px_-22px_rgba(0,0,0,0.7)]
+                  shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]
 
                   ring-1
-                  ring-white/20
+                  ring-white/30
+
+                  backdrop-blur-2xl
 
                   sm:h-36
                   sm:w-36
@@ -292,7 +336,7 @@ export default function LoginPage() {
                   text-base
                   font-bold
                   leading-relaxed
-                  !text-slate-200
+                  !text-emerald-50
 
                   sm:text-xl
                 "
@@ -306,7 +350,7 @@ export default function LoginPage() {
 
                   text-xs
                   font-semibold
-                  !text-slate-400
+                  !text-emerald-100/75
 
                   sm:text-base
                 "
@@ -323,11 +367,11 @@ export default function LoginPage() {
                 my-6
 
                 h-px
-                w-24
+                w-28
 
                 bg-gradient-to-r
                 from-transparent
-                via-slate-500
+                via-emerald-100/50
                 to-transparent
 
                 sm:my-7
@@ -342,7 +386,7 @@ export default function LoginPage() {
                 font-semibold
                 leading-relaxed
                 tracking-wide
-                !text-slate-400
+                !text-emerald-100/65
 
                 sm:text-base
               "
@@ -364,7 +408,7 @@ export default function LoginPage() {
             items-center
             justify-center
 
-            bg-white/80
+            bg-white/78
 
             px-5
             py-9
@@ -389,10 +433,25 @@ export default function LoginPage() {
               absolute
               -right-20
               -top-20
+              h-56
+              w-56
+              rounded-full
+              bg-emerald-300/12
+              blur-3xl
+            "
+          />
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              -bottom-20
+              -left-20
+              absolute
               h-52
               w-52
               rounded-full
-              bg-blue-300/10
+              bg-green-200/15
               blur-3xl
             "
           />
@@ -432,33 +491,48 @@ export default function LoginPage() {
                   items-center
                   justify-center
 
-                  rounded-[20px]
+                  rounded-[21px]
 
                   border
-                  border-slate-200/80
+                  border-emerald-100/90
 
-                  bg-white/95
+                  bg-gradient-to-b
+                  from-white
+                  to-emerald-50/80
 
-                  !text-blue-600
+                  !text-emerald-700
 
-                  shadow-[0_14px_35px_-20px_rgba(15,23,42,0.4)]
+                  shadow-[0_16px_36px_-20px_rgba(5,150,105,0.45)]
 
                   ring-1
                   ring-black/[0.025]
                 "
                 aria-hidden="true"
               >
-                <LockKeyhole
-                  size={28}
+                <ShieldCheck
+                  size={29}
                   strokeWidth={2}
                 />
               </div>
 
-              {/* ไม่มีคำว่า "เข้าสู่ระบบ" ตรงนี้แล้ว */}
+              <h2
+                className="
+                  mt-5
+
+                  text-2xl
+                  font-black
+                  tracking-tight
+                  !text-slate-900
+
+                  sm:text-[28px]
+                "
+              >
+                เข้าสู่ระบบ
+              </h2>
 
               <p
                 className="
-                  mt-4
+                  mt-2
                   w-full
 
                   text-center
@@ -503,8 +577,6 @@ export default function LoginPage() {
                   รหัสผู้ใช้งาน
                 </label>
 
-                {/* ICON + INPUT แยกออกจากกัน */}
-
                 <div
                   className="
                     flex
@@ -513,7 +585,7 @@ export default function LoginPage() {
                     gap-3
                   "
                 >
-                  {/* USER ICON OUTSIDE INPUT */}
+                  {/* USER ICON */}
 
                   <div
                     className="
@@ -527,13 +599,15 @@ export default function LoginPage() {
                       rounded-[17px]
 
                       border
-                      border-slate-200
+                      border-emerald-100
 
-                      bg-white
+                      bg-gradient-to-b
+                      from-white
+                      to-emerald-50/70
 
-                      !text-slate-500
+                      !text-emerald-700
 
-                      shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+                      shadow-[0_8px_24px_-18px_rgba(5,150,105,0.45)]
 
                       ring-1
                       ring-black/[0.02]
@@ -562,10 +636,10 @@ export default function LoginPage() {
 
                       rounded-[17px]
 
-                      border
-                      border-slate-300/90
+                      border-2
+                      !border-black
 
-                      bg-slate-50/80
+                      bg-white/90
 
                       px-4
                       py-3
@@ -584,13 +658,12 @@ export default function LoginPage() {
                       placeholder:font-semibold
                       placeholder:!text-slate-400
 
-                      hover:border-slate-400
                       hover:bg-white
 
-                      focus:border-blue-500
+                      focus:!border-emerald-600
                       focus:bg-white
                       focus:ring-4
-                      focus:ring-blue-500/10
+                      focus:ring-emerald-500/10
                     "
                   />
                 </div>
@@ -617,8 +690,6 @@ export default function LoginPage() {
                   รหัสผ่าน
                 </label>
 
-                {/* ICON + INPUT แยกออกจากกัน */}
-
                 <div
                   className="
                     flex
@@ -627,7 +698,7 @@ export default function LoginPage() {
                     gap-3
                   "
                 >
-                  {/* PASSWORD ICON OUTSIDE INPUT */}
+                  {/* PASSWORD ICON */}
 
                   <div
                     className="
@@ -641,13 +712,15 @@ export default function LoginPage() {
                       rounded-[17px]
 
                       border
-                      border-slate-200
+                      border-emerald-100
 
-                      bg-white
+                      bg-gradient-to-b
+                      from-white
+                      to-emerald-50/70
 
-                      !text-slate-500
+                      !text-emerald-700
 
-                      shadow-[0_8px_24px_-18px_rgba(15,23,42,0.45)]
+                      shadow-[0_8px_24px_-18px_rgba(5,150,105,0.45)]
 
                       ring-1
                       ring-black/[0.02]
@@ -676,10 +749,10 @@ export default function LoginPage() {
 
                       rounded-[17px]
 
-                      border
-                      border-slate-300/90
+                      border-2
+                      !border-black
 
-                      bg-slate-50/80
+                      bg-white/90
 
                       px-4
                       py-3
@@ -698,13 +771,12 @@ export default function LoginPage() {
                       placeholder:font-semibold
                       placeholder:!text-slate-400
 
-                      hover:border-slate-400
                       hover:bg-white
 
-                      focus:border-blue-500
+                      focus:!border-emerald-600
                       focus:bg-white
                       focus:ring-4
-                      focus:ring-blue-500/10
+                      focus:ring-emerald-500/10
                     "
                   />
                 </div>
@@ -712,63 +784,76 @@ export default function LoginPage() {
 
               {/* ===========================================
                   LOGIN BUTTON
+                  ใช้ AppButton ตัวกลางของระบบ
               =========================================== */}
 
-              <button
-                type="submit"
-                className="
-                  mt-2
+              <div className="pt-1">
+                <AppButton
+                  type="submit"
+                  variant="success"
+                  size="lg"
+                  fullWidth
+                  icon={
+                    <LockKeyhole
+                      size={19}
+                      strokeWidth={2.2}
+                      aria-hidden="true"
+                    />
+                  }
+                >
+                  เข้าสู่ระบบ
+                </AppButton>
+              </div>
+            </form>
 
+            {/* =============================================
+                SECURITY INFO
+            ============================================= */}
+
+            <div
+              className="
+                mt-6
+
+                rounded-[18px]
+
+                border
+                border-emerald-100/90
+
+                bg-emerald-50/60
+
+                px-4
+                py-3
+
+                text-center
+
+                shadow-sm
+              "
+            >
+              <div
+                className="
                   flex
-                  h-[56px]
-                  w-full
                   items-center
                   justify-center
-                  gap-2.5
+                  gap-2
 
-                  rounded-[17px]
+                  text-xs
+                  font-bold
+                  !text-emerald-800
 
-                  border
-                  border-blue-500/20
-
-                  bg-gradient-to-r
-                  from-blue-600
-                  to-blue-500
-
-                  px-5
-
-                  text-base
-                  font-extrabold
-                  !text-white
-
-                  shadow-[0_14px_30px_-16px_rgba(37,99,235,0.75)]
-
-                  transition-all
-                  duration-200
-
-                  hover:-translate-y-0.5
-                  hover:from-blue-500
-                  hover:to-blue-400
-
-                  hover:shadow-[0_18px_34px_-16px_rgba(37,99,235,0.8)]
-
-                  active:translate-y-0
-                  active:scale-[0.99]
-
-                  sm:text-lg
+                  sm:text-sm
                 "
               >
                 <LockKeyhole
-                  size={19}
-                  strokeWidth={2.2}
+                  size={15}
+                  strokeWidth={2}
                   aria-hidden="true"
                 />
 
                 <span>
-                  เข้าสู่ระบบ
+                  ระบบสำหรับผู้ใช้งานที่ได้รับอนุญาต
                 </span>
-              </button>
-            </form>
+              </div>
+            </div>
 
             {/* =============================================
                 FOOTER
@@ -776,10 +861,10 @@ export default function LoginPage() {
 
             <div
               className="
-                mt-8
+                mt-7
 
                 border-t
-                border-slate-200
+                border-slate-200/90
 
                 pt-5
 
