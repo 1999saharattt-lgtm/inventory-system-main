@@ -47,22 +47,23 @@ const categoryLabel: Record<string, string> = {
 };
 
 /* =========================================================
-   THAI DATE
+   THAI SHORT DATE
+   ตัวอย่าง 01 ก.ย. 69
 ========================================================= */
 
-const thaiMonths = [
-  "มกราคม",
-  "กุมภาพันธ์",
-  "มีนาคม",
-  "เมษายน",
-  "พฤษภาคม",
-  "มิถุนายน",
-  "กรกฎาคม",
-  "สิงหาคม",
-  "กันยายน",
-  "ตุลาคม",
-  "พฤศจิกายน",
-  "ธันวาคม",
+const thaiShortMonths = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
 ];
 
 function formatThaiDate(
@@ -81,9 +82,20 @@ function formatThaiDate(
     return "-";
   }
 
-  return `${d.getDate()} ${
-    thaiMonths[d.getMonth()]
-  } ${d.getFullYear() + 543}`;
+  const day = String(
+    d.getDate()
+  ).padStart(2, "0");
+
+  const month =
+    thaiShortMonths[
+      d.getMonth()
+    ];
+
+  const buddhistYear = String(
+    d.getFullYear() + 543
+  ).slice(-2);
+
+  return `${day} ${month} ${buddhistYear}`;
 }
 
 /* =========================================================

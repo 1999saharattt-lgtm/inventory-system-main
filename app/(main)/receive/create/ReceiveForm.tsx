@@ -1807,7 +1807,7 @@ export default function ReceiveForm({
     useState<ReceiveRow[]>(
       Array.from(
         {
-          length: 15,
+          length: 20,
         },
         emptyRow
       )
