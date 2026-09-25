@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { updateReceive } from "./actions";
 
@@ -82,6 +83,7 @@ type SearchableDropdownProps = {
   emptyText?: string;
   disabled?: boolean;
   required?: boolean;
+  compact?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -370,7 +372,17 @@ function formatNumberWithCommas(
 
 /* =========================================================
    IOS DATE PICKER
+
+   ใช้ Portal ไปที่ document.body เพื่อให้ปฏิทิน
+   อยู่ด้านหน้าสุดเสมอ ไม่ถูก AppCard / AppTableCard /
+   ตาราง หรือ overflow ของ parent ตัด
 ========================================================= */
+
+type CalendarPosition = {
+  left: number;
+  top: number;
+  width: number;
+};
 
 function IOSDatePicker({
   id,
@@ -385,6 +397,12 @@ function IOSDatePicker({
   const containerRef =
     useRef<HTMLDivElement>(null);
 
+  const triggerRef =
+    useRef<HTMLButtonElement>(null);
+
+  const popupRef =
+    useRef<HTMLDivElement>(null);
+
   const selectedDate =
     inputValueToDate(value);
 
@@ -397,6 +415,13 @@ function IOSDatePicker({
         new Date()
     );
 
+  const [
+    calendarPosition,
+    setCalendarPosition,
+  ] = useState<CalendarPosition | null>(
+    null
+  );
+
   useEffect(() => {
     if (selectedDate) {
       setViewDate(
@@ -408,33 +433,6 @@ function IOSDatePicker({
       );
     }
   }, [value]);
-
-  useEffect(() => {
-    function handleMouseDown(
-      event: MouseEvent
-    ) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
-      ) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handleMouseDown
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleMouseDown
-      );
-    };
-  }, []);
 
   const calendarDays =
     useMemo(() => {
@@ -464,8 +462,7 @@ function IOSDatePicker({
 
       for (
         let i = 0;
-        i <
-        firstDay.getDay();
+        i < firstDay.getDay();
         i++
       ) {
         days.push(null);
@@ -473,8 +470,7 @@ function IOSDatePicker({
 
       for (
         let day = 1;
-        day <=
-        lastDay.getDate();
+        day <= lastDay.getDate();
         day++
       ) {
         days.push(
@@ -487,8 +483,7 @@ function IOSDatePicker({
       }
 
       while (
-        days.length % 7 !==
-        0
+        days.length % 7 !== 0
       ) {
         days.push(null);
       }
@@ -501,8 +496,7 @@ function IOSDatePicker({
       (current) =>
         new Date(
           current.getFullYear(),
-          current.getMonth() -
-            1,
+          current.getMonth() - 1,
           1
         )
     );
@@ -513,8 +507,7 @@ function IOSDatePicker({
       (current) =>
         new Date(
           current.getFullYear(),
-          current.getMonth() +
-            1,
+          current.getMonth() + 1,
           1
         )
     );
@@ -539,466 +532,662 @@ function IOSDatePicker({
     setOpen(false);
   }
 
-  return (
-    <div
-      ref={containerRef}
-      className={`
-        relative
-        w-full
-        min-w-0
+  function updateCalendarPosition() {
+    const trigger =
+      triggerRef.current;
 
-        ${
-          open
-            ? "z-[99999]"
-            : "z-10"
-        }
-      `}
-    >
-      <input
-        type="hidden"
-        name={name}
-        value={value}
-        required={required}
-      />
+    if (
+      !trigger ||
+      typeof window ===
+        "undefined"
+    ) {
+      return;
+    }
 
-      <button
-        id={id}
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => {
-          if (!open) {
-            const base =
-              selectedDate ??
-              new Date();
+    const rect =
+      trigger.getBoundingClientRect();
 
-            setViewDate(
-              new Date(
-                base.getFullYear(),
-                base.getMonth(),
-                1
+    const edgeGap = 12;
+    const popupGap = 8;
+
+    const desiredWidth =
+      compact ? 320 : 360;
+
+    const width =
+      Math.min(
+        desiredWidth,
+        window.innerWidth -
+          edgeGap * 2
+      );
+
+    /*
+      ความสูงโดยประมาณของปฏิทิน
+      ใช้เพื่อเลือกว่าจะเปิดด้านบนหรือด้านล่าง
+    */
+    const desiredHeight =
+      compact ? 390 : 410;
+
+    const availableBelow =
+      window.innerHeight -
+      rect.bottom -
+      popupGap -
+      edgeGap;
+
+    const availableAbove =
+      rect.top -
+      popupGap -
+      edgeGap;
+
+    const shouldOpenAbove =
+      availableBelow <
+        Math.min(
+          desiredHeight,
+          280
+        ) &&
+      availableAbove >
+        availableBelow;
+
+    let left =
+      align === "right"
+        ? rect.right - width
+        : rect.left;
+
+    left = Math.min(
+      Math.max(
+        left,
+        edgeGap
+      ),
+      Math.max(
+        edgeGap,
+        window.innerWidth -
+          width -
+          edgeGap
+      )
+    );
+
+    const top =
+      shouldOpenAbove
+        ? Math.max(
+            edgeGap,
+            rect.top -
+              popupGap -
+              Math.min(
+                desiredHeight,
+                availableAbove
               )
-            );
-          }
-
-          setOpen(
-            (current) =>
-              !current
+          )
+        : Math.min(
+            rect.bottom +
+              popupGap,
+            Math.max(
+              edgeGap,
+              window.innerHeight -
+                desiredHeight -
+                edgeGap
+            )
           );
-        }}
-        className={`
-          flex
+
+    setCalendarPosition({
+      left,
+      top,
+      width,
+    });
+  }
+
+  useEffect(() => {
+    function handleMouseDown(
+      event: MouseEvent
+    ) {
+      const target =
+        event.target as Node;
+
+      const insideTrigger =
+        containerRef.current?.contains(
+          target
+        ) ?? false;
+
+      const insidePopup =
+        popupRef.current?.contains(
+          target
+        ) ?? false;
+
+      if (
+        !insideTrigger &&
+        !insidePopup
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleMouseDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setCalendarPosition(
+        null
+      );
+      return;
+    }
+
+    updateCalendarPosition();
+
+    const handleViewportChange =
+      () => {
+        updateCalendarPosition();
+      };
+
+    window.addEventListener(
+      "resize",
+      handleViewportChange
+    );
+
+    window.addEventListener(
+      "scroll",
+      handleViewportChange,
+      true
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleViewportChange
+      );
+
+      window.removeEventListener(
+        "scroll",
+        handleViewportChange,
+        true
+      );
+    };
+  }, [
+    open,
+    compact,
+    align,
+  ]);
+
+  const calendarPopup =
+    open &&
+    calendarPosition &&
+    typeof document !==
+      "undefined"
+      ? createPortal(
+          <div
+            ref={popupRef}
+            role="dialog"
+            aria-label="เลือกวันที่"
+            style={{
+              position: "fixed",
+              left:
+                calendarPosition.left,
+              top:
+                calendarPosition.top,
+              width:
+                calendarPosition.width,
+              zIndex: 2147483000,
+            }}
+            className="
+              max-h-[calc(100vh-24px)]
+              overflow-y-auto
+
+              rounded-[24px]
+
+              border
+              border-slate-200
+
+              bg-white
+
+              p-3
+
+              shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
+
+              ring-1
+              ring-black/5
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-2
+                px-1
+                pb-3
+              "
+            >
+              <button
+                type="button"
+                onClick={
+                  previousMonth
+                }
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+                  !text-slate-800
+
+                  transition-all
+
+                  hover:bg-slate-200
+                  active:scale-90
+                "
+              >
+                ‹
+              </button>
+
+              <div className="text-center">
+                <div
+                  className="
+                    text-base
+                    font-black
+                    !text-slate-900
+                  "
+                >
+                  {
+                    thaiMonths[
+                      viewDate.getMonth()
+                    ]
+                  }
+                </div>
+
+                <div
+                  className="
+                    text-xs
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  พ.ศ.{" "}
+                  {viewDate.getFullYear() +
+                    543}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  nextMonth
+                }
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+                  !text-slate-800
+
+                  transition-all
+
+                  hover:bg-slate-200
+                  active:scale-90
+                "
+              >
+                ›
+              </button>
+            </div>
+
+            <div
+              className="
+                grid
+                grid-cols-7
+                gap-1
+              "
+            >
+              {weekDays.map(
+                (day) => (
+                  <div
+                    key={day}
+                    className="
+                      flex
+                      h-8
+                      items-center
+                      justify-center
+
+                      text-xs
+                      font-extrabold
+                      !text-slate-400
+                    "
+                  >
+                    {day}
+                  </div>
+                )
+              )}
+
+              {calendarDays.map(
+                (
+                  date,
+                  index
+                ) => {
+                  if (!date) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="h-10"
+                      />
+                    );
+                  }
+
+                  const selected =
+                    selectedDate
+                      ? isSameDate(
+                          date,
+                          selectedDate
+                        )
+                      : false;
+
+                  const today =
+                    isSameDate(
+                      date,
+                      new Date()
+                    );
+
+                  return (
+                    <button
+                      key={dateToInputValue(
+                        date
+                      )}
+                      type="button"
+                      onClick={() => {
+                        onChange(
+                          dateToInputValue(
+                            date
+                          )
+                        );
+
+                        setOpen(
+                          false
+                        );
+                      }}
+                      className={`
+                        flex
+                        h-10
+                        items-center
+                        justify-center
+
+                        rounded-full
+
+                        text-sm
+                        font-extrabold
+
+                        transition-all
+
+                        active:scale-90
+
+                        ${
+                          selected
+                            ? "bg-slate-900 !text-white shadow-md"
+                            : today
+                            ? "bg-blue-50 !text-blue-700 ring-1 ring-blue-200"
+                            : "bg-transparent !text-slate-800 hover:bg-slate-100"
+                        }
+                      `}
+                    >
+                      {date.getDate()}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <div
+              className="
+                mt-3
+
+                flex
+                items-center
+                justify-between
+                gap-3
+
+                border-t
+                border-slate-200
+
+                pt-3
+              "
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("");
+                  setOpen(false);
+                }}
+                className="
+                  rounded-full
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+
+                  transition-colors
+
+                  hover:bg-slate-100
+                "
+              >
+                ล้างวันที่
+              </button>
+
+              <button
+                type="button"
+                onClick={
+                  selectToday
+                }
+                className="
+                  rounded-full
+
+                  bg-slate-900
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+                  !text-white
+
+                  shadow-sm
+
+                  transition-all
+
+                  hover:bg-slate-800
+                  active:scale-95
+                "
+              >
+                วันนี้
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className="
+          relative
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
-
-          ${
-            compact
-              ? "h-[46px] rounded-[12px] px-3"
-              : "h-[52px] rounded-[16px] px-4"
-          }
-
-          border
-          border-slate-200
-
-          bg-white
-
-          text-left
-          font-bold
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          transition-all
-          duration-200
-
-          hover:border-slate-300
-          hover:bg-slate-50
-
-          focus:border-blue-300
-          focus:ring-4
-          focus:ring-blue-100/70
-        `}
+        "
       >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
+        <input
+          type="hidden"
+          name={name}
+          value={value}
+          required={required}
+        />
 
-            ${
-              value
-                ? "!text-slate-900"
-                : "!text-slate-400"
+        <button
+          ref={triggerRef}
+          id={id}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => {
+            if (!open) {
+              const base =
+                selectedDate ??
+                new Date();
+
+              setViewDate(
+                new Date(
+                  base.getFullYear(),
+                  base.getMonth(),
+                  1
+                )
+              );
+
+              updateCalendarPosition();
             }
 
-            ${
-              compact
-                ? "text-sm"
-                : "text-base"
-            }
-          `}
-        >
-          {value
-            ? compact
-              ? formatThaiShortDate(
-                  value
-                )
-              : formatThaiDate(
-                  value
-                )
-            : placeholder}
-        </span>
-
-        <span
+            setOpen(
+              (current) =>
+                !current
+            );
+          }}
           className={`
             flex
-            shrink-0
+            w-full
+            min-w-0
             items-center
-            justify-center
+            justify-between
 
             ${
               compact
-                ? "h-8 w-8 rounded-[10px] text-base"
-                : "h-9 w-9 rounded-[11px] text-lg"
+                ? "h-11 gap-1 rounded-[12px] px-2"
+                : "h-[52px] gap-3 rounded-[16px] px-4"
             }
-
-            ${
-              open
-                ? "bg-slate-900 !text-white"
-                : "bg-slate-100"
-            }
-
-            shadow-inner
-
-            transition-all
-            duration-200
-          `}
-        >
-          📅
-        </span>
-      </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label="เลือกวันที่"
-          className={`
-            absolute
-            top-[calc(100%+10px)]
-
-            ${
-              align === "right"
-                ? "right-0"
-                : "left-0"
-            }
-
-            z-[999999]
-
-            ${
-              compact
-                ? "w-[320px]"
-                : "w-[360px]"
-            }
-
-            max-w-[calc(100vw-32px)]
-
-            overflow-hidden
-
-            rounded-[24px]
 
             border
             border-slate-200
 
             bg-white
 
-            p-3
+            text-left
+            font-bold
+            !text-slate-900
 
-            shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
+            shadow-sm
+            outline-none
 
-            ring-1
-            ring-black/5
+            transition-all
+            duration-200
+
+            hover:border-slate-300
+            hover:bg-slate-50
+
+            focus:border-blue-300
+            focus:ring-4
+            focus:ring-blue-100/70
           `}
         >
-          <div
-            className="
+          <span
+            className={`
+              min-w-0
+              flex-1
+              truncate
+
+              ${
+                value
+                  ? "!text-slate-900"
+                  : "!text-slate-400"
+              }
+
+              ${
+                compact
+                  ? "text-xs xl:text-sm"
+                  : "text-base"
+              }
+            `}
+          >
+            {value
+              ? compact
+                ? formatThaiShortDate(
+                    value
+                  )
+                : formatThaiDate(
+                    value
+                  )
+              : placeholder}
+          </span>
+
+          <span
+            className={`
               flex
+              shrink-0
               items-center
-              justify-between
-              gap-2
-              px-1
-              pb-3
-            "
+              justify-center
+
+              ${
+                compact
+                  ? "h-7 w-7 rounded-[9px] text-sm"
+                  : "h-9 w-9 rounded-[11px] text-lg"
+              }
+
+              ${
+                open
+                  ? "bg-slate-900 !text-white"
+                  : "bg-slate-100"
+              }
+
+              shadow-inner
+
+              transition-all
+              duration-200
+            `}
           >
-            <button
-              type="button"
-              onClick={
-                previousMonth
-              }
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
+            📅
+          </span>
+        </button>
+      </div>
 
-                rounded-full
-
-                bg-slate-100
-
-                text-xl
-                font-black
-                !text-slate-800
-
-                transition-all
-
-                hover:bg-slate-200
-                active:scale-90
-              "
-            >
-              ‹
-            </button>
-
-            <div className="text-center">
-              <div
-                className="
-                  text-base
-                  font-black
-                  !text-slate-900
-                "
-              >
-                {
-                  thaiMonths[
-                    viewDate.getMonth()
-                  ]
-                }
-              </div>
-
-              <div
-                className="
-                  text-xs
-                  font-bold
-                  !text-slate-500
-                "
-              >
-                พ.ศ.{" "}
-                {viewDate.getFullYear() +
-                  543}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={
-                nextMonth
-              }
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-slate-100
-
-                text-xl
-                font-black
-                !text-slate-800
-
-                transition-all
-
-                hover:bg-slate-200
-                active:scale-90
-              "
-            >
-              ›
-            </button>
-          </div>
-
-          <div
-            className="
-              grid
-              grid-cols-7
-              gap-1
-            "
-          >
-            {weekDays.map(
-              (day) => (
-                <div
-                  key={day}
-                  className="
-                    flex
-                    h-8
-                    items-center
-                    justify-center
-
-                    text-xs
-                    font-extrabold
-                    !text-slate-400
-                  "
-                >
-                  {day}
-                </div>
-              )
-            )}
-
-            {calendarDays.map(
-              (
-                date,
-                index
-              ) => {
-                if (!date) {
-                  return (
-                    <div
-                      key={`empty-${index}`}
-                      className="h-10"
-                    />
-                  );
-                }
-
-                const selected =
-                  selectedDate
-                    ? isSameDate(
-                        date,
-                        selectedDate
-                      )
-                    : false;
-
-                const today =
-                  isSameDate(
-                    date,
-                    new Date()
-                  );
-
-                return (
-                  <button
-                    key={dateToInputValue(
-                      date
-                    )}
-                    type="button"
-                    onClick={() => {
-                      onChange(
-                        dateToInputValue(
-                          date
-                        )
-                      );
-
-                      setOpen(
-                        false
-                      );
-                    }}
-                    className={`
-                      flex
-                      h-10
-                      items-center
-                      justify-center
-
-                      rounded-full
-
-                      text-sm
-                      font-extrabold
-
-                      transition-all
-
-                      active:scale-90
-
-                      ${
-                        selected
-                          ? "bg-slate-900 !text-white shadow-md"
-                          : today
-                          ? "bg-blue-50 !text-blue-700 ring-1 ring-blue-200"
-                          : "bg-transparent !text-slate-800 hover:bg-slate-100"
-                      }
-                    `}
-                  >
-                    {date.getDate()}
-                  </button>
-                );
-              }
-            )}
-          </div>
-
-          <div
-            className="
-              mt-3
-
-              flex
-              items-center
-              justify-between
-              gap-3
-
-              border-t
-              border-slate-200
-
-              pt-3
-            "
-          >
-            <button
-              type="button"
-              onClick={() => {
-                onChange("");
-                setOpen(false);
-              }}
-              className="
-                rounded-full
-
-                px-4
-                py-2
-
-                text-sm
-                font-extrabold
-                !text-slate-500
-
-                transition-colors
-
-                hover:bg-slate-100
-              "
-            >
-              ล้างวันที่
-            </button>
-
-            <button
-              type="button"
-              onClick={
-                selectToday
-              }
-              className="
-                rounded-full
-
-                bg-slate-900
-
-                px-4
-                py-2
-
-                text-sm
-                font-extrabold
-                !text-white
-
-                shadow-sm
-
-                transition-all
-
-                hover:bg-slate-800
-                active:scale-95
-              "
-            >
-              วันนี้
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {calendarPopup}
+    </>
   );
 }
 
+
 /* =========================================================
    SEARCHABLE DROPDOWN
+
+   ใช้ Portal ไปที่ document.body เพื่อให้ Dropdown
+   อยู่ด้านหน้าสุดเสมอ ไม่ถูกตัดด้วย overflow ของ
+   AppCard / AppTableCard / ตาราง
 ========================================================= */
+
+type DropdownPosition = {
+  left: number;
+  top: number;
+  width: number;
+  maxListHeight: number;
+};
 
 function SearchableDropdown({
   id,
@@ -1010,9 +1199,16 @@ function SearchableDropdown({
   emptyText = "ไม่พบข้อมูล",
   disabled = false,
   required = false,
+  compact = false,
   onChange,
 }: SearchableDropdownProps) {
   const containerRef =
+    useRef<HTMLDivElement>(null);
+
+  const triggerRef =
+    useRef<HTMLButtonElement>(null);
+
+  const menuRef =
     useRef<HTMLDivElement>(null);
 
   const inputRef =
@@ -1023,6 +1219,13 @@ function SearchableDropdown({
 
   const [search, setSearch] =
     useState("");
+
+  const [
+    dropdownPosition,
+    setDropdownPosition,
+  ] = useState<DropdownPosition | null>(
+    null
+  );
 
   const selectedOption =
     options.find(
@@ -1062,15 +1265,150 @@ function SearchableDropdown({
       );
     }, [options, search]);
 
+  function updateDropdownPosition() {
+    const trigger =
+      triggerRef.current;
+
+    if (
+      !trigger ||
+      typeof window ===
+        "undefined"
+    ) {
+      return;
+    }
+
+    const rect =
+      trigger.getBoundingClientRect();
+
+    const edgeGap = 12;
+    const dropdownGap = 8;
+
+    const desiredListHeight =
+      280;
+
+    const searchAreaHeight =
+      72;
+
+    const desiredMenuHeight =
+      desiredListHeight +
+      searchAreaHeight;
+
+    const availableBelow =
+      window.innerHeight -
+      rect.bottom -
+      dropdownGap -
+      edgeGap;
+
+    const availableAbove =
+      rect.top -
+      dropdownGap -
+      edgeGap;
+
+    const shouldOpenAbove =
+      availableBelow < 220 &&
+      availableAbove >
+        availableBelow;
+
+    const availableHeight =
+      Math.max(
+        shouldOpenAbove
+          ? availableAbove
+          : availableBelow,
+        150
+      );
+
+    const menuHeight =
+      Math.min(
+        desiredMenuHeight,
+        availableHeight
+      );
+
+    const maxListHeight =
+      Math.max(
+        90,
+        menuHeight -
+          searchAreaHeight
+      );
+
+    const desiredWidth =
+      compact
+        ? Math.max(
+            rect.width,
+            220
+          )
+        : Math.max(
+            rect.width,
+            260
+          );
+
+    const width =
+      Math.min(
+        desiredWidth,
+        window.innerWidth -
+          edgeGap * 2
+      );
+
+    const maxLeft =
+      window.innerWidth -
+      width -
+      edgeGap;
+
+    const left =
+      Math.min(
+        Math.max(
+          rect.left,
+          edgeGap
+        ),
+        Math.max(
+          edgeGap,
+          maxLeft
+        )
+      );
+
+    const top =
+      shouldOpenAbove
+        ? Math.max(
+            edgeGap,
+            rect.top -
+              dropdownGap -
+              menuHeight
+          )
+        : Math.min(
+            rect.bottom +
+              dropdownGap,
+            window.innerHeight -
+              edgeGap -
+              menuHeight
+          );
+
+    setDropdownPosition({
+      left,
+      top,
+      width,
+      maxListHeight,
+    });
+  }
+
   useEffect(() => {
     function handleMouseDown(
       event: MouseEvent
     ) {
+      const target =
+        event.target as Node;
+
+      const insideTrigger =
+        containerRef.current?.contains(
+          target
+        ) ?? false;
+
+      const insideMenu =
+        menuRef.current?.contains(
+          target
+        ) ?? false;
+
       if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
+        !insideTrigger &&
+        !insideMenu
       ) {
         setOpen(false);
         setSearch("");
@@ -1093,8 +1431,13 @@ function SearchableDropdown({
   useEffect(() => {
     if (!open) {
       setSearch("");
+      setDropdownPosition(
+        null
+      );
       return;
     }
+
+    updateDropdownPosition();
 
     const timer =
       window.setTimeout(
@@ -1104,137 +1447,63 @@ function SearchableDropdown({
         0
       );
 
+    const handleViewportChange =
+      () => {
+        updateDropdownPosition();
+      };
+
+    window.addEventListener(
+      "resize",
+      handleViewportChange
+    );
+
+    window.addEventListener(
+      "scroll",
+      handleViewportChange,
+      true
+    );
+
     return () => {
       window.clearTimeout(
         timer
       );
+
+      window.removeEventListener(
+        "resize",
+        handleViewportChange
+      );
+
+      window.removeEventListener(
+        "scroll",
+        handleViewportChange,
+        true
+      );
     };
-  }, [open]);
+  }, [
+    open,
+    compact,
+  ]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${
-          open
-            ? "z-[1000]"
-            : "z-10"
-        }
-      `}
-    >
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={value}
-          required={required}
-        />
-      )}
-
-      <button
-        id={id}
-        type="button"
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => {
-          if (!disabled) {
-            setOpen(
-              (current) =>
-                !current
-            );
-          }
-        }}
-        className="
-          flex
-          h-[52px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-
-          rounded-[16px]
-
-          border
-          border-slate-200
-
-          bg-white
-
-          px-4
-
-          text-left
-          text-base
-          font-bold
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          transition-all
-
-          hover:bg-slate-50
-
-          focus:ring-4
-          focus:ring-slate-900/10
-
-          disabled:cursor-not-allowed
-          disabled:bg-slate-100
-          disabled:!text-slate-400
-        "
-      >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            ${
-              selectedOption
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
-        >
-          {selectedOption?.label ??
-            placeholder}
-        </span>
-
-        <span
-          className={`
-            shrink-0
-
-            text-xs
-            !text-slate-700
-
-            transition-transform
-
-            ${
-              open
-                ? "rotate-180"
-                : ""
-            }
-          `}
-        >
-          ▼
-        </span>
-      </button>
-
-      {open &&
-        !disabled && (
+  const dropdownMenu =
+    open &&
+    !disabled &&
+    dropdownPosition &&
+    typeof document !==
+      "undefined"
+      ? createPortal(
           <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              left:
+                dropdownPosition.left,
+              top:
+                dropdownPosition.top,
+              width:
+                dropdownPosition.width,
+              zIndex: 2147483000,
+            }}
             className="
-              absolute
-              left-0
-              right-0
-              top-[calc(100%+8px)]
-
-              z-[99999]
-
               overflow-hidden
 
               rounded-[20px]
@@ -1341,9 +1610,11 @@ function SearchableDropdown({
 
             <div
               role="listbox"
+              style={{
+                maxHeight:
+                  dropdownPosition.maxListHeight,
+              }}
               className="
-                max-h-[280px]
-
                 overflow-y-auto
                 overscroll-contain
 
@@ -1444,11 +1715,135 @@ function SearchableDropdown({
                 </div>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className="
+          relative
+          w-full
+          min-w-0
+        "
+      >
+        {name && (
+          <input
+            type="hidden"
+            name={name}
+            value={value}
+            required={required}
+          />
         )}
-    </div>
+
+        <button
+          ref={triggerRef}
+          id={id}
+          type="button"
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => {
+            if (disabled) {
+              return;
+            }
+
+            if (!open) {
+              updateDropdownPosition();
+            }
+
+            setOpen(
+              (current) =>
+                !current
+            );
+          }}
+          className={`
+            flex
+            w-full
+            min-w-0
+            items-center
+            justify-between
+
+            ${
+              compact
+                ? "h-11 gap-1 rounded-[12px] px-2"
+                : "h-[52px] gap-3 rounded-[16px] px-4"
+            }
+
+            border
+            border-slate-200
+
+            bg-white
+
+            text-left
+            font-bold
+            !text-slate-900
+
+            shadow-sm
+            outline-none
+
+            transition-all
+
+            hover:bg-slate-50
+
+            focus:ring-4
+            focus:ring-slate-900/10
+
+            disabled:cursor-not-allowed
+            disabled:bg-slate-100
+            disabled:!text-slate-400
+          `}
+        >
+          <span
+            className={`
+              min-w-0
+              flex-1
+              truncate
+
+              ${
+                selectedOption
+                  ? "!text-slate-900"
+                  : "!text-slate-400"
+              }
+
+              ${
+                compact
+                  ? "text-xs xl:text-sm"
+                  : "text-base"
+              }
+            `}
+          >
+            {selectedOption?.label ??
+              placeholder}
+          </span>
+
+          <span
+            className={`
+              shrink-0
+              text-[10px]
+              !text-slate-700
+              transition-transform
+
+              ${
+                open
+                  ? "rotate-180"
+                  : ""
+              }
+            `}
+          >
+            ▼
+          </span>
+        </button>
+      </div>
+
+      {dropdownMenu}
+    </>
   );
 }
+
 
 /* =========================================================
    EDIT RECEIVE FORM
@@ -2030,15 +2425,14 @@ export default function EditReceiveForm({
             relative
             w-full
 
-            overflow-x-auto
-            overflow-y-visible
+            overflow-visible
           "
         >
           <table
             className="
               relative
               w-full
-              min-w-[1200px]
+              table-fixed
 
               border-collapse
 
@@ -2047,6 +2441,17 @@ export default function EditReceiveForm({
               text-sm
             "
           >
+            <colgroup>
+              <col style={{ width: "4%" }} />
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "25%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "15%" }} />
+            </colgroup>
+
             <thead>
               <tr>
                 {[
@@ -2072,11 +2477,11 @@ export default function EditReceiveForm({
                         from-slate-800
                         to-slate-700
 
-                        px-3
-                        py-4
+                        px-1.5
+                        py-3
 
                         text-center
-                        text-lg
+                        text-sm
                         font-extrabold
                         !text-white
                       "
@@ -2129,22 +2534,11 @@ export default function EditReceiveForm({
                       })
                     );
 
-                  const rowZIndex =
-                    items.length -
-                    index +
-                    100;
-
                   return (
                     <tr
                       key={
                         index
                       }
-                      style={{
-                        position:
-                          "relative",
-                        zIndex:
-                          rowZIndex,
-                      }}
                       className={`
                         ${
                           index %
@@ -2169,8 +2563,8 @@ export default function EditReceiveForm({
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           text-center
                           font-extrabold
@@ -2186,15 +2580,13 @@ export default function EditReceiveForm({
                       <td
                         className="
                           relative
-                          min-w-[210px]
-
                           overflow-visible
 
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2211,6 +2603,7 @@ export default function EditReceiveForm({
                           placeholder="เลือกหมวดหมู่"
                           searchPlaceholder="พิมพ์ค้นหาหมวดหมู่..."
                           emptyText="ไม่พบหมวดหมู่"
+                          compact
                           onChange={(
                             value
                           ) =>
@@ -2228,15 +2621,13 @@ export default function EditReceiveForm({
                       <td
                         className="
                           relative
-                          min-w-[320px]
-
                           overflow-visible
 
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2253,6 +2644,7 @@ export default function EditReceiveForm({
                           placeholder="เลือกรายการพัสดุ"
                           searchPlaceholder="พิมพ์ค้นหารายการพัสดุ..."
                           emptyText="ไม่พบรายการพัสดุ"
+                          compact
                           disabled={
                             !row.category
                           }
@@ -2272,13 +2664,11 @@ export default function EditReceiveForm({
 
                       <td
                         className="
-                          min-w-[120px]
-
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2291,7 +2681,7 @@ export default function EditReceiveForm({
                             "-"
                           }
                           className="
-                            h-[46px]
+                            h-11
                             w-full
 
                             rounded-[12px]
@@ -2317,13 +2707,11 @@ export default function EditReceiveForm({
 
                       <td
                         className="
-                          min-w-[150px]
-
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2360,7 +2748,7 @@ export default function EditReceiveForm({
                             );
                           }}
                           className="
-                            h-[46px]
+                            h-11
                             w-full
 
                             rounded-[12px]
@@ -2370,7 +2758,7 @@ export default function EditReceiveForm({
 
                             bg-white
 
-                            px-3
+                            px-2
 
                             text-right
                             font-bold
@@ -2392,13 +2780,11 @@ export default function EditReceiveForm({
 
                       <td
                         className="
-                          min-w-[120px]
-
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2422,7 +2808,7 @@ export default function EditReceiveForm({
                             )
                           }
                           className="
-                            h-[46px]
+                            h-11
                             w-full
 
                             rounded-[12px]
@@ -2455,15 +2841,13 @@ export default function EditReceiveForm({
                       <td
                         className="
                           relative
-                          min-w-[200px]
-
                           overflow-visible
 
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2471,7 +2855,8 @@ export default function EditReceiveForm({
                         <div
                           className="
                             relative
-                            w-[190px]
+                            w-full
+                            min-w-0
                             overflow-visible
                           "
                         >
@@ -2502,15 +2887,13 @@ export default function EditReceiveForm({
                       <td
                         className="
                           relative
-                          min-w-[200px]
-
                           overflow-visible
 
                           border
                           border-black
 
-                          px-3
-                          py-3
+                          px-1.5
+                          py-2
 
                           align-top
                         "
@@ -2518,7 +2901,8 @@ export default function EditReceiveForm({
                         <div
                           className="
                             relative
-                            w-[190px]
+                            w-full
+                            min-w-0
                             overflow-visible
                           "
                         >
