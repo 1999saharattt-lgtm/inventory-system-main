@@ -11,6 +11,13 @@ type ReceiveRow = {
   expiry: Date | null;
 };
 
+/* =========================================================
+   FORM ROW COUNT
+   ต้องตรงกับจำนวนแถวใน EditReceiveForm
+========================================================= */
+
+const RECEIVE_ROW_COUNT = 20;
+
 function sameDate(
   a: Date | null,
   b: Date | null
@@ -56,10 +63,14 @@ export async function updateReceive(
   const items: ReceiveRow[] = [];
 
   // =====================================================
-  // อ่านรายการรับเข้าจาก FormData
+  // อ่านรายการรับเข้าจาก FormData จำนวน 20 แถว
   // =====================================================
 
-  for (let i = 0; i < 15; i++) {
+  for (
+    let i = 0;
+    i < RECEIVE_ROW_COUNT;
+    i++
+  ) {
     const materialId = Number(
       formData.get(
         `items[${i}].materialId`

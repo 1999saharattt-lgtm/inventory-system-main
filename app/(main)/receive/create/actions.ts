@@ -3,6 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+/* =========================================================
+   FORM ROW COUNT
+   ต้องตรงกับจำนวนแถวใน ReceiveForm
+========================================================= */
+
+const RECEIVE_ROW_COUNT = 20;
+
 export async function createReceive(formData: FormData) {
   const receiveDate = new Date(
     formData.get("receiveDate") as string
@@ -35,7 +42,15 @@ export async function createReceive(formData: FormData) {
       },
     });
 
-    for (let i = 0; i < 15; i++) {
+    // =====================================================
+    // อ่านรายการรับเข้าจาก FormData จำนวน 20 แถว
+    // =====================================================
+
+    for (
+      let i = 0;
+      i < RECEIVE_ROW_COUNT;
+      i++
+    ) {
       const materialId = Number(
         formData.get(
           `items[${i}].materialId`
