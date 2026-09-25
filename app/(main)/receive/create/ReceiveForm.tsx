@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { createReceive } from "./actions";
 
@@ -923,7 +924,18 @@ function IOSDatePicker({
 
 /* =========================================================
    SEARCHABLE DROPDOWN
+
+   ใช้ Portal ไปที่ document.body เพื่อให้เมนู Dropdown
+   แสดงอยู่ด้านหน้าสุดเสมอ และไม่ถูกตัดโดย
+   overflow ของ AppCard / AppTableCard / ตาราง
 ========================================================= */
+
+type DropdownPosition = {
+  left: number;
+  top: number;
+  width: number;
+  maxListHeight: number;
+};
 
 function SearchableDropdown({
   id,
@@ -940,6 +952,12 @@ function SearchableDropdown({
   const containerRef =
     useRef<HTMLDivElement>(null);
 
+  const triggerRef =
+    useRef<HTMLButtonElement>(null);
+
+  const menuRef =
+    useRef<HTMLDivElement>(null);
+
   const inputRef =
     useRef<HTMLInputElement>(null);
 
@@ -948,6 +966,13 @@ function SearchableDropdown({
 
   const [search, setSearch] =
     useState("");
+
+  const [
+    dropdownPosition,
+    setDropdownPosition,
+  ] = useState<DropdownPosition | null>(
+    null
+  );
 
   const selectedOption =
     options.find(
@@ -976,15 +1001,154 @@ function SearchableDropdown({
       );
     }, [options, search]);
 
+  /* =======================================================
+     POSITION
+
+     คำนวณตำแหน่งจากปุ่มจริง แล้ววาง Dropdown แบบ fixed
+     ทำให้ไม่ถูก parent ที่มี overflow ตัด
+  ======================================================= */
+
+  function updateDropdownPosition() {
+    const trigger =
+      triggerRef.current;
+
+    if (
+      !trigger ||
+      typeof window ===
+        "undefined"
+    ) {
+      return;
+    }
+
+    const rect =
+      trigger.getBoundingClientRect();
+
+    const edgeGap = 12;
+    const dropdownGap = 8;
+
+    const desiredListHeight =
+      280;
+
+    const searchAreaHeight =
+      72;
+
+    const desiredMenuHeight =
+      desiredListHeight +
+      searchAreaHeight;
+
+    const availableBelow =
+      window.innerHeight -
+      rect.bottom -
+      dropdownGap -
+      edgeGap;
+
+    const availableAbove =
+      rect.top -
+      dropdownGap -
+      edgeGap;
+
+    const shouldOpenAbove =
+      availableBelow <
+        220 &&
+      availableAbove >
+        availableBelow;
+
+    const availableHeight =
+      Math.max(
+        shouldOpenAbove
+          ? availableAbove
+          : availableBelow,
+        150
+      );
+
+    const menuHeight =
+      Math.min(
+        desiredMenuHeight,
+        availableHeight
+      );
+
+    const maxListHeight =
+      Math.max(
+        90,
+        menuHeight -
+          searchAreaHeight
+      );
+
+    const width =
+      Math.min(
+        Math.max(
+          rect.width,
+          180
+        ),
+        window.innerWidth -
+          edgeGap * 2
+      );
+
+    const maxLeft =
+      window.innerWidth -
+      width -
+      edgeGap;
+
+    const left =
+      Math.min(
+        Math.max(
+          rect.left,
+          edgeGap
+        ),
+        Math.max(
+          edgeGap,
+          maxLeft
+        )
+      );
+
+    const top =
+      shouldOpenAbove
+        ? Math.max(
+            edgeGap,
+            rect.top -
+              dropdownGap -
+              menuHeight
+          )
+        : Math.min(
+            rect.bottom +
+              dropdownGap,
+            window.innerHeight -
+              edgeGap -
+              menuHeight
+          );
+
+    setDropdownPosition({
+      left,
+      top,
+      width,
+      maxListHeight,
+    });
+  }
+
+  /* =======================================================
+     OUTSIDE CLICK
+  ======================================================= */
+
   useEffect(() => {
     function handleMouseDown(
       event: MouseEvent
     ) {
+      const target =
+        event.target as Node;
+
+      const clickedInsideTrigger =
+        containerRef.current?.contains(
+          target
+        ) ?? false;
+
+      const clickedInsideMenu =
+        menuRef.current?.contains(
+          target
+        ) ?? false;
+
       if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
+        !clickedInsideTrigger &&
+        !clickedInsideMenu
       ) {
         setOpen(false);
         setSearch("");
@@ -1004,333 +1168,417 @@ function SearchableDropdown({
     };
   }, []);
 
+  /* =======================================================
+     OPEN / POSITION / SCROLL / RESIZE
+  ======================================================= */
+
   useEffect(() => {
     if (!open) {
       setSearch("");
+      setDropdownPosition(
+        null
+      );
       return;
     }
 
-    const timer =
+    updateDropdownPosition();
+
+    const focusTimer =
       window.setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
 
+    const handleViewportChange =
+      () => {
+        updateDropdownPosition();
+      };
+
+    window.addEventListener(
+      "resize",
+      handleViewportChange
+    );
+
+    /*
+      true = ฟัง scroll จากทุก scroll container
+      รวมถึงตารางที่เลื่อนแนวนอน
+    */
+    window.addEventListener(
+      "scroll",
+      handleViewportChange,
+      true
+    );
+
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(
+        focusTimer
+      );
+
+      window.removeEventListener(
+        "resize",
+        handleViewportChange
+      );
+
+      window.removeEventListener(
+        "scroll",
+        handleViewportChange,
+        true
+      );
     };
   }, [open]);
 
+  /* =======================================================
+     MENU
+  ======================================================= */
+
+  const dropdownMenu =
+    open &&
+    !disabled &&
+    dropdownPosition &&
+    typeof document !==
+      "undefined"
+      ? createPortal(
+          <div
+            ref={menuRef}
+            role="presentation"
+            style={{
+              position: "fixed",
+              left:
+                dropdownPosition.left,
+              top:
+                dropdownPosition.top,
+              width:
+                dropdownPosition.width,
+              zIndex: 2147483000,
+            }}
+            className="
+              overflow-hidden
+
+              rounded-[20px]
+
+              border
+              border-slate-200
+
+              bg-white/95
+
+              shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
+
+              backdrop-blur-2xl
+            "
+          >
+            <div
+              className="
+                border-b
+                border-slate-200
+                bg-slate-50/90
+                p-3
+              "
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                autoComplete="off"
+                onChange={(
+                  event
+                ) =>
+                  setSearch(
+                    event.target
+                      .value
+                  )
+                }
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(
+                      false
+                    );
+                    setSearch("");
+                  }
+
+                  if (
+                    event.key ===
+                      "Enter" &&
+                    filteredOptions.length ===
+                      1
+                  ) {
+                    event.preventDefault();
+
+                    onChange(
+                      filteredOptions[0]
+                        .value
+                    );
+
+                    setOpen(
+                      false
+                    );
+                    setSearch("");
+                  }
+                }}
+                placeholder={
+                  searchPlaceholder
+                }
+                className="
+                  h-[46px]
+                  w-full
+
+                  rounded-[14px]
+
+                  border
+                  border-slate-200
+
+                  bg-white
+
+                  px-4
+
+                  text-base
+                  font-bold
+                  !text-slate-900
+
+                  shadow-sm
+                  outline-none
+
+                  placeholder:!text-slate-400
+
+                  focus:ring-4
+                  focus:ring-slate-900/10
+                "
+              />
+            </div>
+
+            <div
+              role="listbox"
+              style={{
+                maxHeight:
+                  dropdownPosition.maxListHeight,
+              }}
+              className="
+                overflow-y-auto
+                overscroll-contain
+
+                bg-white
+
+                p-2
+              "
+            >
+              {filteredOptions.length >
+              0 ? (
+                filteredOptions.map(
+                  (option) => {
+                    const selected =
+                      option.value ===
+                      value;
+
+                    return (
+                      <button
+                        key={
+                          option.value
+                        }
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selected
+                        }
+                        onClick={() => {
+                          onChange(
+                            option.value
+                          );
+
+                          setOpen(
+                            false
+                          );
+                          setSearch("");
+                        }}
+                        className={`
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-[12px]
+
+                          px-3
+                          py-2.5
+
+                          text-left
+                          text-base
+                          font-bold
+
+                          transition-colors
+
+                          ${
+                            selected
+                              ? "bg-slate-900 !text-white"
+                              : "bg-white !text-slate-900 hover:bg-slate-100"
+                          }
+                        `}
+                      >
+                        <span
+                          className="
+                            min-w-0
+                            flex-1
+                            break-words
+                          "
+                        >
+                          {option.label}
+                        </span>
+
+                        {selected && (
+                          <span className="!text-white">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )
+              ) : (
+                <div
+                  className="
+                    px-4
+                    py-8
+
+                    text-center
+                    text-sm
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  {emptyText}
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
-    <div
-      ref={containerRef}
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${
-          open
-            ? "z-[1000]"
-            : "z-10"
-        }
-      `}
-    >
-      {name && (
-        <input
-          type="hidden"
-          name={name}
-          value={value}
-          required={required}
-        />
-      )}
-
-      <button
-        id={id}
-        type="button"
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => {
-          if (!disabled) {
-            setOpen(
-              (current) => !current
-            );
-          }
-        }}
-        className="
-          flex
-          h-[52px]
+    <>
+      <div
+        ref={containerRef}
+        className={`
+          relative
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
 
-          rounded-[16px]
-
-          border
-          border-slate-200
-
-          bg-white
-
-          px-4
-
-          text-left
-          text-base
-          font-bold
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          transition-all
-
-          hover:bg-slate-50
-
-          focus:ring-4
-          focus:ring-slate-900/10
-
-          disabled:cursor-not-allowed
-          disabled:bg-slate-100
-          disabled:!text-slate-400
-        "
+          ${
+            open
+              ? "z-[1000]"
+              : "z-10"
+          }
+        `}
       >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
+        {name && (
+          <input
+            type="hidden"
+            name={name}
+            value={value}
+            required={required}
+          />
+        )}
 
-            ${
-              selectedOption
-                ? "!text-slate-900"
-                : "!text-slate-400"
+        <button
+          ref={triggerRef}
+          id={id}
+          type="button"
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => {
+            if (disabled) {
+              return;
             }
-          `}
-        >
-          {selectedOption?.label ??
-            placeholder}
-        </span>
 
-        <span
-          className={`
-            shrink-0
-            text-xs
-            !text-slate-700
-            transition-transform
-
-            ${
-              open
-                ? "rotate-180"
-                : ""
+            if (!open) {
+              updateDropdownPosition();
             }
-          `}
-        >
-          ▼
-        </span>
-      </button>
 
-      {open && !disabled && (
-        <div
+            setOpen(
+              (current) =>
+                !current
+            );
+          }}
           className="
-            absolute
-            left-0
-            right-0
-            top-[calc(100%+8px)]
+            flex
+            h-[52px]
+            w-full
+            min-w-0
+            items-center
+            justify-between
+            gap-3
 
-            z-[99999]
-
-            overflow-hidden
-
-            rounded-[20px]
+            rounded-[16px]
 
             border
             border-slate-200
 
-            bg-white/95
+            bg-white
 
-            shadow-[0_28px_70px_-22px_rgba(15,23,42,0.55)]
+            px-4
 
-            backdrop-blur-2xl
+            text-left
+            text-base
+            font-bold
+            !text-slate-900
+
+            shadow-sm
+            outline-none
+
+            transition-all
+
+            hover:bg-slate-50
+
+            focus:ring-4
+            focus:ring-slate-900/10
+
+            disabled:cursor-not-allowed
+            disabled:bg-slate-100
+            disabled:!text-slate-400
           "
         >
-          <div
-            className="
-              border-b
-              border-slate-200
-              bg-slate-50/90
-              p-3
-            "
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              autoComplete="off"
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
+          <span
+            className={`
+              min-w-0
+              flex-1
+              truncate
+
+              ${
+                selectedOption
+                  ? "!text-slate-900"
+                  : "!text-slate-400"
               }
-              onKeyDown={(event) => {
-                if (
-                  event.key ===
-                  "Escape"
-                ) {
-                  setOpen(false);
-                  setSearch("");
-                }
-
-                if (
-                  event.key ===
-                    "Enter" &&
-                  filteredOptions.length ===
-                    1
-                ) {
-                  event.preventDefault();
-
-                  onChange(
-                    filteredOptions[0]
-                      .value
-                  );
-
-                  setOpen(false);
-                  setSearch("");
-                }
-              }}
-              placeholder={
-                searchPlaceholder
-              }
-              className="
-                h-[46px]
-                w-full
-
-                rounded-[14px]
-
-                border
-                border-slate-200
-
-                bg-white
-
-                px-4
-
-                text-base
-                font-bold
-                !text-slate-900
-
-                shadow-sm
-                outline-none
-
-                placeholder:!text-slate-400
-
-                focus:ring-4
-                focus:ring-slate-900/10
-              "
-            />
-          </div>
-
-          <div
-            role="listbox"
-            className="
-              max-h-[280px]
-
-              overflow-y-auto
-              overscroll-contain
-
-              bg-white
-
-              p-2
-            "
+            `}
           >
-            {filteredOptions.length >
-            0 ? (
-              filteredOptions.map(
-                (option) => {
-                  const selected =
-                    option.value ===
-                    value;
+            {selectedOption?.label ??
+              placeholder}
+          </span>
 
-                  return (
-                    <button
-                      key={
-                        option.value
-                      }
-                      type="button"
-                      role="option"
-                      aria-selected={
-                        selected
-                      }
-                      onClick={() => {
-                        onChange(
-                          option.value
-                        );
+          <span
+            className={`
+              shrink-0
+              text-xs
+              !text-slate-700
+              transition-transform
 
-                        setOpen(false);
-                        setSearch("");
-                      }}
-                      className={`
-                        flex
-                        w-full
-                        items-center
-                        justify-between
-                        gap-3
+              ${
+                open
+                  ? "rotate-180"
+                  : ""
+              }
+            `}
+          >
+            ▼
+          </span>
+        </button>
+      </div>
 
-                        rounded-[12px]
-
-                        px-3
-                        py-2.5
-
-                        text-left
-                        text-base
-                        font-bold
-
-                        transition-colors
-
-                        ${
-                          selected
-                            ? "bg-slate-900 !text-white"
-                            : "bg-white !text-slate-900 hover:bg-slate-100"
-                        }
-                      `}
-                    >
-                      <span
-                        className="
-                          min-w-0
-                          flex-1
-                          break-words
-                        "
-                      >
-                        {option.label}
-                      </span>
-
-                      {selected && (
-                        <span className="!text-white">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  );
-                }
-              )
-            ) : (
-              <div
-                className="
-                  px-4
-                  py-8
-
-                  text-center
-                  text-sm
-                  font-bold
-                  !text-slate-500
-                "
-              >
-                {emptyText}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      {dropdownMenu}
+    </>
   );
 }
 
