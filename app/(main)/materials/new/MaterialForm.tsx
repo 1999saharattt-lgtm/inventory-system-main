@@ -30,6 +30,11 @@ type MaterialMaster = {
   unit: string;
 };
 
+type MaterialCodeItem = {
+  code: string;
+  category: string;
+};
+
 type Props = {
   vendors: Vendor[];
   materialMasters: MaterialMaster[];
@@ -84,6 +89,267 @@ const categoryCodeToName =
       name,
     ])
   ) as Record<string, string>;
+
+/* =========================================================
+   MATERIAL CODE HELPERS
+
+   หลักการ:
+   - รหัสแยกตามหมวด
+   - หาเลขสูงสุดของหมวดนั้นจากข้อมูลเดิม
+   - สร้างเลขถัดไปอัตโนมัติ
+   - ถ้ารหัสเดิมเป็น 001 -> 002
+   - ถ้ารหัสเดิมเป็น 110 -> 111
+   - ถ้ารหัสเดิมมี prefix เช่น COM-009 -> COM-010
+========================================================= */
+
+function extractMaterialCodeItems(
+  payload: unknown
+): MaterialCodeItem[] {
+  let source: unknown[] = [];
+
+  if (Array.isArray(payload)) {
+    source = payload;
+  } else if (
+    payload &&
+    typeof payload === "object"
+  ) {
+    const record =
+      payload as Record<
+        string,
+        unknown
+      >;
+
+    const candidate =
+      record.materials ??
+      record.data ??
+      record.items;
+
+    if (Array.isArray(candidate)) {
+      source = candidate;
+    }
+  }
+
+  return source
+    .filter(
+      (item): item is Record<
+        string,
+        unknown
+      > =>
+        Boolean(
+          item &&
+            typeof item ===
+              "object"
+        )
+    )
+    .map((item) => ({
+      code: String(
+        item.code ?? ""
+      ).trim(),
+      category: String(
+        item.category ?? ""
+      ).trim(),
+    }))
+    .filter(
+      (item) =>
+        item.code.length > 0 &&
+        item.category.length > 0
+    );
+}
+
+function getNextMaterialCode(
+  materials: MaterialCodeItem[],
+  categoryCode: string
+) {
+  const categoryMaterials =
+    materials.filter(
+      (item) =>
+        item.category ===
+          categoryCode &&
+        item.code.trim()
+    );
+
+  if (
+    categoryMaterials.length === 0
+  ) {
+    return "1";
+  }
+
+  /* =======================================================
+     กรณีรหัสเป็นตัวเลขล้วน
+     เช่น 1, 2, 9, 10, 110
+  ======================================================= */
+
+  const numericCodes =
+    categoryMaterials
+      .map((item) => {
+        const code =
+          item.code.trim();
+
+        if (!/^\d+$/.test(code)) {
+          return null;
+        }
+
+        const numberValue =
+          Number(code);
+
+        if (
+          !Number.isSafeInteger(
+            numberValue
+          )
+        ) {
+          return null;
+        }
+
+        return {
+          raw: code,
+          numberValue,
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          raw: string;
+          numberValue: number;
+        } => item !== null
+      );
+
+  if (numericCodes.length > 0) {
+    const highest =
+      numericCodes.reduce(
+        (current, item) =>
+          item.numberValue >
+          current.numberValue
+            ? item
+            : current
+      );
+
+    const nextNumber =
+      highest.numberValue + 1;
+
+    const hasLeadingZero =
+      highest.raw.length > 1 &&
+      highest.raw.startsWith("0");
+
+    return hasLeadingZero
+      ? String(nextNumber).padStart(
+          highest.raw.length,
+          "0"
+        )
+      : String(nextNumber);
+  }
+
+  /* =======================================================
+     กรณีมี prefix / suffix
+     เช่น COM-009 -> COM-010
+  ======================================================= */
+
+  let highest:
+    | {
+        prefix: string;
+        numberValue: number;
+        width: number;
+        suffix: string;
+      }
+    | null = null;
+
+  for (const item of
+    categoryMaterials) {
+    const code =
+      item.code.trim();
+
+    const match = code.match(
+      /^(.*?)(\d+)(\D*)$/
+    );
+
+    if (!match) {
+      continue;
+    }
+
+    const numberValue =
+      Number(match[2]);
+
+    if (
+      !Number.isSafeInteger(
+        numberValue
+      )
+    ) {
+      continue;
+    }
+
+    if (
+      !highest ||
+      numberValue >
+        highest.numberValue
+    ) {
+      highest = {
+        prefix: match[1],
+        numberValue,
+        width: match[2].length,
+        suffix: match[3],
+      };
+    }
+  }
+
+  if (highest) {
+    const nextNumber =
+      highest.numberValue + 1;
+
+    const nextDigits =
+      String(nextNumber).padStart(
+        highest.width,
+        "0"
+      );
+
+    return `${highest.prefix}${nextDigits}${highest.suffix}`;
+  }
+
+  /* =======================================================
+     Fallback
+  ======================================================= */
+
+  return String(
+    categoryMaterials.length + 1
+  );
+}
+
+async function fetchNextMaterialCode(
+  categoryCode: string,
+  signal?: AbortSignal
+) {
+  const response = await fetch(
+    `/api/materials?category=${encodeURIComponent(
+      categoryCode
+    )}`,
+    {
+      method: "GET",
+      cache: "no-store",
+      signal,
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "ไม่สามารถอ่านรหัสพัสดุเดิมได้"
+    );
+  }
+
+  const payload: unknown =
+    await response.json();
+
+  const materials =
+    extractMaterialCodeItems(
+      payload
+    );
+
+  return getNextMaterialCode(
+    materials,
+    categoryCode
+  );
+}
 
 /* =========================================================
    MONEY HELPERS
@@ -665,10 +931,89 @@ export default function MaterialForm({
   const [latestPrice, setLatestPrice] =
     useState("0.00");
 
+  const [materialCode, setMaterialCode] =
+    useState("");
+
+  const [isLoadingCode, setIsLoadingCode] =
+    useState(false);
+
+  const [codeError, setCodeError] =
+    useState("");
+
   const [
     isSubmitting,
     setIsSubmitting,
   ] = useState(false);
+
+  /* =======================================================
+     AUTO MATERIAL CODE
+
+     ทุกครั้งที่เปลี่ยนหมวด:
+     - อ่านรหัสเดิมของหมวดนั้น
+     - หาเลขสูงสุด
+     - แสดงเลขถัดไปอัตโนมัติ
+  ======================================================= */
+
+  useEffect(() => {
+    const categoryCode =
+      categoryMap[category];
+
+    if (!categoryCode) {
+      setMaterialCode("");
+      setCodeError("");
+      setIsLoadingCode(false);
+      return;
+    }
+
+    const controller =
+      new AbortController();
+
+    async function loadCode() {
+      try {
+        setIsLoadingCode(true);
+        setCodeError("");
+
+        const nextCode =
+          await fetchNextMaterialCode(
+            categoryCode,
+            controller.signal
+          );
+
+        setMaterialCode(
+          nextCode
+        );
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "ไม่สามารถคำนวณรหัสพัสดุอัตโนมัติได้:",
+          error
+        );
+
+        setMaterialCode("");
+        setCodeError(
+          "ไม่สามารถคำนวณรหัสอัตโนมัติได้"
+        );
+      } finally {
+        if (
+          !controller.signal.aborted
+        ) {
+          setIsLoadingCode(false);
+        }
+      }
+    }
+
+    loadCode();
+
+    return () => {
+      controller.abort();
+    };
+  }, [category]);
 
   /* =======================================================
      OPTIONS
@@ -804,7 +1149,10 @@ export default function MaterialForm({
         ? newName.trim()
         : name;
 
-    if (!categoryMap[category]) {
+    const categoryCode =
+      categoryMap[category];
+
+    if (!categoryCode) {
       alert(
         "กรุณาเลือกหมวดหมู่"
       );
@@ -825,35 +1173,46 @@ export default function MaterialForm({
       return;
     }
 
-    const body = {
-      code: String(
-        formData.get("code") ??
-          ""
-      ).trim(),
-
-      vendorId: vendorId
-        ? Number(vendorId)
-        : null,
-
-      category:
-        categoryMap[category],
-
-      name: materialName,
-
-      unit,
-
-      balance: Number(
-        formData.get("balance")
-      ),
-
-      latestPrice:
-        moneyToNumber(
-          latestPrice
-        ),
-    };
-
     try {
       setIsSubmitting(true);
+
+      /* =====================================================
+         ตรวจรหัสอีกครั้งก่อนบันทึก
+         เพื่อให้ได้เลขล่าสุดที่สุด
+      ===================================================== */
+
+      const latestCode =
+        await fetchNextMaterialCode(
+          categoryCode
+        );
+
+      setMaterialCode(
+        latestCode
+      );
+
+      const body = {
+        code: latestCode,
+
+        vendorId: vendorId
+          ? Number(vendorId)
+          : null,
+
+        category:
+          categoryCode,
+
+        name: materialName,
+
+        unit,
+
+        balance: Number(
+          formData.get("balance")
+        ),
+
+        latestPrice:
+          moneyToNumber(
+            latestPrice
+          ),
+      };
 
       const res = await fetch(
         "/api/materials",
@@ -873,7 +1232,7 @@ export default function MaterialForm({
 
       if (res.ok) {
         window.location.href =
-          `/materials/category/${categoryMap[category]}`;
+          `/materials/category/${categoryCode}`;
 
         return;
       }
@@ -894,7 +1253,7 @@ export default function MaterialForm({
       );
 
       alert(
-        "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"
+        "ไม่สามารถสร้างรหัสพัสดุอัตโนมัติหรือบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง"
       );
     } finally {
       setIsSubmitting(false);
@@ -972,30 +1331,152 @@ export default function MaterialForm({
         "
       >
         {/* =================================================
-            HEADER
+            HEADER + AUTO CODE
         ================================================= */}
 
-        <div className="mb-6">
-          <h2
-            className="
-              text-lg
-              font-extrabold
-              !text-slate-900
-            "
-          >
-            ข้อมูลพัสดุ
-          </h2>
+        <div
+          className="
+            mb-6
+            flex
+            flex-col
+            gap-4
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <h2
+              className="
+                text-lg
+                font-extrabold
+                !text-slate-900
+              "
+            >
+              ข้อมูลพัสดุ
+            </h2>
 
-          <p
+            <p
+              className="
+                mt-1
+                text-sm
+                font-semibold
+                !text-slate-500
+              "
+            >
+              ระบุรายละเอียดของพัสดุที่ต้องการเพิ่ม
+            </p>
+          </div>
+
+          {/* ===============================================
+              รหัสพัสดุอัตโนมัติ
+              อยู่ด้านบนขวาของการ์ด
+              ผู้ใช้แก้ไขไม่ได้
+          =============================================== */}
+
+          <div
             className="
-              mt-1
-              text-sm
-              font-semibold
-              !text-slate-500
+              w-full
+              shrink-0
+              sm:w-[230px]
             "
           >
-            ระบุรายละเอียดของพัสดุที่ต้องการเพิ่ม
-          </p>
+            <AppInfoCard
+              className="
+                !p-3
+                sm:!p-3.5
+              "
+            >
+              <div
+                className="
+                  mb-1.5
+                  flex
+                  items-center
+                  justify-between
+                  gap-2
+                "
+              >
+                <label
+                  htmlFor="code"
+                  className="
+                    text-xs
+                    font-extrabold
+                    !text-slate-600
+                  "
+                >
+                  รหัสพัสดุ
+                </label>
+
+                <span
+                  className="
+                    rounded-full
+                    bg-emerald-50
+                    px-2
+                    py-0.5
+                    text-[10px]
+                    font-extrabold
+                    !text-emerald-700
+                  "
+                >
+                  อัตโนมัติ
+                </span>
+              </div>
+
+              <input
+                id="code"
+                name="code"
+                type="text"
+                value={
+                  isLoadingCode
+                    ? "กำลังรันรหัส..."
+                    : materialCode
+                      ? materialCode
+                      : category
+                        ? "-"
+                        : "เลือกหมวดหมู่"
+                }
+                readOnly
+                aria-readonly="true"
+                tabIndex={-1}
+                className="
+                  h-10
+                  w-full
+                  cursor-default
+
+                  rounded-[12px]
+
+                  border-2
+                  !border-black
+
+                  bg-slate-100
+
+                  px-3
+
+                  text-center
+                  text-base
+                  font-black
+                  tabular-nums
+                  !text-slate-900
+
+                  shadow-inner
+                  outline-none
+                "
+              />
+
+              {codeError && (
+                <p
+                  className="
+                    mt-1.5
+                    text-[11px]
+                    font-bold
+                    !text-red-600
+                  "
+                >
+                  {codeError}
+                </p>
+              )}
+            </AppInfoCard>
+          </div>
         </div>
 
         {/* =================================================
@@ -1287,124 +1768,103 @@ export default function MaterialForm({
             />
           </AppInfoCard>
 
-          {/* CODE */}
-
-          <AppInfoCard>
-            <label
-              htmlFor="code"
-              className={
-                labelClassName
-              }
-            >
-              รหัสพัสดุ
-            </label>
-
-            <input
-              id="code"
-              name="code"
-              type="text"
-              placeholder="กรอกรหัสพัสดุ"
-              className={
-                inputClassName
-              }
-            />
-          </AppInfoCard>
-
           {/* PRICE */}
 
-          <AppInfoCard>
-            <label
-              htmlFor="latestPrice"
-              className={
-                labelClassName
-              }
-            >
-              ราคาล่าสุด
-            </label>
-
-            <div
-              className="
-                flex
-                min-h-[50px]
-                w-full
-                overflow-hidden
-
-                rounded-[14px]
-
-                border
-                border-slate-300
-
-                bg-white
-
-                shadow-sm
-
-                transition-all
-                duration-200
-
-                focus-within:border-blue-400
-                focus-within:ring-4
-                focus-within:ring-blue-500/10
-              "
-            >
-              <input
-                id="latestPrice"
-                type="text"
-                inputMode="decimal"
-                value={
-                  latestPrice
+          <div className="lg:col-span-2">
+            <AppInfoCard>
+              <label
+                htmlFor="latestPrice"
+                className={
+                  labelClassName
                 }
-                onChange={(
-                  event
-                ) => {
-                  setLatestPrice(
-                    formatMoneyInput(
-                      event.target
-                        .value
-                    )
-                  );
-                }}
-                className="
-                  min-w-0
-                  flex-1
-
-                  border-0
-                  bg-transparent
-
-                  px-4
-                  py-3
-
-                  text-right
-                  text-base
-                  font-bold
-                  tabular-nums
-                  !text-slate-900
-
-                  outline-none
-                "
-              />
+              >
+                ราคาล่าสุด
+              </label>
 
               <div
                 className="
                   flex
-                  shrink-0
-                  items-center
+                  min-h-[50px]
+                  w-full
+                  overflow-hidden
 
-                  border-l
-                  border-slate-200
+                  rounded-[14px]
 
-                  bg-slate-50
+                  border
+                  border-slate-300
 
-                  px-4
+                  bg-white
 
-                  text-sm
-                  font-extrabold
-                  !text-slate-500
+                  shadow-sm
+
+                  transition-all
+                  duration-200
+
+                  focus-within:border-blue-400
+                  focus-within:ring-4
+                  focus-within:ring-blue-500/10
                 "
               >
-                บาท
+                <input
+                  id="latestPrice"
+                  type="text"
+                  inputMode="decimal"
+                  value={
+                    latestPrice
+                  }
+                  onChange={(
+                    event
+                  ) => {
+                    setLatestPrice(
+                      formatMoneyInput(
+                        event.target
+                          .value
+                      )
+                    );
+                  }}
+                  className="
+                    min-w-0
+                    flex-1
+
+                    border-0
+                    bg-transparent
+
+                    px-4
+                    py-3
+
+                    text-right
+                    text-base
+                    font-bold
+                    tabular-nums
+                    !text-slate-900
+
+                    outline-none
+                  "
+                />
+
+                <div
+                  className="
+                    flex
+                    shrink-0
+                    items-center
+
+                    border-l
+                    border-slate-200
+
+                    bg-slate-50
+
+                    px-4
+
+                    text-sm
+                    font-extrabold
+                    !text-slate-500
+                  "
+                >
+                  บาท
+                </div>
               </div>
-            </div>
-          </AppInfoCard>
+            </AppInfoCard>
+          </div>
         </div>
 
         {/* =================================================
@@ -1441,7 +1901,10 @@ export default function MaterialForm({
             variant="success"
             size="md"
             disabled={
-              isSubmitting
+              isSubmitting ||
+              isLoadingCode ||
+              Boolean(codeError) ||
+              !materialCode
             }
             icon={
               isSubmitting ? (
@@ -1463,7 +1926,9 @@ export default function MaterialForm({
           >
             {isSubmitting
               ? "กำลังบันทึก..."
-              : "บันทึก"}
+              : isLoadingCode
+                ? "กำลังสร้างรหัส..."
+                : "บันทึก"}
           </AppButton>
         </div>
       </AppCard>
