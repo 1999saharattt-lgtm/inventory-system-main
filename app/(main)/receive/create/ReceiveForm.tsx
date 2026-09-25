@@ -317,6 +317,13 @@ function formatNumberWithCommas(
    IOS DATE PICKER
 ========================================================= */
 
+type CalendarPosition = {
+  left: number;
+  top: number;
+  width: number;
+  maxHeight: number;
+};
+
 function IOSDatePicker({
   id,
   name,
@@ -330,6 +337,12 @@ function IOSDatePicker({
   const containerRef =
     useRef<HTMLDivElement>(null);
 
+  const triggerRef =
+    useRef<HTMLButtonElement>(null);
+
+  const calendarRef =
+    useRef<HTMLDivElement>(null);
+
   const selectedDate =
     inputValueToDate(value);
 
@@ -340,6 +353,9 @@ function IOSDatePicker({
     useState<Date>(
       selectedDate ?? new Date()
     );
+
+  const [calendarPosition, setCalendarPosition] =
+    useState<CalendarPosition | null>(null);
 
   useEffect(() => {
     if (selectedDate) {
@@ -353,15 +369,147 @@ function IOSDatePicker({
     }
   }, [value]);
 
+  /* =======================================================
+     POSITION
+
+     วางปฏิทินด้วย fixed + Portal ที่ document.body
+     เพื่อไม่ให้ AppCard / AppTableCard / overflow ของตาราง
+     ตัดหรือซ้อนปฏิทินไว้ด้านหลัง
+  ======================================================= */
+
+  function updateCalendarPosition() {
+    const trigger =
+      triggerRef.current;
+
+    if (
+      !trigger ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    const rect =
+      trigger.getBoundingClientRect();
+
+    const edgeGap = 12;
+    const calendarGap = 10;
+
+    const desiredWidth =
+      compact ? 320 : 360;
+
+    const width = Math.min(
+      desiredWidth,
+      Math.max(
+        260,
+        window.innerWidth -
+          edgeGap * 2
+      )
+    );
+
+    const desiredHeight =
+      compact ? 430 : 450;
+
+    const availableBelow =
+      window.innerHeight -
+      rect.bottom -
+      calendarGap -
+      edgeGap;
+
+    const availableAbove =
+      rect.top -
+      calendarGap -
+      edgeGap;
+
+    const shouldOpenAbove =
+      availableBelow <
+        Math.min(
+          desiredHeight,
+          320
+        ) &&
+      availableAbove >
+        availableBelow;
+
+    const availableHeight =
+      Math.max(
+        shouldOpenAbove
+          ? availableAbove
+          : availableBelow,
+        220
+      );
+
+    const maxHeight = Math.min(
+      desiredHeight,
+      availableHeight
+    );
+
+    const preferredLeft =
+      align === "right"
+        ? rect.right - width
+        : rect.left;
+
+    const maxLeft =
+      window.innerWidth -
+      width -
+      edgeGap;
+
+    const left = Math.min(
+      Math.max(
+        preferredLeft,
+        edgeGap
+      ),
+      Math.max(
+        edgeGap,
+        maxLeft
+      )
+    );
+
+    const top = shouldOpenAbove
+      ? Math.max(
+          edgeGap,
+          rect.top -
+            calendarGap -
+            maxHeight
+        )
+      : Math.min(
+          rect.bottom +
+            calendarGap,
+          window.innerHeight -
+            edgeGap -
+            maxHeight
+        );
+
+    setCalendarPosition({
+      left,
+      top,
+      width,
+      maxHeight,
+    });
+  }
+
+  /* =======================================================
+     OUTSIDE CLICK
+  ======================================================= */
+
   useEffect(() => {
     function handleMouseDown(
       event: MouseEvent
     ) {
+      const target =
+        event.target as Node;
+
+      const clickedInsideTrigger =
+        containerRef.current?.contains(
+          target
+        ) ?? false;
+
+      const clickedInsideCalendar =
+        calendarRef.current?.contains(
+          target
+        ) ?? false;
+
       if (
-        containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node
-        )
+        !clickedInsideTrigger &&
+        !clickedInsideCalendar
       ) {
         setOpen(false);
       }
@@ -379,6 +527,50 @@ function IOSDatePicker({
       );
     };
   }, []);
+
+  /* =======================================================
+     OPEN / RESIZE / SCROLL
+  ======================================================= */
+
+  useEffect(() => {
+    if (!open) {
+      setCalendarPosition(
+        null
+      );
+      return;
+    }
+
+    updateCalendarPosition();
+
+    const handleViewportChange =
+      () => {
+        updateCalendarPosition();
+      };
+
+    window.addEventListener(
+      "resize",
+      handleViewportChange
+    );
+
+    window.addEventListener(
+      "scroll",
+      handleViewportChange,
+      true
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleViewportChange
+      );
+
+      window.removeEventListener(
+        "scroll",
+        handleViewportChange,
+        true
+      );
+    };
+  }, [open, compact, align]);
 
   const calendarDays =
     useMemo(() => {
@@ -477,448 +669,458 @@ function IOSDatePicker({
     setOpen(false);
   }
 
+  const calendarPopup =
+    open &&
+    calendarPosition &&
+    typeof document !==
+      "undefined"
+      ? createPortal(
+          <div
+            ref={calendarRef}
+            role="dialog"
+            aria-label="เลือกวันที่"
+            style={{
+              position: "fixed",
+              left:
+                calendarPosition.left,
+              top:
+                calendarPosition.top,
+              width:
+                calendarPosition.width,
+              maxHeight:
+                calendarPosition.maxHeight,
+              zIndex: 2147483100,
+            }}
+            className="
+              overflow-y-auto
+              overscroll-contain
+
+              rounded-[24px]
+
+              border
+              border-slate-200
+
+              bg-white
+
+              p-3
+
+              shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
+
+              ring-1
+              ring-black/5
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-2
+                px-1
+                pb-3
+              "
+            >
+              <button
+                type="button"
+                onClick={previousMonth}
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+                  !text-slate-800
+
+                  transition-all
+
+                  hover:bg-slate-200
+                  active:scale-90
+                "
+              >
+                ‹
+              </button>
+
+              <div className="text-center">
+                <div
+                  className="
+                    text-base
+                    font-black
+                    !text-slate-900
+                  "
+                >
+                  {
+                    thaiMonths[
+                      viewDate.getMonth()
+                    ]
+                  }
+                </div>
+
+                <div
+                  className="
+                    text-xs
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  พ.ศ.{" "}
+                  {viewDate.getFullYear() +
+                    543}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={nextMonth}
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+                  !text-slate-800
+
+                  transition-all
+
+                  hover:bg-slate-200
+                  active:scale-90
+                "
+              >
+                ›
+              </button>
+            </div>
+
+            <div
+              className="
+                grid
+                grid-cols-7
+                gap-1
+              "
+            >
+              {weekDays.map(
+                (day) => (
+                  <div
+                    key={day}
+                    className="
+                      flex
+                      h-8
+                      items-center
+                      justify-center
+
+                      text-xs
+                      font-extrabold
+                      !text-slate-400
+                    "
+                  >
+                    {day}
+                  </div>
+                )
+              )}
+
+              {calendarDays.map(
+                (date, index) => {
+                  if (!date) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="h-10"
+                      />
+                    );
+                  }
+
+                  const selected =
+                    selectedDate
+                      ? isSameDate(
+                          date,
+                          selectedDate
+                        )
+                      : false;
+
+                  const today =
+                    isSameDate(
+                      date,
+                      new Date()
+                    );
+
+                  return (
+                    <button
+                      key={dateToInputValue(
+                        date
+                      )}
+                      type="button"
+                      onClick={() => {
+                        onChange(
+                          dateToInputValue(
+                            date
+                          )
+                        );
+
+                        setOpen(false);
+                      }}
+                      className={`
+                        flex
+                        h-10
+                        items-center
+                        justify-center
+
+                        rounded-full
+
+                        text-sm
+                        font-extrabold
+
+                        transition-all
+
+                        active:scale-90
+
+                        ${
+                          selected
+                            ? "bg-slate-900 !text-white shadow-md"
+                            : today
+                            ? "bg-blue-50 !text-blue-700 ring-1 ring-blue-200"
+                            : "bg-transparent !text-slate-800 hover:bg-slate-100"
+                        }
+                      `}
+                    >
+                      {date.getDate()}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <div
+              className="
+                mt-3
+
+                flex
+                items-center
+                justify-between
+                gap-3
+
+                border-t
+                border-slate-200
+
+                pt-3
+              "
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("");
+                  setOpen(false);
+                }}
+                className="
+                  rounded-full
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+                  !text-slate-500
+
+                  transition-colors
+
+                  hover:bg-slate-100
+                "
+              >
+                ล้างวันที่
+              </button>
+
+              <button
+                type="button"
+                onClick={selectToday}
+                className="
+                  rounded-full
+
+                  bg-slate-900
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+                  !text-white
+
+                  shadow-sm
+
+                  transition-all
+
+                  hover:bg-slate-800
+                  active:scale-95
+                "
+              >
+                วันนี้
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
-    <div
-      ref={containerRef}
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${
-          open
-            ? "z-[99999]"
-            : "z-10"
-        }
-      `}
-    >
-      <input
-        type="hidden"
-        name={name}
-        value={value}
-        required={required}
-      />
-
-      <button
-        id={id}
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => {
-          if (!open) {
-            const base =
-              selectedDate ??
-              new Date();
-
-            setViewDate(
-              new Date(
-                base.getFullYear(),
-                base.getMonth(),
-                1
-              )
-            );
-          }
-
-          setOpen(
-            (current) => !current
-          );
-        }}
+    <>
+      <div
+        ref={containerRef}
         className={`
-          flex
+          relative
           w-full
           min-w-0
-          items-center
-          justify-between
-          gap-3
 
           ${
-            compact
-              ? "h-[46px] rounded-[12px] px-3"
-              : "h-[52px] rounded-[16px] px-4"
+            open
+              ? "z-[99999]"
+              : "z-10"
           }
-
-          border
-          border-slate-200
-
-          bg-white
-
-          text-left
-          font-bold
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          transition-all
-          duration-200
-
-          hover:border-slate-300
-          hover:bg-slate-50
-
-          focus:border-blue-300
-          focus:ring-4
-          focus:ring-blue-100/70
         `}
       >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
+        <input
+          type="hidden"
+          name={name}
+          value={value}
+          required={required}
+        />
 
-            ${
-              value
-                ? "!text-slate-900"
-                : "!text-slate-400"
+        <button
+          ref={triggerRef}
+          id={id}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => {
+            if (!open) {
+              const base =
+                selectedDate ??
+                new Date();
+
+              setViewDate(
+                new Date(
+                  base.getFullYear(),
+                  base.getMonth(),
+                  1
+                )
+              );
+
+              updateCalendarPosition();
             }
 
-            ${
-              compact
-                ? "text-sm"
-                : "text-base"
-            }
-          `}
-        >
-          {value
-            ? compact
-              ? formatThaiShortDate(
-                  value
-                )
-              : formatThaiDate(
-                  value
-                )
-            : placeholder}
-        </span>
-
-        <span
+            setOpen(
+              (current) =>
+                !current
+            );
+          }}
           className={`
             flex
-            shrink-0
+            w-full
+            min-w-0
             items-center
-            justify-center
+            justify-between
+            gap-3
 
             ${
               compact
-                ? "h-8 w-8 rounded-[10px] text-base"
-                : "h-9 w-9 rounded-[11px] text-lg"
+                ? "h-[46px] rounded-[12px] px-3"
+                : "h-[52px] rounded-[16px] px-4"
             }
-
-            ${
-              open
-                ? "bg-slate-900 !text-white"
-                : "bg-slate-100"
-            }
-
-            shadow-inner
-
-            transition-all
-            duration-200
-          `}
-        >
-          📅
-        </span>
-      </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label="เลือกวันที่"
-          className={`
-            absolute
-            top-[calc(100%+10px)]
-
-            ${
-              align === "right"
-                ? "right-0"
-                : "left-0"
-            }
-
-            z-[999999]
-
-            ${
-              compact
-                ? "w-[320px]"
-                : "w-[360px]"
-            }
-
-            max-w-[calc(100vw-32px)]
-
-            overflow-hidden
-
-            rounded-[24px]
 
             border
             border-slate-200
 
             bg-white
 
-            p-3
+            text-left
+            font-bold
+            !text-slate-900
 
-            shadow-[0_28px_80px_-20px_rgba(15,23,42,0.45)]
+            shadow-sm
+            outline-none
 
-            ring-1
-            ring-black/5
+            transition-all
+            duration-200
+
+            hover:border-slate-300
+            hover:bg-slate-50
+
+            focus:border-blue-300
+            focus:ring-4
+            focus:ring-blue-100/70
           `}
         >
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              gap-2
-              px-1
-              pb-3
-            "
-          >
-            <button
-              type="button"
-              onClick={previousMonth}
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
+          <span
+            className={`
+              min-w-0
+              flex-1
+              truncate
 
-                rounded-full
-
-                bg-slate-100
-
-                text-xl
-                font-black
-                !text-slate-800
-
-                transition-all
-
-                hover:bg-slate-200
-                active:scale-90
-              "
-            >
-              ‹
-            </button>
-
-            <div className="text-center">
-              <div
-                className="
-                  text-base
-                  font-black
-                  !text-slate-900
-                "
-              >
-                {
-                  thaiMonths[
-                    viewDate.getMonth()
-                  ]
-                }
-              </div>
-
-              <div
-                className="
-                  text-xs
-                  font-bold
-                  !text-slate-500
-                "
-              >
-                พ.ศ.{" "}
-                {viewDate.getFullYear() +
-                  543}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={nextMonth}
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-slate-100
-
-                text-xl
-                font-black
-                !text-slate-800
-
-                transition-all
-
-                hover:bg-slate-200
-                active:scale-90
-              "
-            >
-              ›
-            </button>
-          </div>
-
-          <div
-            className="
-              grid
-              grid-cols-7
-              gap-1
-            "
-          >
-            {weekDays.map(
-              (day) => (
-                <div
-                  key={day}
-                  className="
-                    flex
-                    h-8
-                    items-center
-                    justify-center
-
-                    text-xs
-                    font-extrabold
-                    !text-slate-400
-                  "
-                >
-                  {day}
-                </div>
-              )
-            )}
-
-            {calendarDays.map(
-              (date, index) => {
-                if (!date) {
-                  return (
-                    <div
-                      key={`empty-${index}`}
-                      className="h-10"
-                    />
-                  );
-                }
-
-                const selected =
-                  selectedDate
-                    ? isSameDate(
-                        date,
-                        selectedDate
-                      )
-                    : false;
-
-                const today =
-                  isSameDate(
-                    date,
-                    new Date()
-                  );
-
-                return (
-                  <button
-                    key={dateToInputValue(
-                      date
-                    )}
-                    type="button"
-                    onClick={() => {
-                      onChange(
-                        dateToInputValue(
-                          date
-                        )
-                      );
-
-                      setOpen(false);
-                    }}
-                    className={`
-                      flex
-                      h-10
-                      items-center
-                      justify-center
-
-                      rounded-full
-
-                      text-sm
-                      font-extrabold
-
-                      transition-all
-
-                      active:scale-90
-
-                      ${
-                        selected
-                          ? "bg-slate-900 !text-white shadow-md"
-                          : today
-                          ? "bg-blue-50 !text-blue-700 ring-1 ring-blue-200"
-                          : "bg-transparent !text-slate-800 hover:bg-slate-100"
-                      }
-                    `}
-                  >
-                    {date.getDate()}
-                  </button>
-                );
+              ${
+                value
+                  ? "!text-slate-900"
+                  : "!text-slate-400"
               }
-            )}
-          </div>
 
-          <div
-            className="
-              mt-3
-
-              flex
-              items-center
-              justify-between
-              gap-3
-
-              border-t
-              border-slate-200
-
-              pt-3
-            "
+              ${
+                compact
+                  ? "text-sm"
+                  : "text-base"
+              }
+            `}
           >
-            <button
-              type="button"
-              onClick={() => {
-                onChange("");
-                setOpen(false);
-              }}
-              className="
-                rounded-full
+            {value
+              ? compact
+                ? formatThaiShortDate(
+                    value
+                  )
+                : formatThaiDate(
+                    value
+                  )
+              : placeholder}
+          </span>
 
-                px-4
-                py-2
+          <span
+            className={`
+              flex
+              shrink-0
+              items-center
+              justify-center
 
-                text-sm
-                font-extrabold
-                !text-slate-500
+              ${
+                compact
+                  ? "h-8 w-8 rounded-[10px] text-base"
+                  : "h-9 w-9 rounded-[11px] text-lg"
+              }
 
-                transition-colors
+              ${
+                open
+                  ? "bg-slate-900 !text-white"
+                  : "bg-slate-100"
+              }
 
-                hover:bg-slate-100
-              "
-            >
-              ล้างวันที่
-            </button>
+              shadow-inner
 
-            <button
-              type="button"
-              onClick={selectToday}
-              className="
-                rounded-full
+              transition-all
+              duration-200
+            `}
+          >
+            📅
+          </span>
+        </button>
+      </div>
 
-                bg-slate-900
-
-                px-4
-                py-2
-
-                text-sm
-                font-extrabold
-                !text-white
-
-                shadow-sm
-
-                transition-all
-
-                hover:bg-slate-800
-                active:scale-95
-              "
-            >
-              วันนี้
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {calendarPopup}
+    </>
   );
 }
 
