@@ -1,14 +1,8 @@
-```tsx
 "use client";
 
 import "@/lib/fonts/THSarabunNew-normal";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import jsPDF from "jspdf";
 
 import AppButton from "@/components/AppButton";
@@ -19,8 +13,8 @@ import AppButton from "@/components/AppButton";
 
 type LotLabel = {
   id: number;
-
   materialId: number;
+
   code: string;
   name: string;
   unit: string;
@@ -36,16 +30,12 @@ type RankedLot = LotLabel & {
   lotNumber: number;
 };
 
-/* =========================================================
-   PROPS
-========================================================= */
-
 type Props = {
   lots: LotLabel[];
 };
 
 /* =========================================================
-   THAI DATE
+   THAI MONTHS
 ========================================================= */
 
 const thaiMonths = [
@@ -64,27 +54,17 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-   DATE VALUE FOR SORT
-
-   null = Infinity
-   หมายความว่า:
-   ล็อตที่ไม่มีวันหมดอายุ
-   จะอยู่หลังล็อตที่มีวันหมดอายุ
+   DATE VALUE
 ========================================================= */
 
-function dateValue(
-  value: string | null
-) {
+function dateValue(value: string | null): number {
   if (!value) {
     return Number.POSITIVE_INFINITY;
   }
 
-  const time =
-    new Date(value).getTime();
+  const time = new Date(value).getTime();
 
-  if (
-    Number.isNaN(time)
-  ) {
+  if (Number.isNaN(time)) {
     return Number.POSITIVE_INFINITY;
   }
 
@@ -93,265 +73,111 @@ function dateValue(
 
 /* =========================================================
    FORMAT THAI DATE
-
-   ตัวอย่าง:
-   01 ก.ย. 2569
 ========================================================= */
 
-function formatThaiDate(
-  value: string | null
-) {
+function formatThaiDate(value: string | null): string {
   if (!value) {
     return "-";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "-";
   }
 
-  const day =
-    String(
-      date.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
+  const day = String(date.getDate()).padStart(2, "0");
 
-  const month =
-    thaiMonths[
-      date.getMonth()
-    ];
+  const month = thaiMonths[date.getMonth()];
 
-  const year =
-    date.getFullYear() +
-    543;
+  const year = date.getFullYear() + 543;
 
-  return `${day} ${month} ${year}`;
+  return day + " " + month + " " + year;
 }
 
 /* =========================================================
-   MATERIAL CODE SORT
+   MATERIAL SORT
 ========================================================= */
 
-function compareMaterialCode(
-  a: LotLabel,
-  b: LotLabel
-) {
-  return a.code.localeCompare(
-    b.code,
-    "th",
-    {
-      numeric: true,
-      sensitivity: "base",
-    }
-  );
+function compareMaterialCode(a: LotLabel, b: LotLabel): number {
+  return a.code.localeCompare(b.code, "th", {
+    numeric: true,
+    sensitivity: "base",
+  });
 }
 
 /* =========================================================
    FEFO SORT
 
-   ภายในพัสดุรายการเดียวกัน:
+   1. วันหมดอายุเร็วที่สุด
+   2. วันผลิตเก่าที่สุด
+   3. วันที่รับเข้าเก่าที่สุด
+   4. ReceiveItem.id น้อยที่สุด
 
-   1. วันหมดอายุเร็วที่สุดก่อน
-   2. วันผลิตเก่าที่สุดก่อน
-   3. วันที่รับเข้าเก่าที่สุดก่อน
-   4. ReceiveItem.id น้อยที่สุดก่อน
-
-   ล็อตที่ไม่มีวันหมดอายุ:
-   - อยู่หลังล็อตที่มีวันหมดอายุ
-   - แล้วเรียงตามวันผลิต
+   ถ้าไม่มีวันหมดอายุ จะอยู่หลังรายการที่มีวันหมดอายุ
 ========================================================= */
 
-function compareFefo(
-  a: LotLabel,
-  b: LotLabel
-) {
-  /* -------------------------------------------------------
-     EXPIRY
-  ------------------------------------------------------- */
+function compareFefo(a: LotLabel, b: LotLabel): number {
+  const expiryA = dateValue(a.expiry);
+  const expiryB = dateValue(b.expiry);
 
-  const expiryA =
-    dateValue(
-      a.expiry
-    );
-
-  const expiryB =
-    dateValue(
-      b.expiry
-    );
-
-  if (
-    expiryA !==
-    expiryB
-  ) {
-    return (
-      expiryA -
-      expiryB
-    );
+  if (expiryA !== expiryB) {
+    return expiryA - expiryB;
   }
 
-  /* -------------------------------------------------------
-     MANUFACTURE
-  ------------------------------------------------------- */
+  const manufactureA = dateValue(a.manufacture);
+  const manufactureB = dateValue(b.manufacture);
 
-  const manufactureA =
-    dateValue(
-      a.manufacture
-    );
-
-  const manufactureB =
-    dateValue(
-      b.manufacture
-    );
-
-  if (
-    manufactureA !==
-    manufactureB
-  ) {
-    return (
-      manufactureA -
-      manufactureB
-    );
+  if (manufactureA !== manufactureB) {
+    return manufactureA - manufactureB;
   }
 
-  /* -------------------------------------------------------
-     RECEIVE DATE
-  ------------------------------------------------------- */
+  const receiveA = dateValue(a.receiveDate);
+  const receiveB = dateValue(b.receiveDate);
 
-  const receiveA =
-    dateValue(
-      a.receiveDate
-    );
-
-  const receiveB =
-    dateValue(
-      b.receiveDate
-    );
-
-  if (
-    receiveA !==
-    receiveB
-  ) {
-    return (
-      receiveA -
-      receiveB
-    );
+  if (receiveA !== receiveB) {
+    return receiveA - receiveB;
   }
 
-  /* -------------------------------------------------------
-     RECEIVE ITEM ID
-  ------------------------------------------------------- */
-
-  return (
-    a.id -
-    b.id
-  );
+  return a.id - b.id;
 }
 
 /* =========================================================
    BUILD LOT NUMBER
 
-   สำคัญ:
-   เลขล็อตนี้เป็น "ลำดับการเบิก"
-
-   ตัวอย่าง:
-   รหัส 401-001
-
-   LOT 1 = ต้องเบิกก่อน
-   LOT 2 = เบิกถัดไป
-   LOT 3 = เบิกถัดไป
-
-   คำนวณใหม่จาก FEFO ทุกครั้งที่เปิด PDF
+   ล็อต 1 = ล็อตที่ต้องเบิกก่อน
 ========================================================= */
 
-function buildRankedLots(
-  lots: LotLabel[]
-): RankedLot[] {
-  /* -------------------------------------------------------
-     GROUP BY MATERIAL
-  ------------------------------------------------------- */
+function buildRankedLots(lots: LotLabel[]): RankedLot[] {
+  const grouped = new Map<number, LotLabel[]>();
 
-  const grouped =
-    new Map<
-      number,
-      LotLabel[]
-    >();
-
-  for (
-    const lot of lots
-  ) {
-    const current =
-      grouped.get(
-        lot.materialId
-      ) ?? [];
+  for (const lot of lots) {
+    const current = grouped.get(lot.materialId) ?? [];
 
     current.push(lot);
 
-    grouped.set(
-      lot.materialId,
-      current
-    );
+    grouped.set(lot.materialId, current);
   }
 
-  /* -------------------------------------------------------
-     SORT MATERIAL GROUPS
-  ------------------------------------------------------- */
+  const groups = Array.from(grouped.values()).sort((a, b) => {
+    if (!a[0] || !b[0]) {
+      return 0;
+    }
 
-  const groups =
-    Array.from(
-      grouped.values()
-    ).sort(
-      (a, b) => {
-        if (
-          !a[0] ||
-          !b[0]
-        ) {
-          return 0;
-        }
+    return compareMaterialCode(a[0], b[0]);
+  });
 
-        return compareMaterialCode(
-          a[0],
-          b[0]
-        );
-      }
-    );
+  const result: RankedLot[] = [];
 
-  /* -------------------------------------------------------
-     FEFO EACH MATERIAL
-  ------------------------------------------------------- */
+  for (const group of groups) {
+    const sorted = [...group].sort(compareFefo);
 
-  const result:
-    RankedLot[] = [];
-
-  for (
-    const group of
-    groups
-  ) {
-    const sorted =
-      [...group].sort(
-        compareFefo
-      );
-
-    sorted.forEach(
-      (
-        lot,
-        index
-      ) => {
-        result.push({
-          ...lot,
-
-          lotNumber:
-            index + 1,
-        });
-      }
-    );
+    sorted.forEach((lot, index) => {
+      result.push({
+        ...lot,
+        lotNumber: index + 1,
+      });
+    });
   }
 
   return result;
@@ -361,76 +187,32 @@ function buildRankedLots(
    COMPONENT
 ========================================================= */
 
-export default function ComputerLotLabelsPdf({
-  lots,
-}: Props) {
-  const [
-    progress,
-    setProgress,
-  ] = useState(0);
+export default function ComputerLotLabelsPdf({ lots }: Props) {
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
 
-  const [
-    error,
-    setError,
-  ] = useState("");
-
-  /* =======================================================
-     FEFO LOTS
-  ======================================================= */
-
-  const rankedLots =
-    useMemo(
-      () =>
-        buildRankedLots(
-          lots
-        ),
-      [lots]
-    );
-
-  /* =======================================================
-     CREATE PDF
-  ======================================================= */
+  const rankedLots = useMemo(() => {
+    return buildRankedLots(lots);
+  }, [lots]);
 
   useEffect(() => {
-    let cancelled =
-      false;
-
-    let createdObjectUrl:
-      | string
-      | null = null;
+    let cancelled = false;
 
     async function createPdf() {
       try {
         setError("");
         setProgress(0);
 
-        /* =================================================
-           EMPTY
-        ================================================= */
-
-        if (
-          rankedLots.length ===
-          0
-        ) {
-          setError(
-            "ไม่พบล็อตวัสดุคอมพิวเตอร์ที่มีคงเหลือ"
-          );
-
+        if (rankedLots.length === 0) {
+          setError("ไม่พบล็อตวัสดุคอมพิวเตอร์ที่มีคงเหลือ");
           return;
         }
 
-        /* =================================================
-           ให้ Loading UI แสดงก่อนเริ่มสร้าง PDF
-        ================================================= */
-
-        await new Promise<void>(
-          (resolve) => {
-            window.requestAnimationFrame(
-              () =>
-                resolve()
-            );
-          }
-        );
+        await new Promise<void>((resolve) => {
+          window.requestAnimationFrame(() => {
+            resolve();
+          });
+        });
 
         if (cancelled) {
           return;
@@ -440,173 +222,78 @@ export default function ComputerLotLabelsPdf({
            PDF
         ================================================= */
 
-        const doc =
-          new jsPDF({
-            orientation:
-              "portrait",
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          compress: false,
+        });
 
-            unit:
-              "mm",
-
-            format:
-              "a4",
-
-            compress:
-              false,
-          });
-
-        doc.setFont(
-          "2.3.2 THSarabunNew",
-          "normal"
-        );
+        doc.setFont("2.3.2 THSarabunNew", "normal");
 
         /* =================================================
            PAGE CONFIG
-
-           A4
-           3 columns
-
-           ป้ายกว้างประมาณ 61 มม.
-           สูงประมาณ 40 มม.
-
-           เหมาะสำหรับตัดแปะกล่องหมึก
         ================================================= */
 
-        const pageWidth =
-          210;
+        const pageWidth = 210;
+        const pageHeight = 297;
 
-        const pageHeight =
-          297;
+        const marginX = 8;
+        const marginTop = 10;
+        const marginBottom = 10;
 
-        const marginX =
-          8;
+        const columns = 3;
 
-        const marginTop =
-          10;
-
-        const marginBottom =
-          10;
-
-        const columns =
-          3;
-
-        const gapX =
-          3;
-
-        const gapY =
-          3;
+        const gapX = 3;
+        const gapY = 3;
 
         const cardWidth =
-          (
-            pageWidth -
-            marginX * 2 -
-            gapX *
-              (
-                columns -
-                1
-              )
-          ) /
-          columns;
+          (pageWidth - marginX * 2 - gapX * (columns - 1)) / columns;
 
-        const cardHeight =
-          40;
+        const cardHeight = 40;
 
         const availableHeight =
-          pageHeight -
-          marginTop -
-          marginBottom;
+          pageHeight - marginTop - marginBottom;
 
-        const rows =
-          Math.floor(
-            (
-              availableHeight +
-              gapY
-            ) /
-            (
-              cardHeight +
-              gapY
-            )
-          );
+        const rows = Math.floor(
+          (availableHeight + gapY) / (cardHeight + gapY)
+        );
 
-        const itemsPerPage =
-          columns *
-          rows;
+        const itemsPerPage = columns * rows;
 
         /* =================================================
-           DRAW
+           DRAW LABELS
         ================================================= */
 
-        for (
-          let index = 0;
-          index <
-          rankedLots.length;
-          index++
-        ) {
+        for (let index = 0; index < rankedLots.length; index++) {
           if (cancelled) {
             return;
           }
 
-          /* -------------------------------------------------
-             PAGE
-          ------------------------------------------------- */
-
-          if (
-            index > 0 &&
-            index %
-              itemsPerPage ===
-              0
-          ) {
+          if (index > 0 && index % itemsPerPage === 0) {
             doc.addPage();
           }
 
-          const position =
-            index %
-            itemsPerPage;
+          const position = index % itemsPerPage;
 
-          const column =
-            position %
-            columns;
+          const column = position % columns;
 
-          const row =
-            Math.floor(
-              position /
-              columns
-            );
+          const row = Math.floor(position / columns);
 
           const x =
-            marginX +
-            column *
-              (
-                cardWidth +
-                gapX
-              );
+            marginX + column * (cardWidth + gapX);
 
           const y =
-            marginTop +
-            row *
-              (
-                cardHeight +
-                gapY
-              );
+            marginTop + row * (cardHeight + gapY);
 
-          const lot =
-            rankedLots[
-              index
-            ];
+          const lot = rankedLots[index];
 
           /* =================================================
-             CARD BORDER
+             BORDER
           ================================================= */
 
-          doc.setDrawColor(
-            0,
-            0,
-            0
-          );
-
-          doc.setLineWidth(
-            0.35
-          );
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.35);
 
           doc.rect(
             x,
@@ -617,16 +304,9 @@ export default function ComputerLotLabelsPdf({
 
           /* =================================================
              HEADER BACKGROUND
-
-             ใช้สีเทาอ่อนเพื่อพิมพ์ได้ชัด
-             และไม่เปลืองหมึกมาก
           ================================================= */
 
-          doc.setFillColor(
-            235,
-            238,
-            242
-          );
+          doc.setFillColor(235, 238, 242);
 
           doc.rect(
             x,
@@ -640,23 +320,17 @@ export default function ComputerLotLabelsPdf({
              MATERIAL CODE
           ================================================= */
 
-          doc.setTextColor(
-            0,
-            0,
-            0
-          );
+          doc.setTextColor(0, 0, 0);
 
           doc.setFont(
             "2.3.2 THSarabunNew",
             "normal"
           );
 
-          doc.setFontSize(
-            13
-          );
+          doc.setFontSize(13);
 
           doc.text(
-            `รหัสพัสดุ ${lot.code}`,
+            "รหัสพัสดุ " + lot.code,
             x + 3,
             y + 5.5
           );
@@ -665,52 +339,38 @@ export default function ComputerLotLabelsPdf({
              MATERIAL NAME
           ================================================= */
 
-          doc.setFontSize(
-            11
-          );
+          doc.setFontSize(11);
 
           const nameLines =
             doc.splitTextToSize(
               lot.name,
-              cardWidth -
-                6
+              cardWidth - 6
             );
 
           doc.text(
-            nameLines.slice(
-              0,
-              1
-            ),
+            nameLines.slice(0, 1),
             x + 3,
             y + 10.8
           );
 
           /* =================================================
-             LOT NUMBER / ISSUE PRIORITY
+             LOT NUMBER
           ================================================= */
 
-          doc.setFontSize(
-            13
-          );
+          doc.setFontSize(13);
 
           doc.text(
-            `ล็อต ${lot.lotNumber}`,
+            "ล็อต " + lot.lotNumber,
             x + 3,
             y + 16
           );
 
           /* =================================================
-             PRIORITY BADGE
-
-             ล็อต 1 = เบิกก่อน
+             LOT 1 = ISSUE FIRST
           ================================================= */
 
-          if (
-            lot.lotNumber ===
-            1
-          ) {
-            const badgeWidth =
-              21;
+          if (lot.lotNumber === 1) {
+            const badgeWidth = 21;
 
             const badgeX =
               x +
@@ -734,19 +394,15 @@ export default function ComputerLotLabelsPdf({
               "F"
             );
 
-            doc.setFontSize(
-              9
-            );
+            doc.setFontSize(9);
 
             doc.text(
               "เบิกก่อน",
               badgeX +
-                badgeWidth /
-                  2,
+                badgeWidth / 2,
               y + 14.4,
               {
-                align:
-                  "center",
+                align: "center",
               }
             );
           }
@@ -761,15 +417,12 @@ export default function ComputerLotLabelsPdf({
             120
           );
 
-          doc.setLineWidth(
-            0.2
-          );
+          doc.setLineWidth(0.2);
 
           doc.line(
             x,
             y + 17,
-            x +
-              cardWidth,
+            x + cardWidth,
             y + 17
           );
 
@@ -777,9 +430,7 @@ export default function ComputerLotLabelsPdf({
              MANUFACTURE
           ================================================= */
 
-          doc.setFontSize(
-            11
-          );
+          doc.setFontSize(11);
 
           doc.text(
             "วันผลิต",
@@ -824,23 +475,20 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            `${lot.balance.toLocaleString(
+            lot.balance.toLocaleString(
               "th-TH"
-            )} ${lot.unit}`,
+            ) +
+              " " +
+              lot.unit,
             x + 23,
             y + 34.6
           );
 
           /* =================================================
-             LOT REFERENCE
-
-             เลขเล็กด้านล่างเพื่อใช้ตรวจสอบฐานข้อมูล
-             ไม่ใช่ลำดับการเบิก
+             REFERENCE
           ================================================= */
 
-          doc.setFontSize(
-            7.5
-          );
+          doc.setFontSize(7.5);
 
           doc.setTextColor(
             100,
@@ -849,7 +497,7 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            `REF ${lot.id}`,
+            "REF " + lot.id,
             x +
               cardWidth -
               2,
@@ -857,8 +505,7 @@ export default function ComputerLotLabelsPdf({
               cardHeight -
               2,
             {
-              align:
-                "right",
+              align: "right",
             }
           );
 
@@ -867,18 +514,14 @@ export default function ComputerLotLabelsPdf({
           ================================================= */
 
           if (!cancelled) {
-            setProgress(
+            const percent =
               Math.round(
-                (
-                  (
-                    index +
-                    1
-                  ) /
-                  rankedLots.length
-                ) *
+                ((index + 1) /
+                  rankedLots.length) *
                   98
-              )
-            );
+              );
+
+            setProgress(percent);
           }
         }
 
@@ -886,34 +529,22 @@ export default function ComputerLotLabelsPdf({
           return;
         }
 
-        /* =================================================
-           PDF BLOB
-        ================================================= */
-
         setProgress(99);
 
         const blob =
-          doc.output(
-            "blob"
-          );
+          doc.output("blob");
 
         if (cancelled) {
           return;
         }
 
-        createdObjectUrl =
-          URL.createObjectURL(
-            blob
-          );
+        const objectUrl =
+          URL.createObjectURL(blob);
 
         setProgress(100);
 
-        /* =================================================
-           OPEN PDF
-        ================================================= */
-
         window.location.replace(
-          createdObjectUrl
+          objectUrl
         );
       } catch (err) {
         console.error(
@@ -921,9 +552,7 @@ export default function ComputerLotLabelsPdf({
           err
         );
 
-        if (
-          !cancelled
-        ) {
+        if (!cancelled) {
           setError(
             "ไม่สามารถสร้าง PDF ป้ายล็อตวัสดุคอมพิวเตอร์ได้ กรุณาลองใหม่อีกครั้ง"
           );
@@ -933,18 +562,8 @@ export default function ComputerLotLabelsPdf({
 
     void createPdf();
 
-    /* =====================================================
-       CLEANUP
-    ===================================================== */
-
     return () => {
-      cancelled =
-        true;
-
-      /*
-       * ไม่ revoke Object URL ทันที
-       * เพราะ Browser อาจกำลังเปิด PDF อยู่
-       */
+      cancelled = true;
     };
   }, [rankedLots]);
 
@@ -959,10 +578,8 @@ export default function ComputerLotLabelsPdf({
         min-h-[calc(100vh-180px)]
         w-full
         min-w-0
-
         items-center
         justify-center
-
         px-4
         py-10
       "
@@ -970,101 +587,33 @@ export default function ComputerLotLabelsPdf({
       <div
         className="
           relative
-
           w-full
           max-w-md
-
           overflow-hidden
-
           rounded-[30px]
-
           border
           border-white/80
-
           bg-white/80
-
           p-7
-
           text-center
-
           shadow-[0_24px_70px_-32px_rgba(15,23,42,0.4)]
-
           backdrop-blur-2xl
-
           sm:p-9
         "
       >
-        {/* ===================================================
-            AMBIENT GLOW
-        =================================================== */}
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-
-            absolute
-            -right-16
-            -top-16
-
-            h-40
-            w-40
-
-            rounded-full
-
-            bg-amber-200/40
-
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-
-            absolute
-            -bottom-16
-            -left-16
-
-            h-40
-            w-40
-
-            rounded-full
-
-            bg-emerald-200/30
-
-            blur-3xl
-          "
-        />
-
-        {/* ===================================================
-            ERROR
-        =================================================== */}
-
         {error ? (
           <>
             <div
               className="
-                relative
-                z-10
-
                 mx-auto
-
                 grid
                 h-16
                 w-16
-
                 place-items-center
-
                 rounded-[20px]
-
                 bg-red-50
-
                 text-3xl
-
                 shadow-sm
-
                 ring-1
                 ring-red-100
               "
@@ -1074,15 +623,10 @@ export default function ComputerLotLabelsPdf({
 
             <h1
               className="
-                relative
-                z-10
-
                 mt-6
-
                 text-2xl
                 font-black
                 tracking-tight
-
                 !text-slate-900
               "
             >
@@ -1091,15 +635,10 @@ export default function ComputerLotLabelsPdf({
 
             <p
               className="
-                relative
-                z-10
-
                 mt-2
-
                 text-base
                 font-semibold
                 leading-relaxed
-
                 !text-slate-500
               "
             >
@@ -1108,11 +647,7 @@ export default function ComputerLotLabelsPdf({
 
             <div
               className="
-                relative
-                z-10
-
                 mt-6
-
                 flex
                 justify-center
               "
@@ -1128,31 +663,17 @@ export default function ComputerLotLabelsPdf({
           </>
         ) : (
           <>
-            {/* =================================================
-                ICON
-            ================================================= */}
-
             <div
               className="
-                relative
-                z-10
-
                 mx-auto
-
                 grid
                 h-16
                 w-16
-
                 place-items-center
-
                 rounded-[20px]
-
                 bg-amber-50
-
                 text-3xl
-
                 shadow-sm
-
                 ring-1
                 ring-amber-100
               "
@@ -1160,21 +681,12 @@ export default function ComputerLotLabelsPdf({
               🏷️
             </div>
 
-            {/* =================================================
-                TITLE
-            ================================================= */}
-
             <h1
               className="
-                relative
-                z-10
-
                 mt-6
-
                 text-2xl
                 font-black
                 tracking-tight
-
                 !text-slate-900
               "
             >
@@ -1183,78 +695,51 @@ export default function ComputerLotLabelsPdf({
 
             <p
               className="
-                relative
-                z-10
-
                 mt-2
-
                 text-base
                 font-semibold
                 leading-relaxed
-
                 !text-slate-500
               "
             >
-              เรียงลำดับล็อตตามหลัก FEFO
+              เรียงลำดับตามหลัก FEFO
               เพื่อให้ล็อตที่หมดอายุก่อนถูกเบิกก่อน
             </p>
 
-            {/* =================================================
-                PROGRESS
-            ================================================= */}
-
             <div
               className="
-                relative
-                z-10
-
                 mt-6
-
                 h-2.5
                 w-full
-
                 overflow-hidden
-
                 rounded-full
-
                 bg-slate-200/80
               "
             >
               <div
                 className="
                   h-full
-
                   rounded-full
-
                   bg-gradient-to-r
                   from-amber-400
                   to-yellow-500
-
                   transition-[width]
                   duration-200
                   ease-out
                 "
                 style={{
                   width:
-                    `${progress}%`,
+                    progress +
+                    "%",
                 }}
               />
             </div>
 
-            {/* =================================================
-                PERCENT
-            ================================================= */}
-
             <div
               className="
-                relative
-                z-10
-
                 mt-3
-
                 text-sm
                 font-extrabold
-
                 !text-amber-700
               "
             >
@@ -1264,35 +749,18 @@ export default function ComputerLotLabelsPdf({
               %
             </div>
 
-            {/* =================================================
-                COUNT
-            ================================================= */}
-
             <div
               className="
-                relative
-                z-10
-
                 mt-5
-
                 rounded-[16px]
-
                 border
                 border-slate-200/80
-
                 bg-slate-50/80
-
                 px-4
                 py-3
-
                 text-sm
                 font-bold
-
                 !text-slate-500
-
-                shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]
-
-                backdrop-blur-xl
               "
             >
               พบล็อตวัสดุคอมพิวเตอร์คงเหลือ{" "}
@@ -1307,4 +775,3 @@ export default function ComputerLotLabelsPdf({
     </div>
   );
 }
-```
