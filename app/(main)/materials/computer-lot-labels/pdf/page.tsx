@@ -27,10 +27,11 @@ type LotLabel = {
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     LOAD LOTS
+     LOAD COMPUTER MATERIAL LOTS
 
-     - เฉพาะวัสดุคอมพิวเตอร์
-     - เฉพาะ ReceiveItem ที่ยังมีคงเหลือ
+     เงื่อนไข:
+     - วัสดุคอมพิวเตอร์
+     - ยังมีคงเหลือ
   ======================================================= */
 
   const receiveItems =
@@ -75,11 +76,48 @@ export default async function ComputerLotLabelsPdfPage() {
     });
 
   /* =======================================================
-     SERIALIZE DATA FOR CLIENT COMPONENT
+     FILTER INK / TONER / DRUM
+
+     ตัวอย่างชื่อที่ต้องการ:
+     - หมึกพิมพ์
+     - ตลับหมึก
+     - หมึกเครื่องพิมพ์
+     - ชุดดรัม
+     - ตลับดรัม
+     - DRUM
+     - TONER
+  ======================================================= */
+
+  const inkKeywords = [
+    "หมึก",
+    "ดรัม",
+    "drum",
+    "toner",
+  ];
+
+  const filteredItems =
+    receiveItems.filter(
+      (item) => {
+        const name =
+          item.material.name
+            .trim()
+            .toLowerCase();
+
+        return inkKeywords.some(
+          (keyword) =>
+            name.includes(
+              keyword
+            )
+        );
+      }
+    );
+
+  /* =======================================================
+     SERIALIZE
   ======================================================= */
 
   const lots: LotLabel[] =
-    receiveItems.map(
+    filteredItems.map(
       (item) => ({
         id: item.id,
 
@@ -118,7 +156,7 @@ export default async function ComputerLotLabelsPdfPage() {
     );
 
   /* =======================================================
-     PDF CLIENT
+     CLIENT PDF
   ======================================================= */
 
   return (
