@@ -1,4 +1,3 @@
-```tsx
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
@@ -87,12 +86,7 @@ export default function MaterialsPage() {
             </AppButton>
 
             {/* ===============================================
-                ป้ายล็อตวัสดุคอมพิวเตอร์
-                - แสดงเฉพาะล็อตที่ยังคงเหลือ
-                - เรียงตาม FEFO:
-                  วันหมดอายุใกล้ที่สุดก่อน
-                - ถ้าวันหมดอายุเท่ากัน:
-                  วันผลิตเก่ากว่าก่อน
+                ป้ายล็อตหมึก
             =============================================== */}
 
             <AppButton
@@ -111,7 +105,6 @@ export default function MaterialsPage() {
 
             {/* ===============================================
                 รวมรายการพัสดุ
-                ใช้ primary = เขียวกรมอนามัย
             =============================================== */}
 
             <AppButton
@@ -149,155 +142,152 @@ export default function MaterialsPage() {
           xl:grid-cols-3
         "
       >
-        {categories.map(
-          (category) => (
-            <AppCard
-              key={category.code}
+        {categories.map((category) => (
+          <AppCard
+            key={category.code}
+            className="
+              flex
+              min-h-[190px]
+              min-w-0
+
+              flex-col
+              items-center
+              justify-center
+
+              text-center
+
+              sm:min-h-[210px]
+
+              xl:min-h-[230px]
+            "
+          >
+            {/* ===============================================
+                ICON
+            =============================================== */}
+
+            <div
               className="
                 flex
-                min-h-[190px]
-                min-w-0
+                w-full
 
-                flex-col
                 items-center
                 justify-center
 
                 text-center
-
-                sm:min-h-[210px]
-
-                xl:min-h-[230px]
               "
             >
-              {/* ===============================================
-                  ICON
-              =============================================== */}
-
               <div
                 className="
-                  flex
-                  w-full
+                  grid
 
-                  items-center
-                  justify-center
+                  h-14
+                  w-14
+                  shrink-0
 
-                  text-center
-                "
-              >
-                <div
-                  className="
-                    grid
-
-                    h-14
-                    w-14
-                    shrink-0
-
-                    place-items-center
-
-                    text-center
-
-                    sm:h-16
-                    sm:w-16
-                  "
-                  aria-hidden="true"
-                >
-                  <span
-                    className="
-                      block
-
-                      text-center
-                      text-3xl
-                      leading-none
-                    "
-                  >
-                    {category.icon}
-                  </span>
-                </div>
-              </div>
-
-              {/* ===============================================
-                  INFORMATION
-              =============================================== */}
-
-              <div
-                className="
-                  mt-3
-
-                  w-full
-                  min-w-0
+                  place-items-center
 
                   text-center
 
-                  sm:mt-4
+                  sm:h-16
+                  sm:w-16
                 "
+                aria-hidden="true"
               >
-                <h2
+                <span
                   className="
-                    w-full
-
-                    break-words
+                    block
 
                     text-center
-                    text-lg
-                    font-extrabold
-
-                    !text-slate-900
-
-                    sm:text-xl
+                    text-3xl
+                    leading-none
                   "
                 >
-                  {category.name}
-                </h2>
-
-                <p
-                  className="
-                    mt-2
-
-                    w-full
-
-                    break-words
-
-                    text-center
-                    text-sm
-                    font-semibold
-
-                    !text-slate-500
-                  "
-                >
-                  ดูและจัดการข้อมูลพัสดุในหมวดหมู่นี้
-                </p>
+                  {category.icon}
+                </span>
               </div>
+            </div>
 
-              {/* ===============================================
-                  ACTION
-              =============================================== */}
+            {/* ===============================================
+                INFORMATION
+            =============================================== */}
 
-              <div
+            <div
+              className="
+                mt-3
+
+                w-full
+                min-w-0
+
+                text-center
+
+                sm:mt-4
+              "
+            >
+              <h2
                 className="
-                  mt-4
-
-                  flex
                   w-full
 
-                  items-center
-                  justify-center
+                  break-words
 
-                  sm:mt-5
+                  text-center
+                  text-lg
+                  font-extrabold
+
+                  !text-slate-900
+
+                  sm:text-xl
                 "
               >
-                <AppButton
-                  href={`/materials/category/${category.code}`}
-                  variant="primary"
-                  size="md"
-                >
-                  เปิด
-                </AppButton>
-              </div>
-            </AppCard>
-          )
-        )}
+                {category.name}
+              </h2>
+
+              <p
+                className="
+                  mt-2
+
+                  w-full
+
+                  break-words
+
+                  text-center
+                  text-sm
+                  font-semibold
+
+                  !text-slate-500
+                "
+              >
+                ดูและจัดการข้อมูลพัสดุในหมวดหมู่นี้
+              </p>
+            </div>
+
+            {/* ===============================================
+                ACTION
+            =============================================== */}
+
+            <div
+              className="
+                mt-4
+
+                flex
+                w-full
+
+                items-center
+                justify-center
+
+                sm:mt-5
+              "
+            >
+              <AppButton
+                href={`/materials/category/${category.code}`}
+                variant="primary"
+                size="md"
+              >
+                เปิด
+              </AppButton>
+            </div>
+          </AppCard>
+        ))}
       </section>
     </AppPage>
   );
 }
-```
