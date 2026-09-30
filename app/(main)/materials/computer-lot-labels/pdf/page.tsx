@@ -3,6 +3,16 @@ import { prisma } from "@/lib/prisma";
 import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 
 /* =========================================================
+   FORCE FRESH DATA
+
+   ให้หน้า PDF ดึงข้อมูลล่าสุดจากฐานข้อมูลทุกครั้ง
+   ไม่ใช้ cache
+========================================================= */
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/* =========================================================
    TYPES
 ========================================================= */
 
@@ -30,8 +40,9 @@ export default async function ComputerLotLabelsPdfPage() {
      LOAD COMPUTER MATERIAL LOTS
 
      เงื่อนไข:
-     - วัสดุคอมพิวเตอร์
-     - ยังมีคงเหลือ
+     - เฉพาะวัสดุคอมพิวเตอร์
+     - เฉพาะล็อตที่ยังมีคงเหลือ
+     - ดึงข้อมูลใหม่ทุกครั้งที่เปิดหน้า
   ======================================================= */
 
   const receiveItems =
@@ -78,14 +89,7 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      FILTER INK / TONER / DRUM
 
-     ตัวอย่างชื่อที่ต้องการ:
-     - หมึกพิมพ์
-     - ตลับหมึก
-     - หมึกเครื่องพิมพ์
-     - ชุดดรัม
-     - ตลับดรัม
-     - DRUM
-     - TONER
+     ให้แสดงเฉพาะกลุ่มหมึกและดรัม
   ======================================================= */
 
   const inkKeywords = [
@@ -113,7 +117,7 @@ export default async function ComputerLotLabelsPdfPage() {
     );
 
   /* =======================================================
-     SERIALIZE
+     SERIALIZE DATA FOR CLIENT COMPONENT
   ======================================================= */
 
   const lots: LotLabel[] =
