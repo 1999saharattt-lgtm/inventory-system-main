@@ -38,6 +38,7 @@ type RankedLot = LotLabel & {
 type PrintableLabel =
   RankedLot & {
     copyNumber: number;
+    copyTotal: number;
   };
 
 type Props = {
@@ -312,14 +313,15 @@ function buildRankedLots(
 }
 
 /* =========================================================
-   EXPAND LABELS BY BALANCE
+   EXPAND LABELS
 
    ตัวอย่าง:
-   balance = 2
+   balance = 4
 
-   จะได้ป้าย:
-   ใบที่ 1
-   ใบที่ 2
+   ล็อต 1/4
+   ล็อต 2/4
+   ล็อต 3/4
+   ล็อต 4/4
 ========================================================= */
 
 function expandPrintableLabels(
@@ -352,11 +354,54 @@ function expandPrintableLabels(
 
         copyNumber:
           copy,
+
+        copyTotal:
+          quantity,
       });
     }
   }
 
   return labels;
+}
+
+/* =========================================================
+   FIT SINGLE-LINE TEXT
+
+   ลด Font อัตโนมัติ
+   เพื่อให้ชื่อรายการอยู่บรรทัดเดียว
+========================================================= */
+
+function fitSingleLineText(
+  doc: jsPDF,
+  text: string,
+  maxWidth: number,
+  startFontSize: number,
+  minFontSize: number
+): number {
+  let fontSize =
+    startFontSize;
+
+  doc.setFontSize(
+    fontSize
+  );
+
+  while (
+    doc.getTextWidth(
+      text
+    ) >
+      maxWidth &&
+    fontSize >
+      minFontSize
+  ) {
+    fontSize -=
+      0.25;
+
+    doc.setFontSize(
+      fontSize
+    );
+  }
+
+  return fontSize;
 }
 
 /* =========================================================
@@ -377,7 +422,7 @@ export default function ComputerLotLabelsPdf({
   ] = useState("");
 
   /* =======================================================
-     LOT ORDER
+     RANK LOTS
   ======================================================= */
 
   const rankedLots =
@@ -390,7 +435,7 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     ONE LABEL PER REMAINING UNIT
+     ONE LABEL PER UNIT
   ======================================================= */
 
   const printableLabels =
@@ -436,7 +481,9 @@ export default function ComputerLotLabelsPdf({
           }
         );
 
-        if (cancelled) {
+        if (
+          cancelled
+        ) {
           return;
         }
 
@@ -465,15 +512,10 @@ export default function ComputerLotLabelsPdf({
         );
 
         /* =================================================
-           SMALL LABEL CONFIG
+           SMALL LABEL
 
-           A4:
-           4 คอลัมน์
-
-           ป้ายประมาณ:
-           46 x 28 mm
-
-           เหมาะสำหรับแปะด้านหน้าหรือด้านข้างกล่องหมึก
+           ประมาณ 38 x 22 mm
+           5 ป้ายต่อแถว
         ================================================= */
 
         const pageWidth =
@@ -483,22 +525,22 @@ export default function ComputerLotLabelsPdf({
           297;
 
         const marginX =
-          7;
+          5;
 
         const marginTop =
-          8;
+          6;
 
         const marginBottom =
-          8;
+          6;
 
         const columns =
-          4;
+          5;
 
         const gapX =
-          2;
+          1.5;
 
         const gapY =
-          2;
+          1.5;
 
         const cardWidth =
           (
@@ -513,7 +555,7 @@ export default function ComputerLotLabelsPdf({
           columns;
 
         const cardHeight =
-          28;
+          22;
 
         const availableHeight =
           pageHeight -
@@ -607,7 +649,7 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.setLineWidth(
-            0.25
+            0.2
           );
 
           doc.rect(
@@ -617,8 +659,132 @@ export default function ComputerLotLabelsPdf({
             cardHeight
           );
 
+          doc.setTextColor(
+            0,
+            0,
+            0
+          );
+
+          doc.setFont(
+            "2.3.2 THSarabunNew",
+            "normal"
+          );
+
           /* =================================================
              MATERIAL CODE
+          ================================================= */
+
+          doc.setFontSize(
+            8
+          );
+
+          doc.text(
+            "รหัส " +
+              label.code,
+            x +
+              cardWidth /
+                2,
+            y + 3,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* =================================================
+             MATERIAL NAME
+
+             บังคับ 1 บรรทัด
+          ================================================= */
+
+          fitSingleLineText(
+            doc,
+            label.name,
+            cardWidth - 3,
+            8,
+            5.25
+          );
+
+          doc.text(
+            label.name,
+            x +
+              cardWidth /
+                2,
+            y + 5.9,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* =================================================
+             LOT
+
+             กึ่งกลาง
+          ================================================= */
+
+          doc.setFontSize(
+            9.5
+          );
+
+          doc.text(
+            "ล็อต " +
+              label.copyNumber +
+              "/" +
+              label.copyTotal,
+            x +
+              cardWidth /
+                2,
+            y + 9.5,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* =================================================
+             DIVIDER
+          ================================================= */
+
+          doc.setDrawColor(
+            180,
+            180,
+            180
+          );
+
+          doc.setLineWidth(
+            0.15
+          );
+
+          doc.line(
+            x + 1.5,
+            y + 10.6,
+            x +
+              cardWidth -
+              1.5,
+            y + 10.6
+          );
+
+          /* =================================================
+             DATE COLUMN POSITIONS
+
+             แยก 3 คอลัมน์:
+             LABEL | : | DATE
+
+             เพื่อให้วันที่ตรงแนวเดียวกัน
+          ================================================= */
+
+          const dateLabelX =
+            x + 2;
+
+          const colonX =
+            x + 14.5;
+
+          const dateValueX =
+            x + 17;
+
+          /* =================================================
+             MANUFACTURE DATE
           ================================================= */
 
           doc.setTextColor(
@@ -633,83 +799,55 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.setFontSize(
-            10.5
+            9.4
           );
 
           doc.text(
-            "รหัสพัสดุ " +
-              label.code,
-            x + 2,
-            y + 4.5
+            "วันผลิต",
+            dateLabelX,
+            y + 15
           );
-
-          /* =================================================
-             MATERIAL NAME
-          ================================================= */
-
-          doc.setFontSize(
-            9.5
-          );
-
-          const nameLines =
-            doc.splitTextToSize(
-              label.name,
-              cardWidth -
-                4
-            );
 
           doc.text(
-            nameLines.slice(
-              0,
-              2
+            ":",
+            colonX,
+            y + 15
+          );
+
+          doc.text(
+            formatThaiDate(
+              label.manufacture
             ),
-            x + 2,
-            y + 8.5
-          );
-
-          /* =================================================
-             LOT
-          ================================================= */
-
-          doc.setFontSize(
-            9.5
-          );
-
-          doc.text(
-            "ล็อต " +
-              label.lotNumber,
-            x + 2,
-            y + 15.5
-          );
-
-          /* =================================================
-             MANUFACTURE DATE
-          ================================================= */
-
-          doc.setFontSize(
-            8.8
-          );
-
-          doc.text(
-            "ผลิต " +
-              formatThaiDate(
-                label.manufacture
-              ),
-            x + 2,
-            y + 20
+            dateValueX,
+            y + 15
           );
 
           /* =================================================
              EXPIRY DATE
           ================================================= */
 
+          doc.setFontSize(
+            9.7
+          );
+
           doc.text(
-            "หมดอายุ " +
-              formatThaiDate(
-                label.expiry
-              ),
-            x + 2,
-            y + 24
+            "วันหมดอายุ",
+            dateLabelX,
+            y + 19.2
+          );
+
+          doc.text(
+            ":",
+            colonX,
+            y + 19.2
+          );
+
+          doc.text(
+            formatThaiDate(
+              label.expiry
+            ),
+            dateValueX,
+            y + 19.2
           );
 
           /* =================================================
@@ -873,13 +1011,11 @@ export default function ComputerLotLabelsPdf({
 
                 text-2xl
                 font-black
-                tracking-tight
 
                 !text-slate-900
               "
             >
-              สร้าง PDF
-              ป้ายหมึกไม่สำเร็จ
+              สร้าง PDF ป้ายหมึกไม่สำเร็จ
             </h1>
 
             <p
@@ -962,7 +1098,7 @@ export default function ComputerLotLabelsPdf({
                 !text-slate-500
               "
             >
-              สร้างป้ายตามจำนวนวัสดุที่คงเหลือจริง
+              สร้างป้ายแยกตามจำนวนวัสดุที่คงเหลือจริง
             </p>
 
             <div
