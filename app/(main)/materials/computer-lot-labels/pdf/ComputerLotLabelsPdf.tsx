@@ -5,12 +5,9 @@ import "@/lib/fonts/THSarabunNew-normal";
 import {
   useEffect,
   useMemo,
-  useState,
 } from "react";
 
 import jsPDF from "jspdf";
-
-import AppButton from "@/components/AppButton";
 
 /* =========================================================
    TYPES
@@ -315,9 +312,7 @@ function buildRankedLots(
 /* =========================================================
    EXPAND LABELS
 
-   ตัวอย่าง:
-   balance = 4
-
+   ถ้าล็อตเดียวเหลือ 4 ชิ้น:
    ล็อต 1/4
    ล็อต 2/4
    ล็อต 3/4
@@ -365,10 +360,7 @@ function expandPrintableLabels(
 }
 
 /* =========================================================
-   FIT SINGLE-LINE TEXT
-
-   ลด Font อัตโนมัติ
-   เพื่อให้ชื่อรายการอยู่บรรทัดเดียว
+   FIT SINGLE LINE TEXT
 ========================================================= */
 
 function fitSingleLineText(
@@ -411,18 +403,8 @@ function fitSingleLineText(
 export default function ComputerLotLabelsPdf({
   lots,
 }: Props) {
-  const [
-    progress,
-    setProgress,
-  ] = useState(0);
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
   /* =======================================================
-     RANK LOTS
+     LOT ORDER
   ======================================================= */
 
   const rankedLots =
@@ -435,7 +417,7 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     ONE LABEL PER UNIT
+     ONE LABEL PER REMAINING UNIT
   ======================================================= */
 
   const printableLabels =
@@ -448,42 +430,26 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     CREATE PDF
+     CREATE + OPEN PDF IMMEDIATELY
   ======================================================= */
 
   useEffect(() => {
     let cancelled =
       false;
 
-    async function createPdf() {
-      try {
-        setError("");
-        setProgress(0);
+    let objectUrl:
+      | string
+      | null = null;
 
+    function createPdf() {
+      try {
         if (
           printableLabels.length ===
           0
         ) {
-          setError(
-            "ไม่พบหมึกพิมพ์หรือดรัมที่มีคงเหลือ"
-          );
+          document.body.innerHTML =
+            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์หรือดรัมที่มีคงเหลือ</div>';
 
-          return;
-        }
-
-        await new Promise<void>(
-          (resolve) => {
-            window.requestAnimationFrame(
-              () => {
-                resolve();
-              }
-            );
-          }
-        );
-
-        if (
-          cancelled
-        ) {
           return;
         }
 
@@ -512,9 +478,9 @@ export default function ComputerLotLabelsPdf({
         );
 
         /* =================================================
-           SMALL LABEL
+           LABEL SIZE
 
-           ประมาณ 38 x 22 mm
+           ป้ายประมาณ 38 x 22 mm
            5 ป้ายต่อแถว
         ================================================= */
 
@@ -694,7 +660,7 @@ export default function ComputerLotLabelsPdf({
           /* =================================================
              MATERIAL NAME
 
-             บังคับ 1 บรรทัด
+             บรรทัดเดียว
           ================================================= */
 
           fitSingleLineText(
@@ -719,8 +685,6 @@ export default function ComputerLotLabelsPdf({
 
           /* =================================================
              LOT
-
-             กึ่งกลาง
           ================================================= */
 
           doc.setFontSize(
@@ -766,12 +730,12 @@ export default function ComputerLotLabelsPdf({
           );
 
           /* =================================================
-             DATE COLUMN POSITIONS
+             DATE POSITIONS
 
-             แยก 3 คอลัมน์:
-             LABEL | : | DATE
+             วันผลิต      : วันที่
+             วันหมดอายุ : วันที่
 
-             เพื่อให้วันที่ตรงแนวเดียวกัน
+             : และวันที่ตรงกัน
           ================================================= */
 
           const dateLabelX =
@@ -849,30 +813,6 @@ export default function ComputerLotLabelsPdf({
             dateValueX,
             y + 19.2
           );
-
-          /* =================================================
-             PROGRESS
-          ================================================= */
-
-          if (
-            !cancelled
-          ) {
-            const percent =
-              Math.round(
-                (
-                  (
-                    index +
-                    1
-                  ) /
-                  printableLabels.length
-                ) *
-                  98
-              );
-
-            setProgress(
-              percent
-            );
-          }
         }
 
         if (
@@ -881,50 +821,35 @@ export default function ComputerLotLabelsPdf({
           return;
         }
 
-        setProgress(
-          99
-        );
+        /* =================================================
+           OPEN PDF DIRECTLY
+        ================================================= */
 
         const blob =
           doc.output(
             "blob"
           );
 
-        if (
-          cancelled
-        ) {
-          return;
-        }
-
-        const objectUrl =
+        objectUrl =
           URL.createObjectURL(
             blob
           );
 
-        setProgress(
-          100
-        );
-
         window.location.replace(
           objectUrl
         );
-      } catch (err) {
+      } catch (error) {
         console.error(
-          "ไม่สามารถสร้าง PDF ป้ายหมึกพิมพ์ได้:",
-          err
+          "ไม่สามารถสร้าง PDF ป้ายล็อตได้:",
+          error
         );
 
-        if (
-          !cancelled
-        ) {
-          setError(
-            "ไม่สามารถสร้าง PDF ป้ายหมึกพิมพ์ได้ กรุณาลองใหม่อีกครั้ง"
-          );
-        }
+        document.body.innerHTML =
+          '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่สามารถเปิด PDF ป้ายล็อตได้</div>';
       }
     }
 
-    void createPdf();
+    createPdf();
 
     return () => {
       cancelled =
@@ -933,254 +858,11 @@ export default function ComputerLotLabelsPdf({
   }, [printableLabels]);
 
   /* =========================================================
-     UI
+     ไม่มีหน้า Loading
+
+     เมื่อกดปุ่ม:
+     เปิดแท็บ -> สร้าง PDF -> แสดง PDF ทันที
   ========================================================= */
 
-  return (
-    <div
-      className="
-        flex
-        min-h-[calc(100vh-180px)]
-        w-full
-        min-w-0
-
-        items-center
-        justify-center
-
-        px-4
-        py-10
-      "
-    >
-      <div
-        className="
-          relative
-
-          w-full
-          max-w-md
-
-          overflow-hidden
-
-          rounded-[30px]
-
-          border
-          border-white/80
-
-          bg-white/80
-
-          p-7
-
-          text-center
-
-          shadow-[0_24px_70px_-32px_rgba(15,23,42,0.4)]
-
-          backdrop-blur-2xl
-
-          sm:p-9
-        "
-      >
-        {error ? (
-          <>
-            <div
-              className="
-                mx-auto
-
-                grid
-                h-16
-                w-16
-
-                place-items-center
-
-                rounded-[20px]
-
-                bg-red-50
-
-                text-3xl
-
-                shadow-sm
-
-                ring-1
-                ring-red-100
-              "
-            >
-              ⚠️
-            </div>
-
-            <h1
-              className="
-                mt-6
-
-                text-2xl
-                font-black
-
-                !text-slate-900
-              "
-            >
-              สร้าง PDF ป้ายหมึกไม่สำเร็จ
-            </h1>
-
-            <p
-              className="
-                mt-2
-
-                text-base
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              {error}
-            </p>
-
-            <div
-              className="
-                mt-6
-
-                flex
-                justify-center
-              "
-            >
-              <AppButton
-                href="/materials"
-                variant="back"
-                size="md"
-              >
-                กลับ
-              </AppButton>
-            </div>
-          </>
-        ) : (
-          <>
-            <div
-              className="
-                mx-auto
-
-                grid
-                h-16
-                w-16
-
-                place-items-center
-
-                rounded-[20px]
-
-                bg-amber-50
-
-                text-3xl
-
-                shadow-sm
-
-                ring-1
-                ring-amber-100
-              "
-            >
-              🏷️
-            </div>
-
-            <h1
-              className="
-                mt-6
-
-                text-2xl
-                font-black
-
-                !text-slate-900
-              "
-            >
-              กำลังสร้างป้ายหมึก
-            </h1>
-
-            <p
-              className="
-                mt-2
-
-                text-base
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              สร้างป้ายแยกตามจำนวนวัสดุที่คงเหลือจริง
-            </p>
-
-            <div
-              className="
-                mt-6
-
-                h-2.5
-                w-full
-
-                overflow-hidden
-
-                rounded-full
-
-                bg-slate-200/80
-              "
-            >
-              <div
-                className="
-                  h-full
-
-                  rounded-full
-
-                  bg-gradient-to-r
-                  from-amber-400
-                  to-yellow-500
-
-                  transition-[width]
-                  duration-200
-                "
-                style={{
-                  width:
-                    progress +
-                    "%",
-                }}
-              />
-            </div>
-
-            <div
-              className="
-                mt-3
-
-                text-sm
-                font-extrabold
-
-                !text-amber-700
-              "
-            >
-              {progress.toLocaleString(
-                "th-TH"
-              )}
-              %
-            </div>
-
-            <div
-              className="
-                mt-5
-
-                rounded-[16px]
-
-                border
-                border-slate-200/80
-
-                bg-slate-50/80
-
-                px-4
-                py-3
-
-                text-sm
-                font-bold
-
-                !text-slate-500
-              "
-            >
-              จำนวนป้ายทั้งหมด{" "}
-              {printableLabels.length.toLocaleString(
-                "th-TH"
-              )}{" "}
-              ใบ
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+  return null;
 }
