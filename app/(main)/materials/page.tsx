@@ -1,3 +1,4 @@
+```tsx
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
@@ -83,6 +84,29 @@ export default function MaterialsPage() {
               }
             >
               QR Code รวม
+            </AppButton>
+
+            {/* ===============================================
+                ป้ายล็อตวัสดุคอมพิวเตอร์
+                - แสดงเฉพาะล็อตที่ยังคงเหลือ
+                - เรียงตาม FEFO:
+                  วันหมดอายุใกล้ที่สุดก่อน
+                - ถ้าวันหมดอายุเท่ากัน:
+                  วันผลิตเก่ากว่าก่อน
+            =============================================== */}
+
+            <AppButton
+              href="/materials/computer-lot-labels/pdf"
+              variant="primary"
+              size="md"
+              target="_blank"
+              icon={
+                <span aria-hidden="true">
+                  🏷️
+                </span>
+              }
+            >
+              ป้ายล็อตหมึก
             </AppButton>
 
             {/* ===============================================
@@ -276,3 +300,4 @@ export default function MaterialsPage() {
     </AppPage>
   );
 }
+```
