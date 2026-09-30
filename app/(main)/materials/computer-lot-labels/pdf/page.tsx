@@ -1,4 +1,3 @@
-```tsx
 import { prisma } from "@/lib/prisma";
 
 import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
@@ -9,8 +8,8 @@ import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 
 type LotLabel = {
   id: number;
-
   materialId: number;
+
   code: string;
   name: string;
   unit: string;
@@ -28,11 +27,10 @@ type LotLabel = {
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     COMPUTER MATERIAL LOTS
+     LOAD LOTS
 
-     เงื่อนไข:
      - เฉพาะวัสดุคอมพิวเตอร์
-     - เฉพาะล็อตที่ยังมีคงเหลือ
+     - เฉพาะ ReceiveItem ที่ยังมีคงเหลือ
   ======================================================= */
 
   const receiveItems =
@@ -70,54 +68,57 @@ export default async function ComputerLotLabelsPdfPage() {
           },
         },
       },
+
+      orderBy: {
+        id: "asc",
+      },
     });
 
   /* =======================================================
-     SERIALIZE
-
-     Date ส่งจาก Server Component ไป Client Component
-     ให้แปลงเป็น ISO string ก่อน
+     SERIALIZE DATA FOR CLIENT COMPONENT
   ======================================================= */
 
   const lots: LotLabel[] =
-    receiveItems.map((item) => ({
-      id: item.id,
+    receiveItems.map(
+      (item) => ({
+        id: item.id,
 
-      materialId:
-        item.materialId,
+        materialId:
+          item.materialId,
 
-      code:
-        item.material.code,
+        code:
+          item.material.code,
 
-      name:
-        item.material.name,
+        name:
+          item.material.name,
 
-      unit:
-        item.material.unit,
+        unit:
+          item.material.unit,
 
-      balance:
-        Number(
-          item.balance ?? 0
-        ),
+        balance:
+          Number(
+            item.balance ?? 0
+          ),
 
-      manufacture:
-        item.manufacture
-          ? item.manufacture.toISOString()
-          : null,
+        manufacture:
+          item.manufacture
+            ? item.manufacture.toISOString()
+            : null,
 
-      expiry:
-        item.expiry
-          ? item.expiry.toISOString()
-          : null,
+        expiry:
+          item.expiry
+            ? item.expiry.toISOString()
+            : null,
 
-      receiveDate:
-        item.receive.receiveDate
-          ? item.receive.receiveDate.toISOString()
-          : null,
-    }));
+        receiveDate:
+          item.receive?.receiveDate
+            ? item.receive.receiveDate.toISOString()
+            : null,
+      })
+    );
 
   /* =======================================================
-     CLIENT PDF
+     PDF CLIENT
   ======================================================= */
 
   return (
@@ -126,4 +127,3 @@ export default async function ComputerLotLabelsPdfPage() {
     />
   );
 }
-```
