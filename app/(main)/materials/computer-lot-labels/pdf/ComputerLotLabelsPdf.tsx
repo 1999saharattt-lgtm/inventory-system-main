@@ -11,10 +11,13 @@ import jsPDF from "jspdf";
 
 /* =========================================================
    TYPES
+
+   ต้องตรงกับ page.tsx ทุกช่อง
 ========================================================= */
 
 type LotLabel = {
-  id: number;
+  receiveItemId: number;
+  receiveId: number;
   materialId: number;
 
   code: string;
@@ -25,7 +28,9 @@ type LotLabel = {
 
   manufacture: string | null;
   expiry: string | null;
+
   receiveDate: string | null;
+  documentNo: string;
 };
 
 type RankedLot =
@@ -38,8 +43,8 @@ type PrintableLabel =
     copyNumber: number;
     copyTotal: number;
 
-    groupKey: string;
-    groupTitle: string;
+    productGroupKey: string;
+    productGroupTitle: string;
   };
 
 type ProductGroup = {
@@ -72,16 +77,9 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-   COLORS
+   COLOR WORDS
 
-   ใช้ตัดชื่อสีออกจากชื่อสินค้า
-   เพื่อให้รุ่นเดียวกันรวมเป็นกลุ่มเดียวกัน
-
-   HP 206A Black
-   HP 206A Cyan
-   HP 206A Yellow
-
-   => HP 206A
+   ใช้เฉพาะตอนรวม Brand + Model ให้อยู่หน้าเดียวกัน
 ========================================================= */
 
 const colorWords = [
@@ -95,33 +93,31 @@ const colorWords = [
   "grey",
   "gray",
   "white",
-
   "bk",
-  "c",
-  "m",
-  "y",
 
   "ดำ",
   "สีดำ",
+
   "ฟ้า",
   "สีฟ้า",
   "ไซแอน",
+
   "ชมพู",
   "สีชมพู",
   "มาเจนต้า",
+
   "แดง",
   "สีแดง",
+
   "เหลือง",
   "สีเหลือง",
+
   "น้ำเงิน",
   "สีน้ำเงิน",
 ];
 
 /* =========================================================
    GENERIC PRODUCT WORDS
-
-   ตัดคำทั่วไปออกสำหรับสร้าง Group Key
-   เพื่อเหลือ Brand + Model
 ========================================================= */
 
 const genericWords = [
@@ -129,8 +125,10 @@ const genericWords = [
   "หมึกเครื่องพิมพ์",
   "ตลับหมึก",
   "หมึก",
+
   "ตลับโทนเนอร์",
   "โทนเนอร์",
+
   "ชุดดรัม",
   "ตลับดรัม",
   "ดรัม",
@@ -233,10 +231,6 @@ function cleanText(
       " "
     )
     .replace(
-      /[-]+/g,
-      "-"
-    )
-    .replace(
       /\s+/g,
       " "
     )
@@ -244,9 +238,20 @@ function cleanText(
 }
 
 /* =========================================================
-   REMOVE WORD
+   ESCAPE REGEXP
+========================================================= */
 
-   ลบเฉพาะคำที่เป็น token
+function escapeRegExp(
+  value: string
+): string {
+  return value.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+}
+
+/* =========================================================
+   REMOVE WORD
 ========================================================= */
 
 function removeWord(
@@ -254,9 +259,8 @@ function removeWord(
   word: string
 ): string {
   const escaped =
-    word.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
+    escapeRegExp(
+      word
     );
 
   return text.replace(
@@ -271,18 +275,18 @@ function removeWord(
 }
 
 /* =========================================================
-   GROUP KEY
-
-   เป้าหมาย:
-   เน้น Brand + Model
+   PRODUCT GROUP KEY
 
    ตัวอย่าง:
 
-   หมึกพิมพ์ HP 206A Black
-   หมึกพิมพ์ HP 206A Cyan
-   หมึกพิมพ์ HP 206A Magenta
+   Canon CLI-751 Black
+   Canon CLI-751 Cyan
+   Canon CLI-751 Yellow
 
-   => hp 206a
+   => Canon CLI-751
+
+   ใช้แค่สำหรับรวมหน้า
+   ไม่รวมล็อต
 ========================================================= */
 
 function getProductGroupKey(
@@ -326,17 +330,16 @@ function getProductGroupKey(
 }
 
 /* =========================================================
-   GROUP TITLE
-
-   ใช้แสดงด้านบนของหน้า PDF
-   ตัดสีออก แต่ยังอ่านง่าย
+   PRODUCT GROUP TITLE
 ========================================================= */
 
 function getProductGroupTitle(
   name: string
 ): string {
   let result =
-    cleanText(name);
+    cleanText(
+      name
+    );
 
   for (
     const color of
@@ -364,7 +367,7 @@ function getProductGroupTitle(
 }
 
 /* =========================================================
-   MATERIAL CODE SORT
+   COMPARE MATERIAL
 ========================================================= */
 
 function compareMaterialCode(
@@ -382,12 +385,12 @@ function compareMaterialCode(
 }
 
 /* =========================================================
-   FEFO SORT
+   FEFO
 
-   1. วันหมดอายุเร็วที่สุด
-   2. วันผลิตเก่าที่สุด
-   3. วันที่รับเข้าเก่าที่สุด
-   4. ReceiveItem.id
+   1. วันหมดอายุ
+   2. วันผลิต
+   3. วันที่รับ
+   4. ReceiveItem ID
 ========================================================= */
 
 function compareFefo(
@@ -455,15 +458,15 @@ function compareFefo(
   }
 
   return (
-    a.id -
-    b.id
+    a.receiveItemId -
+    b.receiveItemId
   );
 }
 
 /* =========================================================
-   BUILD LOT ORDER
+   BUILD REAL LOT ORDER
 
-   เรียงล็อตแยกตาม materialId
+   1 ReceiveItem = 1 ล็อต
 ========================================================= */
 
 function buildRankedLots(
@@ -493,7 +496,7 @@ function buildRankedLots(
     );
   }
 
-  const groups =
+  const materialGroups =
     Array.from(
       grouped.values()
     ).sort(
@@ -516,11 +519,11 @@ function buildRankedLots(
     RankedLot[] = [];
 
   for (
-    const group of
-    groups
+    const materialLots of
+    materialGroups
   ) {
     const sorted =
-      [...group].sort(
+      [...materialLots].sort(
         compareFefo
       );
 
@@ -543,15 +546,31 @@ function buildRankedLots(
 }
 
 /* =========================================================
-   EXPAND LABELS
+   EXPAND RECEIVE ITEM
 
-   1 ชิ้นคงเหลือ = 1 ป้าย
+   ตัวอย่าง:
+
+   ReceiveItem A
+   balance = 3
+   ไม่มีวันที่
+
+   =>
+   ล็อต 1 1/3
+   ล็อต 1 2/3
+   ล็อต 1 3/3
+
+   ReceiveItem B
+   balance = 1
+   มีวันที่
+
+   =>
+   ล็อต 2 1/1
 ========================================================= */
 
 function expandPrintableLabels(
   rankedLots: RankedLot[]
 ): PrintableLabel[] {
-  const labels:
+  const result:
     PrintableLabel[] = [];
 
   for (
@@ -568,51 +587,52 @@ function expandPrintableLabels(
         )
       );
 
-    const groupKey =
+    const productGroupKey =
       getProductGroupKey(
         lot.name
       );
 
-    const groupTitle =
+    const productGroupTitle =
       getProductGroupTitle(
         lot.name
       );
 
     for (
-      let copy = 1;
-      copy <= quantity;
-      copy++
+      let copyNumber = 1;
+      copyNumber <=
+      quantity;
+      copyNumber++
     ) {
-      labels.push({
+      result.push({
         ...lot,
 
-        copyNumber:
-          copy,
+        copyNumber,
 
         copyTotal:
           quantity,
 
-        groupKey,
+        productGroupKey,
 
-        groupTitle,
+        productGroupTitle,
       });
     }
   }
 
-  return labels;
+  return result;
 }
 
 /* =========================================================
-   GROUP BY BRAND + MODEL
+   GROUP FOR PDF PAGE ONLY
 
-   ทุกสีของรุ่นเดียวกัน
-   จะอยู่ใน ProductGroup เดียวกัน
+   ไม่แก้ balance
+   ไม่แก้วันที่
+   ไม่รวม ReceiveItem
 ========================================================= */
 
 function buildProductGroups(
   labels: PrintableLabel[]
 ): ProductGroup[] {
-  const groupMap =
+  const map =
     new Map<
       string,
       ProductGroup
@@ -622,27 +642,27 @@ function buildProductGroups(
     const label of
     labels
   ) {
-    const current =
-      groupMap.get(
-        label.groupKey
+    const existing =
+      map.get(
+        label.productGroupKey
       );
 
-    if (current) {
-      current.labels.push(
+    if (existing) {
+      existing.labels.push(
         label
       );
 
       continue;
     }
 
-    groupMap.set(
-      label.groupKey,
+    map.set(
+      label.productGroupKey,
       {
         key:
-          label.groupKey,
+          label.productGroupKey,
 
         title:
-          label.groupTitle,
+          label.productGroupTitle,
 
         labels: [
           label,
@@ -653,12 +673,8 @@ function buildProductGroups(
 
   const groups =
     Array.from(
-      groupMap.values()
+      map.values()
     );
-
-  /* -------------------------------------------------------
-     เรียงกลุ่มตามชื่อรุ่น
-  ------------------------------------------------------- */
 
   groups.sort(
     (a, b) =>
@@ -674,9 +690,10 @@ function buildProductGroups(
   );
 
   /* -------------------------------------------------------
-     ภายในแต่ละรุ่น:
-     FEFO ก่อน
-     แล้วชื่อสินค้า/สี
+     ภายในรุ่นเดียวกัน
+
+     ชื่อ/สีเดียวกันให้อยู่ใกล้กัน
+     แล้วเรียงตาม FEFO
   ------------------------------------------------------- */
 
   for (
@@ -685,19 +702,7 @@ function buildProductGroups(
   ) {
     group.labels.sort(
       (a, b) => {
-        const fefo =
-          compareFefo(
-            a,
-            b
-          );
-
-        if (
-          fefo !== 0
-        ) {
-          return fefo;
-        }
-
-        const name =
+        const nameCompare =
           a.name.localeCompare(
             b.name,
             "th",
@@ -709,9 +714,31 @@ function buildProductGroups(
           );
 
         if (
-          name !== 0
+          nameCompare !== 0
         ) {
-          return name;
+          return nameCompare;
+        }
+
+        const fefoCompare =
+          compareFefo(
+            a,
+            b
+          );
+
+        if (
+          fefoCompare !== 0
+        ) {
+          return fefoCompare;
+        }
+
+        if (
+          a.receiveItemId !==
+          b.receiveItemId
+        ) {
+          return (
+            a.receiveItemId -
+            b.receiveItemId
+          );
         }
 
         return (
@@ -726,7 +753,7 @@ function buildProductGroups(
 }
 
 /* =========================================================
-   FIT SINGLE LINE TEXT
+   FIT ONE LINE
 ========================================================= */
 
 function fitSingleLineText(
@@ -769,10 +796,6 @@ function fitSingleLineText(
 export default function ComputerLotLabelsPdf({
   lots,
 }: Props) {
-  /* =======================================================
-     FEFO
-  ======================================================= */
-
   const rankedLots =
     useMemo(
       () =>
@@ -782,10 +805,6 @@ export default function ComputerLotLabelsPdf({
       [lots]
     );
 
-  /* =======================================================
-     ONE LABEL PER UNIT
-  ======================================================= */
-
   const printableLabels =
     useMemo(
       () =>
@@ -794,10 +813,6 @@ export default function ComputerLotLabelsPdf({
         ),
       [rankedLots]
     );
-
-  /* =======================================================
-     BRAND + MODEL GROUPS
-  ======================================================= */
 
   const productGroups =
     useMemo(
@@ -823,14 +838,10 @@ export default function ComputerLotLabelsPdf({
           0
         ) {
           document.body.innerHTML =
-            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์ โทนเนอร์ หรือตลับดรัมที่มีคงเหลือ</div>';
+            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์ โทนเนอร์ หรือดรัมที่มีคงเหลือ</div>';
 
           return;
         }
-
-        /* =================================================
-           A4 PORTRAIT
-        ================================================= */
 
         const doc =
           new jsPDF({
@@ -853,7 +864,7 @@ export default function ComputerLotLabelsPdf({
         );
 
         /* =================================================
-           PAGE CONFIG
+           PAGE
         ================================================= */
 
         const pageWidth =
@@ -862,22 +873,15 @@ export default function ComputerLotLabelsPdf({
         const pageHeight =
           297;
 
-        /* -------------------------------------------------
-           HEADER
-        ------------------------------------------------- */
-
         const headerTop =
-          7;
+          6;
 
         const labelsTop =
-          22;
+          21;
 
-        /* -------------------------------------------------
-           LABEL
-
-           เล็กตามที่ปรับก่อนหน้า
-           5 ป้ายต่อแถว
-        ------------------------------------------------- */
+        /* =================================================
+           LABEL SIZE
+        ================================================= */
 
         const marginX =
           5;
@@ -934,11 +938,11 @@ export default function ComputerLotLabelsPdf({
           true;
 
         /* =================================================
-           EACH BRAND + MODEL
+           PRODUCT MODEL
         ================================================= */
 
         for (
-          const group of
+          const productGroup of
           productGroups
         ) {
           if (
@@ -946,10 +950,6 @@ export default function ComputerLotLabelsPdf({
           ) {
             return;
           }
-
-          /* -------------------------------------------------
-             แต่ละรุ่นเริ่มหน้าใหม่เสมอ
-          ------------------------------------------------- */
 
           if (
             !firstPage
@@ -960,47 +960,46 @@ export default function ComputerLotLabelsPdf({
           firstPage =
             false;
 
-          let pageInGroup =
-            1;
-
-          const totalPagesInGroup =
+          const totalPages =
             Math.ceil(
-              group.labels.length /
+              productGroup.labels
+                .length /
                 itemsPerPage
             );
 
-          /* =================================================
-             GROUP PAGES
+          let currentPage =
+            1;
 
-             ถ้ารุ่นเดียวมีจำนวนมากเกิน 1 หน้า
-             หน้าที่ 2 ยังเป็นรุ่นเดิม
+          /* =================================================
+             SAME MODEL PAGES
           ================================================= */
 
           for (
-            let start = 0;
-            start <
-            group.labels.length;
-            start +=
+            let startIndex = 0;
+            startIndex <
+            productGroup.labels
+              .length;
+            startIndex +=
               itemsPerPage
           ) {
             if (
-              start > 0
+              startIndex > 0
             ) {
               doc.addPage();
 
-              pageInGroup +=
+              currentPage +=
                 1;
             }
 
             const pageLabels =
-              group.labels.slice(
-                start,
-                start +
+              productGroup.labels.slice(
+                startIndex,
+                startIndex +
                   itemsPerPage
               );
 
             /* =================================================
-               PAGE HEADER
+               HEADER
             ================================================= */
 
             doc.setTextColor(
@@ -1014,13 +1013,9 @@ export default function ComputerLotLabelsPdf({
               "normal"
             );
 
-            doc.setFontSize(
-              17
-            );
-
             fitSingleLineText(
               doc,
-              group.title,
+              productGroup.title,
               pageWidth -
                 24,
               17,
@@ -1028,7 +1023,7 @@ export default function ComputerLotLabelsPdf({
             );
 
             doc.text(
-              group.title,
+              productGroup.title,
               pageWidth / 2,
               headerTop +
                 5,
@@ -1038,40 +1033,30 @@ export default function ComputerLotLabelsPdf({
               }
             );
 
-            /* -------------------------------------------------
-               จำนวนป้าย
-            ------------------------------------------------- */
-
             doc.setFontSize(
               9
             );
 
             doc.text(
-              "จำนวน " +
-                group.labels.length.toLocaleString(
+              "จำนวนป้าย " +
+                productGroup.labels.length.toLocaleString(
                   "th-TH"
                 ) +
-                " ป้าย",
+                " ใบ",
               7,
               headerTop +
                 10
             );
 
-            /* -------------------------------------------------
-               PAGE NUMBER
-
-               แสดงเฉพาะกรณีรุ่นเดียวเกินหนึ่งหน้า
-            ------------------------------------------------- */
-
             if (
-              totalPagesInGroup >
+              totalPages >
               1
             ) {
               doc.text(
                 "หน้า " +
-                  pageInGroup +
+                  currentPage +
                   "/" +
-                  totalPagesInGroup,
+                  totalPages,
                 pageWidth -
                   7,
                 headerTop +
@@ -1104,7 +1089,7 @@ export default function ComputerLotLabelsPdf({
             );
 
             /* =================================================
-               DRAW LABELS
+               LABEL
             ================================================= */
 
             for (
@@ -1149,9 +1134,9 @@ export default function ComputerLotLabelsPdf({
               =============================================== */
 
               doc.setDrawColor(
-                60,
-                60,
-                60
+                50,
+                50,
+                50
               );
 
               doc.setLineWidth(
@@ -1177,7 +1162,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 MATERIAL CODE
+                 CODE
               =============================================== */
 
               doc.setFontSize(
@@ -1198,12 +1183,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 FULL PRODUCT NAME
-
-                 เก็บชื่อสีไว้
-                 เพราะแต่ละป้ายต้องรู้ว่าเป็นสีอะไร
-
-                 บังคับ 1 บรรทัด
+                 NAME
               =============================================== */
 
               fitSingleLineText(
@@ -1231,15 +1211,16 @@ export default function ComputerLotLabelsPdf({
                  LOT
 
                  ตัวอย่าง:
-                 ล็อต 1  1/4
+                 ล็อต 1 1/3
+                 ล็อต 1 2/3
+                 ล็อต 1 3/3
 
-                 หมายถึง:
-                 ล็อต FEFO ลำดับ 1
-                 ชิ้นที่ 1 จาก 4 ชิ้นในล็อตนั้น
+                 รับใหม่:
+                 ล็อต 2 1/1
               =============================================== */
 
               doc.setFontSize(
-                9.2
+                9
               );
 
               doc.text(
@@ -1252,7 +1233,7 @@ export default function ComputerLotLabelsPdf({
                 x +
                   cardWidth /
                     2,
-                y + 9.5,
+                y + 9.4,
                 {
                   align:
                     "center",
@@ -1260,7 +1241,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 DIVIDER
+                 LINE
               =============================================== */
 
               doc.setDrawColor(
@@ -1275,15 +1256,15 @@ export default function ComputerLotLabelsPdf({
 
               doc.line(
                 x + 1.5,
-                y + 10.6,
+                y + 10.5,
                 x +
                   cardWidth -
                   1.5,
-                y + 10.6
+                y + 10.5
               );
 
               /* ===============================================
-                 DATE COLUMNS
+                 DATE ALIGNMENT
               =============================================== */
 
               const dateLabelX =
@@ -1297,13 +1278,9 @@ export default function ComputerLotLabelsPdf({
 
               /* ===============================================
                  MANUFACTURE
-              =============================================== */
 
-              doc.setTextColor(
-                0,
-                0,
-                0
-              );
+                 ใช้วันที่ของ ReceiveItem นี้เท่านั้น
+              =============================================== */
 
               doc.setFontSize(
                 9.4
@@ -1312,13 +1289,13 @@ export default function ComputerLotLabelsPdf({
               doc.text(
                 "วันผลิต",
                 dateLabelX,
-                y + 15
+                y + 14.9
               );
 
               doc.text(
                 ":",
                 colonX,
-                y + 15
+                y + 14.9
               );
 
               doc.text(
@@ -1326,11 +1303,13 @@ export default function ComputerLotLabelsPdf({
                   label.manufacture
                 ),
                 dateValueX,
-                y + 15
+                y + 14.9
               );
 
               /* ===============================================
                  EXPIRY
+
+                 ใช้วันที่ของ ReceiveItem นี้เท่านั้น
               =============================================== */
 
               doc.setFontSize(
@@ -1340,13 +1319,13 @@ export default function ComputerLotLabelsPdf({
               doc.text(
                 "วันหมดอายุ",
                 dateLabelX,
-                y + 19.2
+                y + 19.1
               );
 
               doc.text(
                 ":",
                 colonX,
-                y + 19.2
+                y + 19.1
               );
 
               doc.text(
@@ -1354,7 +1333,7 @@ export default function ComputerLotLabelsPdf({
                   label.expiry
                 ),
                 dateValueX,
-                y + 19.2
+                y + 19.1
               );
             }
           }
@@ -1401,10 +1380,6 @@ export default function ComputerLotLabelsPdf({
         true;
     };
   }, [productGroups]);
-
-  /* =========================================================
-     ไม่แสดงหน้า Loading
-  ========================================================= */
 
   return null;
 }

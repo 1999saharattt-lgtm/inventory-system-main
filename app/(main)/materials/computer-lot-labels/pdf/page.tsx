@@ -4,8 +4,6 @@ import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 
 /* =========================================================
    FORCE FRESH DATA
-
-   ดึงข้อมูลใหม่จากฐานข้อมูลทุกครั้งที่เปิด PDF
 ========================================================= */
 
 export const dynamic = "force-dynamic";
@@ -14,14 +12,12 @@ export const revalidate = 0;
 /* =========================================================
    TYPES
 
-   สำคัญ:
    1 ReceiveItem = 1 ล็อตจริง
 ========================================================= */
 
 type LotLabel = {
   receiveItemId: number;
   receiveId: number;
-
   materialId: number;
 
   code: string;
@@ -43,12 +39,11 @@ type LotLabel = {
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     LOAD RECEIVE ITEMS
+     LOAD REAL RECEIVE ITEMS
 
-     ห้ามดึงจาก Material.balance เพื่อสร้างป้าย
-
-     ต้องใช้ ReceiveItem.balance เท่านั้น
-     เพราะแต่ละ ReceiveItem คือคนละล็อต
+     สำคัญ:
+     ใช้ ReceiveItem.balance
+     ไม่ใช้ Material.balance
   ======================================================= */
 
   const receiveItems =
@@ -69,7 +64,6 @@ export default async function ComputerLotLabelsPdfPage() {
         materialId: true,
 
         balance: true,
-
         manufacture: true,
         expiry: true,
 
@@ -83,7 +77,6 @@ export default async function ComputerLotLabelsPdfPage() {
 
         receive: {
           select: {
-            id: true,
             receiveDate: true,
             documentNo: true,
           },
@@ -102,16 +95,14 @@ export default async function ComputerLotLabelsPdfPage() {
 
   /* =======================================================
      FILTER INK / TONER / DRUM
-
-     ยังคงจำกัดเฉพาะวัสดุเกี่ยวกับ
-     หมึก / ตลับ / toner / drum
   ======================================================= */
 
   const inkKeywords = [
     "หมึก",
-    "ตลับหมึก",
     "หมึกพิมพ์",
     "หมึกเครื่องพิมพ์",
+    "ตลับหมึก",
+
     "โทนเนอร์",
     "ตลับโทนเนอร์",
 
@@ -143,12 +134,7 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      SERIALIZE
 
-     สำคัญ:
-     ไม่รวม ReceiveItem
-     ไม่ aggregate balance
-     ไม่เลือกวันที่จากล็อตอื่น
-
-     แต่ละ element ด้านล่าง = ReceiveItem จริง 1 รายการ
+     1 object = 1 ReceiveItem จริง
   ======================================================= */
 
   const lots: LotLabel[] =
@@ -195,10 +181,6 @@ export default async function ComputerLotLabelsPdfPage() {
         item.receive?.documentNo ??
         "",
     }));
-
-  /* =======================================================
-     PDF CLIENT
-  ======================================================= */
 
   return (
     <ComputerLotLabelsPdf
