@@ -11,10 +11,6 @@ import jsPDF from "jspdf";
 
 /* =========================================================
    TYPES
-
-   ต้องตรงกับ page.tsx ทุกช่อง
-
-   1 LotLabel = 1 ReceiveItem จริง
 ========================================================= */
 
 type LotLabel = {
@@ -52,7 +48,6 @@ type PrintableLabel =
 type ProductGroup = {
   key: string;
   title: string;
-
   labels: PrintableLabel[];
 };
 
@@ -80,11 +75,7 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-   COLORS
-
-   ใช้เฉพาะรวมหน้า Brand + Model
-
-   ไม่ใช้รวมล็อต
+   COLOR WORDS
 ========================================================= */
 
 const colorWords = [
@@ -98,7 +89,6 @@ const colorWords = [
   "grey",
   "gray",
   "white",
-
   "bk",
 
   "ดำ",
@@ -123,9 +113,7 @@ const colorWords = [
 ];
 
 /* =========================================================
-   GENERIC PRODUCT WORDS
-
-   ใช้เฉพาะสร้างชื่อกลุ่มหน้า PDF
+   GENERIC WORDS
 ========================================================= */
 
 const genericWords = [
@@ -143,19 +131,16 @@ const genericWords = [
 
   "ink",
   "inkjet",
-
   "toner",
   "cartridge",
-
   "drum",
   "unit",
-
   "original",
   "genuine",
 ];
 
 /* =========================================================
-   DATE
+   DATE VALUE
 ========================================================= */
 
 function dateValue(
@@ -165,11 +150,8 @@ function dateValue(
     return Number.POSITIVE_INFINITY;
   }
 
-  const date =
-    new Date(value);
-
   const time =
-    date.getTime();
+    new Date(value).getTime();
 
   if (
     Number.isNaN(time)
@@ -181,7 +163,7 @@ function dateValue(
 }
 
 /* =========================================================
-   FORMAT DATE
+   FORMAT THAI DATE
 ========================================================= */
 
 function formatThaiDate(
@@ -289,18 +271,7 @@ function removeWord(
 }
 
 /* =========================================================
-   PRODUCT GROUP
-
-   ใช้รวมหน้าเท่านั้น
-
-   ตัวอย่าง:
-
-   Canon CLI-751 Black
-   Canon CLI-751 Cyan
-   Canon CLI-751 Magenta
-   Canon CLI-751 Yellow
-
-   => Canon CLI-751
+   GROUP KEY
 ========================================================= */
 
 function getProductGroupKey(
@@ -311,14 +282,14 @@ function getProductGroupKey(
       name.toLowerCase()
     );
 
-  const wordsToRemove = [
+  const removeWords = [
     ...genericWords,
     ...colorWords,
   ];
 
   for (
     const word of
-    wordsToRemove
+    removeWords
   ) {
     result =
       removeWord(
@@ -381,7 +352,7 @@ function getProductGroupTitle(
 }
 
 /* =========================================================
-   MATERIAL SORT
+   SORT MATERIAL
 ========================================================= */
 
 function compareMaterialCode(
@@ -393,22 +364,13 @@ function compareMaterialCode(
     "th",
     {
       numeric: true,
-      sensitivity:
-        "base",
+      sensitivity: "base",
     }
   );
 }
 
 /* =========================================================
    FEFO
-
-   แต่ละ ReceiveItem คือคนละล็อต
-
-   ลำดับ:
-   1. วันหมดอายุเร็วที่สุด
-   2. วันผลิตเก่าที่สุด
-   3. วันที่รับเข้าเก่าที่สุด
-   4. ReceiveItem.id
 ========================================================= */
 
 function compareFefo(
@@ -482,18 +444,13 @@ function compareFefo(
 }
 
 /* =========================================================
-   BUILD LOT NUMBERS
-
-   Group เฉพาะ materialId
-
-   แต่ ReceiveItem
-   ยังคงแยกคนละล็อต
+   BUILD LOTS
 ========================================================= */
 
 function buildRankedLots(
   lots: LotLabel[]
 ): RankedLot[] {
-  const materialMap =
+  const map =
     new Map<
       number,
       LotLabel[]
@@ -503,7 +460,7 @@ function buildRankedLots(
     const lot of lots
   ) {
     const current =
-      materialMap.get(
+      map.get(
         lot.materialId
       ) ?? [];
 
@@ -511,7 +468,7 @@ function buildRankedLots(
       lot
     );
 
-    materialMap.set(
+    map.set(
       lot.materialId,
       current
     );
@@ -519,7 +476,7 @@ function buildRankedLots(
 
   const groups =
     Array.from(
-      materialMap.values()
+      map.values()
     ).sort(
       (a, b) => {
         if (
@@ -540,22 +497,21 @@ function buildRankedLots(
     RankedLot[] = [];
 
   for (
-    const materialLots of
+    const group of
     groups
   ) {
-    const sortedLots =
-      [...materialLots].sort(
+    const sorted =
+      [...group].sort(
         compareFefo
       );
 
-    sortedLots.forEach(
+    sorted.forEach(
       (
         lot,
         index
       ) => {
         result.push({
           ...lot,
-
           lotNumber:
             index + 1,
         });
@@ -567,11 +523,7 @@ function buildRankedLots(
 }
 
 /* =========================================================
-   EXPAND PHYSICAL LABELS
-
-   1 ชิ้นที่ยังเหลือจริง = 1 ป้าย
-
-   วันที่มาจาก ReceiveItem ตัวนั้นเท่านั้น
+   EXPAND LABELS
 ========================================================= */
 
 function expandPrintableLabels(
@@ -629,11 +581,7 @@ function expandPrintableLabels(
 }
 
 /* =========================================================
-   GROUP PDF PAGES
-
-   ทำหลังจากสร้างป้ายแล้ว
-
-   ดังนั้นไม่มีการรวมวันที่หรือยอดล็อต
+   GROUP PRODUCTS
 ========================================================= */
 
 function buildProductGroups(
@@ -696,13 +644,6 @@ function buildProductGroups(
       )
   );
 
-  /* -------------------------------------------------------
-     ในรุ่นเดียวกัน
-
-     เรียงสี/ชื่อก่อน
-     แล้วเรียงล็อตของสีนั้นตาม FEFO
-  ------------------------------------------------------- */
-
   for (
     const group of
     groups
@@ -760,7 +701,7 @@ function buildProductGroups(
 }
 
 /* =========================================================
-   FIT ONE LINE
+   FIT TEXT
 ========================================================= */
 
 function fitSingleLineText(
@@ -845,14 +786,10 @@ export default function ComputerLotLabelsPdf({
           0
         ) {
           document.body.innerHTML =
-            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์ โทนเนอร์ หรือดรัมที่ยังมีคงเหลือ</div>';
+            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบรายการหมึกที่มีคงเหลือ</div>';
 
           return;
         }
-
-        /* =================================================
-           A4 PORTRAIT
-        ================================================= */
 
         const doc =
           new jsPDF({
@@ -874,27 +811,32 @@ export default function ComputerLotLabelsPdf({
           "normal"
         );
 
+        /* =================================================
+           PAGE CONFIG
+        ================================================= */
+
         const pageWidth =
           210;
 
         const pageHeight =
           297;
 
-        const headerTop =
-          6;
-
-        const labelsTop =
-          21;
-
-        /* =================================================
-           SMALL LABEL
-        ================================================= */
-
         const marginX =
           5;
 
+        const marginTop =
+          6;
+
         const marginBottom =
           6;
+
+        const contentBottom =
+          pageHeight -
+          marginBottom;
+
+        /* =================================================
+           LABEL CONFIG
+        ================================================= */
 
         const columns =
           5;
@@ -920,36 +862,325 @@ export default function ComputerLotLabelsPdf({
         const cardHeight =
           22;
 
-        const availableHeight =
-          pageHeight -
-          labelsTop -
-          marginBottom;
+        /* =================================================
+           GROUP HEADER
+        ================================================= */
 
-        const rowsPerPage =
-          Math.floor(
-            (
-              availableHeight +
-              gapY
-            ) /
-            (
-              cardHeight +
-              gapY
-            )
-          );
+        const groupHeaderHeight =
+          8;
 
-        const itemsPerPage =
-          columns *
-          rowsPerPage;
-
-        let firstPage =
-          true;
+        const groupGap =
+          3;
 
         /* =================================================
-           EACH MODEL
+           CURRENT CURSOR
+        ================================================= */
+
+        let currentY =
+          marginTop;
+
+        /* =================================================
+           NEW PAGE
+        ================================================= */
+
+        function addNewPage() {
+          doc.addPage();
+
+          currentY =
+            marginTop;
+        }
+
+        /* =================================================
+           DRAW GROUP HEADER
+        ================================================= */
+
+        function drawGroupHeader(
+          title: string,
+          count: number
+        ) {
+          doc.setTextColor(
+            0,
+            0,
+            0
+          );
+
+          doc.setFont(
+            "2.3.2 THSarabunNew",
+            "normal"
+          );
+
+          fitSingleLineText(
+            doc,
+            title,
+            pageWidth -
+              marginX * 2 -
+              35,
+            14,
+            9
+          );
+
+          doc.text(
+            title,
+            marginX,
+            currentY + 4.5
+          );
+
+          doc.setFontSize(
+            8.5
+          );
+
+          doc.text(
+            count.toLocaleString(
+              "th-TH"
+            ) +
+              " ป้าย",
+            pageWidth -
+              marginX,
+            currentY + 4.5,
+            {
+              align:
+                "right",
+            }
+          );
+
+          doc.setDrawColor(
+            130,
+            130,
+            130
+          );
+
+          doc.setLineWidth(
+            0.2
+          );
+
+          doc.line(
+            marginX,
+            currentY +
+              6.2,
+            pageWidth -
+              marginX,
+            currentY +
+              6.2
+          );
+
+          currentY +=
+            groupHeaderHeight;
+        }
+
+        /* =================================================
+           DRAW ONE LABEL
+        ================================================= */
+
+        function drawLabel(
+          label:
+            PrintableLabel,
+          x: number,
+          y: number
+        ) {
+          /* -----------------------------------------------
+             BORDER
+          ----------------------------------------------- */
+
+          doc.setDrawColor(
+            50,
+            50,
+            50
+          );
+
+          doc.setLineWidth(
+            0.2
+          );
+
+          doc.rect(
+            x,
+            y,
+            cardWidth,
+            cardHeight
+          );
+
+          doc.setTextColor(
+            0,
+            0,
+            0
+          );
+
+          doc.setFont(
+            "2.3.2 THSarabunNew",
+            "normal"
+          );
+
+          /* -----------------------------------------------
+             CODE
+          ----------------------------------------------- */
+
+          doc.setFontSize(
+            8
+          );
+
+          doc.text(
+            "รหัส " +
+              label.code,
+            x +
+              cardWidth /
+                2,
+            y + 3,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* -----------------------------------------------
+             NAME
+          ----------------------------------------------- */
+
+          fitSingleLineText(
+            doc,
+            label.name,
+            cardWidth -
+              3,
+            8,
+            5.25
+          );
+
+          doc.text(
+            label.name,
+            x +
+              cardWidth /
+                2,
+            y + 5.9,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* -----------------------------------------------
+             LOT
+          ----------------------------------------------- */
+
+          doc.setFontSize(
+            9
+          );
+
+          doc.text(
+            "ล็อต " +
+              label.lotNumber +
+              "   " +
+              label.copyNumber +
+              "/" +
+              label.copyTotal,
+            x +
+              cardWidth /
+                2,
+            y + 9.4,
+            {
+              align:
+                "center",
+            }
+          );
+
+          /* -----------------------------------------------
+             DIVIDER
+          ----------------------------------------------- */
+
+          doc.setDrawColor(
+            180,
+            180,
+            180
+          );
+
+          doc.setLineWidth(
+            0.15
+          );
+
+          doc.line(
+            x + 1.5,
+            y + 10.5,
+            x +
+              cardWidth -
+              1.5,
+            y + 10.5
+          );
+
+          /* -----------------------------------------------
+             DATE ALIGN
+          ----------------------------------------------- */
+
+          const dateLabelX =
+            x + 2;
+
+          const colonX =
+            x + 14.5;
+
+          const dateValueX =
+            x + 17;
+
+          /* -----------------------------------------------
+             MANUFACTURE
+          ----------------------------------------------- */
+
+          doc.setFontSize(
+            9.4
+          );
+
+          doc.text(
+            "วันผลิต",
+            dateLabelX,
+            y + 14.9
+          );
+
+          doc.text(
+            ":",
+            colonX,
+            y + 14.9
+          );
+
+          doc.text(
+            formatThaiDate(
+              label.manufacture
+            ),
+            dateValueX,
+            y + 14.9
+          );
+
+          /* -----------------------------------------------
+             EXPIRY
+          ----------------------------------------------- */
+
+          doc.setFontSize(
+            9.7
+          );
+
+          doc.text(
+            "วันหมดอายุ",
+            dateLabelX,
+            y + 19.1
+          );
+
+          doc.text(
+            ":",
+            colonX,
+            y + 19.1
+          );
+
+          doc.text(
+            formatThaiDate(
+              label.expiry
+            ),
+            dateValueX,
+            y + 19.1
+          );
+        }
+
+        /* =================================================
+           LOOP GROUPS
+
+           ไม่บังคับขึ้นหน้าใหม่ทุกกลุ่ม
         ================================================= */
 
         for (
-          const productGroup of
+          const group of
           productGroups
         ) {
           if (
@@ -958,168 +1189,80 @@ export default function ComputerLotLabelsPdf({
             return;
           }
 
+          /* ------------------------------------------------
+             ต้องมีพื้นที่พออย่างน้อย:
+             header + ป้าย 1 แถว
+
+             ถ้าไม่พอค่อยขึ้นหน้าใหม่
+          ------------------------------------------------ */
+
+          const minimumHeightNeeded =
+            groupHeaderHeight +
+            cardHeight +
+            gapY;
+
           if (
-            !firstPage
+            currentY +
+              minimumHeightNeeded >
+            contentBottom
           ) {
-            doc.addPage();
+            addNewPage();
           }
 
-          firstPage =
-            false;
+          /* ------------------------------------------------
+             HEADER
+          ------------------------------------------------ */
 
-          const totalPages =
-            Math.ceil(
-              productGroup.labels
-                .length /
-                itemsPerPage
-            );
+          drawGroupHeader(
+            group.title,
+            group.labels.length
+          );
 
-          let currentPage =
-            1;
+          /* ------------------------------------------------
+             LABEL ROWS
+          ------------------------------------------------ */
 
-          /* =================================================
-             SAME MODEL
-          ================================================= */
+          let labelIndex =
+            0;
 
-          for (
-            let startIndex = 0;
-            startIndex <
-            productGroup.labels
-              .length;
-            startIndex +=
-              itemsPerPage
+          while (
+            labelIndex <
+            group.labels.length
           ) {
-            if (
-              startIndex > 0
-            ) {
-              doc.addPage();
+            /* ----------------------------------------------
+               ถ้าแถวใหม่วางไม่ได้
+               ให้ขึ้นหน้าใหม่
 
-              currentPage +=
-                1;
-            }
-
-            const pageLabels =
-              productGroup.labels.slice(
-                startIndex,
-                startIndex +
-                  itemsPerPage
-              );
-
-            /* =================================================
-               PAGE HEADER
-            ================================================= */
-
-            doc.setTextColor(
-              0,
-              0,
-              0
-            );
-
-            doc.setFont(
-              "2.3.2 THSarabunNew",
-              "normal"
-            );
-
-            fitSingleLineText(
-              doc,
-              productGroup.title,
-              pageWidth -
-                24,
-              17,
-              11
-            );
-
-            doc.text(
-              productGroup.title,
-              pageWidth / 2,
-              headerTop +
-                5,
-              {
-                align:
-                  "center",
-              }
-            );
-
-            doc.setFontSize(
-              9
-            );
-
-            doc.text(
-              "จำนวนป้าย " +
-                productGroup.labels.length.toLocaleString(
-                  "th-TH"
-                ) +
-                " ใบ",
-              7,
-              headerTop +
-                10
-            );
+               แล้วเขียนหัวข้อซ้ำ
+               เพื่อดูรู้ว่าเป็นรุ่นเดิม
+            ---------------------------------------------- */
 
             if (
-              totalPages >
-              1
+              currentY +
+                cardHeight >
+              contentBottom
             ) {
-              doc.text(
-                "หน้า " +
-                  currentPage +
-                  "/" +
-                  totalPages,
-                pageWidth -
-                  7,
-                headerTop +
-                  10,
-                {
-                  align:
-                    "right",
-                }
+              addNewPage();
+
+              drawGroupHeader(
+                group.title +
+                  " (ต่อ)",
+                group.labels.length
               );
             }
 
-            doc.setDrawColor(
-              130,
-              130,
-              130
-            );
-
-            doc.setLineWidth(
-              0.2
-            );
-
-            doc.line(
-              6,
-              headerTop +
-                12,
-              pageWidth -
-                6,
-              headerTop +
-                12
-            );
-
-            /* =================================================
-               LABELS
-            ================================================= */
+            /* ----------------------------------------------
+               วาด 1 แถว สูงสุด 5 ป้าย
+            ---------------------------------------------- */
 
             for (
-              let index = 0;
-              index <
-              pageLabels.length;
-              index++
+              let column = 0;
+              column <
+              columns &&
+              labelIndex <
+              group.labels.length;
+              column++
             ) {
-              const label =
-                pageLabels[
-                  index
-                ];
-
-              const column =
-                index %
-                columns;
-
-              const row =
-                Math.floor(
-                  index /
-                    columns
-                );
-
               const x =
                 marginX +
                 column *
@@ -1128,222 +1271,29 @@ export default function ComputerLotLabelsPdf({
                     gapX
                   );
 
-              const y =
-                labelsTop +
-                row *
-                  (
-                    cardHeight +
-                    gapY
-                  );
-
-              /* ===============================================
-                 BORDER
-              =============================================== */
-
-              doc.setDrawColor(
-                50,
-                50,
-                50
-              );
-
-              doc.setLineWidth(
-                0.2
-              );
-
-              doc.rect(
+              drawLabel(
+                group.labels[
+                  labelIndex
+                ],
                 x,
-                y,
-                cardWidth,
-                cardHeight
+                currentY
               );
 
-              doc.setTextColor(
-                0,
-                0,
-                0
-              );
-
-              doc.setFont(
-                "2.3.2 THSarabunNew",
-                "normal"
-              );
-
-              /* ===============================================
-                 CODE
-              =============================================== */
-
-              doc.setFontSize(
-                8
-              );
-
-              doc.text(
-                "รหัส " +
-                  label.code,
-                x +
-                  cardWidth /
-                    2,
-                y + 3,
-                {
-                  align:
-                    "center",
-                }
-              );
-
-              /* ===============================================
-                 FULL NAME
-
-                 ชื่อและสีอยู่บรรทัดเดียว
-              =============================================== */
-
-              fitSingleLineText(
-                doc,
-                label.name,
-                cardWidth -
-                  3,
-                8,
-                5.25
-              );
-
-              doc.text(
-                label.name,
-                x +
-                  cardWidth /
-                    2,
-                y + 5.9,
-                {
-                  align:
-                    "center",
-                }
-              );
-
-              /* ===============================================
-                 LOT
-
-                 ReceiveItem แต่ละตัว = คนละล็อต
-
-                 balance 3:
-                 ล็อต 1  1/3
-                 ล็อต 1  2/3
-                 ล็อต 1  3/3
-
-                 รับใหม่ balance 1:
-                 ล็อต 2  1/1
-              =============================================== */
-
-              doc.setFontSize(
-                9
-              );
-
-              doc.text(
-                "ล็อต " +
-                  label.lotNumber +
-                  "   " +
-                  label.copyNumber +
-                  "/" +
-                  label.copyTotal,
-                x +
-                  cardWidth /
-                    2,
-                y + 9.4,
-                {
-                  align:
-                    "center",
-                }
-              );
-
-              /* ===============================================
-                 DIVIDER
-              =============================================== */
-
-              doc.setDrawColor(
-                180,
-                180,
-                180
-              );
-
-              doc.setLineWidth(
-                0.15
-              );
-
-              doc.line(
-                x + 1.5,
-                y + 10.5,
-                x +
-                  cardWidth -
-                  1.5,
-                y + 10.5
-              );
-
-              /* ===============================================
-                 DATE ALIGN
-              =============================================== */
-
-              const dateLabelX =
-                x + 2;
-
-              const colonX =
-                x + 14.5;
-
-              const dateValueX =
-                x + 17;
-
-              /* ===============================================
-                 MANUFACTURE DATE
-              =============================================== */
-
-              doc.setFontSize(
-                9.4
-              );
-
-              doc.text(
-                "วันผลิต",
-                dateLabelX,
-                y + 14.9
-              );
-
-              doc.text(
-                ":",
-                colonX,
-                y + 14.9
-              );
-
-              doc.text(
-                formatThaiDate(
-                  label.manufacture
-                ),
-                dateValueX,
-                y + 14.9
-              );
-
-              /* ===============================================
-                 EXPIRY DATE
-              =============================================== */
-
-              doc.setFontSize(
-                9.7
-              );
-
-              doc.text(
-                "วันหมดอายุ",
-                dateLabelX,
-                y + 19.1
-              );
-
-              doc.text(
-                ":",
-                colonX,
-                y + 19.1
-              );
-
-              doc.text(
-                formatThaiDate(
-                  label.expiry
-                ),
-                dateValueX,
-                y + 19.1
-              );
+              labelIndex +=
+                1;
             }
+
+            currentY +=
+              cardHeight +
+              gapY;
           }
+
+          /* ------------------------------------------------
+             เว้นระหว่างหัวข้อเล็กน้อย
+          ------------------------------------------------ */
+
+          currentY +=
+            groupGap;
         }
 
         if (
@@ -1353,7 +1303,7 @@ export default function ComputerLotLabelsPdf({
         }
 
         /* =================================================
-           OPEN PDF IMMEDIATELY
+           OPEN PDF
         ================================================= */
 
         const blob =
