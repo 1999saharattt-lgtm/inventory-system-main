@@ -5,8 +5,7 @@ import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 /* =========================================================
    FORCE FRESH DATA
 
-   ให้หน้า PDF ดึงข้อมูลล่าสุดจากฐานข้อมูลทุกครั้ง
-   ไม่ใช้ cache
+   ดึงข้อมูลใหม่จากฐานข้อมูลทุกครั้งที่เปิด PDF
 ========================================================= */
 
 export const dynamic = "force-dynamic";
@@ -14,10 +13,15 @@ export const revalidate = 0;
 
 /* =========================================================
    TYPES
+
+   สำคัญ:
+   1 ReceiveItem = 1 ล็อตจริง
 ========================================================= */
 
 type LotLabel = {
-  id: number;
+  receiveItemId: number;
+  receiveId: number;
+
   materialId: number;
 
   code: string;
@@ -28,7 +32,9 @@ type LotLabel = {
 
   manufacture: string | null;
   expiry: string | null;
+
   receiveDate: string | null;
+  documentNo: string;
 };
 
 /* =========================================================
@@ -37,12 +43,12 @@ type LotLabel = {
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     LOAD COMPUTER MATERIAL LOTS
+     LOAD RECEIVE ITEMS
 
-     เงื่อนไข:
-     - เฉพาะวัสดุคอมพิวเตอร์
-     - เฉพาะล็อตที่ยังมีคงเหลือ
-     - ดึงข้อมูลใหม่ทุกครั้งที่เปิดหน้า
+     ห้ามดึงจาก Material.balance เพื่อสร้างป้าย
+
+     ต้องใช้ ReceiveItem.balance เท่านั้น
+     เพราะแต่ละ ReceiveItem คือคนละล็อต
   ======================================================= */
 
   const receiveItems =
@@ -59,6 +65,7 @@ export default async function ComputerLotLabelsPdfPage() {
 
       select: {
         id: true,
+        receiveId: true,
         materialId: true,
 
         balance: true,
@@ -76,91 +83,121 @@ export default async function ComputerLotLabelsPdfPage() {
 
         receive: {
           select: {
+            id: true,
             receiveDate: true,
+            documentNo: true,
           },
         },
       },
 
-      orderBy: {
-        id: "asc",
-      },
+      orderBy: [
+        {
+          materialId: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
     });
 
   /* =======================================================
      FILTER INK / TONER / DRUM
 
-     ให้แสดงเฉพาะกลุ่มหมึกและดรัม
+     ยังคงจำกัดเฉพาะวัสดุเกี่ยวกับ
+     หมึก / ตลับ / toner / drum
   ======================================================= */
 
   const inkKeywords = [
     "หมึก",
+    "ตลับหมึก",
+    "หมึกพิมพ์",
+    "หมึกเครื่องพิมพ์",
+    "โทนเนอร์",
+    "ตลับโทนเนอร์",
+
     "ดรัม",
-    "drum",
+    "ชุดดรัม",
+    "ตลับดรัม",
+
+    "ink",
     "toner",
+    "cartridge",
+    "drum",
   ];
 
   const filteredItems =
-    receiveItems.filter(
-      (item) => {
-        const name =
-          item.material.name
-            .trim()
-            .toLowerCase();
+    receiveItems.filter((item) => {
+      const materialName =
+        item.material.name
+          .trim()
+          .toLowerCase();
 
-        return inkKeywords.some(
-          (keyword) =>
-            name.includes(
-              keyword
-            )
-        );
-      }
-    );
+      return inkKeywords.some(
+        (keyword) =>
+          materialName.includes(
+            keyword.toLowerCase()
+          )
+      );
+    });
 
   /* =======================================================
-     SERIALIZE DATA FOR CLIENT COMPONENT
+     SERIALIZE
+
+     สำคัญ:
+     ไม่รวม ReceiveItem
+     ไม่ aggregate balance
+     ไม่เลือกวันที่จากล็อตอื่น
+
+     แต่ละ element ด้านล่าง = ReceiveItem จริง 1 รายการ
   ======================================================= */
 
   const lots: LotLabel[] =
-    filteredItems.map(
-      (item) => ({
-        id: item.id,
+    filteredItems.map((item) => ({
+      receiveItemId:
+        item.id,
 
-        materialId:
-          item.materialId,
+      receiveId:
+        item.receiveId,
 
-        code:
-          item.material.code,
+      materialId:
+        item.materialId,
 
-        name:
-          item.material.name,
+      code:
+        item.material.code,
 
-        unit:
-          item.material.unit,
+      name:
+        item.material.name,
 
-        balance:
-          Number(
-            item.balance ?? 0
-          ),
+      unit:
+        item.material.unit,
 
-        manufacture:
-          item.manufacture
-            ? item.manufacture.toISOString()
-            : null,
+      balance:
+        Number(
+          item.balance ?? 0
+        ),
 
-        expiry:
-          item.expiry
-            ? item.expiry.toISOString()
-            : null,
+      manufacture:
+        item.manufacture
+          ? item.manufacture.toISOString()
+          : null,
 
-        receiveDate:
-          item.receive?.receiveDate
-            ? item.receive.receiveDate.toISOString()
-            : null,
-      })
-    );
+      expiry:
+        item.expiry
+          ? item.expiry.toISOString()
+          : null,
+
+      receiveDate:
+        item.receive?.receiveDate
+          ? item.receive.receiveDate.toISOString()
+          : null,
+
+      documentNo:
+        item.receive?.documentNo ??
+        "",
+    }));
 
   /* =======================================================
-     CLIENT PDF
+     PDF CLIENT
   ======================================================= */
 
   return (
