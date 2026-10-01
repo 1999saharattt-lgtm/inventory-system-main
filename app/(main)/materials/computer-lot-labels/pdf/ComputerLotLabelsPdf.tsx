@@ -13,6 +13,8 @@ import jsPDF from "jspdf";
    TYPES
 
    ต้องตรงกับ page.tsx ทุกช่อง
+
+   1 LotLabel = 1 ReceiveItem จริง
 ========================================================= */
 
 type LotLabel = {
@@ -50,6 +52,7 @@ type PrintableLabel =
 type ProductGroup = {
   key: string;
   title: string;
+
   labels: PrintableLabel[];
 };
 
@@ -77,9 +80,11 @@ const thaiMonths = [
 ];
 
 /* =========================================================
-   COLOR WORDS
+   COLORS
 
-   ใช้เฉพาะตอนรวม Brand + Model ให้อยู่หน้าเดียวกัน
+   ใช้เฉพาะรวมหน้า Brand + Model
+
+   ไม่ใช้รวมล็อต
 ========================================================= */
 
 const colorWords = [
@@ -93,6 +98,7 @@ const colorWords = [
   "grey",
   "gray",
   "white",
+
   "bk",
 
   "ดำ",
@@ -118,6 +124,8 @@ const colorWords = [
 
 /* =========================================================
    GENERIC PRODUCT WORDS
+
+   ใช้เฉพาะสร้างชื่อกลุ่มหน้า PDF
 ========================================================= */
 
 const genericWords = [
@@ -134,8 +142,11 @@ const genericWords = [
   "ดรัม",
 
   "ink",
+  "inkjet",
+
   "toner",
   "cartridge",
+
   "drum",
   "unit",
 
@@ -144,7 +155,7 @@ const genericWords = [
 ];
 
 /* =========================================================
-   DATE VALUE
+   DATE
 ========================================================= */
 
 function dateValue(
@@ -154,8 +165,11 @@ function dateValue(
     return Number.POSITIVE_INFINITY;
   }
 
+  const date =
+    new Date(value);
+
   const time =
-    new Date(value).getTime();
+    date.getTime();
 
   if (
     Number.isNaN(time)
@@ -167,7 +181,7 @@ function dateValue(
 }
 
 /* =========================================================
-   FORMAT THAI DATE
+   FORMAT DATE
 ========================================================= */
 
 function formatThaiDate(
@@ -275,18 +289,18 @@ function removeWord(
 }
 
 /* =========================================================
-   PRODUCT GROUP KEY
+   PRODUCT GROUP
+
+   ใช้รวมหน้าเท่านั้น
 
    ตัวอย่าง:
 
    Canon CLI-751 Black
    Canon CLI-751 Cyan
+   Canon CLI-751 Magenta
    Canon CLI-751 Yellow
 
    => Canon CLI-751
-
-   ใช้แค่สำหรับรวมหน้า
-   ไม่รวมล็อต
 ========================================================= */
 
 function getProductGroupKey(
@@ -330,7 +344,7 @@ function getProductGroupKey(
 }
 
 /* =========================================================
-   PRODUCT GROUP TITLE
+   GROUP TITLE
 ========================================================= */
 
 function getProductGroupTitle(
@@ -367,7 +381,7 @@ function getProductGroupTitle(
 }
 
 /* =========================================================
-   COMPARE MATERIAL
+   MATERIAL SORT
 ========================================================= */
 
 function compareMaterialCode(
@@ -379,7 +393,8 @@ function compareMaterialCode(
     "th",
     {
       numeric: true,
-      sensitivity: "base",
+      sensitivity:
+        "base",
     }
   );
 }
@@ -387,10 +402,13 @@ function compareMaterialCode(
 /* =========================================================
    FEFO
 
-   1. วันหมดอายุ
-   2. วันผลิต
-   3. วันที่รับ
-   4. ReceiveItem ID
+   แต่ละ ReceiveItem คือคนละล็อต
+
+   ลำดับ:
+   1. วันหมดอายุเร็วที่สุด
+   2. วันผลิตเก่าที่สุด
+   3. วันที่รับเข้าเก่าที่สุด
+   4. ReceiveItem.id
 ========================================================= */
 
 function compareFefo(
@@ -464,15 +482,18 @@ function compareFefo(
 }
 
 /* =========================================================
-   BUILD REAL LOT ORDER
+   BUILD LOT NUMBERS
 
-   1 ReceiveItem = 1 ล็อต
+   Group เฉพาะ materialId
+
+   แต่ ReceiveItem
+   ยังคงแยกคนละล็อต
 ========================================================= */
 
 function buildRankedLots(
   lots: LotLabel[]
 ): RankedLot[] {
-  const grouped =
+  const materialMap =
     new Map<
       number,
       LotLabel[]
@@ -482,7 +503,7 @@ function buildRankedLots(
     const lot of lots
   ) {
     const current =
-      grouped.get(
+      materialMap.get(
         lot.materialId
       ) ?? [];
 
@@ -490,15 +511,15 @@ function buildRankedLots(
       lot
     );
 
-    grouped.set(
+    materialMap.set(
       lot.materialId,
       current
     );
   }
 
-  const materialGroups =
+  const groups =
     Array.from(
-      grouped.values()
+      materialMap.values()
     ).sort(
       (a, b) => {
         if (
@@ -520,14 +541,14 @@ function buildRankedLots(
 
   for (
     const materialLots of
-    materialGroups
+    groups
   ) {
-    const sorted =
+    const sortedLots =
       [...materialLots].sort(
         compareFefo
       );
 
-    sorted.forEach(
+    sortedLots.forEach(
       (
         lot,
         index
@@ -546,25 +567,11 @@ function buildRankedLots(
 }
 
 /* =========================================================
-   EXPAND RECEIVE ITEM
+   EXPAND PHYSICAL LABELS
 
-   ตัวอย่าง:
+   1 ชิ้นที่ยังเหลือจริง = 1 ป้าย
 
-   ReceiveItem A
-   balance = 3
-   ไม่มีวันที่
-
-   =>
-   ล็อต 1 1/3
-   ล็อต 1 2/3
-   ล็อต 1 3/3
-
-   ReceiveItem B
-   balance = 1
-   มีวันที่
-
-   =>
-   ล็อต 2 1/1
+   วันที่มาจาก ReceiveItem ตัวนั้นเท่านั้น
 ========================================================= */
 
 function expandPrintableLabels(
@@ -622,11 +629,11 @@ function expandPrintableLabels(
 }
 
 /* =========================================================
-   GROUP FOR PDF PAGE ONLY
+   GROUP PDF PAGES
 
-   ไม่แก้ balance
-   ไม่แก้วันที่
-   ไม่รวม ReceiveItem
+   ทำหลังจากสร้างป้ายแล้ว
+
+   ดังนั้นไม่มีการรวมวันที่หรือยอดล็อต
 ========================================================= */
 
 function buildProductGroups(
@@ -690,10 +697,10 @@ function buildProductGroups(
   );
 
   /* -------------------------------------------------------
-     ภายในรุ่นเดียวกัน
+     ในรุ่นเดียวกัน
 
-     ชื่อ/สีเดียวกันให้อยู่ใกล้กัน
-     แล้วเรียงตาม FEFO
+     เรียงสี/ชื่อก่อน
+     แล้วเรียงล็อตของสีนั้นตาม FEFO
   ------------------------------------------------------- */
 
   for (
@@ -719,16 +726,16 @@ function buildProductGroups(
           return nameCompare;
         }
 
-        const fefoCompare =
+        const fefo =
           compareFefo(
             a,
             b
           );
 
         if (
-          fefoCompare !== 0
+          fefo !== 0
         ) {
-          return fefoCompare;
+          return fefo;
         }
 
         if (
@@ -838,10 +845,14 @@ export default function ComputerLotLabelsPdf({
           0
         ) {
           document.body.innerHTML =
-            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์ โทนเนอร์ หรือดรัมที่มีคงเหลือ</div>';
+            '<div style="font-family:sans-serif;padding:40px;text-align:center;">ไม่พบหมึกพิมพ์ โทนเนอร์ หรือดรัมที่ยังมีคงเหลือ</div>';
 
           return;
         }
+
+        /* =================================================
+           A4 PORTRAIT
+        ================================================= */
 
         const doc =
           new jsPDF({
@@ -863,10 +874,6 @@ export default function ComputerLotLabelsPdf({
           "normal"
         );
 
-        /* =================================================
-           PAGE
-        ================================================= */
-
         const pageWidth =
           210;
 
@@ -880,7 +887,7 @@ export default function ComputerLotLabelsPdf({
           21;
 
         /* =================================================
-           LABEL SIZE
+           SMALL LABEL
         ================================================= */
 
         const marginX =
@@ -938,7 +945,7 @@ export default function ComputerLotLabelsPdf({
           true;
 
         /* =================================================
-           PRODUCT MODEL
+           EACH MODEL
         ================================================= */
 
         for (
@@ -971,7 +978,7 @@ export default function ComputerLotLabelsPdf({
             1;
 
           /* =================================================
-             SAME MODEL PAGES
+             SAME MODEL
           ================================================= */
 
           for (
@@ -999,7 +1006,7 @@ export default function ComputerLotLabelsPdf({
               );
 
             /* =================================================
-               HEADER
+               PAGE HEADER
             ================================================= */
 
             doc.setTextColor(
@@ -1089,7 +1096,7 @@ export default function ComputerLotLabelsPdf({
             );
 
             /* =================================================
-               LABEL
+               LABELS
             ================================================= */
 
             for (
@@ -1183,7 +1190,9 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 NAME
+                 FULL NAME
+
+                 ชื่อและสีอยู่บรรทัดเดียว
               =============================================== */
 
               fitSingleLineText(
@@ -1210,13 +1219,15 @@ export default function ComputerLotLabelsPdf({
               /* ===============================================
                  LOT
 
-                 ตัวอย่าง:
-                 ล็อต 1 1/3
-                 ล็อต 1 2/3
-                 ล็อต 1 3/3
+                 ReceiveItem แต่ละตัว = คนละล็อต
 
-                 รับใหม่:
-                 ล็อต 2 1/1
+                 balance 3:
+                 ล็อต 1  1/3
+                 ล็อต 1  2/3
+                 ล็อต 1  3/3
+
+                 รับใหม่ balance 1:
+                 ล็อต 2  1/1
               =============================================== */
 
               doc.setFontSize(
@@ -1241,7 +1252,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 LINE
+                 DIVIDER
               =============================================== */
 
               doc.setDrawColor(
@@ -1264,7 +1275,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 DATE ALIGNMENT
+                 DATE ALIGN
               =============================================== */
 
               const dateLabelX =
@@ -1277,9 +1288,7 @@ export default function ComputerLotLabelsPdf({
                 x + 17;
 
               /* ===============================================
-                 MANUFACTURE
-
-                 ใช้วันที่ของ ReceiveItem นี้เท่านั้น
+                 MANUFACTURE DATE
               =============================================== */
 
               doc.setFontSize(
@@ -1307,9 +1316,7 @@ export default function ComputerLotLabelsPdf({
               );
 
               /* ===============================================
-                 EXPIRY
-
-                 ใช้วันที่ของ ReceiveItem นี้เท่านั้น
+                 EXPIRY DATE
               =============================================== */
 
               doc.setFontSize(
@@ -1346,7 +1353,7 @@ export default function ComputerLotLabelsPdf({
         }
 
         /* =================================================
-           OPEN PDF DIRECTLY
+           OPEN PDF IMMEDIATELY
         ================================================= */
 
         const blob =
