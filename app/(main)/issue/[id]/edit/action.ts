@@ -6,6 +6,10 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type IssueRow = {
   materialId: number;
   qty: number;
@@ -13,9 +17,17 @@ type IssueRow = {
   remark: string | null;
 };
 
+/* =========================================================
+   UPDATE ISSUE
+========================================================= */
+
 export async function updateIssue(
   formData: FormData
 ) {
+  /* =======================================================
+     SESSION
+  ======================================================= */
+
   const cookieStore = await cookies();
 
   const token =
@@ -83,7 +95,9 @@ export async function updateIssue(
 
   const submittedOfficerId =
     officerIdValue
-      ? Number(officerIdValue)
+      ? Number(
+          officerIdValue
+        )
       : null;
 
   /* =======================================================
@@ -103,7 +117,8 @@ export async function updateIssue(
 
   /* =======================================================
      ITEMS
-     EditIssueForm มี 18 แถว
+
+     EditIssueForm = 18 แถว
   ======================================================= */
 
   const newItems: IssueRow[] = [];
@@ -158,13 +173,21 @@ export async function updateIssue(
         itemRemarkValue ?? ""
       ).trim();
 
+    /* =====================================================
+       เพิ่มเฉพาะแถวที่กรอก Material + Qty
+    ===================================================== */
+
     if (
       Number.isInteger(
         materialId
       ) &&
       materialId > 0 &&
-      Number.isFinite(qty) &&
-      Number.isInteger(qty) &&
+      Number.isFinite(
+        qty
+      ) &&
+      Number.isInteger(
+        qty
+      ) &&
       qty > 0
     ) {
       if (
@@ -204,7 +227,7 @@ export async function updateIssue(
   }
 
   /* =======================================================
-     VALIDATION
+     BASIC VALIDATION
   ======================================================= */
 
   if (
@@ -237,12 +260,14 @@ export async function updateIssue(
 
   if (
     hasOfficerIdField &&
-    submittedOfficerId !== null &&
+    submittedOfficerId !==
+      null &&
     (
       !Number.isInteger(
         submittedOfficerId
       ) ||
-      submittedOfficerId <= 0
+      submittedOfficerId <=
+        0
     )
   ) {
     throw new Error(
@@ -270,7 +295,10 @@ export async function updateIssue(
   }
 
   /* =======================================================
-     DUPLICATE MATERIAL
+     MATERIAL IDS
+
+     ไม่ห้ามรายการพัสดุซ้ำแล้ว
+     เพราะใบเบิกเดิมอาจมี Material เดียวกันหลายแถว
   ======================================================= */
 
   const materialIds =
@@ -278,20 +306,6 @@ export async function updateIssue(
       (item) =>
         item.materialId
     );
-
-  const uniqueMaterialIds =
-    new Set(
-      materialIds
-    );
-
-  if (
-    uniqueMaterialIds.size !==
-    materialIds.length
-  ) {
-    throw new Error(
-      "ไม่สามารถเลือกรายการพัสดุซ้ำกันได้ในใบเบิกเดียวกัน"
-    );
-  }
 
   /* =======================================================
      TRANSACTION
@@ -316,6 +330,7 @@ export async function updateIssue(
                 include: {
                   receiveItem:
                     true,
+
                   material:
                     true,
                 },
@@ -358,7 +373,8 @@ export async function updateIssue(
           "APPROVED";
 
         /* =================================================
-           APPROVED = ADMIN ONLY
+           APPROVED
+           ADMIN ONLY
         ================================================= */
 
         if (
@@ -449,20 +465,25 @@ export async function updateIssue(
 
         /* =================================================
            MATERIAL
+
+           ใช้ Set เฉพาะตอน query
+           เพื่อไม่ query ID ซ้ำโดยไม่จำเป็น
+           แต่ไม่ได้ห้ามรายการซ้ำในใบเบิก
         ================================================= */
 
-        const requestedMaterialIds =
-          newItems.map(
-            (item) =>
-              item.materialId
-          );
+        const uniqueMaterialIds =
+          [
+            ...new Set(
+              materialIds
+            ),
+          ];
 
         const existingMaterials =
           await tx.material.findMany({
             where: {
               id: {
                 in:
-                  requestedMaterialIds,
+                  uniqueMaterialIds,
               },
             },
 
@@ -516,7 +537,8 @@ export async function updateIssue(
 
         /* =================================================
            APPROVED
-           คืน Stock เดิมก่อน
+
+           คืน Stock ที่เคยตัดจากใบเดิมก่อน
         ================================================= */
 
         if (isApproved) {
@@ -550,14 +572,13 @@ export async function updateIssue(
             }
 
             /* =============================================
-               IMPORTANT
+               หมายเหตุ
 
-               IssueItem.receiveItemId
-               เก็บล็อตแรกเพียงล็อตเดียว
+               IssueItem.receiveItemId เก็บล็อตแรก
+               ของรายการเบิกไว้เพียง 1 ค่า
 
-               ถ้าการเบิกเดิมกินหลายล็อต
-               schema ปัจจุบันไม่สามารถบอก allocation
-               ของแต่ละล็อตย้อนหลังได้ครบ
+               ดังนั้นกรณีข้อมูลเก่าที่เคยตัดข้ามหลายล็อต
+               ยังต้องระวังเป็นพิเศษ
             ============================================= */
 
             const receiveItemQty =
@@ -621,7 +642,7 @@ export async function updateIssue(
         }
 
         /* =================================================
-           DELETE OLD ITEMS
+           DELETE OLD ISSUE ITEMS
         ================================================= */
 
         await tx.issueItem.deleteMany({
@@ -732,11 +753,12 @@ export async function updateIssue(
             );
 
           /* =============================================
-             จ่ายจริง = 0
+             ไม่ได้จ่ายจริง
           ============================================= */
 
           if (
-            quantityToIssue === 0
+            quantityToIssue ===
+            0
           ) {
             await tx.issueItem.create({
               data: {
@@ -771,9 +793,9 @@ export async function updateIssue(
           /* =============================================
              FEFO
 
-             expiry
-             manufacture
-             id
+             1. expiry
+             2. manufacture
+             3. ReceiveItem.id
           ============================================= */
 
           const receiveItems =
@@ -803,6 +825,10 @@ export async function updateIssue(
               ],
             });
 
+          /* =============================================
+             STOCK AVAILABLE
+          ============================================= */
+
           const totalAvailable =
             receiveItems.reduce(
               (
@@ -824,12 +850,12 @@ export async function updateIssue(
             const material =
               existingMaterials.find(
                 (
-                  m: {
+                  currentMaterial: {
                     id: number;
                     name: string;
                   }
                 ) =>
-                  m.id ===
+                  currentMaterial.id ===
                   item.materialId
               );
 
@@ -857,7 +883,7 @@ export async function updateIssue(
             null;
 
           /* =============================================
-             CUT LOTS
+             CUT RECEIVE ITEMS
           ============================================= */
 
           for (
@@ -900,6 +926,10 @@ export async function updateIssue(
                   deduct,
               },
             });
+
+            /* ===========================================
+               เก็บล็อตแรกที่ถูกใช้
+            =========================================== */
 
             if (
               firstReceiveItemId ===
@@ -949,6 +979,8 @@ export async function updateIssue(
 
           /* =============================================
              CREATE NEW ISSUE ITEM
+
+             รองรับ Material เดียวกันหลายแถว
           ============================================= */
 
           await tx.issueItem.create({
@@ -980,8 +1012,11 @@ export async function updateIssue(
         }
       },
       {
-        maxWait: 10000,
-        timeout: 120000,
+        maxWait:
+          10000,
+
+        timeout:
+          120000,
       }
     );
   } catch (error) {
