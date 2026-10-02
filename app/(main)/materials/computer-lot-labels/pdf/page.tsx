@@ -45,6 +45,55 @@ function normalizeSearchText(
 }
 
 /* =========================================================
+   DATE ONLY
+
+   สำคัญ:
+   ไม่ใช้ toISOString()
+   เพราะ toISOString จะแปลง timezone เป็น UTC
+   และอาจทำให้วันที่บน PDF เลื่อนได้
+
+   ผลลัพธ์:
+   YYYY-MM-DD
+========================================================= */
+
+function toDateOnly(
+  value: Date | null
+): string | null {
+  if (!value) {
+    return null;
+  }
+
+  if (
+    Number.isNaN(
+      value.getTime()
+    )
+  ) {
+    return null;
+  }
+
+  const year =
+    value.getUTCFullYear();
+
+  const month =
+    String(
+      value.getUTCMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      value.getUTCDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+/* =========================================================
    PRINTER CONSUMABLE CHECK
 
    ตรวจทั้ง:
@@ -57,10 +106,14 @@ function isPrinterConsumable(
   code: string
 ): boolean {
   const normalizedName =
-    normalizeSearchText(name);
+    normalizeSearchText(
+      name
+    );
 
   const normalizedCode =
-    normalizeSearchText(code);
+    normalizeSearchText(
+      code
+    );
 
   const searchText =
     `${normalizedCode} ${normalizedName}`;
@@ -266,13 +319,13 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      LOAD RECEIVE ITEMS
 
-     สำคัญมาก:
-
      ใช้ ReceiveItem.balance โดยตรง
 
-     ไม่คำนวณ qty - issuedQty ใหม่
-     เพราะ balance คือยอดคงเหลือจริงของล็อต
-     ที่ระบบจัดเก็บไว้
+     หลัก:
+     - balance > 0 เท่านั้น
+     - 1 ReceiveItem = 1 ล็อตจริง
+     - จำนวนป้าย = balance ปัจจุบันของล็อตนั้น
+     - วันผลิต/หมดอายุอ่านจาก ReceiveItem เดียวกัน
   ======================================================= */
 
   const receiveItems =
@@ -336,8 +389,6 @@ export default async function ComputerLotLabelsPdfPage() {
 
   /* =======================================================
      FILTER PRINTER CONSUMABLES
-
-     ตรวจทั้งชื่อและรหัส
   ======================================================= */
 
   const printerConsumables =
@@ -352,13 +403,12 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      SERIALIZE
 
-     1 object = 1 ReceiveItem = 1 ล็อตจริง
+     สำคัญ:
+     ห้ามใช้ toISOString()
 
-     balance
-     manufacture
-     expiry
-
-     มาจาก ReceiveItem เดียวกันทั้งหมด
+     ส่งวันแบบ YYYY-MM-DD เท่านั้น
+     เพื่อไม่ให้ Browser/Vercel timezone
+     เปลี่ยนวัน เดือน หรือปี
   ======================================================= */
 
   const lots: LotLabel[] =
@@ -388,22 +438,25 @@ export default async function ComputerLotLabelsPdfPage() {
           ),
 
         manufacture:
-          item.manufacture
-            ? item.manufacture.toISOString()
-            : null,
+          toDateOnly(
+            item.manufacture
+          ),
 
         expiry:
-          item.expiry
-            ? item.expiry.toISOString()
-            : null,
+          toDateOnly(
+            item.expiry
+          ),
 
         receiveDate:
-          item.receive?.receiveDate
-            ? item.receive.receiveDate.toISOString()
-            : null,
+          toDateOnly(
+            item.receive
+              ?.receiveDate ??
+              null
+          ),
 
         documentNo:
-          item.receive?.documentNo ??
+          item.receive
+            ?.documentNo ??
           "",
       })
     );
