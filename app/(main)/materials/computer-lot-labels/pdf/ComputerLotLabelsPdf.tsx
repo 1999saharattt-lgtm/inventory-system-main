@@ -31,8 +31,13 @@ type LotLabel = {
   documentNo: string;
 };
 
-type RankedLot =
+type LogicalLot =
   LotLabel & {
+    sourceReceiveItemIds: number[];
+  };
+
+type RankedLot =
+  LogicalLot & {
     lotNumber: number;
   };
 
@@ -82,15 +87,8 @@ const thaiMonths = [
 /* =========================================================
    DATE ONLY
 
-   สำคัญมาก:
-   ห้ามใช้ new Date(value)
-   ห้ามใช้ getDate / getMonth / getFullYear
-
-   รับได้ทั้ง:
-   2026-09-01
-   2026-09-01T00:00:00.000Z
-
-   แต่จะอ่านเฉพาะ YYYY-MM-DD
+   ไม่ใช้ new Date()
+   เพื่อป้องกัน timezone ทำวันที่เปลี่ยน
 ========================================================= */
 
 function parseDateOnly(
@@ -148,19 +146,9 @@ function parseDateOnly(
 /* =========================================================
    DATE VALUE
 
-   ใช้สำหรับเรียง FEFO
-
    YYYY-MM-DD
-   =>
+   ->
    YYYYMMDD
-
-   เช่น:
-   2026-09-01
-   =>
-   20260901
-
-   ไม่มีวันที่ = Infinity
-   จึงอยู่ท้าย
 ========================================================= */
 
 function dateValue(
@@ -176,22 +164,14 @@ function dateValue(
   }
 
   return (
-    date.year *
-      10000 +
-    date.month *
-      100 +
+    date.year * 10000 +
+    date.month * 100 +
     date.day
   );
 }
 
 /* =========================================================
    FORMAT THAI DATE
-
-   ไม่ผ่าน timezone
-
-   2026-09-01
-   =>
-   01 ก.ย. 2569
 ========================================================= */
 
 function formatThaiDate(
@@ -227,9 +207,6 @@ function formatThaiDate(
 
 /* =========================================================
    COLOR WORDS
-
-   ใช้เฉพาะจัดกลุ่มหัวข้อ
-   ไม่แตะ ReceiveItem / LOT
 ========================================================= */
 
 const colorWords = [
@@ -357,21 +334,6 @@ function removeWord(
 
 /* =========================================================
    PRODUCT GROUP KEY
-
-   ใช้เฉพาะเพื่อจัดหัวข้อ
-
-   ตัวอย่าง:
-
-   Canon CLI-751 Black
-   Canon CLI-751 Cyan
-   Canon CLI-751 Yellow
-
-   =>
-   Canon CLI-751
-
-   ไม่รวม ReceiveItem
-   ไม่รวม balance
-   ไม่รวมวันที่
 ========================================================= */
 
 function getProductGroupKey(
@@ -472,17 +434,6 @@ function compareMaterialCode(
 
 /* =========================================================
    FEFO
-
-   ลำดับ:
-   1. วันหมดอายุเร็วที่สุด
-   2. วันผลิตเก่าที่สุด
-   3. วันรับเข้าเก่าที่สุด
-   4. ReceiveItem.id น้อยที่สุด
-
-   ไม่มีวันหมดอายุ = อยู่ท้าย
-
-   ทุกวันที่ compare แบบ YYYYMMDD
-   ไม่ผ่าน JavaScript timezone
 ========================================================= */
 
 function compareFefo(
@@ -558,13 +509,8 @@ function compareFefo(
 /* =========================================================
    SANITIZE LOTS
 
-   ป้ายต้องสร้างจาก ReceiveItem ที่ยังเหลือจริงเท่านั้น
-
-   balance:
-   - ต้องเป็นจำนวนเต็ม
-   - ต้อง > 0
-
-   ไม่ใช้ qty เดิม
+   เอาเฉพาะ ReceiveItem
+   ที่ยังมีของจริง
 ========================================================= */
 
 function sanitizeLots(
@@ -594,24 +540,217 @@ function sanitizeLots(
 }
 
 /* =========================================================
-   BUILD LOT NUMBER
+   BUILD LOGICAL LOTS
 
-   LOT NUMBER แยกตาม materialId
+   จุดแก้สำคัญ
 
-   1 ReceiveItem
+   เดิม:
+   1 ReceiveItem = 1 ล็อต
+
+   ใหม่:
+   materialId + receiveId
    =
    1 ล็อตจริง
 
-   ห้าม merge ReceiveItem
+   ตัวอย่างจากเคสปัจจุบัน:
+
+   Receive เดียวกัน
+   ReceiveItem A balance 1
+   ReceiveItem B balance 2
+
+   =>
+   ล็อตเดียว balance 3
+
+   อีก Receive
+   ReceiveItem C balance 7
+
+   =>
+   อีกล็อต balance 7
+
+   ผลลัพธ์:
+   ล็อต 1 = 3
+   ล็อต 2 = 7
+========================================================= */
+
+function buildLogicalLots(
+  lots: LotLabel[]
+): LogicalLot[] {
+  const map =
+    new Map<
+      string,
+      LotLabel[]
+    >();
+
+  for (
+    const lot of
+      lots
+  ) {
+    const key =
+      `${lot.materialId}:${lot.receiveId}`;
+
+    const current =
+      map.get(
+        key
+      ) ?? [];
+
+    current.push(
+      lot
+    );
+
+    map.set(
+      key,
+      current
+    );
+  }
+
+  const result:
+    LogicalLot[] = [];
+
+  for (
+    const groupedItems of
+      map.values()
+  ) {
+    if (
+      groupedItems.length ===
+      0
+    ) {
+      continue;
+    }
+
+    /*
+     * เรียง ReceiveItem.id มาก -> น้อย
+     *
+     * record ที่ ID สูงกว่า
+     * คือรายการที่สร้าง/แก้ทีหลัง
+     *
+     * ใช้เป็นข้อมูลหลักของวันที่
+     * เพื่อไม่ดึง record เก่าที่ค้างอยู่
+     */
+    const newestFirst =
+      [
+        ...groupedItems,
+      ].sort(
+        (a, b) =>
+          b.receiveItemId -
+          a.receiveItemId
+      );
+
+    const newest =
+      newestFirst[0];
+
+    /*
+     * ยอดคงเหลือของล็อตจริง
+     * =
+     * ผลรวม balance ของ ReceiveItem
+     * ภายในใบรับเดียวกัน
+     */
+    const totalBalance =
+      groupedItems.reduce(
+        (
+          total,
+          item
+        ) =>
+          total +
+          Math.max(
+            0,
+            Math.floor(
+              Number(
+                item.balance
+              ) || 0
+            )
+          ),
+        0
+      );
+
+    if (
+      totalBalance <= 0
+    ) {
+      continue;
+    }
+
+    /*
+     * วันผลิต / วันหมดอายุ
+     *
+     * ใช้ค่าจาก ReceiveItem ล่าสุดก่อน
+     *
+     * ถ้ารายการล่าสุดไม่มีค่า
+     * ค่อยย้อนหาค่าที่มีอยู่
+     */
+    const manufacture =
+      newestFirst.find(
+        (item) =>
+          Boolean(
+            item.manufacture
+          )
+      )?.manufacture ??
+      null;
+
+    const expiry =
+      newestFirst.find(
+        (item) =>
+          Boolean(
+            item.expiry
+          )
+      )?.expiry ??
+      null;
+
+    /*
+     * receiveDate + documentNo
+     * เป็นข้อมูลระดับ Receive อยู่แล้ว
+     */
+    const receiveDate =
+      newest.receiveDate;
+
+    const documentNo =
+      newest.documentNo;
+
+    result.push({
+      ...newest,
+
+      balance:
+        totalBalance,
+
+      manufacture,
+
+      expiry,
+
+      receiveDate,
+
+      documentNo,
+
+      sourceReceiveItemIds:
+        groupedItems
+          .map(
+            (item) =>
+              item.receiveItemId
+          )
+          .sort(
+            (a, b) =>
+              a - b
+          ),
+    });
+  }
+
+  return result;
+}
+
+/* =========================================================
+   BUILD LOT NUMBER
+
+   Group ตาม materialId
+
+   ภายใน Material:
+   เรียง FEFO แล้วค่อยให้
+   ล็อต 1, 2, 3...
 ========================================================= */
 
 function buildRankedLots(
-  lots: LotLabel[]
+  lots: LogicalLot[]
 ): RankedLot[] {
   const materialMap =
     new Map<
       number,
-      LotLabel[]
+      LogicalLot[]
     >();
 
   for (
@@ -687,19 +826,9 @@ function buildRankedLots(
 /* =========================================================
    EXPAND PHYSICAL LABELS
 
-   สำคัญ:
-
-   ReceiveItem.balance = 3
+   LogicalLot.balance = 3
    =>
-   สร้าง 3 ป้าย
-
-   ทุกป้าย:
-   - material เดียวกัน
-   - receiveItemId เดียวกัน
-   - วันผลิตเดียวกัน
-   - วันหมดอายุเดียวกัน
-
-   ไม่มีการเอา qty เดิมมาสร้างป้าย
+   3 ป้าย
 ========================================================= */
 
 function expandPrintableLabels(
@@ -763,16 +892,7 @@ function expandPrintableLabels(
 }
 
 /* =========================================================
-   BUILD GROUPS
-
-   การรวมตรงนี้เป็นเพียงการจัดหน้ากระดาษ
-
-   ไม่รวม:
-   - ReceiveItem
-   - balance
-   - lotNumber
-   - manufacture
-   - expiry
+   BUILD PRODUCT GROUPS
 ========================================================= */
 
 function buildProductGroups(
@@ -859,25 +979,13 @@ function buildProductGroups(
           return nameCompare;
         }
 
-        const fefo =
-          compareFefo(
-            a,
-            b
-          );
-
         if (
-          fefo !== 0
-        ) {
-          return fefo;
-        }
-
-        if (
-          a.receiveItemId !==
-          b.receiveItemId
+          a.lotNumber !==
+          b.lotNumber
         ) {
           return (
-            a.receiveItemId -
-            b.receiveItemId
+            a.lotNumber -
+            b.lotNumber
           );
         }
 
@@ -937,9 +1045,7 @@ export default function ComputerLotLabelsPdf({
   lots,
 }: Props) {
   /* =======================================================
-     CLEAN CURRENT STOCK
-
-     จำนวนป้ายอิงจาก balance ของ ReceiveItem เท่านั้น
+     CURRENT RECEIVE ITEMS
   ======================================================= */
 
   const currentLots =
@@ -952,6 +1058,21 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
+     LOGICAL LOTS
+
+     รวม ReceiveItem ที่อยู่ในใบรับเดียวกัน
+  ======================================================= */
+
+  const logicalLots =
+    useMemo(
+      () =>
+        buildLogicalLots(
+          currentLots
+        ),
+      [currentLots]
+    );
+
+  /* =======================================================
      FEFO + LOT NUMBER
   ======================================================= */
 
@@ -959,13 +1080,13 @@ export default function ComputerLotLabelsPdf({
     useMemo(
       () =>
         buildRankedLots(
-          currentLots
+          logicalLots
         ),
-      [currentLots]
+      [logicalLots]
     );
 
   /* =======================================================
-     1 BALANCE = 1 PHYSICAL LABEL
+     PHYSICAL LABELS
   ======================================================= */
 
   const printableLabels =
@@ -978,7 +1099,7 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     GROUP FOR PDF LAYOUT
+     PRODUCT GROUPS
   ======================================================= */
 
   const productGroups =
@@ -1060,12 +1181,10 @@ export default function ComputerLotLabelsPdf({
           marginBottom;
 
         /* =================================================
-           LABEL
+           LABEL SIZE
 
-           4 ป้าย / แถว
-
-           ประมาณ:
-           48.875 × 28 mm
+           4 ป้ายต่อแถว
+           ประมาณ 48 × 28 mm
         ================================================= */
 
         const columns =
@@ -1275,8 +1394,6 @@ export default function ComputerLotLabelsPdf({
 
           /* -----------------------------------------------
              NAME
-
-             1 บรรทัด
           ----------------------------------------------- */
 
           fitSingleLineText(
@@ -1306,9 +1423,6 @@ export default function ComputerLotLabelsPdf({
 
           /* -----------------------------------------------
              LOT
-
-             lotNumber = ลำดับล็อต FEFO
-             copyNumber/copyTotal = เลขป้ายของ balance ล็อตนั้น
           ----------------------------------------------- */
 
           doc.setFontSize(
@@ -1352,6 +1466,7 @@ export default function ComputerLotLabelsPdf({
             x +
               cardWidth -
               2,
+
             y + 13
           );
 
@@ -1461,11 +1576,6 @@ export default function ComputerLotLabelsPdf({
             return;
           }
 
-          /* -----------------------------------------------
-             ต้องเหลือพื้นที่พอสำหรับ
-             Header + ป้าย 1 แถว
-          ----------------------------------------------- */
-
           const minimumHeight =
             groupHeaderHeight +
             cardHeight +
@@ -1486,10 +1596,6 @@ export default function ComputerLotLabelsPdf({
 
           let labelIndex =
             0;
-
-          /* -----------------------------------------------
-             LABEL ROWS
-          ----------------------------------------------- */
 
           while (
             labelIndex <
