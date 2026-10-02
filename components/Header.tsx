@@ -10,19 +10,13 @@ import MobileMenu from "@/components/MobileMenu";
 ========================================================= */
 
 export default async function Header() {
-  const user =
-    await requireLogin();
+  const user = await requireLogin();
 
-  /* =======================================================
-     ROLE
-  ======================================================= */
-
-  const role =
-    String(
-      user.role ?? ""
-    )
-      .trim()
-      .toUpperCase();
+  const role = String(
+    user.role ?? ""
+  )
+    .trim()
+    .toUpperCase();
 
   const roleText =
     role === "ADMIN"
@@ -33,16 +27,12 @@ export default async function Header() {
           ? "ผู้ใช้งาน"
           : role;
 
-  /* =======================================================
-     UI
-  ======================================================= */
-
   return (
     <header
       className="
         sticky
         top-0
-        z-50
+        z-[5000]
 
         w-full
 
@@ -56,7 +46,8 @@ export default async function Header() {
       "
     >
       {/* =====================================================
-          GLASS HEADER
+          MAIN HEADER
+          มือถือและ Desktop ใช้ Header ชุดเดียวกัน
       ===================================================== */}
 
       <div
@@ -65,9 +56,10 @@ export default async function Header() {
           mx-auto
           w-full
           max-w-[1920px]
+
           overflow-hidden
 
-          rounded-[26px]
+          rounded-[24px]
 
           border
           border-white/80
@@ -76,16 +68,14 @@ export default async function Header() {
 
           shadow-[0_18px_55px_-32px_rgba(15,23,42,0.50)]
 
-          backdrop-blur-2xl
-          backdrop-saturate-150
-
           ring-1
           ring-slate-900/[0.025]
+
+          backdrop-blur-2xl
+          backdrop-saturate-150
         "
       >
-        {/* ===================================================
-            AMBIENT LIGHT
-        =================================================== */}
+        {/* AMBIENT */}
 
         <div
           aria-hidden="true"
@@ -110,10 +100,9 @@ export default async function Header() {
           aria-hidden="true"
           className="
             pointer-events-none
+            absolute
             right-1/4
             -top-20
-
-            absolute
 
             h-40
             w-40
@@ -145,10 +134,6 @@ export default async function Header() {
           "
         />
 
-        {/* ===================================================
-            TOP HIGHLIGHT
-        =================================================== */}
-
         <div
           aria-hidden="true"
           className="
@@ -166,9 +151,7 @@ export default async function Header() {
           "
         />
 
-        {/* ===================================================
-            CONTENT
-        =================================================== */}
+        {/* CONTENT */}
 
         <div
           className="
@@ -176,14 +159,16 @@ export default async function Header() {
             z-10
 
             flex
-            min-h-[74px]
+            min-h-[66px]
             w-full
+            min-w-0
+
             items-center
             justify-between
-            gap-3
+            gap-2
 
             px-3
-            py-2.5
+            py-2
 
             sm:min-h-[82px]
             sm:gap-4
@@ -191,13 +176,10 @@ export default async function Header() {
             sm:py-3
 
             md:px-5
-
             lg:px-6
           "
         >
-          {/* =================================================
-              LEFT AREA
-          ================================================= */}
+          {/* LEFT / BRAND */}
 
           <div
             className="
@@ -205,222 +187,148 @@ export default async function Header() {
               min-w-0
               flex-1
               items-center
-              gap-3
+              gap-2.5
 
               sm:gap-4
             "
           >
-            {/* ===============================================
-                MOBILE MENU
-            =============================================== */}
-
             <div
               className="
+                group
+                relative
+
+                h-11
+                w-11
                 shrink-0
-                lg:hidden
+
+                overflow-hidden
+
+                rounded-[14px]
+
+                border
+                border-white/90
+
+                bg-white/95
+
+                shadow-[0_10px_30px_-18px_rgba(15,23,42,0.45)]
+
+                ring-1
+                ring-slate-900/[0.04]
+
+                sm:h-14
+                sm:w-14
+                sm:rounded-[16px]
+
+                md:h-[58px]
+                md:w-[58px]
               "
             >
-              <MobileMenu
-                role={user.role}
+              <Image
+                src="/images/dohl-logo.png"
+                alt="โลโก้กรมอนามัย"
+                fill
+                priority
+                className="
+                  object-contain
+                  p-1
+
+                  sm:p-1.5
+                "
+                sizes="58px"
               />
             </div>
 
-            {/* ===============================================
-                BRAND
-            =============================================== */}
-
-            <div
-              className="
-                flex
-                min-w-0
-                flex-1
-                items-center
-                gap-3
-
-                sm:gap-4
-              "
-            >
-              {/* =============================================
-                  LOGO
-              ============================================= */}
-
+            <div className="min-w-0 flex-1">
               <div
                 className="
-                  group
-                  relative
-
-                  h-12
-                  w-12
-                  shrink-0
-                  overflow-hidden
-
-                  rounded-[16px]
-
-                  border
-                  border-white/90
-
-                  bg-white/95
-
-                  shadow-[0_10px_30px_-18px_rgba(15,23,42,0.45)]
-
-                  ring-1
-                  ring-slate-900/[0.04]
-
-                  transition-all
-                  duration-300
-                  ease-out
-
-                  hover:-translate-y-0.5
-                  hover:scale-[1.03]
-
-                  hover:shadow-[0_16px_34px_-18px_rgba(5,150,105,0.28)]
-
-                  sm:h-14
-                  sm:w-14
-
-                  md:h-[58px]
-                  md:w-[58px]
-                "
-              >
-                <div
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    inset-x-2
-                    top-0
-
-                    h-px
-
-                    bg-white
-                  "
-                />
-
-                <Image
-                  src="/images/dohl-logo.png"
-                  alt="โลโก้กรมอนามัย"
-                  fill
-                  priority
-                  className="
-                    object-contain
-                    p-1.5
-
-                    transition-transform
-                    duration-300
-
-                    group-hover:scale-[1.03]
-                  "
-                  sizes="58px"
-                />
-              </div>
-
-              {/* =============================================
-                  SYSTEM NAME
-              ============================================= */}
-
-              <div
-                className="
+                  flex
                   min-w-0
-                  flex-1
+                  items-center
+                  gap-2
                 "
               >
-                <div
+                <h1
                   className="
-                    flex
                     min-w-0
-                    items-center
-                    gap-2
+
+                    text-[12px]
+                    font-black
+                    leading-[1.25]
+                    tracking-[-0.02em]
+
+                    !text-slate-950
+
+                    sm:text-lg
+                    sm:leading-tight
+
+                    md:text-xl
+
+                    lg:text-[22px]
                   "
                 >
-                  <h1
-                    className="
-                      min-w-0
-                      truncate
-
-                      text-base
-                      font-black
-                      tracking-[-0.02em]
-
-                      !text-slate-950
-
-                      sm:text-lg
-                      md:text-xl
-                      lg:text-[22px]
-                    "
-                  >
+                  <span className="block sm:inline">
                     ระบบบริหารคลังพัสดุ
+                  </span>
+                  <span className="block sm:ml-1 sm:inline">
                     สำนักอนามัยการเจริญพันธุ์
-                  </h1>
+                  </span>
+                </h1>
 
-                  {/* =========================================
-                      ONLINE INDICATOR
-                  ========================================= */}
-
-                  <span
-                    className="
-                      hidden
-
-                      h-2
-                      w-2
-                      shrink-0
-
-                      rounded-full
-
-                      bg-emerald-500
-
-                      shadow-[0_0_0_4px_rgba(16,185,129,0.10)]
-
-                      md:block
-                    "
-                    title="ระบบพร้อมใช้งาน"
-                  />
-                </div>
-
-                {/* ===========================================
-                    ENGLISH NAME
-                =========================================== */}
-
-                <p
+                <span
                   className="
-                    mt-1
                     hidden
-                    truncate
+                    h-2
+                    w-2
+                    shrink-0
 
-                    text-sm
-                    font-bold
-                    tracking-[0.02em]
+                    rounded-full
 
-                    !text-slate-500
+                    bg-emerald-500
+
+                    shadow-[0_0_0_4px_rgba(16,185,129,0.10)]
 
                     md:block
-                    md:text-[15px]
-
-                    lg:text-base
                   "
-                >
-                  Reproductive Health Inventory Management System
-                </p>
+                  title="ระบบพร้อมใช้งาน"
+                />
               </div>
+
+              <p
+                className="
+                  mt-1
+                  hidden
+                  truncate
+
+                  text-sm
+                  font-bold
+                  tracking-[0.02em]
+
+                  !text-slate-500
+
+                  md:block
+                  md:text-[15px]
+
+                  lg:text-base
+                "
+              >
+                Reproductive Health Inventory Management System
+              </p>
             </div>
           </div>
 
-          {/* =================================================
-              RIGHT AREA
-          ================================================= */}
+          {/* RIGHT */}
 
           <div
             className="
               flex
               shrink-0
               items-center
-              gap-2
+              gap-1.5
 
               sm:gap-3
             "
           >
-            {/* ===============================================
-                USER INFORMATION
-            =============================================== */}
+            {/* DESKTOP / TABLET USER */}
 
             <div
               className="
@@ -442,39 +350,22 @@ export default async function Header() {
 
                 shadow-[0_10px_30px_-22px_rgba(15,23,42,0.45)]
 
-                backdrop-blur-xl
-
                 ring-1
                 ring-slate-900/[0.025]
 
-                transition-all
-                duration-300
-
-                hover:bg-white/90
-
-                hover:shadow-[0_14px_34px_-22px_rgba(15,23,42,0.50)]
+                backdrop-blur-xl
 
                 sm:flex
-
-                md:px-3.5
               "
             >
-              {/* =============================================
-                  AVATAR
-              ============================================= */}
-
               <div
                 className="
-                  relative
-
                   flex
                   h-10
                   w-10
                   shrink-0
                   items-center
                   justify-center
-
-                  overflow-hidden
 
                   rounded-[14px]
 
@@ -492,50 +383,13 @@ export default async function Header() {
 
                   ring-1
                   ring-white
-
-                  transition-all
-                  duration-300
-
-                  group-hover:scale-105
-
-                  group-hover:border-emerald-300
                 "
                 aria-hidden="true"
               >
-                <div
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    inset-x-1
-                    top-0
-
-                    h-px
-
-                    bg-white
-                  "
-                />
-
-                <span
-                  className="
-                    relative
-                    leading-none
-                  "
-                >
-                  👤
-                </span>
+                👤
               </div>
 
-              {/* =============================================
-                  USER NAME / ROLE
-              ============================================= */}
-
-              <div
-                className="
-                  min-w-0
-                  text-right
-                "
-              >
+              <div className="min-w-0 text-right">
                 <div
                   className="
                     max-w-[120px]
@@ -548,7 +402,6 @@ export default async function Header() {
                     !text-slate-800
 
                     md:max-w-[170px]
-
                     xl:max-w-[220px]
                   "
                 >
@@ -580,87 +433,36 @@ export default async function Header() {
                       rounded-full
 
                       bg-emerald-500
-
-                      shadow-[0_0_8px_rgba(16,185,129,0.40)]
                     "
                   />
 
                   {roleText}
                 </div>
               </div>
-
-              {/* =============================================
-                  DECORATION
-              ============================================= */}
-
-              <div
-                className="
-                  hidden
-
-                  h-7
-                  w-7
-
-                  items-center
-                  justify-center
-
-                  rounded-full
-
-                  bg-slate-100/80
-
-                  text-sm
-                  font-black
-
-                  !text-slate-400
-
-                  lg:flex
-                "
-                aria-hidden="true"
-              >
-                ›
-              </div>
             </div>
 
-            {/* ===============================================
-                MOBILE USER
-            =============================================== */}
+            {/* MOBILE USER */}
 
             <div
               className="
                 flex
-                h-10
-                w-10
+                h-9
+                w-9
+                shrink-0
                 items-center
                 justify-center
 
-                rounded-[14px]
-
-                border
-                border-emerald-200/80
-
-                bg-gradient-to-br
-                from-emerald-50
-                via-white
-                to-green-100
-
-                text-xl
-
-                shadow-sm
-
-                backdrop-blur-xl
-
-                ring-1
-                ring-white
+                text-[21px]
 
                 sm:hidden
               "
               title={`${user.fullname} · ${roleText}`}
+              aria-label={`${user.fullname} · ${roleText}`}
             >
               👤
             </div>
 
-            {/* ===============================================
-                LOGOUT
-            =============================================== */}
+            {/* LOGOUT */}
 
             <form action={logout}>
               <button
@@ -670,16 +472,14 @@ export default async function Header() {
                   relative
 
                   inline-flex
-                  h-10
-
+                  h-9
                   items-center
                   justify-center
 
                   overflow-hidden
-
                   whitespace-nowrap
 
-                  rounded-[14px]
+                  rounded-[13px]
 
                   border
                   border-red-400/20
@@ -688,11 +488,10 @@ export default async function Header() {
                   from-red-500
                   to-rose-600
 
-                  px-4
+                  px-2.5
 
-                  text-sm
+                  text-xs
                   font-extrabold
-
                   !text-white
 
                   shadow-[0_10px_24px_-14px_rgba(239,68,68,0.58)]
@@ -701,76 +500,53 @@ export default async function Header() {
                   ring-white/20
 
                   transition-all
-                  duration-300
-                  ease-out
+                  duration-200
 
-                  hover:-translate-y-0.5
-
-                  hover:from-red-500
-                  hover:to-red-600
-
-                  hover:shadow-[0_14px_30px_-14px_rgba(239,68,68,0.72)]
-
-                  active:translate-y-0
                   active:scale-[0.96]
 
                   sm:h-11
                   sm:px-5
+                  sm:text-sm
                 "
               >
-                {/* ===========================================
-                    BUTTON HIGHLIGHT
-                =========================================== */}
-
-                <span
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    inset-x-1
-                    top-px
-
-                    h-px
-
-                    bg-white/50
-                  "
-                />
-
-                {/* ===========================================
-                    TEXT
-                =========================================== */}
-
-                <span
-                  className="
-                    relative
-                    hidden
-
-                    sm:inline
-                  "
-                >
+                <span className="hidden sm:inline">
                   ออกจากระบบ
                 </span>
 
-                {/* ===========================================
-                    MOBILE TEXT
-                =========================================== */}
-
-                <span
-                  className="
-                    relative
-
-                    text-xs
-                    font-black
-
-                    sm:hidden
-                  "
-                >
+                <span className="sm:hidden">
                   ออก
                 </span>
               </button>
             </form>
           </div>
         </div>
+      </div>
+
+      {/* =====================================================
+          MOBILE NAVIGATION
+          อยู่นอกกรอบ Header
+          ไม่มี wrapper สีขาว
+      ===================================================== */}
+
+      <div
+        className="
+          relative
+          z-[5100]
+
+          mx-auto
+          mt-1
+
+          w-full
+          max-w-[1920px]
+
+          bg-transparent
+
+          lg:hidden
+        "
+      >
+        <MobileMenu
+          role={user.role}
+        />
       </div>
     </header>
   );
