@@ -6,24 +6,18 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 
-// =====================================================
-// รายการพัสดุที่รับจาก Form
-// =====================================================
-
 type IssueRow = {
   materialId: number;
   qty: number;
+  issuedQty: number;
   remark: string | null;
 };
 
 export async function updateIssue(
   formData: FormData
 ) {
-  // =====================================================
-  // ตรวจสอบ Session
-  // =====================================================
-
   const cookieStore = await cookies();
+
   const token =
     cookieStore.get("session")?.value;
 
@@ -44,9 +38,9 @@ export async function updateIssue(
     );
   }
 
-  // =====================================================
-  // รับค่าหัวเอกสารจาก Form
-  // =====================================================
+  /* =======================================================
+     HEADER
+  ======================================================= */
 
   const issueId = Number(
     formData.get("issueId")
@@ -58,7 +52,9 @@ export async function updateIssue(
     ).trim();
 
   const issueDate =
-    new Date(issueDateValue);
+    new Date(
+      issueDateValue
+    );
 
   const documentNo =
     String(
@@ -70,13 +66,9 @@ export async function updateIssue(
       formData.get("departmentId")
     );
 
-  // =====================================================
-  // officerId
-  //
-  // รองรับไว้เหมือนระบบเดิม
-  // หากหน้า Edit ไม่ได้ส่ง officerId มา
-  // จะรักษา officerId เดิมของใบเบิกไว้
-  // =====================================================
+  /* =======================================================
+     OFFICER
+  ======================================================= */
 
   const officerIdFormValue =
     formData.get("officerId");
@@ -94,16 +86,9 @@ export async function updateIssue(
       ? Number(officerIdValue)
       : null;
 
-  // =====================================================
-  // หมายเหตุระดับหัวใบเบิก
-  //
-  // รองรับไว้เหมือนระบบเดิม
-  // หากหน้า Edit ไม่ได้ส่ง remark ระดับหัวเอกสาร
-  // จะรักษาค่าเดิมไว้
-  //
-  // หมายเหตุ:
-  // ตัวนี้ไม่ใช่ IssueItem.remark
-  // =====================================================
+  /* =======================================================
+     ISSUE REMARK
+  ======================================================= */
 
   const issueRemarkFormValue =
     formData.get("remark");
@@ -116,29 +101,16 @@ export async function updateIssue(
       issueRemarkFormValue ?? ""
     ).trim();
 
-  // =====================================================
-  // อ่านรายการพัสดุจาก Form
-  //
-  // โครงสร้างใหม่:
-  //
-  // items[i].materialId
-  // items[i].qty
-  // items[i].remark
-  //
-  // ไม่ใช้:
-  // - category
-  // - manufacture
-  // - expiry
-  // - receiveItemId
-  //
-  // เพราะใบ PENDING ยังไม่ตัด Stock
-  // =====================================================
+  /* =======================================================
+     ITEMS
+     EditIssueForm มี 18 แถว
+  ======================================================= */
 
   const newItems: IssueRow[] = [];
 
   for (
     let i = 0;
-    i < 15;
+    i < 18;
     i++
   ) {
     const materialValue =
@@ -151,25 +123,40 @@ export async function updateIssue(
         `items[${i}].qty`
       );
 
+    const issuedQtyValue =
+      formData.get(
+        `items[${i}].issuedQty`
+      );
+
     const itemRemarkValue =
       formData.get(
         `items[${i}].remark`
       );
 
     const materialId =
-      Number(materialValue);
+      Number(
+        materialValue
+      );
 
     const qty =
-      Number(qtyValue);
+      Number(
+        qtyValue
+      );
+
+    const issuedQty =
+      issuedQtyValue === null ||
+      String(
+        issuedQtyValue
+      ).trim() === ""
+        ? 0
+        : Number(
+            issuedQtyValue
+          );
 
     const itemRemark =
       String(
         itemRemarkValue ?? ""
       ).trim();
-
-    // =================================================
-    // เพิ่มเฉพาะแถวที่มี Material + Qty ถูกต้อง
-    // =================================================
 
     if (
       Number.isInteger(
@@ -180,21 +167,50 @@ export async function updateIssue(
       Number.isInteger(qty) &&
       qty > 0
     ) {
+      if (
+        !Number.isFinite(
+          issuedQty
+        ) ||
+        !Number.isInteger(
+          issuedQty
+        ) ||
+        issuedQty < 0
+      ) {
+        throw new Error(
+          `จำนวนเบิกจ่ายจริงของรายการที่ ${
+            i + 1
+          } ไม่ถูกต้อง`
+        );
+      }
+
+      if (
+        issuedQty > qty
+      ) {
+        throw new Error(
+          `จำนวนเบิกจ่ายจริงของรายการที่ ${
+            i + 1
+          } มากกว่าจำนวนที่ขอเบิก`
+        );
+      }
+
       newItems.push({
         materialId,
         qty,
+        issuedQty,
         remark:
           itemRemark || null,
       });
     }
   }
 
-  // =====================================================
-  // ตรวจสอบค่าพื้นฐาน
-  // =====================================================
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
 
   if (
-    !Number.isInteger(issueId) ||
+    !Number.isInteger(
+      issueId
+    ) ||
     issueId <= 0
   ) {
     throw new Error(
@@ -253,9 +269,9 @@ export async function updateIssue(
     );
   }
 
-  // =====================================================
-  // ตรวจสอบรายการพัสดุซ้ำ
-  // =====================================================
+  /* =======================================================
+     DUPLICATE MATERIAL
+  ======================================================= */
 
   const materialIds =
     newItems.map(
@@ -264,7 +280,9 @@ export async function updateIssue(
     );
 
   const uniqueMaterialIds =
-    new Set(materialIds);
+    new Set(
+      materialIds
+    );
 
   if (
     uniqueMaterialIds.size !==
@@ -275,25 +293,33 @@ export async function updateIssue(
     );
   }
 
-  // =====================================================
-  // Transaction
-  // =====================================================
+  /* =======================================================
+     TRANSACTION
+  ======================================================= */
 
   try {
     await prisma.$transaction(
       async (tx: any) => {
-        // =================================================
-        // ดึง Issue เดิม
-        // =================================================
+        /* =================================================
+           LOAD OLD ISSUE
+        ================================================= */
 
         const oldIssue =
           await tx.issue.findUnique({
             where: {
-              id: issueId,
+              id:
+                issueId,
             },
 
             include: {
-              items: true,
+              items: {
+                include: {
+                  receiveItem:
+                    true,
+                  material:
+                    true,
+                },
+              },
             },
           });
 
@@ -303,48 +329,51 @@ export async function updateIssue(
           );
         }
 
-        // =================================================
-        // ตรวจสถานะ
-        //
-        // แก้ไขได้เฉพาะ PENDING
-        // =================================================
+        /* =================================================
+           STATUS
+        ================================================= */
 
         if (
-          oldIssue.status !==
-          "PENDING"
+          oldIssue.status ===
+          "REJECTED"
         ) {
-          if (
-            oldIssue.status ===
-            "APPROVED"
-          ) {
-            throw new Error(
-              "ใบเบิกนี้ได้รับการยืนยันจาก Admin แล้ว ไม่สามารถแก้ไขได้"
-            );
-          }
-
-          if (
-            oldIssue.status ===
-            "REJECTED"
-          ) {
-            throw new Error(
-              "ใบเบิกนี้ถูกไม่อนุมัติแล้ว ไม่สามารถแก้ไขได้"
-            );
-          }
-
           throw new Error(
-            "ไม่สามารถแก้ไขใบเบิกที่ไม่อยู่ในสถานะรอ Admin ตรวจสอบได้"
+            "ใบเบิกนี้ถูกไม่อนุมัติแล้ว ไม่สามารถแก้ไขได้"
           );
         }
 
-        // =================================================
-        // ตรวจสิทธิ์
-        //
-        // ADMIN
-        // แก้ไขได้ทุกหน่วยงาน
-        //
-        // USER
-        // แก้ได้เฉพาะ Department ของตัวเอง
-        // =================================================
+        if (
+          oldIssue.status !==
+            "PENDING" &&
+          oldIssue.status !==
+            "APPROVED"
+        ) {
+          throw new Error(
+            "สถานะใบเบิกนี้ไม่รองรับการแก้ไข"
+          );
+        }
+
+        const isApproved =
+          oldIssue.status ===
+          "APPROVED";
+
+        /* =================================================
+           APPROVED = ADMIN ONLY
+        ================================================= */
+
+        if (
+          isApproved &&
+          session.role !==
+            "ADMIN"
+        ) {
+          throw new Error(
+            "ใบเบิกที่บันทึกเบิกจ่ายแล้ว แก้ไขได้เฉพาะผู้ดูแลระบบ"
+          );
+        }
+
+        /* =================================================
+           USER PERMISSION
+        ================================================= */
 
         if (
           session.role !==
@@ -368,14 +397,15 @@ export async function updateIssue(
           );
         }
 
-        // =================================================
-        // ตรวจสอบ Department
-        // =================================================
+        /* =================================================
+           DEPARTMENT
+        ================================================= */
 
         const department =
           await tx.department.findUnique({
             where: {
-              id: departmentId,
+              id:
+                departmentId,
             },
 
             select: {
@@ -389,11 +419,9 @@ export async function updateIssue(
           );
         }
 
-        // =================================================
-        // ตรวจ Officer
-        //
-        // ตรวจเฉพาะกรณี Form ส่ง officerId มา
-        // =================================================
+        /* =================================================
+           OFFICER
+        ================================================= */
 
         if (
           hasOfficerIdField &&
@@ -419,15 +447,9 @@ export async function updateIssue(
           }
         }
 
-        // =================================================
-        // ตรวจ Material
-        //
-        // ตรวจเฉพาะว่ามี Material อยู่จริง
-        //
-        // ไม่ตรวจ Stock
-        // ไม่ตรวจ ReceiveItem
-        // ไม่ทำ FEFO
-        // =================================================
+        /* =================================================
+           MATERIAL
+        ================================================= */
 
         const requestedMaterialIds =
           newItems.map(
@@ -446,6 +468,7 @@ export async function updateIssue(
 
             select: {
               id: true,
+              name: true,
             },
           });
 
@@ -462,7 +485,8 @@ export async function updateIssue(
           );
 
         for (
-          const item of newItems
+          const item of
+            newItems
         ) {
           if (
             !existingMaterialIds.has(
@@ -475,60 +499,14 @@ export async function updateIssue(
           }
         }
 
-        // =================================================
-        // สำคัญ
-        //
-        // ใบ PENDING เป็นเพียงคำขอเบิก
-        //
-        // ขั้นตอน Edit:
-        //
-        // - ไม่คืน Stock
-        // - ไม่เพิ่ม Stock
-        // - ไม่ลด Stock
-        // - ไม่แก้ Material.balance
-        // - ไม่แก้ ReceiveItem.balance
-        // - ไม่เลือก Lot
-        // - ไม่ทำ FEFO
-        // - ไม่สร้าง Transaction
-        //
-        // Stock จะเปลี่ยนเมื่อ Admin ยืนยัน
-        // "จำนวนที่เบิกจ่ายจริง"
-        // =================================================
-
-        // =================================================
-        // ลบ IssueItem เดิม
-        // =================================================
-
-        await tx.issueItem.deleteMany({
-          where: {
-            issueId,
-          },
-        });
-
-        // =================================================
-        // กำหนด Officer
-        //
-        // ถ้า Form มี officerId
-        // ใช้ค่าที่ Form ส่งมา
-        //
-        // ถ้าไม่มี field
-        // รักษาค่าเดิม
-        // =================================================
+        /* =================================================
+           OFFICER + REMARK
+        ================================================= */
 
         const officerId =
           hasOfficerIdField
             ? submittedOfficerId
             : oldIssue.officerId;
-
-        // =================================================
-        // กำหนดหมายเหตุหัวใบเบิก
-        //
-        // ถ้า Form มี remark ระดับ Issue
-        // ใช้ค่าที่ส่งมา
-        //
-        // ถ้าไม่มี
-        // รักษาค่าเดิม
-        // =================================================
 
         const issueRemark =
           hasIssueRemarkField
@@ -536,13 +514,130 @@ export async function updateIssue(
               null
             : oldIssue.remark;
 
-        // =================================================
-        // Update หัวเอกสาร
-        // =================================================
+        /* =================================================
+           APPROVED
+           คืน Stock เดิมก่อน
+        ================================================= */
+
+        if (isApproved) {
+          for (
+            const oldItem of
+              oldIssue.items
+          ) {
+            const oldIssuedQty =
+              Number(
+                oldItem.issuedQty ??
+                  0
+              );
+
+            if (
+              oldIssuedQty <= 0
+            ) {
+              continue;
+            }
+
+            if (
+              !oldItem.receiveItemId ||
+              !oldItem.receiveItem
+            ) {
+              throw new Error(
+                `ไม่สามารถย้อนสต็อกของ "${
+                  oldItem.material
+                    ?.name ??
+                  oldItem.materialId
+                }" ได้ เพราะไม่พบข้อมูลล็อตเดิม`
+              );
+            }
+
+            /* =============================================
+               IMPORTANT
+
+               IssueItem.receiveItemId
+               เก็บล็อตแรกเพียงล็อตเดียว
+
+               ถ้าการเบิกเดิมกินหลายล็อต
+               schema ปัจจุบันไม่สามารถบอก allocation
+               ของแต่ละล็อตย้อนหลังได้ครบ
+            ============================================= */
+
+            const receiveItemQty =
+              Number(
+                oldItem
+                  .receiveItem
+                  .qty ?? 0
+              );
+
+            if (
+              oldIssuedQty >
+              receiveItemQty
+            ) {
+              throw new Error(
+                `ใบเบิกเดิมของ "${
+                  oldItem.material
+                    ?.name ??
+                  oldItem.materialId
+                }" มีการเบิกข้ามหลายล็อต แต่ข้อมูลเดิมเก็บเลขล็อตไว้เพียงล็อตแรก จึงไม่สามารถแก้ย้อนหลังอย่างปลอดภัยได้`
+              );
+            }
+
+            /* =============================================
+               คืน ReceiveItem.balance
+            ============================================= */
+
+            await tx.receiveItem.update({
+              where: {
+                id:
+                  oldItem
+                    .receiveItemId,
+              },
+
+              data: {
+                balance: {
+                  increment:
+                    oldIssuedQty,
+                },
+              },
+            });
+
+            /* =============================================
+               คืน Material.balance
+            ============================================= */
+
+            await tx.material.update({
+              where: {
+                id:
+                  oldItem
+                    .materialId,
+              },
+
+              data: {
+                balance: {
+                  increment:
+                    oldIssuedQty,
+                },
+              },
+            });
+          }
+        }
+
+        /* =================================================
+           DELETE OLD ITEMS
+        ================================================= */
+
+        await tx.issueItem.deleteMany({
+          where: {
+            issueId,
+          },
+        });
+
+        /* =================================================
+           UPDATE ISSUE HEADER
+        ================================================= */
 
         await tx.issue.update({
           where: {
-            id: issueId,
+            id:
+              issueId,
           },
 
           data: {
@@ -557,35 +652,305 @@ export async function updateIssue(
             remark:
               issueRemark,
 
-            // =============================================
-            // ยังคงเป็น PENDING
-            // =============================================
+            status:
+              isApproved
+                ? "APPROVED"
+                : "PENDING",
 
-            status: "PENDING",
+            approvedAt:
+              isApproved
+                ? oldIssue
+                    .approvedAt
+                : null,
 
-            approvedAt: null,
-
-            approvedById: null,
+            approvedById:
+              isApproved
+                ? oldIssue
+                    .approvedById
+                : null,
           },
         });
 
-        // =================================================
-        // สร้าง IssueItem ใหม่
-        //
-        // โครงสร้าง:
-        //
-        // materialId
-        // qty
-        // remark  <-- เพิ่มใหม่
-        //
-        // issuedQty = 0
-        //
-        // ยังไม่ผูก ReceiveItem / Lot
-        // =================================================
+        /* =================================================
+           PENDING
+
+           แก้คำขออย่างเดียว
+           ไม่แตะ Stock
+        ================================================= */
+
+        if (
+          !isApproved
+        ) {
+          for (
+            const item of
+              newItems
+          ) {
+            await tx.issueItem.create({
+              data: {
+                issueId,
+
+                materialId:
+                  item.materialId,
+
+                qty:
+                  item.qty,
+
+                remark:
+                  item.remark,
+
+                issuedQty:
+                  0,
+
+                receiveItemId:
+                  null,
+
+                manufacture:
+                  null,
+
+                expiry:
+                  null,
+              },
+            });
+          }
+
+          return;
+        }
+
+        /* =================================================
+           APPROVED
+
+           ตัด Stock ใหม่ตาม FEFO
+        ================================================= */
 
         for (
-          const item of newItems
+          const item of
+            newItems
         ) {
+          const quantityToIssue =
+            Number(
+              item.issuedQty
+            );
+
+          /* =============================================
+             จ่ายจริง = 0
+          ============================================= */
+
+          if (
+            quantityToIssue === 0
+          ) {
+            await tx.issueItem.create({
+              data: {
+                issueId,
+
+                materialId:
+                  item.materialId,
+
+                qty:
+                  item.qty,
+
+                remark:
+                  item.remark,
+
+                issuedQty:
+                  0,
+
+                receiveItemId:
+                  null,
+
+                manufacture:
+                  null,
+
+                expiry:
+                  null,
+              },
+            });
+
+            continue;
+          }
+
+          /* =============================================
+             FEFO
+
+             expiry
+             manufacture
+             id
+          ============================================= */
+
+          const receiveItems =
+            await tx.receiveItem.findMany({
+              where: {
+                materialId:
+                  item.materialId,
+
+                balance: {
+                  gt: 0,
+                },
+              },
+
+              orderBy: [
+                {
+                  expiry:
+                    "asc",
+                },
+                {
+                  manufacture:
+                    "asc",
+                },
+                {
+                  id:
+                    "asc",
+                },
+              ],
+            });
+
+          const totalAvailable =
+            receiveItems.reduce(
+              (
+                sum: number,
+                receiveItem: any
+              ) =>
+                sum +
+                Number(
+                  receiveItem
+                    .balance
+                ),
+              0
+            );
+
+          if (
+            totalAvailable <
+            quantityToIssue
+          ) {
+            const material =
+              existingMaterials.find(
+                (
+                  m: {
+                    id: number;
+                    name: string;
+                  }
+                ) =>
+                  m.id ===
+                  item.materialId
+              );
+
+            throw new Error(
+              `พัสดุ "${
+                material?.name ??
+                item.materialId
+              }" มีจำนวนในล็อตไม่เพียงพอ (มี ${totalAvailable} แต่ต้องการ ${quantityToIssue})`
+            );
+          }
+
+          let remaining =
+            quantityToIssue;
+
+          let firstReceiveItemId:
+            number | null =
+            null;
+
+          let firstManufacture:
+            Date | null =
+            null;
+
+          let firstExpiry:
+            Date | null =
+            null;
+
+          /* =============================================
+             CUT LOTS
+          ============================================= */
+
+          for (
+            const receiveItem of
+              receiveItems
+          ) {
+            if (
+              remaining <= 0
+            ) {
+              break;
+            }
+
+            const available =
+              Number(
+                receiveItem
+                  .balance
+              );
+
+            if (
+              available <= 0
+            ) {
+              continue;
+            }
+
+            const deduct =
+              Math.min(
+                available,
+                remaining
+              );
+
+            await tx.receiveItem.update({
+              where: {
+                id:
+                  receiveItem.id,
+              },
+
+              data: {
+                balance:
+                  available -
+                  deduct,
+              },
+            });
+
+            if (
+              firstReceiveItemId ===
+              null
+            ) {
+              firstReceiveItemId =
+                receiveItem.id;
+
+              firstManufacture =
+                receiveItem
+                  .manufacture;
+
+              firstExpiry =
+                receiveItem
+                  .expiry;
+            }
+
+            remaining -=
+              deduct;
+          }
+
+          if (
+            remaining > 0
+          ) {
+            throw new Error(
+              `ไม่สามารถตัดสต็อกพัสดุ ID ${item.materialId} ได้ครบ เหลือ ${remaining} หน่วย`
+            );
+          }
+
+          /* =============================================
+             MATERIAL BALANCE
+          ============================================= */
+
+          await tx.material.update({
+            where: {
+              id:
+                item.materialId,
+            },
+
+            data: {
+              balance: {
+                decrement:
+                  quantityToIssue,
+              },
+            },
+          });
+
+          /* =============================================
+             CREATE NEW ISSUE ITEM
+          ============================================= */
+
           await tx.issueItem.create({
             data: {
               issueId,
@@ -596,38 +961,26 @@ export async function updateIssue(
               qty:
                 item.qty,
 
-              // ===========================================
-              // หมายเหตุรายรายการ
-              // ===========================================
-
               remark:
                 item.remark,
 
-              // ===========================================
-              // ยังไม่ได้เบิกจ่ายจริง
-              // ===========================================
-
-              issuedQty: 0,
-
-              // ===========================================
-              // PENDING ยังไม่เลือกล็อต
-              // ===========================================
+              issuedQty:
+                quantityToIssue,
 
               receiveItemId:
-                null,
+                firstReceiveItemId,
 
               manufacture:
-                null,
+                firstManufacture,
 
               expiry:
-                null,
+                firstExpiry,
             },
           });
         }
       },
       {
         maxWait: 10000,
-
         timeout: 120000,
       }
     );
@@ -640,9 +993,9 @@ export async function updateIssue(
     throw error;
   }
 
-  // =====================================================
-  // Refresh หน้าที่เกี่ยวข้อง
-  // =====================================================
+  /* =======================================================
+     REFRESH
+  ======================================================= */
 
   revalidatePath(
     "/issue"
@@ -656,23 +1009,21 @@ export async function updateIssue(
     `/issue/${issueId}/edit`
   );
 
-  // =====================================================
-  // ไม่มีการเปลี่ยน Stock ในขั้นตอน Edit
-  //
-  // แต่ refresh ไว้เพื่อป้องกันข้อมูล cache
-  // =====================================================
-
   revalidatePath(
     "/stock-card"
   );
 
-  // =====================================================
-  // กลับหน้ารายละเอียดใบเบิก
-  //
-  // เดิม redirect("/issue")
-  // เปลี่ยนเป็นหน้ารายละเอียดใบที่เพิ่งแก้
-  // จะตรวจผลได้ทันที
-  // =====================================================
+  revalidatePath(
+    "/materials"
+  );
+
+  revalidatePath(
+    "/notifications"
+  );
+
+  /* =======================================================
+     REDIRECT
+  ======================================================= */
 
   redirect(
     `/issue/${issueId}`

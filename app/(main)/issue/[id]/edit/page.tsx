@@ -1,9 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import {
-  notFound,
-  redirect,
-} from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   verifySession,
@@ -17,27 +14,15 @@ import AppCard from "@/components/AppCard";
 
 import EditIssueForm from "./EditIssueForm";
 
-/* =========================================================
-   TYPES
-========================================================= */
-
 type Props = {
   params: Promise<{
     id: string;
   }>;
 };
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 export default async function EditIssuePage({
   params,
 }: Props) {
-  /* =======================================================
-     PARAMS
-  ======================================================= */
-
   const { id } = await params;
 
   const issueId = Number(id);
@@ -49,28 +34,16 @@ export default async function EditIssuePage({
     notFound();
   }
 
-  /* =======================================================
-     SESSION
-  ======================================================= */
-
-  const cookieStore =
-    await cookies();
-
+  const cookieStore = await cookies();
   const token =
-    cookieStore.get(
-      "session"
-    )?.value;
+    cookieStore.get("session")?.value;
 
-  let session:
-    | SessionUser
-    | null = null;
+  let session: SessionUser | null = null;
 
   if (token) {
     try {
       session =
-        await verifySession(
-          token
-        );
+        await verifySession(token);
     } catch {
       session = null;
     }
@@ -79,10 +52,6 @@ export default async function EditIssuePage({
   if (!session) {
     redirect("/login");
   }
-
-  /* =======================================================
-     USER DEPARTMENT
-  ======================================================= */
 
   let userDepartmentId =
     session.departmentId ?? null;
@@ -96,20 +65,14 @@ export default async function EditIssuePage({
         where: {
           id: session.id,
         },
-
         select: {
           departmentId: true,
         },
       });
 
     userDepartmentId =
-      currentUser?.departmentId ??
-      null;
+      currentUser?.departmentId ?? null;
   }
-
-  /* =======================================================
-     ISSUE PERMISSION
-  ======================================================= */
 
   const issueWhere =
     session.role === "ADMIN"
@@ -127,14 +90,9 @@ export default async function EditIssuePage({
             departmentId: -1,
           };
 
-  /* =======================================================
-     LOAD ISSUE
-  ======================================================= */
-
   const issue =
     await prisma.issue.findFirst({
       where: issueWhere,
-
       include: {
         officer: {
           select: {
@@ -142,13 +100,11 @@ export default async function EditIssuePage({
             firstName: true,
             lastName: true,
             departmentId: true,
-
             department: {
               select: {
                 id: true,
               },
             },
-
             section: {
               select: {
                 departmentId: true,
@@ -156,12 +112,11 @@ export default async function EditIssuePage({
             },
           },
         },
-
         items: {
           include: {
             material: true,
+            receiveItem: true,
           },
-
           orderBy: {
             id: "asc",
           },
@@ -173,9 +128,27 @@ export default async function EditIssuePage({
     notFound();
   }
 
-  /* =======================================================
-     LOAD FORM DATA
-  ======================================================= */
+  if (
+    issue.status === "APPROVED" &&
+    session.role !== "ADMIN"
+  ) {
+    redirect(`/issue/${issue.id}`);
+  }
+
+  const currentReceiveItemIds =
+    issue.items
+      .map(
+        (item) =>
+          item.receiveItemId
+      )
+      .filter(
+        (
+          value
+        ): value is number =>
+          typeof value === "number" &&
+          Number.isInteger(value) &&
+          value > 0
+      );
 
   const [
     departments,
@@ -183,10 +156,6 @@ export default async function EditIssuePage({
     receiveItems,
     officers,
   ] = await Promise.all([
-    /* =====================================================
-       DEPARTMENTS
-    ===================================================== */
-
     prisma.department.findMany({
       where:
         session.role === "ADMIN"
@@ -198,15 +167,10 @@ export default async function EditIssuePage({
             : {
                 id: -1,
               },
-
       orderBy: {
         name: "asc",
       },
     }),
-
-    /* =====================================================
-       MATERIALS
-    ===================================================== */
 
     prisma.material.findMany({
       orderBy: [
@@ -219,21 +183,40 @@ export default async function EditIssuePage({
       ],
     }),
 
-    /* =====================================================
-       RECEIVE ITEMS
-    ===================================================== */
-
     prisma.receiveItem.findMany({
-      where: {
-        balance: {
-          gt: 0,
-        },
-      },
-
+      where:
+        currentReceiveItemIds.length >
+        0
+          ? {
+              OR: [
+                {
+                  balance: {
+                    gt: 0,
+                  },
+                },
+                {
+                  id: {
+                    in:
+                      currentReceiveItemIds,
+                  },
+                },
+              ],
+            }
+          : {
+              balance: {
+                gt: 0,
+              },
+            },
       include: {
         material: true,
+        receive: {
+          select: {
+            id: true,
+            documentNo: true,
+            receiveDate: true,
+          },
+        },
       },
-
       orderBy: [
         {
           expiry: "asc",
@@ -246,16 +229,6 @@ export default async function EditIssuePage({
         },
       ],
     }),
-
-    /* =====================================================
-       OFFICERS
-
-       ADMIN
-       - โหลดทั้งหมด
-
-       USER
-       - โหลดเฉพาะบุคลากรในกลุ่มงานตนเอง
-    ===================================================== */
 
     prisma.officer.findMany({
       where:
@@ -279,12 +252,10 @@ export default async function EditIssuePage({
             : {
                 id: -1,
               },
-
       include: {
         department: true,
         section: true,
       },
-
       orderBy: [
         {
           firstName: "asc",
@@ -296,40 +267,33 @@ export default async function EditIssuePage({
     }),
   ]);
 
-  /* =======================================================
-     PERMISSION
-
-     กลุ่มงาน:
-     ADMIN เท่านั้นที่เปลี่ยนได้
-  ======================================================= */
-
   const canChangeDepartment =
     session.role === "ADMIN";
 
-  /* =======================================================
-     UI
-  ======================================================= */
+  const isApproved =
+    issue.status === "APPROVED";
 
   return (
     <AppPage>
-      {/* =====================================================
-          HEADER
-          ให้เหมือน /issue/create
-      ===================================================== */}
-
       <AppPageHeader
         icon="🖊️"
-        title="แก้ไขรายการเบิกพัสดุ"
-        subtitle="แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
+        title={
+          isApproved
+            ? "แก้ไขใบเบิกที่บันทึกเบิกจ่ายแล้ว"
+            : "แก้ไขรายการเบิกพัสดุ"
+        }
+        subtitle={
+          isApproved
+            ? "แก้ไขรายการที่เบิกผิด โดยระบบจะต้องคืนสต็อกเดิมและตัดสต็อกใหม่"
+            : "แก้ไขรายละเอียดเอกสารและรายการพัสดุ"
+        }
         actions={
           <AppButton
             href="/issue"
             variant="back"
             size="md"
             icon={
-              <span
-                aria-hidden="true"
-              >
+              <span aria-hidden="true">
                 ←
               </span>
             }
@@ -339,35 +303,47 @@ export default async function EditIssuePage({
         }
       />
 
-      {/* =====================================================
-          MAIN CARD
-          รูปแบบเดียวกับ /issue/create
-      ===================================================== */}
-
       <AppCard
         className="
           relative
           z-0
-
           w-full
           min-w-0
-
           overflow-visible
-
           p-4
-
           sm:p-5
           lg:p-6
         "
       >
+        {isApproved && (
+          <div
+            className="
+              mb-4
+              rounded-[18px]
+              border
+              border-amber-200
+              bg-amber-50/80
+              px-4
+              py-3
+              text-sm
+              font-bold
+              leading-relaxed
+              !text-amber-900
+              shadow-sm
+            "
+          >
+            ⚠️ ใบเบิกนี้ผ่านการเบิกจ่ายและตัดสต็อกแล้ว
+            การบันทึกการแก้ไขต้องคืนยอดเดิมกลับเข้าสต็อกก่อน
+            แล้วจึงตัดสต็อกใหม่ตามรายการที่แก้ไข
+          </div>
+        )}
+
         <div
           className="
             relative
             z-10
-
             w-full
             min-w-0
-
             overflow-visible
           "
         >
