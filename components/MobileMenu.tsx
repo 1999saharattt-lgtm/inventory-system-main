@@ -73,11 +73,6 @@ const menus: MenuGroup[] = [
         href: "/stock-card",
         emoji: "📒",
       },
-      {
-        name: "ทะเบียนคุมครุภัณฑ์",
-        href: "/assets",
-        emoji: "🖥️",
-      },
     ],
   },
   {
@@ -721,9 +716,12 @@ export default function MobileMenu({
         <nav
           aria-label="เมนูสำหรับมือถือ"
           className="
+            mx-auto
+
             flex
             w-full
             min-w-0
+            max-w-[680px]
 
             items-center
             justify-around
@@ -732,14 +730,23 @@ export default function MobileMenu({
             overflow-x-auto
             overflow-y-visible
 
-            border-0
-            bg-transparent
+            rounded-[20px]
 
-            px-1
-            py-1
+            border
+            border-white/80
 
-            shadow-none
-            ring-0
+            bg-white/72
+
+            px-2
+            py-1.5
+
+            shadow-[0_14px_36px_-26px_rgba(15,23,42,0.42)]
+
+            ring-1
+            ring-slate-900/[0.025]
+
+            backdrop-blur-2xl
+            backdrop-saturate-150
 
             [scrollbar-width:none]
 
@@ -861,6 +868,51 @@ export default function MobileMenu({
             {isActive(
               "/notifications"
             ) && (
+              <span
+                aria-hidden="true"
+                className="
+                  absolute
+                  -bottom-0.5
+                  left-1/2
+
+                  h-[3px]
+                  w-5
+
+                  -translate-x-1/2
+
+                  rounded-full
+
+                  bg-emerald-500
+                "
+              />
+            )}
+          </Link>
+
+          {/* ASSETS */}
+
+          <Link
+            href="/assets"
+            prefetch
+            title="ทะเบียนคุมครุภัณฑ์"
+            aria-label="ทะเบียนคุมครุภัณฑ์"
+            onClick={() =>
+              setSelectedGroup(
+                null
+              )
+            }
+            className={iconButtonClass()}
+          >
+            <span
+              aria-hidden="true"
+              className="
+                text-[24px]
+                leading-none
+              "
+            >
+              🖥️
+            </span>
+
+            {isActive("/assets") && (
               <span
                 aria-hidden="true"
                 className="
