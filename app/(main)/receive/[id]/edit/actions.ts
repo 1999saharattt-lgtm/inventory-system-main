@@ -304,14 +304,14 @@ export async function updateReceive(
       }
 
       /* =================================================
-         ตรวจจำนวนที่เบิกจ่ายจริงของแต่ละ ReceiveItem
+         ตรวจจำนวนที่เคยเบิกจริงของแต่ละ ReceiveItem
 
-         ใช้ issuedQty เท่านั้น เพราะ:
-         - qty       = จำนวนที่ขอเบิก
-         - issuedQty = จำนวนที่ Admin เบิกจ่ายจริง
+         ใช้ยอดที่ถูกตัดออกจากล็อตจริง:
+         issuedQty = qty เดิม - balance ปัจจุบัน
 
-         ห้าม fallback ไปใช้ qty เพราะจะทำให้ระบบนับ
-         จำนวนที่ขอเบิกเป็นจำนวนที่จ่ายจริง
+         วิธีนี้แม่นยำกว่าการย้อนดู IssueItem เพราะ
+         IssueItem.receiveItemId เก็บได้เพียงล็อตแรก
+         ในกรณีที่การเบิก 1 รายการกินหลายล็อต
       ================================================= */
 
       const oldItemUsage =
@@ -320,41 +320,22 @@ export async function updateReceive(
       for (
         const oldItem of oldItems
       ) {
-        const issueItems =
-          await tx.issueItem.findMany({
-            where: {
-              receiveItemId:
-                oldItem.id,
-            },
-            select: {
-              qty: true,
-              issuedQty: true,
-            },
-          });
+        const oldQty = Number(
+          oldItem.qty ?? 0
+        );
 
-        const issueQty =
-          issueItems.reduce(
-            (
-              sum: number,
-              issueItem: any
-            ) => {
-              const actualIssuedQty =
-                Number(
-                  issueItem.issuedQty ??
-                    0
-                );
+        const oldBalance = Number(
+          oldItem.balance ?? 0
+        );
 
-              return (
-                sum +
-                actualIssuedQty
-              );
-            },
-            0
-          );
+        const issuedQty = Math.max(
+          0,
+          oldQty - oldBalance
+        );
 
         oldItemUsage.set(
           oldItem.id,
-          issueQty
+          issuedQty
         );
       }
 
