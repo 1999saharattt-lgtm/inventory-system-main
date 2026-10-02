@@ -304,10 +304,14 @@ export async function updateReceive(
       }
 
       /* =================================================
-         ตรวจจำนวนที่เคยเบิกจริงของแต่ละ ReceiveItem
+         ตรวจจำนวนที่เบิกจ่ายจริงของแต่ละ ReceiveItem
 
-         คง fallback qty สำหรับข้อมูลเก่าที่ issuedQty
-         อาจยังไม่มีค่า เพื่อไม่ทำให้ประวัติเดิมเสีย
+         ใช้ issuedQty เท่านั้น เพราะ:
+         - qty       = จำนวนที่ขอเบิก
+         - issuedQty = จำนวนที่ Admin เบิกจ่ายจริง
+
+         ห้าม fallback ไปใช้ qty เพราะจะทำให้ระบบนับ
+         จำนวนที่ขอเบิกเป็นจำนวนที่จ่ายจริง
       ================================================= */
 
       const oldItemUsage =
@@ -335,15 +339,14 @@ export async function updateReceive(
               issueItem: any
             ) => {
               const actualIssuedQty =
-                issueItem.issuedQty ??
-                issueItem.qty ??
-                0;
+                Number(
+                  issueItem.issuedQty ??
+                    0
+                );
 
               return (
                 sum +
-                Number(
-                  actualIssuedQty
-                )
+                actualIssuedQty
               );
             },
             0
