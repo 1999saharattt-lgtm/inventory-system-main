@@ -33,6 +33,7 @@ type Material = {
 };
 
 type ReceiveRow = {
+  receiveItemId: string;
   category: string;
   materialId: string;
   qty: string;
@@ -42,6 +43,7 @@ type ReceiveRow = {
 };
 
 type ReceiveItem = {
+  id: number;
   materialId: number;
   qty: number;
   unitPrice: number | string;
@@ -1856,6 +1858,7 @@ export default function EditReceiveForm({
 }: Props) {
   const emptyRow =
     (): ReceiveRow => ({
+      receiveItemId: "",
       category: "",
       materialId: "",
       qty: "",
@@ -1911,6 +1914,8 @@ export default function EditReceiveForm({
         const rows =
           receive.items.map(
             (item) => ({
+              receiveItemId: String(item.id),
+
               category:
                 item.material
                   .category,
@@ -2537,7 +2542,8 @@ export default function EditReceiveForm({
                   return (
                     <tr
                       key={
-                        index
+                        row.receiveItemId ||
+                        `new-${index}`
                       }
                       className={`
                         ${
@@ -2554,6 +2560,12 @@ export default function EditReceiveForm({
                         hover:bg-blue-50/70
                       `}
                     >
+                      <input
+                        type="hidden"
+                        name={`items[${index}].receiveItemId`}
+                        value={row.receiveItemId}
+                      />
+
                       {/* ลำดับ */}
 
                       <td

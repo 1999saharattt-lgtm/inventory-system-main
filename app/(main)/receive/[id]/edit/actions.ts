@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 type ReceiveRow = {
+  receiveItemId: number | null;
   materialId: number;
   qty: number;
   unitPrice: number;
@@ -18,24 +19,6 @@ type ReceiveRow = {
 
 const RECEIVE_ROW_COUNT = 20;
 
-function sameDate(
-  a: Date | null,
-  b: Date | null
-) {
-  if (!a && !b) {
-    return true;
-  }
-
-  if (!a || !b) {
-    return false;
-  }
-
-  const aTime = new Date(a).getTime();
-  const bTime = new Date(b).getTime();
-
-  return aTime === bTime;
-}
-
 export async function updateReceive(
   formData: FormData
 ) {
@@ -44,7 +27,7 @@ export async function updateReceive(
   );
 
   const receiveDateValue =
-    formData.get("receiveDate") as string;
+    (formData.get("receiveDate") as string) || "";
 
   const receiveDate = new Date(
     receiveDateValue
@@ -60,17 +43,67 @@ export async function updateReceive(
   const remark =
     (formData.get("remark") as string) || "";
 
+  if (
+    !Number.isInteger(receiveId) ||
+    receiveId <= 0
+  ) {
+    throw new Error(
+      "ข้อมูลเอกสารรับเข้าไม่ถูกต้อง"
+    );
+  }
+
+  if (
+    Number.isNaN(
+      receiveDate.getTime()
+    )
+  ) {
+    throw new Error(
+      "วันที่รับเข้าไม่ถูกต้อง"
+    );
+  }
+
+  if (
+    !Number.isInteger(vendorId) ||
+    vendorId <= 0
+  ) {
+    throw new Error(
+      "กรุณาเลือกผู้จำหน่าย"
+    );
+  }
+
   const items: ReceiveRow[] = [];
 
-  // =====================================================
-  // อ่านรายการรับเข้าจาก FormData จำนวน 20 แถว
-  // =====================================================
+  /* =====================================================
+     อ่านรายการรับเข้าจาก FormData จำนวน 20 แถว
+
+     receiveItemId มีค่า  = แถวเดิม / ล็อตเดิม
+     receiveItemId ว่าง   = แถวใหม่ / ล็อตใหม่
+  ===================================================== */
 
   for (
     let i = 0;
     i < RECEIVE_ROW_COUNT;
     i++
   ) {
+    const receiveItemIdValue =
+      (formData.get(
+        `items[${i}].receiveItemId`
+      ) as string) || "";
+
+    const parsedReceiveItemId =
+      receiveItemIdValue
+        ? Number(receiveItemIdValue)
+        : null;
+
+    const receiveItemId =
+      parsedReceiveItemId !== null &&
+      Number.isInteger(
+        parsedReceiveItemId
+      ) &&
+      parsedReceiveItemId > 0
+        ? parsedReceiveItemId
+        : null;
+
     const materialId = Number(
       formData.get(
         `items[${i}].materialId`
@@ -109,18 +142,69 @@ export async function updateReceive(
         ? new Date(expiryValue)
         : null;
 
+    /* แถวว่าง */
     if (
-      materialId > 0 &&
-      qty > 0
+      !materialId ||
+      !qty
     ) {
-      items.push({
-        materialId,
-        qty,
-        unitPrice,
-        manufacture,
-        expiry,
-      });
+      continue;
     }
+
+    if (
+      !Number.isInteger(materialId) ||
+      materialId <= 0
+    ) {
+      continue;
+    }
+
+    if (
+      !Number.isInteger(qty) ||
+      qty <= 0
+    ) {
+      throw new Error(
+        "จำนวนรับเข้าต้องเป็นจำนวนเต็มมากกว่า 0"
+      );
+    }
+
+    if (
+      !Number.isFinite(unitPrice) ||
+      unitPrice < 0
+    ) {
+      throw new Error(
+        "ราคาพัสดุไม่ถูกต้อง"
+      );
+    }
+
+    if (
+      manufacture &&
+      Number.isNaN(
+        manufacture.getTime()
+      )
+    ) {
+      throw new Error(
+        "วันผลิตไม่ถูกต้อง"
+      );
+    }
+
+    if (
+      expiry &&
+      Number.isNaN(
+        expiry.getTime()
+      )
+    ) {
+      throw new Error(
+        "วันหมดอายุไม่ถูกต้อง"
+      );
+    }
+
+    items.push({
+      receiveItemId,
+      materialId,
+      qty,
+      unitPrice,
+      manufacture,
+      expiry,
+    });
   }
 
   if (items.length === 0) {
@@ -129,15 +213,39 @@ export async function updateReceive(
     );
   }
 
-  // =====================================================
-  // Transaction
-  // =====================================================
+  /* =====================================================
+     ReceiveItem เดิม 1 ID ต้องปรากฏเพียง 1 แถว
+  ===================================================== */
+
+  const submittedExistingIds =
+    items
+      .map(
+        (item) =>
+          item.receiveItemId
+      )
+      .filter(
+        (
+          id
+        ): id is number =>
+          id !== null
+      );
+
+  if (
+    new Set(
+      submittedExistingIds
+    ).size !==
+    submittedExistingIds.length
+  ) {
+    throw new Error(
+      "พบข้อมูลล็อตเดิมซ้ำในแบบฟอร์ม กรุณาเปิดหน้าแก้ไขใหม่แล้วลองอีกครั้ง"
+    );
+  }
 
   await prisma.$transaction(
     async (tx: any) => {
-      // =================================================
-      // ตรวจสอบใบรับเดิม
-      // =================================================
+      /* =================================================
+         ตรวจสอบใบรับเดิม
+      ================================================= */
 
       const receive =
         await tx.receive.findUnique({
@@ -152,54 +260,58 @@ export async function updateReceive(
         );
       }
 
-      // =================================================
-      // ดึง ReceiveItem เดิม
-      // =================================================
+      /* =================================================
+         ดึง ReceiveItem เดิมของใบรับนี้ทั้งหมด
+      ================================================= */
 
       const oldItems =
         await tx.receiveItem.findMany({
           where: {
             receiveId,
           },
-
           orderBy: {
             id: "asc",
           },
         });
 
-      // =================================================
-      // หา Material ที่ได้รับผลกระทบ
-      // =================================================
+      const oldItemMap =
+        new Map<number, any>(
+          oldItems.map(
+            (oldItem: any) => [
+              oldItem.id,
+              oldItem,
+            ]
+          )
+        );
 
-      const affectedMaterialIds = [
-        ...new Set([
-          ...oldItems.map(
-            (item: any) =>
-              item.materialId
-          ),
+      const affectedMaterialIds =
+        new Set<number>();
 
-          ...items.map(
-            (item) =>
-              item.materialId
-          ),
-        ]),
-      ];
+      for (
+        const oldItem of oldItems
+      ) {
+        affectedMaterialIds.add(
+          oldItem.materialId
+        );
+      }
 
-      // =================================================
-      // ตรวจว่า ReceiveItem เดิมตัวไหนถูกเบิกไปแล้ว
-      //
-      // ใช้ issuedQty เป็นจำนวนที่ถูกเบิกจริง
-      // ถ้าไม่มี issuedQty ให้ใช้ qty
-      // =================================================
+      for (
+        const item of items
+      ) {
+        affectedMaterialIds.add(
+          item.materialId
+        );
+      }
+
+      /* =================================================
+         ตรวจจำนวนที่เคยเบิกจริงของแต่ละ ReceiveItem
+
+         คง fallback qty สำหรับข้อมูลเก่าที่ issuedQty
+         อาจยังไม่มีค่า เพื่อไม่ทำให้ประวัติเดิมเสีย
+      ================================================= */
 
       const oldItemUsage =
-        new Map<
-          number,
-          {
-            issueQty: number;
-            issueItemIds: number[];
-          }
-        >();
+        new Map<number, number>();
 
       for (
         const oldItem of oldItems
@@ -210,9 +322,7 @@ export async function updateReceive(
               receiveItemId:
                 oldItem.id,
             },
-
             select: {
-              id: true,
               qty: true,
               issuedQty: true,
             },
@@ -241,81 +351,18 @@ export async function updateReceive(
 
         oldItemUsage.set(
           oldItem.id,
-          {
-            issueQty,
-
-            issueItemIds:
-              issueItems.map(
-                (
-                  issueItem: any
-                ) =>
-                  issueItem.id
-              ),
-          }
+          issueQty
         );
       }
 
-      // =================================================
-      // แบ่ง ReceiveItem เดิม
-      //
-      // protectedOldItems
-      // = มีการเบิกแล้ว ห้ามลบ
-      //
-      // editableOldItems
-      // = ยังไม่เคยเบิก สามารถลบและสร้างใหม่ได้
-      // =================================================
-
-      const protectedOldItems =
-        oldItems.filter(
-          (item: any) =>
-            (
-              oldItemUsage.get(
-                item.id
-              )?.issueQty ?? 0
-            ) > 0
-        );
-
-      const editableOldItems =
-        oldItems.filter(
-          (item: any) =>
-            (
-              oldItemUsage.get(
-                item.id
-              )?.issueQty ?? 0
-            ) === 0
-        );
-
-      // =================================================
-      // ลบเฉพาะ ReceiveItem เดิม
-      // ที่ยังไม่เคยถูกเบิก
-      // =================================================
-
-      if (
-        editableOldItems.length >
-        0
-      ) {
-        await tx.receiveItem.deleteMany({
-          where: {
-            id: {
-              in:
-                editableOldItems.map(
-                  (item: any) =>
-                    item.id
-                ),
-            },
-          },
-        });
-      }
-
-      // =================================================
-      // แก้หัวเอกสาร
-      // =================================================
+      /* =================================================
+         แก้หัวเอกสาร
+      ================================================= */
 
       await tx.receive.update({
         where: {
           id: receiveId,
         },
-
         data: {
           receiveDate,
           documentNo,
@@ -324,95 +371,67 @@ export async function updateReceive(
         },
       });
 
-      // =================================================
-      // รายการจากฟอร์มที่ยังไม่ได้จับคู่
-      // =================================================
+      const submittedIdSet =
+        new Set(
+          submittedExistingIds
+        );
 
-      const remainingFormItems =
-        [...items];
+      /* =================================================
+         อัปเดตล็อตเดิมด้วย ReceiveItem.id โดยตรง
 
-      // =================================================
-      // อัปเดตล็อตเดิมที่ถูกเบิกแล้ว
-      //
-      // ลำดับการจับคู่:
-      //
-      // 1. materialId + manufacture + expiry
-      // 2. ถ้าไม่เจอ ให้จับคู่ด้วย materialId
-      //
-      // วิธีนี้ทำให้แก้วันผลิต / วันหมดอายุ
-      // ของล็อตที่เคยถูกเบิกแล้วได้
-      // โดยยังรักษา ReceiveItem.id เดิม
-      // =================================================
+         ไม่มีการจับคู่จาก materialId
+         ไม่มีการจับคู่จาก manufacture / expiry
+         จึงไม่สลับล็อต
+      ================================================= */
 
       for (
-        const oldItem of
-        protectedOldItems
+        const item of items
       ) {
-        const usage =
-          oldItemUsage.get(
-            oldItem.id
-          );
-
-        const oldIssueQty =
-          usage?.issueQty ?? 0;
-
-        // -------------------------------------------------
-        // พยายามจับคู่แบบละเอียดก่อน
-        // -------------------------------------------------
-
-        let formIndex =
-          remainingFormItems.findIndex(
-            (item) =>
-              item.materialId ===
-                oldItem.materialId &&
-              sameDate(
-                item.manufacture,
-                oldItem.manufacture
-              ) &&
-              sameDate(
-                item.expiry,
-                oldItem.expiry
-              )
-          );
-
-        // -------------------------------------------------
-        // ถ้าหาไม่เจอ
-        // ให้จับคู่จาก materialId
-        //
-        // รองรับกรณีผู้ใช้แก้วันผลิต / วันหมดอายุ
-        // -------------------------------------------------
-
-        if (formIndex === -1) {
-          formIndex =
-            remainingFormItems.findIndex(
-              (item) =>
-                item.materialId ===
-                oldItem.materialId
-            );
-        }
-
-        // -------------------------------------------------
-        // ถ้าไม่พบรายการในฟอร์ม
-        //
-        // ห้ามลบ ReceiveItem ที่มีประวัติการเบิก
-        // -------------------------------------------------
-
-        if (formIndex === -1) {
+        if (
+          item.receiveItemId === null
+        ) {
           continue;
         }
 
-        const formItem =
-          remainingFormItems[
-            formIndex
-          ];
+        const oldItem =
+          oldItemMap.get(
+            item.receiveItemId
+          );
 
-        // -------------------------------------------------
-        // จำนวนใหม่ต้องไม่น้อยกว่าจำนวน
-        // ที่ถูกเบิกจริงไปแล้ว
-        // -------------------------------------------------
+        if (!oldItem) {
+          throw new Error(
+            `ไม่พบล็อตเดิมรหัส ${item.receiveItemId} ในใบรับเข้านี้ กรุณาเปิดหน้าแก้ไขใหม่แล้วลองอีกครั้ง`
+          );
+        }
 
+        const oldIssueQty =
+          oldItemUsage.get(
+            oldItem.id
+          ) ?? 0;
+
+        /*
+         * ล็อตที่ถูกเบิกแล้วห้ามเปลี่ยนชนิดวัสดุ
+         * เพราะ IssueItem เดิมอ้างถึง ReceiveItem นี้อยู่
+         */
         if (
-          formItem.qty <
+          oldIssueQty > 0 &&
+          item.materialId !==
+            oldItem.materialId
+        ) {
+          throw new Error(
+            `ไม่สามารถเปลี่ยนรายการพัสดุ "${oldItem.materialId}" ได้ เพราะมีการเบิกจากล็อตนี้ไปแล้ว`
+          );
+        }
+
+        /*
+         * ตัวอย่างเคสที่ต้องผ่าน:
+         * เดิม qty = 6
+         * เบิกแล้ว = 5
+         * แก้ qty = 5
+         * => 5 < 5 เป็น false จึงผ่าน
+         */
+        if (
+          item.qty <
           oldIssueQty
         ) {
           throw new Error(
@@ -420,95 +439,106 @@ export async function updateReceive(
           );
         }
 
-        // -------------------------------------------------
-        // คำนวณยอดคงเหลือใหม่
-        //
-        // qty ใหม่ - จำนวนที่เบิกจริง
-        // -------------------------------------------------
-
         const newBalance =
-          formItem.qty -
+          item.qty -
           oldIssueQty;
-
-        // -------------------------------------------------
-        // อัปเดต ReceiveItem เดิม
-        //
-        // สำคัญ:
-        // ไม่สร้าง ReceiveItem ใหม่
-        // เพื่อรักษา receiveItemId
-        // ที่ IssueItem อ้างอิงอยู่
-        // -------------------------------------------------
 
         await tx.receiveItem.update({
           where: {
             id: oldItem.id,
           },
-
           data: {
-            qty:
-              formItem.qty,
-
-            balance:
-              newBalance,
-
-            unitPrice:
-              formItem.unitPrice,
-
-            manufacture:
-              formItem.manufacture,
-
-            expiry:
-              formItem.expiry,
-          },
-        });
-
-        // เอารายการนี้ออกจากรายการที่ยังเหลือ
-        remainingFormItems.splice(
-          formIndex,
-          1
-        );
-      }
-
-      // =================================================
-      // สร้าง ReceiveItem ใหม่
-      //
-      // เหลือเฉพาะรายการที่ไม่มี ReceiveItem เดิม
-      // ที่ต้องรักษาไว้
-      // =================================================
-
-      for (
-        const item of
-        remainingFormItems
-      ) {
-        await tx.receiveItem.create({
-          data: {
-            receiveId,
-
             materialId:
               item.materialId,
-
             qty:
               item.qty,
-
             balance:
-              item.qty,
-
+              newBalance,
             unitPrice:
               item.unitPrice,
-
             manufacture:
               item.manufacture,
-
             expiry:
               item.expiry,
           },
         });
       }
 
-      // =================================================
-      // คำนวณ Material.balance ใหม่
-      // จาก ReceiveItem จริงทั้งหมด
-      // =================================================
+      /* =================================================
+         ล็อตเดิมที่ถูกเอาออกจากฟอร์ม
+
+         - ยังไม่เคยเบิก: ลบได้
+         - เคยเบิกแล้ว: ห้ามลบ
+      ================================================= */
+
+      for (
+        const oldItem of oldItems
+      ) {
+        if (
+          submittedIdSet.has(
+            oldItem.id
+          )
+        ) {
+          continue;
+        }
+
+        const oldIssueQty =
+          oldItemUsage.get(
+            oldItem.id
+          ) ?? 0;
+
+        if (
+          oldIssueQty > 0
+        ) {
+          throw new Error(
+            `ไม่สามารถลบรายการ "${oldItem.materialId}" ได้ เพราะมีการเบิกไปแล้ว ${oldIssueQty}`
+          );
+        }
+
+        await tx.receiveItem.delete({
+          where: {
+            id: oldItem.id,
+          },
+        });
+      }
+
+      /* =================================================
+         สร้างล็อตใหม่
+
+         receiveItemId ว่าง = แถวใหม่ในใบรับเดิม
+      ================================================= */
+
+      for (
+        const item of items
+      ) {
+        if (
+          item.receiveItemId !== null
+        ) {
+          continue;
+        }
+
+        await tx.receiveItem.create({
+          data: {
+            receiveId,
+            materialId:
+              item.materialId,
+            qty:
+              item.qty,
+            balance:
+              item.qty,
+            unitPrice:
+              item.unitPrice,
+            manufacture:
+              item.manufacture,
+            expiry:
+              item.expiry,
+          },
+        });
+      }
+
+      /* =================================================
+         คำนวณ Material.balance ใหม่จาก ReceiveItem จริง
+      ================================================= */
 
       for (
         const materialId of
@@ -519,7 +549,6 @@ export async function updateReceive(
             where: {
               materialId,
             },
-
             _sum: {
               balance: true,
             },
@@ -535,7 +564,6 @@ export async function updateReceive(
           where: {
             id: materialId,
           },
-
           data: {
             balance:
               newMaterialBalance,
@@ -543,24 +571,35 @@ export async function updateReceive(
         });
       }
 
-      // =================================================
-      // อัปเดต latestPrice
-      //
-      // ใช้ราคาจากรายการล่าสุดในฟอร์ม
-      // =================================================
+      /* =================================================
+         อัปเดต latestPrice
+      ================================================= */
+
+      const latestPriceByMaterial =
+        new Map<number, number>();
 
       for (
         const item of items
       ) {
+        latestPriceByMaterial.set(
+          item.materialId,
+          item.unitPrice
+        );
+      }
+
+      for (
+        const [
+          materialId,
+          latestPrice,
+        ] of
+        latestPriceByMaterial
+      ) {
         await tx.material.update({
           where: {
-            id:
-              item.materialId,
+            id: materialId,
           },
-
           data: {
-            latestPrice:
-              item.unitPrice,
+            latestPrice,
           },
         });
       }
@@ -570,10 +609,6 @@ export async function updateReceive(
       timeout: 60000,
     }
   );
-
-  // =====================================================
-  // กลับหน้ารายการรับเข้า
-  // =====================================================
 
   redirect("/receive");
 }
