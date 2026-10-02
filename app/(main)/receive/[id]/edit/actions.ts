@@ -435,7 +435,7 @@ export async function updateReceive(
           oldIssueQty
         ) {
           throw new Error(
-            `ไม่สามารถลดจำนวน "${oldItem.materialId}" ต่ำกว่า ${oldIssueQty} ได้ เพราะมีการเบิกไปแล้ว`
+            `ไม่สามารถแก้ล็อต ReceiveItem #${oldItem.id} (วัสดุ ${oldItem.materialId}) ได้: จำนวนใหม่ ${item.qty} แต่ล็อตนี้มีการเบิกไปแล้ว ${oldIssueQty}`
           );
         }
 

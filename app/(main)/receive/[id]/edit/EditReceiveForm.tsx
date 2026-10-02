@@ -2560,12 +2560,6 @@ export default function EditReceiveForm({
                         hover:bg-blue-50/70
                       `}
                     >
-                      <input
-                        type="hidden"
-                        name={`items[${index}].receiveItemId`}
-                        value={row.receiveItemId}
-                      />
-
                       {/* ลำดับ */}
 
                       <td
@@ -2583,6 +2577,12 @@ export default function EditReceiveForm({
                           !text-slate-800
                         "
                       >
+                        <input
+                          type="hidden"
+                          name={`items[${index}].receiveItemId`}
+                          value={row.receiveItemId}
+                        />
+
                         {index +
                           1}
                       </td>
