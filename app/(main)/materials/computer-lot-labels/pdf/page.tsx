@@ -4,8 +4,6 @@ import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 
 /* =========================================================
    FORCE FRESH DATA
-
-   ดึงข้อมูลใหม่ทุกครั้ง
 ========================================================= */
 
 export const dynamic = "force-dynamic";
@@ -13,8 +11,6 @@ export const revalidate = 0;
 
 /* =========================================================
    TYPES
-
-   1 ReceiveItem = 1 ล็อตจริง
 ========================================================= */
 
 type LotLabel = {
@@ -36,39 +32,49 @@ type LotLabel = {
 };
 
 /* =========================================================
+   NORMALIZE
+========================================================= */
+
+function normalizeSearchText(
+  value: string
+): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+/* =========================================================
    PRINTER CONSUMABLE CHECK
 
-   รองรับทั้งชื่อภาษาไทย/อังกฤษ
-   และชื่อที่มีเพียงรหัสรุ่น
-
-   เช่น
-   CLI-751
-   PGI-750
-   PG-740
-   CL-741
-   CF283A
-   CE285A
-   TN-2380
-   DR-2355
+   ตรวจทั้ง:
+   - ชื่อรายการ
+   - รหัสวัสดุ
 ========================================================= */
 
 function isPrinterConsumable(
-  name: string
+  name: string,
+  code: string
 ): boolean {
-  const normalized =
-    name
-      .trim()
-      .toLowerCase();
+  const normalizedName =
+    normalizeSearchText(name);
+
+  const normalizedCode =
+    normalizeSearchText(code);
+
+  const searchText =
+    `${normalizedCode} ${normalizedName}`;
 
   /* -------------------------------------------------------
-     คำเรียกโดยตรง
+     DIRECT KEYWORDS
   ------------------------------------------------------- */
 
   const keywords = [
     "หมึก",
+    "น้ำหมึก",
+    "ตลับหมึก",
     "หมึกพิมพ์",
     "หมึกเครื่องพิมพ์",
-    "ตลับหมึก",
 
     "โทนเนอร์",
     "ตลับโทนเนอร์",
@@ -79,6 +85,7 @@ function isPrinterConsumable(
 
     "ink",
     "inkjet",
+    "ink cartridge",
 
     "toner",
     "toner cartridge",
@@ -92,7 +99,7 @@ function isPrinterConsumable(
   if (
     keywords.some(
       (keyword) =>
-        normalized.includes(
+        searchText.includes(
           keyword
         )
     )
@@ -101,18 +108,12 @@ function isPrinterConsumable(
   }
 
   /* -------------------------------------------------------
-     Canon
-
-     CLI-751
-     CLI751
-     PGI-750
-     PG-740
-     CL-741
+     CANON
   ------------------------------------------------------- */
 
   if (
     /\bcli[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
@@ -120,7 +121,7 @@ function isPrinterConsumable(
 
   if (
     /\bpgi[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
@@ -128,7 +129,7 @@ function isPrinterConsumable(
 
   if (
     /\bpg[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
@@ -136,41 +137,39 @@ function isPrinterConsumable(
 
   if (
     /\bcl[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
   }
 
   /* -------------------------------------------------------
-     HP
-
-     CF283A
-     CF230A
-     CE285A
-     CC388A
-     Q2612A
+     HP / CANON LASER
   ------------------------------------------------------- */
 
   if (
-    /\b(?:cf|ce|cc|q)\s*-?\s*\d+[a-z]*\b/i.test(
-      normalized
+    /\b(?:cf|ce|cc|q)[\s-]?\d+[a-z]*\b/i.test(
+      searchText
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    /\bw[\s-]?\d{4,}[a-z]*\b/i.test(
+      searchText
     )
   ) {
     return true;
   }
 
   /* -------------------------------------------------------
-     Brother
-
-     TN-2380
-     TN2380
-     DR-2355
+     BROTHER
   ------------------------------------------------------- */
 
   if (
     /\btn[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
@@ -178,48 +177,39 @@ function isPrinterConsumable(
 
   if (
     /\bdr[\s-]?\d+[a-z]*\b/i.test(
-      normalized
+      searchText
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    /\blc[\s-]?\d+[a-z]*\b/i.test(
+      searchText
     )
   ) {
     return true;
   }
 
   /* -------------------------------------------------------
-     Samsung / HP newer toner
-
-     MLT-D...
-     W1106A
-     W1360A
+     SAMSUNG
   ------------------------------------------------------- */
 
   if (
     /\bmlt[\s-]?[a-z0-9-]+\b/i.test(
-      normalized
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bw\d{4,}[a-z]*\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
   }
 
   /* -------------------------------------------------------
-     Epson
-
-     T664
-     T673
-     T00V
-     C13...
+     EPSON
   ------------------------------------------------------- */
 
   if (
     /\bt[a-z0-9]{3,}\b/i.test(
-      normalized
+      searchText
     )
   ) {
     return true;
@@ -227,7 +217,39 @@ function isPrinterConsumable(
 
   if (
     /\bc13[a-z0-9-]+\b/i.test(
-      normalized
+      searchText
+    )
+  ) {
+    return true;
+  }
+
+  /* -------------------------------------------------------
+     RICOH / FUJI / XEROX
+  ------------------------------------------------------- */
+
+  if (
+    /\bsp[\s-]?\d{3,}[a-z]*\b/i.test(
+      searchText
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    /\bct[\s-]?\d{3,}[a-z]*\b/i.test(
+      searchText
+    )
+  ) {
+    return true;
+  }
+
+  /* -------------------------------------------------------
+     KYOCERA
+  ------------------------------------------------------- */
+
+  if (
+    /\btk[\s-]?\d+[a-z]*\b/i.test(
+      searchText
     )
   ) {
     return true;
@@ -242,20 +264,31 @@ function isPrinterConsumable(
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     1) ดึง ReceiveItem ทุกตัวของวัสดุ COMPUTER
+     LOAD RECEIVE ITEMS
 
-     สำคัญ:
-     ไม่ filter balance > 0 ตรงฐานข้อมูลแล้ว
+     สำคัญมาก:
 
-     เพราะ balance เดิมอาจคลาดเคลื่อน
-     เราจะคำนวณยอดเหลือใหม่จาก qty - IssueItem
+     ใช้ ReceiveItem.balance โดยตรง
+
+     ไม่คำนวณ qty - issuedQty ใหม่
+     เพราะ balance คือยอดคงเหลือจริงของล็อต
+     ที่ระบบจัดเก็บไว้
   ======================================================= */
 
   const receiveItems =
     await prisma.receiveItem.findMany({
       where: {
+        balance: {
+          gt: 0,
+        },
+
         material: {
-          category: "COMPUTER",
+          category: {
+            in: [
+              "COMPUTER",
+              "PRINTING",
+            ],
+          },
         },
       },
 
@@ -266,6 +299,7 @@ export default async function ComputerLotLabelsPdfPage() {
         materialId: true,
 
         qty: true,
+        balance: true,
 
         manufacture: true,
         expiry: true,
@@ -275,6 +309,7 @@ export default async function ComputerLotLabelsPdfPage() {
             code: true,
             name: true,
             unit: true,
+            category: true,
           },
         },
 
@@ -300,168 +335,30 @@ export default async function ComputerLotLabelsPdfPage() {
     });
 
   /* =======================================================
-     2) เก็บ ReceiveItem ID ทั้งหมด
-  ======================================================= */
+     FILTER PRINTER CONSUMABLES
 
-  const receiveItemIds =
-    receiveItems.map(
-      (item) =>
-        item.id
-    );
-
-  /* =======================================================
-     3) ดึงประวัติเบิกจริงของแต่ละ ReceiveItem
-
-     issuedQty = จำนวนเบิกจริง
-
-     ถ้า issuedQty ไม่มี
-     fallback ใช้ qty
-  ======================================================= */
-
-  const issueItems =
-    receiveItemIds.length >
-    0
-      ? await prisma.issueItem.findMany({
-          where: {
-            receiveItemId: {
-              in:
-                receiveItemIds,
-            },
-          },
-
-          select: {
-            receiveItemId:
-              true,
-
-            qty:
-              true,
-
-            issuedQty:
-              true,
-          },
-        })
-      : [];
-
-  /* =======================================================
-     4) รวมยอดเบิกตาม ReceiveItem
-
-     Map:
-     receiveItemId -> ยอดที่เบิกจริงแล้ว
-  ======================================================= */
-
-  const issuedQtyMap =
-    new Map<
-      number,
-      number
-    >();
-
-  for (
-    const issueItem of
-    issueItems
-  ) {
-    if (
-      !issueItem.receiveItemId
-    ) {
-      continue;
-    }
-
-    const actualIssuedQty =
-      Number(
-        issueItem.issuedQty ??
-          issueItem.qty ??
-          0
-      );
-
-    const currentIssued =
-      issuedQtyMap.get(
-        issueItem.receiveItemId
-      ) ?? 0;
-
-    issuedQtyMap.set(
-      issueItem.receiveItemId,
-      currentIssued +
-        actualIssuedQty
-    );
-  }
-
-  /* =======================================================
-     5) คำนวณยอดคงเหลือใหม่ทีละ ReceiveItem
-
-     remaining =
-     จำนวนรับของล็อตนี้
-     -
-     จำนวนเบิกจากล็อตนี้จริง
-
-     ตรงนี้คือจุดสำคัญที่สุด
-  ======================================================= */
-
-  const calculatedItems =
-    receiveItems.map(
-      (item) => {
-        const receivedQty =
-          Number(
-            item.qty ?? 0
-          );
-
-        const issuedQty =
-          issuedQtyMap.get(
-            item.id
-          ) ?? 0;
-
-        const remainingQty =
-          Math.max(
-            0,
-            receivedQty -
-              issuedQty
-          );
-
-        return {
-          ...item,
-
-          calculatedBalance:
-            remainingQty,
-        };
-      }
-    );
-
-  /* =======================================================
-     6) เอาเฉพาะล็อตที่ยังเหลือจริง
-  ======================================================= */
-
-  const remainingItems =
-    calculatedItems.filter(
-      (item) =>
-        item.calculatedBalance >
-        0
-    );
-
-  /* =======================================================
-     7) เอาเฉพาะหมึก / toner / drum
-
-     ตรวจทั้งคำเรียกและรหัสรุ่น
+     ตรวจทั้งชื่อและรหัส
   ======================================================= */
 
   const printerConsumables =
-    remainingItems.filter(
+    receiveItems.filter(
       (item) =>
         isPrinterConsumable(
-          item.material.name
+          item.material.name,
+          item.material.code
         )
     );
 
   /* =======================================================
-     8) SERIALIZE
+     SERIALIZE
 
-     สำคัญ:
+     1 object = 1 ReceiveItem = 1 ล็อตจริง
 
-     1 element
-     =
-     1 ReceiveItem จริง
-     =
-     1 ล็อตจริง
+     balance
+     manufacture
+     expiry
 
-     manufacture / expiry
-     มาจาก ReceiveItem ตัวนั้นเท่านั้น
+     มาจาก ReceiveItem เดียวกันทั้งหมด
   ======================================================= */
 
   const lots: LotLabel[] =
@@ -486,7 +383,9 @@ export default async function ComputerLotLabelsPdfPage() {
           item.material.unit,
 
         balance:
-          item.calculatedBalance,
+          Number(
+            item.balance ?? 0
+          ),
 
         manufacture:
           item.manufacture
@@ -508,10 +407,6 @@ export default async function ComputerLotLabelsPdfPage() {
           "",
       })
     );
-
-  /* =======================================================
-     PDF
-  ======================================================= */
 
   return (
     <ComputerLotLabelsPdf
