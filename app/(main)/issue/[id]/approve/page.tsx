@@ -55,8 +55,7 @@ export default async function ApproveIssuePage({
   ======================================================= */
 
   const cookieStore = await cookies();
-  const token =
-    cookieStore.get("session")?.value;
+  const token = cookieStore.get("session")?.value;
 
   let session: SessionUser | null = null;
 
@@ -88,23 +87,20 @@ export default async function ApproveIssuePage({
      ISSUE
   ======================================================= */
 
-  const issue =
-    await prisma.issue.findUnique({
-      where: {
-        id: Number(id),
-      },
-
-      include: {
-        department: true,
-        officer: true,
-
-        items: {
-          include: {
-            material: true,
-          },
+  const issue = await prisma.issue.findUnique({
+    where: {
+      id: Number(id),
+    },
+    include: {
+      department: true,
+      officer: true,
+      items: {
+        include: {
+          material: true,
         },
       },
-    });
+    },
+  });
 
   if (!issue) {
     notFound();
@@ -122,12 +118,10 @@ export default async function ApproveIssuePage({
      SUMMARY
   ======================================================= */
 
-  const totalRequested =
-    issue.items.reduce(
-      (total, item) =>
-        total + Number(item.qty),
-      0
-    );
+  const totalRequested = issue.items.reduce(
+    (total, item) => total + Number(item.qty),
+    0
+  );
 
   /* =======================================================
      APPROVE SERVER ACTION
@@ -138,17 +132,11 @@ export default async function ApproveIssuePage({
   ) => {
     "use server";
 
-    const issuedQty: Record<
-      number,
-      number
-    > = {};
+    const issuedQty: Record<number, number> = {};
 
     for (const item of issue.items) {
-      const fieldName =
-        `issuedQty_${item.id}`;
-
-      const rawValue =
-        formData.get(fieldName);
+      const fieldName = `issuedQty_${item.id}`;
+      const rawValue = formData.get(fieldName);
 
       if (
         rawValue === null ||
@@ -159,8 +147,7 @@ export default async function ApproveIssuePage({
         );
       }
 
-      const value =
-        Number(rawValue);
+      const value = Number(rawValue);
 
       if (
         !Number.isFinite(value) ||
@@ -172,17 +159,13 @@ export default async function ApproveIssuePage({
         );
       }
 
-      if (
-        value >
-        Number(item.qty)
-      ) {
+      if (value > Number(item.qty)) {
         throw new Error(
           `จำนวนเบิกจ่ายของ "${item.material.name}" มากกว่าจำนวนที่ขอเบิก`
         );
       }
 
-      issuedQty[item.id] =
-        value;
+      issuedQty[item.id] = value;
     }
 
     await approveIssue(
@@ -190,9 +173,7 @@ export default async function ApproveIssuePage({
       issuedQty
     );
 
-    redirect(
-      `/issue/${issue.id}`
-    );
+    redirect(`/issue/${issue.id}`);
   };
 
   /* =======================================================
@@ -214,8 +195,13 @@ export default async function ApproveIssuePage({
             href={`/issue/${issue.id}`}
             variant="back"
             size="md"
+            icon={
+              <span aria-hidden="true">
+                ←
+              </span>
+            }
           >
-            กลับรายละเอียด
+            กลับ
           </AppButton>
         }
       />
@@ -225,14 +211,7 @@ export default async function ApproveIssuePage({
       ===================================================== */}
 
       <AppCard className="p-4 sm:p-5">
-        <div
-          className="
-            mb-5
-            flex
-            items-center
-            gap-3
-          "
-        >
+        <div className="mb-4 flex min-w-0 items-center gap-3">
           <div
             className="
               flex
@@ -241,15 +220,10 @@ export default async function ApproveIssuePage({
               shrink-0
               items-center
               justify-center
-
               rounded-[15px]
-
               bg-blue-50/90
-
               text-xl
-
               shadow-sm
-
               ring-1
               ring-blue-100/80
             "
@@ -264,7 +238,6 @@ export default async function ApproveIssuePage({
                 font-black
                 tracking-tight
                 !text-slate-900
-
                 sm:text-xl
               "
             >
@@ -274,7 +247,6 @@ export default async function ApproveIssuePage({
             <p
               className="
                 mt-0.5
-
                 text-sm
                 font-semibold
                 !text-slate-500
@@ -288,29 +260,22 @@ export default async function ApproveIssuePage({
         <div
           className="
             grid
+            w-full
             min-w-0
-            gap-4
-
+            grid-cols-1
+            gap-3
             sm:grid-cols-2
             xl:grid-cols-3
           "
         >
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               เลขที่ใบเบิก
             </p>
-
             <p
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-extrabold
                 !text-slate-900
@@ -320,21 +285,13 @@ export default async function ApproveIssuePage({
             </p>
           </AppInfoCard>
 
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               วันที่เบิก
             </p>
-
             <p
               className="
                 mt-2
-
                 text-base
                 font-extrabold
                 !text-slate-900
@@ -342,54 +299,35 @@ export default async function ApproveIssuePage({
             >
               {new Date(
                 issue.issueDate
-              ).toLocaleDateString(
-                "th-TH"
-              )}
+              ).toLocaleDateString("th-TH")}
             </p>
           </AppInfoCard>
 
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               หน่วยงาน / กลุ่มงาน
             </p>
-
             <p
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-extrabold
                 !text-slate-900
               "
             >
-              {issue.department?.name ??
-                "-"}
+              {issue.department?.name ?? "-"}
             </p>
           </AppInfoCard>
 
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               ผู้ขอเบิก
             </p>
-
             <p
               className="
                 mt-2
                 break-words
-
                 text-base
                 font-extrabold
                 !text-slate-900
@@ -401,23 +339,16 @@ export default async function ApproveIssuePage({
             </p>
           </AppInfoCard>
 
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               จำนวนรายการ
             </p>
-
             <p
               className="
                 mt-2
-
                 text-base
                 font-extrabold
+                tabular-nums
                 !text-slate-900
               "
             >
@@ -428,23 +359,16 @@ export default async function ApproveIssuePage({
             </p>
           </AppInfoCard>
 
-          <AppInfoCard>
-            <p
-              className="
-                text-sm
-                font-bold
-                !text-slate-500
-              "
-            >
+          <AppInfoCard className="min-w-0">
+            <p className="text-sm font-bold !text-slate-500">
               จำนวนรวมที่ขอเบิก
             </p>
-
             <p
               className="
                 mt-2
-
                 text-base
                 font-extrabold
+                tabular-nums
                 !text-slate-900
               "
             >
@@ -457,24 +381,16 @@ export default async function ApproveIssuePage({
         </div>
 
         {issue.remark && (
-          <div className="mt-4">
-            <AppInfoCard>
-              <p
-                className="
-                  text-sm
-                  font-bold
-                  !text-slate-500
-                "
-              >
+          <div className="mt-3">
+            <AppInfoCard className="min-w-0">
+              <p className="text-sm font-bold !text-slate-500">
                 หมายเหตุ
               </p>
-
               <p
                 className="
                   mt-2
                   whitespace-pre-wrap
                   break-words
-
                   text-base
                   font-semibold
                   leading-relaxed
@@ -486,74 +402,6 @@ export default async function ApproveIssuePage({
             </AppInfoCard>
           </div>
         )}
-      </AppCard>
-
-      {/* =====================================================
-          WARNING
-      ===================================================== */}
-
-      <AppCard className="p-4 sm:p-5">
-        <AppInfoCard>
-          <div
-            className="
-              flex
-              items-start
-              gap-3
-            "
-          >
-            <div
-              className="
-                flex
-                h-10
-                w-10
-                shrink-0
-                items-center
-                justify-center
-
-                rounded-[13px]
-
-                bg-amber-50
-
-                text-lg
-
-                ring-1
-                ring-amber-200
-              "
-            >
-              ⚠️
-            </div>
-
-            <div className="min-w-0">
-              <p
-                className="
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-
-                  sm:text-lg
-                "
-              >
-                ตรวจสอบก่อนยืนยัน
-              </p>
-
-              <p
-                className="
-                  mt-1
-
-                  text-sm
-                  font-semibold
-                  leading-relaxed
-                  !text-slate-600
-
-                  sm:text-base
-                "
-              >
-                กรุณาตรวจสอบจำนวนพัสดุที่สามารถเบิกจ่ายได้จริงก่อนยืนยันรายการ
-                ระบบจะใช้จำนวนเบิกจ่ายจริงในการตัดสต็อกและบันทึก Stock Card
-              </p>
-            </div>
-          </div>
-        </AppInfoCard>
       </AppCard>
 
       {/* =====================================================
@@ -580,21 +428,13 @@ export default async function ApproveIssuePage({
             "th-TH"
           )} หน่วย`}
         >
-          <div
-            className="
-              w-full
-              overflow-x-auto
-            "
-          >
+          <div className="w-full min-w-0 overflow-x-auto">
             <table
               className="
                 w-full
                 min-w-[900px]
-
                 border-collapse
-
                 bg-white
-
                 text-sm
               "
             >
@@ -603,17 +443,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[7%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -625,17 +461,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[18%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -647,17 +479,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[35%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -669,17 +497,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[15%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -691,17 +515,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[15%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -713,17 +533,13 @@ export default async function ApproveIssuePage({
                   <th
                     className="
                       w-[10%]
-
                       border
                       border-black
-
                       bg-gradient-to-r
                       from-slate-800
                       to-slate-700
-
                       px-3
                       py-4
-
                       text-center
                       font-extrabold
                       !text-white
@@ -736,10 +552,7 @@ export default async function ApproveIssuePage({
 
               <tbody>
                 {issue.items.map(
-                  (
-                    item,
-                    index
-                  ) => (
+                  (item, index) => (
                     <tr
                       key={item.id}
                       className={`
@@ -748,23 +561,17 @@ export default async function ApproveIssuePage({
                             ? "bg-white"
                             : "bg-slate-50/50"
                         }
-
                         transition-colors
                         duration-200
-
                         hover:bg-blue-50/70
                       `}
                     >
-                      {/* NUMBER */}
-
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           !text-slate-800
@@ -773,38 +580,28 @@ export default async function ApproveIssuePage({
                         {index + 1}
                       </td>
 
-                      {/* CATEGORY */}
-
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           font-bold
                           !text-slate-900
                         "
                       >
                         {categoryName[
-                          item.material
-                            .category
+                          item.material.category
                         ] ??
-                          item.material
-                            .category}
+                          item.material.category}
                       </td>
-
-                      {/* MATERIAL */}
 
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           font-bold
                           !text-slate-900
                         "
@@ -824,8 +621,7 @@ export default async function ApproveIssuePage({
                               !text-slate-500
                             "
                           >
-                            {item.material
-                              .code || "-"}
+                            {item.material.code || "-"}
                           </span>
 
                           <span
@@ -834,22 +630,17 @@ export default async function ApproveIssuePage({
                               !text-slate-900
                             "
                           >
-                            {item.material
-                              .name || "-"}
+                            {item.material.name || "-"}
                           </span>
                         </div>
                       </td>
-
-                      {/* REQUESTED QTY */}
 
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           tabular-nums
@@ -858,21 +649,15 @@ export default async function ApproveIssuePage({
                       >
                         {Number(
                           item.qty
-                        ).toLocaleString(
-                          "th-TH"
-                        )}
+                        ).toLocaleString("th-TH")}
                       </td>
-
-                      {/* ISSUED QTY */}
 
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                         "
                       >
@@ -880,42 +665,31 @@ export default async function ApproveIssuePage({
                           type="number"
                           name={`issuedQty_${item.id}`}
                           min="0"
-                          max={Number(
-                            item.qty
-                          )}
+                          max={Number(item.qty)}
                           step="1"
                           placeholder="กรอกจำนวน"
                           required
                           className="
                             h-11
                             w-full
-
+                            min-w-[120px]
                             rounded-[14px]
-
                             border-2
                             !border-black
-
                             bg-white
-
                             px-3
-
                             text-center
                             text-base
                             font-extrabold
                             tabular-nums
                             !text-slate-900
-
                             shadow-sm
                             outline-none
-
                             transition-all
                             duration-200
-
                             placeholder:font-semibold
                             placeholder:!text-slate-400
-
                             hover:bg-slate-50
-
                             focus:!border-emerald-600
                             focus:bg-white
                             focus:ring-4
@@ -924,23 +698,18 @@ export default async function ApproveIssuePage({
                         />
                       </td>
 
-                      {/* UNIT */}
-
                       <td
                         className="
                           border
                           border-black
-
                           px-3
                           py-3
-
                           text-center
                           font-extrabold
                           !text-slate-700
                         "
                       >
-                        {item.material
-                          .unit || "-"}
+                        {item.material.unit || "-"}
                       </td>
                     </tr>
                   )
@@ -951,19 +720,79 @@ export default async function ApproveIssuePage({
         </AppTableCard>
 
         {/* ===================================================
-            CONFIRM SUMMARY
+            WARNING
         =================================================== */}
 
         <AppCard className="p-4 sm:p-5">
           <div
             className="
               flex
-              flex-col
-              gap-4
+              min-w-0
+              items-start
+              gap-3
+            "
+          >
+            <div
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+                rounded-[13px]
+                bg-amber-50
+                text-lg
+                ring-1
+                ring-amber-200
+              "
+            >
+              ⚠️
+            </div>
 
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
+            <div className="min-w-0 flex-1">
+              <p
+                className="
+                  text-base
+                  font-extrabold
+                  !text-slate-900
+                  sm:text-lg
+                "
+              >
+                ตรวจสอบก่อนยืนยัน
+              </p>
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+                  !text-slate-600
+                  sm:text-base
+                "
+              >
+                กรุณาตรวจสอบจำนวนพัสดุที่สามารถเบิกจ่ายได้จริงก่อนยืนยันรายการ
+                ระบบจะใช้จำนวนเบิกจ่ายจริงในการตัดสต็อกและบันทึก Stock Card
+              </p>
+            </div>
+          </div>
+        </AppCard>
+
+        {/* ===================================================
+            SUMMARY + ACTIONS
+        =================================================== */}
+
+        <AppCard className="p-4 sm:p-5">
+          <div
+            className="
+              grid
+              w-full
+              min-w-0
+              grid-cols-1
+              gap-4
+              lg:grid-cols-[minmax(0,1fr)_220px]
+              lg:items-center
             "
           >
             <div className="min-w-0">
@@ -980,7 +809,6 @@ export default async function ApproveIssuePage({
               <p
                 className="
                   mt-1
-
                   text-sm
                   font-semibold
                   !text-slate-500
@@ -990,10 +818,10 @@ export default async function ApproveIssuePage({
               </p>
             </div>
 
-            <AppInfoCard className="shrink-0 sm:min-w-[180px]">
+            <AppInfoCard className="min-w-0">
               <p
                 className="
-                  text-right
+                  text-center
                   text-3xl
                   font-black
                   tabular-nums
@@ -1008,7 +836,7 @@ export default async function ApproveIssuePage({
               <p
                 className="
                   mt-1
-                  text-right
+                  text-center
                   text-sm
                   font-bold
                   !text-slate-500
@@ -1019,24 +847,17 @@ export default async function ApproveIssuePage({
             </AppInfoCard>
           </div>
 
-          {/* ===============================================
-              ACTIONS
-          =============================================== */}
-
           <div
             className="
               mt-5
-
               flex
               flex-col
               gap-2
-
               border-t
               border-slate-200
-
               pt-4
-
               sm:flex-row
+              sm:items-center
               sm:justify-end
             "
           >
